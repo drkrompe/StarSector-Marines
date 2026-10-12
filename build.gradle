@@ -171,6 +171,7 @@ test {
     // sheet arrives annotated. Declare them.
     inputs.dir('art-source/tilesets')
     inputs.dir('art-source/roads')
+    inputs.dir('art-source/story-scenes')
             .withPropertyName('tilesetSeeds')
             .withPathSensitivity(PathSensitivity.RELATIVE)
     // The shipped catalogs and art are read off disk at runtime too, and by far

@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, and friendly Warship control are 
 
 Written: 2026-09-23
 
-Updated: 2026-10-12 — a friendly Warship is a fourth carrier: it lays areas for its batteries rather than aiming a barrel.
+Updated: 2026-10-12 — hover-only help tab explains each carrier's controls; a friendly Warship is a fourth carrier.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -95,6 +95,14 @@ while the pointer is over chrome or outside the battlefield. Entering and
 leaving clears every held key and trigger. Escape or an explicit exit control
 releases the session. Death, boarding, hard withdrawal, battle completion,
 screen detach, and lost input focus release it as well.
+
+A small `! HELP` tab sits just left of the return/pause buttons. It is hover-only: the pointer
+over the tab opens a panel of this carrier's bindings and what its cards mean, and leaving
+both the tab and the panel closes it. It takes no click and no focus, and nothing opens
+by itself on entry. The tab is chrome like the buttons, so world fire is suspended
+while the pointer is over it; the open panel is chrome only while open, and a collapsed
+panel captures no pointer. The content is per carrier (Marine, Mech, APC, Warship) and
+lists only that carrier's real bindings; with nothing controlled there is no tab.
 
 A faint aim lane connects the current firing origin toward the cursor. Its
 clear segment ends at the first structural projectile blocker, marked in amber;

@@ -23,6 +23,16 @@ does not own personnel persistence, equipment progression, contract resolution,
 financial accounting, or battle command. Those systems remain authoritative;
 company view composes their stable outputs.
 
+Mission location artwork is a shared presentation record. `StoryScene` resolves
+the mission identity and source for the campaign picker, DEBUG catalog and
+after-action archive, including branch previews, retries and recurring work.
+The archive depicts the location, never proof of victory, casualties or damage.
+Unknown and generated operations retain their existing planet/scope fallback.
+Shipped location JPEGs are 1200×400; full-resolution PNG masters and generation
+prompts stay in `art-source/story-scenes`. Its `pack.ps1` downsamples the complete
+3:1 composition without cropping or replacing masters. Add artwork to this
+shared mapping instead of assigning paths independently in each screen.
+
 ## Vocabulary
 
 - **Company** — the player's aggregate force. There is no separate persisted

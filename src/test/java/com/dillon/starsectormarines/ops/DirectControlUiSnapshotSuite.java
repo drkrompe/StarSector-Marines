@@ -112,6 +112,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             artifacts.add(new SnapshotArtifact("action-controls.png", renderer.render(fixture.actionsDocument(),
                     (int) BattleDirectControlOverlay.ACTIONS_WIDTH, (int) BattleDirectControlOverlay.ACTIONS_HEIGHT)));
         }
+        artifacts.add(new SnapshotArtifact("action-help-warship-expanded.png",
+                helpFrame(renderer, context.modRoot(), BattleDirectControlStatus.Carrier.WARSHIP)));
+        artifacts.add(new SnapshotArtifact("action-help-collapsed.png",
+                helpFrame(renderer, context.modRoot(), null)));
         artifacts.add(new SnapshotArtifact("selected-mech-1920x1080-ui100.png",
                 composite(renderer, context.modRoot(), 1920, 1080, 1f, true)));
         artifacts.add(new SnapshotArtifact("selected-infantry-1920x1080-ui100.png",
@@ -119,6 +123,26 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-mech-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
         return artifacts;
+    }
+
+    /** The hover-only help tab: collapsed ({@code carrier == null}) or opened for a carrier. */
+    private static BufferedImage helpFrame(HeadlessUiRenderer renderer, Path modRoot,
+                                           BattleDirectControlStatus.Carrier carrier) throws Exception {
+        Reactor reactor = new Reactor();
+        var plate = new BattleDirectControlHelpPlate(reactor, ModStrings.fromDisk(modRoot));
+        var loader = new MarkupLoader(path -> Files.readString(modRoot.resolve(path)),
+                List.of(BattleDirectControlHelpPlate.COMPONENT_PATH));
+        try (var markup = loader.reloadAndBuild(reactor, BattleDirectControlHelpPlate.COMPONENT, plate.props())) {
+            boolean open = carrier != null;
+            plate.update(open, open ? carrier : BattleDirectControlStatus.Carrier.NONE);
+            markup.flush();
+            int width = (int) (open ? BattleDirectControlHelp.PANEL_WIDTH : BattleDirectControlHelp.TAB_WIDTH);
+            int height = (int) (BattleDirectControlHelp.TAB_HEIGHT + (open
+                    ? BattleDirectControlHelp.panelHeight(BattleDirectControlHelpPlate.rowCount(carrier)) : 0f));
+            var document = BattleDirectControlOverlay.document(markup);
+            document.layout(width, height);
+            return renderer.render(document, width, height);
+        }
     }
 
     /** Active control keeps equipment bottom-center and exit/pause in their independent top-right document. */

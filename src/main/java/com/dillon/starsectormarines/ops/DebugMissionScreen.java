@@ -133,16 +133,8 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
                 : selectedStory.location() + " / " + selectedStory.sequence() + " / " + selectedStory.sequenceHint());
         props.put("description", selected == null ? "Enable the developer mission catalog to use this screen." : selected.flavor);
         props.put("preset", selected == null ? "" : DebugMissionCatalog.preset(selected).summary());
-        var story = DebugMissionCatalog.scenario(selected);
-        String image = story == null ? "graphics/ui/console/operation-scope.svg" : switch (story) {
-            case RELIEF, MILITIA_RELIEF -> "graphics/illustrations/wayline/relief.jpg";
-            case COUNTERATTACK, DEPOT_CLEARANCE -> "graphics/illustrations/wayline/counterattack.jpg";
-            case JUNCTION -> "graphics/illustrations/wayline/junction.jpg";
-            case LAST_LIFT, CREW_RECOVERY -> "graphics/illustrations/wayline/last-lift.jpg";
-            case RELAY_NINE, ROUTE_SECURITY -> "graphics/illustrations/wayline/relay-nine.jpg";
-            default -> "graphics/ui/console/operation-scope.svg";
-        };
-        props.put("image", image);
+        var scene = StoryScene.forMission(selected);
+        props.put("image", scene == null ? "graphics/ui/console/operation-scope.svg" : scene.image);
         return props;
     }
 }

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -16,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.EnumMap;
 import java.util.Locale;
+import java.util.TreeMap;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Opt-in production installation renders across the world's surface families. */
@@ -40,6 +44,7 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                 var topology = sim.getTopology();
                 long geometry = 1;
                 int curvedCells = 0;
+                var walls = new TreeMap<String, Integer>();
                 var ground = new EnumMap<GroundKind, Integer>(GroundKind.class);
                 for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++) {
                     geometry = 31 * geometry + (grid.isWalkable(x, y) ? 1 : 0);
@@ -47,6 +52,15 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     geometry = 31 * geometry + grid.getWallHp(x, y);
                     geometry = 31 * geometry + (grid.isDoorway(x, y) ? 1 : 0);
                     ground.merge(topology.getGroundKind(x, y), 1, Integer::sum);
+                    if (topology.isWall(x, y) && !grid.isWalkable(x, y)
+                            && !topology.isFixture(x, y) && !grid.hasTag(x, y, CellTag.NATURAL_SOLID)) {
+                        String material = topology.getSurfaceId(x, y);
+                        assertNotNull(material, "installation walls must own their material");
+                        var skin = TileRegistry.installed().block(material);
+                        assertNotNull(skin, material);
+                        assertNotNull(skin.rubbleBlockId, "installation wall lacks matching rubble: " + material + " at " + x + "," + y + " hp=" + grid.getWallHp(x, y));
+                        walls.merge(material, 1, Integer::sum);
+                    }
                     if (topology.roadSurface() != null) {
                         var patch = topology.roadSurface().patch(x, y, 0);
                         if (patch != null && patch.second() != null) curvedCells++;
@@ -59,7 +73,7 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                 assertTrue(curvedCells > 0, "generated road curves must reach the production renderer");
                 report.append(surface).append(" geometry=").append(geometry)
                         .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
-                        .append(" ground=").append(ground).append('\n');
+                        .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
                         renderer.render(sim, "Installation / " + surface)));
             }
