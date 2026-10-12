@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
+Updated: 2026-10-12 — persistent terrain scars and retained impact decals appear in embedded battle reviews.
 
 ## Vocabulary
 
@@ -150,6 +150,14 @@ remains legible at distance; presentation geometry does not redefine collision.
 Ordinary building facades and Conquest bunker panes use this shared-edge path.
 Wall-cell windows remain a separate aperture treatment for heavy compound
 perimeters whose aperture genuinely occupies a thick structural cell.
+
+Persistent impact marks occupy DECALS beneath props and actors. Standalone
+battles retain their GL accumulator; hosts without it submit the retained
+source marks as ordinary textured commands using the same position, scale,
+rotation and frame. Battle-review captures include that layer. This source
+replay is bounded by the simulation's retained decal list, while an already
+stamped live accumulator can retain older pixels after source eviction.
+Persistent cell-backed terrain scars do not depend on that decal retention.
 
 ## Standing laws
 
