@@ -705,9 +705,9 @@ Frozen ground accepts the same defense footprints as other walkable outdoor
 ground; changing a margin's surface must not reroll emplacements and later
 spawn choices.
 
-Installation shells also own a material identity: accommodation uses masonry,
-command, clinical and service buildings use light cast concrete, and reinforced
-perimeter fortifications use dark cast concrete. The identity follows the actual
+Installation shells also own a material identity: buildings use light cast
+concrete, and reinforced perimeter fortifications use dark cast concrete.
+The identity follows the actual
 packed wall ring after apertures and fittings, preserving floor, fixture and
 doorway surfaces. Shared walls retain one material. These are ordinary combat
 walls with connected caps, paired opening trim and material-matched rubble;
