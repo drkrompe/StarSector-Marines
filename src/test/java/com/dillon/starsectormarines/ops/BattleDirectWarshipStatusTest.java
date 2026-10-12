@@ -46,7 +46,7 @@ class BattleDirectWarshipStatusTest {
 
     @Test
     void theStripHasAGroupForEveryBatteryTheHullCarriesAndNoneForWhatItLacks() {
-        assertEquals(List.of("GUNS", "MISSILES", "PD", "DIRECTOR"),
+        assertEquals(List.of("HELM", "GUNS", "MISSILES", "PD", "DIRECTOR"),
                 BattleDirectWarshipStatus.status(ship, false, false).cards().stream().map(ShipCard::key).toList());
         assertNull(card("SHIELD", false), "no shield, no card");
         assertNull(card("LANCES", false), "no lance, no card");
@@ -55,7 +55,7 @@ class BattleDirectWarshipStatusTest {
     @Test
     void aBatteryReadsIdleLaidDangerousOrHeldFromTheShipsOwnState() {
         assertEquals("IDLE", card("GUNS", false).state());
-        assertEquals("NO AREA", card("GUNS", false).detail());
+        assertEquals("HOLD LMB ON MAP", card("GUNS", false).detail());
         ship.layArea(Warship.FireGroup.GUNS, new WarshipOrder.FireOnArea(40f, 30f, WarshipPilot.AREA_RADIUS_CELLS, true));
         assertEquals("LAID", card("GUNS", false).state());
         assertEquals("AREA 40,30", card("GUNS", false).detail());

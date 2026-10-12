@@ -46,6 +46,7 @@ final class BattleDirectWarshipStatus {
     /** The cards and flux gauge for a hull; {@code exposed} says a laid area would put a round near a friendly. */
     static WarshipStatus status(Warship ship, boolean gunsExposed, boolean missilesExposed) {
         List<ShipCard> cards = new ArrayList<>();
+        cards.add(helmCard(ship));
         Battery guns = new Battery();
         Battery lances = new Battery();
         Battery missiles = new Battery();
@@ -112,7 +113,8 @@ final class BattleDirectWarshipStatus {
     private static ShipCard batteryCard(String key, String name, Warship ship, Battery b,
                                         Warship.FireGroup group, int held, boolean exposed) {
         WarshipOrder.FireOnArea laid = ship.laidArea(group);
-        String detail = laid != null ? area(laid) : held > 0 ? "AUTO " + held : "NO AREA";
+        String hold = group == Warship.FireGroup.GUNS ? "HOLD LMB ON MAP" : "HOLD RMB ON MAP";
+        String detail = laid != null ? area(laid) : held > 0 ? "AUTO " + held : hold;
         String resource = b.limitedAmmo ? b.ammo + " rd" : b.ready + "/" + b.total;
         String state;
         Tone tone;
@@ -170,6 +172,13 @@ final class BattleDirectWarshipStatus {
                 b.limitedAmmo ? b.ammo + " rd" : b.ready + "/" + b.total, state, tone, fraction(b.ready, b.total));
     }
 
+    /** What the pilot flies with, and how to get out, so the strip says how to start. */
+    private static ShipCard helmCard(Warship ship) {
+        float speed = ship.speed();
+        return new ShipCard("HELM", "[WASD] FLY", "[TAB] LEAVE", "",
+                speed > 0.05f ? "UNDERWAY" : "HOVER", speed > 0.05f ? Tone.BUSY : Tone.READY, 1f);
+    }
+
     private static ShipCard shieldCard(Warship ship) {
         String state = ship.shieldState().toUpperCase(Locale.ROOT);
         Tone tone = switch (ship.shieldState()) {
@@ -185,7 +194,7 @@ final class BattleDirectWarshipStatus {
     private static ShipCard automationCard(Warship ship) {
         boolean on = ship.isDirected();
         String detail = ship.hasBattery(Warship.FireGroup.MISSILES)
-                ? "[3] MSL " + ship.missilePreset().name() : "[1] HOLD FIRE";
+                ? "[1] HOLD  [3] MSL " + ship.missilePreset().name() : "[1] HOLD FIRE";
         String policy = switch (ship.groundFire()) {
             case ALL -> "ALL";
             case HEAVY -> "HEAVY";
