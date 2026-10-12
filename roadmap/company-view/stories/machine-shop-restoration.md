@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — live campaign acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — heavy damage art and pressure-patch restoration; live walkthrough remains.
+Updated: 2026-10-12 — visible sealed pressure hatches; live walkthrough remains.
 
 ## Outcome
 
@@ -33,6 +33,8 @@ and alternative specialization branches remain future work.
 - Room footprint, location, doors, Mech Lab and both shuttle bays remain fixed
   across all workshop states. Debris, damaged machinery, restored stations and
   installed tools are visible in the normal ship renderer.
+- Sealed entrances show pressure-hatch leaves and locking bars; clearance
+  removes the seal and restores the ordinary doorway after patching the breach.
 - Inactive machinery offers no ambient work; repaired and equipped stations
   offer appropriate reachable work. Clearing cannot strand crew or block the
   first-mission preparation rooms.
