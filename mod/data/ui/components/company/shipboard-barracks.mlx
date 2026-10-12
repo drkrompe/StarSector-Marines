@@ -286,8 +286,8 @@
         <img id="guide-progress" class="{command.guideProgressClasses}" src="{command.guideProgressImage}" />
         <button id="guide-previous" class="{command.guidePreviousClasses}" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
         <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">{command.guideNextLabel}</button>
-        <button id="guide-dismiss" class="guide-dismiss console-action" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">{command.guideDismissLabel}</button>
-        <div id="guide-close-hint" class="label muted guide-close-hint">USE THE HIGHLIGHTED CONTROL / ESC TO DISMISS</div>
+        <button id="guide-dismiss" class="{command.guideDismissClasses}" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">{command.guideDismissLabel}</button>
+        <div id="guide-close-hint" class="label muted guide-close-hint">{command.guideCloseHint}</div>
       </div>
   </div>
   </div>

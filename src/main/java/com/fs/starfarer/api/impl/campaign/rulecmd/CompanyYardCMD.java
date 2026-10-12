@@ -28,6 +28,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         if ("selected".equals(action)) return option != null && option.startsWith(PREFIX);
         if ("available".equals(action)) return CompanyYard.dockedMarket() != null && !candidates().isEmpty();
         if ("show".equals(action)) {
+            if (openRequired(dialog, memoryMap)) return true;
             portrait(dialog);
             dialog.getOptionPanel().clearOptions();
             dialog.getTextPanel().addPara("Which Cerberus shall the yard convert, Commander?");
@@ -51,6 +52,16 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         } else return false;
         return true;
     }
+    /** The opening lesson goes straight to the real, reviewable yard order at port. */
+    public static boolean openRequired(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
+        if (!CerberusCompanyStart.conversionRequired() || CompanyYard.dockedMarket() == null
+                || dialog != Global.getSector().getCampaignUI().getCurrentInteractionDialog()) return false;
+        FleetMemberAPI ship = CerberusCompanyStart.startingShip();
+        if (ship == null) return false;
+        memoryMap.get(MemKeys.LOCAL).set(SELECTED, ship.getId());
+        review(dialog, ship);
+        return true;
+    }
     private static List<FleetMemberAPI> candidates() {
         if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return List.of();
         return Global.getSector().getPlayerFleet().getFleetData().getMembersListCopy().stream()
@@ -67,6 +78,9 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
     }
     private static void review(InteractionDialogAPI dialog, FleetMemberAPI ship) {
         portrait(dialog);
+        if (CerberusCompanyStart.conversionRequired())
+            dialog.getTextPanel().addPara("Before we call her home, Commander, we need bunks for our people and a place to work. "
+                    + "This is the required yard conversion. Review the bill, then choose Install conversion below.");
         dialog.getTextPanel().addPara("Mercenary Company Conversion" + (ship == null ? "" : " - " + ship.getShipName()));
         dialog.getTextPanel().addPara("Permanent installation: +18 personnel capacity, -25 cargo capacity, expanded barracks, "
                 + "company command eligibility and one workshop gantry. The existing single boat berth remains; the hullmod includes no boat or mech.");

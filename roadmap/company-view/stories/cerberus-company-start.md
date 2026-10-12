@@ -40,6 +40,12 @@ cannot replenish it. Ordinary starts receive no depot.
 
 ## Acceptance
 
+- Required conversion is named explicitly as Mercenary Company Conversion, a
+  5,000-credit planetary yard order. Marine operations opens its review directly
+  while docked before conversion; vanilla Refit is not the installation route.
+- Opening preparation and Mira induction have no Later or Escape dismissal.
+  Return to campaign remains available for travel or resupply, with the required
+  lesson returning on re-entry. Company designation cannot bypass the conversion.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
   captain, no automatic company designation or preinstalled conversion.
 - Begin in space with a reachable planetary destination and Castle's portrait guidance.
@@ -75,8 +81,13 @@ cover the real preparation orders, depot serialization and exhaustion, partial
 cargo draws, failed bills, port-only availability, one-time installation/depot issue,
 and stale Mech Lab fabrication after a capacity change.
 
-Validation: 45 focused tests passed, the shaded mod jar built, six Cerberus deck
-frames and 75 existing Barracks/preparation frames rendered successfully.
+Initial validation covered 45 focused tests, the shaded mod jar, six Cerberus deck
+frames and 75 Barracks/preparation frames. The required-conversion UX follow-up
+passes 11 focused tests and the package boundary check; 77 retained frames cover
+conversion directions, preparation and induction at 100% and 150%. Pointer tests
+verify that Escape cannot hide the required lesson, unrelated controls stay blocked,
+Return stays usable, and a real order releases the spotlight. Yard review spends
+nothing; an alternative hull cannot bypass the founding conversion.
 
 Still open: live character creation, travel, planet-menu ordering, native hullmod
 persistence and campaign save/reload acceptance. New Castle lines are text with her
