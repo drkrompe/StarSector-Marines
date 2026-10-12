@@ -726,6 +726,11 @@ roads and terrain masses, and preserves navigation and the facility placement
 random stream. Its four supply landing stands have concrete working surfaces,
 corner markings and a service lane connected to the compound road. Through
 traffic passes between stands rather than across their touchdown footprints.
+Grouped outbound cargo, incoming freight handling and fuel storage occupy
+separate working pockets behind the service lane. Their equipment uses ordinary
+registered prop footprints and combat behavior; their gravel beds are explicit
+ground treatment, independent of prop placement. Rotated equipment footprints
+stay outside the lane, touchdown areas and flight approaches.
 Full berth approaches exclude tall or blocking scenery; fine passable scatter
 and native ground variation continue beneath that airspace. Only engineered
 working ground is kept bare, so an approach reservation cannot draw a cleared

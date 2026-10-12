@@ -153,11 +153,32 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     assertTrue(GridPathfinder.findPath(vehicleGrid, 240, y, approach[0], approach[1]).length > 0,
                             "supply stands need vehicle access to the compound");
                 }
+                var supplyProps = sim.getDoodads().stream().filter(p -> p.cover > 0
+                        && p.cellX >= 217 && p.cellX <= 227 && p.cellY >= 53 && p.cellY <= 108
+                        && (p.cellY <= 63 || (p.cellY >= 86 && p.cellY <= 95) || p.cellY >= 99)).toList();
+                assertTrue(supplyProps.stream().filter(p -> "doodad.industrial-crate-stack".equals(p.definitionId())).count() == 18,
+                        "outbound and incoming freight need grouped crates");
+                assertTrue(supplyProps.stream().filter(p -> "doodad.industrial-fluid-tank".equals(p.definitionId())).count() == 6,
+                        "fuel storage belongs behind the service lane");
+                assertTrue(supplyProps.stream().filter(p -> "doodad.stores-cargo-loader".equals(p.definitionId())).count() == 2,
+                        "both cargo pockets need loading equipment");
+                for (var prop : supplyProps)
+                    for (int y = prop.cellY; y < prop.cellY + prop.footprintCellsY; y++)
+                        for (int x = prop.cellX; x < prop.cellX + prop.footprintCellsX; x++) {
+                            assertTrue(x <= 227, "the whole rotated prop must remain behind the service lane");
+                            assertTrue(topology.isFixture(x, y) && !grid.isWalkable(x, y),
+                                    "working equipment lost collision: " + prop.definitionId() + " at " + x + "," + y
+                                            + " fixture=" + topology.isFixture(x, y) + " walkable=" + grid.isWalkable(x, y));
+                            assertTrue(topology.getNatureOverlayIndex(x, y) < 0, "no wild scatter under yard equipment");
+                        }
+                for (int y = 58; y <= 102; y++) for (int x = 229; x <= 231; x++)
+                    assertTrue(grid.isWalkable(x, y), "supply service lane must retain three clear cells");
                 report.append(surface).append(" geometry=").append(geometry)
                         .append(" vehicleRoutes=3 facilityDoors=reachable records=dispatch")
                         .append(" fieldOverlays=").append(fieldRocks).append(" naturalSolidCells=").append(mountainCells)
                         .append(" summitFormations=").append(summitProps.size()).append(" edgeMassCells=").append(edgeMass)
                         .append(" supplyStands=4 approachScatter=").append(approachScatter)
+                        .append(" supplyEquipment=").append(supplyProps.size())
                         .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
                         .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
@@ -166,6 +187,9 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     var supplyView = new BattleReviewFrameRenderer(context.modRoot(), 1600, 1000, 241, 80, 108);
                     frames.add(new SnapshotArtifact("frozen-supply-pads.png",
                             supplyView.render(sim, "Supply landing area / clear stands, natural approaches")));
+                    var equipmentView = new BattleReviewFrameRenderer(context.modRoot(), 1600, 1000, 230, 99, 48);
+                    frames.add(new SnapshotArtifact("frozen-supply-equipment.png",
+                            equipmentView.render(sim, "Fuel storage and freight handling / service side of the pads")));
                     var labels = ReviewAnnotations.builder();
                     String[] names = {"Mech bay", "Workshop", "Magazine", "Command", "Power", "Mess hall",
                             "Barracks court", "Dispatch records", "Service entrance"};

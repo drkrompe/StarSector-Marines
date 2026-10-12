@@ -5,13 +5,13 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 /** Authored working yards: equipment has real footprints; paint leaves circulation open. */
-final class StoryServiceYard {
+public final class StoryServiceYard {
     private final GenContext c;
 
-    StoryServiceYard(GenContext context) { c = context; }
+    public StoryServiceYard(GenContext context) { c = context; }
 
     /** Distinct gravel equipment bed, with no authority to repaint a road or building. */
-    void gravel(int l, int b, int r, int t) {
+    public void gravel(int l, int b, int r, int t) {
         for (int y = b; y <= t; y++) for (int x = l; x <= r; x++) requireOpen(x, y);
         for (int y = b; y <= t; y++) for (int x = l; x <= r; x++) {
             c.topology.setGroundKind(x, y, GroundKind.STONE);
@@ -35,7 +35,7 @@ final class StoryServiceYard {
     }
 
     /** Four hazard corner marks define a working bay without carpeting it in warning paint. */
-    void bay(int l, int b, int r, int t) {
+    public void bay(int l, int b, int r, int t) {
         for (int y = b; y <= t; y++) for (int x = l; x <= r; x++) {
             if ((x != l && x != r) || (y != b && y != t)) continue;
             requireOpen(x, y);
@@ -44,13 +44,13 @@ final class StoryServiceYard {
         }
     }
 
-    void cargo(int x, int y) {
+    public void cargo(int x, int y) {
         for (int dy = 0; dy < 2; dy++) for (int dx = 0; dx < 3; dx++)
             prop(x + dx, y + dy, "industrial-crate-stack", 0);
         prop(x + 4, y, "industrial-pallet-stack", 0);
     }
 
-    void prop(int x, int y, String id, int turns) {
+    public void prop(int x, int y, String id, int turns) {
         var def = TileRegistry.installed().doodad("doodad." + id);
         if (def == null) throw new IllegalStateException("Missing service-yard asset: " + id);
         Doodad prop = new Doodad(x, y, def, turns);
