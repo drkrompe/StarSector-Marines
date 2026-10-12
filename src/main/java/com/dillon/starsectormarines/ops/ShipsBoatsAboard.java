@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.dillon.starsectormarines.marine.BoatDeck;
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -55,7 +56,7 @@ public final class ShipsBoatsAboard {
         // with — the same set a fresh deck would reconcile to.
         if (deck == null) {
             CompanyShip ship = CompanyShipResolver.read(aboard);
-            return standardFit(ShipsBoats.carriedBy(ship.role()),
+            return standardFit(ShipsBoats.carriedBy(ship),
                     ShipsBoats.aboard(ship).size());
         }
 
@@ -84,7 +85,8 @@ public final class ShipsBoatsAboard {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         if (aboard == null) return BoatDeck.LeftBehind.NONE;
         CompanyShip ship = CompanyShipResolver.read(aboard);
-        return deck.reconcile(aboard.getId(), ShipsBoats.carriedBy(ship.role()),
+        deck.registerFoundingWrecks(CerberusCompanyStart.startingShipId());
+        return deck.reconcile(aboard.getId(), ShipsBoats.carriedBy(ship),
                 ShipsBoats.aboard(ship).size());
     }
 

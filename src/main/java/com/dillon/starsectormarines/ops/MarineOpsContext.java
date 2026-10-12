@@ -185,7 +185,7 @@ public class MarineOpsContext {
     public CompanyDeck companyDeck() {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         String hull = aboard == null ? null : aboard.getId();
-        String held = boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard);
+        String held = boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard) + ":" + (aboard != null && CompanyShipResolver.read(aboard).aeroshuttleConversion());
         if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
                 && held.equals(companyDeckBoatsHeld)) {
             return companyDeck;
@@ -198,7 +198,7 @@ public class MarineOpsContext {
                 CompanyShipDesignation.deckSeedFor(hull),
                 new BattleSprites(), MarineOpsContext::companyLance,
                 MarineOpsContext::companyMarines,
-                MarineOpsContext::companyBoatsHeld);
+                MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks);
         return companyDeck;
     }
 
@@ -222,12 +222,24 @@ public class MarineOpsContext {
         return held;
     }
 
+    static boolean[] companyBoatWrecks() {
+        if (Global.getSector() == null) return null;
+        var script = MarineRosterScript.getInstance();
+        if (script == null || script.roster() == null) return null;
+        var deck = script.roster().boatDeck();
+        boolean[] wrecks = new boolean[deck.berths()];
+        for (int i = 0; i < wrecks.length; i++) wrecks[i] = deck.wreckInBerth(i);
+        return wrecks;
+    }
+
     /** {@link #companyBoatsHeld()} as a cache key. */
     private static String boatsHeldSignature() {
         boolean[] held = companyBoatsHeld();
         if (held == null) return "";
         StringBuilder signature = new StringBuilder(held.length);
         for (boolean boat : held) signature.append(boat ? '1' : '0');
+        boolean[] wrecks = companyBoatWrecks();
+        if (wrecks != null) for (boolean wreck : wrecks) signature.append(wreck ? 'W' : '-');
         return signature.toString();
     }
 

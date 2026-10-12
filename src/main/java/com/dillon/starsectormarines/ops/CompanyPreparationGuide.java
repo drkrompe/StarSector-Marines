@@ -72,9 +72,9 @@ final class CompanyPreparationGuide {
         if (!CompanyPreparation.required(roster)) return null;
         if (roster.officerInduction().step(roster) == Step.LIFT) {
             boolean building = model.fabricationFocused();
-            return new PreparationGuide.Lesson(1, "COMMISSION OUR FIRST SHUTTLE",
-                    OfficerInductionGuide.line(Step.LIFT, "Mira Hale").text()
-                            + (building ? " Check the material bill, then Commission." : " Select a vacant berth on the right.")
+            return new PreparationGuide.Lesson(1, roster.boatDeck().wreckInBerth(0) ? "REPAIR OUR FIRST HERMES" : "COMMISSION OUR FIRST SHUTTLE",
+                    (roster.boatDeck().wreckInBerth(0) ? "Second Wind came with two wrecked Hermes. This one is accessible; the other is behind the sealed second bay. Let us patch this one for our opening contracts." : OfficerInductionGuide.line(Step.LIFT, "Mira Hale").text())
+                            + (building ? " Check the material bill, then confirm the work." : " Select the first berth on the right.")
                             + (CerberusCompanyStart.depot() != null ? " Our prepaid stores are available while docked at the conversion planet." : ""),
                     building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
                             : List.of("boat-list"), null, null);

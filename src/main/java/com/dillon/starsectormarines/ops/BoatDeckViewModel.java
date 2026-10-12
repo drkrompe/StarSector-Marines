@@ -121,7 +121,14 @@ public final class BoatDeckViewModel {
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         slotRows = reactor.computed(this::buildSlotRows);
         selectedSlotTitle = reactor.computed(() -> slotLabel(selectedSlot.get()));
-        selectedSlotCopy = reactor.computed(() -> slotCopy(selectedSlot.get()));
+        selectedSlotCopy = reactor.computed(() -> {
+            revision.get();
+            CampaignBoat boat = selectedBoat();
+            return boat != null && boat.pattern() == ShuttleType.HERMES
+                    ? "The Hermes is a patched courier, with no plating or drive upgrade path. "
+                            + "Keep it flying until the company can replace it with an Aeroshuttle."
+                    : slotCopy(selectedSlot.get());
+        });
         catalogRows = reactor.computed(this::buildCatalogRows);
         overviewClasses = reactor.computed(() -> fittingFocused() || fabricationFocused()
                 ? "boat-overview panel hidden" : "boat-overview panel");
@@ -137,7 +144,9 @@ public final class BoatDeckViewModel {
         });
         fabricationCopy = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            return recipe == null ? "" : recipe.provenance();
+            return recipe == null ? "" : deck.wreckInBerth(selectedBerth.get())
+                    ? "Original Hermes wreck. Patch her hull and overhaul the drive: four seats at standard fit."
+                    : recipe.provenance();
         });
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
@@ -174,6 +183,7 @@ public final class BoatDeckViewModel {
     public Signal<List<MaterialRow>> materialStock() { return materialStock; }
     public Signal<String> fabricationActionClasses() { return fabricationActionClasses; }
     public Signal<Boolean> fabricationBlocked() { return fabricationBlocked; }
+    public Signal<String> fabricationActionLabel() { return selectedBerth.map(berth -> { revision.get(); return deck.wreckInBerth(berth) ? "REPAIR HERMES" : "COMMISSION"; }); }
     public Signal<String> fabricationReason() { return fabricationReason; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
@@ -234,7 +244,9 @@ public final class BoatDeckViewModel {
         if (carrierName != null && !carrierName.isBlank()) {
             summary.append("  ·  carried by ").append(carrierName);
         }
-        int empty = deck.vacantBerths().size();
+        int wrecks = (int) deck.vacantBerths().stream().filter(deck::wreckInBerth).count();
+        if (wrecks > 0) summary.append("  ·  ").append(wrecks).append(" awaiting repair");
+        int empty = deck.vacantBerths().size() - wrecks;
         if (empty > 0) {
             summary.append("  ·  ").append(empty)
                     .append(empty == 1 ? " berth empty" : " berths empty");
@@ -264,8 +276,8 @@ public final class BoatDeckViewModel {
                     base + ":plating", base + ":drive",
                     classes,
                     berthLabel(index),
-                    vacant ? "EMPTY BERTH" : boat.displayName(),
-                    vacant ? buildablePattern() : boat.pattern().displayName(),
+                    vacant ? (deck.wreckInBerth(index) ? "WRECKED HERMES" : "EMPTY BERTH") : boat.displayName(),
+                    vacant ? (deck.wreckInBerth(index) ? "Original ship's boat / awaiting repair" : buildablePattern()) : boat.pattern().displayName(),
                     vacant ? buildableBill() : boat.plating().displayName(),
                     vacant ? "" : boat.drive().displayName(),
                     () -> selectBoat(berth)));
@@ -291,11 +303,11 @@ public final class BoatDeckViewModel {
         return List.of(
                 meter("hull", "HULL", Math.round(fitted.maxHp()) + " HP",
                         fitted.maxHp(),
-                        pattern.maxHp() * bestFactor(BoatFittingSlot.PLATING,
+                        pattern.maxHp() * bestFactor(pattern, BoatFittingSlot.PLATING,
                                 BoatFitting::hullFactor)),
                 meter("speed", "SPEED", number(fitted.maxSpeed()) + " CELLS/S",
                         fitted.maxSpeed(),
-                        pattern.maxSpeed() * bestFactor(BoatFittingSlot.DRIVE,
+                        pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE,
                                 BoatFitting::speedFactor)),
                 meter("seats", "SEATS", pattern.capacity + " SEATS",
                         pattern.capacity, pattern.capacity),
@@ -329,6 +341,8 @@ public final class BoatDeckViewModel {
         List<CatalogRow> rows = new ArrayList<>();
         for (BoatFitting fitting : BoatFitting.catalog(slot)) {
             boolean installed = fitting.id().equals(installedId);
+            if (boat.pattern() == ShuttleType.HERMES && !installed) continue;
+            if (!installed && !fitting.supports(boat.pattern())) continue;
             // A standard fitting is what the boat left the yard with and costs
             // nothing to put back, so the only thing that can stop it is
             // already being on.
@@ -342,7 +356,8 @@ public final class BoatDeckViewModel {
                     installed ? "catalog-row selected" : "catalog-row",
                     fitting.displayName(), tierLabel(fitting), effect(fitting),
                     fitting.provenance(),
-                    installed ? "FITTED" : affordable ? "" : "SHORT " + shortest(resources.quote(fitting.bill())),
+                    installed ? boat.pattern() == ShuttleType.HERMES ? "FITTED / NO UPGRADES" : "FITTED"
+                            : affordable ? "" : "SHORT " + shortest(resources.quote(fitting.bill())),
                     "FIT",
                     installed || !affordable,
                     materialRows(base, resources.quote(fitting.bill())),
@@ -389,6 +404,7 @@ public final class BoatDeckViewModel {
         selectedSlot.set(BoatFittingSlot.PLATING);
         feedbackText.set(boat != null
                 ? "Inspecting " + boat.displayName() + ". Nothing has been refitted."
+                : deck.wreckInBerth(berthIndex) ? "An original Hermes wreck awaits repair in " + berthLabel(berthIndex) + ". It cannot fly until repaired."
                 : berthLabel(berthIndex) + " is empty. The yard can build the hull's"
                         + " own pattern into it at standard fit.");
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
@@ -399,14 +415,15 @@ public final class BoatDeckViewModel {
     private void selectSlot(BoatFittingSlot slot) {
         if (slot == null || selectedBoat() == null) return;
         selectedSlot.set(slot);
-        feedbackText.set(slotLabel(slot) + " selected. "
-                + "Everything the yard can put here is shown with its bill.");
+        feedbackText.set(selectedBoat().pattern() == ShuttleType.HERMES
+                ? "Hermes fittings are inspection-only. Replace the airframe for better lift."
+                : slotLabel(slot) + " selected. Everything the yard can put here is shown with its bill.");
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
     }
 
     private void showDeckOverview() {
         selectedBerth.set(NO_BERTH);
-        feedbackText.set("Boat deck restored. Select a berth to open the boat standing in it.");
+        feedbackText.set("Select a berth to inspect its boat or repair an original wreck.");
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
         revision.update(value -> value + 1);
         deckChanged.run();
@@ -423,6 +440,7 @@ public final class BoatDeckViewModel {
             case ALREADY_FITTED -> fitting.displayName() + " is already fitted to "
                     + boat.displayName() + ".";
             case CANNOT_AFFORD -> "Refit blocked: required fleet materials are short.";
+            case INCOMPATIBLE_FITTING -> "The Hermes has no upgrade path. Replace the airframe with an Aeroshuttle.";
             default -> "Refit blocked: nothing aboard was changed.";
         });
         feedbackClasses.set(result.succeeded()
@@ -440,10 +458,11 @@ public final class BoatDeckViewModel {
      * player is looking at the berth, and what is standing in it has changed.
      */
     private void fabricate(int berthIndex) {
+        boolean wreck = deck.wreckInBerth(berthIndex);
         BoatWorkshop.Result result = workshop.fabricate(berthIndex);
         CampaignBoat built = result.boat();
         feedbackText.set(switch (result.status()) {
-            case FABRICATED -> built.displayName() + " built into "
+            case FABRICATED -> built.displayName() + (wreck ? " repaired in " : " built into ")
                     + berthLabel(berthIndex) + " at standard fit.";
             case CANNOT_AFFORD ->
                     "Fabrication blocked: required fleet materials are short.";
@@ -513,9 +532,10 @@ public final class BoatDeckViewModel {
         return "";
     }
 
-    private static float bestFactor(BoatFittingSlot slot, FittingFactor factor) {
+    private static float bestFactor(ShuttleType pattern, BoatFittingSlot slot, FittingFactor factor) {
         float best = 1f;
         for (BoatFitting fitting : BoatFitting.catalog(slot)) {
+            if (!fitting.supports(pattern)) continue;
             best = Math.max(best, factor.of(fitting));
         }
         return best;

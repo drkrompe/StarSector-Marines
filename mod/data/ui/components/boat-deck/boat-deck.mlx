@@ -1,4 +1,4 @@
-<template props="restoration,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="wings,fabricationActionLabel,restoration,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -29,6 +29,7 @@
       </div>
 
       <div id="boat-overview" class="{overviewClasses}">
+        <button id="wings-resume" class="{wings.resumeClasses}" onclick="{wings.open}">SECONDHAND WINGS / MARA'S OFFER</button>
         <div id="boat-overview-heading" class="section-title label heading tone-edge">BOATS ABOARD</div>
         <div id="boat-list" class="boat-list">
           <button each="boat in boatRows" key="{boat.id}" id="{boat.id}" class="{boat.classes}" onclick="{boat.select}">
@@ -64,7 +65,7 @@
         </div>
 
         <div id="boat-fabrication-yard" class="panel fabrication-yard">
-          <div id="boat-fabrication-kicker" class="section-title label heading tone-edge">YARD WORK / EMPTY BERTH</div>
+          <div id="boat-fabrication-kicker" class="section-title label heading tone-edge">YARD WORK / AIRFRAME</div>
           <div id="boat-fabrication-copy" class="label tone-muted fabrication-copy">{fabricationCopy}</div>
           <div id="boat-fabrication-materials" class="fabrication-costs">
             <div each="material in fabricationMaterials" key="{material.id}" id="{material.id}" class="{material.classes}">
@@ -74,7 +75,7 @@
           </div>
           <div id="boat-fabrication-reason" class="label heading tone-muted catalog-reason">{fabricationReason}</div>
           <div id="boat-fabrication-actions" class="boat-fabrication-actions">
-            <button id="boat-fabricate" class="{fabricationActionClasses}" disabled="{fabricationBlocked}" onclick="{fabricate}">COMMISSION</button>
+            <button id="boat-fabricate" class="{fabricationActionClasses}" disabled="{fabricationBlocked}" onclick="{fabricate}">{fabricationActionLabel}</button>
           </div>
         </div>
       </div>
@@ -138,10 +139,49 @@
     </div>
 
     <div id="boat-deck-feedback" class="{feedbackClasses}">{feedbackText}</div>
+    <div id="wings-modal" class="{wings.classes}">
+      <div id="wings-space-above" class="wings-space" />
+      <div id="wings-dialog" class="wings-dialog console-readout">
+        <div id="wings-title" class="label heading tone-edge wings-title">{wings.title}</div>
+        <div id="wings-dialogue" class="wings-dialogue">
+          <img id="wings-portrait" class="wings-portrait" src="{wings.portrait}" />
+          <div id="wings-copy" class="label wings-copy">{wings.copy}</div>
+        </div>
+        <div id="wings-exchange" class="wings-exchange">
+          <img id="wings-old" class="wings-craft" src="{wings.oldArt}" />
+          <img id="wings-new" class="wings-craft" src="{wings.newArt}" />
+          <div id="wings-trade" class="label wings-trade tone-muted">{wings.trade}</div>
+        </div>
+        <div id="wings-bill" class="label heading tone-accent wings-bill">{wings.bill}</div>
+        <div id="wings-reason" class="label tone-muted wings-reason">{wings.reason}</div>
+        <div id="wings-controls" class="wings-controls">
+          <button id="wings-action" class="wings-action console-action" disabled="{wings.disabled}" onclick="{wings.action}">{wings.actionLabel}</button>
+          <button id="wings-later" class="wings-action console-action" onclick="{wings.dismiss}">CLOSE / LATER</button>
+        </div>
+      </div>
+      <div id="wings-space-below" class="wings-space" />
+    </div>
   </div>
 </template>
 
 <style>
+  .wings-resume { width: 100%; height: 32px; text-align: center; font-family: heading; }
+  .wings-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12d9; }
+  .wings-hidden { position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
+  .wings-space { height: 0px; flex-grow: 1; }
+  .wings-dialog { width: 900px; height: 465px; padding: 18px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .wings-title { height: 24px; }
+  .wings-dialogue { flex-direction: row; height: 176px; gap: 18px; }
+  .wings-portrait { width: 176px; height: 176px; }
+  .wings-copy { width: 0px; flex-grow: 1; height: 176px; white-space: normal; }
+  .wings-exchange { flex-direction: row; height: 110px; gap: 14px; align-items: center; }
+  .wings-craft { width: 74px; height: 94px; }
+  .wings-trade { width: 0px; flex-grow: 1; height: 104px; white-space: normal; }
+  .wings-bill { height: 24px; }
+  .wings-reason { height: 36px; white-space: normal; }
+  .wings-controls { height: 32px; flex-direction: row; gap: 12px; }
+  .wings-action { width: 190px; height: 32px; font-family: heading; text-align: center; }
+
   .boat-deck-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }

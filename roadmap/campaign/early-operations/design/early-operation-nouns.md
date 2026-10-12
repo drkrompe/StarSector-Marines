@@ -42,6 +42,16 @@ not a simulated change to vanilla market ownership, trade, or faction relations.
    Mara reports that dispatch can resume and refers the company to other
    Independent brokers. Her completed dossier preserves both chapter labels.
 
+**Secondhand Wings** bridges Counterattack and the later supply-route work without
+adding another mandatory chapter. Castle explains why Second Wind's repaired Hermes
+couriers are limiting the company; Mara locates a pair of surplus Aeroshuttles. The
+optional 5,000-credit purchase follows separate restoration of the second bay and
+exchanges the old complement for two refurbished 6-seat boats. HQ retains a Boat Deck
+pointer until purchase. Story completion, not repeatable Depot Clearance, unlocks it.
+Boat ownership, payment, review, loss and the hull-specific adapters are defined in
+`company-view-nouns.md`. This interlude uses text and existing portraits, with no
+new narration recordings.
+
 Mission prose stays in-universe. Contacts address the captain, company, crews
 and dispatch office; transport requirements name company lift. Persistent
 casualties and deliveries are explained through manifests and remaining work,

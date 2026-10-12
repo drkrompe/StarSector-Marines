@@ -28,6 +28,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BoatDeckViewModelTest {
 
+    @Test
+    void hermesShowsOnlyInstalledFittingsAndExplainsReplacement() {
+        BoatDeck boats = new BoatDeck();
+        boats.reconcile("courier", ShuttleType.HERMES, 1);
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), boats, TestResources.stocked(200), "Second Wind");
+        model.selectBoatAction(0).run();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            model.selectSlotAction(slot).run();
+            assertEquals(1, model.catalogRows().get().size());
+            assertTrue(model.selectedSlotCopy().get().contains("no plating or drive upgrade path"));
+        }
+    }
+
     private static final float EPSILON = 0.01f;
     private static final int BERTHS = 6;
     private static final List<String> COMPONENTS = List.of(
@@ -408,7 +422,7 @@ class BoatDeckViewModelTest {
                 .findFirst().orElseThrow();
     }
 
-    private static Map<String, Object> props(BoatDeckViewModel viewModel) {
+    static Map<String, Object> props(BoatDeckViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         // Layout evidence, so the heading only has to be a string of about the
         // right length; where the room actually is belongs to the ship.
@@ -437,7 +451,9 @@ class BoatDeckViewModelTest {
         props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("restoration", BoatBayRestorationModel.Row.hidden());
+        props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
