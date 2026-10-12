@@ -14,6 +14,7 @@ implementation story.
 
 | Story | State | Intent |
 |---|---|---|
+| `shared-mission-objectives.md` | IN PROGRESS | Adapt remaining mission families to shared named map objectives, progress/blockers and friendly squad activity; live-accept Extraction and Colony. |
 | `command-frame-costs.md` | IN PROGRESS | Attribute command-frame freeze and remove redundant work without weakening perspective isolation. |
 | `autonomous-mission-command-foundation.md` | IN PROGRESS | Close assignment-writer ownership and live acceptance around the shared frame/plan/commit contract. |
 | `commander-trace-and-balance-harness.md` | IN PROGRESS | Replace construction-only Conquest evidence with launch-faithful fixtures and later compare bounded intervention. |

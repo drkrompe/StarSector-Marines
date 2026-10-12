@@ -44,7 +44,16 @@ public final class CivilianEvacuationSystem {
     private int nextBoardTick;
     private int escortSquad = -1;
     public enum HoldReason { NONE, NO_ESCORT, REGROUPING, ROUTE_BLOCKED, PICKUP_WAITING }
-    private int unescorted, blocked, awaitingPickup;
+    private int unescorted, blocked, awaitingPickup, screened;
+    private boolean shelterThreat;
+    /** Observed movement gates; no hostile positions or private wave schedule. */
+    public record Progress(boolean storyEscort, int securedTicks, boolean released,
+                           boolean shelterThreat, int unescorted, int blocked,
+                           int awaitingPickup, int screened) { }
+    public Progress progress() {
+        return new Progress(storyEscort, securedTicks, evacuationTriggered, shelterThreat,
+                unescorted, blocked, awaitingPickup, screened);
+    }
     public HoldReason holdReason() {
         if (!storyEscort || !evacuationTriggered || tracker.activeCount() == 0) return HoldReason.NONE;
         if (blocked > 0) return HoldReason.ROUTE_BLOCKED;
@@ -125,7 +134,7 @@ public final class CivilianEvacuationSystem {
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
         if (storyEscort) escortSquad = assignedEscort(sim);
-        unescorted = 0; blocked = 0; awaitingPickup = 0;
+        unescorted = 0; blocked = 0; awaitingPickup = 0; screened = 0; shelterThreat = false;
         if (!evacuationTriggered) {
             boolean respondingMarineAlive = hasRespondingMarine(sim);
             respondingMarineObserved |= respondingMarineAlive;
@@ -136,6 +145,7 @@ public final class CivilianEvacuationSystem {
                     long id = tracker.entityIdAt(i);
                     if (sim.resolveUnit(id) != 0L && nearestThreat(id, sim) != 0L) threat = true;
                 }
+                shelterThreat = threat;
                 securedTicks = reached && !threat ? securedTicks + 1 : 0;
                 evacuationTriggered = securedTicks >= 60;
             } else if (reached || (respondingMarineObserved && !respondingMarineAlive)) {
@@ -171,6 +181,7 @@ public final class CivilianEvacuationSystem {
             long threat = nearestThreat(id, sim);
             long destination;
             if (threat != 0L) {
+                screened++;
                 destination = screenedDestination(id, escort, threat, sim);
             } else if (forwardLead(id, escort, sim) > MAX_FORWARD_LEAD) {
                 destination = NO_CELL;
