@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -47,6 +48,13 @@ public final class Warship {
         public float headingDegrees;
         /** Seconds since this mount last fired; large until it first does. */
         public float secondsSinceFired = 1000f;
+        /** Rounds left in this mount's own magazine, or {@code -1} when it has none to run out of. */
+        int ammoRemaining = UNLIMITED;
+
+        /** Rounds left in this mount's own magazine, or {@code -1} when it is unlimited. */
+        public int ammoRemaining() {
+            return ammoRemaining;
+        }
 
         Mount(WarshipSlot slot, VanillaWeapon weapon) {
             this.slot = slot;
@@ -69,6 +77,11 @@ public final class Warship {
 
     /** A battleship's handling, used for a hull the table does not list. */
     private static final Handling DEFAULT_HANDLING = new Handling(1.1f, 0.4f, 0.4f, 4f, 4f);
+
+    /** The value a getter reports for a budget that was never set. */
+    public static final int UNLIMITED = -1;
+    /** The longest a ship takes to leave the map once it has begun to depart before it is removed anyway. */
+    public static final float DEPARTURE_LIMIT_SECONDS = 180f;
 
     public final String hullId;
     public final String spritePath;
@@ -110,6 +123,13 @@ public final class Warship {
     private WarshipOrder order = WarshipOrder.HoldFire.INSTANCE;
     private boolean headingChosen;
     private float hitPoints;
+    /** Seconds of station time left, counted down while the ship is on station; infinite when unbounded. */
+    private float stationSecondsRemaining = Float.POSITIVE_INFINITY;
+    private boolean departing;
+    private float departingSeconds;
+    private boolean departed;
+    /** Rounds left in the ship-wide pool, or {@link #UNLIMITED}. */
+    private int ordnanceRemaining = UNLIMITED;
     private final List<Mount> mounts;
     private final List<Mount> mountsView;
 
@@ -227,6 +247,47 @@ public final class Warship {
         this.hasStation = true;
     }
 
+    /** The waypoints of a scripted flight, or {@code null} when the ship is not flying one. */
+    private float[][] route;
+    private int routeIndex;
+    private boolean routeLoops;
+
+    /**
+     * Scripts a continuous flight: the ship passes through each waypoint at speed
+     * without stopping, brakes onto the last, or, if {@code loop}, goes round
+     * again forever. Whatever it has been ordered to fire on, it keeps firing.
+     */
+    public void flyRoute(float[][] waypoints, boolean loop) {
+        if (waypoints == null || waypoints.length == 0) {
+            this.route = null;
+            return;
+        }
+        this.route = waypoints.clone();
+        this.routeIndex = 0;
+        this.routeLoops = loop;
+        stationTo(waypoints[0][0], waypoints[0][1]);
+    }
+
+    /** Whether the ship is still on legs it passes through rather than stops at. */
+    public boolean isPassingThrough() {
+        return route != null && (routeLoops || routeIndex < route.length - 1);
+    }
+
+    /** Index of the waypoint the ship is flying to, or -1 when it has no route. */
+    public int routeIndex() {
+        return route == null ? -1 : routeIndex;
+    }
+
+    /** Moves on to the next waypoint once the ship is within {@code radius} cells of this one. */
+    void advanceRoute(float radius) {
+        if (!isPassingThrough()) return;
+        float dx = route[routeIndex][0] - x;
+        float dy = route[routeIndex][1] - y;
+        if (dx * dx + dy * dy > radius * radius) return;
+        routeIndex = (routeIndex + 1) % route.length;
+        stationTo(route[routeIndex][0], route[routeIndex][1]);
+    }
+
     boolean hasStation() {
         return hasStation;
     }
@@ -243,6 +304,104 @@ public final class Warship {
     public boolean isMoving() {
         return velocityX != 0f || velocityY != 0f
                 || (hasStation && (x != stationX || y != stationY));
+    }
+
+    /**
+     * Bounds the ship's time on station: after {@code seconds} spent on its station
+     * (counted only while it is not travelling to it) it stops firing and hovers
+     * away off the map, and is then removed. Unbounded unless this is called.
+     */
+    public void stayFor(float seconds) {
+        if (!(seconds >= 0f)) throw new IllegalArgumentException("station time cannot be negative");
+        this.stationSecondsRemaining = seconds;
+    }
+
+    /** Station time left, in seconds; {@link Float#POSITIVE_INFINITY} when unbounded, zero once departing. */
+    public float stationSecondsRemaining() {
+        return stationSecondsRemaining;
+    }
+
+    /** Whether the ship has begun to leave; it fires nothing new from here on. */
+    public boolean departing() {
+        return departing;
+    }
+
+    /** Whether the ship has left the map and is gone from the battle. */
+    public boolean departed() {
+        return departed;
+    }
+
+    float departingSeconds() {
+        return departingSeconds;
+    }
+
+    void addDepartingSeconds(float dt) {
+        departingSeconds += dt;
+    }
+
+    /** Counts station time down while on station; returns whether the ship is now due to leave. */
+    boolean spendStationTime(float dt) {
+        if (departing || stationSecondsRemaining == Float.POSITIVE_INFINITY) return false;
+        if (!isMoving()) stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - dt);
+        return stationSecondsRemaining <= 0f;
+    }
+
+    /** Begins leaving: no order, no director, and every burst in progress is abandoned. */
+    void beginDeparture() {
+        departing = true;
+        stationSecondsRemaining = 0f;
+        directing = false;
+        order(WarshipOrder.HoldFire.INSTANCE);
+        for (Mount m : mounts) {
+            m.burstRemaining = 0;
+            m.aimed = false;
+        }
+    }
+
+    void markDeparted() {
+        departed = true;
+    }
+
+    /**
+     * Limits the whole ship to {@code rounds} of area ordnance: every round an
+     * area-fire gun lands, and every lance sweep a beam lays, spends one, from
+     * one pool shared by all mounts. Point defence is not ordnance and spends
+     * nothing. When the pool is empty the mounts go silent. Unbounded unless
+     * this is called.
+     */
+    public void limitOrdnance(int rounds) {
+        if (rounds < 0) throw new IllegalArgumentException("an ordnance budget cannot be negative");
+        this.ordnanceRemaining = rounds;
+    }
+
+    /**
+     * Gives every area-fire mount the magazine its own weapon carries, read from
+     * the {@code ammo} column of the weapon table (a blank column is a gun that
+     * does not run out and stays unlimited). Independent of, and combinable with,
+     * the shared pool of {@link #limitOrdnance}.
+     */
+    public void limitOrdnanceToWeaponAmmo() {
+        for (Mount m : mounts) {
+            if (m.pointDefence()) continue;
+            int ammo = VanillaWeapons.ammo(m.weapon.id());
+            if (ammo > 0) m.ammoRemaining = ammo;
+        }
+    }
+
+    /** Rounds left in the ship-wide pool, or {@link #UNLIMITED}. */
+    public int ordnanceRemaining() {
+        return ordnanceRemaining;
+    }
+
+    /** Whether {@code m} still has a round to spend, from its own magazine and the shared pool. */
+    boolean hasOrdnance(Mount m) {
+        return !departing && ordnanceRemaining != 0 && m.ammoRemaining != 0;
+    }
+
+    /** Spends one round of {@code m}. */
+    void spendOrdnance(Mount m) {
+        if (ordnanceRemaining > 0) ordnanceRemaining--;
+        if (m.ammoRemaining > 0) m.ammoRemaining--;
     }
 
     /**
@@ -283,11 +442,23 @@ public final class Warship {
      */
     public static Warship fit(String hullId, String variantId, Faction faction,
                               float x, float y, float facingDegrees) throws Exception {
+        return fit(new StockVariantLoadout(hullId, variantId), faction, x, y, facingDegrees);
+    }
+
+    /** Fits a campaign fleet member as its own fitted variant arms it. */
+    public static Warship fit(FleetMemberAPI member, Faction faction,
+                              float x, float y, float facingDegrees) throws Exception {
+        return fit(new VariantApiLoadout(member.getVariant()), faction, x, y, facingDegrees);
+    }
+
+    /** Fits whatever {@code loadout} names; the stock and fleet-member paths both end here. */
+    public static Warship fit(WarshipLoadout loadout, Faction faction,
+                              float x, float y, float facingDegrees) throws Exception {
+        String hullId = loadout.hullId();
         JSONObject hull = VanillaData.json("data/hulls/" + hullId + ".ship");
-        Map<String, String> loadout = WarshipVariants.weaponsBySlot(hullId, variantId);
         List<Mount> mounts = new ArrayList<>();
         for (WarshipSlot slot : WarshipSlot.parse(hull)) {
-            VanillaWeapon weapon = VanillaWeapons.get(loadout.get(slot.id()));
+            VanillaWeapon weapon = VanillaWeapons.get(loadout.weaponInSlot(slot.id()));
             if (weapon == null) continue;
             Mount mount = new Mount(slot, weapon);
             mount.headingDegrees = facingDegrees + slot.angleDegrees();

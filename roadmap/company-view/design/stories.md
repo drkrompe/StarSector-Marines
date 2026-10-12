@@ -1,8 +1,8 @@
 # Company view open work
 
-Status: ACTIVE — 12 open stories
+Status: ACTIVE — 13 open stories
 Written: 2026-08-23
-Updated: 2026-10-11 — Barracks turnaround and shared resource bills added for Alpha.
+Updated: 2026-10-11 — Castle's first-command induction added to the Alpha pickup.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
@@ -19,4 +19,5 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c13-the-task-force.md` | Partial | Bulk organization is implemented in the Armory gallery; per-officer outcomes are implemented; live acceptance remains. |
 | `c15-retained-fleet-armory.md` | In progress | Owned-company grid, cargo-backed formation founding, drill-down, recovery clocks, reinforcement, persistent Weapon/Armor authoring and migration, atomic twelve-billet issue, and the spatial Mech Lab are retained. |
 | `squad-id-terminology-cleanup.md` | Proposed | Terra finding: squad IDs cross APIs and persisted payloads under legacy fire-team names; requires an explicit save-compatibility plan. |
+| `castle-officer-induction.md` | Implemented; live acceptance open | Castle introduces Mira Hale, guides a real specialty and squad assignment, and gates new-company deployment. |
 | `officer-careers.md` | Implemented; live acceptance open | Dossiers, frozen participation credit, and three promotion-driven passive specialty paths. |

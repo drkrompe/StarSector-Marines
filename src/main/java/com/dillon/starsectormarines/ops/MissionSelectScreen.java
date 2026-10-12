@@ -321,6 +321,8 @@ public final class MissionSelectScreen implements Screen {
                 "The selected operation's scale, field-presence limit, opposition, lift, and payout will appear here before you enter deployment planning.");
         props.put("detailRows", present ? detailRows(mission) : List.of());
         int choice = SupplyRouteCampaign.choice(mission);
+        props.put("choiceSummary", SupplyRouteCampaign.choiceSummary(mission));
+        props.put("choiceClasses", choice == 0 ? "choice-consequence choice-hidden" : "choice-consequence console-well");
         props.put("briefLabel", choice == BrokenSupplyRouteProgress.LIFT ? "COMMIT SUPPORT TO RILL"
                 : choice == BrokenSupplyRouteProgress.RELAY ? "COMMIT SUPPORT TO RELAY NINE" : "BRIEF & DEPLOY");
         props.put("briefDisabled", !present);
@@ -368,6 +370,8 @@ public final class MissionSelectScreen implements Screen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         putBroker(props, null);
+        props.put("choiceSummary", "");
+        props.put("choiceClasses", "choice-consequence choice-hidden");
         props.put("briefLabel", "BRIEF & DEPLOY");
         props.put("screenTitle", "Marine Operations");
         props.put("clientHeader", "Clients");

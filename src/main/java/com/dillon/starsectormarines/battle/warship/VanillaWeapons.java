@@ -51,6 +51,20 @@ public final class VanillaWeapons {
         }
     }
 
+    /**
+     * The magazine a weapon carries, from the {@code ammo} column of the weapon
+     * table; zero when the column is blank (the gun does not run out) or unreadable.
+     */
+    public static int ammo(String weaponId) {
+        try {
+            Map<String, String> row = table().get(weaponId);
+            String v = row == null ? null : row.get("ammo");
+            return v == null || v.isBlank() ? 0 : Math.max(0, (int) Float.parseFloat(v.trim()));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private static Map<String, Map<String, String>> table() throws Exception {
         Map<String, Map<String, String>> t = rows;
         if (t == null) {

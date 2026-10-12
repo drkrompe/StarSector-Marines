@@ -515,8 +515,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getBeamFx().advance(frameSimDt);
         spawnImpactFx(sim);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
-            renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2]);
-            renderer.getGroundLights().spawnHeavyImpact(impact[0], impact[1], impact[2]);
+            Color tint = impact.length >= 6
+                    ? new Color(impact[3], impact[4], impact[5]) : null;
+            renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2], tint);
+            renderer.getGroundLights().spawnHeavyImpact(impact[0], impact[1], impact[2], tint);
             Vector2f loc = new Vector2f(
                     impact[0] * AUDIO_WORLD_UNITS_PER_CELL,
                     impact[1] * AUDIO_WORLD_UNITS_PER_CELL);

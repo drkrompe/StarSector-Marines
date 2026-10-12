@@ -117,6 +117,7 @@ public final class WarshipSystem {
         landShells(dt, sim);
         ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
+            depart(dt, sim, ship);
             direct(dt, sim, ship);
             moveHull(dt, ship);
             turnHull(dt, ship);
@@ -128,7 +129,40 @@ public final class WarshipSystem {
                 }
             }
         }
+        ships.removeIf(Warship::departed);
         pointDefence.ageMarks(dt);
+    }
+
+    /**
+     * Counts a bounded ship's station time down and, when it is spent, sends it
+     * away: it hovers off the map along the line from the map's centre through
+     * where it stands (its nose direction if it is at the centre) at its own speed,
+     * and is removed once it has cleared the edge or, failing that, after
+     * {@link Warship#DEPARTURE_LIMIT_SECONDS}.
+     */
+    private static void depart(float dt, BattleSimulation sim, Warship ship) {
+        if (ship.spendStationTime(dt) && !ship.departing()) {
+            ship.beginDeparture();
+            float w = sim.getGrid().getWidth();
+            float h = sim.getGrid().getHeight();
+            float dx = ship.x - w * 0.5f;
+            float dy = ship.y - h * 0.5f;
+            float len = (float) Math.hypot(dx, dy);
+            if (len < 0.01f) {
+                double nose = Math.toRadians(ship.facingDegrees + 90f);
+                dx = (float) Math.cos(nose);
+                dy = (float) Math.sin(nose);
+                len = 1f;
+            }
+            float reach = (float) Math.hypot(w, h) + ship.lengthCells;
+            ship.stationTo(ship.x + dx / len * reach, ship.y + dy / len * reach);
+        }
+        if (!ship.departing()) return;
+        ship.addDepartingSeconds(dt);
+        float margin = ship.lengthCells * 0.5f;
+        boolean offMap = ship.x < -margin || ship.y < -margin
+                || ship.x > sim.getGrid().getWidth() + margin || ship.y > sim.getGrid().getHeight() + margin;
+        if (offMap || ship.departingSeconds() > Warship.DEPARTURE_LIMIT_SECONDS) ship.markDeparted();
     }
 
     /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
@@ -136,6 +170,8 @@ public final class WarshipSystem {
     private static final float RETRY_SECONDS = 1f;
     /** A ship that has moved this far since choosing its heading chooses it again. */
     private static final float REHEADING_DISTANCE = 3f;
+    /** A scripted flight counts a waypoint as passed within this many cells, and flies on without braking. */
+    private static final float ROUTE_PASS_RADIUS = 3f;
 
     /** A directed ship issues itself an area order, and a fresh one once its ground is empty. */
     private void direct(float dt, BattleSimulation sim, Warship ship) {
@@ -176,10 +212,12 @@ public final class WarshipSystem {
      */
     private static void moveHull(float dt, Warship ship) {
         if (!ship.hasStation()) return;
+        ship.advanceRoute(ROUTE_PASS_RADIUS);
         float dx = ship.stationX() - ship.x;
         float dy = ship.stationY() - ship.y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        float speed = Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
+        float speed = ship.isPassingThrough() ? ship.maxSpeed
+                : Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
         float wantX = dist > 0f ? dx / dist * speed : 0f;
         float wantY = dist > 0f ? dy / dist * speed : 0f;
         float ax = wantX - ship.velocityX;
@@ -216,6 +254,10 @@ public final class WarshipSystem {
                         ship.y - ship.headingChosenAtY) > REHEADING_DISTANCE)) {
             ship.desiredHeading = WarshipFacing.bestHeading(ship, area.x(), area.y());
             ship.markHeadingChosen();
+        } else if (ship.isPassingThrough() && !(ship.order() instanceof WarshipOrder.FireOnArea g && g.bringGunsToBear())
+                && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Flying a route with no instruction to bring guns to bear, it points along its travel.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
         }
         float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
         float wanted = Math.signum(error)
@@ -263,7 +305,7 @@ public final class WarshipSystem {
                 cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
             }
             if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
-                sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells);
+                sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells, shell.weapon.explosionColor());
             }
         }
     }
@@ -280,6 +322,12 @@ public final class WarshipSystem {
             traverse(dt, ship, m, AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)));
             m.burstTimer -= dt;
             if (m.burstTimer <= 0f) {
+                if (!ship.hasOrdnance(m)) {
+                    // Out of rounds mid-burst: the mount falls silent where it stands.
+                    m.burstRemaining = 0;
+                    m.aimed = false;
+                    return;
+                }
                 fire(sim, ship, m);
                 m.burstRemaining--;
                 m.burstTimer = w.burstDelaySeconds();
@@ -307,6 +355,10 @@ public final class WarshipSystem {
         traverse(dt, ship, m, bearing);
         if (m.cooldown > 0f) return;
         if (Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) > ALIGNED_DEGREES) return;
+        if (!ship.hasOrdnance(m)) {
+            m.aimed = false;
+            return;
+        }
         m.burstRemaining = w.burstSize();
         m.burstTimer = 0f;
     }
@@ -327,6 +379,11 @@ public final class WarshipSystem {
                     if (litBeams.add(m)) {
                         cue(WarshipSoundCue.Kind.BEAM_LIT, w.fireSoundId(), ship.mountX(m), ship.mountY(m));
                     }
+                    LanceSweep s = m.lance.sweep;
+                    float angle = m.lance.angle();
+                    cue(WarshipSoundCue.Kind.BEAM_BURNING, w.loopSoundId(),
+                            s.originX() + (float) Math.cos(angle) * s.reach(),
+                            s.originY() + (float) Math.sin(angle) * s.reach());
                 }
                 return;
             }
@@ -336,7 +393,7 @@ public final class WarshipSystem {
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         WarshipOrder.FireOnArea area = ship.order() instanceof WarshipOrder.FireOnArea a ? a : null;
         if (area == null || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
-                || !acquire(sim, ship, m, area)) {
+                || !ship.hasOrdnance(m) || !acquire(sim, ship, m, area)) {
             traverse(dt, ship, m, rest);
             return;
         }
@@ -367,6 +424,7 @@ public final class WarshipSystem {
                 LANCE_PENETRATION, LANCE_WALL_DAMAGE, w.id());
         m.lance = sim.startLanceSweep(sweep);
         m.shotsFired++;
+        ship.spendOrdnance(m);
         m.cooldown = sweep.totalSeconds() + Math.max(w.cooldownSeconds(), LANCE_REST_SECONDS);
     }
 
@@ -427,6 +485,7 @@ public final class WarshipSystem {
     private void fire(BattleSimulation sim, Warship ship, Warship.Mount m) {
         VanillaWeapon w = m.weapon;
         m.shotsFired++;
+        ship.spendOrdnance(m);
         m.secondsSinceFired = 0f;
         float mx = ship.mountX(m);
         float my = ship.mountY(m);

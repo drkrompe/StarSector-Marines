@@ -4,13 +4,17 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 
 /** Trusted projection of authored opening-operation places into a side frame. */
 public final class OpeningOperationCommandDisclosure
         implements CommandFrameDisclosure<OpeningOperationCommandFrame> {
     private final OpeningOperationCommandFacts facts;
 
-    public OpeningOperationCommandDisclosure(OpeningOperationCommandFacts facts) {
+    private final BooleanSupplier warehouseCaptured;
+    public OpeningOperationCommandDisclosure(OpeningOperationCommandFacts facts) { this(facts, facts::warehouseCaptured); }
+    public OpeningOperationCommandDisclosure(OpeningOperationCommandFacts facts, BooleanSupplier warehouseCaptured) {
+        this.warehouseCaptured = Objects.requireNonNull(warehouseCaptured, "warehouseCaptured");
         this.facts = Objects.requireNonNull(facts, "facts");
     }
 
@@ -23,6 +27,6 @@ public final class OpeningOperationCommandDisclosure
                     "opening operation requires a fighting-faction perspective");
         }
         return OpeningOperationCommandFrame.disclose(sim, perspective,
-                topology, assignments, facts);
+                topology, assignments, facts.withWarehouseCaptured(warehouseCaptured.getAsBoolean()));
     }
 }

@@ -52,6 +52,13 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
         Reason commandedReason = commandedReason(frame.facts().kind());
         boolean advancing = commandedRole == Role.ASSAULT_ELEMENT
                 || commandedRole == Role.SECURE_ELEMENT;
+        boolean holdingDepot = frame.facts().warehouseCaptured();
+        if (holdingDepot) {
+            advancing = faction == Faction.DEFENDER;
+            phase = advancing ? Phase.RETAKE_DISPATCH : Phase.HOLD_DISPATCH;
+            commandedRole = advancing ? Role.ASSAULT_ELEMENT : Role.PRESERVE_ELEMENT;
+            commandedReason = advancing ? Reason.DEPOT_RETAKE : Reason.DEPOT_HOLD;
+        }
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
         int commandPoolSize = 0;
@@ -83,7 +90,7 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                 continue;
             }
             commandPoolSize++;
-            CounterattackTactics.Intent depotIntent = depotTactics == null ? null : depotTactics.intent(report(squad));
+            CounterattackTactics.Intent depotIntent = depotTactics == null || holdingDepot ? null : depotTactics.intent(report(squad));
             Reason squadReason = depotIntent == null ? commandedReason : depotIntent.reason();
             int targetX = depotIntent == null ? frame.facts().cellX() : depotIntent.place().x();
             int targetY = depotIntent == null ? frame.facts().cellY() : depotIntent.place().y();
@@ -98,7 +105,7 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                 continue;
             }
             ObjectiveAssignment assignment = advancing
-                    ? (depotIntent != null
+                    ? (depotIntent != null || holdingDepot
                         ? ObjectiveAssignment.attackMove(squad.squadId(), rally[0], rally[1])
                         : ObjectiveAssignment.sweepSector(squad.squadId(), rally[0], rally[1]))
                     : ObjectiveAssignment.defendArea(squad.squadId(), rally[0], rally[1], 5);

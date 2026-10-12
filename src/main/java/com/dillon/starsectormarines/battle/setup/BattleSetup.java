@@ -1266,7 +1266,8 @@ public final class BattleSetup {
                                 ? "Wayline checkpoint" : "Wayline freight depot",
                         commandPlace[0], commandPlace[1], depot == null ? List.of() : depot.stages());
         OpeningOperationCommandDisclosure disclosure =
-                new OpeningOperationCommandDisclosure(commandFacts);
+                new OpeningOperationCommandDisclosure(commandFacts,
+                        () -> sim.getDepotHold() != null && sim.getDepotHold().progress().committed());
         sim.setAutonomousCommander(Faction.MARINE,
                 new OpeningOperationCommand(Faction.MARINE), disclosure);
         sim.setAutonomousCommander(Faction.DEFENDER,
@@ -1274,8 +1275,19 @@ public final class BattleSetup {
         if (depot != null) sim.setAutonomousCommander(Faction.ALLY,
                 new OpeningOperationCommand(Faction.ALLY), disclosure);
         sim.installOpeningStoryHooks(commandFacts);
-        if (recoverHound && depot != null)
+        if (recoverHound && depot != null) {
             sim.installWaylineHound(CounterattackDepot.HOUND_X, CounterattackDepot.HOUND_Y);
+            List<List<EntitySpec>> reserves = new ArrayList<>();
+            for (int wave = 0; wave < 2; wave++) for (int road = 0; road < 2; road++) {
+                List<EntitySpec> force = new ArrayList<>();
+                int y = road == 0 ? 3 : CounterattackDepot.HEIGHT - 4;
+                for (int[] cell : pickSpawnCluster(map.grid, 78, y, 4))
+                    force.add(makeOpeningMilitia("depot-road-" + wave + "-" + road + "-" + force.size(),
+                            Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+                reserves.add(force);
+            }
+            sim.installDepotHold(authoredPlace, reserves);
+        }
         return sim;
     }
 

@@ -590,6 +590,31 @@ with the company; older saves default to an available introduction. Text is comp
 without a recording; stable beat IDs allow separately auditioned ElevenLabs clips
 using the existing company-officer cast.
 
+New companies also receive **First Command**, Castle's required officer induction.
+Lieutenant Mira Hale is the recurring founding field commander: a former convoy
+escort who values clear orders and an accounted muster. Her saved officer identity,
+ordinary career and service record carry that role; it grants no immunity from loss
+and no extra specialty points. The dossier retains her authored background and dedicated female portrait.
+Existing default Mira portraits upgrade without replacing player-customized likenesses.
+
+Castle introduces her portrait, asks the player to choose one of the three actual
+specialty orders, then guides squad founding and home-command assignment. The normal
+Armory founding bill remains authoritative. Assignment uses the same capacity-checked
+Organization controls as later company management. The lesson can be paused for
+resupply, but its completion requires an actual trained officer and an available,
+manned squad under that officer, followed by acknowledgement. Opening a page or
+pressing Next cannot substitute for those orders. If Mira has been lost or dismissed,
+another surviving officer can carry the unfinished lesson without resurrecting her.
+
+The new-company marker and completion live with the roster. Legacy companies have
+no mandatory induction; detached debug missions are exempt. All ordinary deployment
+routes enforce the same completion guard before committing battle resources. A
+blocked briefing routes to Castle and retains the mission for return. Once complete,
+later losses and reorganization never re-lock deployment. The officer lesson takes
+precedence over the optional replenishment guide and uses the same portrait,
+dimming, scrolling and click-through infrastructure. `castle-officer-induction.md`
+tracks live acceptance and separately produced narration.
+
 Barracks opens on company formations grouped by their home officer, with an
 independent acting-NCO group for squads without an officer. Commander portraits,
 readiness and occupied command slots make the organization visible. Search,
@@ -899,6 +924,9 @@ and the latest twenty commendations. VIEW FORMATIONS returns to that command's
 filtered squad list. One permanent training choice is available on appointment
 and one per promotion, including cadre-earned promotions. Existing officers
 receive their current rank's equivalent budget without invented service history.
+Specialty cards pair an SVG emblem and two explicit earned/unearned rank markers
+with a compact Train action and adjacent point cost. Castle's induction similarly
+shows five SVG milestones; neither progression display uses a stretched add button.
 Each of three specialties has two ranks:
 
 - Tactical Cover: incoming accuracy multiplied by 0.95/0.90 for marines in this
