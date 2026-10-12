@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — required watches retain console and entrance-sentry claims while ordinary shifts continue their rotations.
+Updated: 2026-10-12 — room work rounds can reserve specific stations through the shared task-point claims.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -401,7 +401,10 @@ radius clears, because a threat that has stepped one cell away has not passed.
 A **task point** is a battle-owned, single-occupant interaction site published by
 a fixture or mission: a firing lane, berth, console, workbench, or defensive
 post. Tasks claim a suitable point by group instead of assuming that an authored
-coordinate is vacant. A claim remains with its actor until another point is
+coordinate is vacant. A work round can request a specific registered stand in
+that group so several benches of the same kind receive visits. It obeys the
+same exclusive claim as a nearest-free request and skips an occupied stand;
+authored coordinates never bypass reservations. A claim remains with its actor until another point is
 successfully acquired, the task leaves that kind of site, the assignment is
 released, or the actor dies. This prevents two independent tasks from converging
 on one station and gives ambient work, civilians, guards, and future mission

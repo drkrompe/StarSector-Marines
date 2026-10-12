@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — the CIC covers both side banks within the existing duty budget, after core command, engineering and entrance security.
+Updated: 2026-10-12 — support crews work their room's individual stations, with first postings favouring the machine shop and main stores.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -754,13 +754,22 @@ live authored work earns a posting; missing machinery or a wrecked fixture canno
 shortfall. This presentation allocation does not withdraw or create campaign
 cargo crew and is not a live fleet-crew census.
 
-Essential consoles, plant stations and the entrance sentry stay claimed for
-the watch. The security rating uses crew berthing and the existing overhead
+Essential consoles and the entrance sentry stay claimed for the watch, while
+the engineering machinery hand makes local equipment rounds. The security rating uses crew berthing and the existing overhead
 layered combat kit; it neither borrows nor duplicates a named company marine.
 Support hands work local duty rotations, including every occupied machine in a servicing bay.
+In engineering, sickbay, the galley, armoury, machine shop and stores, a work
+round visits the room's individual live fixtures rather than returning to one
+station of each kind. Treatment and supply points, cooking stations, weapons
+repair and issue benches, fabrication and inspection equipment, and cargo
+racks receive their own stops. These stops share the ordinary exclusive claims:
+busy stations are skipped, never worked by overlapping staff. Required hands
+repeat local work; roaming hands continue to their wider routine after the round.
 The remaining complement first supplies a roaming hand to each trade still
 without staff, before adding more hands to covered departments. This keeps a
 busier CIC from consuming the galley's only cook or the armoury's only rating.
+The first machinist favours the machine shop over secondary benches, and the
+first storekeeper favours main stores over loading or servicing-bay racks.
 These hands keep their ordinary movements through work and leisure;
 named company marines retain their roster and issued kit. Duty and roaming hands
 share the same billet and bunk bounds, so manning the watch adds no second crew.
