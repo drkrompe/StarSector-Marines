@@ -42,9 +42,12 @@ public final class VanillaWeapons {
             if (row == null) return ABSENT;
             JSONObject wpn = optional("data/weapons/" + id + ".wpn");
             String projectileId = wpn == null ? null : wpn.optString("projectileSpecId", null);
-            JSONObject proj = projectileId == null ? null
-                    : optional("data/weapons/proj/" + projectileId + ".proj");
-            return VanillaWeapon.of(id, row, wpn, proj);
+            JSONObject proj = projectileId == null ? null : projectile(projectileId);
+            JSONObject behaviour = proj == null ? null : proj.optJSONObject("behaviorSpec");
+            String warheadId = behaviour == null ? null : behaviour.optString("projectileSpec", null);
+            JSONObject warhead = warheadId == null || warheadId.isBlank() ? null
+                    : optional("data/weapons/proj/" + warheadId + ".proj");
+            return VanillaWeapon.of(id, row, wpn, proj, warhead);
         } catch (Exception e) {
             LOG.warn("VanillaWeapons: " + id + " — " + e.getClass().getSimpleName() + ": " + e.getMessage());
             return ABSENT;
@@ -76,6 +79,17 @@ public final class VanillaWeapons {
             rows = t;
         }
         return t;
+    }
+
+    /**
+     * A projectile spec by the id a weapon names. The game files a few of them under a
+     * different name from the id they declare (the Locust's {@code locust} is
+     * {@code locust_srm.proj}), and the data seam cannot list a folder, so the one
+     * known alternative spelling is tried when the plain one is absent.
+     */
+    private static JSONObject projectile(String id) {
+        JSONObject proj = optional("data/weapons/proj/" + id + ".proj");
+        return proj != null ? proj : optional("data/weapons/proj/" + id + "_srm.proj");
     }
 
     private static JSONObject optional(String path) {

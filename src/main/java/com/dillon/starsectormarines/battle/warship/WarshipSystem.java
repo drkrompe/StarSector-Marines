@@ -40,6 +40,8 @@ public final class WarshipSystem {
     private final List<Warship> shipsView = Collections.unmodifiableList(ships);
     private final List<WarshipShell> shells = new ArrayList<>();
     private final List<WarshipShell> shellsView = Collections.unmodifiableList(shells);
+    private final List<WarheadStrike> strikes = new ArrayList<>();
+    private final List<WarheadStrike> strikesView = Collections.unmodifiableList(strikes);
     private final Random random = new Random(20261011L);
     private final WarshipPointDefence pointDefence = new WarshipPointDefence();
 
@@ -54,6 +56,10 @@ public final class WarshipSystem {
     private static final float FIRE_CUE_GAP_SECONDS = 0.3f;
     /** Seconds between two landing cues for one weapon, for the same reason. */
     private static final float IMPACT_CUE_GAP_SECONDS = 0.2f;
+    /** A carrier splits no nearer than this share of its way to the ground, so a close target still gives its warheads room to fan. */
+    private static final float SPLIT_MIN_SHARE = 0.35f;
+    /** Warheads detonate over this extra window after their travel, so a sheaf walks across the ground rather than landing as one. */
+    private static final float WARHEAD_STAGGER_SECONDS = 0.8f;
 
     private final List<WarshipSoundCue> cues = new ArrayList<>();
     private final List<WarshipSoundCue> cuesView = Collections.unmodifiableList(cues);
@@ -101,6 +107,11 @@ public final class WarshipSystem {
         return shellsView;
     }
 
+    /** Warheads a carrier has released that have not yet detonated, for presentation and evidence. */
+    public List<WarheadStrike> strikes() {
+        return strikesView;
+    }
+
     /** A turret fires once its barrel is this close to the bearing of what it has chosen. */
     private static final float ALIGNED_DEGREES = 2f;
     /** A beam this strong, in damage per second, is a lance that cuts ground; weaker beams are anti-ship and silent here. */
@@ -116,6 +127,7 @@ public final class WarshipSystem {
     public void tick(float dt, BattleSimulation sim) {
         clock += dt;
         landShells(dt, sim);
+        landStrikes(dt, sim);
         ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
             depart(dt, sim, ship);
@@ -387,12 +399,42 @@ public final class WarshipSystem {
             }
             if (!shell.advance(dt)) continue;
             shells.remove(i);
+            if (shell.landing() == null) {
+                release(shell);
+                continue;
+            }
             sim.detonateNow(shell.landing());
             if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
             }
             if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells, shell.weapon.explosionColor());
+            }
+        }
+    }
+
+    /** A carrier has reached its split point: its warheads leave it, each already committed to its own landing. */
+    private void release(WarshipShell shell) {
+        float rx = shell.path().landX();
+        float ry = shell.path().landY();
+        for (WarshipShell.Warhead warhead : shell.warheads()) {
+            strikes.add(new WarheadStrike(shell.weapon, shell.faction, rx, ry, warhead));
+        }
+    }
+
+    /** Counts released warheads down; one that arrives detonates as an ordinary detonation and, if heavy, a heavy blast. */
+    private void landStrikes(float dt, BattleSimulation sim) {
+        for (int i = strikes.size() - 1; i >= 0; i--) {
+            WarheadStrike strike = strikes.get(i);
+            if (!strike.advance(dt)) continue;
+            strikes.remove(i);
+            PendingDetonation det = strike.detonation();
+            sim.detonateNow(det);
+            if (cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), strike.aimX, strike.aimY);
+            }
+            if (det.damage >= HEAVY_IMPACT_DAMAGE) {
+                sim.spawnHeavyImpact(strike.aimX, strike.aimY, strike.visualCells, strike.weapon.explosionColor());
             }
         }
     }
@@ -641,22 +683,93 @@ public final class WarshipSystem {
         float ny = dist > 0f ? dx / dist : 0f;
         float lx = m.aimX + nx * miss;
         float ly = m.aimY + ny * miss;
-        float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));
-        float flight = dist / speed;
-        float blast = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
+        // The fireball drawn is the spec's visual figure; what the blast hurts is its damage footprint.
+        float visual = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
+        float blast = Math.max(1f, WarshipScale.cells(w.damageRadiusPx()));
+        MissileFlightSpec flight = w.missile() ? w.flight() : null;
+        if (flight == null) {
+            float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));
+            MissilePath path = MissilePath.straight(mx, my, lx, ly, speed);
+            shells.add(new WarshipShell(w, ship.faction, mx, my, lx, ly, path, visual,
+                    detonation(ship, lx, ly, w.damagePerShot(), penetration(w.damageType()), blast), null));
+            return;
+        }
+        // The round's flight is a pure function of this seed, taken from who fired what, where and
+        // when rather than from the shared stream, so a missile never shifts another gun's draws.
+        long seed = roundSeed(m.slot.id(), m.shotsFired, ship.faction, lx, ly);
+        if (flight.mirv() != null) {
+            fireCarrier(sim, ship, w, flight, mx, my, lx, ly, seed);
+            return;
+        }
+        MissilePath path = MissilePath.plan(flight, mx, my, lx, ly, seed);
+        shells.add(new WarshipShell(w, ship.faction, mx, my, path.landX(), path.landY(), path, visual,
+                detonation(ship, path.landX(), path.landY(), w.damagePerShot(), penetration(w.damageType()), blast),
+                null));
+    }
+
+    /**
+     * A multi-warhead missile: it flies as a carrier to a split point short of the
+     * ground it was aimed at, and its warheads, each carrying the spec's own damage
+     * and blast, are spread over that ground at random. Every landing is chosen
+     * here, at fire time; the carrier's arrival only starts their clocks.
+     */
+    private void fireCarrier(BattleSimulation sim, Warship ship, VanillaWeapon w, MissileFlightSpec flight,
+                             float mx, float my, float lx, float ly, long seed) {
+        MissileFlightSpec.Mirv mirv = flight.mirv();
+        float dx = lx - mx;
+        float dy = ly - my;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float splitRange = WarshipScale.cells(mirv.splitRangePx());
+        float along = Math.max(dist - splitRange, SPLIT_MIN_SHARE * dist);
+        float ux = dist > 0f ? dx / dist : 0f;
+        float uy = dist > 0f ? dy / dist : 1f;
+        MissilePath carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed);
+        float releaseX = carrier.landX();
+        float releaseY = carrier.landY();
+        float blast = Math.max(1f, WarshipScale.cells(mirv.damageRadiusPx()));
+        float visual = Math.max(1f, WarshipScale.cells(mirv.visualRadiusPx()));
+        float warheadSpeed = Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()));
+        float[] aim = WarheadScatter.points(seed, mirv.count(), lx, ly, WarheadScatter.spreadRadius(mirv.count(), blast));
+        float maxX = sim.getGrid().getWidth() - 0.5f;
+        float maxY = sim.getGrid().getHeight() - 0.5f;
+        List<WarshipShell.Warhead> warheads = new ArrayList<>(mirv.count());
+        for (int i = 0; i < mirv.count(); i++) {
+            float ax = Math.max(0.5f, Math.min(maxX, aim[2 * i]));
+            float ay = Math.max(0.5f, Math.min(maxY, aim[2 * i + 1]));
+            float travel = (float) Math.hypot(ax - releaseX, ay - releaseY) / warheadSpeed;
+            float delay = travel + WARHEAD_STAGGER_SECONDS * MissilePath.unit(seed, 100 + i);
+            warheads.add(new WarshipShell.Warhead(
+                    detonation(ship, ax, ay, mirv.damage(), penetration(mirv.damageType()), blast),
+                    delay, visual, ax, ay));
+        }
+        shells.add(new WarshipShell(w, ship.faction, mx, my, lx, ly, carrier, visual, null, warheads));
+    }
+
+    /** A stateless seed for one round: the mount, how many it has fired, the side and the ground it was aimed at. */
+    private static long roundSeed(String slotId, int shotNumber, Faction faction, float x, float y) {
+        long h = 0x9E3779B97F4A7C15L;
+        h = (h ^ slotId.hashCode()) * 0xBF58476D1CE4E5B9L;
+        h = (h ^ shotNumber) * 0x94D049BB133111EBL;
+        h = (h ^ faction.ordinal()) * 0xBF58476D1CE4E5B9L;
+        h = (h ^ Float.floatToIntBits(x)) * 0x94D049BB133111EBL;
+        h = (h ^ Float.floatToIntBits(y)) * 0xBF58476D1CE4E5B9L;
+        return h ^ (h >>> 31);
+    }
+
+    private static PendingDetonation detonation(Warship ship, float x, float y,
+                                                float damage, float penetration, float blastCells) {
         // A heavy round's own blast is the authored aftermath; the generic smoke
         // plume belongs to the lighter ones that have no blast of their own.
-        boolean heavy = w.damagePerShot() >= HEAVY_IMPACT_DAMAGE;
-        PendingDetonation landing = new PendingDetonation(
-                0L, lx, ly, 0f,
-                blast, w.damagePerShot(), penetration(w.damageType()),
-                Math.round(w.damagePerShot()), ship.faction,
+        boolean heavy = damage >= HEAVY_IMPACT_DAMAGE;
+        return new PendingDetonation(
+                0L, x, y, 0f,
+                blastCells, damage, penetration,
+                Math.round(damage), ship.faction,
                 /*aerialDelivery*/ false,
-                /*wallDamageRadius*/ blast,
+                /*wallDamageRadius*/ blastCells,
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
                 /*authoredAftermath*/ heavy);
-        shells.add(new WarshipShell(w, ship.faction, mx, my, lx, ly, flight, blast, landing));
     }
 
     private static float penetration(String damageType) {

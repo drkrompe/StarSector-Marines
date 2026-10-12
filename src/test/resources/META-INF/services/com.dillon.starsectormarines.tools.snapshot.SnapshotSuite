@@ -66,4 +66,5 @@ com.dillon.starsectormarines.battle.warship.WarshipBudgetSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtFlybySceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtDistrictSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtFluxSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipMissilesSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipShieldSceneSnapshotSuite
