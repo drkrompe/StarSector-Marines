@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
+import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
+import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
@@ -13,6 +18,7 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -26,6 +32,40 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleHudOverlayModelTest {
+
+    @Test
+    void sharedObjectivesLocateTheirOwnBranchAndResetCleanlyForOtherMissions() throws Exception {
+        Reactor reactor = new Reactor();
+        var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
+        var item = MissionObjectiveProjection.payload(new ColonyArchiveObjective(40, 50, 1),
+                new CivilianEvacuationSystem.Progress(false, 0, false, false, 0, 0, 0, 0));
+        var selected = new AtomicReference<MissionObjectiveSnapshot.Marker>();
+        model.updateProjected(1, List.of());
+        var state = model.updateMission(new MissionObjectiveSnapshot(List.of(item), List.of()), selected::set);
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (var instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            var doc = document(instance, BattleHudOverlay.documentHeight(state));
+            doc.layout(1896, BattleHudOverlay.documentHeight(state));
+            assertEquals(0f, instance.requireElement("mission-COLONY-ARCHIVE-progress").box().borderBox().width(), .01f);
+            assertEquals("sealed colony archive", instance.requireElement("mission-COLONY-ARCHIVE-name").text());
+            assertEquals(UiWhiteSpace.NORMAL, instance.requireElement("mission-COLONY-ARCHIVE-instruction").whiteSpace());
+            @SuppressWarnings("unchecked")
+            var cards = (MutableSignal<List<BattleHudOverlayModel.MissionCard>>) model.props().get("missionCards");
+            cards.get().get(0).locate().run();
+            assertEquals(40, selected.get().x());
+            assertEquals(50, selected.get().y());
+            assertFalse(BattleHudOverlay.insideInteractiveSurface(instance, 600, 100), "middle battlefield stays clickable");
+            model.updateProjected(1, List.of(new BattleHudOverlayModel.CaptureObjective(
+                    TacticalNode.Kind.COMMAND_POST, CompoundService.CompoundState.DEFENDER_HELD, 0)));
+            instance.flush();
+            doc.layout(1896, BattleHudOverlay.OBJECTIVE_HEIGHT);
+            assertEquals(0, instance.requireElement("battle-mission-list").childCount());
+            assertEquals(0, instance.requireElement("battle-mission-objectives").box().borderBox().height());
+            assertFalse(instance.requireElement("battle-objectives").hasClass("objective-panel-hidden"));
+        }
+    }
+
 
     @Test
     void publishedGroupsReplaceLaneRowsWithNamesTasksAndActualLivingStrength() throws Exception {

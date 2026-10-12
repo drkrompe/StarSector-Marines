@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -44,6 +45,15 @@ final class BattleHudOverlayModel {
     private static final String COMMAND_PANEL_HIDDEN =
             "conquest-command-panel conquest-command-panel-hidden";
 
+    private final MutableSignal<String> missionClasses;
+    private final MutableSignal<String> missionSquadClasses;
+    private final MutableSignal<String> missionSquadStyle;
+    private final MutableSignal<List<MissionCard>> missionCards;
+    private final MutableSignal<List<MissionSquad>> missionSquads;
+    private final MutableSignal<String> missionSquadSummary;
+    private final MutableSignal<String> missionPanelStyle;
+    private final MutableSignal<String> missionListStyle;
+    private final MutableSignal<String> missionScore;
     private final MutableSignal<String> pauseClasses;
     private final MutableSignal<String> normalClasses;
     private final MutableSignal<String> doubleClasses;
@@ -80,6 +90,15 @@ final class BattleHudOverlayModel {
                           String doubleLabel, String quadLabel) {
         this.speedSetter = speedSetter;
         this.speedLabels = new String[]{pauseLabel, normalLabel, doubleLabel, quadLabel};
+        missionClasses = reactor.signal("mission-panel mission-hidden");
+        missionSquadClasses = reactor.signal("mission-squads-panel mission-hidden");
+        missionSquadStyle = reactor.signal("");
+        missionCards = reactor.signal(List.of());
+        missionSquads = reactor.signal(List.of());
+        missionSquadSummary = reactor.signal("");
+        missionPanelStyle = reactor.signal("");
+        missionListStyle = reactor.signal("");
+        missionScore = reactor.signal("");
         pauseClasses = reactor.signal(TIME_CLASSES);
         normalClasses = reactor.signal(TIME_SELECTED_CLASSES);
         doubleClasses = reactor.signal(TIME_CLASSES);
@@ -110,6 +129,15 @@ final class BattleHudOverlayModel {
 
     Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("missionClasses", missionClasses);
+        props.put("missionSquadClasses", missionSquadClasses);
+        props.put("missionSquadStyle", missionSquadStyle);
+        props.put("missionCards", missionCards);
+        props.put("missionSquads", missionSquads);
+        props.put("missionSquadSummary", missionSquadSummary);
+        props.put("missionPanelStyle", missionPanelStyle);
+        props.put("missionListStyle", missionListStyle);
+        props.put("missionScore", missionScore);
         props.put("timeLabel", "TIME");
         props.put("pauseLabel", speedLabels[0]);
         props.put("normalLabel", speedLabels[1]);
@@ -170,6 +198,13 @@ final class BattleHudOverlayModel {
     Presentation updateProjected(float speedMultiplier,
                                  List<CaptureObjective> objectives,
                                  CommanderSnapshot<?> commander) {
+        missionClasses.set("mission-panel mission-hidden");
+        missionSquadClasses.set("mission-squads-panel mission-hidden");
+        missionCards.set(List.of());
+        missionSquads.set(List.of());
+        missionSquadStyle.set("");
+        missionPanelStyle.set("");
+        missionListStyle.set("");
         objectiveTitle.set("CAPTURE");
         objectiveLocateClasses.set("objective-locate objective-locate-hidden");
         objectiveLocateDisabled.set(true);
@@ -242,6 +277,65 @@ final class BattleHudOverlayModel {
             }
         }
         return new Presentation(visible, updateConquestCommand(commander));
+    }
+
+    Presentation updateMission(MissionObjectiveSnapshot snapshot, Consumer<MissionObjectiveSnapshot.Marker> locate) {
+        if (snapshot.objectives().isEmpty()) return new Presentation(false, false);
+        objectivePanelClasses.set(OBJECTIVE_PANEL_HIDDEN);
+        commandPanelClasses.set(COMMAND_PANEL_HIDDEN);
+        missionClasses.set("mission-panel");
+        missionSquadClasses.set("mission-squads-panel");
+        missionSquadStyle.set("height: " + (snapshot.squads().isEmpty() ? 44 : 256) + "px;");
+        int count = Math.min(2, snapshot.objectives().size());
+        missionPanelStyle.set("height: " + (33 + count * 174) + "px;");
+        missionListStyle.set("height: " + (count * 174) + "px;");
+        missionScore.set(snapshot.objectives().stream().filter(i -> i.state() == MissionObjectiveSnapshot.State.COMPLETE).count()
+                + " / " + snapshot.objectives().size());
+        missionCards.set(snapshot.objectives().stream().map(i -> new MissionCard(i, () -> {
+            if (i.focus() != null) locate.accept(i.focus());
+        })).toList());
+        missionSquads.set(snapshot.squads().stream().map(MissionSquad::new).toList());
+        missionSquadSummary.set(snapshot.squads().isEmpty() ? "Awaiting deployed squad assignments"
+                : snapshot.squads().size() + " squads / current assignments");
+        return new Presentation(true, true, count);
+    }
+
+    record MissionCard(MissionObjectiveSnapshot.Item item, Runnable locate) implements MarkupPropertySource {
+        @Override public Object markupProperty(String key) {
+            return switch (key) {
+                case "id" -> "mission-" + item.id();
+                case "name" -> item.name();
+                case "phase" -> item.phase();
+                case "steps" -> item.steps();
+                case "instruction" -> item.instruction();
+                case "progressText" -> item.progressText();
+                case "blocker" -> item.blocker().isEmpty() ? "" : item.blocker();
+                case "classes" -> "mission-card " + (item.state() == MissionObjectiveSnapshot.State.COMPLETE ? "mission-complete"
+                        : item.state() == MissionObjectiveSnapshot.State.FAILED ? "mission-failed" : "mission-active");
+                case "progressStyle" -> "width: " + Math.round(item.progress() * 100) + "%;";
+                case "locate" -> locate;
+                case "disabled" -> item.focus() == null;
+                default -> {
+                    if (key.endsWith("Id")) yield "mission-" + item.id() + "-" + key.substring(0, key.length() - 2);
+                    throw new IllegalArgumentException(key);
+                }
+            };
+        }
+    }
+
+    record MissionSquad(MissionObjectiveSnapshot.SquadActivity activity) implements MarkupPropertySource {
+        @Override public Object markupProperty(String key) {
+            return switch (key) {
+                case "id" -> "mission-squad-" + activity.squadId();
+                case "name" -> activity.name();
+                case "task" -> activity.task();
+                case "status" -> activity.status();
+                default -> {
+                    if (key.endsWith("Id")) yield "mission-squad-" + activity.squadId() + "-" + key.substring(0, key.length() - 2);
+                    throw new IllegalArgumentException(key);
+                }
+            };
+        }
     }
 
     /** Public objective state, independent of commander cadence and debug visibility. */
@@ -517,7 +611,8 @@ final class BattleHudOverlayModel {
                             float progress) {
     }
 
-    record Presentation(boolean objectivesVisible, boolean commandVisible) {
+    record Presentation(boolean objectivesVisible, boolean commandVisible, int missionRows) {
+        Presentation(boolean objectivesVisible, boolean commandVisible) { this(objectivesVisible, commandVisible, 0); }
     }
 
     record ConquestGroup(String id, String label, String force, String intent,
