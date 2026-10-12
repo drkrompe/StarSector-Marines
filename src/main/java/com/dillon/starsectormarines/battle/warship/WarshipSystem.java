@@ -52,6 +52,7 @@ public final class WarshipSystem {
     private int fusedRounds;
     private final Random random = new Random(20261011L);
     private final WarshipPointDefence pointDefence = new WarshipPointDefence();
+    private final WarshipAirFire airFire = new WarshipAirFire(shells, pointDefence);
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -113,7 +114,41 @@ public final class WarshipSystem {
 
     /** Puts a ship over the battle. */
     public void add(Warship ship) {
+        // Doctrine passes are staggered by add order, so a fleet does not all look at once.
+        ship.doctrineClock = DOCTRINE_PERIOD_SECONDS - 0.1f * (ships.size() % 10);
         ships.add(ship);
+    }
+
+    /** Seconds between two doctrine passes for one ship. */
+    static final float DOCTRINE_PERIOD_SECONDS = 1f;
+    /** Cells beyond a hazard's radius, and beyond half the hull, a standing-off ship keeps. */
+    private static final float STANDOFF_MARGIN_CELLS = 5f;
+    /** Seconds ahead of touchdown a denial round should land, so the first one is already falling when the boat arrives. */
+    private static final float DENIAL_LEAD_SECONDS = 0.5f;
+    /** Seconds before the first gun may fire at which a zone is taken, so the hull can swing and the turrets traverse onto it. */
+    private static final float DENIAL_PREPARE_SECONDS = 10f;
+
+    /**
+     * Ground a planetary defence (or any mission-declared threat) makes dangerous
+     * to a capital of the factions hostile to {@code owner}. It does no damage:
+     * nothing in the ground model hurts a capital yet. It is only a declared
+     * input to a posture that keeps its distance.
+     */
+    public record CapitalHazard(Faction owner, float x, float y, float radius) {}
+
+    private final List<CapitalHazard> hazards = new ArrayList<>();
+
+    public void declareCapitalHazard(Faction owner, float x, float y, float radius) {
+        if (!(radius > 0f)) throw new IllegalArgumentException("a hazard needs a radius");
+        hazards.add(new CapitalHazard(owner, x, y, radius));
+    }
+
+    public void clearCapitalHazards() {
+        hazards.clear();
+    }
+
+    public List<CapitalHazard> capitalHazards() {
+        return Collections.unmodifiableList(hazards);
     }
 
     public List<Warship> ships() {
@@ -123,6 +158,11 @@ public final class WarshipSystem {
     /** The ships' point defence, for presentation and evidence. */
     public WarshipPointDefence pointDefence() {
         return pointDefence;
+    }
+
+    /** The ships' fire at aircraft, for evidence. */
+    public WarshipAirFire airFire() {
+        return airFire;
     }
 
     /** Rounds in flight, for presentation and evidence. */
@@ -164,7 +204,7 @@ public final class WarshipSystem {
     /** A turret fires once its barrel is this close to the bearing of what it has chosen. */
     private static final float ALIGNED_DEGREES = 2f;
     /** A beam this strong, in damage per second, is a lance that cuts ground; weaker beams are anti-ship and silent here. */
-    private static final float LANCE_MIN_DPS = 500f;
+    static final float LANCE_MIN_DPS = 500f;
     private static final float LANCE_TELEGRAPH_SECONDS = 1.5f;
     private static final float LANCE_PENETRATION = 10f;
     private static final int LANCE_WALL_DAMAGE = 100;
@@ -178,8 +218,10 @@ public final class WarshipSystem {
         landShells(dt, sim);
         landStrikes(dt, sim);
         splits.removeIf(s -> s.advance(dt));
+        airFire.advance(sim, ships);
         ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
+            doctrine(dt, sim, ship);
             depart(dt, sim, ship);
             direct(dt, sim, ship);
             tickShield(dt, sim, ship);
@@ -188,8 +230,12 @@ public final class WarshipSystem {
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.pointDefence()) {
-                    pointDefence.tickMount(dt, sim, ship, mount, shells, strikes);
-                } else {
+                    boolean ordnance = WarshipAirFire.scope(ship) != WarshipAirFire.Scope.NONE
+                            && pointDefence.hasTarget(sim, ship, mount, shells, strikes);
+                    if (!airFire.tickMount(dt, sim, ship, mount, ordnance)) {
+                        pointDefence.tickMount(dt, sim, ship, mount, shells, strikes);
+                    }
+                } else if (!airFire.tickMount(dt, sim, ship, mount, false)) {
                     tickMount(dt, sim, ship, mount);
                 }
             }
@@ -249,9 +295,17 @@ public final class WarshipSystem {
      */
     private void direct(float dt, BattleSimulation sim, Warship ship) {
         if (!ship.isDirected()) return;
+        boolean weighted = ship.profile().weighted() && !ship.manualOrder();
+        WarshipDirector.Friendlies friendlies = weighted ? WarshipDirector.friendliesOf(sim, ship) : null;
         List<Warship.Held> current = ship.held();
         List<Warship.Held> kept = new ArrayList<>(current.size());
+        boolean droppedForFriendlies = false;
         for (Warship.Held h : current) {
+            if (h.denial) {
+                // A denied landing zone is managed below from the inbound drops, not from who stands on it.
+                kept.add(h);
+                continue;
+            }
             int count = hostilesWithin(sim, ship, h.area);
             if (count > 0) {
                 h.emptySeconds = 0f;
@@ -259,9 +313,17 @@ public final class WarshipSystem {
             } else {
                 h.emptySeconds += dt;
             }
-            if (h.emptySeconds < EMPTY_AREA_SECONDS) kept.add(h);
+            if (h.emptySeconds >= EMPTY_AREA_SECONDS) continue;
+            if (weighted && !ship.dangerClose() && endangersFriendlies(sim, ship, h.area, friendlies)) {
+                // Friendlies walked into ground that was clean when it was chosen.
+                droppedForFriendlies = true;
+                continue;
+            }
+            kept.add(h);
         }
-        boolean dropped = kept.size() != current.size();
+        boolean denialsChanged = ship.profile().denyLandings() && !ship.manualOrder()
+                && updateDenials(sim, ship, kept, friendlies);
+        boolean dropped = kept.size() != current.size() || denialsChanged;
         if (dropped) ship.setDirectedAreas(kept);
         if (ship.manualOrder() || kept.size() >= ship.directorMaxAreas()) {
             ship.resortByWeight();
@@ -275,12 +337,180 @@ public final class WarshipSystem {
         }
         ship.retrySeconds = 0f;
         List<WarshipOrder.FireOnArea> avoid = new ArrayList<>(ship.areas());
-        List<Warship.Held> fresh = WarshipDirector.fill(sim, ship, ships, avoid, ship.directorMaxAreas() - kept.size());
+        int slots = ship.directorMaxAreas() - kept.size();
+        List<Warship.Held> fresh;
+        if (weighted) {
+            WarshipDirector.Selection picked = WarshipDirector.fillWeighted(sim, ship, ships, avoid, slots,
+                    friendlies, ObjectiveBias.focus(sim, ship));
+            fresh = picked.areas();
+            ship.noteFriendlyPass(picked.refusedForFriendlies()
+                    || (droppedForFriendlies && fresh.isEmpty() && kept.isEmpty()));
+        } else {
+            fresh = WarshipDirector.fill(sim, ship, ships, avoid, slots);
+            ship.noteFriendlyPass(false);
+        }
         if (!fresh.isEmpty()) {
             kept.addAll(fresh);
             ship.setDirectedAreas(kept);
         }
         ship.resortByWeight();
+    }
+
+    /** Whether a round aimed at any hostile in {@code area} would reach a friendly within the blast and its margin. */
+    private static boolean endangersFriendlies(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area,
+                                               WarshipDirector.Friendlies friendlies) {
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        long[] dense = roster.denseArray();
+        int n = roster.liveCount();
+        float[] xs = new float[n];
+        float[] ys = new float[n];
+        int hostiles = 0;
+        for (int i = 0; i < n; i++) {
+            long u = dense[i];
+            if (!ship.faction.hostileTo(roster.identity().faction(u))) continue;
+            float ux = world.x(u);
+            float uy = world.y(u);
+            if (!area.contains(ux, uy)) continue;
+            xs[hostiles] = ux;
+            ys[hostiles] = uy;
+            hostiles++;
+        }
+        float danger = WarshipDirector.blastCells(ship, area.radius()) + WarshipDirector.SAFETY_MARGIN_CELLS;
+        return WarshipDirector.exposure(xs, ys, hostiles, area.x(), area.y(), area.radius(), friendlies, danger) > 0f;
+    }
+
+    /** Radius of a denied landing zone, as a share of the director's area radius, never under {@link #DENIAL_MIN_RADIUS}. */
+    private static final float DENIAL_RADIUS_SHARE = 0.6f;
+    private static final float DENIAL_MIN_RADIUS = 3f;
+    private static final int DENIAL_AIM_ATTEMPTS = 6;
+
+    /**
+     * Keeps the ship's denied landing zones equal to the inbound hostile drops
+     * worth firing on: the most valuable ones first (people and machines per
+     * second to touchdown), each from the moment a round fired now would land at
+     * touchdown until the boat has put everyone on the ground, and none that is
+     * out of reach or has a friendly in the blast and its margin. {@code kept}
+     * is rewritten in place; returns whether the set of denied zones changed.
+     */
+    private boolean updateDenials(BattleSimulation sim, Warship ship, List<Warship.Held> kept,
+                                  WarshipDirector.Friendlies friendlies) {
+        float reach = WarshipDirector.reach(ship);
+        List<AirThreatPicture.InboundDrop> drops = new ArrayList<>(
+                AirThreatPicture.take(sim, ship, ships).drops());
+        drops.sort((a, b) -> {
+            int byValue = Float.compare(b.value(), a.value());
+            return byValue != 0 ? byValue : Long.compare(a.craftId(), b.craftId());
+        });
+        float radius = Math.max(DENIAL_MIN_RADIUS, ship.directorRadius() * DENIAL_RADIUS_SHARE);
+        float danger = WarshipDirector.blastCells(ship, radius) + WarshipDirector.SAFETY_MARGIN_CELLS;
+        List<Warship.Held> wanted = new ArrayList<>();
+        int room = ship.directorMaxAreas();
+        for (AirThreatPicture.InboundDrop drop : drops) {
+            if (wanted.size() >= room) break;
+            float gap = (float) Math.hypot(drop.lzX() - ship.x, drop.lzY() - ship.y);
+            if (gap > reach) continue;
+            float slowest = slowestFall(ship, drop.lzX(), drop.lzY());
+            if (slowest < 0f || drop.etaSeconds() > slowest + DENIAL_LEAD_SECONDS + DENIAL_PREPARE_SECONDS) continue;
+            if (!ship.dangerClose() && friendlies != null && WarshipDirector.exposure(
+                    new float[]{drop.lzX()}, new float[]{drop.lzY()}, 1, drop.lzX(), drop.lzY(), radius,
+                    friendlies, danger) > 0f) {
+                continue;
+            }
+            Warship.Held existing = null;
+            for (Warship.Held h : kept) {
+                if (h.denial && h.area.x() == drop.lzX() && h.area.y() == drop.lzY()) existing = h;
+            }
+            if (existing == null) {
+                existing = new Warship.Held(new WarshipOrder.FireOnArea(drop.lzX(), drop.lzY(), radius,
+                        ship.directorBringsGunsToBear()), Math.max(1, drop.marines()));
+                existing.denial = true;
+            }
+            existing.weight = Math.max(1, drop.marines());
+            existing.denialEta = drop.etaSeconds();
+            wanted.add(existing);
+        }
+        List<Warship.Held> before = new ArrayList<>();
+        for (Warship.Held h : kept) if (h.denial) before.add(h);
+        boolean same = before.size() == wanted.size() && before.containsAll(wanted);
+        kept.removeIf(h -> h.denial);
+        kept.addAll(0, wanted);
+        return !same;
+    }
+
+    /**
+     * The longest fall time, in seconds, among the shell mounts that can reach
+     * {@code (lx, ly)}: the lead a zone's window must open with so every gun's
+     * first round can be in the air by touchdown. {@code -1} when none reaches.
+     */
+    private static float slowestFall(Warship ship, float lx, float ly) {
+        float slowest = -1f;
+        for (Warship.Mount m : ship.mounts()) {
+            if (m.pointDefence() || m.weapon.beam()) continue;
+            float dist = (float) Math.hypot(lx - ship.mountX(m), ly - ship.mountY(m));
+            if (dist > WarshipScale.cells(m.weapon.rangePx())) continue;
+            slowest = Math.max(slowest, dist / Math.max(1f, WarshipScale.cells(m.weapon.projectileSpeedPx())));
+        }
+        return slowest;
+    }
+
+    /**
+     * Runs the ship's doctrine once a second: reads the threat picture, asks the
+     * doctrine for a posture (unless a mission pinned one), takes it, and keeps
+     * the station clear of declared capital hazards while the posture asks for
+     * standoff.
+     */
+    private void doctrine(float dt, BattleSimulation sim, Warship ship) {
+        ship.ageDoctrine(dt);
+        ship.doctrineClock += dt;
+        if (ship.doctrineClock < DOCTRINE_PERIOD_SECONDS) return;
+        float elapsed = ship.doctrineClock;
+        ship.doctrineClock = 0f;
+        WarshipDoctrine doctrine = ship.doctrine();
+        if (ship.pinnedPosture() == null && doctrine != null) {
+            AirThreatPicture picture = AirThreatPicture.take(sim, ship, ships);
+            PostureInputs inputs = new PostureInputs(ship.hullFraction(), ship.fluxFraction(), ship.overloaded(),
+                    ship.hasShield() && !ship.shieldUp(), picture.score(), picture.describe(),
+                    picture.ownAir(), ship.stance());
+            WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
+            ship.setPosture(decision.posture(), decision.reason());
+        }
+        if (ship.profile().standoff()) {
+            float[] station = standoffStation(ship);
+            if (station != null) ship.standoffTo(station[0], station[1]);
+        } else {
+            ship.endStandoff();
+        }
+    }
+
+    /** Where to hover to be clear of every hazard hostile to the ship, or {@code null} when the station already is. */
+    private float[] standoffStation(Warship ship) {
+        float sx = ship.hasStation() ? ship.stationX() : ship.x;
+        float sy = ship.hasStation() ? ship.stationY() : ship.y;
+        boolean moved = false;
+        float clear = STANDOFF_MARGIN_CELLS + ship.lengthCells * 0.5f;
+        for (int pass = 0; pass < 3; pass++) {
+            boolean pushed = false;
+            for (CapitalHazard hazard : hazards) {
+                if (!hazard.owner().hostileTo(ship.faction)) continue;
+                float dx = sx - hazard.x();
+                float dy = sy - hazard.y();
+                float len = (float) Math.hypot(dx, dy);
+                float need = hazard.radius() + clear;
+                if (len >= need) continue;
+                if (len < 0.01f) {
+                    dx = 1f;
+                    dy = 0f;
+                    len = 1f;
+                }
+                sx = hazard.x() + dx / len * need;
+                sy = hazard.y() + dy / len * need;
+                pushed = true;
+                moved = true;
+            }
+            if (!pushed) break;
+        }
+        return moved ? new float[]{sx, sy} : null;
     }
 
     private static int hostilesWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
@@ -431,8 +661,10 @@ public final class WarshipSystem {
         }
         for (WarshipShell s : shells) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
-            if (nearHull(ship, s.toX, s.toY, s.damageRadius())
-                    && threatens(ship, s.damage(), s.penetration(), s.toX, s.toY)) return true;
+            PendingDetonation d = s.landing();
+            if (d == null) continue;
+            if (nearHull(ship, s.toX, s.toY, s.blastCells())
+                    && threatens(ship, d.damage, d.penetration, s.toX, s.toY)) return true;
         }
         for (WarheadStrike s : strikes) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
@@ -462,6 +694,7 @@ public final class WarshipSystem {
                 continue;
             }
             PendingDetonation landing = shell.landing();
+            if (landing == null) continue;
             sim.detonateNow(landing);
             if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
@@ -525,6 +758,11 @@ public final class WarshipSystem {
             traverse(dt, ship, m, ship.facingDegrees + m.slot.angleDegrees());
             return;
         }
+        if (m.burstRemaining > 0 && beyondOpportunity(ship, m)) {
+            // The hull has drawn away from what this burst was aimed at: it falls silent rather than fire past the posture's range.
+            m.burstRemaining = 0;
+            m.aimed = false;
+        }
         if (m.burstRemaining > 0) {
             traverse(dt, ship, m, AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)));
             m.burstTimer -= dt;
@@ -549,7 +787,8 @@ public final class WarshipSystem {
         // A choice is kept until the mount has fired on it, so a turret can finish
         // swinging; it is dropped if its area was dropped or the hull has turned it out of arc.
         if (m.aimed && (!ship.holdsGround(m.aimX, m.aimY) || !Warship.bears(
-                m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY))) {
+                m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY,
+                ship.groundRangeMultiplier(m.aimX, m.aimY)) || beyondOpportunity(ship, m))) {
             m.aimed = false;
         }
         if (!m.aimed && !ship.areas().isEmpty()) m.aimed = pickTarget(sim, ship, m) != null;
@@ -561,6 +800,7 @@ public final class WarshipSystem {
         traverse(dt, ship, m, bearing);
         if (m.cooldown > 0f) return;
         if (Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) > ALIGNED_DEGREES) return;
+        if (denialNotYet(ship, m)) return;
         if (!ship.hasOrdnance(m)) {
             m.aimed = false;
             return;
@@ -571,6 +811,30 @@ public final class WarshipSystem {
         ship.fluxPool().spend(cost);
         m.burstRemaining = w.burstSize();
         m.burstTimer = 0f;
+    }
+
+    /**
+     * Whether the mount is aimed at a denied landing zone whose boat is still too
+     * far from touchdown for a round fired now to land with it: the barrel stays
+     * on the zone and waits, so the first round falls as the boat settles.
+     */
+    private static boolean denialNotYet(Warship ship, Warship.Mount m) {
+        Warship.Held zone = ship.denialHeldAt(m.aimX, m.aimY);
+        if (zone == null) return false;
+        float fall = (float) Math.hypot(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m))
+                / Math.max(1f, WarshipScale.cells(m.weapon.projectileSpeedPx()));
+        return zone.denialEta > fall + DENIAL_LEAD_SECONDS;
+    }
+
+    /**
+     * Whether the mount's aim has drifted past the posture's opportunity range
+     * (the hull moved, or the posture changed). Never true for a manual order
+     * or when the posture sets no range.
+     */
+    private static boolean beyondOpportunity(Warship ship, Warship.Mount m) {
+        float range = ship.opportunityRange();
+        if (range == Float.POSITIVE_INFINITY || ship.manualOrder()) return false;
+        return Math.hypot(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)) > range;
     }
 
     /**
@@ -707,6 +971,27 @@ public final class WarshipSystem {
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
         int seen = 0;
+        Warship.Held denial = ship.denialHeld(area);
+        if (denial != null) {
+            // A landing zone nobody stands on yet: the mount aims at open ground inside the zone; tickMount
+            // holds the trigger until a round fired now would land as the boat touches down.
+            if (m.weapon.beam()) return false;
+            for (int attempt = 0; attempt < DENIAL_AIM_ATTEMPTS; attempt++) {
+                double angle = random.nextDouble() * Math.PI * 2.0;
+                float r = area.radius() * (float) Math.sqrt(random.nextDouble());
+                float px = area.x() + (float) Math.cos(angle) * r;
+                float py = area.y() + (float) Math.sin(angle) * r;
+                if (Warship.bears(m, ship.facingDegrees, mx, my, px, py)) {
+                    m.aimX = px;
+                    m.aimY = py;
+                    return true;
+                }
+            }
+            return false;
+        }
+        // A posture's opportunity range and battery limit directed fire; a manual order is never limited.
+        if (!ship.manualOrder() && !ship.mayFireAtGround(m)) return false;
+        float opportunity = ship.manualOrder() ? Float.POSITIVE_INFINITY : ship.opportunityRange();
         if (area.bombardStructures()) {
             int left = Math.max(0, (int) Math.floor(area.x() - area.radius()));
             int top = Math.max(0, (int) Math.floor(area.y() - area.radius()));
@@ -714,7 +999,8 @@ public final class WarshipSystem {
             int bottom = Math.min(sim.getGrid().getHeight() - 1, (int) Math.ceil(area.y() + area.radius()));
             for (int y = top; y <= bottom; y++) for (int x = left; x <= right; x++) {
                 if (!sim.getTopology().isWall(x, y) || !area.contains(x + .5f, y + .5f)
-                        || !Warship.bears(m, ship.facingDegrees, mx, my, x + .5f, y + .5f)) continue;
+                        || !Warship.bears(m, ship.facingDegrees, mx, my, x + .5f, y + .5f, Warship.STRUCTURAL_RANGE_MULTIPLIER)
+                        || Math.hypot(x + .5f - mx, y + .5f - my) > opportunity) continue;
                 if (random.nextInt(++seen) == 0) { m.aimX = x + .5f; m.aimY = y + .5f; }
             }
             return seen > 0;
@@ -726,7 +1012,8 @@ public final class WarshipSystem {
             if (!ship.faction.hostileTo(f)) continue;
             float ux = world.x(u);
             float uy = world.y(u);
-            if (!area.contains(ux, uy) || !Warship.bears(m, ship.facingDegrees, mx, my, ux, uy)) continue;
+            if (!area.contains(ux, uy) || !Warship.bears(m, ship.facingDegrees, mx, my, ux, uy)
+                    || Math.hypot(ux - mx, uy - my) > opportunity) continue;
             seen++;
             if (random.nextInt(seen) == 0) {
                 m.aimX = ux;
@@ -1007,7 +1294,7 @@ public final class WarshipSystem {
                 /*authoredAftermath*/ heavy);
     }
 
-    private static float penetration(String damageType) {
+    static float penetration(String damageType) {
         return switch (damageType) {
             case "KINETIC" -> PENETRATION_KINETIC;
             case "HIGH_EXPLOSIVE" -> PENETRATION_EXPLOSIVE;

@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
+import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -80,7 +82,18 @@ public final class CombatTelemetryReport {
 
     /** Convenience overload over a running sim. */
     public static List<CombatTelemetryRow> gather(BattleSimulation sim) {
-        return gather(sim.getEntityWorld(), sim.getBattleComponents());
+        List<CombatTelemetryRow> rows = gather(sim.getEntityWorld(), sim.getBattleComponents());
+        for (PickupManifest manifest : sim.survivorPickup().manifests()) {
+            for (PickupManifest.Passenger passenger : manifest.passengers()) {
+                CombatTelemetryRow r = passenger.telemetry();
+                if (r == null) continue;
+                rows.add(new CombatTelemetryRow(r.entityId(), r.name(), r.faction(), r.type(),
+                        r.campaignSoldierId(), r.campaignSquadId(), manifest.state() != PickupManifest.State.LOST,
+                        r.roundsFired(), r.roundsHit(), r.damageDealt(), r.friendlyFireDamage(), r.damageTaken(), r.kills(), r.secondaryUsed()));
+            }
+        }
+        rows.sort(Comparator.comparingLong(CombatTelemetryRow::entityId));
+        return rows;
     }
 
     /**

@@ -81,12 +81,14 @@ it through the ordinary contested service objective and withdraws through Raid
 command, respecting player orders. The installation footprint is the structural
 target. No reinforcement layer is installed for this finite authored encounter.
 
-The Onslaught enters after proof and holds fire until every surviving company
-unit is inside the marked withdrawal area, all committed lift is resolved, and
-the ship is on station. A continuous ten-second warning gates fire. Re-entry
-cancels unlaunched burst rounds and restarts clearance. Existing projectiles
-remain real. The objective HUD, briefing survey and ground markers show the
-records, withdrawal area, exclusion area and current instruction.
+The Onslaught enters nose-first from the east after proof and holds station
+outside the compound's entire eastern footprint. It opens fire immediately when
+the company clears the bombardment exclusion area and committed inbound
+reinforcements resolve. There is no ten-second grace period and no wait for
+shuttle boarding. Re-entry cancels further launches; inflight rounds remain real.
+Actual deployment boats return and recover survivors while bombardment continues.
+Victory also requires those pickup flights to return. The briefing and HUD
+explain the extraction and immediate-fire conditions.
 
 The ship targets standing walls with its actual vanilla guns, bounded ordnance
 and station time. At least 75% of original target wall cells must fall, shells
@@ -105,7 +107,7 @@ casualty writeback remain the campaign boundary.
   resolves the mission but is not final balance acceptance; revisit the approach
   and records position with player-controlled evidence.
 
-Focused verification: 67 tests, the recommended-force production replay and
+Earlier intervention verification: 67 tests, the recommended-force production replay and
 `verifyModJarBoundary` pass. Retained evidence is in the local visualization
 artifact `cold-account-intervention`, including launch fixture, trace, samples,
 phase frames and summary.
@@ -132,7 +134,7 @@ Proposed event lines:
   pirate military asset. Withdraw your personnel."
 - Withdrawal: "Your company has completed its function. Clear the exclusion zone."
 - All clear: "Friendly elements accounted for. Batteries: demolition pattern.
-  Commence in ten seconds."
+  Open fire."
 - After the guns: "The installation is no longer operational. Record the matter
   closed."
 - Mara: "Keep the original records. I want an account of what happened here."
@@ -143,3 +145,28 @@ of the pirate installation; it does not silently revoke the player's promised
 withdrawal interlock. Any change to completion or the fire pattern needs its own
 production replay. Portrait, subtitles, optional voice, and the final fire-pattern
 presentation remain to be implemented and reviewed.
+
+## Outskirts fire and survivor pickup — 2026-10-11
+
+- [x] Correct approach heading and station the full capital hull outside the
+  eastern installation bounds, with eight cells of additional clearance.
+- [x] Use the explicit structural standoff range and open fire when ground
+  troops clear the firing area, while pickup continues.
+- [x] Reuse fitted deployment boats for capacity-limited survivor pickup, retain
+  named personnel/telemetry, and resolve loaded-aircraft losses.
+- [x] Repair site-security travel being abandoned for overwatch on distant
+  remembered contact; the original replay's rear squad showed exactly that.
+- [ ] Player-controlled acceptance and final difficulty tuning remain open.
+
+Final merged-ship playback: victory at tick 7,160 (3:58.7). Evidence at 4,140;
+fire at 6,159 with no grace interval and pickup still underway. Four six-seat
+sorties physically recovered all 24 surviving infantry. Ground losses were
+24/48 and the Hound, compared with 29/48 and the Hound in the previous baseline.
+The capital fired 368 rounds, destroying 596/725 target wall cells; six pirates
+remained. No infantry died during bombardment. Per-tick assertions prove the
+full hull stays beyond the outermost wall, approach heading follows its straight
+flight line, and fire precedes pickup completion. The original accessible-POI
+bounds omitted outer structures; station placement now uses the original wall
+footprint, which remains fixed after demolition. Twenty-three focused tests and
+`verifyModJarBoundary` pass. The retained `cold-account-outskirts-pickup` artifact
+includes the updated silent replay, fixture, trace, samples and unit snapshots.

@@ -39,6 +39,7 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -683,13 +684,16 @@ public class AirSystem {
             effects.spawnSmokingWreck(wx, wy);
         }
 
+        if (mission.pickup != null) mission.pickup.lose();
         handBackToField(mission, /*recovered*/ false, world.hp(id));
         // Written before the state flips, because GONE is the end of anything
         // this entity can still be asked. Both branches come through here, so
         // a craft burnt on its hardstand is remembered the same way one that
         // fell out of the sky is.
         losses.add(new AirLoss(world.airframe(id), world.airFaction(id), killedBy,
-                stillAboard(mission), Math.max(0, mission.marinesRemaining)));
+                mission.pickup == null ? stillAboard(mission) : mission.pickup.passengers().stream()
+                        .map(p -> p.soldierId()).filter(Objects::nonNull).toList(),
+                mission.pickup == null ? Math.max(0, mission.marinesRemaining) : mission.pickup.passengers().size()));
         mission.state = ShuttleState.GONE;
         LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + killedBy + " with "
                 + mission.marinesRemaining + " marine(s) still aboard.");
@@ -856,6 +860,7 @@ public class AirSystem {
                             // Scrubbed on the pad with nobody aboard. The
                             // aircraft never went anywhere, so it is still the
                             // field's and goes straight back on its stand.
+                            if (mission.pickup != null) mission.pickup.recover();
                             handBackToField(mission, /*recovered*/ true, world.hp(id));
                             mission.state = ShuttleState.GONE;
                         }
@@ -1288,6 +1293,7 @@ public class AirSystem {
                             // has landed at home, and the air entity ends
                             // because the aircraft has stopped being one, not
                             // because it has stopped existing.
+                            if (mission.pickup != null) mission.pickup.recover();
                             handBackToField(mission, /*recovered*/ true, world.hp(id));
                             mission.state = ShuttleState.GONE;
                         }

@@ -36,6 +36,11 @@ The first attacker picture has `APPROACH`, `SERVICE`, `EGRESS`, and `COMPLETE`
 phases. Approach includes the tactical breach; the explicit service order stays
 relevant even after the target room is clear. One closest reachable squad is the
 service element while other available squads take spread cordon positions.
+Security elements keep travelling to their assigned site through remembered
+contacts and anonymous sounds while more than eight cells from that site.
+Once near it they can adopt the usual contact-driven defence; survival and
+opportunity fire remain available during travel. A distant contact must not
+pin the security element in overwatch at its landing zone.
 After seizure, every available squad receives a spread withdrawal rally around
 egress. Service and withdrawal retain their exact destination through remembered
 contact and anonymous sound bearings. A servicing mech holds the interaction

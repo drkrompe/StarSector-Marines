@@ -237,6 +237,17 @@ public final class WarshipPointDefence {
         marks.add(new LiveMark(ship.faction, w, mx, my, target.x, target.y, stopped));
     }
 
+    /** Whether {@code m} has hostile ordnance to shoot at now; ordnance outranks aircraft for a point-defence mount. */
+    boolean hasTarget(BattleSimulation sim, Warship ship, Warship.Mount m,
+                      List<WarshipShell> shells, List<WarheadStrike> strikes) {
+        return nearest(sim, ship, m, ship.mountX(m), ship.mountY(m), shells, strikes) != null;
+    }
+
+    /** Draws a tracer for a shot at something that is not ordnance (an aircraft): same marks, same renderer. */
+    void trace(Warship ship, VanillaWeapon weapon, float fromX, float fromY, float toX, float toY, boolean hit) {
+        marks.add(new LiveMark(ship.faction, weapon, fromX, fromY, toX, toY, hit));
+    }
+
     /** The nearest hostile round in flight that the mount can reach and bear on. */
     private static Target nearest(BattleSimulation sim, Warship ship, Warship.Mount m,
                                   float mx, float my, List<WarshipShell> shells, List<WarheadStrike> strikes) {

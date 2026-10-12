@@ -25,8 +25,15 @@ public final class DefendAssignedSiteGoal implements Goal {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.DEFEND_SITE) return 0f;
         if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) return 0f;
-        if (state.get(Predicate.MORALE_BROKEN) || state.get(Predicate.HAS_TARGET)) return 0f;
+        if (state.get(Predicate.MORALE_BROKEN) || (state.get(Predicate.HAS_TARGET) && !travelling(squad))) return 0f;
         return 0.85f;
+    }
+
+    /** Reach the ordered site before adopting its static defence posture. */
+    public static boolean travelling(Squad squad) {
+        ObjectiveAssignment a = squad.assignmentForExecution();
+        return a != null && a.kind() == AssignmentKind.DEFEND_SITE
+                && Math.hypot(squad.centroidX - a.targetCellX(), squad.centroidY - a.targetCellY()) > 8f;
     }
 
     @Override public WorldState desiredState(Squad squad, BattleView sim) {

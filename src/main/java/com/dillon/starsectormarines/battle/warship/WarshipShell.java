@@ -67,6 +67,7 @@ public final class WarshipShell implements Interceptable {
     private float elapsed;
     /** Set when point defence has shot the round down; it is dropped without landing. */
     boolean intercepted;
+    private boolean inert;
 
     WarshipShell(VanillaWeapon weapon, Faction faction, Warship shooter, float fromX, float fromY, float toX,
                  float toY, MissilePath path, float blastCells, float damage, float penetration,
@@ -210,14 +211,23 @@ public final class WarshipShell implements Interceptable {
         blastCells = SwarmBudget.mergeRadius(blastCells, extraVisualCells);
     }
 
+    /** Marks this round as a visible, interceptable flight that makes no ground detonation of its own. */
+    WarshipShell inert() {
+        inert = true;
+        return this;
+    }
+
     boolean advance(float dt) {
         elapsed += dt;
         return elapsed >= flightSeconds;
     }
 
-    /** The single detonation a round makes on landing; {@code null} for a carrier, whose warheads make them. */
+    /**
+     * The single detonation a round makes on landing; {@code null} for a carrier, whose warheads make
+     * them, and for an inert round (a shot at an aircraft lands through its own seam).
+     */
     PendingDetonation landing() {
-        if (!warheads.isEmpty()) return null;
+        if (!warheads.isEmpty() || inert) return null;
         return WarshipSystem.detonation(faction, path.landX(), path.landY(), damage, penetration, damageRadius);
     }
 }
