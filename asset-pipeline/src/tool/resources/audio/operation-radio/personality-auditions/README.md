@@ -3,8 +3,9 @@
 Selected cast: **Jackal A, Ox B and Rivet B**. The selected previews are retained.
 All three are saved as reusable provider voices; their receipts and
 `ensemble/cast.json` record the permanent voice IDs.
-Production-model auditions remain pending before
-runtime registration. Warden, Relay and all unselected alternatives were rejected
+Their production-model combat reports and assignment exchanges are registered in
+the live bank; these original previews retain the casting reference. Performance
+and live mix acceptance still require listening. Warden, Relay and all unselected alternatives were rejected
 by the user. Their audio masters have been removed; request and rejection metadata
 remain for provenance, and Git retains the original audition set.
 
@@ -21,8 +22,8 @@ status. A/B/C refers to response order, not a quality ranking.
 
 The design endpoint uses `eleven_ttv_v3`, its expressive Voice Design model.
 These previews are not a test of the production `eleven_v4` synthesis model.
-Audition the saved voices on the production model before generating their
-independently triggered combat clips.
+The live bank uses the saved voices with `eleven_v4`, one retained clean source
+per independently triggered turn, with radio processing applied by the audio build.
 
 The sample sentences are a compact performance sequence with several different
 situations. They do not describe one actual battle or add event triggers. The
