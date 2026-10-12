@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
@@ -48,6 +49,7 @@ import org.apache.log4j.Logger;
 import java.awt.Color;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -908,6 +910,12 @@ public class BattleRenderer {
         objectiveArcMesh.reset();
         boolean hasChargeSites = false;
 
+        for (Objective objective : sim.getObjectives()) {
+            if (!(objective instanceof RaidObjective raid)) continue;
+            collectRaidMarker(out, raid, false, cellPx, alphaMult);
+            collectRaidMarker(out, raid, true, cellPx, alphaMult);
+        }
+
         for (Objective o : sim.getObjectives()) {
             if (!(o instanceof ChargeSiteObjective)) continue;
             hasChargeSites = true;
@@ -1013,6 +1021,45 @@ public class BattleRenderer {
             out.addCustom(RenderLayer.OBJECTIVES,
                     () -> drawChargeSiteLabels(sim, alphaMult));
         }
+    }
+
+    private void collectRaidMarker(DrawList out, RaidObjective raid, boolean extraction,
+                                   float cellPx, float alpha) {
+        int x = extraction ? raid.egressCellX() : raid.targetCellX();
+        int y = extraction ? raid.egressCellY() : raid.targetCellY();
+        float cx = rc.camera.cellToScreenX(x + .5f);
+        float cy = rc.camera.cellToScreenY(y + .5f);
+        float pocketRadius = (extraction ? RaidObjective.EGRESS_RADIUS : RaidObjective.TARGET_RADIUS) * cellPx;
+        if (!ViewCull.of(rc.camera).visibleScreen(cx, cy, Math.max(260f, pocketRadius * 2))) return;
+        var marker = BattlefieldMarkerPresentation.raid(extraction, raid.phase(),
+                raid.serviceProgress() / raid.serviceDuration());
+        Color tone = marker.tone();
+        float opacity = marker.opacity() * alpha;
+        float radius = BattlefieldMarkerPresentation.objectiveRadius(cellPx);
+        // The outer ring shows the real service/return pocket, not an invented capture zone.
+        appendObjectiveAnnulus(cx, cy, Math.max(0, pocketRadius - 1.5f), pocketRadius, tone, opacity * .55f);
+        appendObjectiveAnnulus(cx, cy, 0, radius - 2, OBJECTIVE_CORE, .85f * alpha);
+        appendObjectiveAnnulus(cx, cy, radius - 2, radius, tone, opacity);
+        if (marker.progress() > 0 && !extraction) {
+            PolyTess.appendArc(objectiveArcMesh, cx, cy, radius + 3, radius + 6,
+                    marker.progress(), PROGRESS_ARC_SEGMENTS,
+                    tone.getRed() / 255f, tone.getGreen() / 255f, tone.getBlue() / 255f, opacity);
+        }
+        String label = extraction ? "2 / LANDING ZONE" : "1 / " + raid.targetName().toUpperCase(Locale.ROOT);
+        float labelX = Math.max(rc.camera.vpX() + 132,
+                Math.min(rc.camera.vpX() + rc.camera.vpW() - 132, cx));
+        float labelY = cy - radius - 12;
+        if (labelY - 30 < rc.camera.vpY() + 4) labelY = cy + radius + 42;
+        final float textY = Math.min(rc.camera.vpY() + rc.camera.vpH() - 6, labelY);
+        out.addSolidRect(RenderLayer.OBJECTIVES, labelX - 130, textY - 30, labelX + 130, textY + 3,
+                .03f, .06f, .08f, .85f * alpha);
+        out.addCustom(RenderLayer.OBJECTIVES, () -> {
+            objectiveMarkerFont.ensureLoaded();
+            drawObjectiveText(marker.code(), cx, cy + objectiveMarkerFont.getLineHeight() * .42f,
+                    tone, 1f, alpha);
+            drawObjectiveText(label, labelX, textY, BattlefieldMarkerPresentation.LABEL, .85f, alpha);
+            drawObjectiveText(marker.status(), labelX, textY - 15, tone, .8f, alpha);
+        });
     }
 
     private void appendObjectiveAnnulus(float cx, float cy, float inner,
