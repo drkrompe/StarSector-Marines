@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -102,6 +103,7 @@ final class BattleHudOverlay {
 
     /** CSS has no item-alignment property yet; keep the progress fill left-anchored. */
     static void wireLayout(MarkupInstance instance) {
+        instance.requireElement("battle-mission-squads").align(UiAlign.START, UiAlign.START);
         instance.requireElement("battle-objective-progress-fill")
                 .align(UiAlign.START, UiAlign.STRETCH);
     }
@@ -171,6 +173,7 @@ final class BattleHudOverlay {
         if (instance == null) return false;
         return instance.requireElement("battle-conquest-command")
                 .box().borderBox().contains(documentX, documentY)
+                || instance.requireElement("battle-mission-squads").box().borderBox().contains(documentX, documentY)
                 || instance.requireElement("battle-command-rail")
                 .box().borderBox().contains(documentX, documentY);
     }
@@ -196,6 +199,7 @@ final class BattleHudOverlay {
     }
 
     static float documentHeight(BattleHudOverlayModel.Presentation presentation) {
+        if (presentation.missionRows() > 0) return Math.max(300, 96 + presentation.missionRows() * 174);
         if (presentation.objectivesVisible() && presentation.commandVisible()) {
             return CONQUEST_COMMAND_HEIGHT;
         }
@@ -209,6 +213,9 @@ final class BattleHudOverlay {
         var result = model.update(speedMultiplier,
                 sim == null ? List.of() : sim.getCompoundService().getRecords(),
                 sim == null ? null : sim.getCommanderSnapshot(Faction.MARINE));
+        var mission = MissionObjectiveProjection.capture(sim);
+        if (!mission.objectives().isEmpty()) return model.updateMission(mission,
+                marker -> camera.centerOn(marker.x() + .5f, marker.y() + .5f));
         if (sim != null && sim.getThunderRun() != null) {
             var column = sim.getThunderRun();
             model.updateFreight(column.phase(), column.cargoIdentities(), column.cargoStates(), column.deliveredCount(), column.lostCount());

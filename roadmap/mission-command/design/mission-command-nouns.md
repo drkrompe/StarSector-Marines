@@ -448,6 +448,14 @@ local action sequence or individual fire intent. AI beliefs and doctrine remain
 the tactical truth after contact.
 
 Map generation owns zones, portals, compounds, sites, and navigation geometry.
+The player-facing mission picture is a read-only projection of objective-owned
+state and friendly committed assignments. It shares authored place identities
+with briefing and map markers, reports actual progress gates without exposing
+private hostile geometry, and preserves each mission's terminal law. A squad's
+published role explains its assignment; local contact and player overrides are
+shown separately so intent is not presented as accomplished work. Presentation
+never issues orders or grants objective completion.
+
 Mission objectives own progress and victory. Reinforcement owns requests,
 tickets, and delivery; a mission owns only an explicit deployment policy or
 post-delivery handoff. Rendering observes published facts and never becomes a

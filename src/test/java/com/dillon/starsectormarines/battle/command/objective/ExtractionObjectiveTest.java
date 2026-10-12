@@ -77,6 +77,9 @@ class ExtractionObjectiveTest {
             objective.tick(sim);
 
             assertTrue(objective.isFailed());
+            assertTrue(objective.contested());
+            assertEquals("Package lost to hostile control.", MissionObjectiveProjection.payload(objective,
+                    sim.getCivilianEvacuationProgress()).blocker());
             assertEquals(ExtractionPayloadObjective.Failure.LOST,
                     objective.failureReason());
             assertEquals(1, objective.lostElements());

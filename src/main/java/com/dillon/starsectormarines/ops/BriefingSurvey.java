@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -113,12 +114,11 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
                 continue;
             }
             else if (objective instanceof ExtractionPayloadObjective payload) {
-                x = payload.sourceCellX(); y = payload.sourceCellY();
-                if (payload.egressCellX() >= 0 && payload.egressCellY() >= 0
-                        && (payload.egressCellX() != x || payload.egressCellY() != y)) {
-                    markers.add(new Marker("EXFIL", payload.egressCellX(), payload.egressCellY(), false));
-                    objectives.add("EXFIL / extract at the marked pickup");
-                }
+                var item = MissionObjectiveProjection.payload(payload, sim.getCivilianEvacuationProgress());
+                for (var marker : item.markers()) markers.add(new Marker(marker.name(), marker.x(), marker.y(), false));
+                objectives.add(item.name() + " / " + item.steps());
+                objectives.add(item.instruction());
+                continue;
             }
             if (x >= 0 && y >= 0) {
                 String label = "OBJ" + (objectives.size() + 1);

@@ -38,7 +38,19 @@ public final class CivilianEvacuationObjective
     private int payloadCellY = -1;
     private int controllingSquadId = -1;
     private boolean escortPresent;
+    private String sourceName = "Survivor shelter";
+    private String egressName = "Evacuation pickup";
+    private int entranceX = -1, entranceY = -1;
+    public void nameLocations(String shelter, int x, int y, String pickup) {
+        sourceName = shelter; entranceX = x; entranceY = y; egressName = pickup;
+    }
+    @Override public String sourceName() { return sourceName; }
+    @Override public String egressName() { return egressName; }
+    @Override public int sourceMarkerX() { return entranceX >= 0 ? entranceX : sourceCellX; }
+    @Override public int sourceMarkerY() { return entranceY >= 0 ? entranceY : sourceCellY; }
     private long requiredPickup;
+    private boolean pickupLost;
+    public boolean pickupLost() { return pickupLost; }
     /** Authored story law: pickup loss fails the attempt; separated workers become regroup anchors. */
     public void configureStoryPickup(long id) {
         if (id == 0 || requiredPickup != 0) throw new IllegalArgumentException("One physical story pickup required");
@@ -94,6 +106,7 @@ public final class CivilianEvacuationObjective
         if (complete || failed) return;
         if (requiredPickup != 0 && tracker.activeCount() > 0
                 && (sim.world().mission(requiredPickup) == null || sim.world().mission(requiredPickup).state == ShuttleState.GONE)) {
+            pickupLost = true;
             failed = true;
             return;
         }

@@ -143,7 +143,14 @@ labelled as a separate swarm perspective and deduplicated by director revision.
 The existing rescue tracker and evacuation objective publish the shared cohort
 projection while retaining physical civilian identity, movement, pickup
 boarding, partial survival, and campaign scaling. The shared projection does
-not replace any of those laws.
+not replace any of those laws. The public mission rail and map consume the same
+payload identities and authored source/pickup names. Normal play exposes close-
+escort waits, missing routes, threat screening and pickup waits directly from
+movement observations, including simultaneous holds affecting different people.
+Recovery-package seizure and boarding show their own measured timers and
+contest state. The archive shows room-presence recovery only. Friendly squad
+activity remains a separate view of committed roles and locally known contact;
+no diagnostic overlay is required to understand the mission.
 
 The existing `commanderEvidence -Pmission=extraction` selector runs both generic
 Extraction and Rescue adapters; no scenario-specific Gradle task is required.

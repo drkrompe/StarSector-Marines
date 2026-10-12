@@ -84,3 +84,4 @@ com.dillon.starsectormarines.battle.world.gen.ship.CerberusStartSnapshotSuite
 com.dillon.starsectormarines.ops.InstallationGroundSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipPilotSceneSnapshotSuite
 com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
+com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite
