@@ -79,6 +79,16 @@ class WarshipBudgetTest {
     }
 
     @Test
+    void holdFireCancelsUnlaunchedBurstRounds() throws Exception {
+        Warship s = ship();
+        s.order(new WarshipOrder.FireOnArea(60, 60, 5, true, true));
+        for (var mount : s.mounts()) mount.burstRemaining = 5;
+        s.order(WarshipOrder.HoldFire.INSTANCE);
+        for (var mount : s.mounts()) assertEquals(0, mount.burstRemaining);
+        assertEquals(WarshipOrder.HoldFire.INSTANCE, s.order());
+    }
+
+    @Test
     void departureSilencesTheGuns() throws Exception {
         Warship s = ship();
         s.stayFor(1f);

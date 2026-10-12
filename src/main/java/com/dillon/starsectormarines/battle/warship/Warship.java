@@ -211,6 +211,7 @@ public final class Warship {
             manual = true;
         } else {
             manual = false;
+            for (Mount mount : mounts) mount.burstRemaining = 0;
         }
         refreshAreas();
         this.headingChosen = false;

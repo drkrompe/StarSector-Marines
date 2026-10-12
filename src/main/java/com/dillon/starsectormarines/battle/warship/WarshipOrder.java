@@ -11,7 +11,7 @@ package com.dillon.starsectormarines.battle.warship;
  */
 public sealed interface WarshipOrder {
 
-    /** Fire nothing. A burst already in flight completes. */
+    /** Fire nothing. Rounds already in flight still land; unlaunched burst rounds are cancelled. */
     record HoldFire() implements WarshipOrder {
         public static final HoldFire INSTANCE = new HoldFire();
     }
@@ -20,12 +20,17 @@ public sealed interface WarshipOrder {
      * Engage every hostile standing inside a circle of ground, each mount choosing
      * for itself among the enemies it can reach and traverse to.
      *
+     * @param bombardStructures explicitly target standing walls, even with no hostile occupants
      * @param bringGunsToBear when true the ship also turns to the heading that
      *        puts the most firepower on the area, and holds it; when false it
      *        fires from whatever heading it has, so a broadside that cannot bear
      *        stays silent
      */
-    record FireOnArea(float x, float y, float radius, boolean bringGunsToBear) implements WarshipOrder {
+    record FireOnArea(float x, float y, float radius, boolean bringGunsToBear,
+                      boolean bombardStructures) implements WarshipOrder {
+        public FireOnArea(float x, float y, float radius, boolean bringGunsToBear) {
+            this(x, y, radius, bringGunsToBear, false);
+        }
         public FireOnArea {
             if (!(radius > 0f)) throw new IllegalArgumentException("an area needs a radius");
         }
