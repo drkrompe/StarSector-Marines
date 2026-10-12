@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
@@ -256,7 +257,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private float panelTopY() {
         BattleLayout l = ctx.getLayout();
         return l.controlsY + l.controlsH
-                - BattleLayout.COMMAND_RAIL_H - BattleLayout.CONTROLS_GAP;
+                - (ctx.getSim() != null && ctx.getSim().getObjectives().stream().anyMatch(ExtractionPayloadObjective.class::isInstance)
+                    ? 444f : BattleLayout.COMMAND_RAIL_H) - BattleLayout.CONTROLS_GAP;
     }
 
     private float panelY() {
