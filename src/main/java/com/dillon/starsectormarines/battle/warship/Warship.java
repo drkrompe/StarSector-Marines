@@ -108,10 +108,33 @@ public final class Warship {
     private float stationX;
     private float stationY;
     private boolean hasStation;
+    /** How many areas a director holds at once unless told otherwise. */
+    public static final int DEFAULT_MAX_AREAS = 3;
+
+    /** One ground a ship is firing on, with how many hostiles it held when last looked at and how long it has held none. */
+    static final class Held {
+        final WarshipOrder.FireOnArea area;
+        int weight;
+        float emptySeconds;
+
+        Held(WarshipOrder.FireOnArea area, int weight) {
+            this.area = area;
+            this.weight = weight;
+        }
+    }
+
     private float directorRadius;
     private boolean directorBringsGunsToBear;
     private boolean directing;
-    float areaEmptySeconds;
+    private int directorMaxAreas = DEFAULT_MAX_AREAS;
+    /** Whether the held areas are one a caller ordered by hand; the director adds nothing beside it. */
+    private boolean manual;
+    private final List<Held> held = new ArrayList<>();
+    private final List<WarshipOrder.FireOnArea> areasView = new ArrayList<>();
+    private final List<WarshipOrder.FireOnArea> areasReadOnly = Collections.unmodifiableList(areasView);
+    float retrySeconds;
+    /** Rotates the areas the mounts are dealt, so a battery spreads over all of them. */
+    int dealCounter;
     float headingChosenAtX;
     float headingChosenAtY;
     public float x;
@@ -120,7 +143,6 @@ public final class Warship {
     /** The heading the hull is turning toward. */
     float desiredHeading;
     float turnVelocity;
-    private WarshipOrder order = WarshipOrder.HoldFire.INSTANCE;
     private boolean headingChosen;
     private float hitPoints;
     /** Seconds of station time left, counted down while the ship is on station; infinite when unbounded. */
@@ -163,14 +185,74 @@ public final class Warship {
         return mountsView;
     }
 
+    /**
+     * The ship's standing order: the first (densest) area it holds, or hold fire
+     * when it holds none. A directed ship may hold several; {@link #areas()} lists
+     * them all.
+     */
     public WarshipOrder order() {
-        return order;
+        return held.isEmpty() ? WarshipOrder.HoldFire.INSTANCE : held.get(0).area;
     }
 
-    /** Gives the ship an order. A new order is carried out from scratch: the heading is chosen again. */
+    /** Every area the ship is firing on now, densest first; empty when it holds fire. */
+    public List<WarshipOrder.FireOnArea> areas() {
+        return areasReadOnly;
+    }
+
+    /**
+     * Gives the ship an order by hand. It replaces every area the ship held, even a
+     * director's, and is carried out from scratch: the heading is chosen again. A
+     * director beside it adds nothing until this ground has been emptied.
+     */
     public void order(WarshipOrder newOrder) {
-        this.order = newOrder != null ? newOrder : WarshipOrder.HoldFire.INSTANCE;
+        held.clear();
+        if (newOrder instanceof WarshipOrder.FireOnArea area) {
+            held.add(new Held(area, 1));
+            manual = true;
+        } else {
+            manual = false;
+        }
+        refreshAreas();
         this.headingChosen = false;
+    }
+
+    private void refreshAreas() {
+        areasView.clear();
+        for (Held h : held) areasView.add(h.area);
+    }
+
+    List<Held> held() {
+        return held;
+    }
+
+    boolean manualOrder() {
+        return manual;
+    }
+
+    /** Replaces the held areas with a director's; the heading is chosen again. */
+    void setDirectedAreas(List<Held> next) {
+        held.clear();
+        held.addAll(next);
+        manual = false;
+        refreshAreas();
+        headingChosen = false;
+    }
+
+    /** Keeps the densest area first, which is the one the mounts are dealt twice as often and {@link #order()} names. */
+    void resortByWeight() {
+        boolean sorted = true;
+        for (int i = 1; i < held.size(); i++) {
+            if (held.get(i).weight > held.get(i - 1).weight) sorted = false;
+        }
+        if (sorted) return;
+        held.sort((a, b) -> Integer.compare(b.weight, a.weight));
+        refreshAreas();
+    }
+
+    /** Whether {@code (px, py)} lies in any area the ship holds. */
+    boolean holdsGround(float px, float py) {
+        for (Held h : held) if (h.area.contains(px, py)) return true;
+        return false;
     }
 
     public float hitPoints() {
@@ -411,11 +493,26 @@ public final class Warship {
      * ordinary {@link WarshipOrder.FireOnArea}.
      */
     public void direct(float radius, boolean bringGunsToBear) {
+        direct(radius, bringGunsToBear, DEFAULT_MAX_AREAS);
+    }
+
+    /**
+     * As {@link #direct(float, boolean)}, holding up to {@code maxAreas} separate
+     * areas at once: densest first, none overlapping another, each dropped once
+     * it has held no hostile for a few seconds and replaced.
+     */
+    public void direct(float radius, boolean bringGunsToBear, int maxAreas) {
         if (!(radius > 0f)) throw new IllegalArgumentException("a director needs an area radius");
+        if (maxAreas < 1) throw new IllegalArgumentException("a director holds at least one area");
         this.directorRadius = radius;
         this.directorBringsGunsToBear = bringGunsToBear;
+        this.directorMaxAreas = maxAreas;
         this.directing = true;
-        this.areaEmptySeconds = Float.MAX_VALUE;
+        this.retrySeconds = Float.MAX_VALUE;
+    }
+
+    int directorMaxAreas() {
+        return directorMaxAreas;
     }
 
     /** Takes targeting back from the director; the standing order stays until replaced. */
