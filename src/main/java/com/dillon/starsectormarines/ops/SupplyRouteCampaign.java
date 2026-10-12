@@ -45,6 +45,13 @@ public final class SupplyRouteCampaign {
         if ((CHOICE + BrokenSupplyRouteProgress.RELAY).equals(m.id)) return BrokenSupplyRouteProgress.RELAY;
         return 0;
     }
+    public static String choiceSummary(Mission mission) {
+        return switch (choice(mission)) {
+            case BrokenSupplyRouteProgress.LIFT -> "RILL: Last Lift ends this story branch. Successful rescue opens recurring Crew Recovery. Relay Nine and Thunder Run are forgone; the freight route stays closed. Orders are permanent.";
+            case BrokenSupplyRouteProgress.RELAY -> "FREIGHT: Relay Nine leads to Thunder Run, then recurring Route Security after a delivery. Last Lift is forgone; Rill loses its escort and its people remain unaccounted for. Orders are permanent.";
+            default -> "";
+        };
+    }
     public static OpeningBroker.Destination destination() {
         BrokenSupplyRouteProgress p = current();
         if (p == null) return OpeningBroker.current();
@@ -105,7 +112,7 @@ public final class SupplyRouteCampaign {
                 ? "Mara Venn: The relay is ours. Now we put freight through it. Land at the staging apron, clear the roadside strongpoints at Dispatch Post, East Crossing and Outbound Gate. Their occupied buildings and sandbag firing aprons overlook the freight road; clear them before each convoy leg and let eight militia hold your gains. A twin-cannon heavy tank leads two reinforced APCs and three unarmed container haulers. Beyond Outbound Gate, raiders hold a fenced inspection checkpoint with dug-in machine guns and rifle bays. The tank breaks that gun line; the APCs screen the crossing while the freight passes between them. Keep the road open for the convoy; raiders will try to cut off the column. These are the cooperative's own vehicles. Cr. 6,000 + 4,000 per carrier delivered across the job, up to 18,000, settled when the run is complete. Dispatch tracks every delivery and loss; if we have to pull back, we return for the remaining loads. Get at least one through and we can fund regular Route Security contracts."
                 : "Mara Venn: Capture Power Yard, Freight Gate and Relay Hall, retaining the landing apron. Eight militia hold secured ground while your company pushes forward. A limited raider reserve will try to retake your gains. " + (repeat ? "Cr. 12,000 for this new security job." : "Cr. 16,000 on success; secure the relay and we can send our freight convoy through on Thunder Run. Once a load gets through, we can offer regular Route Security contracts.");
         if (!repeat && (kind == BrokenSupplyRouteProgress.LIFT || kind == BrokenSupplyRouteProgress.RELAY)) terms += kind == BrokenSupplyRouteProgress.LIFT
-                ? " If we send support to Rill, we have to withdraw the relay crew and keep the freight route closed. Bring Rill's people home, and Iona can offer further Crew Recovery contracts."
+                ? " If we send support to Rill, we have to withdraw the relay crew and keep the freight route closed. Last Lift is our final operation at Rill. Bring Rill's people home, and Iona can offer recurring Crew Recovery contracts. We withdraw the relay crew; there will be no relay assault or freight convoy."
                 : " If we send support to Relay Nine, Rill loses its escort. We cannot promise those people a way out. Iona will keep us informed.";
         if (choice) terms += " We can fund only one mobilization. Review both requests before you commit support; dispatch will wait for your decision. Once issued, those orders stand. Take the time you need. Neither crew will hold your choice against your company.";
         if (kind == BrokenSupplyRouteProgress.LIFT && p.crew() != null) terms += " Crew ledger: " + p.crew().summary() + ".";

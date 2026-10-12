@@ -25,6 +25,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OpeningOperationCommandTest {
 
     @Test
+    void confirmedCaptureSwitchesFriendlyForcesToHoldAndRaidersToAssault() {
+        try (BattleSimulation sim = openSim(false)) {
+            Squad marine = squad(sim, Faction.MARINE, UnitRole.COMBATANT, 2, 4);
+            Squad raider = squad(sim, Faction.DEFENDER, UnitRole.PATROL, 25, 10);
+            var facts = new OpeningOperationCommandFacts(OpeningOperationKind.COUNTERATTACK,
+                    "depot", "Dispatch", 24, 10).withWarehouseCaptured(true);
+            CommanderService service = pairedService(sim, facts, false);
+            claim(service, marine); claim(service, raider);
+            service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+            assertEquals(AssignmentKind.DEFEND_AREA, marine.assignedObjective.kind());
+            assertEquals(AssignmentKind.ATTACK_MOVE, raider.assignedObjective.kind());
+            assertEquals(OpeningOperationCommandPicture.Phase.HOLD_DISPATCH, picture(service, Faction.MARINE).phase());
+            assertEquals(OpeningOperationCommandPicture.Phase.RETAKE_DISPATCH, picture(service, Faction.DEFENDER).phase());
+        }
+    }
+
+    @Test
     void reliefPreservesTheAuthoredLineAndAssaultsItsPublicAnchor() {
         BattleSimulation sim = openSim(false);
         Squad local = squad(sim, Faction.MARINE, UnitRole.GARRISON, 5, 10);
