@@ -38,7 +38,6 @@ import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
-import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -166,6 +165,21 @@ public final class MissionLaunch {
                                         DebugMechRoster debugMechs, long seed) {
         if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles))
             throw new IllegalStateException("Company boats are required to cover this operation's lift.");
+        int personnel = !m.source.isDebug() && DetachmentResolver.usesSelectedPersonnel(m)
+                ? selectedMarineSeats(ctx) : 0;
+        return captureScenario(ctx, m, committedShuttles, committedWings, selectedPowerIds,
+                committedPowerSources, debugMechs, seed, personnel);
+    }
+
+    /** Same launch boundary with the company's selected ready count already captured. */
+    static ScenarioPlan captureScenario(MarineOpsContext ctx, Mission m,
+                                        List<FittedBoat> committedShuttles,
+                                        FlybyRoster committedWings,
+                                        Collection<String> selectedPowerIds,
+                                        List<FleetMemberAPI> committedPowerSources,
+                                        DebugMechRoster debugMechs, long seed, int companyPersonnel) {
+        if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles))
+            throw new IllegalStateException("Company boats are required to cover this operation's lift.");
         DebugMissionCatalog.Scenario debugScenario = DebugMissionCatalog.scenario(m);
         if (debugScenario != null) {
             var manifest = DebugMissionCatalog.manifest(m, committedShuttles, ctx.getDebugCompanyRoster().lineReadySoldiers().size());
@@ -190,8 +204,11 @@ public final class MissionLaunch {
                                 m.source.isDebug() ? List.of() : committedPowerSources);
         if (debugMechs != null) det = debugMechs.applyTo(det);
         det = CommandDeck.apply(det, selectedPowerIds);
-        if (MissionForceEnvelope.allowsUnderstrength(m) || m.source.isDebug() && m.type != MissionType.CONQUEST) {
-            int selectedPersonnel = m.source.isDebug() ? (ctx == null ? DebugMissionCatalog.preset(m).squads() * 12 : ctx.getDebugCompanyRoster().lineReadySoldiers().size()) : selectedMarineSeats(ctx);
+        if (DetachmentResolver.usesSelectedPersonnel(m)) {
+            int selectedPersonnel = m.source.isDebug()
+                    ? (ctx == null ? DebugMissionCatalog.preset(m).squads() * 12
+                            : ctx.getDebugCompanyRoster().lineReadySoldiers().size())
+                    : companyPersonnel;
             det = new Detachment(
                     DetachmentResolver.buildShuttleManifestForPersonnel(
                             m, committedShuttles, selectedPersonnel),

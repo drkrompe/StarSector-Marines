@@ -30,8 +30,20 @@ class LandingCraftSummaryTest {
     @Test
     void debugIgnoresEmployerAndLabelsTheOverride() {
         Map<String, Object> props = summary(MissionSource.DEBUG, 5, 3, 12, 1);
-        assertEquals("5 boat trips planned", props.get("landingCraftSchedule"));
+        assertEquals("2 boat trips planned", props.get("landingCraftSchedule"));
         assertEquals("DEBUG override", props.get("landingCraftOrigin"));
+    }
+
+    @Test
+    void reliefShowsThreeHermesTripsForOneSelectedSquad() {
+        Mission mission = Mission.builder().id(OpeningOperationKind.RELIEF.missionId)
+                .source(MissionSource.STORY).type(MissionType.ASSAULT)
+                .requiredDrops(2).employerShuttles(1).build();
+        Map<String, Object> props = BriefingViewModel.baseProps();
+        BriefingViewModel.putLandingCraft(props, mission,
+                Collections.singletonList(FittedBoat.standard(ShuttleType.HERMES)), 12, "Company ship");
+        assertEquals("3 boat trips planned", props.get("landingCraftSchedule"));
+        assertTrue(props.get("landingCraftCapacity").toString().contains("4 seats / boat trip"));
     }
 
     @Test

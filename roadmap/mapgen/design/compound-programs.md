@@ -264,6 +264,25 @@ band, and the wall lands where its route allows, so the two came out two cells
 apart and the flood ate a shed to its far corner — leaving parade ground with
 the fill still standing on it.
 
+## Authored relationships within a compound
+
+A program says which facilities are owed. A compound layout additionally says
+which buildings face the same yard, where their doors meet circulation, and
+which outdoor spaces must stay open. These relationships may be authored as
+rotatable groups rather than reduced to independent placement preferences.
+The maintenance outpost is the first such family: service apron and vehicle
+shed, barracks court and mess, separate command and dispatch, with optional
+magazine capacity. The enclosing footprint follows those groups and their
+clearance, including its stepped maintenance annex.
+
+The layout owns local geometry; its host chooses a world placement and connects
+the gate mouths to the wider road network. Cardinal rotation carries buildings,
+doors, yards and spline roads together. Existing fittings, shell materials,
+perimeter defenses and tactical-place publication still own their normal work.
+This does not grant permission to overwrite a city's roads or neighbors: a
+story map can reserve its site outright, while a city still needs the prior
+claim described in `cross-leaf-footprint-planning.md`.
+
 ## What does not transfer
 
 A deck is a closed volume with one authority. A compound is not, and pretending
