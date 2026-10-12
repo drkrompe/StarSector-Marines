@@ -41,6 +41,9 @@ public final class ShuttleMission {
     /** Current state-machine phase. Driven by {@link AirSystem}. */
     public ShuttleState state = ShuttleState.PENDING;
 
+    /** Terminal loss, retained when the air entity is reaped; GONE alone also means a safe return. */
+    public boolean destroyed;
+
     /** Stagger / re-arm countdown burned down during PENDING before launch. */
     public float pendingDelay;
 
