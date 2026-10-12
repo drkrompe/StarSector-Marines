@@ -24,6 +24,7 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
 
     private final Faction faction;
     private CounterattackTactics depotTactics;
+    private final CompanySupportTactics companySupport = new CompanySupportTactics();
     private volatile OpeningOperationCommandPicture operationPicture;
 
     public OpeningOperationCommand(Faction faction) {
@@ -53,6 +54,13 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
         boolean advancing = commandedRole == Role.ASSAULT_ELEMENT
                 || commandedRole == Role.SECURE_ELEMENT;
         boolean holdingDepot = frame.facts().warehouseCaptured();
+        boolean supportingCompany = faction == Faction.ALLY
+                && frame.facts().kind() == OpeningOperationKind.COUNTERATTACK && !holdingDepot;
+        if (supportingCompany) {
+            advancing = false;
+            commandedRole = Role.PRESERVE_ELEMENT;
+            commandedReason = Reason.DEPOT_SCREEN_COMPANY;
+        }
         if (holdingDepot) {
             advancing = faction == Faction.DEFENDER;
             phase = advancing ? Phase.RETAKE_DISPATCH : Phase.HOLD_DISPATCH;
@@ -90,10 +98,17 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                 continue;
             }
             commandPoolSize++;
-            CounterattackTactics.Intent depotIntent = depotTactics == null || holdingDepot ? null : depotTactics.intent(report(squad));
+            CounterattackTactics.Intent depotIntent = depotTactics == null || holdingDepot || supportingCompany ? null : depotTactics.intent(report(squad));
             Reason squadReason = depotIntent == null ? commandedReason : depotIntent.reason();
             int targetX = depotIntent == null ? frame.facts().cellX() : depotIntent.place().x();
             int targetY = depotIntent == null ? frame.facts().cellY() : depotIntent.place().y();
+            if (supportingCompany) {
+                CompanySupportTactics.Intent screen = companySupport.intent(squad.squadId(),
+                        squad.anchorCellX(), squad.anchorCellY(), frame.company());
+                targetX = screen.x();
+                targetY = screen.y();
+                squadReason = screen.reason();
+            }
             int[] rally = reachableRally(squad, frame, targetX, targetY);
             if (rally == null) {
                 proposals.add(CommandProposal.claim(squad.squadId(),
