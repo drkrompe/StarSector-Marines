@@ -94,6 +94,12 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
             objectives.add("Dispatch Post > East Crossing > Outbound Gate");
             objectives.add("Escort the freight through the marked exit");
         }
+        if (sim.getColdAccount() != null) {
+            var layout = sim.getColdAccount().layout();
+            markers.add(new Marker("WITHDRAW", layout.withdrawalX(), layout.withdrawalY(), false));
+            markers.add(new Marker("STRIKE", (int) layout.strikeX(), (int) layout.strikeY(), false));
+            objectives.add("Confirm pirate records, withdraw the whole company, then hold for bombardment");
+        }
         for (Objective objective : sim.getObjectives()) {
             if (objective.owningFaction() != Faction.MARINE) continue;
             int x = -1, y = -1;
