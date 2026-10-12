@@ -10,8 +10,11 @@ public final class OpeningReskinTemplate {
     private OpeningReskinTemplate() {}
 
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(PITCH * 6, PITCH * 4, BufferedImage.TYPE_INT_ARGB);
-        int[] colors = {0x986A45, 0xAAA694, 0x697044};
+        return render(new int[]{0x986A45, 0xAAA694, 0x697044});
+    }
+
+    public static BufferedImage render(int[] colors) {
+        BufferedImage image = new BufferedImage(PITCH * 2 * colors.length, PITCH * 4, BufferedImage.TYPE_INT_ARGB);
         for (int family = 0; family < colors.length; family++) {
             for (int kind = 0; kind < 2; kind++) for (int facing = 0; facing < 4; facing++) {
                 Graphics2D g = image.createGraphics();

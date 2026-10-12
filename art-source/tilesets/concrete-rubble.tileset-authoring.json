@@ -1,0 +1,566 @@
+{
+  "sheetName": "concrete-rubble",
+  "sheet": "art-source/tilesets/concrete-rubble.raw.png",
+  "cellPx": 64,
+  "alphaMin": 40,
+  "idPrefix": "installation",
+  "gridCols": 8,
+  "gridRows": 4,
+  "blocks": [
+    {
+      "id": "installation.dark-concrete-rubble",
+      "layout": "wall-faces-4x4"
+    },
+    {
+      "id": "installation.light-concrete-rubble",
+      "layout": "wall-faces-4x4"
+    }
+  ],
+  "entries": [
+    {
+      "id": "installation.dark-concrete-rubble.faces-0",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        14,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-1",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        236,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-2",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        457,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-3",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        679,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-4",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        14,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-5",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        236,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-6",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        457,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-7",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        679,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-8",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        14,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-9",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        236,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-10",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        457,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-11",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        679,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-12",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        14,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-13",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        236,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-14",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        457,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble.faces-15",
+      "block": "installation.dark-concrete-rubble",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        679,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-0",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        901,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-1",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1123,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-2",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1344,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-3",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1566,
+        14,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-4",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        901,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-5",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1123,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-6",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1344,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-7",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1566,
+        236,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-8",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        901,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-9",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1123,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-10",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1344,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-11",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1566,
+        457,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-12",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        901,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-13",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1123,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-14",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1344,
+        679,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble.faces-15",
+      "block": "installation.light-concrete-rubble",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1566,
+        679,
+        194,
+        194
+      ]
+    }
+  ],
+  "note": "Built-in ImageGen reskin of ConcreteInstallationTemplate. Left dark reinforced concrete, right light concrete. Full-frame cuts preserve exposed-face masks N=1 E=2 S=4 W=8 and cardinal openings N,E,S,W. Retain source alpha; never trim/recenter. Raw 1774x887. Prompt and guide retained."
+}
