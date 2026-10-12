@@ -85,6 +85,19 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                 var evidence = sim.getColdAccount().layout();
                 assertTrue(topology.getRoomPurpose(evidence.evidenceX(), evidence.evidenceY()) == RoomPurpose.CIVIC_OFFICE,
                         "pirate records belong in dispatch, not a random gatehouse");
+                for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++) {
+                    int x = evidence.evidenceX() + dx, y = evidence.evidenceY() + dy;
+                    assertTrue(grid.isWalkable(x, y) && !grid.isDoorway(x, y), "capture needs clear formation space");
+                    assertTrue(topology.getRoomPurpose(x, y) == RoomPurpose.CIVIC_OFFICE,
+                            "the full capture floor belongs inside dispatch");
+                }
+                for (int[] picket : new int[][]{{194, 74}, {158, 86}}) {
+                    var guards = sim.getSquads().stream().filter(s -> s.assignedNode != null
+                            && s.assignedNode.anchorX == picket[0] && s.assignedNode.anchorY == picket[1]).toList();
+                    assertTrue(guards.stream().mapToInt(s -> s.originalSize).sum() == 3, "approach pickets must be staffed");
+                    assertTrue(GridPathfinder.findPath(grid, 240, 58, picket[0], picket[1]).length > 0,
+                            "approach pickets must be reachable");
+                }
                 long geometry = 1;
                 int curvedCells = 0, fieldRocks = 0, mountainCells = 0;
                 assertTrue(grid.getWidth() == 288 && grid.getHeight() == 160, "full mountain-basin extent");

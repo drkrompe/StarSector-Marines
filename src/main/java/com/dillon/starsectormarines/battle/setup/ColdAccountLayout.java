@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -33,8 +35,35 @@ public record ColdAccountLayout(int evidenceX, int evidenceY, int withdrawalX, i
         if (Math.hypot(x - exit.centerX - .5f, y - exit.centerY - .5f)
                 <= radius + BLAST_MARGIN + WITHDRAWAL_RADIUS)
             throw new IllegalStateException("Cold Account withdrawal must lie outside the bombardment exclusion area");
-        return new ColdAccountLayout(records.interiorAnchorX, records.interiorAnchorY,
+        int[] evidence = evidenceCell(map.grid, map.topology, records);
+        return new ColdAccountLayout(evidence[0], evidence[1],
                 exit.centerX, exit.centerY, x, y, radius);
+    }
+
+    /** The interaction needs formation space, not merely the first reachable indoor tile. */
+    static int[] evidenceCell(NavigationGrid grid, CellTopology topology, PointOfInterest room) {
+        int[] best = null;
+        double bestDistance = Double.POSITIVE_INFINITY;
+        int building = topology.getBuildingId(room.interiorAnchorX, room.interiorAnchorY);
+        for (int y = room.top + 3; y <= room.bottom - 3; y++)
+            for (int x = room.left + 3; x <= room.right - 3; x++) {
+                boolean clear = building != 0;
+                for (int dy = -2; dy <= 2 && clear; dy++) for (int dx = -2; dx <= 2; dx++)
+                    if (!grid.isWalkable(x + dx, y + dy) || grid.isDoorway(x + dx, y + dy)
+                            || topology.getBuildingId(x + dx, y + dy) != building) {
+                        clear = false;
+                        break;
+                    }
+                double distance = Math.hypot(x - (room.left + room.right) / 2.0,
+                        y - (room.top + room.bottom) / 2.0);
+                if (!clear || distance >= bestDistance) continue;
+                if (GridPathfinder.findPath(grid, room.interiorAnchorX, room.interiorAnchorY, x, y).length == 0)
+                    continue;
+                best = new int[]{x, y};
+                bestDistance = distance;
+            }
+        if (best == null) throw new IllegalStateException("Dispatch needs a reachable five-cell-wide capture floor");
+        return best;
     }
     private static double distance(PointOfInterest p, LandingPad exit) {
         return Math.hypot(p.interiorAnchorX - exit.centerX, p.interiorAnchorY - exit.centerY);

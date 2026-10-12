@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
@@ -129,6 +130,16 @@ class CorvusCombatEvidenceTest {
                     else if (sim.identity().faction(id) == Faction.MARINE && sim.identity().campaignSquadId(id) != null) fallen.add(id);
                 });
                 int initialDefenders = count(sim, Faction.DEFENDER);
+                Set<Long> approachGuards = new HashSet<>();
+                if (sim.getColdAccount() != null) for (int i = 0; i < sim.liveUnitCount(); i++) {
+                    long id = sim.liveUnitAt(i);
+                    var squad = sim.squadOf(id);
+                    if (squad != null && squad.assignedNode != null
+                            && squad.assignedNode.kind == TacticalNode.Kind.FORWARD_BUNKER
+                            && squad.assignedNode.anchorX > sim.getColdAccount().installationRight())
+                        approachGuards.add(id);
+                }
+                int approachFirstShotAt = -1, approachShots = 0, approachDeathsAtEvidence = -1;
                 int requestedAt = -1, houndLandedAt = -1, firstLandedAt = -1, allLandedAt = -1, firstShotAt = -1;
                 long hound = -1;
                 int houndShots = 0, houndKills = 0;
@@ -224,7 +235,13 @@ class CorvusCombatEvidenceTest {
                     for (var shot : sim.getShotsThisFrame()) {
                         if (firstShotAt < 0) firstShotAt = tick;
                         if (shot.shooterId == hound) houndShots++;
+                        if (approachGuards.contains(shot.shooterId)) {
+                            if (approachFirstShotAt < 0) approachFirstShotAt = tick;
+                            approachShots++;
+                        }
                     }
+                    if (sim.getColdAccount() != null && sim.getColdAccount().evidenceTick() == tick)
+                        approachDeathsAtEvidence = (int) approachGuards.stream().filter(enemyFallen::contains).count();
                     houndAlive = hound >= 0 && (sim.world().isAlive(hound) || sim.survivorPickup().surviving(hound));
                     if (hound >= 0 && !houndAlive && houndLostAt < 0) houndLostAt = tick;
                     if (houndAlive && sim.world().isAlive(hound)) {
@@ -282,6 +299,8 @@ class CorvusCombatEvidenceTest {
                 if (intervention != null) {
                     report.put("intervention", new JSONObject()
                             .put("phase", intervention.phase().name()).put("evidenceTick", intervention.evidenceTick())
+                            .put("approachGuards", approachGuards.size()).put("approachFirstShotAt", approachFirstShotAt)
+                            .put("approachShots", approachShots).put("approachDeathsAtEvidence", approachDeathsAtEvidence)
                             .put("warningTick", intervention.warningTick()).put("bombardTick", intervention.bombardTick())
                             .put("preparedTick", intervention.preparedTick()).put("groundClearTick", intervention.groundClearTick())
                             .put("clearanceRadius", intervention.layout().strikeRadius() + ColdAccountLayout.BLAST_MARGIN)
@@ -291,7 +310,8 @@ class CorvusCombatEvidenceTest {
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
                             .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
                             .put("pendingArrivals", intervention.pendingArrivals())
-                            .put("firingHeading", intervention.firingHeading()).put("demolitionSector", intervention.demolitionSector())
+                            .put("firingHeading", Float.isFinite(intervention.firingHeading())
+                                    ? intervention.firingHeading() : JSONObject.NULL).put("demolitionSector", intervention.demolitionSector())
                             .put("pickedUp", sim.survivorPickup().recoveredCount())
                             .put("pickupSorties", sim.survivorPickup().manifests().size())
                             .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment));

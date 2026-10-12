@@ -55,7 +55,7 @@ public final class TacticalNode {
         HEAVY_TOWER,
         /** Single-cell crenellation MG mount on the wall line. Suppresses approach. */
         MG_NEST,
-        /** Free-standing 3×3 tower in the kill-zone buffer ahead of the wall. */
+        /** Fortified forward position covering the approach, from a roadside picket to a bunker tower. */
         FORWARD_BUNKER,
         /** Wall gap, defender-defended from inside. Chokepoint. */
         GATE,
