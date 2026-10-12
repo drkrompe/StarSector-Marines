@@ -683,6 +683,21 @@ wall is. `compound-programs.md` owns the model, the measurements behind its
 sizing rules, and what remains before an ordinary compound can be built the same
 way.
 
+A programmed precinct owns its working ground even where that ground was
+already walkable before its buildings were packed. Its kept circulation takes
+asphalt, its building aprons and cut access paths take concrete, and unused
+margins take the world's inland surface. Aprons follow actual wall rings,
+including concave building footprints. Existing pads, interior floors, windows,
+thresholds and wall materials keep their own treatment. Surface wear is a
+coordinate field and consumes no layout randomness; maintained yards reserve
+their clearance from later landscape placement.
+
+Open country includes the thin scraps between a precinct's claim and its
+surroundings. A minimum-sized nature rectangle cannot cover them all, so the
+unclaimed, unroaded ground receives its planet's base before larger nature
+patches and scatter. Pruned road fragments and default grass cannot survive
+there merely because no parcel was large enough to dress them.
+
 **Room fittings are family-neutral.** A furnishable room is a floor, a pose, its
 doors, and its purpose; a deck compartment and a packed fortress building both
 present one, and the same authored fitting furnishes either. A machine berth is
