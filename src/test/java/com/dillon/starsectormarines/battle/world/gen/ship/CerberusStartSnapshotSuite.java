@@ -146,8 +146,15 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                     if (state == WorkshopState.REPAIRED && tasks.stream().anyMatch(t -> t.affordance() == Affordance.FABRICATE))
                         throw new AssertionError("Unequipped machines offer precision fabrication");
                     boolean debris = deck.map().doodads.stream().anyMatch(d -> room.contains(d.cellX, d.cellY)
-                            && "doodad.industrial-scrap-pile".equals(d.definitionId()));
+                            && "workshop-damage.collapse".equals(d.definitionId()));
                     if (debris != (state == WorkshopState.BURIED)) throw new AssertionError("Cached room has wrong debris state");
+                    boolean breach = deck.map().doodads.stream().anyMatch(d -> room.contains(d.cellX, d.cellY)
+                            && "workshop-damage.breach".equals(d.definitionId()));
+                    if (breach != (state == WorkshopState.BURIED)) throw new AssertionError("Wrong pressure condition");
+                    if (breach) for (int y = room.top(); y <= room.bottom(); y++)
+                        for (int x = room.left(); x <= room.right(); x++)
+                            if (room.contains(x, y) && deck.map().grid.isWalkable(x, y))
+                                throw new AssertionError("Crew can enter exposed workshop");
                     if (seed == 42) {
                         // Same hull, seed, occupancy, and simulation time in every condition.
                         // Keep the second boat bay damaged so only the workshop changes.

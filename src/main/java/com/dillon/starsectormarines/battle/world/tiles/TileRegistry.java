@@ -88,6 +88,7 @@ public final class TileRegistry {
             "data/tilesets/ship-bridge.tileset.json",
             "data/tilesets/ship-engineering.tileset.json",
             "data/tilesets/machine-shop.tileset.json",
+            "data/tilesets/workshop-damage.tileset.json",
             "data/tilesets/shuttle-bay.tileset.json",
             "data/tilesets/loading-bay.tileset.json",
             "data/tilesets/briefing-room.tileset.json",
