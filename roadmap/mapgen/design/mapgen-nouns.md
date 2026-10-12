@@ -722,8 +722,14 @@ relay equipment. These props do not create a playable upper level, repaint the
 mountain material or extend over cliff faces. Planet-specific ridges, forests or mineral formations, fine rock scatter
 and coherent ground patches remain separate layers. Authoring a compound does
 not replace the surrounding landscape: field dressing respects claimed ground,
-roads, terrain masses and the full berth approaches, and preserves navigation
-and the facility placement random stream.
+roads and terrain masses, and preserves navigation and the facility placement
+random stream. Its four supply landing stands have concrete working surfaces,
+corner markings and a service lane connected to the compound road. Through
+traffic passes between stands rather than across their touchdown footprints.
+Full berth approaches exclude tall or blocking scenery; fine passable scatter
+and native ground variation continue beneath that airspace. Only engineered
+working ground is kept bare, so an approach reservation cannot draw a cleared
+rectangle across the landscape.
 
 A programmed precinct owns its working ground even where that ground was
 already walkable before its buildings were packed. Its kept circulation takes
