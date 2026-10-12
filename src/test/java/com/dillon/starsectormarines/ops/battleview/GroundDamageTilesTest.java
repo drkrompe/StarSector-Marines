@@ -62,6 +62,14 @@ class GroundDamageTilesTest {
         assertEquals("terrain.blast-metal",GroundDamageTiles.skin(registry,topology,0,0).id);
         topology.setSurface(0,0,topology.surfaceIndex("colony.timber"));
         assertEquals("colony.timber-damage",GroundDamageTiles.skin(registry,topology,0,0).id);
+        topology.setGroundKind(0,0,CellTopology.GroundKind.SNOW);
+        for (String material : new String[]{"asphalt","concrete"}) {
+            for (String age : new String[]{"new","worn","cracked"}) {
+                topology.setSurface(0,0,topology.surfaceIndex("pavement."+material+"."+age));
+                assertEquals("terrain.blast-paving",GroundDamageTiles.skin(registry,topology,0,0).id,
+                        "the authored apron or road material takes precedence over planetary ground");
+            }
+        }
     }
 
     @Test void defaultDamageMappingRejectsCollisionsMissingAssetsAndConnectedLayouts() throws Exception {

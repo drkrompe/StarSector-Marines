@@ -7,10 +7,12 @@
   "materials": [
     {
       "id": "asphalt",
+      "damageBlock": "terrain.blast-paving",
       "base": "#34383a"
     },
     {
       "id": "concrete",
+      "damageBlock": "terrain.blast-paving",
       "base": "#888981"
     }
   ]
