@@ -240,6 +240,20 @@ class AssaultCommandTest {
                 SweepAssignedSectorGoal.INSTANCE));
     }
 
+    @Test
+    void stabilityExpiryDoesNotAbandonAnUnfinishedSearchLeg() {
+        try (BattleSimulation sim = openSim(60, 30)) {
+            Squad squad = addSquad(sim, Faction.MARINE, UnitType.MARINE, 0, 0);
+            AssaultCommand command = new AssaultCommand();
+            tick(command, sim);
+            ObjectiveAssignment initial = squad.assignedObjective;
+            // The stationary scout has not reached this leg when the directive's lease stabilizes.
+            for (int i = 0; i < 120; i++) sim.advance(BattleSimulation.TICK_DT);
+            tick(command, sim);
+            assertEquals(initial, squad.assignedObjective);
+        }
+    }
+
     private static BattleSimulation openSim(int width, int height) {
         NavigationGrid grid = new NavigationGrid(width, height);
         for (int y = 0; y < height; y++) {

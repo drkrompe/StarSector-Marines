@@ -23,7 +23,12 @@ rechecks. Reachable unfinished sectors receive one squad before surplus
 concentrates. Fresh direct evidence marks a sector active; older or indirect
 evidence marks it suspected. Missing belief is not positive clearance, and a
 completed first pass becomes a bounded recheck while objective truth says the
-battle continues.
+battle continues. A leg remains assigned until reached or made unreachable;
+expiry of directive stability is not arrival. Contact-weighted selection prefers
+unfinished legs so the nearest already-searched waypoint cannot consume every
+pulse. Local search retains its destination through contact, using the shared
+advance/fire machinery. Remembered enemies without an engageable firing line
+cannot hold the search indefinitely outside an occluding perimeter.
 
 ## Defender area security
 

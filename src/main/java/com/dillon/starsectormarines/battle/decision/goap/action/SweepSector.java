@@ -2,13 +2,11 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
+import java.util.Map;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
-import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -17,13 +15,14 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 
 import java.util.List;
 
-/** Walks an Assault squad through its assigned search cell until contact. */
-public final class SweepSector implements Action {
+/** Searches an assigned Assault sector while retaining its destination through contact. */
+public final class SweepSector extends AbstractZoneAction implements SquadRouteGoalProvider {
 
     private final int targetX;
     private final int targetY;
 
     public SweepSector(int targetX, int targetY) {
+        super(-1);
         this.targetX = targetX;
         this.targetY = targetY;
     }
@@ -42,11 +41,6 @@ public final class SweepSector implements Action {
             clearSquadPaths(squad, sim);
             return ActionStatus.FAILURE;
         }
-        if (WorldStateBuilder.hasActionableContact(squad, sim)) {
-            clearSquadPaths(squad, sim);
-            return ActionStatus.FAILURE;
-        }
-
         int moveX = targetX;
         int moveY = targetY;
         AudibleBearing bearing = squad.audibleBearing();
@@ -60,25 +54,25 @@ public final class SweepSector implements Action {
                     MechRouteIntent.cellKey(moveX, moveY), sim).moveToward(member, moveX, moveY, sim);
             return ActionStatus.RUNNING;
         }
-        int[] path = sim.world().path(member);
-        int pathIdx = sim.world().pathIdx(member);
-        boolean stale = !Paths.isEmpty(path)
-                && (Paths.destX(path) != moveX || Paths.destY(path) != moveY);
-        if (stale) {
-            sim.clearPath(member);
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
-        }
-        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    moveX, moveY, sim.getOccupancyMap()));
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
-        }
-        if (pathIdx < Paths.cellCount(path)) sim.advanceMovement(member);
-        else PatrolMotion.hold(member, sim);
+        // Search must cross an occluding perimeter to find a firing angle.
+        // A remembered contact alone is not a usable firing line.
+        boolean canFight = squad.contactPicture.primaryEngageableMembers() > 0
+                || squad.isUnderFireAtLosThisTick();
+        advanceIntoZone(member, squad, sim, moveX, moveY, canFight);
         return ActionStatus.RUNNING;
+    }
+
+    @Override public boolean permitsOpportunityFire() { return false; }
+
+    @Override
+    public Map<String, List<Long>> assignRoles(Squad squad, BattleView sim, List<Long> candidates) {
+        return FireTeamGroups.assignments(FIRE_TEAM, candidates, sim.squad());
+    }
+
+    @Override
+    public Goal squadRouteGoal(Squad squad, BattleView sim) {
+        AudibleBearing bearing = squad.audibleBearing();
+        return bearing == null ? new Goal(targetX, targetY) : new Goal(bearing.cellX(), bearing.cellY());
     }
 
     private static void clearSquadPaths(Squad squad, BattleControl sim) {

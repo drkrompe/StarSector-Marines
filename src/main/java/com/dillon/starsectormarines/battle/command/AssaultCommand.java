@@ -255,7 +255,6 @@ public final class AssaultCommand implements
                 : -1;
         if (incumbent != null && incumbent.kind() == AssignmentKind.SWEEP_SECTOR
                 && incumbentLeg >= 0
-                && squad.directive().isStableAt(frame.tick())
                 && frame.topology().reachable(squad.anchorCellX(), squad.anchorCellY(),
                         incumbent.targetCellX(), incumbent.targetCellY())
                 && !arrived(squad, incumbent.targetCellX(), incumbent.targetCellY())) {
@@ -431,6 +430,7 @@ public final class AssaultCommand implements
                                     CommandTopology topology, int lane) {
         List<Integer> candidates = new ArrayList<>();
         for (int i = 0; i < sector.legs.size(); i++) {
+            if (!sector.complete() && sector.visited[i]) continue;
             Cell cell = sector.legs.get(i);
             if (topology.reachable(squad.anchorCellX(), squad.anchorCellY(),
                     cell.x(), cell.y())) candidates.add(i);

@@ -56,7 +56,7 @@ class MechMissionLawTest {
     }
 
     @Test
-    void freeReignRushMustReachExactCellBeforeUsingItsLocalTacticalLeash() {
+    void freeReignRushRemainsOnTheInteractionCellUntilCommandReleasesIt() {
         BattleSimulation sim = openSimulation(64, 14);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
         long brawler = spawn(sim, squadId, MechRole.ASSAULT, 10, 7);
@@ -78,8 +78,9 @@ class MechMissionLawTest {
         sim.world().setCellPos(brawler, 50, 7);
         sim.clearPath(brawler);
         GoapMechBehavior.INSTANCE.update(brawler, sim);
-        assertTrue(Paths.destX(sim.world().path(brawler)) < 50,
-                "after arrival, the local ten-cell doctrine leash becomes available");
+        assertTrue(Paths.isEmpty(sim.world().path(brawler)),
+                "arrival must hold the service cell rather than resume contact standoff");
+        assertFalse(MechAssignmentBoundary.permitsCell(brawler, squad, 45, 7, sim));
     }
 
     @Test
@@ -88,8 +89,7 @@ class MechMissionLawTest {
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
         long brawler = spawn(sim, squadId, MechRole.ASSAULT, 50, 7);
         Squad squad = finishSquad(sim, squadId, brawler, 1, 50, 7);
-        squad.assignedObjective = ObjectiveAssignment.rushObjective(
-                squadId, 3, ObjectiveAssignment.UNSCOPED, 50, 7);
+        squad.assignedObjective = ObjectiveAssignment.defendTrack(squadId, 50, 7);
         long contact = sim.spawn(new EntitySpec(
                 "same-cell-contact", Faction.DEFENDER, UnitType.MARINE,
                 42, 7).health(10_000f));
@@ -104,8 +104,7 @@ class MechMissionLawTest {
         assertFalse(sim.world().mechLoadout(brawler).assignmentBoundaryReached,
                 "observing command release invalidates the old arrival latch");
 
-        squad.assignedObjective = ObjectiveAssignment.rushObjective(
-                squadId, 3, ObjectiveAssignment.UNSCOPED, 50, 7);
+        squad.assignedObjective = ObjectiveAssignment.defendTrack(squadId, 50, 7);
         sim.world().setCellPos(brawler, 10, 7);
         sim.clearPath(brawler);
         ExecuteMechDoctrine.INSTANCE.execute(brawler, squad, sim);
