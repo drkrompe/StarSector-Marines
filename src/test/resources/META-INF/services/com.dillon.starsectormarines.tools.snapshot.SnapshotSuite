@@ -61,3 +61,4 @@ com.dillon.starsectormarines.battle.warship.WarshipAnswerabilitySceneSnapshotSui
 com.dillon.starsectormarines.battle.warship.WarshipPointDefenceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtDirectorSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipBudgetSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.OnslaughtFlybySceneSnapshotSuite
