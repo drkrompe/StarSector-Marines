@@ -63,6 +63,10 @@ public final class DebugCompany {
         return roster(stage, squads, new Random());
     }
 
+    public static MarineRoster seeded(DebugCompanyStage stage, int squads, long seed) {
+        return roster(stage, squads, new Random(seed));
+    }
+
     /** Deterministic seam for tests and authored debug captures. */
     static MarineRoster roster(DebugCompanyStage stage, int squads, Random loadoutRandom) {
         DebugCompanyStage resolved = stage != null ? stage : DebugCompanyStage.FIRST_CONTRACT;

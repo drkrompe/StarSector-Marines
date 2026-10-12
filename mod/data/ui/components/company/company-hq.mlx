@@ -1,4 +1,4 @@
-<template props="openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -12,6 +12,7 @@
         <div id="company-hq-assessment-header" class="label heading tone-edge">{assessmentHeader}</div>
         <div id="company-hq-assessment-copy" class="label assessment-copy">{assessment}</div>
       </div>
+      <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">DEBUG MISSIONS</button>
     </div>
 
     <div id="company-hq-main" class="company-hq-main">
@@ -179,6 +180,8 @@
 </template>
 
 <style>
+.hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
+.hq-debug-hidden { width: 0px; height: 0px; opacity: 0; pointer-events: none; }
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }

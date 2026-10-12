@@ -1083,6 +1083,22 @@ and career presentation remains coordinated with `progression-nouns.md`.
 
 ## Debug company
 
+The developer mission launcher is a separate catalog reached from HQ or the
+DEBUG client. It exposes authored story chapters, both branch outcomes,
+repeatable work, standard operation tiers, and diagnostic scenarios without
+campaign prerequisites or travel. Choosing a mission starts a fresh default
+company, boat manifest, and support selection; returning to the same mission
+resets prior overrides. Story presets use starter infantry equipment and the
+recovered chaingun Hound where the chapter expects it. Counterattack retains
+its on-site Hound recovery rather than supplying one before the mission.
+
+Debug stories use the production maps, objectives, and arrival machinery with
+separate debug identities and fresh rescue/freight ledgers. Their supplies,
+personnel, boats, and support are detached from the campaign. Results return to
+the catalog and cannot grant salvage, consume fleet resources, advance stories,
+or write casualties back. Authored map shapes stay fixed; generic operations
+retain their developer scale and map controls.
+
 A debug company is an in-memory `MarineRoster` built and equipped through the
 same roster and armory laws as campaign personnel. It is never registered with
 or written back to the campaign. Freezing it through the normal deployment seam

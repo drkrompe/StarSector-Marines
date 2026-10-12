@@ -1,0 +1,59 @@
+<template props="cards,tab0,tab1,tab2,tabClass0,tabClass1,tabClass2,pageLabel,previous,next,previousDisabled,nextDisabled,launch,back,launchDisabled,title,description,preset,image">
+  <div id="debug-missions-root" class="debug-root">
+    <div id="debug-node-1" class="debug-header console-header">
+      <img id="debug-node-2" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
+      <div id="debug-node-3" class="debug-heading"><div id="debug-node-4" class="label title tone-edge">DEBUG / MISSION LAUNCHER</div><div id="debug-node-5" class="label tone-muted">All chapters unlocked / disposable forces / no campaign settlement</div></div>
+      <button id="debug-back" class="debug-button" onclick="{back}">BACK</button>
+    </div>
+    <div id="debug-node-6" class="debug-body">
+      <div id="debug-node-7" class="debug-catalog panel">
+        <div id="debug-node-8" class="debug-tabs console-rail">
+          <button id="debug-node-9" class="{tabClass0}" onclick="{tab0}">STORY + REPEATABLE</button>
+          <button id="debug-node-10" class="{tabClass1}" onclick="{tab1}">STANDARD OPERATIONS</button>
+          <button id="debug-node-11" class="{tabClass2}" onclick="{tab2}">DIAGNOSTICS</button>
+        </div>
+        <div id="debug-cards" class="debug-cards">
+          <button each="card in cards" key="{card.id}" id="{card.id}" class="{card.classes}" onclick="{card.action}">
+            <div id="{card.groupId}" class="label tone-muted">{card.group}</div>
+            <div id="{card.titleId}" class="label heading debug-card-title">{card.title}</div>
+            <div id="{card.forceId}" class="label tone-accent">{card.force}</div>
+          </button>
+        </div>
+        <div id="debug-node-15" class="debug-pages console-rail"><button id="debug-node-16" class="debug-button" disabled="{previousDisabled}" onclick="{previous}">PREVIOUS</button><div id="debug-node-17" class="label debug-page-label">{pageLabel}</div><button id="debug-node-18" class="debug-button" disabled="{nextDisabled}" onclick="{next}">NEXT</button></div>
+      </div>
+      <div id="debug-node-19" class="debug-detail panel">
+        <img id="debug-node-20" class="debug-scene" src="{image}" />
+        <div id="debug-node-21" class="label title debug-title">{title}</div>
+        <div id="debug-node-22" class="debug-description"><div id="debug-node-23" class="label debug-copy">{description}</div></div>
+        <div id="debug-node-24" class="debug-preset console-well"><div id="debug-node-25" class="label heading tone-accent">DEFAULT FIELD FORCE</div><div id="debug-node-26" class="label debug-copy">{preset}</div><div id="debug-node-27" class="label tone-muted debug-copy">Fresh personnel and boats on every launch. Story missions use field security rifles and fatigues. Support Hounds carry the recovered chaingun fit.</div></div>
+        <button id="debug-launch" class="debug-launch" disabled="{launchDisabled}" onclick="{launch}">BRIEF WITH DEFAULT LOADOUT</button>
+        <div id="debug-node-28" class="label tone-muted debug-copy">Review the map and Deploy in the briefing. Developer overrides remain optional.</div>
+      </div>
+    </div>
+  </div>
+</template>
+<style>
+.debug-root { flex-direction: column; padding: 12px; gap: 10px; border-width: 2px; overflow: hidden; }
+.debug-header { flex-direction: row; align-items: center; height: 72px; padding: 10px; gap: 12px; border-width: 2px; }
+.debug-heading { flex-direction: column; flex-grow: 1; gap: 7px; }
+.debug-heading .label { height: 24px; }
+.debug-body { flex-direction: row; flex-grow: 1; gap: 12px; overflow: hidden; }
+.debug-catalog { width: 58%; flex-direction: column; gap: 10px; padding: 10px; border-width: 1px; }
+.debug-tabs { flex-direction: row; height: 42px; gap: 6px; padding: 3px; }
+.debug-tab { width: 0px; flex-grow: 1; font-family: heading; text-align: center; border-width: 2px; }
+.debug-cards { display: grid; flex-grow: 1; gap: 10px; overflow: scroll; }
+.debug-card { flex-direction: column; width: 43%; height: 130px; padding: 14px; gap: 12px; border-width: 2px; text-align: left; }
+.debug-card .label { height: 22px; }
+.debug-card .debug-card-title { height: 44px; white-space: normal; }
+.debug-pages { flex-direction: row; align-items: center; height: 42px; gap: 10px; }
+.debug-button { width: 134px; height: 34px; text-align: center; font-family: heading; border-width: 3px; }
+.debug-page-label { flex-grow: 1; text-align: center; }
+.debug-detail { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 14px; border-width: 1px; }
+.debug-scene { width: 100%; height: 250px; }
+.debug-title { height: 42px; white-space: normal; }
+.debug-description { height: 0px; flex-grow: 1; overflow: scroll; }
+.debug-copy { height: 48px; white-space: normal; }
+.debug-preset { height: 154px; flex-direction: column; padding: 12px; gap: 12px; border-width: 2px; }
+.debug-preset .heading { height: 22px; }
+.debug-launch { height: 44px; font-family: heading; text-align: center; border-width: 3px; }
+</style>

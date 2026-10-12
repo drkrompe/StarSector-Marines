@@ -90,6 +90,21 @@ public class MarineOpsContext {
      * a fresh build per read would show one company and deploy another.
      */
     private MarineRoster debugCompanyRoster;
+    private boolean debugStarterIssue;
+    private long debugLoadoutSeed;
+    private int debugPresetRevision;
+
+    public int debugPresetRevision() { return debugPresetRevision; }
+
+    public void resetDebugPreset(Mission mission) {
+        var preset = DebugMissionCatalog.preset(mission);
+        debugCompanyStage = preset.stage();
+        debugSquadCount = preset.squads();
+        debugStarterIssue = preset.starterIssue();
+        debugLoadoutSeed = mission.id.hashCode();
+        debugCompanyRoster = null;
+        debugPresetRevision++;
+    }
     /**
      * Squad-count override for the debug company, or {@code -1} to use the
      * stage's own size. Size and quality are separate axes: "how many marines
@@ -317,12 +332,14 @@ public class MarineOpsContext {
     public void setDebugCompanyStage(DebugCompanyStage stage) {
         if (stage == null || stage == debugCompanyStage) return;
         debugCompanyStage = stage;
+        debugStarterIssue = false;
         debugSquadCount = -1;
         debugCompanyRoster = null;
     }
 
     public void cycleDebugCompanyStage() {
         debugCompanyStage = debugCompanyStage.next();
+        debugStarterIssue = false;
         debugSquadCount = -1;
         debugCompanyRoster = null;
     }
@@ -342,7 +359,8 @@ public class MarineOpsContext {
     /** The debug company at the selected stage. Detached — never the campaign roster. */
     public MarineRoster getDebugCompanyRoster() {
         if (debugCompanyRoster == null) {
-            debugCompanyRoster = DebugCompany.roster(debugCompanyStage, getDebugSquadCount());
+            debugCompanyRoster = debugStarterIssue ? DebugMissionCatalog.starterCompany(getDebugSquadCount())
+                    : DebugCompany.seeded(debugCompanyStage, getDebugSquadCount(), debugLoadoutSeed);
         }
         return debugCompanyRoster;
     }
@@ -614,7 +632,8 @@ public class MarineOpsContext {
     /** Called only after the existing salvage authority has settled or explicitly forfeited. */
     public void finishOperation(boolean prepareCompany) {
         if (!lootSettlementStarted) return;
-        ScreenId returnScreen = shipReady() ? ResultsScreen.returnDestination(lastOutcome) : ScreenId.MISSION_SELECT;
+        ScreenId returnScreen = lastOutcome != null && lastOutcome.missionSource.isDebug()
+                ? ScreenId.DEBUG_MISSIONS : shipReady() ? ResultsScreen.returnDestination(lastOutcome) : ScreenId.MISSION_SELECT;
         clearResolvedMission();
         prepareAfterSettlement = false;
         goTo(prepareCompany ? (shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ) : returnScreen);

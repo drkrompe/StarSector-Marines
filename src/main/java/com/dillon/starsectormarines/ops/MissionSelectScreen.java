@@ -453,6 +453,10 @@ public final class MissionSelectScreen implements Screen {
 
     private void selectClient(Client client) {
         if (context == null || client == null || client.locked) return;
+        if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
+            context.goTo(ScreenId.DEBUG_MISSIONS);
+            return;
+        }
         context.setSelectedClient(client);
         context.setSelectedMission(null);
         installDocument();

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
@@ -20,8 +21,20 @@ public final class DebugMechRoster {
     };
 
     private final List<MechVariant> variants;
+    private final boolean recoveredHound;
 
-    private DebugMechRoster(List<MechVariant> variants) {
+    public static DebugMechRoster recoveredHound() {
+        return new DebugMechRoster(List.of(MechVariant.HOUND), true);
+    }
+
+    private MechSupport support() {
+        return recoveredHound ? MechSupport.configured(List.of(WaylineHound.deployment())) : new MechSupport(variants);
+    }
+
+    private DebugMechRoster(List<MechVariant> variants) { this(variants, false); }
+
+    private DebugMechRoster(List<MechVariant> variants, boolean recoveredHound) {
+        this.recoveredHound = recoveredHound;
         this.variants = Collections.unmodifiableList(new ArrayList<>(variants));
     }
 
@@ -51,7 +64,7 @@ public final class DebugMechRoster {
             for (CommandPower power : powers) {
                 if (MechSupport.ID.equals(power.id)) {
                     if (!inserted && !variants.isEmpty()) {
-                        configured.add(new MechSupport(variants));
+                        configured.add(support());
                         inserted = true;
                     }
                 } else {
@@ -59,7 +72,7 @@ public final class DebugMechRoster {
                 }
             }
         }
-        if (!inserted && !variants.isEmpty()) configured.add(new MechSupport(variants));
+        if (!inserted && !variants.isEmpty()) configured.add(support());
         return configured;
     }
 
