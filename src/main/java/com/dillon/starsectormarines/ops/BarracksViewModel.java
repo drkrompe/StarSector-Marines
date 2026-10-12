@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -325,14 +323,7 @@ public final class BarracksViewModel {
 
     /** Uses the same held-weapon family and grade variants as the ship and battle sprites. */
     private static String primaryIcon(MarineSoldier soldier) {
-        LayeredWeaponFamily family = LayeredWeaponFamily.fromPrimary(soldier.primaryDef());
-        String resource = switch (family) {
-            case RIFLE -> soldier.primaryGrade() == EquipmentGrade.SURPLUS ? "grades/surplus/rifle" : "rifle";
-            case DMR -> soldier.primaryGrade() == EquipmentGrade.MASTERWORK ? "grades/masterwork/dmr" : "dmr";
-            case LASER_GUN -> "laser-gun";
-            case SMG -> "smg";
-        };
-        return "graphics/battle/marine-modular-topdown/variants/weapons/" + resource + ".png";
+        return EquipmentIcons.primary(soldier.primaryDef(), soldier.primaryGrade());
     }
 
     public record MusterItem(String id, String icon, SpecSheet sheet) implements MarkupPropertySource {
