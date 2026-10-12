@@ -1640,3 +1640,16 @@ view-projection work that gives altitude its shared presentation space.
 Ship collision, wing composition, air-to-air, modules, and air persistence stay
 as extension paths until each has a bounded story and an identified gameplay
 need. `fighter-air-entities.md` carries what is left of the fold.
+
+### Authored structural bombardment
+
+A mission may explicitly order a capital to demolish standing structures in a
+bounded area, even when there are no living enemies inside. The ordinary area
+engagement order still targets hostile units. Structural bombardment chooses
+actual standing wall cells within the stated circle and uses the same mounting,
+range, traversal, ammunition, projectile flight, blast and terrain damage rules.
+Clearing occupants does not erase a structure, and ordering bombardment does not
+turn unspent ammunition into damage. Hold fire cancels unlaunched burst rounds;
+rounds already in flight retain their ordinary impact and friendly-fire behavior.
+The mission owns evidence, withdrawal, warning and completion; the ship owns its
+weapons and the damage they actually cause.

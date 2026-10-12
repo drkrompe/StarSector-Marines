@@ -524,6 +524,18 @@ public final class WarshipSystem {
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
         int seen = 0;
+        if (area.bombardStructures()) {
+            int left = Math.max(0, (int) Math.floor(area.x() - area.radius()));
+            int top = Math.max(0, (int) Math.floor(area.y() - area.radius()));
+            int right = Math.min(sim.getGrid().getWidth() - 1, (int) Math.ceil(area.x() + area.radius()));
+            int bottom = Math.min(sim.getGrid().getHeight() - 1, (int) Math.ceil(area.y() + area.radius()));
+            for (int y = top; y <= bottom; y++) for (int x = left; x <= right; x++) {
+                if (!sim.getTopology().isWall(x, y) || !area.contains(x + .5f, y + .5f)
+                        || !Warship.bears(m, ship.facingDegrees, mx, my, x + .5f, y + .5f)) continue;
+                if (random.nextInt(++seen) == 0) { m.aimX = x + .5f; m.aimY = y + .5f; }
+            }
+            return seen > 0;
+        }
         long[] dense = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];

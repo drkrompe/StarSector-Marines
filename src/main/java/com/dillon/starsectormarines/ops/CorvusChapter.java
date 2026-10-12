@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.AssaultBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.ColdAccountBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -27,8 +28,8 @@ public enum CorvusChapter {
             "Their listening post is silent. The archive and captured routing tables point to a dispatch compound on Garnir. That is where Sable Wake sells the cargo and sends the next crews out."),
     COLD_ACCOUNT("corvus_IIIa", "Garnir", "A Cold Account", MissionType.ASSAULT, RiskLevel.HIGH, 4, 42000,
             SurfacePalette.FROZEN, EconomicFunction.HEAVY_INDUSTRY,
-            "Sable Wake's dispatch compound on Garnir is the last link we can identify. Clear its defending force so our agents can secure the route records and stores. Expect their better-equipped crews and fortified firing positions. We are hitting this crew's surface compound, not taking Garnir or attacking its extraction depot in orbit.",
-            "The compound is clear. Our agents can recover the records and account for the stores. You have broken Sable Wake's operation against Wayline in Corvus. Other crews will still work these lanes; I will not sell you a promise that piracy is over.");
+            "Sable Wake's dispatch compound on Garnir is the last link. Secure the marked pirate dispatch records and transmit the proof. A Hegemony Onslaught will intervene only once those records establish the site's pirate ownership. Withdraw every surviving squad and your Hound to the marked extraction point. The captain will announce a ten-second warning once the company is clear, then bombard the dispatch stronghold. Stay at the landing zone until the guns fall silent. Expect fortified positions and better-equipped crews; you do not need to clear the entire garrison.",
+            "The records proved the compound belonged to Sable Wake. Your company withdrew, and the Hegemony destroyed the dispatch stronghold. You have broken Sable Wake's operation against Wayline in Corvus. Other crews will still work these lanes; I will not sell you a promise that piracy is over.");
 
     public final String planetId, planetName, title, briefing, debrief;
     public final MissionType type;
@@ -60,8 +61,8 @@ public enum CorvusChapter {
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE);
             case BLIND_WATCH -> SabotageBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, false);
-            case COLD_ACCOUNT -> AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,
-                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE);
+            case COLD_ACCOUNT -> new ColdAccountBattleFixture(AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,
+                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE));
         };
     }
 

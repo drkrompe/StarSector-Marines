@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -57,6 +58,7 @@ class CorvusCombatEvidenceTest {
         if (!selectedChapter.isEmpty()) CorvusChapter.valueOf(selectedChapter);
         Files.createDirectories(output);
         TileRegistryTestInstaller.install(Path.of("."));
+        InstalledVanillaData.install();
         int maxTicks = Integer.getInteger("corvus.command.evidence.maxTicks", 18000);
         if (maxTicks < 1) throw new IllegalArgumentException("maxTicks must be positive");
         var progress = new CorvusWaylineProgress();
@@ -87,6 +89,7 @@ class CorvusCombatEvidenceTest {
             var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
             assertEquals(1, powers.size());
             var resources = new FiniteCommandPowerResources(30);
+            fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
             try (var sim = fixture.build()) {
                 var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,
                         resources.availableSupplies(), mission.fieldPresencePolicy);
@@ -117,7 +120,14 @@ class CorvusCombatEvidenceTest {
                             break;
                         }
                     }
+                    int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     sim.advance(BattleSimulation.TICK_DT);
+                    if (sim.getColdAccount() != null && sim.getColdAccount().shotsFired() > beforeShipShots) {
+                        assertTrue(sim.getColdAccount().evidenceTick() > 0);
+                        assertEquals(0, sim.getColdAccount().outsideWithdrawal());
+                        assertFalse(sim.getColdAccount().pendingArrivals());
+                        assertTrue(sim.getSimTickIndex() - sim.getColdAccount().warningTick() >= 300);
+                    }
                     int tick = sim.getSimTickIndex();
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
                         long id = sim.liveUnitAt(i);
@@ -152,7 +162,8 @@ class CorvusCombatEvidenceTest {
                         writeFrame(renderer, sim, chapter, dir);
                         Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
                         System.out.println("[corvus] " + chapter.title + " tick=" + tick + " landed=" + landed.size()
-                                + " fallen=" + fallen.size() + " defenders=" + count(sim,Faction.DEFENDER));
+                                + " fallen=" + fallen.size() + " defenders=" + count(sim,Faction.DEFENDER)
+                                + (sim.getColdAccount() == null ? "" : " " + sim.getColdAccount().displayName()));
                     }
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
@@ -179,6 +190,15 @@ class CorvusCombatEvidenceTest {
                         .put("houndAlive",houndAlive).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
                         .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
                         .put("objectives",objectives(sim)).put("kits",kits);
+                var intervention = sim.getColdAccount();
+                if (intervention != null) {
+                    report.put("intervention", new JSONObject()
+                            .put("phase", intervention.phase().name()).put("evidenceTick", intervention.evidenceTick())
+                            .put("warningTick", intervention.warningTick()).put("bombardTick", intervention.bombardTick())
+                            .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
+                            .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
+                            .put("pendingArrivals", intervention.pendingArrivals()));
+                }
                 Files.writeString(dir.resolve("summary.json"),report.toString(2));
                 reports.put(report);
                 Files.writeString(output.resolve("summary.json"),reports.toString(2));
