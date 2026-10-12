@@ -985,6 +985,8 @@ public final class WarshipSystem {
                 if (Warship.bears(m, ship.facingDegrees, mx, my, px, py)) {
                     m.aimX = px;
                     m.aimY = py;
+                    m.aimVx = 0f;
+                    m.aimVy = 0f;
                     return true;
                 }
             }
@@ -1002,7 +1004,7 @@ public final class WarshipSystem {
                 if (!sim.getTopology().isWall(x, y) || !area.contains(x + .5f, y + .5f)
                         || !Warship.bears(m, ship.facingDegrees, mx, my, x + .5f, y + .5f, Warship.STRUCTURAL_RANGE_MULTIPLIER)
                         || Math.hypot(x + .5f - mx, y + .5f - my) > opportunity) continue;
-                if (random.nextInt(++seen) == 0) { m.aimX = x + .5f; m.aimY = y + .5f; }
+                if (random.nextInt(++seen) == 0) { m.aimX = x + .5f; m.aimY = y + .5f; m.aimVx = 0f; m.aimVy = 0f; }
             }
             return seen > 0;
         }
@@ -1019,6 +1021,8 @@ public final class WarshipSystem {
             if (random.nextInt(seen) == 0) {
                 m.aimX = ux;
                 m.aimY = uy;
+                m.aimVx = sim.movement().velX(u);
+                m.aimVy = sim.movement().velY(u);
             }
         }
         return seen > 0;
@@ -1123,6 +1127,12 @@ public final class WarshipSystem {
             host.merge(damage, blast, visual);
             fusedRounds++;
             return;
+        }
+        float lead = HomingLead.seconds(flight, (float) Math.hypot(lx - mx, ly - my));
+        if (lead > 0f) {
+            float[] led = HomingLead.apply(lx, ly, m.aimVx, m.aimVy, lead);
+            lx = clampX(sim, led[0]);
+            ly = clampY(sim, led[1]);
         }
         long seed = roundSeed(m.slot.id(), m.shotsFired, ship.faction, lx, ly);
         MissilePath path = MissilePath.plan(flight, mx, my, lx, ly, seed);
