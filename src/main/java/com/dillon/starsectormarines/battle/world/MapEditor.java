@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.NaturalPropDamage;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
-import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 
 /**
  * Coordinates the runtime map-modification cycle — the cross-domain operations
@@ -169,8 +168,8 @@ public final class MapEditor {
     }
 
     private void clearNaturalPropCell(int x, int y) {
-        // Summit trees share their cells with permanent terrain; felling the crown cannot excavate the hill.
-        if (ForestBrush.isGrassySummit(grid, topology, x, y)) return;
+        // Trees and mineral props share summit cells with permanent terrain, on every planet.
+        if (topology.terrainSurface() != null && topology.terrainSurface().isFullSummit(x, y)) return;
         grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, false);
         openFixtureCell(x, y);
     }

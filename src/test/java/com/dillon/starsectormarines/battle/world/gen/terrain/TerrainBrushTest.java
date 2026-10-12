@@ -8,6 +8,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan.*;
 
 class TerrainBrushTest {
+    @Test void fullSummitSupportIsIndependentOfMaterialAndExcludesCliffFaces() {
+        for (Finish finish : Finish.values()) {
+            var plan = new TerrainPlan(24, 24, finish, 2, 0, 91,
+                    List.of(stroke(Mode.RAISE, 8, new Point(12, 12))));
+            var surface = TerrainSurface.build(plan, TerrainField.build(plan), new CellTopology(24, 24));
+            assertTrue(surface.isFullSummit(12, 12));
+            assertFalse(surface.isFullSummit(19, 12), "the cliff face cannot support a summit prop");
+            assertFalse(surface.isFullSummit(0, 0));
+        }
+    }
     private static TerrainPlan plan(List<Stroke> strokes) { return new TerrainPlan(24,24,Finish.ROCK,2,0,91,strokes); }
     private static Stroke stroke(Mode mode,double radius,Point... points) { return new Stroke(mode,radius,List.of(points)); }
     @Test void sparseDragIsAContinuousCapsuleNotIsolatedBrushDabs() {

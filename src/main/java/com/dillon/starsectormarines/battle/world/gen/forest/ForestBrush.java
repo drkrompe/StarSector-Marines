@@ -6,12 +6,10 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /** Generation-time forest construction. Editing replays the plan on clean ground, never a live battle. */
 public final class ForestBrush {
-    private static final float[] FULL_CELL = {0, 0, 1, 0, 1, 1, 0, 1};
     private ForestBrush() {}
     public static ForestField stamp(ForestPlan plan, NavigationGrid grid, CellTopology topology,
                                     List<Doodad> doodads, boolean[] reserved) {
@@ -66,6 +64,6 @@ public final class ForestBrush {
     public static boolean isGrassySummit(NavigationGrid grid, CellTopology topology, int x, int y) {
         if (!grid.hasTag(x, y, CellTag.NATURAL_SOLID) || topology.terrainSurface() == null) return false;
         var patch = topology.terrainSurface().patch(x, y, 6);
-        return patch != null && patch.surface() == 0 && Arrays.equals(patch.vertices(), FULL_CELL);
+        return patch != null && patch.surface() == 0 && topology.terrainSurface().isFullSummit(x, y);
     }
 }
