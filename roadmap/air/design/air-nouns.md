@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — warship swarm bursts (scattering, staggered, interceptable warheads; rack volleys; the damage and area budget with caps and fusing; missile presets); warship weapons may fire at aircraft by the weapon rule; campaign squads share a tactical arrival area by default; physical berths never split identity.
+Updated: 2026-10-12 — Warships may resume patrol through forward departure on their existing bearing.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1575,6 +1575,10 @@ single pool shared by the ship's mounts, and a ship can instead (or as well) giv
 each mount the magazine its own weapon carries, from the weapon table's `ammo`
 column, where a blank column is a gun that never runs out. Rounds already in
 flight when the pool empties still land; nothing new is fired, even mid-burst.
+A mission can also release a ship into forward departure on its current nose
+bearing. This abandons pending bursts and directing, and uses normal propulsion
+and off-map removal. A patrol flyover therefore continues from the firing station
+without a new broadside turn, a teleport, or further bombardment.
 Both budgets are unlimited unless a mission sets them, and both are readable
 (remaining seconds, remaining rounds, per-mount magazine) for a HUD.
 
