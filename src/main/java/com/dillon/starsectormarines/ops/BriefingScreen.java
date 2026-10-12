@@ -1357,11 +1357,8 @@ public class BriefingScreen implements Screen {
         } else {
             int selectedPersonnel = PersonnelReadiness.assessSelection(liveRoster(),
                     ctx.getSelectedMarineSquadIds(), 0).selectedReady();
-            List<ShuttleAssignment> manifest = MissionForceEnvelope.allowsUnderstrength(m)
-                    ? DetachmentResolver.buildShuttleManifestForPersonnel(
-                            m, lift(), selectedPersonnel)
-                    : DetachmentResolver.buildShuttleManifest(
-                            m, lift());
+            List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifestForPersonnel(
+                    m, lift(), selectedPersonnel);
             // Read out rather than chosen from. The boats are the ship's, so
             // what this section reports is an establishment: how many, of what,
             // and how hard each is working to cover the drops.

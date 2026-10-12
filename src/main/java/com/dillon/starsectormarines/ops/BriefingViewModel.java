@@ -346,9 +346,8 @@ final class BriefingViewModel {
                     : "The company needs at least one boat aboard its host ship to deploy.";
         } else {
             ShuttleType type = boats.get(0).pattern();
-            List<ShuttleAssignment> manifest = MissionForceEnvelope.allowsUnderstrength(mission)
-                    ? DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, selectedPersonnel)
-                    : DetachmentResolver.buildShuttleManifest(mission, boats);
+            List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifestForPersonnel(
+                    mission, boats, selectedPersonnel);
             List<ShuttleAssignment> player = manifest.subList(
                     DetachmentResolver.employerPhysicalShipCount(mission), manifest.size());
             int trips = player.stream().mapToInt(assignment -> assignment.cycles).sum();
