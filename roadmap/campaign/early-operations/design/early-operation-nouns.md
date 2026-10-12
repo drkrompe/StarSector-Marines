@@ -35,8 +35,9 @@ not a simulated change to vanilla market ownership, trade, or faction relations.
    Successful settlement pays 6,000 credits, records Relief complete, and unlocks
    the depot chapter. Recovered traffic logs connect the two operations; the
    story does not require or invent surviving militia witnesses.
-2. **Take Back the Depot**: join the local advance and eliminate the depot's
-   bandit force. Secure Wayline's offline Hound for the push into dispatch.
+2. **Take Back the Depot**: join the local advance, capture dispatch, then
+   defend it against two finite road attacks. Secure Wayline's offline Hound
+   for the push and warehouse defense.
    Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
    Mara reports that dispatch can resume and refers the company to other
    Independent brokers. Her completed dossier preserves both chapter labels.
@@ -104,7 +105,14 @@ permanent support order. Inspection, Back and terrain preparation do not choose.
 The cooperative funds one recovery mobilization; the other crew receives a
 withdrawal order. Spare company boats, defeat, delay and reload do not reverse
 that commercial decision. There is no menu timer or hidden faction penalty.
-Commitment alone earns neither money nor recurring access.
+Commitment alone earns neither money nor recurring access. The commitment
+panel remains visible beside its button, outside scrollable briefing prose.
+It explicitly names Last Lift as the rescue branch's last story chapter, its
+successful Crew Recovery unlock, and the forgone Relay Nine / Thunder Run path.
+The freight choice names Relay Nine, Thunder Run, the successful Route Security
+unlock, and Rill's lost escort without inventing deaths. These are different
+commercial outcomes and amounts of authored story, not two labels for the same
+next mission.
 
 - **Last Lift** promises 4,000 credits plus 500 per cumulatively rescued person,
   at most 10,000, once on qualifying victory. Rescued and confirmed dead workers
@@ -261,7 +269,10 @@ The story depot contains **Wayward**, Wayline's offline light Hound, in a marked
 maintenance berth beyond the gate. It is inert neutral equipment until company
 infantry reaches it. Clear sight from nearby infantry reveals the berth; five
 continuous seconds of nearby, uncontested company presence brings the walker
-online. Leaving or enemy pressure resets that work. Its close-range chaingun is
+online. The discovery beat also reveals a persistent recovery objective with
+startup progress and an off-camera direction pointer. It survives expiry of the
+spoken/text notice and clears only on activation, disablement, or mission end.
+Leaving or enemy pressure resets that work. Its close-range chaingun is
 the whole weapon fit; both missile mounts remain empty. Startup preserves damage
 already taken. The walker joins the company's depot advance without requiring
 manual play. A radio prompt offers Tab to take control, WASD movement and mouse
@@ -316,9 +327,30 @@ their starting strength; an engaged yard also falls back if the gate squad is
 gone. Those decisions use frozen own-force reports, while squad doctrine owns
 contact and survival. The permanent rear guard does not join the reserve.
 
-Reaching a stage is travel progress, not capture. The depot intent leaves the
-existing elimination objective and victory authority intact: defeat the finite
-bandit force. These scenario duties are not rules later Assault missions inherit.
+Reaching a road stage is travel progress, not capture. In the unique story
+chapter, eight continuous uncontested seconds with a company combatant inside
+the dispatch building starts the defense. Employer militia cannot begin that
+capture alone. Once captured, any surviving company or allied combatant can
+maintain or restore the hold; the Hound can finish a defense even if the infantry
+are lost. Enemy entry or an empty building resets the eight-second occupation
+clock, but never creates or cancels reserves.
+
+Two attacks were committed at setup: each comprises four militia from each of
+the north and south service-road mouths. They enter 18 and 58 seconds after the
+first capture; the second receives twelve seconds of warning. This is sixteen
+additional low-tech raiders, not scaling to the player's army or replenishing
+production. Their scripted road approach hands over on arrival or contact to
+ordinary mission assault command. The public capture switches company and
+employer orders to hold dispatch, while raiders try to retake it. External player
+orders retain ownership. Initial guard posts and fallback remain as above.
+
+Victory requires the original guards and both committed attacks defeated, plus
+an uncontested eight-second hold of dispatch. Defeat still follows loss of the
+company, including committed arrival personnel. The chapter cannot end between
+waves. The recoverable Hound remains optional, and its victory award remains
+protected even if it was destroyed or never activated. Separate Depot Clearance
+repeatable work retains its original finite elimination setup without this story
+reserve or another Hound. These duties are not rules later Assault missions inherit.
 
 ## Small territorial chapters
 
@@ -501,7 +533,12 @@ objective, a wave-release rule, or a campaign completion flag. Opening scenarios
 publish the start, actual company/employer arrival, proximity to authored
 places, and terminal victory, defeat or retreat. Relief additionally reports
 the original militia line weakening or being lost and actual road arrivals;
-Counterattack reports reserve commitment and defensive fallback. Junction
+Counterattack reports reserve commitment and defensive fallback. Its story
+warehouse defense also publishes actual capture, announced road attacks, the
+final warning, first hostile entry and secured completion. Those authored
+warnings disclose only the preannounced roads and timetable, not live enemy
+locations. The new defense notices are text-only; no additional recordings are
+required. Junction
 reports completed captures and the first confirmed recapture of each site. Its
 militia hold beat requires an accepted hold order and a living ally actually
 inside the secured capture room; ordering the move is insufficient.

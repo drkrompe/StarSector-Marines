@@ -54,6 +54,7 @@ public final class BattleCommsPanel implements HudPanel {
     private final CounterattackCommsPresenter counterattackPresenter = new CounterattackCommsPresenter();
     private final WaylineHoundCommsPresenter houndPresenter = new WaylineHoundCommsPresenter();
     private final BitmapFont font = Fonts.ORBITRON_20;
+    private final BitmapFont markerFont = Fonts.ORBITRON_12_BOLD;
     private float wallClock;
 
     public BattleCommsPanel(BattleUiContext ctx) {
@@ -80,6 +81,7 @@ public final class BattleCommsPanel implements HudPanel {
             CounterattackSystem counterattack = counterattack();
             if (hasActiveSignpost(counterattack)) renderSignpost(counterattack, alphaMult);
             renderRecoveryBerth(alphaMult);
+            renderDepotObjective(alphaMult);
 
             BattleCommsFeed.Notice notice = feed.activeNotice();
             if (notice != null) renderNotice(notice, alphaMult);
@@ -115,14 +117,46 @@ public final class BattleCommsPanel implements HudPanel {
         var sim = ctx.getSim();
         var recovery = sim == null ? null : sim.getWaylineHound();
         BattleCamera camera = ctx.getCamera();
-        if (recovery == null || !recovery.found() || recovery.mechId() != 0L
-                || recovery.report(sim).disabled() || sim.isComplete() || camera == null) return;
-        float sx = camera.cellToScreenX(recovery.x()), sy = camera.cellToScreenY(recovery.y());
-        if (!camera.containsScreen(sx, sy)) return;
-        float size = Math.max(12f, camera.cellPxSize() * 2f);
+        if (recovery == null || !recovery.objectiveVisible(sim) || camera == null) return;
+        renderObjective(camera, recovery.x(), recovery.y(), "WAYWARD / RECOVER HOUND",
+                recovery.startupFraction() > 0 ? "STARTUP " + (int) (recovery.startupFraction() * 100) + "%"
+                        : "INFANTRY NEAR BERTH / HOLD 5s", WARNING, alpha);
+    }
+
+    private boolean hasDepotObjective() {
+        return ctx.getSim() != null && !ctx.getSim().isComplete() && ctx.getSim().getDepotHold() != null;
+    }
+
+    private void renderDepotObjective(float alpha) {
+        if (!hasDepotObjective() || ctx.getCamera() == null) return;
+        var hold = ctx.getSim().getDepotHold();
+        var progress = hold.progress();
+        String status = !progress.committed() ? "COMPANY INSIDE / " + (int) (progress.captureFraction() * 100) + "%"
+                : progress.waves() < 2 ? "WAVE " + (progress.waves() + 1) + " / " + (int) Math.ceil(progress.nextWaveSeconds()) + "s TO ROAD ENTRY"
+                : "FINAL ATTACK / CLEAR RAIDERS + HOLD DISPATCH";
+        renderObjective(ctx.getCamera(), hold.x() + .5f, hold.y() + .5f,
+                progress.committed() ? "DEFEND DISPATCH" : "CAPTURE DISPATCH", status, GOOD_NEWS, alpha);
+    }
+
+    /** Persistent beacon, including an edge pointer when the objective is off camera. */
+    private void renderObjective(BattleCamera camera, float x, float y, String label, String status, Color tone, float alpha) {
+        float rawX = camera.cellToScreenX(x), rawY = camera.cellToScreenY(y);
+        float halfWidth = Math.max(markerFont.measureWidth(label), markerFont.measureWidth(status)) * .5f + 8f;
+        float sx = Math.max(camera.vpX() + halfWidth, Math.min(camera.vpX() + camera.vpW() - halfWidth, rawX));
+        float sy = Math.max(camera.vpY() + 64, Math.min(camera.vpY() + camera.vpH() - 60, rawY));
+        float size = 14 + 2 * (float) Math.sin(wallClock * 3);
         HudDraw.prepBlend();
-        HudDraw.borderRect(sx - size, sy - size, size * 2, size * 2, WARNING, alpha);
-        font.drawString("WAYWARD / SECURE BERTH", sx + size + 4, sy, WARNING, alpha);
+        HudDraw.borderRect(sx - size, sy - size, size * 2, size * 2, tone, alpha);
+        if (Math.abs(sx - rawX) > 1 || Math.abs(sy - rawY) > 1) {
+            float angle = (float) Math.atan2(rawY - sy, rawX - sx);
+            glColor4f(tone.getRed() / 255f, tone.getGreen() / 255f, tone.getBlue() / 255f, alpha);
+            glBegin(GL_LINES);
+            glVertex2f(sx, sy); glVertex2f(sx + 24 * (float) Math.cos(angle), sy + 24 * (float) Math.sin(angle));
+            glEnd();
+        }
+        HudDraw.filledRect(sx - halfWidth, sy - size - 36, halfWidth * 2, 33, PANEL_BG, alpha);
+        markerFont.drawString(label, sx - markerFont.measureWidth(label) * .5f, sy - size - 5, tone, alpha);
+        markerFont.drawString(status, sx - markerFont.measureWidth(status) * .5f, sy - size - 21, TEXT, alpha);
     }
 
     private void renderSignpost(CounterattackSystem counterattack, float alphaMult) {
@@ -198,6 +232,8 @@ public final class BattleCommsPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return ctx.getLayout() != null && (feed.activeNotice() != null || hasActiveSignpost(counterattack()));
+        var sim = ctx.getSim();
+        boolean recovery = sim != null && sim.getWaylineHound() != null && sim.getWaylineHound().objectiveVisible(sim);
+        return ctx.getLayout() != null && (recovery || hasDepotObjective() || feed.activeNotice() != null || hasActiveSignpost(counterattack()));
     }
 }

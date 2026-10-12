@@ -46,8 +46,8 @@ public final class WaylineArc {
             case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
                     + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
                     + "Our Hound, Wayward, is offline in the maintenance berth just beyond the gate. Secure the berth and keep a squad there while they bring its chaingun online. "
-                    + "Use it for the push into dispatch; direct control is optional. Win the depot and the walker is yours, including recovery and repair if it is knocked out. "
-                    + "Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; "
+                    + "Use it for the push into dispatch and the defense that follows; direct control is optional. Win the depot and the walker is yours, including recovery and repair if it is knocked out. "
+                    + "Clear the warehouse and hold company units inside for eight seconds. Then defend dispatch against two attacks entering along both service roads. Defeat the finite raider force and secure the warehouse to win. We provide one shuttle; "
                     + "your company needs lift for two sorties. Cr. 9,000 on success, and I'll vouch for your company "
                     + "with Independent brokers. Let's give our drivers their road back.";
         };

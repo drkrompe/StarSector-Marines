@@ -23,6 +23,8 @@ public record OpeningOperationCommandPicture(
         PRESERVE_RELIEF_ANCHOR,
         ASSAULT_RELIEF_ANCHOR,
         SECURE_BANDIT_DEPOT,
+        HOLD_DISPATCH,
+        RETAKE_DISPATCH,
         DEFEND_BANDIT_DEPOT
     }
 
@@ -50,6 +52,8 @@ public record OpeningOperationCommandPicture(
         DEPOT_REAR_GUARD,
         DEPOT_RESERVE_COMMITTED,
         DEPOT_FALLBACK,
+        DEPOT_HOLD,
+        DEPOT_RETAKE,
         OBJECTIVE_UNREACHABLE
     }
 
