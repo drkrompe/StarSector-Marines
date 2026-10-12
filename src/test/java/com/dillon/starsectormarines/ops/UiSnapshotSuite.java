@@ -3118,6 +3118,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     public static BufferedImage renderWorkshopRestoration(SnapshotContext context, CompanyDeck ship,
                                                           WorkshopRestorationModel.Row workshop, float scale) throws Exception {
+        return renderWorkshopRestoration(context, ship, workshop, scale, true);
+    }
+
+    /** Matched framing for visual review, with optional workshop focus and no purchase-panel requirement. */
+    public static BufferedImage renderWorkshopRestoration(SnapshotContext context, CompanyDeck ship,
+                                                          WorkshopRestorationModel.Row workshop, float scale,
+                                                          boolean focusWorkshop) throws Exception {
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
@@ -3132,7 +3139,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
             var canvas = new ShipViewCanvas(ship);
-            canvas.focus(RoomPurpose.PARTS_CAGE);
+            if (focusWorkshop) canvas.focus(RoomPurpose.PARTS_CAGE);
             document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));

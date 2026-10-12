@@ -149,6 +149,12 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                             && "doodad.industrial-scrap-pile".equals(d.definitionId()));
                     if (debris != (state == WorkshopState.BURIED)) throw new AssertionError("Cached room has wrong debris state");
                     if (seed == 42) {
+                        // Same hull, seed, occupancy, and simulation time in every condition.
+                        // Keep the second boat bay damaged so only the workshop changes.
+                        for (boolean close : new boolean[]{false, true}) frames.add(new SnapshotArtifact(
+                                "workshop-" + state.name().toLowerCase() + (close ? "-detail.png" : "-ship.png"),
+                                UiSnapshotSuite.renderWorkshopRestoration(context, deck,
+                                        WorkshopRestorationModel.Row.hidden(), 1f, close)));
                         var row = new WorkshopRestorationModel.Row(new Offer(state, 12000,
                                 state == WorkshopState.EQUIPPED ? "Workshop fully equipped." : null,
                                 state.operational() ? null : "Repair the workshop first.", 2, 10), true, false, "", () -> {}, () -> {}, () -> {});
