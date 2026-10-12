@@ -1,0 +1,45 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design",
+  "request": {
+    "voice_description": "Native New Zealand English, an unmistakably natural New Zealand dialect. Male, 50 to 60. Excellent clean recording quality. Persona: reassuring veteran infantry leader. Emotion: patient, grounded, stubbornly hopeful. A deep warm masculine bass with rounded resonance and a soft worn grain. Unhurried compact conversational phrasing, gentle downward inflection and an occasional smile in the voice. He speaks to his soldiers like people he knows and intends to bring home. Danger brings firm chest-supported projection and shorter phrases; anger carries disappointed gravity rather than a bark. Natural, expressive character dialogue with warmth still audible under exertion.",
+    "text": "[warm, relaxed voice] Command, Ox. We are ready. Take your time. We will be here.\n\n[steady, projecting voice] Contact. Easy, lads. Pick your shots. We are still here.\n\n[firm, urgent voice] Friendly fire! Those are our people! Watch your aim!\n\n[strained, reassuring voice] Time to go. Back together, now. Nobody gets left on their own.\n\n[warm, tired voice] Still with you, Command. One thing at a time.",
+    "model_id": "eleven_ttv_v3",
+    "seed": 101203,
+    "loudness": 0.2,
+    "guidance_scale": 5,
+    "auto_generate_text": false
+  },
+  "outputFormat": "mp3_44100_128",
+  "inputSha256": "532fa2449168e5ecdae44aeb290f8e97a3801bb4002dde1983a9a6807e18b037",
+  "requestId": null,
+  "characterCost": null,
+  "previewText": "[warm, relaxed voice] Command, Ox. We are ready. Take your time. We will be here.\n\n[steady, projecting voice] Contact. Easy, lads. Pick your shots. We are still here.\n\n[firm, urgent voice] Friendly fire! Those are our people! Watch your aim!\n\n[strained, reassuring voice] Time to go. Back together, now. Nobody gets left on their own.\n\n[warm, tired voice] Still with you, Command. One thing at a time.",
+  "candidates": [
+    {
+      "candidate": "A",
+      "file": "ox-A.mp3",
+      "generatedVoiceId": "triQgLSf2h7z3hylgWi9",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 22.361,
+      "audioSha256": "2263c56cfe1039c35f77f81c6e4634451eb3649918674d06a42bca9220253ee2"
+    },
+    {
+      "candidate": "B",
+      "file": "ox-B.mp3",
+      "generatedVoiceId": "YUvgK8Ap5BSxIwdo4Uvr",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 22.517,
+      "audioSha256": "1cf85a3f75689d85e2b39532d5a337ea98ade5184d7606787b1cf8eb926ff415"
+    },
+    {
+      "candidate": "C",
+      "file": "ox-C.mp3",
+      "generatedVoiceId": "GCugvymedyFwiX4oQvJb",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 18.599,
+      "audioSha256": "6513a3c6d20993ce00b883aaaf2aa26aa81df81a46d34e6adb3cd349663871f1"
+    }
+  ],
+  "selectedCandidate": null,
+  "savedVoiceId": null
+}
