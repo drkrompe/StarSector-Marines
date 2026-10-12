@@ -325,6 +325,7 @@ public class BattleRenderer {
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 new ShuttleRenderSystem(sprites),
+                new ShipLightingRenderSystem(),
                 new WarshipRenderSystem(sprites),
                 new LanceSweepRenderSystem(),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its

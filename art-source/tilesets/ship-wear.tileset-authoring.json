@@ -1,0 +1,77 @@
+{
+  "sheetName": "ship-wear",
+  "sheet": "art-source/tilesets/ship-wear.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-wear",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-wear.png",
+  "note": "Registered transparent ImageGen reskin; persistent cosmetic deck scars beneath fixtures. No collision or ballistic ownership.",
+  "entries": [
+    {
+      "id": "ship-wear.scuffs",
+      "rect": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-wear.paint",
+      "rect": [
+        627,
+        0,
+        627,
+        627
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-wear.patch",
+      "rect": [
+        0,
+        627,
+        627,
+        627
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-wear.scorch",
+      "rect": [
+        627,
+        627,
+        627,
+        627
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}
