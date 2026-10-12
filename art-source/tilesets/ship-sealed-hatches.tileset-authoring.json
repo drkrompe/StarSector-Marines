@@ -1,0 +1,21 @@
+{
+  "sheetName": "ship-sealed-hatches",
+  "sheet": "art-source/tilesets/ship-sealed-hatches.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-sealed-hatches",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-sealed-hatches.png",
+  "note": "Full square placement frame, preserving generated alpha. Canonical horizontal bulkhead axis; runtime quarter-turns for vertical walls. Room condition owns blocking.",
+  "entries": [
+    {
+      "id": "ship-sealed-hatches.pressure-hatch",
+      "rect": [0, 0, 1254, 1254],
+      "footprintCells": [1, 1],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}
