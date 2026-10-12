@@ -18,7 +18,6 @@ import java.util.List;
 public final class ColdAccountIntervention implements Objective {
     public enum Phase { EVIDENCE, WITHDRAW, WARNING, BOMBARD, PATROL, AFTERMATH, COMPLETE, FAILED }
     public static final int WARNING_TICKS = 0;
-    public static final int AFTERMATH_TICKS = 150;
     private final ColdAccountLayout layout;
     private final RaidObjective evidence;
     private final StoryBeatLog beats;
@@ -97,13 +96,19 @@ public final class ColdAccountIntervention implements Objective {
         approach.observe(tick, false, false, true);
         pendingArrivals = hasPendingArrivals(sim);
         companyRecovered = !pendingArrivals && sim.survivorPickup().complete(sim);
+        // The company's operation ends with its last occupied return flight.
+        // Resolute's demolition and patrol continue on their own timetable.
+        if (companyRecovered && sim.survivorPickup().recoveredCount() > 0) {
+            phase = Phase.COMPLETE;
+            beat(sim, "company_extracted");
+            return;
+        }
         if (phase == Phase.PATROL || phase == Phase.AFTERMATH) {
             if (ship.destroyed()) {
                 phase = Phase.FAILED; beat(sim, "intervention_failed"); return;
             }
             if (ship.departed()) {
                 if (departedTick < 0) { departedTick = tick; phase = Phase.AFTERMATH; }
-                if (tick - departedTick >= AFTERMATH_TICKS && companyRecovered) phase = Phase.COMPLETE;
             }
             return;
         }
@@ -222,7 +227,7 @@ public final class ColdAccountIntervention implements Objective {
                     + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
             case PATROL -> "HSS Resolute resuming patrol" + (companyRecovered ? "" : "; reach shuttle pickup");
             case AFTERMATH -> "Stronghold silenced" + (companyRecovered ? "" : "; recover remaining survivors at shuttle pickup");
-            case COMPLETE -> "Pirate evidence secured; company withdrawn; stronghold destroyed";
+            case COMPLETE -> "Pirate evidence secured; surviving company extracted";
             case FAILED -> "Hegemony intervention failed to destroy the stronghold";
         };
     }

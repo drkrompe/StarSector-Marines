@@ -185,6 +185,7 @@
     {"id": "marines_mara_relay_nine_freight_gate_restored", "source": "wayline/marines_mara_relay_nine_freight_gate_restored.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relay_nine_relay_hall_retaken", "source": "wayline/marines_mara_relay_nine_relay_hall_retaken.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relay_nine_relay_hall_restored", "source": "wayline/marines_mara_relay_nine_relay_hall_restored.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_thunder_run_briefing", "source": "wayline/marines_mara_thunder_run_briefing.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_thunder_run_started", "source": "wayline/marines_mara_thunder_run_started.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_thunder_run_player_landed", "source": "wayline/marines_mara_thunder_run_player_landed.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_thunder_run_column_released", "source": "wayline/marines_mara_thunder_run_column_released.mp3", "kind": "ui", "out": "story/wayline"},
@@ -545,6 +546,12 @@
     { "id": "marines_voice_dead_19", "source": "voice-dead-lines/19.mp3", "kind": "positional", "out": "battle/voice-dead" },
 
     // Cold Account / Castle, Mara, and Captain Kord
+    {"id": "marines_castle_cold_account_debrief_orders", "source": "wayline/marines_castle_cold_account_debrief_orders.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_cold_account_debrief_consideration", "source": "wayline/marines_mara_cold_account_debrief_consideration.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_cold_account_debrief_one_ship", "source": "wayline/marines_castle_cold_account_debrief_one_ship.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_cold_account_debrief_payroll", "source": "wayline/marines_mara_cold_account_debrief_payroll.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_cold_account_debrief_way_out", "source": "wayline/marines_castle_cold_account_debrief_way_out.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_cold_account_debrief_debt", "source": "wayline/marines_mara_cold_account_debrief_debt.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_cold_account_patrol_hail", "source": "wayline/marines_mara_cold_account_patrol_hail.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_kord_cold_account_patrol_requires_proof", "source": "wayline/marines_kord_cold_account_patrol_requires_proof.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_cold_account_archive_offer", "source": "wayline/marines_mara_cold_account_archive_offer.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},

@@ -10,7 +10,9 @@ class PickupManifestTest {
     }
     @Test void capacityAndIdentitySurviveTheLiftUntilReturn() {
         var manifest = new PickupManifest(2);
+        assertFalse(manifest.hasPassengersAboard(), "An empty return flight must not delay survivors");
         assertTrue(manifest.board(passenger(1)));
+        assertTrue(manifest.hasPassengersAboard(), "Boarding is not recovery");
         assertFalse(manifest.board(passenger(1)));
         assertTrue(manifest.board(passenger(2)));
         assertFalse(manifest.board(passenger(3)));
@@ -18,6 +20,7 @@ class PickupManifestTest {
         manifest.recover();
         manifest.lose();
         assertEquals(PickupManifest.State.RECOVERED, manifest.state());
+        assertFalse(manifest.hasPassengersAboard());
         assertEquals("soldier-2", manifest.passengers().get(1).soldierId());
         assertFalse(manifest.board(passenger(3)));
     }
@@ -27,6 +30,7 @@ class PickupManifestTest {
         manifest.lose();
         manifest.recover();
         assertEquals(PickupManifest.State.LOST, manifest.state());
+        assertFalse(manifest.hasPassengersAboard(), "Lost passengers are not waiting for extraction");
         assertTrue(manifest.lossInOwnedBoatLedger());
         assertEquals(1, manifest.passengers().size());
         assertFalse(manifest.board(passenger(10)));

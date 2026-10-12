@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Junction leads directly to the rescue or convoy finale; Relay Nine supplies recurring Route Security.
+Updated: 2026-10-12 â€” Cold Account ends on survivor extraction and carries a voiced Castle/Mara debrief.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -270,19 +270,21 @@ satisfy the defender's elimination objective.
 
 The capital bombards the installation's standing structures through ordinary
 weapon damage and friendly fire. It carries finite ordnance and station time;
-arrival or a timer alone never wins. Success requires the records, safe survivors,
-at least three quarters of each sector's original target wall cells destroyed, and the
-last shells and released warheads landed, and every surviving unit recovered by
-its pickup craft. Resolute ceases fire and resumes patrol as soon as demolition
+arrival or a timer alone never wins. Company success requires authenticated
+records and the physical return of its surviving personnel, including any
+outstanding deployments. At least one survivor must return; boarding alone is
+insufficient, and a lost loaded boat cannot count as recovered. Empty returning
+boats do not delay the last survivor's extraction.
+Resolute ceases fire and resumes patrol as soon as demolition
 and its last impacts finish, independently of company recovery. It continues
 nose-first on its existing bearing, passing over the ruins through ordinary
 propulsion; the neutralization report begins at this departure. Pickup continues
 concurrently, with its marker and instructions retained until the company is
-recovered. Completion waits for both recovery (including outstanding deliveries)
-and the capital's map exit plus a five-second aftermath hold. Neither timeline
-substitutes for the other. Remaining pirates
-need not be hunted down. Losing the ship
-or exhausting its intervention without destroying the target fails the operation.
+recovered. The last occupied pickup's return ends the mission immediately.
+Capital demolition, map exit and an aftermath timer do not delay that settlement;
+the company can leave the Navy to finish its work. Remaining pirates need not be
+hunted down. Losing the ship or exhausting its intervention before demolition
+still fails an operation whose company has not yet extracted.
 This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
 
@@ -311,6 +313,13 @@ contract confers no military alliance or protection. This is not personal malice
 a threat speech or a promise to attack the company. There is no dialogue countdown
 or gameplay wait for a sentence. Only the confirmed terminal line survives
 completion; obsolete withdrawal and firing instructions do not.
+The successful operation's results then carry a separate voiced conversation
+between Castle and Mara, with their portraits, a readable transcript and Replay
+and Stop controls. Castle processes the scale of the threat; Mara acknowledges
+that useful intelligence bought no alliance or protection. The exchange names
+no invented survivor count and claims neither an intact Hound nor a completed
+patrol. It reads the settled outcome, cannot delay or repeat settlement, and
+does not play on defeat or unrelated recurring jobs.
 
 All three support exact selected named personnel with at least two squads of
 four ready marines each and up to four fitted boats making repeated trips.
