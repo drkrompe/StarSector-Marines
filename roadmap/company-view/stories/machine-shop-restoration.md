@@ -57,7 +57,15 @@ Focused tests cover prices, cargo limits, once-only salvage, stale orders,
 ownership, persistence, quoted/debited supplies and two-click purchase input.
 The opt-in Cerberus evidence checks fixed layouts and first-mission room access
 across three seeds and all four workshop states, with ship-view renders at
-100% and 150% scale. Mod-jar boundary verification passes.
+100% and 150% scale. Matched full-ship and unobstructed workshop frames also
+cover every stage, holding the seed, shuttle and damaged second bay constant.
+Mod-jar boundary verification passes.
+
+Visual storytelling still needs an art pass: the buried state's small repeated
+scrap piles look arranged, the machines look largely intact, and the differences
+are weak at full-ship scale. Clearance and the opened hatch read better up close;
+larger irregular wreckage and stronger machine damage should make the initial
+condition legible before relying on Castle's explanation.
 
 In a live campaign, complete Hold Until Relieved, visit a planetary spaceport,
 and use HQ's ship view to inspect and buy each stage. Confirm the visible room
