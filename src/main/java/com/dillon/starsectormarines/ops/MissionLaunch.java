@@ -170,7 +170,13 @@ public final class MissionLaunch {
 
         // Heavy-armaments availability on the target world drives whether the
         // defender side fields a HEAVY_MECH (see BattleSetup).
-        boolean enemyHasHeavyArmor = DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
+        if (CorvusWaylineCampaign.owns(m.id)) {
+            CorvusWaylineCampaign.requireCurrent(m);
+            if (!CorvusWaylineCampaign.atSite(ctx.planet))
+                throw new IllegalStateException("Travel to the Corvus chapter's destination before deploying.");
+        }
+        boolean enemyHasHeavyArmor = !CorvusWaylineCampaign.isBattle(m)
+                && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
 
         // Campaign → battle bridge: the target world's planetary defenses /
         // market read, distilled once at the boundary so generation can reflect
@@ -179,7 +185,8 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile profile = (SupplyRouteCampaign.isBattle(m)
+        TargetProfile profile = (CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+                : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
                 .withFactionId(m.defenderFactionOverride);
@@ -211,7 +218,10 @@ public final class MissionLaunch {
         Detachment constructionDetachment = det;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
-        if (SupplyRouteCampaign.isBattle(m)) {
+        if (CorvusWaylineCampaign.isBattle(m)) {
+            fixture = CorvusWaylineCampaign.requireCurrent(m).chapter().fixture(seed, constructionDetachment.shuttleManifest, profile);
+            builder = fixture::build;
+        } else if (SupplyRouteCampaign.isBattle(m)) {
             BrokenSupplyRouteProgress route = SupplyRouteCampaign.requireCurrent(m);
             builder = supplyRouteBuilder(route, seed, constructionDetachment.shuttleManifest, profile);
         } else if (openingOperation != null) {
@@ -357,6 +367,9 @@ public final class MissionLaunch {
             CampaignCommandPowerResources liveResources =
                     new CampaignCommandPowerResources();
             boolean supplyRoute = SupplyRouteCampaign.isBattle(m);
+            if (CorvusWaylineCampaign.isBattle(m)
+                    && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
+                throw new IllegalStateException("Select at least two squads with four ready marines each.");
             BrokenSupplyRouteProgress route = supplyRoute ? SupplyRouteCampaign.requireCurrent(m) : null;
             if (supplyRoute) {
                 if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
@@ -374,6 +387,7 @@ public final class MissionLaunch {
             }
 
             if (route != null && !route.begin(m.id)) throw new IllegalStateException("This supply-route attempt has already launched.");
+            if (CorvusWaylineCampaign.isBattle(m)) CorvusWaylineCampaign.begin(m);
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();

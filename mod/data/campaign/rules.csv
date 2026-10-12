@@ -7,3 +7,5 @@ captainDiscoveryAccept,DialogOptionSelected,$option == starsectorMarinesCaptainA
 captainDiscoveryDecline,DialogOptionSelected,$option == starsectorMarinesCaptainDecline,CaptainDiscoveryCMD decline,,,Irreversibly refers the survivor to rescue services
 captainDiscoveryLater,DialogOptionSelected,$option == starsectorMarinesCaptainLater,CaptainDiscoveryCMD later,,,Keeps the available candidate for Personnel review
 captainDiscoveryDone,DialogOptionSelected,$option == starsectorMarinesCaptainDone,CaptainDiscoveryCMD done,,,Closes the retained salvage interaction after resolution
+marineOpsStorySite,PopulateOptions,"$market.isPlanetConditionMarketOnly
+MarineOpsCMD storySite",,,30:marineOpsOpen:Marine operations,Current Wayline story site on an unpopulated world

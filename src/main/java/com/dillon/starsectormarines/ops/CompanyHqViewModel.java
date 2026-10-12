@@ -139,6 +139,8 @@ final class CompanyHqViewModel {
                 OpeningBroker.current(), openingCourse));
         if (rosterScript != null && WaylineArc.stage(rosterScript.roster()) == WaylineArc.Stage.COMPLETE)
             props.put("openingGuide", new SupplyRouteWorkGuide(SupplyRouteCampaign.current(), SupplyRouteCampaign.destination(), openingCourse));
+        if (CorvusWaylineCampaign.current() != null)
+            props.put("openingGuide", new CorvusWaylineWorkGuide(CorvusWaylineCampaign.current(), CorvusWaylineCampaign.destination(), openingCourse));
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
@@ -251,6 +253,12 @@ final class CompanyHqViewModel {
     static CompanyHqViewModel supplyRoutePreview(BrokenSupplyRouteProgress progress, OpeningBroker.Destination destination) {
         Map<String, Object> props = openingPreview(new MarineRoster()).props();
         props.put("openingGuide", new SupplyRouteWorkGuide(progress, destination, () -> { }));
+        return new CompanyHqViewModel(props);
+    }
+
+    static CompanyHqViewModel corvusPreview(MarineRoster roster, CorvusWaylineWorkGuide guide) {
+        Map<String, Object> props = openingPreview(roster).props();
+        props.put("openingGuide", guide);
         return new CompanyHqViewModel(props);
     }
 

@@ -873,6 +873,11 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (CorvusWaylineCampaign.isBattle(mission)) {
+            rows.add(BriefingViewModel.info("employer-heavy-lift", "Heavy lift", "Wayline transport / your active mech lance", ""));
+            rows.add(BriefingViewModel.info("employer-force", "Local support", "No employer infantry or fighter cover", ""));
+            return List.copyOf(rows);
+        }
         if (SupplyRouteCampaign.isBattle(mission)) {
             var route = SupplyRouteCampaign.current();
             int kind = route != null ? route.operation() : 0;
@@ -904,7 +909,7 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = !SupplyRouteCampaign.isBattle(mission) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;

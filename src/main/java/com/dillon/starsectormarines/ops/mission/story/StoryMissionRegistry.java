@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.mission.story;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
+import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ public final class StoryMissionRegistry {
             }
         }
         out.addAll(0, SupplyRouteCampaign.offers(ctx));
+        out.addAll(0, CorvusWaylineCampaign.offers(ctx));
         return out;
     }
 }
