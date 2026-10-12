@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -641,6 +642,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         List<Long> hired = new ArrayList<>(hands);
         for (int index = 0; index < hands; index++) {
             AmbientTaskRoute shift = dutyRoute != null ? dutyRoute : watchBill.member(filled + index);
+            if (dutyRoute == null) shift = ShipWorkRound.expand(role, compartment, fixtureTasks,
+                    occupiedBerths, shift, filled + index, false);
             if (shift == null) break;
             AmbientTaskRoute.Stop start = AmbientTaskService.standingPlace(shift, 0f);
             long actor = simulation.spawn(hand.reportingFor(index, shift,
@@ -752,6 +755,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // Otherwise early machinery rooms consume the remainder and moving two
         // duty slots to the CIC silently removes the galley's only cook.
         EnumSet<CrewRole> represented = EnumSet.noneOf(CrewRole.class);
+        postings.sort(Comparator.comparingInt(posting ->
+                ShipWorkRound.postingPriority(posting.role(), posting.room().purpose())));
         for (Posting posting : postings)
             if (billets.getOrDefault(billet(posting.room(), posting.role()), 0) > 0)
                 represented.add(posting.role());

@@ -19,7 +19,13 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /** Actual Valkyrie generation and crew, advanced physically for two minutes. */
 public final class ShipDutySnapshotSuite implements SnapshotSuite {
@@ -92,6 +98,18 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                     + " engineering; 1 guard; 2 named marines; minCrew=" + hull.minCrew());
             var drain = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            Map<CrewRole, RoomPurpose> workplaces = Map.of(CrewRole.ENGINE_WATCH, RoomPurpose.ENGINE_ROOM,
+                    CrewRole.MEDIC, RoomPurpose.PATIENT_WARD, CrewRole.COOK, RoomPurpose.MESS_HALL,
+                    CrewRole.ARMOURER, RoomPurpose.ARMORY, CrewRole.MACHINIST, RoomPurpose.PARTS_CAGE,
+                    CrewRole.STOREKEEPER, RoomPurpose.STOCKROOM);
+            Map<Long, CrewRole> roles = new HashMap<>();
+            Map<CrewRole, Set<String>> visited = new EnumMap<>(CrewRole.class);
+            for (long actor : hired) {
+                var duty = scene.dutyCrew().get(actor);
+                if (duty != null) roles.put(actor, duty.role());
+                else for (CrewRole role : CrewRole.values())
+                    if (sim.identity().name(actor).startsWith(role.name().toLowerCase(Locale.ROOT) + "-")) roles.put(actor, role);
+            }
             for (int tick = 0; tick <= 3600; tick++) {
                 if (tick > 0) sim.advance(BattleSimulation.TICK_DT);
                 // Station guarantees hold past several dwell renewals, not just at spawn.
@@ -107,20 +125,37 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                             throw new IllegalStateException("Command watch left post at tick " + tick + ": " + post.route().id());
                     }
                     if (!post.room().contains(sim.world().cellX(actor), sim.world().cellY(actor))
-                            || sim.ambientTasks().jobInHand(actor) == null)
+                            || (post.route().stops().size() == 1 && sim.ambientTasks().jobInHand(actor) == null))
                         throw new IllegalStateException("Unattended essential station at tick " + tick + ": " + post.route().id());
+                }
+                if (tick % 30 == 0) for (var hand : roles.entrySet()) {
+                    RoomPurpose workplace = workplaces.get(hand.getValue());
+                    long actor = hand.getKey();
+                    var point = sim.taskPoints().claimedPoint(actor);
+                    if (workplace == null || point == null || sim.ambientTasks().jobInHand(actor) == null) continue;
+                    if (rooms.compartments().stream().anyMatch(room -> room.purpose() == workplace
+                            && room.contains(point.cellX(), point.cellY())))
+                        visited.computeIfAbsent(hand.getValue(), key -> new HashSet<>()).add(point.id());
                 }
                 if (tick != 0 && tick != 1800 && tick != 3600) continue;
                 for (var room : rooms.compartments()) {
                     boolean core = room.purpose() == RoomPurpose.BRIDGE || room.purpose() == RoomPurpose.ENGINE_ROOM;
                     boolean staffed = scene.dutyCrew().values().stream().anyMatch(post -> post.room().id() == room.id());
-                    if (!core && (tick != 3600 || !staffed)) continue;
+                    boolean workplace = workplaces.containsValue(room.purpose()) && rooms.compartments().stream()
+                            .noneMatch(other -> other.purpose() == room.purpose()
+                                    && other.width() * other.depth() > room.width() * room.depth());
+                    if (!core && !workplace && (tick != 3600 || !staffed)) continue;
                     for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
                             "ship-duty-" + room.purpose().name().toLowerCase() + "-" + room.id() + "-" + tick / 30 + "s-" + scale + "px.png",
                             drain.renderHostPass(scene.pass(ShipDeckBattleScene.DeckView.over(room, 2, scale),
                                     EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS)),
                                     (room.width() + 4) * scale, (room.depth() + 4) * scale)));
                 }
+            }
+            for (CrewRole role : workplaces.keySet()) {
+                int stations = visited.getOrDefault(role, Set.of()).size();
+                System.out.println("ship-duty: " + role + " worked " + stations + " distinct home-room stations");
+                if (stations < 2) throw new IllegalStateException(role + " did not work a room round: " + stations);
             }
         }
         return images;

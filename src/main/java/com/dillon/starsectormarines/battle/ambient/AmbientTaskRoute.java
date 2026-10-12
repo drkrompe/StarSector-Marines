@@ -39,11 +39,19 @@ public record AmbientTaskRoute(
      * One destination to dwell at, its authored activity, and facing focus.
      * A non-null {@code pointGroup} asks the battle to reserve one free
      * {@link TaskPoint} from that group; the coordinates remain the deterministic
-     * static-sampling fallback used by headless pose-only hosts.
+     * static-sampling fallback used by headless pose-only hosts. With
+     * {@code specificPoint}, the registered stand at those coordinates is
+     * required: a room work round can visit several fixtures in the same group
+     * without claiming the same nearest bench again. Busy points are skipped.
      */
     public record Stop(float worldX, float worldY, float dwellSeconds,
                        AmbientActivity activity, float focusX, float focusY,
-                       String pointGroup) {
+                       String pointGroup, boolean specificPoint) {
+        /** Ordinary stops accept any free point in their group. */
+        public Stop(float worldX, float worldY, float dwellSeconds,
+                    AmbientActivity activity, float focusX, float focusY, String pointGroup) {
+            this(worldX, worldY, dwellSeconds, activity, focusX, focusY, pointGroup, false);
+        }
         public Stop(float worldX, float worldY, float dwellSeconds,
                     AmbientActivity activity, float focusX, float focusY) {
             this(worldX, worldY, dwellSeconds, activity, focusX, focusY, null);
@@ -63,6 +71,8 @@ public record AmbientTaskRoute(
             if (pointGroup != null && pointGroup.isBlank()) {
                 throw new IllegalArgumentException("ambient point group must be null or non-blank");
             }
+            if (specificPoint && pointGroup == null)
+                throw new IllegalArgumentException("a specific work point requires a claim group");
         }
     }
 }

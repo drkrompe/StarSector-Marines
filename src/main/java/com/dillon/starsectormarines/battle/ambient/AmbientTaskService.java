@@ -377,9 +377,15 @@ public final class AmbientTaskService {
             // room can still land on the same one, and setup that ignores the
             // claim service puts two people on a cell nothing will separate them
             // off again.
-            TaskPoint point = stop.pointGroup() == null ? null
-                    : taskPoints.claimNearest(actorId, stop.pointGroup(),
-                            world.x(actorId), world.y(actorId));
+            TaskPoint point = claim(actorId, stop);
+            if (stop.pointGroup() != null && point == null) {
+                if (!departFor(actorId, route, state)) {
+                    state.working = false;
+                    continue;
+                }
+                stop = route.stops().get(state.stopIndex);
+                point = claim(actorId, stop);
+            }
             float worldX = point != null ? point.worldX() : stop.worldX();
             float worldY = point != null ? point.worldY() : stop.worldY();
             float focusX = point != null ? point.focusX() : stop.focusX();
@@ -487,8 +493,7 @@ public final class AmbientTaskService {
                 state.stopIndex = index;
                 return true;
             }
-            if (taskPoints.claimNearest(actorId, candidate.pointGroup(),
-                    world.x(actorId), world.y(actorId)) == null) {
+            if (claim(actorId, candidate) == null) {
                 continue;
             }
             state.stopIndex = index;
@@ -509,8 +514,7 @@ public final class AmbientTaskService {
         AmbientTaskRoute.Stop stop = route.stops().get(state.stopIndex);
         TaskPoint point = null;
         if (stop.pointGroup() != null) {
-            point = taskPoints.claimNearest(
-                    actorId, stop.pointGroup(), world.x(actorId), world.y(actorId));
+            point = claim(actorId, stop);
             if (point == null) return giveUpOn(actorId, route, state, stop, dt);
         } else {
             taskPoints.release(actorId);
@@ -789,6 +793,13 @@ public final class AmbientTaskService {
     private static float positiveModulo(float value, float divisor) {
         float result = value % divisor;
         return result < 0f ? result + divisor : result;
+    }
+
+    private TaskPoint claim(long actorId, AmbientTaskRoute.Stop stop) {
+        if (stop.pointGroup() == null) return null;
+        return stop.specificPoint()
+                ? taskPoints.claimAt(actorId, stop.pointGroup(), stop.worldX(), stop.worldY())
+                : taskPoints.claimNearest(actorId, stop.pointGroup(), world.x(actorId), world.y(actorId));
     }
 
     private record RouteSample(AmbientTaskPose pose, int destinationIndex, boolean dwelling) { }
