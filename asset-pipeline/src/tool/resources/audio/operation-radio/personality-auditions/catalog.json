@@ -1,0 +1,226 @@
+{
+  "status": "casting selected: Jackal A, Ox B, Rivet B; Warden and Relay rejected",
+  "outputFormat": "mp3_44100_128",
+  "roles": [
+    {
+      "id": "warden",
+      "label": "Warden",
+      "summary": "Composed South African woman; controlled, low, deliberate.",
+      "description": "Native South African English, a restrained educated South African dialect. Female, 40 to 50. Excellent clean recording quality. Persona: composed infantry leader. Emotion: watchful, controlled, quietly intense. A naturally low feminine contralto, dry and close, with precise consonants and compact deliberate phrasing. Danger makes her words slower and more exact; she can project a sharp warning without becoming shrill. Small audible breaths reveal the effort behind her composure. Restrained warmth when addressing her soldiers. Natural spoken character dialogue, varied intonation, economical pauses.",
+      "sections": [
+        {
+          "id": "warden_routine",
+          "delivery": "[calm, low voice]",
+          "text": "Command, Warden. We are in position. Waiting on your word."
+        },
+        {
+          "id": "warden_contact",
+          "delivery": "[focused, deliberate voice]",
+          "text": "Contact. Take a breath. Find your target."
+        },
+        {
+          "id": "warden_mech",
+          "delivery": "[tense, controlled voice]",
+          "text": "Hostile mech, confirmed. Stay out of its line of fire."
+        },
+        {
+          "id": "warden_friendly-fire",
+          "delivery": "[firm, projecting voice]",
+          "text": "Check fire. You are hitting our people."
+        },
+        {
+          "id": "warden_withdrawal",
+          "delivery": "[quietly urgent voice]",
+          "text": "We cannot hold this. Pull back together. Keep breathing."
+        }
+      ],
+      "request": {
+        "voice_description": "Native South African English, a restrained educated South African dialect. Female, 40 to 50. Excellent clean recording quality. Persona: composed infantry leader. Emotion: watchful, controlled, quietly intense. A naturally low feminine contralto, dry and close, with precise consonants and compact deliberate phrasing. Danger makes her words slower and more exact; she can project a sharp warning without becoming shrill. Small audible breaths reveal the effort behind her composure. Restrained warmth when addressing her soldiers. Natural spoken character dialogue, varied intonation, economical pauses.",
+        "text": "[calm, low voice] Command, Warden. We are in position. Waiting on your word.\n\n[focused, deliberate voice] Contact. Take a breath. Find your target.\n\n[tense, controlled voice] Hostile mech, confirmed. Stay out of its line of fire.\n\n[firm, projecting voice] Check fire. You are hitting our people.\n\n[quietly urgent voice] We cannot hold this. Pull back together. Keep breathing.",
+        "model_id": "eleven_ttv_v3",
+        "seed": 101200,
+        "loudness": 0.2,
+        "guidance_scale": 5,
+        "auto_generate_text": false
+      },
+      "status": "rejected",
+      "selectedCandidate": null
+    },
+    {
+      "id": "jackal",
+      "label": "Jackal",
+      "summary": "Irish man; conversational, wry, suddenly sharp when it matters.",
+      "description": "Native Irish English, a natural western Irish dialect. Male, 30 to 38. Excellent clean recording quality. Persona: dry-humoured infantry professional. Emotion: alert, wry, dependable. A medium-register masculine voice with a light sandpaper edge and easy conversational rhythm. Understatement and small changes in pitch carry the humour; the smile is audible without turning into a laugh. The instant someone is in danger, he becomes quick, clipped and forceful. Human uneven phrasing and brief breaths, casual confidence earned through experience. Lively spoken character dialogue at a brisk natural pace.",
+      "sections": [
+        {
+          "id": "jackal_routine",
+          "delivery": "[conversational, wry voice]",
+          "text": "Command, Jackal. Ready when you are. Ideally before I get comfortable."
+        },
+        {
+          "id": "jackal_contact",
+          "delivery": "[sharp, projecting voice]",
+          "text": "Contact! Spread out. Pick your shots!"
+        },
+        {
+          "id": "jackal_friendly-fire",
+          "delivery": "[urgent, firm voice]",
+          "text": "Check fire! Those are our people you are hitting!"
+        },
+        {
+          "id": "jackal_withdrawal",
+          "delivery": "[strained, decisive voice]",
+          "text": "We are pulling back. Stay with me. Nobody goes alone."
+        },
+        {
+          "id": "jackal_recovery",
+          "delivery": "[breathless, dry voice]",
+          "text": "Still here, Command. I will save the complaints for later."
+        }
+      ],
+      "request": {
+        "voice_description": "Native Irish English, a natural western Irish dialect. Male, 30 to 38. Excellent clean recording quality. Persona: dry-humoured infantry professional. Emotion: alert, wry, dependable. A medium-register masculine voice with a light sandpaper edge and easy conversational rhythm. Understatement and small changes in pitch carry the humour; the smile is audible without turning into a laugh. The instant someone is in danger, he becomes quick, clipped and forceful. Human uneven phrasing and brief breaths, casual confidence earned through experience. Lively spoken character dialogue at a brisk natural pace.",
+        "text": "[conversational, wry voice] Command, Jackal. Ready when you are. Ideally before I get comfortable.\n\n[sharp, projecting voice] Contact! Spread out. Pick your shots!\n\n[urgent, firm voice] Check fire! Those are our people you are hitting!\n\n[strained, decisive voice] We are pulling back. Stay with me. Nobody goes alone.\n\n[breathless, dry voice] Still here, Command. I will save the complaints for later.",
+        "model_id": "eleven_ttv_v3",
+        "seed": 101201,
+        "loudness": 0.2,
+        "guidance_scale": 5,
+        "auto_generate_text": false
+      },
+      "status": "selected",
+      "selectedCandidate": "A"
+    },
+    {
+      "id": "relay",
+      "label": "Relay",
+      "summary": "Young North American woman; precise reports fraying under pressure.",
+      "description": "Native North American English, a clear general American dialect. Female, 24 to 30. Excellent clean recording quality. Persona: meticulous junior infantry leader. Emotion: attentive, determined, tightly wound. A bright middle-register feminine voice with precise consonants and quick thoughtful phrasing. She begins formally, choosing each word carefully. Under pressure her pace accelerates, her breath shortens and a small self-correction slips out, but her words remain intelligible. Earnest rather than theatrical; a human catch in the voice beneath practiced procedure. Capable of a sudden forceful warning, then consciously slowing herself back down. Natural spoken character dialogue.",
+      "sections": [
+        {
+          "id": "relay_routine",
+          "delivery": "[precise, focused voice]",
+          "text": "Command, Relay. Position confirmed. Awaiting instructions."
+        },
+        {
+          "id": "relay_contact",
+          "delivery": "[quick, tense voice]",
+          "text": "Contact! Enemy contact! We are engaged!"
+        },
+        {
+          "id": "relay_mech",
+          "delivery": "[strained, fast voice]",
+          "text": "Enemy mech confirmed. Yes, definitely a mech. Find cover!"
+        },
+        {
+          "id": "relay_friendly-fire",
+          "delivery": "[shouting, urgent voice]",
+          "text": "Check your fire! We are friendlies!"
+        },
+        {
+          "id": "relay_recovery",
+          "delivery": "[breathless, deliberately slower voice]",
+          "text": "Command, Relay. Still with you. Say again. Slowly."
+        }
+      ],
+      "request": {
+        "voice_description": "Native North American English, a clear general American dialect. Female, 24 to 30. Excellent clean recording quality. Persona: meticulous junior infantry leader. Emotion: attentive, determined, tightly wound. A bright middle-register feminine voice with precise consonants and quick thoughtful phrasing. She begins formally, choosing each word carefully. Under pressure her pace accelerates, her breath shortens and a small self-correction slips out, but her words remain intelligible. Earnest rather than theatrical; a human catch in the voice beneath practiced procedure. Capable of a sudden forceful warning, then consciously slowing herself back down. Natural spoken character dialogue.",
+        "text": "[precise, focused voice] Command, Relay. Position confirmed. Awaiting instructions.\n\n[quick, tense voice] Contact! Enemy contact! We are engaged!\n\n[strained, fast voice] Enemy mech confirmed. Yes, definitely a mech. Find cover!\n\n[shouting, urgent voice] Check your fire! We are friendlies!\n\n[breathless, deliberately slower voice] Command, Relay. Still with you. Say again. Slowly.",
+        "model_id": "eleven_ttv_v3",
+        "seed": 101202,
+        "loudness": 0.2,
+        "guidance_scale": 5,
+        "auto_generate_text": false
+      },
+      "status": "rejected",
+      "selectedCandidate": null
+    },
+    {
+      "id": "ox",
+      "label": "Ox",
+      "summary": "Older New Zealand man; warm bass and stubborn reassurance.",
+      "description": "Native New Zealand English, an unmistakably natural New Zealand dialect. Male, 50 to 60. Excellent clean recording quality. Persona: reassuring veteran infantry leader. Emotion: patient, grounded, stubbornly hopeful. A deep warm masculine bass with rounded resonance and a soft worn grain. Unhurried compact conversational phrasing, gentle downward inflection and an occasional smile in the voice. He speaks to his soldiers like people he knows and intends to bring home. Danger brings firm chest-supported projection and shorter phrases; anger carries disappointed gravity rather than a bark. Natural, expressive character dialogue with warmth still audible under exertion.",
+      "sections": [
+        {
+          "id": "ox_routine",
+          "delivery": "[warm, relaxed voice]",
+          "text": "Command, Ox. We are ready. Take your time. We will be here."
+        },
+        {
+          "id": "ox_contact",
+          "delivery": "[steady, projecting voice]",
+          "text": "Contact. Easy, lads. Pick your shots. We are still here."
+        },
+        {
+          "id": "ox_friendly-fire",
+          "delivery": "[firm, urgent voice]",
+          "text": "Friendly fire! Those are our people! Watch your aim!"
+        },
+        {
+          "id": "ox_withdrawal",
+          "delivery": "[strained, reassuring voice]",
+          "text": "Time to go. Back together, now. Nobody gets left on their own."
+        },
+        {
+          "id": "ox_recovery",
+          "delivery": "[warm, tired voice]",
+          "text": "Still with you, Command. One thing at a time."
+        }
+      ],
+      "request": {
+        "voice_description": "Native New Zealand English, an unmistakably natural New Zealand dialect. Male, 50 to 60. Excellent clean recording quality. Persona: reassuring veteran infantry leader. Emotion: patient, grounded, stubbornly hopeful. A deep warm masculine bass with rounded resonance and a soft worn grain. Unhurried compact conversational phrasing, gentle downward inflection and an occasional smile in the voice. He speaks to his soldiers like people he knows and intends to bring home. Danger brings firm chest-supported projection and shorter phrases; anger carries disappointed gravity rather than a bark. Natural, expressive character dialogue with warmth still audible under exertion.",
+        "text": "[warm, relaxed voice] Command, Ox. We are ready. Take your time. We will be here.\n\n[steady, projecting voice] Contact. Easy, lads. Pick your shots. We are still here.\n\n[firm, urgent voice] Friendly fire! Those are our people! Watch your aim!\n\n[strained, reassuring voice] Time to go. Back together, now. Nobody gets left on their own.\n\n[warm, tired voice] Still with you, Command. One thing at a time.",
+        "model_id": "eleven_ttv_v3",
+        "seed": 101203,
+        "loudness": 0.2,
+        "guidance_scale": 5,
+        "auto_generate_text": false
+      },
+      "status": "selected",
+      "selectedCandidate": "B"
+    },
+    {
+      "id": "rivet",
+      "label": "Rivet",
+      "summary": "Older Lancashire woman; smoky, practical, dry irritation.",
+      "description": "Native British English, a grounded Lancashire dialect from north-west England. Female, 42 to 50. Excellent clean recording quality. Persona: practical infantry veteran. Emotion: sharp, irreverent, determined. A low-middle feminine voice with a smoky grain and occasional creak at the ends of phrases. Brisk economical speech and dry descending inflections. She treats danger like difficult work she knows how to do, reserving her irritation for avoidable mistakes. Practical warmth emerges through blunt encouragement. Her warnings cut through with firm rasp-edged projection, then settle immediately back into conversational speech. Natural character dialogue, older and heavier in timbre with minimal habitual shouting.",
+      "sections": [
+        {
+          "id": "rivet_routine",
+          "delivery": "[dry, conversational voice]",
+          "text": "Command, Rivet. Ready. Let us get this done before something else breaks."
+        },
+        {
+          "id": "rivet_contact",
+          "delivery": "[firm, projecting voice]",
+          "text": "Contact! Heads down. Use the cover."
+        },
+        {
+          "id": "rivet_friendly-fire",
+          "delivery": "[angry, clipped voice]",
+          "text": "Those are friendly rounds. Sort your bloody aim out."
+        },
+        {
+          "id": "rivet_withdrawal",
+          "delivery": "[urgent, rough voice]",
+          "text": "Back, now. Bring your people. We are not dying here."
+        },
+        {
+          "id": "rivet_recovery",
+          "delivery": "[wry, tired voice]",
+          "text": "Still working, Command. You will hear when that changes."
+        }
+      ],
+      "request": {
+        "voice_description": "Native British English, a grounded Lancashire dialect from north-west England. Female, 42 to 50. Excellent clean recording quality. Persona: practical infantry veteran. Emotion: sharp, irreverent, determined. A low-middle feminine voice with a smoky grain and occasional creak at the ends of phrases. Brisk economical speech and dry descending inflections. She treats danger like difficult work she knows how to do, reserving her irritation for avoidable mistakes. Practical warmth emerges through blunt encouragement. Her warnings cut through with firm rasp-edged projection, then settle immediately back into conversational speech. Natural character dialogue, older and heavier in timbre with minimal habitual shouting.",
+        "text": "[dry, conversational voice] Command, Rivet. Ready. Let us get this done before something else breaks.\n\n[firm, projecting voice] Contact! Heads down. Use the cover.\n\n[angry, clipped voice] Those are friendly rounds. Sort your bloody aim out.\n\n[urgent, rough voice] Back, now. Bring your people. We are not dying here.\n\n[wry, tired voice] Still working, Command. You will hear when that changes.",
+        "model_id": "eleven_ttv_v3",
+        "seed": 101204,
+        "loudness": 0.2,
+        "guidance_scale": 5,
+        "auto_generate_text": false
+      },
+      "status": "selected",
+      "selectedCandidate": "B"
+    }
+  ]
+}

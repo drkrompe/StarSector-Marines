@@ -8,7 +8,7 @@ import java.util.List;
 
 /** Material identity belongs to the shell; combat keeps the ordinary structural wall cells. */
 public final class InstallationWalls {
-    public static final String PERIMETER = "colony.olive-wall";
+    public static final String PERIMETER = "installation.dark-concrete-wall";
 
     private InstallationWalls() {}
 
@@ -22,8 +22,10 @@ public final class InstallationWalls {
                 String existing = ctx.topology.getSurfaceId(x, y);
                 // A shared wall keeps the first building's identity; authored
                 // specialty walls are not replaced by the installation default.
-                if (existing == null || existing.equals("urban.wall"))
+                if (existing == null || existing.equals("urban.wall")) {
                     ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(material));
+                    ctx.topology.setWallGroundSurface(x, y, InstallationFloors.material(room.purpose()));
+                }
             }
         }
     }
@@ -31,7 +33,10 @@ public final class InstallationWalls {
     public static void perimeter(GenContext ctx, boolean[][] wall) {
         int surface = ctx.topology.surfaceIndex(PERIMETER);
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++)
-            if (wall[x][y] && structural(ctx, x, y)) ctx.topology.setSurface(x, y, surface);
+            if (wall[x][y] && structural(ctx, x, y)) {
+                ctx.topology.setSurface(x, y, surface);
+                ctx.topology.setWallGroundSurface(x, y, "installation.concrete-floor");
+            }
     }
 
     private static boolean structural(GenContext ctx, int x, int y) {
@@ -45,10 +50,7 @@ public final class InstallationWalls {
     static String material(RoomPurpose purpose) {
         return switch (purpose) {
             case BARRACKS, CREW_QUARTERS, MESS_HALL, CREW_LOUNGE -> "colony.masonry-wall";
-            case KEEP_THRONE, CONTROL_ROOM, CIVIC_RECEPTION, CIVIC_OFFICE, CONFERENCE_ROOM,
-                    MEDICAL_RECEPTION, MEDICAL_CORRIDOR, TRIAGE, TREATMENT_ROOM,
-                    PATIENT_WARD, PHARMACY -> "colony.ceramic-wall";
-            default -> "colony.olive-wall";
+            default -> "installation.light-concrete-wall";
         };
     }
 }

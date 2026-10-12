@@ -76,6 +76,16 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                         .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
                         renderer.render(sim, "Installation / " + surface)));
+                if (surface == SurfacePalette.FROZEN) {
+                    // Diagnostic cuts through the ordinary combat wall path, not a mission replay.
+                    for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++) {
+                        if (topology.isWall(x, y) && !topology.isFixture(x, y)
+                                && !grid.hasTag(x, y, CellTag.NATURAL_SOLID)
+                                && ((x % 13 < 3) || (y % 17 < 2))) sim.damageCell(x, y, 1200);
+                    }
+                    frames.add(new SnapshotArtifact("frozen-breaches.png",
+                            renderer.render(sim, "Controlled wall-breach material preview / FROZEN")));
+                }
             }
         }
         var output = context.projectRoot().resolve("build/reports/installation-ground.txt");

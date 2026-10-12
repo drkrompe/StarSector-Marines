@@ -44,6 +44,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 
 | Asset | Geometry / contract | Retained sources | Visual suite |
 | --- | --- | --- | --- |
+| Concrete installations | `ConcreteInstallationTemplate`; reuses wall, opening and remnant geometry with two concrete palettes, plus quiet floor fields | `templates/concrete-*.png`, `templates/installation-floors.png`, `tilesets/concrete-*`, `tilesets/installation-floors.*` | `installation-ground` |
 | Colony walls | `WallReskinTemplate`; 16 exposed-face masks, no privileged inside/outside | `templates/colony-walls.png`, `tilesets/colony-walls.*` | `building-stamps` |
 | Windows and doors | `OpeningReskinTemplate`; matching wall family, transparent apertures, four cardinal poses | `templates/colony-openings.png`, `tilesets/colony-openings.*` | `building-stamps` |
 | Sandbags | `SandbagReskinTemplate`; rounded straight run and L, exact quarter turns | `doodads/sandbags*`, doodad manifest and retained sources | `sandbags` |

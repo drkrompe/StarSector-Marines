@@ -226,6 +226,8 @@ public final class MapEditor {
     }
 
     private String groundSurfaceAt(int x, int y) {
+        String authored = topology.getWallGroundSurfaceId(x, y);
+        if (authored != null) return authored;
         String result = null;
         for (Direction side : Direction.CARDINALS) {
             int nx = x + side.dx, ny = y + side.dy;

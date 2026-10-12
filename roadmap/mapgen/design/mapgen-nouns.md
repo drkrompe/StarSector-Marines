@@ -706,14 +706,25 @@ ground; changing a margin's surface must not reroll emplacements and later
 spawn choices.
 
 Installation shells also own a material identity: accommodation uses masonry,
-command and clinical rooms use ceramic, and service buildings and perimeter
-fortifications use olive structural panels. The identity follows the actual
+command, clinical and service buildings use light cast concrete, and reinforced
+perimeter fortifications use dark cast concrete. The identity follows the actual
 packed wall ring after apertures and fittings, preserving floor, fixture and
 doorway surfaces. Shared walls retain one material. These are ordinary combat
 walls with connected caps, paired opening trim and material-matched rubble;
 changing their skin does not create a prop or alter collision. Finalization
 supplies missing wall strength only; it must preserve a fortification's
 authored durability rather than flattening reinforced walls to the default.
+
+Installation floor finishes follow the packed room footprint, including
+thresholds and fixture underlays: service rooms use poured concrete, command
+and clinical rooms use neutral sealed resin, and accommodation uses warmer
+resin. These finishes preserve authored local surfaces, ground semantics and
+navigation. Ground-side machine bays mark their corners without covering the
+working floor in repeated grates or full-width hazard stripes. Structural walls
+retain that floor finish separately from their visible material, so even an
+isolated corner or thick perimeter exposes the intended ground when breached.
+Older unauthored walls may infer an underlay from adjacent ground.
+
 Turret mounts are non-structural fixtures: entity destruction releases them,
 and wall damage cannot bypass the turret's own durability.
 

@@ -1,0 +1,49 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design",
+  "request": {
+    "voice_description": "Native South African English, a restrained educated South African dialect. Female, 40 to 50. Excellent clean recording quality. Persona: composed infantry leader. Emotion: watchful, controlled, quietly intense. A naturally low feminine contralto, dry and close, with precise consonants and compact deliberate phrasing. Danger makes her words slower and more exact; she can project a sharp warning without becoming shrill. Small audible breaths reveal the effort behind her composure. Restrained warmth when addressing her soldiers. Natural spoken character dialogue, varied intonation, economical pauses.",
+    "text": "[calm, low voice] Command, Warden. We are in position. Waiting on your word.\n\n[focused, deliberate voice] Contact. Take a breath. Find your target.\n\n[tense, controlled voice] Hostile mech, confirmed. Stay out of its line of fire.\n\n[firm, projecting voice] Check fire. You are hitting our people.\n\n[quietly urgent voice] We cannot hold this. Pull back together. Keep breathing.",
+    "model_id": "eleven_ttv_v3",
+    "seed": 101200,
+    "loudness": 0.2,
+    "guidance_scale": 5,
+    "auto_generate_text": false
+  },
+  "outputFormat": "mp3_44100_128",
+  "inputSha256": "392cb559414a4df41464399c92984a49a0735c9ddac2badaf5885a66e90b8ec3",
+  "requestId": null,
+  "characterCost": null,
+  "previewText": "[calm, low voice] Command, Warden. We are in position. Waiting on your word.\n\n[focused, deliberate voice] Contact. Take a breath. Find your target.\n\n[tense, controlled voice] Hostile mech, confirmed. Stay out of its line of fire.\n\n[firm, projecting voice] Check fire. You are hitting our people.\n\n[quietly urgent voice] We cannot hold this. Pull back together. Keep breathing.",
+  "candidates": [
+    {
+      "candidate": "A",
+      "file": "warden-A.mp3",
+      "generatedVoiceId": "hwzQUxarSSZpZzQOiC1Q",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 27.089,
+      "audioSha256": "4b5d95570891503178a99e25aba08275ab0fd51fbd8de115a047bde737c499b7",
+      "status": "rejected"
+    },
+    {
+      "candidate": "B",
+      "file": "warden-B.mp3",
+      "generatedVoiceId": "ioJ4dT6mQU6EkpTxsOUz",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 30.511,
+      "audioSha256": "755309329d0569afeadb253c79a00b566d5b01f49cf7f31934e0d51fa065b902",
+      "status": "rejected"
+    },
+    {
+      "candidate": "C",
+      "file": "warden-C.mp3",
+      "generatedVoiceId": "2ZfKGsScpwtpfZ3dw59r",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 21.473,
+      "audioSha256": "0ba6d2a877c8a6c790f978b673d31d9ce8a1a566baa970d4b1fd4ac35423b7d5",
+      "status": "rejected"
+    }
+  ],
+  "selectedCandidate": null,
+  "savedVoiceId": null,
+  "status": "rejected"
+}

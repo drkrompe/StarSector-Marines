@@ -285,10 +285,10 @@ class OperationRadioTest {
     void everyShippedTurnHasMatchingVoiceProvenanceAndCommsRegistration() throws Exception {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", OperationRadio.PATH)));
         Catalog catalog = OperationRadio.parse(root);
-        assertEquals(3, catalog.actors().size());
-        assertEquals(79, catalog.lines().size());
+        assertEquals(6, catalog.actors().size());
+        assertEquals(151, catalog.lines().size());
         for (Cue cue : Cue.values()) {
-            assertEquals(9, catalog.actors().stream().mapToInt(actor -> actor.reports().get(cue).size()).sum());
+            assertEquals(18, catalog.actors().stream().mapToInt(actor -> actor.reports().get(cue).size()).sum());
         }
         assertEquals("cuwCdnt9CKAB9XrTA1j0", root.getJSONObject("voices").getJSONObject("command").getString("voiceId"));
         JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json"))

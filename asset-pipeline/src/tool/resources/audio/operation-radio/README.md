@@ -7,15 +7,22 @@ manifest applies the same offline comms recipe to every turn. Clean sources and
 receipts stay here; only processed Ogg files ship.
 
 Combat report mappings are pools of line IDs: three takes per actor for each of
-the seven existing cues, giving nine recordings per event. Existing single-ID
+the seven existing cues, giving eighteen recordings per event across six actors. Existing single-ID
 mappings remain readable. Runtime exhausts each event's pool before repeating;
 mission preemption preserves that history and a new battle resets it. New takes
-keep the established cast and comms treatment. Their wording does not assert
+keep the shared comms treatment. Their wording does not assert
 unobserved directions, remaining enemy counts, successful maneuvers or support.
 
 The older five-scene catalog and `ensemble/` retain authoring auditions. Their
 bespoke destinations, covering maneuvers and transport reports are not enabled
 by the runtime bank. They do not issue AI orders or establish mission events.
+
+`personality-auditions/` retains the selected Jackal A, Ox B and Rivet B auditions,
+with scripts, requests and selection records in `ensemble/cast.json`. All three
+have saved provider voice IDs and production-model clips registered in the live
+bank. Warden, Relay and all unselected alternatives are rejected. Voice performance
+and live mix acceptance still require listening; see that directory's README for
+the original casting comparison workflow.
 
 `catalog.json` owns stable line IDs, clean transcripts, synthesis directions,
 speaker/recipient identities, voice IDs, take numbers, exchange order and the
@@ -31,9 +38,12 @@ runtime playback; callsigns are local to a self-contained exchange.
 | Kestrel Two | Liam, `TX3LPaxmHKxFdv7VOQHJ` | User accepted the strained, breathless combat audition. Young American infantry leader. |
 | Hammer Three | Original military B, `HuAfwy9ycsANuERZQHLU` | Worn American baritone; compact, protective, firm. |
 | Viper One | Original military B, `1I6DkREjhKUTww20MdUm` | Yorkshire infantry leader; forceful and impatient under pressure. |
+| Jackal | Original A, `YHOEWmZLDoCD6QyvyJKr` | Irish infantry professional; dry, conversational, quick and clipped under pressure. |
+| Ox | Original B, `YUvgK8Ap5BSxIwdo4Uvr` | Older New Zealand infantry leader; warm bass, steady reassurance and firm urgent projection. |
+| Rivet | Original B, `fGdXUaoUKa9laV1tzoOT` | Lancashire infantry veteran; smoky, brisk, practical and blunt. |
 | Rook One | Original military B, `gpYq8Tu9Py4uI902kHOw` | Australian transport pilot; weathered, brisk; retained for future aircraft hooks. |
 
-The original company officer and three military B voices are Voice Design
+The original company officer and military voices are Voice Design
 creations; Kestrel uses the premade Liam voice. No game recording was uploaded
 or cloned. `ensemble/cast.json` retains the selected voice IDs and source design
 direction. The earlier five-scene catalog retains its original Sarah/Charlie

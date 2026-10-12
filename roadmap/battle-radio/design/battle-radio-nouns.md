@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Combat reports rotate complete variant pools independently of the voice budget.
+Updated: 2026-10-12 — Six infantry personalities share complete combat variant pools and assignment exchanges.
 
 Read `stories.md` for the open-work board.
 
@@ -214,7 +214,10 @@ self-contained exchanges; a callsign and actor remain consistent throughout one
 exchange, without binding that voice to a deployed squad's roster name. The
 company officer and Kestrel's strained delivery anchor the cast, with Hammer's
 worn, protective authority and Viper's forceful impatience giving infantry
-reports different personalities. Rook's cockpit delivery remains authoring
+reports different personalities. Jackal adds dry Irish understatement, Ox a warm
+New Zealand bass and patient reassurance, and Rivet smoky Lancashire bluntness.
+Each infantry actor participates in both assignment exchanges and combat reports
+under the same event and voice-budget rules. Rook's cockpit delivery remains authoring
 content until an eligible physical aircraft and delivery evidence support it.
 
 Changed accepted assignments are sampled into one pending exchange, never a

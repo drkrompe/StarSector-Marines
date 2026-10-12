@@ -1,0 +1,56 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design",
+  "request": {
+    "voice_description": "Native Irish English, a natural western Irish dialect. Male, 30 to 38. Excellent clean recording quality. Persona: dry-humoured infantry professional. Emotion: alert, wry, dependable. A medium-register masculine voice with a light sandpaper edge and easy conversational rhythm. Understatement and small changes in pitch carry the humour; the smile is audible without turning into a laugh. The instant someone is in danger, he becomes quick, clipped and forceful. Human uneven phrasing and brief breaths, casual confidence earned through experience. Lively spoken character dialogue at a brisk natural pace.",
+    "text": "[conversational, wry voice] Command, Jackal. Ready when you are. Ideally before I get comfortable.\n\n[sharp, projecting voice] Contact! Spread out. Pick your shots!\n\n[urgent, firm voice] Check fire! Those are our people you are hitting!\n\n[strained, decisive voice] We are pulling back. Stay with me. Nobody goes alone.\n\n[breathless, dry voice] Still here, Command. I will save the complaints for later.",
+    "model_id": "eleven_ttv_v3",
+    "seed": 101201,
+    "loudness": 0.2,
+    "guidance_scale": 5,
+    "auto_generate_text": false
+  },
+  "outputFormat": "mp3_44100_128",
+  "inputSha256": "b4ec51937eb72542c1d97dce84b976044a1ce95383b1433e0349a25b285b5ca9",
+  "requestId": null,
+  "characterCost": null,
+  "previewText": "[conversational, wry voice] Command, Jackal. Ready when you are. Ideally before I get comfortable.\n\n[sharp, projecting voice] Contact! Spread out. Pick your shots!\n\n[urgent, firm voice] Check fire! Those are our people you are hitting!\n\n[strained, decisive voice] We are pulling back. Stay with me. Nobody goes alone.\n\n[breathless, dry voice] Still here, Command. I will save the complaints for later.",
+  "candidates": [
+    {
+      "candidate": "A",
+      "file": "jackal-A.mp3",
+      "generatedVoiceId": "YHOEWmZLDoCD6QyvyJKr",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 19.148,
+      "audioSha256": "a46f05f5f129c2a4054abf0588b7dc95305f32c9c7954910f52dd00ed000f536",
+      "status": "selected"
+    },
+    {
+      "candidate": "B",
+      "file": "jackal-B.mp3",
+      "generatedVoiceId": "B2mjU0qlCuZjiPH9j35c",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 19.722,
+      "audioSha256": "e24c0b36f6d601c522f8eb24b23e54be158472e8c493815399e95c60b54010bc",
+      "status": "rejected"
+    },
+    {
+      "candidate": "C",
+      "file": "jackal-C.mp3",
+      "generatedVoiceId": "6IDKvvpgmsEnNhIXrYRw",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 17.006,
+      "audioSha256": "e755b7503047f2d9e2075d0f425115d5a4a5b6d0a4b374a247a115ba04dc179e",
+      "status": "rejected"
+    }
+  ],
+  "selectedCandidate": "A",
+  "savedVoiceId": "YHOEWmZLDoCD6QyvyJKr",
+  "status": "selected",
+  "savedVoiceName": "Jackal - Infantry",
+  "saveRequest": {
+    "voice_name": "Jackal - Infantry",
+    "voice_description": "Native Irish English, a natural western Irish dialect. Male, 30 to 38. Excellent clean recording quality. Persona: dry-humoured infantry professional. Emotion: alert, wry, dependable. A medium-register masculine voice with a light sandpaper edge and easy conversational rhythm. Understatement and small changes in pitch carry the humour; the smile is audible without turning into a laugh. The instant someone is in danger, he becomes quick, clipped and forceful. Human uneven phrasing and brief breaths, casual confidence earned through experience. Lively spoken character dialogue at a brisk natural pace.",
+    "generated_voice_id": "YHOEWmZLDoCD6QyvyJKr"
+  },
+  "saveRequestId": null
+}

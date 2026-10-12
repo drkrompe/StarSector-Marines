@@ -1,0 +1,86 @@
+{
+  "sheetName": "installation-floors",
+  "sheet": "art-source/tilesets/installation-floors.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 1,
+  "alphaMin": 40,
+  "idPrefix": "installation",
+  "blocks": [
+    {
+      "id": "installation.concrete-floor",
+      "layout": "single",
+      "windowBlock": "installation.light-concrete-window",
+      "doorBlock": "installation.light-concrete-door",
+      "damageBlock": "colony.concrete-damage"
+    },
+    {
+      "id": "installation.command-floor",
+      "layout": "single",
+      "windowBlock": "installation.light-concrete-window",
+      "doorBlock": "installation.light-concrete-door",
+      "damageBlock": "colony.concrete-damage"
+    },
+    {
+      "id": "installation.accommodation-floor",
+      "layout": "single",
+      "windowBlock": "colony.masonry-window",
+      "doorBlock": "colony.masonry-door",
+      "damageBlock": "colony.concrete-damage"
+    }
+  ],
+  "entries": [
+    {
+      "id": "installation.concrete-floor.center",
+      "block": "installation.concrete-floor",
+      "slot": "only",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        25,
+        674,
+        674
+      ]
+    },
+    {
+      "id": "installation.command-floor.center",
+      "block": "installation.command-floor",
+      "slot": "only",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        749,
+        25,
+        674,
+        674
+      ]
+    },
+    {
+      "id": "installation.accommodation-floor.center",
+      "block": "installation.accommodation-floor",
+      "slot": "only",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1473,
+        25,
+        674,
+        674
+      ]
+    }
+  ],
+  "note": "Built-in ImageGen. Three quiet full-cell floor swatches from ConcreteInstallationTemplate, cropped 4px inside measured source edges to exclude gutters. Concrete, command resin, accommodation resin. Original alpha retained. Matching opening and ground-damage pairs remain data-owned."
+}
