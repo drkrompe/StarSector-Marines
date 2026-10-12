@@ -22,3 +22,6 @@ com.dillon.starsectormarines.battle.warship.OnslaughtDistrictScene
 com.dillon.starsectormarines.battle.warship.OnslaughtFluxScene
 com.dillon.starsectormarines.battle.warship.WarshipMissilesScene
 com.dillon.starsectormarines.battle.warship.WarshipShieldScene
+com.dillon.starsectormarines.battle.warship.WarshipPostureScene
+com.dillon.starsectormarines.battle.warship.WarshipSupportFireScene
+com.dillon.starsectormarines.battle.warship.WarshipInterceptScene
