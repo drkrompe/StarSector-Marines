@@ -21,7 +21,8 @@
       "generatedVoiceId": "hwzQUxarSSZpZzQOiC1Q",
       "mediaType": "audio/mpeg",
       "durationSeconds": 27.089,
-      "audioSha256": "4b5d95570891503178a99e25aba08275ab0fd51fbd8de115a047bde737c499b7"
+      "audioSha256": "4b5d95570891503178a99e25aba08275ab0fd51fbd8de115a047bde737c499b7",
+      "status": "rejected"
     },
     {
       "candidate": "B",
@@ -29,7 +30,8 @@
       "generatedVoiceId": "ioJ4dT6mQU6EkpTxsOUz",
       "mediaType": "audio/mpeg",
       "durationSeconds": 30.511,
-      "audioSha256": "755309329d0569afeadb253c79a00b566d5b01f49cf7f31934e0d51fa065b902"
+      "audioSha256": "755309329d0569afeadb253c79a00b566d5b01f49cf7f31934e0d51fa065b902",
+      "status": "rejected"
     },
     {
       "candidate": "C",
@@ -37,9 +39,11 @@
       "generatedVoiceId": "2ZfKGsScpwtpfZ3dw59r",
       "mediaType": "audio/mpeg",
       "durationSeconds": 21.473,
-      "audioSha256": "0ba6d2a877c8a6c790f978b673d31d9ce8a1a566baa970d4b1fd4ac35423b7d5"
+      "audioSha256": "0ba6d2a877c8a6c790f978b673d31d9ce8a1a566baa970d4b1fd4ac35423b7d5",
+      "status": "rejected"
     }
   ],
   "selectedCandidate": null,
-  "savedVoiceId": null
+  "savedVoiceId": null,
+  "status": "rejected"
 }

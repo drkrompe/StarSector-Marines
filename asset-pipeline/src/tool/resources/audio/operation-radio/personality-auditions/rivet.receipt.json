@@ -21,7 +21,8 @@
       "generatedVoiceId": "DbZDF87lEPgm1fUnjlTQ",
       "mediaType": "audio/mpeg",
       "durationSeconds": 24.111,
-      "audioSha256": "5cd8bc204d34b5a4a5c42a913aee1964a2f78362c906c54e40bc27ca16a75beb"
+      "audioSha256": "5cd8bc204d34b5a4a5c42a913aee1964a2f78362c906c54e40bc27ca16a75beb",
+      "status": "rejected"
     },
     {
       "candidate": "B",
@@ -29,7 +30,8 @@
       "generatedVoiceId": "fGdXUaoUKa9laV1tzoOT",
       "mediaType": "audio/mpeg",
       "durationSeconds": 23.484,
-      "audioSha256": "5c2035f12afd7a1da284aa967ae297a463e2eec23bd099bbaa7fbdaad4b688f5"
+      "audioSha256": "5c2035f12afd7a1da284aa967ae297a463e2eec23bd099bbaa7fbdaad4b688f5",
+      "status": "selected"
     },
     {
       "candidate": "C",
@@ -37,9 +39,18 @@
       "generatedVoiceId": "oFOMJcu90ALrePrGx9rt",
       "mediaType": "audio/mpeg",
       "durationSeconds": 23.562,
-      "audioSha256": "54846b81815c291116149694863808efd54531f3684af2a8fa0ca59731ec5105"
+      "audioSha256": "54846b81815c291116149694863808efd54531f3684af2a8fa0ca59731ec5105",
+      "status": "rejected"
     }
   ],
-  "selectedCandidate": null,
-  "savedVoiceId": null
+  "selectedCandidate": "B",
+  "savedVoiceId": "fGdXUaoUKa9laV1tzoOT",
+  "status": "selected",
+  "saveRequest": {
+    "voice_name": "Rivet - Infantry",
+    "voice_description": "Native British English, a grounded Lancashire dialect from north-west England. Female, 42 to 50. Excellent clean recording quality. Persona: practical infantry veteran. Emotion: sharp, irreverent, determined. A low-middle feminine voice with a smoky grain and occasional creak at the ends of phrases. Brisk economical speech and dry descending inflections. She treats danger like difficult work she knows how to do, reserving her irritation for avoidable mistakes. Practical warmth emerges through blunt encouragement. Her warnings cut through with firm rasp-edged projection, then settle immediately back into conversational speech. Natural character dialogue, older and heavier in timbre with minimal habitual shouting.",
+    "generated_voice_id": "fGdXUaoUKa9laV1tzoOT"
+  },
+  "savedVoiceName": "Rivet - Infantry",
+  "saveRequestId": null
 }
