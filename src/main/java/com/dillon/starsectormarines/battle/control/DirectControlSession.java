@@ -54,6 +54,8 @@ public final class DirectControlSession {
     private final EnumMap<DirectControlAbility, PointFireAim> pendingAbilities =
             new EnumMap<>(DirectControlAbility.class);
     private final MarineSprint marineSprint = new MarineSprint();
+    /** Whether the right button was down on the previous Marine tick; a press, not a hold, uses equipment. */
+    private boolean secondaryHeld;
 
     /** The side the player flies for. */
     private static final Faction PLAYER_SIDE = Faction.MARINE;
@@ -294,6 +296,7 @@ public final class DirectControlSession {
     }
 
     public void exit() {
+        secondaryHeld = false;
         if (ship != null) {
             Warship released = ship;
             ship = null;
@@ -374,6 +377,21 @@ public final class DirectControlSession {
                 battle.getGrid().getWidth(), battle.getGrid().getHeight(), revealed);
     }
 
+    /**
+     * The right button is a Marine's secondary equipment: on the press it throws the carried smoke
+     * at the cursor, and a Marine with no smoke raises a directional shield toward it. It is the
+     * same one-shot request as the G and E keys, so ammunition, cooldowns and the committed throw
+     * stay the equipment's own; holding the button never repeats it. A Marine with neither does nothing.
+     */
+    private void requestSecondaryEquipment(ManualIntent input) {
+        boolean pressed = input.secondary() && !secondaryHeld;
+        secondaryHeld = input.secondary();
+        if (!pressed) return;
+        PointFireAim aim = new PointFireAim(input.aimX(), input.aimY());
+        if (canUseAbility(DirectControlAbility.SMOKE)) pendingAbilities.put(DirectControlAbility.SMOKE, aim);
+        else if (canUseAbility(DirectControlAbility.SHIELD)) pendingAbilities.put(DirectControlAbility.SHIELD, aim);
+    }
+
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
     public void tick() {
         validate();
@@ -384,15 +402,17 @@ public final class DirectControlSession {
             tickWarship();
             return;
         }
-        if (!unitActive() || vehicleControl) return; // GroundSystem owns vehicle movement and turret clocks.
+        if (!unitActive() || vehicleControl) { secondaryHeld = false; return; } // GroundSystem owns vehicle movement and turret clocks.
         long id = unitId;
         ManualIntent input = intent;
         if (roster.identity().type(id).isMech()) {
+            secondaryHeld = false;
             roster.movement().moveDirectMech(id, battle.getGrid(), input.moveX(), input.moveY(),
                     battle.physicalRadius(id), BattleSimulation.TICK_DT, input.aimX(), input.aimY());
             return; // HeavyWeapons owns every mount clock and trigger in its serial pass.
         }
         InfantryUnitPrep.tickCooldowns(id, roster.world());
+        requestSecondaryEquipment(input);
         PointFireAim shield = pendingAbilities.remove(DirectControlAbility.SHIELD);
         if (shield != null && roster.integralSystems().spec(id) != null
                 && roster.integralSystems().spec(id).grantsMitigation()) {
