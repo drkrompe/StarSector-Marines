@@ -19,6 +19,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class DeckSizingTest {
 
+    @Test void reservedBayConditionChangesLiftButNotRoomProgramOrDimensions() {
+        CompanyShip damaged = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER,
+                20, 68, 75, 0.75f, null, null, true, CompanyShip.BoatBayState.DAMAGED);
+        CompanyShip restored = damaged.withBoatBay(CompanyShip.BoatBayState.RESTORED);
+        assertEquals(damaged.deckPlan().rooms(), restored.deckPlan().rooms());
+        assertEquals(damaged.deckPlan().frames(), restored.deckPlan().frames());
+        assertEquals(damaged.deckPlan().height(), restored.deckPlan().height());
+        assertEquals(1, ShipsBoats.aboard(damaged).size());
+        assertEquals(2, ShipsBoats.aboard(restored).size());
+    }
+
     @Test
     void aDefaultSubstantialHullKeepsAllSixBoatsInOneHangar() {
         for (HullClass hull : List.of(HullClass.DESTROYER, HullClass.CRUISER, HullClass.CAPITAL)) {

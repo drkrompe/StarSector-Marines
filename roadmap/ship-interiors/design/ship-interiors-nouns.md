@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — support crews work their room's individual stations, with first postings favouring the machine shop and main stores.
+Updated: 2026-10-12 � reserve the starting hull's second bay and apply its condition without relocating rooms.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1493,8 +1493,21 @@ The permanent Cerberus yard conversion is an explicit spatial exception to friga
 company eligibility. It remains a frigate and combat freighter: +18 maximum crew,
 -25 hold capacity, increased troop berthing, a smaller hold footprint and a compact
 16-by-10 Mech Lab with one full-depth machine gantry. The bridge, armory and existing
-single Hermes berth complete its founding-company facilities. Extra beds do not
-add boat berths, and installing the hullmod creates no company assets.
+working Hermes berth complete its founding-company facilities. Extra beds do not
+add working boat berths, and installing the hullmod creates no company assets.
+
+The custom start's original Cerberus reserves two bay compartments even before
+conversion. The second is damaged: its hatch and launch aperture are sealed,
+its deck carries debris, and it offers no working berth or crew duties. Its
+working counterpart already belongs to the full room program. Restoration removes
+that condition after placement; it does not resize the hull, move either workshop,
+change compartment positions or award a boat. The physical working berths and the
+campaign lift count agree in both states, with the original bay first in berth
+order. The same layout seed always identifies the same damaged compartment.
+
+This saved interior condition is independent of vanilla D-mods. Company yard owns
+its paid repair after the opening Relief story; `company-view-nouns.md` owns that
+campaign gate, review and empty-berth commissioning flow.
 
 `CompanyShip` carries conversion state read from the actual variant; both deck
 programs and cached layouts include it. Ordinary frigates retain their existing

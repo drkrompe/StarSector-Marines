@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullOutline;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
+import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -82,6 +83,7 @@ public final class CompanyShipResolver {
                 hull.getDesignation(),
                 whole.getMinCrew(), whole.getMaxCrew(), whole.getCargoCapacity(),
                 outlineOf(hull.getBaseHullId()), hull.getSpriteName());
+        ship = ship.withBoatBay(CompanyBayRestoration.state(member));
         return MercenaryCompanyConversion.installed(member) ? ship.converted() : ship;
     }
 

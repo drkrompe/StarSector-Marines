@@ -3115,6 +3115,34 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
     }
 
+    public static BufferedImage renderBayRestoration(SnapshotContext context, CompanyDeck ship,
+                                                      boolean restored, int credits, boolean unlocked,
+                                                      float scale) throws Exception {
+        Reactor reactor = new Reactor();
+        BoatDeck boats = new BoatDeck();
+        boats.reconcile("starter", ShuttleType.HERMES, 1);
+        if (restored) boats.reconcile("starter", ShuttleType.HERMES, 2);
+        BoatDeckViewModel model = new BoatDeckViewModel(reactor, boats, snapshotMechResources(), "Second Wind");
+        if (restored) model.selectBoatAction(1).run();
+        var bay = ship.rooms(RoomPurpose.HANGAR).get(1);
+        var properties = props(model, ship, bay, 2);
+        properties.put("activeBayLabel", restored ? "02/02" : "02/02 SEALED");
+        properties.put("restoration", new BoatBayRestorationModel.Row(!restored, true, credits,
+                unlocked ? null : "Complete Hold Until Relieved to unlock this repair.", () -> { }));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, "boat-deck", properties)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("boat-deck-canvas"),
+                    new BoatDeckCanvas(ship, () -> bay, model::selectedBerthIndex, () -> 1, berth -> berth == 0));
+            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            return renderRelative(renderer, document, 1920, 1080, scale);
+        }
+    }
+
     private static Map<String, Object> props(BoatDeckViewModel viewModel,
                                              CompanyDeck ship,
                                              DeckGraph.Compartment bay, int bays) {
@@ -3145,6 +3173,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("restoration", BoatBayRestorationModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
