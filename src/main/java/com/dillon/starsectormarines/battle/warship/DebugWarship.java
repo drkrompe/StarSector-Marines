@@ -185,6 +185,11 @@ public final class DebugWarship {
         }
     }
 
+    /** Steps the ship's missiles to the next preset (faithful, flavoured, cinematic). */
+    public static void cycleMissilePreset(Warship ship) {
+        ship.setMissilePreset(ship.missilePreset().next());
+    }
+
     /** Takes targeting from any director and holds fire. */
     public static void holdFire(Warship ship) {
         ship.stopDirecting();

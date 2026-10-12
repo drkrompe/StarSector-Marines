@@ -90,6 +90,18 @@ public final class ZoomDetail {
         return bodyDecorationVisible(camera);
     }
 
+    /**
+     * Pixels per cell below which a swarm body's flame and contrail are not collected, leaving its
+     * glow: at six pixels a cell a missile is a few pixels long and its smoke is a smudge that
+     * only multiplies the draws of a hundred-body volley.
+     */
+    public static final float SWARM_DETAIL_MIN_CELL_PX = 6f;
+
+    /** Whether a swarm body's flame and contrail read at this framing, or the body is its glow alone. */
+    public static boolean swarmDetailVisible(BattleCamera camera) {
+        return visibleAt(camera, SWARM_DETAIL_MIN_CELL_PX);
+    }
+
     /** Whether a smoke field's scatter reads at this framing, or is one puff. */
     public static boolean smokeScatterVisible(BattleCamera camera) {
         return visibleAt(camera, SMOKE_SCATTER_MIN_CELL_PX);
