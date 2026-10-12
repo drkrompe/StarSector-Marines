@@ -1506,7 +1506,7 @@ public final class BattleSetup {
         }
         List<EntitySpec> reserve = new ArrayList<>();
         for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++) {
-            int x = batch == 0 ? 128 : batch < 8 ? 165 : 275;
+            int x = batch == 0 ? 128 : ThunderRunPacing.usesOutboundRoad(batch) ? 275 : 165;
             int y = batch == 0 ? 65 : batch % 2 == 0 ? 140 : 2;
             for (int[] cell : pickSpawnCluster(map.grid, x, y, ThunderRunPacing.RAIDERS_PER_BATCH))
                 reserve.add(makeOpeningMilitia("freight-road-raider-" + reserve.size(), Faction.DEFENDER,

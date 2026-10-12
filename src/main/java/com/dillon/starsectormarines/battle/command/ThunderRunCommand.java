@@ -39,23 +39,29 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
                 proposals.add(CommandProposal.retain(squad.squadId(), CommandAuthority.MISSION_COMMAND, "EXTERNAL_OWNERSHIP_PRESERVED"));
                 continue;
             }
+            int detachment = detachments.computeIfAbsent(squad.squadId(), id -> detachments.size());
             int site = faction == Faction.MARINE ? tactics.assaultTarget(states)
                     : faction == Faction.DEFENDER ? tactics.counterTarget(states)
-                    : tactics.militiaTarget(detachments.computeIfAbsent(squad.squadId(), id -> detachments.size()));
+                    : tactics.militiaTarget(detachment);
             boolean hold = faction == Faction.MARINE && frame.holdSite() > 0
                     && states.get(frame.holdSite()) == CompoundState.MARINE_HELD
                     && site >= frame.holdSite();
             if (hold) site = frame.holdSite();
+            boolean corridorOpen = faction == Faction.MARINE
+                    && states.stream().allMatch(state -> state == CompoundState.MARINE_HELD);
+            boolean companyDefense = hold || corridorOpen;
             var place = sites.get(site);
-            String reason = hold ? "FREIGHT_DEFEND_DISPATCH_WINDOW" : faction == Faction.MARINE ? "FREIGHT_SECURE_SITE"
+            String reason = hold ? "FREIGHT_DEFEND_DISPATCH_WINDOW" : corridorOpen ? "FREIGHT_SCREEN_FINAL_CROSSING"
+                    : faction == Faction.MARINE ? "FREIGHT_SECURE_SITE"
                     : faction == Faction.DEFENDER ? "FREIGHT_RETAKE_GAIN"
                     : site == 0 ? "FREIGHT_COVER_LANDING" : "FREIGHT_HOLD_GAIN";
-            ObjectiveAssignment assignment = faction == Faction.MARINE && !hold
+            var post = faction == Faction.ALLY ? ThunderRunCompound.militiaPost(site, detachment)
+                    : ThunderRunCompound.companyPost(site, detachment);
+            ObjectiveAssignment assignment = faction == Faction.MARINE && !companyDefense
                     ? ObjectiveAssignment.secureCompound(squad.squadId(), place.captureZoneId(), place.node())
                     : ObjectiveAssignment.defendArea(squad.squadId(),
-                            site == 1 || site == 2 ? ThunderRunCompound.SUPPORT_POSTS.get(site - 1).x() : place.captureCellX(),
-                            site == 1 || site == 2 ? ThunderRunCompound.SUPPORT_POSTS.get(site - 1).y() : place.captureCellY(),
-                            hold ? 16 : 5);
+                            faction == Faction.DEFENDER ? place.captureCellX() : post.x(),
+                            faction == Faction.DEFENDER ? place.captureCellY() : post.y(), 5);
             if (same(old.assignment(), assignment)) assignment = old.assignment();
             proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, reason,
                     assignment == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
