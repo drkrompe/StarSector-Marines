@@ -100,6 +100,8 @@ import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryObserver;
 import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
+import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
+import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
@@ -445,6 +447,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public WaylineHoundRecovery getWaylineHound() { return waylineHound; }
     private JunctionStoryObserver junctionStory;
     private RelayNineStoryObserver relayNineStory;
+    private ColdAccountIntervention coldAccount;
+    public ColdAccountIntervention getColdAccount() { return coldAccount; }
+    public void installColdAccount(ColdAccountLayout layout) {
+        if (simTickIndex != 0 || coldAccount != null) throw new IllegalStateException("Cold Account installs once at setup");
+        coldAccount = new ColdAccountIntervention(this, layout, storyBeats);
+        addObjective(coldAccount);
+    }
+
     private ThunderRunSequence thunderRun;
     public ThunderRunSequence getThunderRun() { return thunderRun; }
     public void installThunderRun(FreightRunProgress.Attempt attempt, int delivered, List<EntitySpec> reserve) {
@@ -2255,6 +2265,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // expires. Pairs with the visual ShotEvent flight; the visual and the
         // damage are queued together and arrive together.
         lanceSweeps.tick(TICK_DT, detonations::detonateNow);
+        if (coldAccount != null) coldAccount.advance(this);
         warships.tick(TICK_DT, this);
         detonations.tick();
         tickProfile.lap(TickProfile.Phase.DETONATIONS);

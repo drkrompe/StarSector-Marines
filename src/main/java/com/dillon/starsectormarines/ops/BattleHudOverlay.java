@@ -209,6 +209,11 @@ final class BattleHudOverlay {
             var column = sim.getThunderRun();
             model.updateFreight(column.phase(), column.cargoIdentities(), column.cargoStates(), column.deliveredCount(), column.lostCount());
         }
+        if (sim != null && sim.getColdAccount() != null) {
+            var intervention = sim.getColdAccount();
+            return model.updateIntervention(intervention.phase().name(), intervention.displayName(),
+                    intervention.remainingWalls(), intervention.initialWalls());
+        }
         return result;
     }
 }

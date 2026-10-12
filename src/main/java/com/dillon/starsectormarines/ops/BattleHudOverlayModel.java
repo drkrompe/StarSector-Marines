@@ -232,6 +232,18 @@ final class BattleHudOverlayModel {
         return new Presentation(visible, updateConquestCommand(commander));
     }
 
+    Presentation updateIntervention(String phase, String instruction, int remainingWalls, int initialWalls) {
+        objectiveTitle.set("HEGEMONY / " + phase);
+        objectivePanelClasses.set(OBJECTIVE_PANEL);
+        objectiveScore.set("");
+        objectiveTally.set("PIRATE RECORDS > WITHDRAW > BOMBARD");
+        objectiveChips.set(List.of());
+        objectiveFocusClasses.set(OBJECTIVE_FOCUS);
+        objectiveFocus.set(instruction);
+        objectiveProgressStyle.set("width: " + Math.round(100f * (initialWalls - remainingWalls) / Math.max(1, initialWalls)) + "%;");
+        return new Presentation(true, false);
+    }
+
     /** Read-only convoy report; a captured site is a release condition, never a delivery. */
     void updateFreight(int phase, List<Integer> identities, List<String> cargo, int delivered, int lost) {
         objectiveTitle.set(phase == 3 ? "THUNDER RUN" : "FREIGHT COLUMN");

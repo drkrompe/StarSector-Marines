@@ -1625,11 +1625,44 @@ Not modelled: hard flux, damage-type multipliers on efficiency, rounds stopped a
 the bubble's radius rather than at the hull, and per-hull shield colours (the
 stock hulls name none; every shield is the default pale cyan).
 
+**Missiles are the plainest part of this model, and their rework is designed in
+`warship-missiles.md`.** It catalogues the vanilla missile lines a capital carries
+and their lore, and proposes an in-atmosphere flight model read from each
+weapon's own spec (boost, cruise, coast, bounded weave), swarm-burst volleys and
+MIRV bloom that preserve the weapon's damage and area as a budget, and point
+defence over individual bodies. Until its slices ship, a missile mount still flies
+the straight-line shell described above.
+
+**What a ship is trying to do in an ordinary fight or mission is designed in
+`warship-behaviours.md`.** A small doctrine above the orders would pick a
+sticky posture (air superiority, support, intercept, bombard, withdraw) from a
+threat picture and the ship's stance on the objective, and set only the
+parameters of the machinery described here: the director's areas, an
+opportunity range, a flux ceiling, a station. It issues ordinary orders and
+changes no weapon's damage. Honest state today: a warship's weapons cannot
+target aircraft, aircraft cannot hurt a warship, and ground defences cannot hurt
+one either, so the air-superiority half waits on owner decisions about those
+rules; the objective-aware, friendly-aware fire half does not.
+
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
 them is optional. Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
 rules remain future decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
+
+### Authored structural bombardment
+
+A mission may explicitly order a capital to demolish standing structures in a
+bounded area, even when there are no living enemies inside. The ordinary area
+engagement order still targets hostile units. Structural bombardment chooses
+actual standing wall cells within the stated circle and uses the same mounting,
+range, traversal, ammunition, projectile flight, blast and terrain damage rules.
+Clearing occupants does not erase a structure, and ordering bombardment does not
+turn unspent ammunition into damage. Hold fire cancels unlaunched burst rounds;
+rounds already in flight retain their ordinary impact and friendly-fire behavior.
+The mission owns evidence, withdrawal, warning and completion; the ship owns its
+weapons and the damage they actually cause.
+
 
 ## Standing laws
 
