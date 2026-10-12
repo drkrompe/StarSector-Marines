@@ -7,6 +7,32 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GroundDamageTest {
+    @Test void blastMarksItsCircleAndFreshBreachButNotFloorBehindSurvivingWalls() {
+        NavigationGrid grid = new NavigationGrid(9,7);
+        CellTopology topology = new CellTopology(9,7);
+        for(int y=0;y<7;y++) for(int x=0;x<9;x++) {
+            grid.setWalkableFloor(x,y);
+            topology.setGroundKind(x,y,CellTopology.GroundKind.GRASS);
+        }
+        for(int y=0;y<7;y++) {
+            grid.setWalkable(4,y,false); grid.setSeeThrough(4,y,false);
+            topology.setWall(4,y,true);
+        }
+        MapEditor editor = new MapEditor(new NavigationService(grid,topology));
+        editor.damageGroundInRadius(2.5f,3.5f,3);
+        assertTrue(topology.hasTag(2,3,CellTopology.Tag.GROUND_DAMAGED));
+        assertTrue(topology.hasTag(2,6,CellTopology.Tag.GROUND_DAMAGED));
+        assertFalse(topology.hasTag(0,0,CellTopology.Tag.GROUND_DAMAGED),"outside the circle");
+        assertFalse(topology.hasTag(5,3,CellTopology.Tag.GROUND_DAMAGED),"wall shields floor");
+        grid.setWallHp(4,3,100);
+        assertTrue(editor.damageWall(4,3,200));
+        editor.damageGroundInRadius(4.5f,3.5f,2);
+        assertTrue(topology.hasTag(5,3,CellTopology.Tag.GROUND_DAMAGED),"opened target exposes adjacent floor");
+        assertFalse(topology.hasTag(4,3,CellTopology.Tag.GROUND_DAMAGED),"wall rubble keeps its own art");
+        editor.damageGroundInRadius(0.2f,0.2f,0);
+        assertTrue(topology.hasTag(0,0,CellTopology.Tag.GROUND_DAMAGED),"point structural hit still leaves a mark");
+    }
+
     @Test void floorDamagePreservesMaterialAndNavigationAndRecordsOnlyTheFirstHit() {
         NavigationGrid grid = new NavigationGrid(3, 3);
         CellTopology topology = new CellTopology(3, 3);

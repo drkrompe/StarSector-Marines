@@ -15,7 +15,8 @@ class DirectControlAimOriginsTest {
         var expected = MechHardpointGeometry.muzzle(4f, 5f, .2f, -.1f, 43f,
                 loadout, mount, MechHardpointGeometry.nextReleaseIndex(mount));
         var selected = DirectControlAimOrigins.mech(loadout, 2, 4f, 5f, .2f, -.1f);
-        assertEquals(1, selected.size()); assertEquals(expected.x(), selected.get(0).x());
+        assertEquals(2, selected.size(), "the left button on the left shoulder plus the right button on both racks");
+        assertEquals(expected.x(), selected.get(0).x());
         assertEquals(expected.y(), selected.get(0).y());
         assertEquals(3, DirectControlAimOrigins.mech(loadout, 0, 4f, 5f, .2f, -.1f).size());
         var indirect = new MechLoadoutComponent(MechVariant.SIROCCO, null);

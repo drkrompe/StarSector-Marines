@@ -21,13 +21,23 @@ public sealed interface WarshipOrder {
      * for itself among the enemies it can reach and traverse to.
      *
      * @param bombardStructures explicitly target standing walls, even with no hostile occupants
+     * @param saturate with no hostile standing in the circle, fire at open ground inside it anyway:
+     *        a pilot laying fire wants the ground worked over, not only the men on it
      * @param bringGunsToBear when true the ship also turns to the heading that
      *        puts the most firepower on the area, and holds it; when false it
      *        fires from whatever heading it has, so a broadside that cannot bear
      *        stays silent
      */
     record FireOnArea(float x, float y, float radius, boolean bringGunsToBear,
-                      boolean bombardStructures, Bounds bounds) implements WarshipOrder {
+                      boolean bombardStructures, Bounds bounds, boolean saturate) implements WarshipOrder {
+        public FireOnArea(float x, float y, float radius, boolean bringGunsToBear,
+                          boolean bombardStructures, Bounds bounds) {
+            this(x, y, radius, bringGunsToBear, bombardStructures, bounds, false);
+        }
+        /** An area that is fired into whether or not anyone stands in it. */
+        public static FireOnArea saturating(float x, float y, float radius, boolean bringGunsToBear) {
+            return new FireOnArea(x, y, radius, bringGunsToBear, false, null, true);
+        }
         public FireOnArea(float x, float y, float radius, boolean bringGunsToBear, boolean bombardStructures) {
             this(x, y, radius, bringGunsToBear, bombardStructures, null);
         }

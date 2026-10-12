@@ -53,6 +53,8 @@ import java.util.Arrays;
  * {@code SHEET_QUAD} on one of the six terrain sheets.
  */
 public final class GroundRenderSystem implements RenderSystem {
+    private static final int DECORATION_LAYERS = 3; // ground scars, scatter, door trim
+
 
     // Terrain fill colors (independent of BattleRenderer; sourced from TileManifest / literals).
     private static final Color FLOOR_COLOR     = new Color(0x18, 0x22, 0x30);
@@ -324,19 +326,19 @@ public final class GroundRenderSystem implements RenderSystem {
         // at all while reporting a perfectly plausible command count.
         BaseTerrain base = new BaseTerrain(grid, topology);
         GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
-                ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new Scatter(topology),new DoorDecals(grid,topology)}
+                ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)}
                 : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
-                        base::resolveConcrete,base::resolveSecondConcrete,new Scatter(topology),new DoorDecals(grid,topology)};
+                        base::resolveConcrete,base::resolveSecondConcrete,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
         if(topology.terrainSurface()!=null) {
-            int existing=sublayers.length-2;
+            int existing=sublayers.length-DECORATION_LAYERS;
             GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+TerrainSurface.LAYERS];
             System.arraycopy(sublayers,0,expanded,0,existing);
             for(int layer=0;layer<TerrainSurface.LAYERS;layer++) {
                 final int index=layer;expanded[existing+layer]=(x,y,sink)->base.resolveTerrain(x,y,index,sink);
             }
-            System.arraycopy(sublayers,existing,expanded,existing+TerrainSurface.LAYERS,2);sublayers=expanded;
+            System.arraycopy(sublayers,existing,expanded,existing+TerrainSurface.LAYERS,DECORATION_LAYERS);sublayers=expanded;
         }
-        int terrainLayers=sublayers.length-2;
+        int terrainLayers=sublayers.length-DECORATION_LAYERS;
         int resident0 = residentDecoration ? sublayers.length : terrainLayers;
         GroundMesh.CellResolver[] meshLayers = residentDecoration
                 ? sublayers : Arrays.copyOf(sublayers,terrainLayers);
@@ -352,7 +354,7 @@ public final class GroundRenderSystem implements RenderSystem {
             if (residentDecoration) {
                 out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, terrainLayers, resident0));
             } else {
-                emitScatterAndDoors(sublayers, view);
+                emitDecorations(sublayers, view);
             }
             return;
         }
@@ -373,7 +375,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 commandSink.at(x,y);sublayers[layer].resolve(x,y,commandSink);
             }
         emitCrosswalks(grid, topology, view);
-        emitScatterAndDoors(sublayers, view);
+        emitDecorations(sublayers, view);
     }
 
     /**
@@ -851,12 +853,12 @@ public final class GroundRenderSystem implements RenderSystem {
      * would eventually disagree, and the disagreement would be a decoration that
      * appears at one zoom and not another.
      */
-    private void emitScatterAndDoors(GroundMesh.CellResolver[] sublayers,
+    private void emitDecorations(GroundMesh.CellResolver[] sublayers,
                                      VisibleCellRect view) {
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 commandSink.at(x, y);
-                for (int layer = sublayers.length-2; layer < sublayers.length; layer++) {
+                for (int layer = sublayers.length-DECORATION_LAYERS; layer < sublayers.length; layer++) {
                     sublayers[layer].resolve(x, y, commandSink);
                 }
             }
@@ -891,16 +893,23 @@ public final class GroundRenderSystem implements RenderSystem {
                     return;
                 }
             }
+            int index = topology.getNatureOverlayIndex(x, y);
+            if (index < 0) return;
+            natureTile(tileReg.byIndex(index), sink);
+        }
+    }
+
+    /** Persistent surface scars remain beneath nature scatter and fixtures. */
+    private final class GroundDamage implements GroundMesh.CellResolver {
+        private final CellTopology topology;
+        GroundDamage(CellTopology topology) { this.topology = topology; }
+        @Override public void resolve(int x, int y, GroundMesh.CellSink sink) {
             GridBlockDef damage = GroundDamageTiles.skin(tileReg, topology, x, y);
             SpriteAPI damageSheet = damage == null ? null : sheetFor(damage.sheetPath);
             if (damageSheet != null) {
                 int[] cell = damage.resolve(false, false, false, false, x, y);
                 emitCellPx(damageSheet, damage.cellPx, cell[0], cell[1], 0, sink);
-                return;
             }
-            int index = topology.getNatureOverlayIndex(x, y);
-            if (index < 0) return;
-            natureTile(tileReg.byIndex(index), sink);
         }
     }
 

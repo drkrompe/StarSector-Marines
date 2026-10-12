@@ -4,6 +4,7 @@ Written: 2026-09-26
 
 | Retired story | Ship date | Evidence | Fold destination |
 | --- | --- | --- | --- |
+| `controlled-warship` (no story doc; designed in chat) | 2026-10-12 | this commit; `warship-pilot` scene | `direct-control-nouns.md` — Warship carrier: laid areas per battery, number-key commands, helm authority and handback; `air-nouns.md` — Overhead ships may be piloted |
 | `direct-control-aim-lane.md` | 2026-09-29 | this commit | `direct-control-nouns.md` — observed muzzle aim lanes; `ballistics-nouns.md` — deterministic preview boundary; `ui-nouns.md` — pointer eligibility; `battle-render-nouns.md` — shared live/headless guide geometry |
 | `mech-manual-momentum.md` | 2026-09-29 | this commit | `direct-control-nouns.md` — eased manual drive and lifecycle; `mechs-nouns.md` — relative chassis handling mass; `continuous-positions-nouns.md` — swept momentum and contact feedback |
 | `marine-sprint.md` | 2026-09-29 | this commit | `direct-control-nouns.md` — per-Marine stamina and input lifecycle; `continuous-positions-nouns.md` — temporary speed scale and swept-motion spending; `battle-render-nouns.md` — lowered primary during sprint; `ui-nouns.md` — compact stamina readout |
@@ -12,3 +13,4 @@ Written: 2026-09-26
 | `mech-terrain-clearance.md` | 2026-09-26 | this commit | `continuous-positions-nouns.md` — clearance routes and arrival; `mechs-nouns.md` — shared chassis clearance, placement, and tactical route intent |
 | `controlled-mech.md` | 2026-09-26 | this commit | `direct-control-nouns.md` — Mech control and handback; `mechs-nouns.md` — autonomous lance ownership; `ballistics-nouns.md` — posed mount sources |
 | `controlled-vehicle.md` | 2026-09-26 | this commit | `direct-control-nouns.md` — deployed APC control; `convoy-nouns.md` — swept motion, turret ownership, and suspended-order handback |
+| `click-weapon-groups` | 2026-10-12 | this commit | `direct-control-nouns.md` — mouse buttons and weapon groups (Mech primary/secondary groups, Marine secondary equipment) |

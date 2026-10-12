@@ -25,9 +25,13 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipPilot;
+import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 
 import java.util.EnumMap;
+import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongPredicate;
 
@@ -50,17 +54,50 @@ public final class DirectControlSession {
     private final EnumMap<DirectControlAbility, PointFireAim> pendingAbilities =
             new EnumMap<>(DirectControlAbility.class);
     private final MarineSprint marineSprint = new MarineSprint();
+    /** Whether the right button was down on the previous Marine tick; a press, not a hold, uses equipment. */
+    private boolean secondaryHeld;
+
+    /** The side the player flies for. */
+    private static final Faction PLAYER_SIDE = Faction.MARINE;
+    /** What the four number keys do at the helm of a warship, in key order. */
+    private static final WarshipPilot.Command[] WARSHIP_COMMANDS = {
+            WarshipPilot.Command.HOLD_FIRE, WarshipPilot.Command.TOGGLE_DIRECTOR,
+            WarshipPilot.Command.CYCLE_MISSILE_PRESET, WarshipPilot.Command.CYCLE_GROUND_FIRE};
+    private final WarshipSystem warships;
+    private BiPredicate<Integer, Integer> revealed;
+    private Warship ship;
 
     public DirectControlSession(BattleControl battle, UnitRosterService roster,
                                 LongPredicate unavailable, BooleanSupplier complete) {
+        this(battle, roster, unavailable, complete, null, (x, y) -> true);
+    }
+
+    /**
+     * As above, with the warships a player may take the helm of and the fog rule that decides
+     * which ground a pilot may lay an area on.
+     */
+    public DirectControlSession(BattleControl battle, UnitRosterService roster,
+                                LongPredicate unavailable, BooleanSupplier complete,
+                                WarshipSystem warships, BiPredicate<Integer, Integer> revealed) {
         this.battle = battle;
         this.roster = roster;
         this.unavailable = unavailable;
         this.complete = complete;
+        this.warships = warships;
+        this.revealed = revealed;
     }
 
     public long activeUnitId() { return unitId; }
-    public boolean active() { return unitId != 0L; }
+    /** Whether any carrier is under player control: a ground body or a warship. */
+    public boolean active() { return unitId != 0L || ship != null; }
+    /** Whether a ground body (Marine, Mech or vehicle) is the one under control. */
+    public boolean unitActive() { return unitId != 0L; }
+    /** Replaces the rule for which ground a pilot may lay an area on (the default is what the player has observed); for scenes and tests. */
+    public void layableGround(BiPredicate<Integer, Integer> rule) { this.revealed = rule; }
+    /** Whether a warship is the one under control. */
+    public boolean warshipControl() { return ship != null; }
+    /** The warship under control, or null. */
+    public Warship controlledWarship() { return ship; }
     public boolean isControlling(long id) { return id != 0L && id == unitId; }
     public ManualIntent intent() { return intent; }
     /** 0 is all direct weapons; 1..3 name ARMS, LEFT_SHOULDER, and RIGHT_SHOULDER. */
@@ -68,13 +105,15 @@ public final class DirectControlSession {
 
     /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */
     public MarineSprint.Status sprintStatus() {
-        return active() && roster.isAliveById(unitId)
+        return unitActive() && roster.isAliveById(unitId)
                 && roster.identity().type(unitId) == UnitType.MARINE
                 ? marineSprint.status(unitId) : MarineSprint.EMPTY;
     }
 
     public boolean canSelectWeapon(int selection) {
-        if (!active() || !roster.isAliveById(unitId)) return false;
+        // A warship has no weapon to choose: its four number keys are commands (see WARSHIP_COMMANDS).
+        if (ship != null) return selection >= 0 && selection < WARSHIP_COMMANDS.length;
+        if (!unitActive() || !roster.isAliveById(unitId)) return false;
         if (selection == 0) return true;
         if (selection < 1 || selection > MechMountSlot.values().length
                 || !roster.world().hasMechLoadout(unitId)) return false;
@@ -85,6 +124,7 @@ public final class DirectControlSession {
     /** Serialized player choice; switching releases queued rounds without changing installed equipment. */
     public boolean selectWeapon(int selection) {
         if (!canSelectWeapon(selection)) return false;
+        if (ship != null) return WarshipPilot.command(ship, WARSHIP_COMMANDS[selection]);
         if (selection == selectedWeapon) return true;
         selectedWeapon = selection;
         releaseSelectedFire();
@@ -96,17 +136,18 @@ public final class DirectControlSession {
         if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
     }
     public long controlledMechId() {
-        return active() && roster.world().hasMechLoadout(unitId) ? unitId : 0L;
+        return unitActive() && roster.world().hasMechLoadout(unitId) ? unitId : 0L;
     }
     public long controlledVehicleId() { return vehicleControl ? unitId : 0L; }
     public PointFireAim pointAim() {
-        return active() && Float.isFinite(intent.aimX()) && Float.isFinite(intent.aimY())
+        return unitActive() && Float.isFinite(intent.aimX()) && Float.isFinite(intent.aimY())
                 ? new PointFireAim(intent.aimX(), intent.aimY()) : null;
     }
 
     /** Availability does not spend equipment or change the actor's current channel. */
     public boolean canUseAbility(DirectControlAbility ability) {
-        if (ability == null || !active() || !eligible(unitId) || vehicleControl
+        if (ship != null) return ability == DirectControlAbility.SHIELD && ship.hasShield();
+        if (ability == null || !unitActive() || !eligible(unitId) || vehicleControl
                 || roster.identity().type(unitId) != UnitType.MARINE
                 || pendingAbilities.containsKey(ability)) return false;
         World world = roster.world();
@@ -122,6 +163,10 @@ public final class DirectControlSession {
 
     /** Bounded one-shot mailbox, consumed at the fixed simulation boundary before movement. */
     public boolean requestAbility(DirectControlAbility ability, PointFireAim aim) {
+        // The ship's shield key is a toggle the pilot owns, not a charge: it takes effect at once.
+        if (ship != null) {
+            return canUseAbility(ability) && WarshipPilot.command(ship, WarshipPilot.Command.TOGGLE_SHIELD);
+        }
         if (!canUseAbility(ability) || aim == null || !Float.isFinite(aim.x()) || !Float.isFinite(aim.y())) {
             return false;
         }
@@ -188,7 +233,7 @@ public final class DirectControlSession {
 
     /** UI and scripted requests enter on the simulation host thread, outside worker dispatch. */
     public boolean enter(long id) {
-        if (active()) return unitId == id;
+        if (active()) return unitId != 0L && unitId == id;
         if (!canEnter(id)) return false;
         boolean vehicle = roster.convoy().isVehicle(id);
         if (vehicle && !battle.beginVehicleDirectControl(id)) return false;
@@ -205,6 +250,24 @@ public final class DirectControlSession {
         return true;
     }
 
+    /** Whether {@code candidate} could be piloted now: a live friendly hull over this battle that is not leaving. */
+    public boolean canEnterWarship(Warship candidate) {
+        return warships != null && candidate != null && !complete.getAsBoolean()
+                && warships.ships().contains(candidate) && WarshipPilot.eligible(candidate, PLAYER_SIDE);
+    }
+
+    /** Takes the helm of a warship. Never while another carrier is under control. */
+    public boolean enterWarship(Warship candidate) {
+        if (active()) return ship != null && ship == candidate;
+        if (!canEnterWarship(candidate)) return false;
+        ship = candidate;
+        selectedWeapon = 0;
+        intent = ManualIntent.NEUTRAL;
+        pendingAbilities.clear();
+        candidate.takeHelm();
+        return true;
+    }
+
     public void submit(ManualIntent next) {
         if (!active()) return;
         intent = next != null ? next : ManualIntent.NEUTRAL;
@@ -212,23 +275,37 @@ public final class DirectControlSession {
 
     /** A physical Shift release may arrive while chrome has suppressed simulation intent. */
     public void observeSprintRelease() {
-        if (active()) marineSprint.releaseHold(unitId);
+        if (unitActive()) marineSprint.releaseHold(unitId);
     }
 
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
         pendingAbilities.clear();
-        if (active()) marineSprint.suspend(unitId);
         intent = intent.neutralized();
+        if (ship != null) {
+            ship.pilotMove(0f, 0f);
+            return;
+        }
+        if (unitActive()) marineSprint.suspend(unitId);
         if (vehicleControl) battle.suspendVehicleDirectInput(unitId);
-        if (active()) clearMechDrive(unitId);
-        if (active() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
+        if (unitActive()) clearMechDrive(unitId);
+        if (unitActive() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
             roster.combat().clearPrimaryFire(unitId);
             if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
         }
     }
 
     public void exit() {
+        secondaryHeld = false;
+        if (ship != null) {
+            Warship released = ship;
+            ship = null;
+            selectedWeapon = 0;
+            pendingAbilities.clear();
+            intent = ManualIntent.NEUTRAL;
+            released.releaseHelm();
+            return;
+        }
         long previous = unitId;
         if (previous == 0L) return;
         boolean vehicle = vehicleControl;
@@ -277,6 +354,10 @@ public final class DirectControlSession {
 
     /** Run before replanning and after lifecycle phases, including on paused advances. */
     public void validate() {
+        if (ship != null) {
+            if (!canEnterWarship(ship)) exit();
+            return;
+        }
         if (active() && (!eligible(unitId) || (!vehicleControl && controlledSquad != battle.squadOf(unitId)))) exit();
         if (active() && !canSelectWeapon(selectedWeapon)) {
             selectedWeapon = 0;
@@ -284,21 +365,54 @@ public final class DirectControlSession {
         }
     }
 
+    /**
+     * One tick of the pilot's hands on the hull: the ship flies and lays ground from the
+     * same snapshot a Marine would be driven by, and the warship system, later in the same
+     * tick, does the moving and the firing.
+     */
+    private void tickWarship() {
+        ManualIntent input = intent;
+        WarshipPilot.apply(ship, new WarshipPilot.Hands(input.moveX(), input.moveY(),
+                        input.aimX(), input.aimY(), input.firing(), input.secondary()),
+                battle.getGrid().getWidth(), battle.getGrid().getHeight(), revealed);
+    }
+
+    /**
+     * The right button is a Marine's secondary equipment: on the press it throws the carried smoke
+     * at the cursor, and a Marine with no smoke raises a directional shield toward it. It is the
+     * same one-shot request as the G and E keys, so ammunition, cooldowns and the committed throw
+     * stay the equipment's own; holding the button never repeats it. A Marine with neither does nothing.
+     */
+    private void requestSecondaryEquipment(ManualIntent input) {
+        boolean pressed = input.secondary() && !secondaryHeld;
+        secondaryHeld = input.secondary();
+        if (!pressed) return;
+        PointFireAim aim = new PointFireAim(input.aimX(), input.aimY());
+        if (canUseAbility(DirectControlAbility.SMOKE)) pendingAbilities.put(DirectControlAbility.SMOKE, aim);
+        else if (canUseAbility(DirectControlAbility.SHIELD)) pendingAbilities.put(DirectControlAbility.SHIELD, aim);
+    }
+
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
     public void tick() {
         validate();
-        long activeMarine = active() && !vehicleControl
+        long activeMarine = unitActive() && !vehicleControl
                 && roster.identity().type(unitId) == UnitType.MARINE ? unitId : 0L;
         marineSprint.tickInactive(activeMarine, BattleSimulation.TICK_DT, roster::isAliveById);
-        if (!active() || vehicleControl) return; // GroundSystem owns vehicle movement and turret clocks.
+        if (ship != null) {
+            tickWarship();
+            return;
+        }
+        if (!unitActive() || vehicleControl) { secondaryHeld = false; return; } // GroundSystem owns vehicle movement and turret clocks.
         long id = unitId;
         ManualIntent input = intent;
         if (roster.identity().type(id).isMech()) {
+            secondaryHeld = false;
             roster.movement().moveDirectMech(id, battle.getGrid(), input.moveX(), input.moveY(),
                     battle.physicalRadius(id), BattleSimulation.TICK_DT, input.aimX(), input.aimY());
             return; // HeavyWeapons owns every mount clock and trigger in its serial pass.
         }
         InfantryUnitPrep.tickCooldowns(id, roster.world());
+        requestSecondaryEquipment(input);
         PointFireAim shield = pendingAbilities.remove(DirectControlAbility.SHIELD);
         if (shield != null && roster.integralSystems().spec(id) != null
                 && roster.integralSystems().spec(id).grantsMitigation()) {

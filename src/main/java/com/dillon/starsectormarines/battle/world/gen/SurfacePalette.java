@@ -78,4 +78,9 @@ public enum SurfacePalette {
     public GroundKind approachGround() {
         return approachGround;
     }
+
+    /** Unworked inland ground, including thin margins too small for a nature parcel. */
+    public GroundKind inlandGround() {
+        return this == VERDANT ? GroundKind.GRASS : approachGround;
+    }
 }

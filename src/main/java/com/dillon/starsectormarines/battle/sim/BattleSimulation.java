@@ -909,7 +909,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
-                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete);
+                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete,
+                warships, (x, y) -> fogOfWar.isCellRevealed(x, y));
     }
 
     public DirectControlSession directControl() { return directControl; }
@@ -2216,7 +2217,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmAvoidance.tick(TICK_DT, directControl.activeUnitId());
         separation.tick(TICK_DT, directControl.activeUnitId());
         mechCollisionEscape.tick(TICK_DT);
-        if (directControl.active()) {
+        if (directControl.unitActive()) {
             MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),
                     world, directControl.pointAim());
         }
@@ -2262,7 +2263,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
         // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
-                directControl.selectedWeapon());
+                directControl.intent().secondary(), directControl.selectedWeapon());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
