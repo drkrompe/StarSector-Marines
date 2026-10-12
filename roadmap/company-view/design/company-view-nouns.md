@@ -599,7 +599,10 @@ using the existing company-officer cast.
 New companies receive one **First Mission Preparation** sequence with Castle:
 company ship, commissioned lift, founding field commander, and her first squad.
 It extends the saved officer induction rather than keeping a second tutorial
-ledger. HQ introduces the sequence and ship selection triggers its workshop flow.
+ledger. HQ introduces the sequence and ship selection triggers its workshop flow. Room
+navigation follows current designation and deck readiness while the screen remains
+open: no ship, preparing, and available/missing rooms are live states. Actions
+recheck availability when clicked, including after a later hull transfer.
 
 Ship confirmation checks quarters, at least one compatible boat berth and the
 combined remaining cargo bill for one boat and one full twelve-person squad.
