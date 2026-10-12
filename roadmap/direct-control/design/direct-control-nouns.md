@@ -438,7 +438,9 @@ ship (`FireOnArea`, ten cells, bring guns to bear). The **gun battery** is every
 area-fire mount that is not a missile, lances included; the **missile battery** is the
 missile mounts. Point defence belongs to neither: it keeps shooting at the air under
 the ship's own rules. A laid area stands in for the ship's own held areas for its
-battery only; a battery with nothing laid keeps whatever the ship holds. A pilot's
+battery only; a battery with nothing laid keeps whatever the ship holds. A laid area
+saturates: with no hostile standing in it the battery works over open ground inside the
+circle, so laying fire on empty ground is never silent. A pilot's
 area is a hand order for its battery, so a posture's range and battery limits do not
 refuse it, but it is never exempt from the physical pipeline: flux, ordnance,
 traverse, arc, reach, shields, armour, point defence, spread, and friendly fire all
