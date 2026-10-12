@@ -23,11 +23,45 @@ class CoverPropDamageTest {
         TileRegistry.install(registry);
         try {
             for (String shape : new String[]{"straight-h", "straight-v", "corner-nw", "corner-ne", "corner-sw", "corner-se"})
-                for (int turn = 0; turn < 4; turn++) verify(registry, "doodad.industrial-fence-", shape, turn);
+                for (int turn = 0; turn < 4; turn++) {
+                    verify(registry, "doodad.industrial-fence-", shape, turn);
+                    verifyWalkable(registry, "doodad.industrial-fence-", shape, turn);
+                }
             for (String shape : new String[]{"straight-n", "straight-e", "straight-s", "straight-w",
                     "corner-nw", "corner-ne", "corner-sw", "corner-se"})
-                for (int turn = 0; turn < 4; turn++) verify(registry, "doodad.sandbag-", shape, turn);
+                for (int turn = 0; turn < 4; turn++) {
+                    verify(registry, "doodad.sandbag-", shape, turn);
+                    verifyWalkable(registry, "doodad.sandbag-", shape, turn);
+                }
         } finally { TileRegistry.install(previous); }
+    }
+
+    private void verifyWalkable(TileRegistry registry, String prefix, String shape, int turn) {
+        NavigationGrid grid = new NavigationGrid(5, 5);
+        CellTopology topology = new CellTopology(5, 5);
+        for (int y = 0; y < 5; y++) for (int x = 0; x < 5; x++) grid.setWalkableFloor(x, y);
+        topology.setGroundKind(2, 2, CellTopology.GroundKind.INDOOR);
+        DoodadService service = new DoodadService(grid);
+        service.addDoodad(new Doodad(2, 2, registry.doodad(prefix + shape), turn, true));
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            MapEditor editor = new MapEditor(navigation);
+            editor.setDoodads(service);
+            assertTrue(service.getDoodadLevelOnCell(2, 2) > 0);
+            assertFalse(editor.damageWall(2, 2, 25));
+            assertEquals(prefix + "damaged-" + shape, service.getDoodads().get(0).definitionId());
+            assertTrue(editor.damageWall(2, 2, 75));
+            Doodad debris = service.getDoodads().get(0);
+            assertEquals(prefix + "destroyed-" + shape, debris.definitionId());
+            assertEquals(turn, debris.quarterTurns);
+            assertTrue(debris.mirrored);
+            assertEquals(0, service.getDoodadLevelOnCell(2, 2));
+            assertTrue(grid.isWalkable(2, 2));
+            assertFalse(grid.isDoorway(2, 2));
+            assertEquals(CellTopology.GroundKind.INDOOR, topology.getGroundKind(2, 2));
+            assertFalse(navigation.isNavigationTopologyDirty(), "A gantry rail on walkable floor is not a wall breach");
+            assertFalse(editor.damageWall(2, 2, 100));
+            assertSame(debris, service.getDoodads().get(0));
+        }
     }
 
     private void verify(TileRegistry registry, String prefix, String shape, int turn) {

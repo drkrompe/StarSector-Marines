@@ -208,12 +208,16 @@ Map density and reinforcement eligibility are independent authored choices;
 being on a barren moon alone does not imply that other missions lack reserves.
 
 A Cold Account gives the company a ground task the capital cannot perform:
-secure the marked dispatch records and transmit proof of pirate ownership.
+secure the marked dispatch office and recover records proving pirate ownership.
+The opening map marks that ground objective only. Pickup and bombardment markers
+replace it after the evidence brings Resolute into the operation; the map does
+not disclose the strike boundary in advance.
 Its finite High-quality garrison protects the records and installation. The
 Hegemony Onslaught arrives nose-first from the east and stations its entire hull
 outside the installation's eastern footprint. It fires inward as soon as every
-surviving ground unit clears the marked bombardment exclusion area and inbound
-deployments resolve. The boundary adds six cells beyond the installation's
+surviving ground unit clears the marked bombardment exclusion area and its
+batteries are ready. Inbound deployments to the safe landing zone do not delay
+fire; newly landed troops are subject to the same actual-position clearance rule. The boundary adds six cells beyond the installation's
 enclosing strike circle, and the displayed ring is the same boundary used to
 release the guns. There is no grace period and it does not wait for boarding.
 Re-entry cancels further launches; already launched rounds remain dangerous.
@@ -222,8 +226,8 @@ withdrawal. Once firing begins the hull keeps that bearing. Heavy batteries open
 with a two-second salvo window, followed by a four-sector sweep from the eastern
 half to the western half. Each sector advances only after at least three quarters
 of its original wall cells have actually fallen; blast overlap is real damage,
-not a scripted deletion. The mission's overall destruction threshold remains the
-completion authority.
+not a scripted deletion. Every sector must reach that threshold: an overall
+three-quarter total cannot leave the last quarter of the base untouched.
 The actual deployment boats return for serial survivor pickups, with a heavy
 lift for a surviving mech. Troops walk to a landed ramp, board to capacity, and
 leave through ordinary flight. Campaign identity and combat records travel with
@@ -233,7 +237,7 @@ satisfy the defender's elimination objective.
 The capital bombards the installation's standing structures through ordinary
 weapon damage and friendly fire. It carries finite ordnance and station time;
 arrival or a timer alone never wins. Success requires the records, safe survivors,
-at least three quarters of the original target wall cells destroyed, and the
+at least three quarters of each sector's original target wall cells destroyed, and the
 last shells and released warheads landed, and every surviving unit recovered by
 its pickup craft. Resolute then ceases fire and resumes patrol nose-first on its
 existing bearing, passing over the ruins through ordinary propulsion. Completion

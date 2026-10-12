@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.List;
 import java.util.Set;
 
-/** Destructible cover props. Blockers use grid wall HP; walkable crates own a removable physical profile. */
+/** Destructible cover props. Blockers use grid wall HP; walkable props own a removable physical profile. */
 public final class CoverPropDamage {
     public enum Result { NOT_COVER_PROP, UNCHANGED, DAMAGED, DESTROYED }
     public static final int STARTING_HP = 100;
@@ -50,7 +50,6 @@ public final class CoverPropDamage {
         boolean crate = id != null && CRATES.contains(id);
         if ((!crate && prefix == null) || !grid.inBounds(prop.cellX, prop.cellY)) return false;
         boolean physical = grid.isWalkable(prop.cellX, prop.cellY);
-        if (physical && !crate) return false;
         String shape = crate ? "" : id.substring(prefix.length());
         DoodadDef damaged = registry == null ? null : registry.doodad(crate ? id + "-damaged" : prefix + "damaged-" + shape);
         DoodadDef destroyed = registry == null ? null : registry.doodad(crate ? id + "-destroyed" : prefix + "destroyed-" + shape);
@@ -67,7 +66,7 @@ public final class CoverPropDamage {
         return physical;
     }
 
-    /** Strongest surviving walkable crate whose silhouette contains this ray. */
+    /** Strongest surviving walkable cover prop whose silhouette contains this ray. */
     public int physicalCoverAt(int x, int y, float roundZ) {
         if (!grid.inBounds(x, y)) return 0;
         int level = 0;
