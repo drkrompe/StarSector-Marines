@@ -56,16 +56,24 @@ final class BattleDirectControlHudModel {
 
     void update(BattleDirectControlStatus.Snapshot snapshot, int selected, boolean paused) {
         boolean mech = snapshot.carrier() == BattleDirectControlStatus.Carrier.MECH;
+        boolean ship = snapshot.carrier() == BattleDirectControlStatus.Carrier.WARSHIP && snapshot.warship() != null;
         var durability = snapshot.durability();
         reactor.untracked(() -> {
             var heat = snapshot.heat();
             float heatValue = heat == null ? 0f : heat.value();
             boolean venting = heat != null && heat.venting();
-            set("heatClasses", mech ? "heat" : "heat heat-hidden");
-            set("heatLabel", "HEAT " + Math.round(heatValue) + "%");
-            set("heatState", venting ? "VENTING" : heatValue >= 75f ? "HOT - EASE FIRE" : "BURST RESERVE");
-            set("heatStyle", width(heatValue / 100f) + " background-color: "
-                    + (venting ? "#ef7962" : heatValue >= 75f ? "#eab152" : "#b6c79b") + ";");
+            set("heatClasses", mech || ship ? "heat" : "heat heat-hidden");
+            if (ship) {
+                var flux = snapshot.warship().flux();
+                set("heatLabel", flux.label());
+                set("heatState", flux.state());
+                set("heatStyle", width(flux.fraction()) + " background-color: " + toneColor(flux.tone()) + ";");
+            } else {
+                set("heatLabel", "HEAT " + Math.round(heatValue) + "%");
+                set("heatState", venting ? "VENTING" : heatValue >= 75f ? "HOT - EASE FIRE" : "BURST RESERVE");
+                set("heatStyle", width(heatValue / 100f) + " background-color: "
+                        + (venting ? "#ef7962" : heatValue >= 75f ? "#eab152" : "#b6c79b") + ";");
+            }
             set("healthStyle", width(durability.hpFraction()));
             set("healthClasses", "health-fill" + (durability.hpFraction() <= .25f ? " capacity-low" : ""));
             set("armorStyle", width(durability.armorFraction()));
@@ -103,6 +111,9 @@ final class BattleDirectControlHudModel {
                         ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
                         () -> select.accept(weapon.number())));
             }
+            if (ship) {
+                for (var card : snapshot.warship().cards()) cards.add(shipCard(card));
+            }
             for (var ability : snapshot.abilities()) cards.add(abilityCard(ability));
             if (snapshot.carrier() == BattleDirectControlStatus.Carrier.MARINE) {
                 cards.add(sprintCard(snapshot.sprint()));
@@ -132,6 +143,26 @@ final class BattleDirectControlHudModel {
                 "opacity: 1;", true, (shield ? "[E] " : "[G] ") + label(shield ? "Shield" : "Smoke"),
                 detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
                 : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
+    }
+
+    private static String toneColor(BattleDirectControlStatus.Tone tone) {
+        return switch (tone) {
+            case READY -> "#b6c79b";
+            case BUSY -> "#eab152";
+            case WARN -> "#ef7962";
+        };
+    }
+
+    /** A warship card: read-only, like the Marine's ability cards. */
+    private WeaponCard shipCard(BattleDirectControlStatus.ShipCard card) {
+        String stateClasses = "weapon-state" + switch (card.tone()) {
+            case READY -> "";
+            case BUSY -> " weapon-busy";
+            case WARN -> " weapon-empty";
+        };
+        return new WeaponCard("direct-hud-ship-" + card.key(), "weapon ship", "opacity: 1;", true,
+                card.name(), card.detail(), card.resource(), card.state(), stateClasses,
+                width(card.fill()) + " background-color: " + toneColor(card.tone()) + ";", () -> {});
     }
 
     private WeaponCard sprintCard(MarineSprint.Status sprint) {
