@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
@@ -121,15 +122,26 @@ final class BattleDirectControlStatus {
     /** UNTRACKED is absence of an ammunition model, never an unlimited magazine. */
     record Ammo(int remaining, int capacity, AmmoUnit unit, boolean unlimited) { }
 
+    /**
+     * {@code trigger} names the mouse button(s) that fire this weapon: {@code L}, {@code R}, {@code LR}
+     * or empty when none does.
+     */
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
-                        boolean thermalBlocked, String mechanism) {
+                        boolean thermalBlocked, String mechanism, String trigger) {
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo) {
             this(number, slotKey, name, behavior, directEligible, cooldownSeconds,
-                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, false, "");
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, false, "", "");
+        }
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean thermalBlocked, String mechanism) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds,
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, thermalBlocked, mechanism, "");
         }
         WeaponState state() {
             if (burstRemaining > 0) return WeaponState.BURST;
@@ -165,7 +177,8 @@ final class BattleDirectControlStatus {
         }
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
-                    mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).heat), List.of(),
+                    mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).heat,
+                    sim.directControl().selectedWeapon()), List.of(),
                     MarineSprint.EMPTY, new HeatStatus(world.mechLoadout(id).heat.value(),
                     world.mechLoadout(id).heat.venting()));
         }
@@ -235,6 +248,10 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechHeat heat) {
+        return mechWeapons(mounts, heat, MechFireGroups.DEFAULT_SELECTION);
+    }
+
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechHeat heat, int selection) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
             if (mount == null) continue;
@@ -245,7 +262,8 @@ final class BattleDirectControlStatus {
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
-                    !heat.permits(mount.component.heatPerTrigger(), false), mount.component.cycleLabel()));
+                    !heat.permits(mount.component.heatPerTrigger(), false), mount.component.cycleLabel(),
+                    MechFireGroups.badge(mounts, selection, mount)));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);

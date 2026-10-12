@@ -83,21 +83,38 @@ public class HeavyWeapons {
         tick(controlledId, aim, trigger, 0);
     }
 
-    /** Zero selects all direct mounts; positive values select a stable hardpoint ordinal plus one. */
+    /** Left button only: the default groups' primary trigger or a single hardpoint under a number key. */
     public void tick(long controlledId, PointFireAim aim, boolean trigger, int selectedWeapon) {
-        if (trigger && roster.isAliveById(controlledId)
-                && roster.world().hasMechLoadout(controlledId)) {
+        tick(controlledId, aim, trigger, false, selectedWeapon);
+    }
+
+    /**
+     * The left button fires {@link MechFireGroups#leftMask} (the primary group, or the one hardpoint
+     * a number key chose) and the right button fires {@link MechFireGroups#rightMask} (the secondary
+     * group). Each mount still obeys its own cycle, burst, ammunition and the chassis heat reservoir.
+     */
+    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, int selectedWeapon) {
+        int continuing = 0;
+        if (roster.isAliveById(controlledId) && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
-            for (MechWeaponMount mount : loadout.mounts()) {
-                if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
-                if (!selected(mount, selectedWeapon) || !loadout.heat.permits(mount.component.heatPerTrigger(), false)) continue;
-                if (firePointRound(controlledId, mount, aim)) {
-                    loadout.heat.commit(mount.component.heatPerTrigger());
-                    mount.commitTrigger(0L, aim);
+            MechWeaponMount[] mounts = loadout.mounts();
+            int left = MechFireGroups.leftMask(mounts, selectedWeapon);
+            int right = MechFireGroups.rightMask(mounts, selectedWeapon);
+            continuing = left | right;
+            if (primary || secondary) {
+                int pulled = (primary ? left : 0) | (secondary ? right : 0);
+                for (MechWeaponMount mount : mounts) {
+                    if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
+                    if (!MechFireGroups.contains(pulled, mount)
+                            || !loadout.heat.permits(mount.component.heatPerTrigger(), false)) continue;
+                    if (firePointRound(controlledId, mount, aim)) {
+                        loadout.heat.commit(mount.component.heatPerTrigger());
+                        mount.commitTrigger(0L, aim);
+                    }
                 }
             }
         }
-        advanceMechWeapons(controlledId, aim, selectedWeapon);
+        advanceMechWeapons(controlledId, aim, continuing);
     }
 
     /** Carrier capability shared by the selector and the fire procedure. Ammunition is readiness, not eligibility. */
@@ -106,10 +123,6 @@ public class HeavyWeapons {
         WeaponDef weapon = mount.weaponDef();
         return weapon.arcHeight == 0f && !weapon.indirectFire
                 && Float.isFinite(weapon.range) && weapon.range > 0f;
-    }
-
-    private static boolean selected(MechWeaponMount mount, int selection) {
-        return selection == 0 || selection == mount.slot.ordinal() + 1;
     }
 
     /**
@@ -318,7 +331,7 @@ public class HeavyWeapons {
      * ticks down mechanical loader/cycler clocks, and advances each finite missile rack's
      * installed replenisher cadence.
      */
-    private void advanceMechWeapons(long controlledId, PointFireAim aim, int selectedWeapon) {
+    private void advanceMechWeapons(long controlledId, PointFireAim aim, int controlledMask) {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
         // entities match it, so no scan over the whole registry), then run the
         // continuation pass over the snapshot. Other arrivals in this phase
@@ -352,7 +365,7 @@ public class HeavyWeapons {
                 if (mount.burstTimer > 0f) continue;
 
                 if (mount.burstPointAim != null) {
-                    if (u != controlledId || !selected(mount, selectedWeapon)) {
+                    if (u != controlledId || !MechFireGroups.contains(controlledMask, mount)) {
                         mount.clearBurst();
                         continue;
                     }

@@ -86,7 +86,8 @@ final class BattleDirectControlHudModel {
             List<WeaponCard> cards = new ArrayList<>();
             for (var weapon : snapshot.weapons()) {
                 boolean enabled = weapon.directEligible();
-                boolean chosen = enabled && (!mech || selected == 0 || selected == weapon.number());
+                boolean chosen = enabled && (!mech || !weapon.trigger().isEmpty()
+                        || weapon.trigger().isEmpty() && weaponTriggerUnknown(snapshot) && (selected == 0 || selected == weapon.number()));
                 String classes = "weapon" + (chosen ? " weapon-selected selected" : "")
                         + (!enabled ? " weapon-unsupported" : "");
                 String state = enabled ? label(weapon.state().name()) : label("Indirect");
@@ -105,7 +106,8 @@ final class BattleDirectControlHudModel {
                 if (weapon.state() == BattleDirectControlStatus.WeaponState.EMPTY) stateClasses += " weapon-empty";
                 else if (weapon.state() != BattleDirectControlStatus.WeaponState.LOADED) stateClasses += " weapon-busy";
                 String style = "opacity: " + (enabled ? "1" : "0.6") + ";";
-                String name = (mech ? "[" + (weapon.number() + 1) + "] " : "") + weapon.name();
+                String name = (mech ? "[" + (weapon.number() + 1) + "] " : "") + weapon.name()
+                        + (mech && !weapon.trigger().isEmpty() ? " · " + weapon.trigger() : "");
                 cards.add(new WeaponCard("direct-hud-weapon-" + weapon.slotKey(), classes, style,
                         !enabled || !mech, name, behavior(weapon.behavior()),
                         ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
@@ -120,6 +122,12 @@ final class BattleDirectControlHudModel {
             }
             weapons.set(List.copyOf(cards));
         });
+    }
+
+    /** A status assembled without button assignments (no weapon carries one) falls back to the selection alone. */
+    private static boolean weaponTriggerUnknown(BattleDirectControlStatus.Snapshot snapshot) {
+        for (var weapon : snapshot.weapons()) if (!weapon.trigger().isEmpty()) return false;
+        return true;
     }
 
     private WeaponCard abilityCard(BattleDirectControlStatus.AbilityStatus ability) {

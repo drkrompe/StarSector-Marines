@@ -344,6 +344,55 @@ class DirectControlAbilityTest {
                 BattleComponents.LAYERED_FACING_DEGREES);
     }
 
+    @Test
+    void rightButtonPressThrowsTheCarriedSmokeAtTheCursorOnceAndHoldingDoesNotRepeat() {
+        long marine = spawn();
+        session.enter(marine);
+        session.submit(new ManualIntent(0, 0, 10, 5.5f, false, false, true));
+        session.tick();
+        assertEquals(new PointFireAim(10, 5.5f), roster.world().smokeThrowCommit(marine).aim());
+        assertFalse(roster.integralSystems().isActive(marine), "smoke outranks the shield on the secondary button");
+        for (int i = 0; i < 40; i++) session.tick();
+        assertEquals(1, releases, "one press is one throw however long the button stays down");
+        assertEquals(1, roster.world().secondaryAmmo(marine));
+        session.submit(new ManualIntent(0, 0, 10, 5.5f, false));
+        session.tick();
+        session.submit(new ManualIntent(0, 0, 4, 9, false, false, true));
+        session.tick();
+        assertEquals(new PointFireAim(4, 9), roster.world().smokeThrowCommit(marine).aim(),
+                "releasing and pressing again is a second throw");
+    }
+
+    @Test
+    void rightButtonRaisesTheShieldWhenNoSmokeIsCarriedAndDoesNothingWithNeither() {
+        long shielded = roster.spawn(new EntitySpec("Shield", Faction.MARINE, UnitType.MARINE, 3, 5)
+                .primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)).integralSystem(SHIELD));
+        session.enter(shielded);
+        session.submit(new ManualIntent(0, 0, 12, 5.5f, false, false, true));
+        session.tick();
+        assertTrue(roster.mitigations().isActive(shielded));
+        session.exit();
+        long plain = roster.spawn(new EntitySpec("Plain", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
+        session.enter(plain);
+        session.submit(new ManualIntent(0, 0, 12, 5.5f, false, false, true));
+        session.tick();
+        assertFalse(roster.mitigations().isActive(plain));
+        assertNull(roster.world().smokeThrowCommit(plain));
+        assertEquals(0, releases);
+    }
+
+    @Test
+    void anInputLossBeforeTheTickDropsTheRightButtonPress() {
+        long marine = spawn();
+        session.enter(marine);
+        session.submit(new ManualIntent(0, 0, 10, 5.5f, false, false, true));
+        session.suspendInput();
+        session.tick();
+        assertNull(roster.world().smokeThrowCommit(marine));
+        assertEquals(2, roster.world().secondaryAmmo(marine));
+    }
+
     private long spawn() { return roster.spawn(marine()); }
 
     private static EntitySpec marine() {
