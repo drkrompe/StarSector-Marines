@@ -1409,7 +1409,9 @@ do not check colours. The cost of calling one in over your own marines is the
 point.
 
 **Its guns are the game's, placed by the hull's own data.** A warship is fitted
-from a vanilla variant: the hull spec says where each slot is, which way it
+from a vanilla variant, or from a campaign fleet member's own fitted variant
+(both reach the same fitting through one loadout seam: a hull and a weapon per
+slot): the hull spec says where each slot is, which way it
 faces and how far it traverses; the variant says what sits in it; the weapon,
 projectile and weapon-table data say what a round does, how far and fast it
 goes and what it looks like. The mod authors none of those numbers or sprites.
