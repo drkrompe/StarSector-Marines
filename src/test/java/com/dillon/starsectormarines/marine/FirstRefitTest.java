@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import org.junit.jupiter.api.Test;
+import java.util.Map;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -53,17 +54,15 @@ class FirstRefitTest {
         }
     }
 
-    @Test void shortagesWoundsVacanciesAndStationingLeaveTheOrderUnspent() {
-        for (int condition = 0; condition < 4; condition++) {
+    @Test void shortagesAndStationingLeaveTheOrderUnspent() {
+        for (int condition = 0; condition < 2; condition++) {
             MarineRoster roster = claimed();
             var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
             var soldier = roster.soldierById(roster.manningMemberIds(squad).get(0));
             var path = FirstRefit.Path.STEADY_LINE;
             String oldWeapon = soldier.primaryId(), oldArmor = soldier.armorId(), oldDoctrine = squad.weaponDoctrineId();
             Hold hold = new Hold(condition == 0 ? EquipmentTemplateCost.ZERO : new EquipmentTemplateCost(1000, 1000, 1000, 1000));
-            if (condition == 1) soldier.setStatus(MarineSoldierStatus.WIA);
-            if (condition == 2) soldier.setStatus(MarineSoldierStatus.KIA);
-            if (condition == 3) squad.setStationingContractId(1);
+            if (condition == 1) squad.setStationingContractId(1);
             assertNotEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
             assertEquals(0, hold.spends);
             assertEquals(oldWeapon, soldier.primaryId());
@@ -71,6 +70,51 @@ class FirstRefitTest {
             assertEquals(oldDoctrine, squad.weaponDoctrineId());
             assertFalse(roster.firstRefit().complete());
         }
+    }
+
+    @Test void woundedAndUnderstrengthSquadsIssueOnlyToCurrentOccupants() {
+        MarineRoster roster = claimed();
+        var squad = roster.squads().get(0);
+        var members = roster.manningMemberIds(squad);
+        var wounded = roster.soldierById(members.get(0));
+        roster.applySoldierOutcome(Map.of(wounded.id(), MarineSoldierStatus.WIA,
+                members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
+        float recovery = wounded.unavailableUntilDay();
+        var dead = roster.soldierById(members.get(10));
+        var missing = roster.soldierById(members.get(11));
+        String deadKit = dead.primaryId(), missingKit = missing.primaryId();
+        var path = FirstRefit.Path.FORWARD_SCREEN;
+        var preview = roster.previewSquadEquipment(squad.id(), path.weapons, path.armor);
+        assertTrue(preview.canApply());
+        Hold hold = new Hold(preview.issueCost());
+        assertEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
+        assertTrue(roster.firstRefit().complete());
+        assertEquals(1, hold.spends);
+        assertEquals(EquipmentTemplateCost.ZERO, hold.stock);
+        assertEquals(MarineSoldierStatus.WIA, wounded.status());
+        assertEquals(recovery, wounded.unavailableUntilDay());
+        assertEquals(preview.billet(0).primaryId(), wounded.primaryId());
+        assertEquals(preview.billet(0).grade(), wounded.primaryGrade());
+        assertEquals(deadKit, dead.primaryId()); assertEquals(missingKit, missing.primaryId());
+        assertEquals(10, roster.manningCount(squad));
+        assertEquals(2, roster.vacancies(squad));
+        assertTrue(roster.previewSquadEquipment(squad.id(), path.weapons, path.armor).issueCost().isZero());
+    }
+
+    @Test void emptySquadStoresItsPlanForFreeAndReplacementsNeedTheirOwnIssue() {
+        var roster = new MarineRoster();
+        var squad = roster.createSquad();
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        roster.firstRefit().claim(roster);
+        var path = FirstRefit.Path.FORWARD_SCREEN;
+        var hold = new Hold(EquipmentTemplateCost.ZERO);
+        assertEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
+        assertEquals(0, hold.spends);
+        assertEquals(path.weapons, squad.weaponDoctrineId());
+        assertEquals(0, roster.manningCount(squad));
+        roster.recruitToSquad(squad.id(), 1);
+        var next = roster.previewSquadEquipment(squad.id(), path.weapons, path.armor);
+        assertFalse(next.issueCost().isZero(), "A saved plan cannot manufacture free upgraded kit for later recruits");
     }
 
     @Test void savedRewardAndCompletionSurviveReloadAndMissingLegacyStateIsSafe() throws Exception {

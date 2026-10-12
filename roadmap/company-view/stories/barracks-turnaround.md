@@ -2,6 +2,7 @@
 
 Status: IN PROGRESS — personnel consolidation, replenishment and first-use guidance
 Written: 2026-10-11
+Updated: 2026-10-12 — equipment issue is independent of squad health and manning.
 
 Read `company-view-nouns.md`, `personnel-nouns.md` and `ui-nouns.md` first.
 
@@ -32,7 +33,8 @@ standardizes bills across rooms.
   then cargo Marines, with exact available draw and remaining vacancies disclosed.
   Filling vacancies does not claim full combat readiness while WIA remain.
 - Equipment issue remains separate and cargo-backed. Explain which selected
-  squads are skipped and why; keep the existing full-ready-squad issue boundary.
+  squads are skipped and why. Wounded and understrength squads can receive kit;
+  only occupied billets incur equipment charges, and recovery state is unchanged.
 - Preserve selection when visiting a selected squad's Armory workspace. Expose
   the existing squad-founding route clearly from an empty Barracks; moving the
   founding transaction itself is not required for this bounded pickup.

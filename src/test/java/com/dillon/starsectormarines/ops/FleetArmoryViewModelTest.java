@@ -152,17 +152,17 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void degradedTeamIsDomainDisabledAndApplyChangesNothing() {
+    void understrengthSquadCanApplyEquipment() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
-        assertEquals(SquadEquipmentResult.SQUAD_NOT_READY,
+        assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.currentSquadEquipmentPreview().result());
-        assertTrue(viewModel.applyDisabled().get());
-        assertEquals(SquadEquipmentResult.SQUAD_NOT_READY,
+        assertFalse(viewModel.applyDisabled().get());
+        assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.applySquadEquipmentSelection());
-        assertNull(roster.squads().get(0).weaponDoctrineId());
-        assertNull(roster.squads().get(0).armorDoctrineId());
+        assertNotNull(roster.squads().get(0).weaponDoctrineId());
+        assertNotNull(roster.squads().get(0).armorDoctrineId());
     }
 
     @Test

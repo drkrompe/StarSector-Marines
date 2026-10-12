@@ -260,11 +260,18 @@ Armor still resolves from the company's owned patterns through the ordinary role
 and tradition rules. These are a bounded introduction to the existing catalog,
 not a separate equipment economy or a restriction on later Armory authorship.
 
+After Relief, the debrief prominently announces the available equipment upgrade
+and opens Castle's lesson directly. The notice remains on later non-debug
+results while the lesson is unfinished. Armory returns to that debrief without
+settling or forfeiting any pending salvage; ordinary settlement actions retain
+their existing ownership.
+
 The player accepts the patterns, selects an actual line squad, chooses one path,
 and reviews all twelve current and proposed kits alongside Cost, Available and
 Short by. Only explicit Issue commits the ordinary cargo-backed transaction.
-Wounds, vacancies, stationing and material shortages remain real blockers with
-directions to preparation or resupply. Successful issue completes the saved
+Wounds and vacancies never block assignment or issue. Current occupants, including
+WIA personnel, receive the reviewed equipment; empty slots retain the plan and
+incur no charge. Stationing and material shortages remain blockers. Successful issue completes the saved
 lesson once and offers inspection of the squad's three fire teams. Leaving and
 returning preserves reward and completion; older saves may claim the uncollected
 reward without losing existing gear. The lesson never gates the next mission.
@@ -337,11 +344,15 @@ three visible billets, so cycling an item produces a meaningful at-a-glance chan
 and team selection cannot rewrite the comparison baseline.
 
 Issue is explicit and atomic. The preview prices only changed incoming equipment;
-unchanged kit is free and removed kit grants no cargo refund. A stationed squad,
-any vacancy or WIA billet, a missing equipment template card, or insufficient
+unchanged kit is free and removed kit grants no cargo refund. Wounded personnel
+can receive kit without changing their status or recovery timer. Vacant slots
+retain the twelve-billet plan without creating or charging for gear; even an
+empty line squad can save its plan. New recruits retain their actual issued kit
+until an explicit refit pays for any changes. A stationed squad,
+a missing equipment template card, or insufficient
 supplies, heavy armaments, heavy machinery, or food leaves cargo, both doctrine ids,
 and every marine's existing kit untouched. Success spends the complete cargo cost,
-writes both ids together, and materializes all twelve exact issues onto
+writes both ids together, and materializes each occupied billet's exact issue onto
 `MarineSoldier`, which remains the battle-facing state consumed by deployment.
 Later inventory changes do not silently optimize or reshuffle that result.
 The issue surface renders each nonzero line as a live-spec commodity icon with

@@ -1,4 +1,4 @@
-<template props="conversationTitle,salvageClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -7,6 +7,14 @@
         <div id="mission-results-subtitle" class="label tone-muted">Operation settlement and personnel disposition</div>
       </div>
       <div id="mission-results-context" class="label heading tone-accent mission-flow-context">MISSION DEBRIEF</div>
+    </div>
+    <div id="mission-results-refit" class="{refitClasses}">
+      <img id="results-refit-portrait" class="refit-portrait" src="graphics/portraits/castle.png" />
+      <div id="results-refit-copy" class="refit-copy">
+        <div id="results-refit-title" class="label heading tone-accent">EQUIPMENT UPGRADE AVAILABLE / A PROPER ISSUE</div>
+        <div id="results-refit-message" class="label refit-message">{refitCopy}</div>
+      </div>
+      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">REVIEW UPGRADE / ARMORY</button>
     </div>
     <div id="mission-results-body" class="mission-results-body">
       <div id="mission-results-summary" class="console-section results-summary">
@@ -75,6 +83,12 @@
 </template>
 
 <style>
+  .results-refit { flex-direction: row; height: 76px; padding: 8px; gap: 14px; align-items: center; border-width: 1px; border-color: #dfc588; }
+  .refit-portrait { width: 72px; height: 72px; }
+  .refit-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
+  #results-refit-title { height: 20px; }
+  .refit-message { height: 46px; white-space: normal; }
+  #results-refit-open { width: 280px; height: 42px; font-family: heading; text-align: center; }
   .mission-results-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-flow-header { flex-direction: row; height: 58px; padding: 7px 10px; gap: 10px; border-width: 1px; }
