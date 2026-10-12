@@ -13,7 +13,8 @@ for a vertical wall. No color keying or repainting.
 
 Export through `tools/authoring.cmd tileset_export -` with
 `{"name":"ship-sealed-hatches"}` on stdin. The one-cell prop overlays the blocked
-doorway; compartment condition still owns navigation and sight. Only sealed
+doorway's deck floor, never a solid bulkhead fill. Its transparent margins expose
+the threshold. Compartment condition still owns navigation and sight. Only sealed
 personnel entrances receive it. Launch apertures retain their existing closure.
 
 Review through `createSnapshots -Psnapshot=cerberus-start`: buried versus cleared

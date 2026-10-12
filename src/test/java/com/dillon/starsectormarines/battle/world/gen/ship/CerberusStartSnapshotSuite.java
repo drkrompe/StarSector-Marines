@@ -94,6 +94,11 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                         for (var door : sealed.doors()) {
                             if (map.grid.isWalkable(door.x(), door.y()))
                                 throw new AssertionError("Damaged bay hatch remains open");
+                            if (map.topology.isWall(door.x(), door.y())
+                                    || !"ship-floor-trim.passage".equals(map.topology.getSurfaceId(door.x(), door.y())))
+                                throw new AssertionError("Sealed bay hatch must render over deck, not a wall block");
+                            if (!map.grid.blocksStructuralLineOfSightAt(map.grid.index(door.x(), door.y())))
+                                throw new AssertionError("Sealed bay hatch must remain opaque");
                             if (map.doodads.stream().noneMatch(d -> d.cellX == door.x() && d.cellY == door.y()
                                     && "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())))
                                 throw new AssertionError("Sealed entrance has no visible hatch");
