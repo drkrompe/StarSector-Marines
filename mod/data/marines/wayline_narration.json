@@ -973,7 +973,7 @@
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.hegemony_arriving_hold_fire",
       "text": "Captain Kord, HSS Resolute. Authentication accepted. Pirate installation confirmed. Gunnery, prepare a demolition pattern.",
-      "durationSeconds": 8.48,
+      "durationSeconds": 8.56,
       "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -981,8 +981,8 @@
       "portrait": "",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[cool, level voice, clipped military diction, matter-of-fact] Captain Kord, HSS Resolute. Authentication accepted. Pirate installation confirmed. Gunnery, prepare a demolition pattern.",
-      "voiceId": "Qbw4VpyUrHEG7NigKzty"
+      "synthesisText": "[firm, authoritative] Captain Kord, HSS Resolute. Authentication accepted. Pirate installation confirmed. Gunnery, prepare a demolition pattern.",
+      "voiceId": "T3SmQku6RjBKSvWhaXol"
     },
     {
       "id": "marines_castle_cold_account_batteries_preparing",
@@ -1005,7 +1005,7 @@
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.company_clear_open_fire",
       "text": "Gunnery. Commence bombardment.",
-      "durationSeconds": 2.56,
+      "durationSeconds": 2.64,
       "priority": 100,
       "expiresSeconds": 30,
       "supersedes": [
@@ -1017,8 +1017,8 @@
       "portrait": "",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[flat, precise, unhurried] Gunnery. Commence bombardment.",
-      "voiceId": "Qbw4VpyUrHEG7NigKzty"
+      "synthesisText": "[firm, authoritative] Gunnery. Commence bombardment.",
+      "voiceId": "T3SmQku6RjBKSvWhaXol"
     },
     {
       "id": "marines_castle_cold_account_bombardment_authorized",
@@ -1041,7 +1041,7 @@
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.demolition_sweep",
       "text": "Continue through the remaining structures. Leave nothing operational.",
-      "durationSeconds": 4.08,
+      "durationSeconds": 4.32,
       "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -1049,15 +1049,15 @@
       "portrait": "",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[level voice, clipped and procedural] Continue through the remaining structures. Leave nothing operational.",
-      "voiceId": "Qbw4VpyUrHEG7NigKzty"
+      "synthesisText": "[firm, authoritative] Continue through the remaining structures. Leave nothing operational.",
+      "voiceId": "T3SmQku6RjBKSvWhaXol"
     },
     {
       "id": "marines_kord_cold_account_stronghold_destroyed",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.stronghold_destroyed",
       "text": "Installation neutralized. Resuming patrol.",
-      "durationSeconds": 3.36,
+      "durationSeconds": 3.28,
       "priority": 100,
       "expiresSeconds": 30,
       "supersedes": [
@@ -1068,8 +1068,8 @@
       "portrait": "",
       "voiced": true,
       "terminal": true,
-      "synthesisText": "[matter-of-fact, detached, evenly paced] Installation neutralized. Resuming patrol.",
-      "voiceId": "Qbw4VpyUrHEG7NigKzty"
+      "synthesisText": "[firm, authoritative] Installation neutralized. Resuming patrol.",
+      "voiceId": "T3SmQku6RjBKSvWhaXol"
     }
   ]
 }

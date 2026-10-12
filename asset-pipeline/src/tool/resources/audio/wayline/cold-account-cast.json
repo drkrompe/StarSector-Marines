@@ -13,12 +13,12 @@
       "direction": "Established company officer; clipped commands with fear breaking through her attempted composure."
     },
     "Captain Irena Kord": {
-      "voiceId": "Qbw4VpyUrHEG7NigKzty",
-      "name": "Kristen – Cold Evil Queen Villain",
-      "source": "Existing ElevenLabs professional library voice; no reference recordings cloned.",
-      "direction": "Low, level, precise, procedural. No gloating or theatrical malice; routine enforcement."
+      "voiceId": "T3SmQku6RjBKSvWhaXol",
+      "name": "Captain Irena Kord - Veteran Naval Authority",
+      "source": "Original Voice Design, candidate 5 selected by the user; full provenance in kord/voice.json.",
+      "direction": "Older experienced naval commander, natural cadence and firm authority. Her indifference is in the circumstances, not a synthetic monotone."
     }
   },
-  "takes": "Per-line MP3 masters and JSON receipts; synthesis directions in wayline_narration.json; selected take 1 for all seven lines.",
+  "takes": "Per-line MP3 masters and JSON receipts; synthesis directions in wayline_narration.json. Kord uses take 2 with the user-selected original voice; Castle and Mara retain take 1.",
   "qa": "Decoded and duration-checked. Performance requires listening review; automated checks do not establish acting quality."
 }
