@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — a required watch keeps essential stations occupied within the crew complement, with overhead layered uniforms by posting.
+Updated: 2026-10-12 — an enclosed CIC separates command stations, circulation and a crew-budgeted entrance sentry.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -154,8 +154,8 @@ authored content.
   ordinary room purpose. Consumers ask its purpose.
 - A **room shape** is a compartment's footprint expressed as a mask of cells,
   carried with no orientation. A rectangle is the easy case, not the model: a
-  bridge is a diamond, a range is an L, and a compartment may wrap a hull flare.
-  A packer built around a width and a height could place none of those.
+  command centre is a broad chamfered room, a range is an L, and a compartment
+  may wrap a hull flare. A packer built around a width and a height could place none of those.
 - A **room recipe** is the authored pairing of a purpose with its shape, the zone
   it belongs in, and the capacity one of it supplies. It is why a room is the
   size its function calls for rather than the size the leftover space happened to
@@ -599,12 +599,17 @@ The displayed circuits do not assert a new power or coolant simulation.
 The ship bridge groups navigation, systems and paired side watch stations
 around one central tactical plot. Operators stand outboard of their consoles
 and face inward; the command position faces the plot's control edge. An inner
-walkway and open perimeter join the groups around the diamond footprint,
-including its chamfers and hatch approaches. The nine exclusive WATCH places
-belong to reachable standing cells beside physical fixtures. Enclosed data
-cabinets occupy side pockets without publishing extra staff work. Complete
-fixtures and their control edges follow the room pose. These command displays
-are visual dressing, not new navigation or combat controls.
+walkway and open perimeter join the groups across an enclosed, broad operations
+floor with small corner chamfers. A muted central floor inset distinguishes the
+command island from circulation behind the operators. The nine exclusive WATCH
+places belong to reachable standing cells beside physical fixtures; a short
+watch spreads across plot, navigation and systems before doubling a bank.
+Enclosed data cabinets occupy equipment pockets without publishing extra staff
+work. A single GUARD place stands beside an actual entrance, faces its hatch,
+and leaves the straight approach clear. It is fixed security duty rather than
+console work or a patrol round. Complete fixtures, control edges and the sentry
+placement follow the room pose. These command displays are visual dressing,
+not new navigation or combat controls.
 
 The crew lounge gathers off-watch activity into distinct groups: screen-facing
 seating, conversation sofas, seated table games and a pool area, with books and
@@ -738,15 +743,17 @@ programs and what its fittings publish.
 The home ship keeps a **required watch** within her existing crew complement.
 Her minimum operating crew bounds this duty allocation, and the actual crew
 racks remain the population ceiling. Command and engineering take precedence:
-a short crew covers both before adding more conn and plant positions, then
-servicing, medical, galley, armoury, fabrication and stores receive support as
-hands permit. Only live authored work earns a posting; missing machinery or a
-wrecked fixture cannot conjure a station. Unfilled posts remain a visible
+a short crew covers both before adding more conn and plant positions. The
+command entrance then receives a security rating before servicing, medical,
+galley, armoury, fabrication and stores receive support as hands permit. Only
+live authored work earns a posting; missing machinery or a wrecked fixture cannot conjure a station. Unfilled posts remain a visible
 shortfall. This presentation allocation does not withdraw or create campaign
 cargo crew and is not a live fleet-crew census.
 
-Essential consoles and plant stations stay claimed for the watch. Support hands
-work local duty rotations, including every occupied machine in a servicing bay.
+Essential consoles, plant stations and the entrance sentry stay claimed for
+the watch. The security rating uses crew berthing and the existing overhead
+layered combat kit; it neither borrows nor duplicates a named company marine.
+Support hands work local duty rotations, including every occupied machine in a servicing bay.
 The remaining complement keeps its ordinary movements through work and leisure;
 named company marines retain their roster and issued kit. Duty and roaming hands
 share the same billet and bunk bounds, so manning the watch adds no second crew.

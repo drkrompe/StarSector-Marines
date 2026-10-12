@@ -202,10 +202,11 @@ class BridgeStationsRingThePlotTest {
         }
         GenContext ctx = new GenContext(grid, topology, new Random(7L),
                 mapWidth, mapHeight, 7L);
-        // One hatch on the beam, where the widest part of a diamond is, so the
-        // approach has to cross every ring of the arrangement to reach the plot.
+        // Rotate the hatch with its room: keeping it on the map's left edge
+        // compares different approaches, which can legitimately remove different consoles.
+        int[] hatch = pose.map(-1, canonical.height() / 2, canonical.width(), canonical.height());
         Room room = new Room(shape, 4, 4, pose, RoomPurpose.BRIDGE,
-                List.of(new Doorway(3, 4 + shape.height() / 2)));
+                List.of(new Doorway(4 + hatch[0], 4 + hatch[1])));
         RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
         new BridgeFitting().fit(floor);
         int dropped = floor.dropUnreachableWork();
