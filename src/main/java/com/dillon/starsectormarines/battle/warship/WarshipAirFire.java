@@ -406,7 +406,8 @@ public final class WarshipAirFire {
             float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));
             MissilePath path = MissilePath.straight(mx, my, ax, ay, speed);
             float visual = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
-            shell = new WarshipShell(w, ship.faction, mx, my, ax, ay, path, visual, null, null);
+            shell = new WarshipShell(w, ship.faction, ship, mx, my, ax, ay, path, visual,
+                    0f, 0f, visual, null, null, 0f, null, 0f).inert();
             shells.add(shell);
         }
         if (hit) committed.merge(craft.id(), damage, Float::sum);

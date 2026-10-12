@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — warship weapons may fire at aircraft by the weapon rule (Overhead ships); campaign squads share a tactical arrival area by default; physical berths never split identity.
+Updated: 2026-10-11 — warship swarm bursts (scattering, staggered, interceptable warheads; rack volleys; the damage and area budget with caps and fusing; missile presets); warship weapons may fire at aircraft by the weapon rule; campaign squads share a tactical arrival area by default; physical berths never split identity.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1751,18 +1751,71 @@ along the path's tangent; the drawn flame, glow and smoke are the projectile's
 own engine slot and contrail spec, the smoke being the path sampled at earlier
 times so it hangs along the weave.
 
-**A multi-warhead missile carries its warheads' payload, not its own table row.**
-The Hurricane's row says 500 but its spec releases seven warheads of 500; the Sabot
-five of 200 kinetic; the Hydra six of 500 energy. A multi-warhead missile flies as
-a carrier to its split point (the spec's split range short of the ground, no
-nearer than a third of the way), then releases its warheads, each a detonation
-committed when the round was fired: its own damage, damage type and footprint from
-the submunition's spec, an aim point spread over a disc by a golden-angle pattern
-with jitter, and a delay of its own travel plus a short random stagger so the sheaf
-walks across the ground. A carrier shot down before it splits loses the whole
-payload. Warheads in flight are drawn as streaks and are not yet interceptable.
-The aim of the volley is the centre of the spread; the spread's radius grows with
-the number and the size of the warheads.
+**A multi-warhead missile carries its warheads' payload, not its own table row,
+and releases it as a swarm.** The Hurricane's row says 500 but its spec releases
+seven warheads of 500; the Sabot five of 200 kinetic; the Hydra six of 500 energy.
+A multi-warhead missile flies as a *carrier* to its split point (the spec's split
+range short of the ground, no nearer than a third of the way, and no sooner than its
+minimum time), and there it *splits*: one flash, one split sound (the spec's own),
+a puff of the spec's smoke colour, and its warheads leave it as bodies of their own.
+Each warhead carries the spec's damage, damage type and blast footprint and a
+detonation committed when the missile was fired. They leave the split in the spec's
+fan (the Hurricane's is wide, the Sabot's twenty degrees is a shotgun), curve and
+weave, and converge on aim points scattered **at random** over a disc about the ground
+the carrier was aimed at, arriving staggered across a window after each one's own
+travel: a drumroll, not a tulip and not a single thump. The warheads are dealt out
+by a stratified random scatter, so cover is even without being patterned, and the
+arrival order blends distance from the shooter with chance, so the burst can walk across
+the ground without being a metronome. The disc's radius grows with the number and the
+size of the warheads. A carrier shot down before it splits loses the whole payload.
+
+**The weapon's damage and area are a budget, however many bodies it becomes.** Damage
+adds, so `n` bodies carry `D / n` each; area adds too and goes with the square of
+the radius, so each carries a radius of `R / sqrt(n)`. Where the spec already gives a
+count (a burst, a warhead count) the shares are the spec's and nothing is re-derived;
+the budget binds where the count is synthetic and wherever bodies are fused. Bodies
+are capped (32 from one pull of a trigger, 160 in the air from one hull, 480 in the
+battle) and **over a cap they are fused, never dropped**: a round beyond the cap folds
+into a body of the same weapon already in the air (damage added, radii added as areas),
+and a carrier's warheads fuse into fewer, heavier ones, so the picture is thinned and
+the damage is not. A carrier always keeps at least one warhead, so the ship cap can be
+exceeded by a carrier but never by a rack round.
+
+**A rack volley is a rolling barrage over a footprint.** A rack, pod or swarm launcher
+(Annihilator, Hammer rack, Squall, Swarmer, Locust) fires one body per round already,
+and a burst of three or more is one *volley*: its rounds are scattered over a
+footprint about the ground the mount chose (the same stratified random scatter, nearer
+rounds first for a rocket rack, in no order for a swarm), and a burst the spec spaces out
+over many seconds is held to a few so the barrage rolls rather than trickles (a Squall's
+twenty rounds leave in about three seconds, not ten). The feel is authored in a small
+table by archetype (rocket rack, light swarm, MIRV bloom, heavy) and overridden by weapon
+id; every weapon the table does not name derives its archetype from the spec, so a modded
+launcher arrives with a sensible shape. A heavy single torpedo (Reaper, Atropos, Harpoon,
+Hammer) stays one deliberate body.
+
+**How literal the missiles are is a per-ship preset.** FAITHFUL is the spec's numbers
+only (a straight sheaf in a short stagger, rack rounds in the weapon's own cone, no
+telegraph). FLAVOURED, the default, is the bloom, the scatter, the compressed barrage and
+a faint telegraph. CINEMATIC is the same over a longer, wider drumroll and also splits the
+Hammer family into a cluster inside the budget rule; the torpedoes keep their single warhead.
+The presets change flair and never ordnance: damage and area are the budget in all three.
+The ground a volley or sheaf will fall on is marked while it is still in the air by a faint,
+dashed, slowly turning ring that pulses faster as it nears, in the style of a lance's
+telegraph and much quieter.
+
+**Every body is something point defence can see and kill.** A round, a carrier and a
+released warhead are each one *interceptable body*: where it is drawn, how fast it is
+crossing, whose it is, how tough it is, and a way to mark it dead. A warhead's
+toughness is the carrier's own hit points shared among them (the spec names none for
+the warhead), a rack round's is its projectile's. Toughness blunts a point-defence
+shot: none up to a flak-soft sixty hit points, then falling so that a swarm of weak
+missiles is the case flak was designed for and a torpedo is not. One engagement still
+kills at most one body, so a swarm saturates a mount by volume; and a carrier is the
+weak point of a cluster, because shooting it down before the split takes seven
+warheads with one shot. The same bodies are visible to the carried interceptor pods
+and the ground defences that read a battle's ordnance through the one seam, so they
+stop warship missiles without knowing what a warship is.
+
 
 **Point defence reads the same path.** A mount engages a missile where it is
 drawn, at its speed at that instant; one engagement still kills at most one round.

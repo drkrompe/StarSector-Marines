@@ -121,6 +121,7 @@ import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlSession;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -1607,6 +1608,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Puts a warship over the battle; it fires from the next tick. */
     public void addWarship(Warship ship) {
         warships.add(ship);
+    }
+
+    /** Ordnance warships have in flight that point defence may shoot down. */
+    @Override
+    public List<Interceptable> interceptableOrdnance() {
+        return warships.interceptables();
     }
 
     /** Warships over the battle, for presentation and evidence. */

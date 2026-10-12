@@ -62,13 +62,34 @@ public record MissileFlightSpec(
             float damageRadiusPx,
             float visualRadiusPx,
             Color explosionColor,
-            String sprite) {
+            String sprite,
+            float arcDegrees,
+            String splitSound,
+            Color smokeColor,
+            float warheadHitpoints) {
+
+        /**
+         * A payload read without the fan, the split cue, the smoke or the warheads' toughness: a
+         * 180-degree fan, no sound, no smoke colour, and the default warhead toughness.
+         */
+        public Mirv(int count, float splitRangePx, float minTimeToSplit, boolean canSplitEarly, float damage,
+                    String damageType, float warheadSpeedPx, float damageRadiusPx, float visualRadiusPx,
+                    Color explosionColor, String sprite) {
+            this(count, splitRangePx, minTimeToSplit, canSplitEarly, damage, damageType, warheadSpeedPx,
+                    damageRadiusPx, visualRadiusPx, explosionColor, sprite, 180f, null, null,
+                    DEFAULT_WARHEAD_HITPOINTS);
+        }
 
         /** The damage the whole payload carries. */
         public float totalDamage() {
             return count * damage;
         }
     }
+
+    /** The toughness of a warhead whose spec, and its carrier's, name none. */
+    static final float DEFAULT_WARHEAD_HITPOINTS = 60f;
+    /** No warhead is softer than this, however many share the carrier's own hit points. */
+    static final float MIN_WARHEAD_HITPOINTS = 30f;
 
     private static final Color DEFAULT_ENGINE = new Color(255, 140, 40);
     private static final Color DEFAULT_CONTRAIL = new Color(120, 120, 120, 150);
@@ -131,6 +152,13 @@ public record MissileFlightSpec(
         float visual = warheadProj == null ? 0f : (float) warheadProj.optDouble("explosionRadius", 0.0);
         float hitGlow = warheadProj == null ? 0f : (float) warheadProj.optDouble("hitGlowRadius", 0.0);
         float damageRadius = VanillaWeapon.damageRadius(warheadProj, visual > 0f ? visual : hitGlow);
+        JSONObject smoke = behaviour.optJSONObject("smokeSpec");
+        // A warhead has no hit points of its own in the data; the carrier's are shared among them.
+        double declared = warheadProj == null ? 0.0 : warheadProj.optDouble("hitpoints", 0.0);
+        double carrier = behaviour.optDouble("hitpoints", 0.0);
+        float warheadHp = declared > 0.0 ? (float) declared
+                : carrier > 0.0 ? Math.max(MIN_WARHEAD_HITPOINTS, (float) carrier / count) : DEFAULT_WARHEAD_HITPOINTS;
+        String splitSound = behaviour.optString("splitSound", null);
         return new Mirv(count,
                 (float) behaviour.optDouble("splitRange", 0.0),
                 (float) behaviour.optDouble("minTimeToSplit", 0.0),
@@ -141,7 +169,11 @@ public record MissileFlightSpec(
                 Math.max(MIN_WARHEAD_RADIUS_PX, damageRadius),
                 Math.max(visual, hitGlow),
                 warheadProj == null ? null : VanillaWeapon.color(warheadProj, "explosionColor"),
-                warheadProj == null ? null : warheadSprite(warheadProj));
+                warheadProj == null ? null : warheadSprite(warheadProj),
+                Math.max(1f, Math.min(360f, (float) behaviour.optDouble("arc", 180.0))),
+                splitSound == null || splitSound.isBlank() ? null : splitSound,
+                smoke == null ? null : VanillaWeapon.color(smoke, "particleColor"),
+                warheadHp);
     }
 
     private static String warheadSprite(JSONObject warheadProj) {
