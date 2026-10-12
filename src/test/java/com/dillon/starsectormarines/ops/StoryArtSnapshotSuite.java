@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import org.json.JSONObject;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -27,6 +29,7 @@ public final class StoryArtSnapshotSuite implements SnapshotSuite {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         var renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
+        var catalog = WaylineNarration.parse(new JSONObject(Files.readString(context.modRoot().resolve(WaylineNarration.PATH))));
         var frames = new ArrayList<SnapshotArtifact>();
         var seen = new HashSet<StoryScene>();
         var missions = DebugMissionCatalog.missions(null);
@@ -51,7 +54,9 @@ public final class StoryArtSnapshotSuite implements SnapshotSuite {
                     MissionSelectScreen.ROOT_COMPONENT, props));
             var result = ResultsScreen.previewProps(true, false);
             result.put("missionName", mission.name);
-            ResultsScreen.putStoryDebrief(result, MissionOutcome.builder().mission(mission).victory(true).build());
+            var outcome = MissionOutcome.builder().mission(mission).victory(true).build();
+            ResultsScreen.putStoryDebrief(result, outcome);
+            ResultsScreen.putSalvageConversation(result, MissionDebriefConversation.lines(outcome, catalog));
             frames.add(render(context, renderer, name + "-result", ResultsScreen.COMPONENT_PATHS,
                     ResultsScreen.ROOT_COMPONENT, result));
         }

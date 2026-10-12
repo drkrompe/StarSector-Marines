@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account ends on survivor extraction and carries a voiced Castle/Mara debrief.
+Updated: 2026-10-12 — Wayline recovery builds to Blind Watch; Cold Account preserves earned success while revealing its limits.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -99,6 +99,33 @@ remain. The broker is an authored Marine Operations
 client, not an additional vanilla comm-directory person or relationship track.
 Faction-client access and deployment checks still apply; this exception does not
 refill ordinary patron contracts or add invented news events.
+
+## Recovery, confidence and scale
+
+Wayline begins close to dissolution: losing the depot threatens the drivers'
+work and the cooperative's ability to stay together. Relief buys breathing
+room; recovering the depot restores somewhere to organize work. Mara's referrals,
+the recovered Hound and the optional Secondhand Wings purchase make the company's
+growing capability tangible. Purchased craft are celebrated only after delivery.
+No chapter declares the player's finances secure or their roster intact.
+
+The supply-route finale gives a pause before the Corvus pursuit. Freight receipts
+support renewed commercial work; rescued people support Iona's continuing recovery
+arrangement. Each account retains its losses and the forgone branch. Exhausted
+failures remain failures. The subsequent introduction reads the persistent story
+ledger, including recoveries or deliveries on earlier attempts.
+
+Asharu turns reaction into investigation. Blind Watch is the confidence crest:
+intelligence and preparation let the company choose the target and disable the
+listening post. Its successful debrief gives Mara and Castle time to recognize
+that initiative before asking for the next deployment. Casualties qualify that
+achievement rather than disappearing behind a triumphant speech.
+
+Cold Account puts that earned competence beside state military power. The company
+finds the proof and secures its own extraction; Resolute supplies a scale of force
+it cannot match. Mara's gratitude and continuing work remain real. Naval cooperation
+in this operation grants no promise of future protection. The ending preserves
+what the player built and gives them reason to choose future commitments carefully.
 
 ## Broken Supply Route campaign
 

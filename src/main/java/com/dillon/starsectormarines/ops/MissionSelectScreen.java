@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -124,7 +126,12 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.PORTRAIT);
         props.put("brokerName", OpeningBroker.NAME);
         props.put("brokerRole", "WAYLINE / CORVUS OPERATIONS");
-        props.put("brokerIntroduction", CorvusWaylineCampaign.introduction(route));
+        CorvusChapter chapter = selectedMission == null ? null : CorvusWaylineProgress.forMission(selectedMission.id);
+        props.put("brokerIntroduction", chapter == CorvusChapter.BLIND_WATCH
+                ? "Your Asharu records gave us a target we can prepare for. We know where their watch is, and we can take it away."
+                : chapter == CorvusChapter.COLD_ACCOUNT
+                ? "The listening post is silent. Your company has put us in reach of Sable Wake's dispatch compound. This next job needs a different kind of care."
+                : CorvusWaylineCampaign.introduction(route));
         props.put("brokerProgress", CorvusWaylineCampaign.isBattle(selectedMission)
                 ? selectedMission.name + " / " + selectedMission.targetPlanetName : "SABLE WAKE / ROUTE INTERDICTION");
     }

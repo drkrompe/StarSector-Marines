@@ -32,13 +32,29 @@ class MissionDebriefConversationTest {
         }
     }
 
+    @Test void blindWatchRecognizesSuccessWithoutClaimingACasualtyFreeCompany() throws Exception {
+        var catalog = catalog();
+        for (int losses : List.of(0, 12)) {
+            var outcome = MissionOutcome.builder().missionId("wayline_corvus_v1_1_2")
+                    .missionSource(MissionSource.STORY).victory(true).marinesEngaged(36).marinesLost(losses).build();
+            var lines = MissionDebriefConversation.lines(outcome, catalog);
+            assertEquals(List.of("debrief.blind_watch.initiative", "debrief.blind_watch.ready"),
+                    lines.stream().map(WaylineNarration.Line::event).toList());
+            assertTrue(lines.stream().allMatch(WaylineNarration.Line::voiced));
+            var props = ResultsScreen.previewProps(true, false);
+            ResultsScreen.putStoryDebrief(props, outcome);
+            assertEquals(losses > 0, props.get("storyMessage").toString().contains("paid for this in lives"));
+        }
+    }
+
     @Test void unrelatedOutcomesDoNotInventTheInterventionAndSalvageStillWorks() throws Exception {
         var catalog = catalog();
         assertTrue(MissionDebriefConversation.lines(null, catalog).isEmpty());
         for (var outcome : List.of(
                 outcome("wayline_corvus_v1_2_1", MissionSource.STORY, false),
                 outcome("wayline_corvus_v1_2_1", MissionSource.RECURRING, true),
-                outcome("wayline_corvus_v1_1_1", MissionSource.STORY, true),
+                outcome("wayline_corvus_v1_1_1", MissionSource.STORY, false),
+                outcome("wayline_corvus_v1_1_1", MissionSource.RECURRING, true),
                 outcome("wayline_corvus_v1_2_0", MissionSource.STORY, true))) {
             assertTrue(MissionDebriefConversation.lines(outcome, catalog).isEmpty());
         }

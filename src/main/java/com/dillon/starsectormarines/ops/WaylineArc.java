@@ -28,11 +28,11 @@ public final class WaylineArc {
     public static String introduction(MarineRoster roster) {
         return switch (stage(roster)) {
             case RELIEF -> "Wayline is a freight cooperative, not a government. Our drivers pooled their savings "
-                    + "for militia; the raiders took our depot anyway. Help break their assault, then help us take it back.";
+                    + "for militia; the raiders took our depot anyway. Without it, there is little left to pay the drivers or keep the cooperative together. Help break their assault, then help us take it back.";
             case DEPOT -> "The assault is broken. Recovered traffic logs put the raiders at our freight depot. "
-                    + "One more job: clear it, so our drivers can go back to earning a living.";
+                    + "You have bought us breathing room. Now clear the depot, so our drivers can go back to earning a living.";
             case COMPLETE -> "The depot is ours again. Dispatch can start moving freight. I've passed your name "
-                    + "to the Independent brokers. Our two jobs are closed; these are new postings from other crews.";
+                    + "to the Independent brokers. When we met, I was trying to keep Wayline from coming apart. You gave us somewhere to rebuild. These are new postings from other crews.";
         };
     }
 
@@ -72,9 +72,9 @@ public final class WaylineArc {
         } else {
             report = kind == OpeningOperationKind.RELIEF
                     ? "The assault is broken. Recovered traffic logs point to our occupied depot. "
-                        + "Your payment is cleared. Come back for the second job when you're ready."
+                        + "Your payment is cleared. For the first time since we lost the depot, I can plan something beyond the next alarm. Come back when your company is ready."
                     : "The depot is ours again. Dispatch can start moving freight. Your payment is cleared, "
-                        + "and Independent brokers now have your name. You gave Wayline an open road. Thank you.";
+                        + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
         }
         if (outcome.alliesEngaged > 0 && outcome.alliesLost >= outcome.alliesEngaged) {
             report += " None of our militia came home. We'll have to rebuild that watch.";

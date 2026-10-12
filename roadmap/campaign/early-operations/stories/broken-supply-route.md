@@ -39,6 +39,9 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
   retaining prior payments and site. Load an already active Relay battle: its old
   attempt settles once, then either outcome advances to Thunder Run. Existing
   freight receipts and completed recurring access must survive.
+- Check the recovery beat and Corvus introduction against successful, partial
+  and exhausted branch ledgers; no rescue or delivery from the unchosen path
+  should be claimed.
 - Audition the revised Thunder Run briefing in the live mix; it should introduce
   the open junction and match the displayed convoy terms.
 - Thunder Run: clear the three road sites, observe the two staging stops and final

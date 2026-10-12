@@ -61,7 +61,23 @@ public final class CorvusWaylineCampaign {
     }
     public static String introduction(BrokenSupplyRouteProgress route) {
         if (route == null) return "Our dispatch records point beyond Jangala.";
-        return route.status() + " We cannot change that account. We can find who is selling our sailing schedules.";
+        if (!route.readable() || !route.closed()) return route.status();
+        String recovery;
+        if (route.branch() == BrokenSupplyRouteProgress.LIFT) {
+            int rescued = route.storyCrew().rescuedCount();
+            recovery = rescued > 0
+                    ? "Iona's manifest records people brought home: " + rescued + ". The freight route remains suspended, but those lives are part of what we have kept."
+                    : "Rill's manifest is closed without a recovery. I will not dress that up as a victory.";
+        } else if (route.freight() != null) {
+            int delivered = route.freight().deliveredCount();
+            recovery = delivered > 0
+                    ? "Dispatch has receipts for delivered loads: " + delivered + ". That is work Wayline can build on."
+                        + (route.freight().lostCount() > 0 ? " The lost loads remain on the ledger too." : "")
+                    : "No freight made it through. The depot is still ours, but this route has not recovered.";
+        } else recovery = "The relay contract is closed. Its payment and your work remain on our books.";
+        return route.status() + " " + recovery
+                + " When we met, Wayline was coming apart. You gave us room to act."
+                + " See to your company first. The work on Asharu can wait until you are ready.";
     }
     static CorvusWaylineProgress requireCurrent(Mission m) {
         CorvusWaylineProgress p = current();

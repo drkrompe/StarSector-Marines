@@ -15,6 +15,10 @@ Each MP3 has a JSON generation receipt with input/audio hashes.
 | Thunder Run | 1 | 14 |
 | A Cold Account | 0 | 13 |
 
+Blind Watch adds a two-turn Mara/Castle after-action exchange about earned
+initiative and preparing the company. Cold Account closes with six alternating
+Castle/Mara turns: state power limits their protection without erasing their work.
+
 Cold Account alternates Mara, Castle and Captain Irena Kord; its cast assignments
 are retained in `cold-account-cast.json`. Four ordered opening turns establish
 the patrol's requirement for authenticated proof. Actual company landing and
