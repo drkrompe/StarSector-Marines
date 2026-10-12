@@ -88,6 +88,28 @@ class DebugWarshipTest {
     }
 
     @Test
+    void fluxIsOnByDefaultAtTheBrawlersShareAndTheSpecOrToggleTurnsItOffAndTheStatusLineReadsIt() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        SceneWorld world = SceneBuilder.openGround(160, 90).missionCompletion(false)
+                .unit("d1", Faction.DEFENDER, UnitType.MARINE, 70, 38).build();
+        Warship plain = DebugWarship.install(world.sim(),
+                new DebugWarship.Spec(DebugWarship.Hull.ONSLAUGHT, Faction.MARINE, DebugWarship.Mode.MANUAL));
+        assertTrue(plain.fluxLimited());
+        assertEquals(Warship.SHIELD_RESERVE_SCALE, plain.fluxScale());
+        assertTrue(DebugWarship.statusLine(plain).contains("FIRING"), DebugWarship.statusLine(plain));
+        DebugWarship.toggleFlux(plain);
+        assertFalse(plain.fluxLimited());
+        assertTrue(DebugWarship.statusLine(plain).contains("flux off"), DebugWarship.statusLine(plain));
+        DebugWarship.toggleFlux(plain);
+        assertTrue(plain.fluxLimited());
+
+        Warship off = DebugWarship.install(world.sim(), new DebugWarship.Spec(
+                DebugWarship.Hull.PARAGON, Faction.MARINE, DebugWarship.Mode.MANUAL).withOtherFlux());
+        assertFalse(off.fluxLimited());
+    }
+
+    @Test
     void aManualShipHoldsFireUntilToldToFireAtACell() throws Exception {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();

@@ -154,10 +154,23 @@ public final class Warship {
     private int ordnanceRemaining = UNLIMITED;
     private final List<Mount> mounts;
     private final List<Mount> mountsView;
+    private final WarshipFlux flux;
+    private boolean fluxConfigured;
+
+    /**
+     * Share of the hull table's flux a brawler's guns get. PROVISIONAL: in the game a
+     * ship's shield is the major draw on flux (upkeep and every hit absorbed) and a
+     * raised shield stops venting, so the guns never see the whole pool or the whole
+     * dissipation. Shields are not modelled yet; this half stands in for the half
+     * they would take, and goes when shields arrive and take their own share.
+     */
+    public static final float SHIELD_RESERVE_SCALE = 0.5f;
 
     private Warship(String hullId, String spritePath, float lengthCells, float pivotX, float pivotY,
                     Handling handling, float widthCells, float hitPoints, float armour,
-                    Faction faction, float x, float y, float facingDegrees, List<Mount> mounts) {
+                    Faction faction, float x, float y, float facingDegrees, List<Mount> mounts,
+                    float[] fluxFigures) {
+        this.flux = new WarshipFlux(fluxFigures[0], fluxFigures[1]);
         this.hullId = hullId;
         this.spritePath = spritePath;
         this.lengthCells = lengthCells;
@@ -183,6 +196,85 @@ public final class Warship {
 
     public List<Mount> mounts() {
         return mountsView;
+    }
+
+    /**
+     * Puts the ship's guns on the hull's flux: every shot and beam-second adds to
+     * one pool that drains at the hull's dissipation rate, and the ship surges and
+     * rests (see {@link WarshipFlux}). Off unless this is called. The limit is
+     * rhythm, not balance: no weapon does less damage for it.
+     */
+    public void limitFlux() {
+        fluxConfigured = true;
+        flux.enabled(true);
+    }
+
+    /** Takes the ship off flux again: the pool empties and the guns are never held back. This is the default. */
+    public void unlimitedFlux() {
+        fluxConfigured = true;
+        flux.enabled(false);
+    }
+
+    /** Whether the ship's fire is governed by flux. */
+    public boolean fluxLimited() {
+        return flux.enabled();
+    }
+
+    /** Scales the hull's flux capacity and dissipation together; 1 is the hull table's own. */
+    public void fluxScale(float scale) {
+        fluxConfigured = true;
+        flux.scale(scale);
+    }
+
+    public float fluxScale() {
+        return flux.scale();
+    }
+
+    /**
+     * Whether the ship holds fire for the soft threshold (the default): it stops
+     * starting new bursts at 85% of capacity and resumes at 55%. Off, only a real
+     * overload ever silences it.
+     */
+    public void fluxSoftLimit(boolean on) {
+        flux.softLimit(on);
+    }
+
+    /** Flux now, in the hull table's units. */
+    public float flux() {
+        return flux.flux();
+    }
+
+    public float fluxCapacity() {
+        return flux.capacity();
+    }
+
+    /** Flux as a share of capacity, 0 to 1; zero when the ship is not on flux. */
+    public float fluxFraction() {
+        return flux.fraction();
+    }
+
+    /** Whether the ship is overloaded and every mount silent. */
+    public boolean overloaded() {
+        return flux.overloaded();
+    }
+
+    /** Seconds until the overload ends; zero when the ship is not overloaded. */
+    public float overloadSecondsRemaining() {
+        return flux.overloadSecondsRemaining();
+    }
+
+    /** How many times the ship has overloaded. */
+    public int overloadCount() {
+        return flux.overloads();
+    }
+
+    /** One word for the HUD: {@code off}, {@code firing}, {@code venting} or {@code overloaded}. */
+    public String fluxState() {
+        return flux.enabled() ? flux.state().label : "off";
+    }
+
+    WarshipFlux fluxPool() {
+        return flux;
     }
 
     /**
@@ -510,6 +602,12 @@ public final class Warship {
         this.directorMaxAreas = maxAreas;
         this.directing = true;
         this.retrySeconds = Float.MAX_VALUE;
+        // A directed ship is governed by flux unless its owner said otherwise; a
+        // scripted (cinematic) ship with only explicit orders is not.
+        if (!fluxConfigured) {
+            flux.scale(SHIELD_RESERVE_SCALE);
+            flux.enabled(true);
+        }
     }
 
     int directorMaxAreas() {
@@ -573,7 +671,26 @@ public final class Warship {
         Handling handling = handling(hullId);
         float[] toughness = toughness(hullId);
         return new Warship(hullId, hull.optString("spriteName"), h * k, pivotX, pivotY,
-                handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts);
+                handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts,
+                fluxFigures(hullId));
+    }
+
+    private static final float DEFAULT_FLUX_CAPACITY = 10000f;
+    private static final float DEFAULT_FLUX_DISSIPATION = 500f;
+
+    /** {@code [max flux, flux dissipation]} from the hull table, or a middling capital's. */
+    private static float[] fluxFigures(String hullId) {
+        try {
+            for (Map<String, String> row : VanillaData.csv("data/hulls/ship_data.csv")) {
+                if (!hullId.equals(row.get("id"))) continue;
+                return new float[]{
+                        positive(row.get("max flux"), DEFAULT_FLUX_CAPACITY),
+                        positive(row.get("flux dissipation"), DEFAULT_FLUX_DISSIPATION)};
+            }
+        } catch (Exception e) {
+            // A hull whose flux cannot be read has a middling capital's.
+        }
+        return new float[]{DEFAULT_FLUX_CAPACITY, DEFAULT_FLUX_DISSIPATION};
     }
 
     /** The hull's handling from the table, or a battleship's. */
