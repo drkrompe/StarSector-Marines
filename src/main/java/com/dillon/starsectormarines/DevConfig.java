@@ -49,6 +49,18 @@ public final class DevConfig {
     public static final boolean DEBUG_AIRCRAFT_PICKER = true;
 
     /**
+     * When {@code true}: debug-generated missions show a "WARSHIP DEBUG" group in
+     * the briefing's debug drawer (hull Off / Onslaught / Paragon, side Marine /
+     * Defender, Director / Manual) and, when a hull is picked, a
+     * {@link com.dillon.starsectormarines.battle.warship.Warship} hovers over the
+     * battle from its start. In battle F6 orders it to fire on the cell under the
+     * cursor and F7 holds fire; a text line reports hull, order, heading and
+     * rounds fired. {@code false} hides all of it (no behavior change).
+     */
+    @DebugOnly
+    public static final boolean DEBUG_WARSHIP_PICKER = true;
+
+    /**
      * FBO pixel resolution per nav-grid cell for the decal accumulator.
      * 32 = native (matches the 32px source sheets, no downsample at neutral
      * zoom). Drop to 16 for ~¼ VRAM at the cost of visible softness; raise

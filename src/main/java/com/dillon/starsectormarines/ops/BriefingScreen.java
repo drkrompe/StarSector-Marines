@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.warship.DebugWarship;
 import com.dillon.starsectormarines.battle.flyby.DebugAirRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
@@ -274,6 +275,13 @@ public class BriefingScreen implements Screen {
      * state, so a chosen calibration setup carries across missions.
      */
     private final java.util.Set<String> debugAirSelections = new java.util.HashSet<>();
+
+    /**
+     * WARSHIP DEBUG choice ({@link DevConfig#DEBUG_WARSHIP_PICKER}); like the air
+     * picker it is a test setup and survives a mission switch. Honoured only for
+     * debug-generated missions.
+     */
+    private DebugWarship.Spec debugWarship = DebugWarship.Spec.OFF;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -647,6 +655,19 @@ public class BriefingScreen implements Screen {
                     () -> adjustDebugConquestJitter(-DEBUG_CONQUEST_JITTER_STEP_SEC),
                     () -> adjustDebugConquestJitter(DEBUG_CONQUEST_JITTER_STEP_SEC)));
         }
+        if (DevConfig.DEBUG_WARSHIP_PICKER) {
+            controls.add(conquestControl("debug-warship-hull", "WARSHIP DEBUG · hull",
+                    debugWarship.hull().label, false, false,
+                    () -> cycleDebugWarshipHull(-1), () -> cycleDebugWarshipHull(1)));
+            if (debugWarship.active()) {
+                controls.add(conquestControl("debug-warship-side", "WARSHIP DEBUG · side",
+                        debugWarship.side() == Faction.MARINE ? "Marine (friendly)" : "Defender (hostile)",
+                        false, false, this::toggleDebugWarshipSide, this::toggleDebugWarshipSide));
+                controls.add(conquestControl("debug-warship-mode", "WARSHIP DEBUG · mode",
+                        debugWarship.mode().label, false, false,
+                        this::toggleDebugWarshipMode, this::toggleDebugWarshipMode));
+            }
+        }
         int maxTransports = Math.max(0, mission.requiredDrops);
         controls.add(new BriefingViewModel.DebugControl("debug-transports",
                 "Transport · " + debugTransportType.displayName(),
@@ -746,6 +767,21 @@ public class BriefingScreen implements Screen {
                 next == 0 ? null : values[next - 1]);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    private void cycleDebugWarshipHull(int step) {
+        debugWarship = debugWarship.withHull(debugWarship.hull().cycle(step));
+        rebuild();
+    }
+
+    private void toggleDebugWarshipSide() {
+        debugWarship = debugWarship.withOtherSide();
+        rebuild();
+    }
+
+    private void toggleDebugWarshipMode() {
+        debugWarship = debugWarship.withOtherMode();
         rebuild();
     }
 
@@ -2211,6 +2247,7 @@ public class BriefingScreen implements Screen {
         if (ready == null) { rebuild(); return; }
         MissionLaunch.PreparedBattle prepared = MissionLaunch.finishSimulation(ctx, launchMission,
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings(),
+                m.source.isDebug() ? debugWarship : DebugWarship.Spec.OFF,
                 surveyPlan, ready.simulation());
         try {
             if (m.contractId >= 0L && campaignScript != null) {
