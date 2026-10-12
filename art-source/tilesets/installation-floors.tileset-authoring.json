@@ -24,8 +24,8 @@
     {
       "id": "installation.accommodation-floor",
       "layout": "single",
-      "windowBlock": "colony.masonry-window",
-      "doorBlock": "colony.masonry-door",
+      "windowBlock": "installation.light-concrete-window",
+      "doorBlock": "installation.light-concrete-door",
       "damageBlock": "colony.concrete-damage"
     }
   ],

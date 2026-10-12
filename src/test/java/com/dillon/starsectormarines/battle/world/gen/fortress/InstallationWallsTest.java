@@ -54,13 +54,13 @@ class InstallationWallsTest {
                 for (int[] c : shape.filled()) assertNull(topology.getSurfaceId(4 + c[0], 4 + c[1]));
                 assertEquals(new Random(42).nextLong(), ctx.rng.nextLong());
                 int x = 4 + target[0], y = 4 + target[1];
-                assertEquals(InstallationWalls.material(purpose), topology.getSurfaceId(x, y));
+                assertEquals(InstallationWalls.BUILDING, topology.getSurfaceId(x, y));
                 var editor = new MapEditor(new NavigationService(grid, topology));
                 assertFalse(editor.damageWall(x, y, 30));
                 assertEquals(70, grid.getWallHp(x, y));
                 assertFalse(grid.isWalkable(x, y));
                 assertTrue(editor.damageWall(x, y, 70));
-                assertEquals(InstallationWalls.material(purpose), topology.getWallRemnant(x, y).materialId());
+                assertEquals(InstallationWalls.BUILDING, topology.getWallRemnant(x, y).materialId());
                 assertEquals(InstallationFloors.material(purpose), topology.getWallRemnant(x, y).groundSurfaceId(),
                         "corners and isolated walls retain their floor without inferring a neighbour");
                 assertTrue(grid.isWalkable(x, y));
