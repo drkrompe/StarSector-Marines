@@ -489,6 +489,17 @@ public class MarineOpsContext {
         goTo(ScreenId.FLEET_ARMORY);
     }
 
+    private boolean requestedSquadFounding;
+    public void openSquadFoundingFrom(ScreenId backScreen) {
+        requestedSquadFounding = true;
+        openFleetArmoryWorkspaceFrom(backScreen);
+    }
+    public boolean takeRequestedSquadFounding() {
+        boolean requested = requestedSquadFounding;
+        requestedSquadFounding = false;
+        return requested;
+    }
+
     public void openSquadEquipmentFromBarracks(String squadId) {
         requestedArmorySquadId = squadId;
         openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS);

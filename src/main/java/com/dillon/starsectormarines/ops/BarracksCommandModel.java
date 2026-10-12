@@ -55,8 +55,6 @@ public final class BarracksCommandModel {
     private String command = "all";
     private String profileFilter;
     private String profileId;
-    private String targetCaptain;
-    private boolean targetChosen;
     private boolean attention;
     private boolean detail;
     private boolean dossier;
@@ -80,7 +78,7 @@ public final class BarracksCommandModel {
     private int weaponIndex;
     private int armorIndex;
     private int page;
-    private String feedback = "Select the squads to refill. Choose donors to consolidate survivors, or fill vacancies from reserves and recruits.";
+    private String feedback = "Select squads, then Assign Selected on a commander card. Use Preparation for personnel and equipment orders.";
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
@@ -138,7 +136,7 @@ public final class BarracksCommandModel {
         bind(reactor, "detailClasses", () -> detail ? "barracks-body" : "barracks-body hidden");
         bind(reactor, "ordersClasses", () -> editing || !organizing ? "order-body hidden" : "order-body");
         bind(reactor, "preparationClasses", () -> editing || organizing ? "order-body hidden" : "order-body");
-        bind(reactor, "selectionMode", () -> choosingDonors ? "MARK DONOR SQUADS / receiving squads remain marked" : "MARK RECEIVING SQUADS / squads to refill");
+        bind(reactor, "selectionMode", () -> choosingDonors ? "MARK DONOR SQUADS / receiving squads remain marked" : "SELECT SQUADS / assign on a commander card, or prepare on the right");
         bind(reactor, "donorLabel", () -> choosingDonors ? "CHOOSE RECIPIENTS" : "CHOOSE DONORS");
         bind(reactor, "transferSummary", () -> selected.size() + " receiving / " + donors.size() + " donor squads. Only marked donors may give personnel.");
         bind(reactor, "transferDisabled", () -> selected.isEmpty() || donors.isEmpty());
@@ -199,12 +197,6 @@ public final class BarracksCommandModel {
         bind(reactor, "selection", () -> selected.size() + " RECEIVING / " + donors.size() + " DONORS");
         bind(reactor, "selectionDisabled", selected::isEmpty);
         bind(reactor, "profileDisabled", () -> selected.isEmpty() || profileId == null);
-        bind(reactor, "target", () -> !targetChosen ? "Choose receiving command" : targetCaptain == null
-                ? "Independent / Acting NCO" : captainName(roster.byId(targetCaptain)));
-        bind(reactor, "assignmentReason", () -> !targetChosen ? "Choose a command to preview capacity."
-                : roster.previewCaptainAssignment(targetCaptain, selected).reason());
-        bind(reactor, "assignmentDisabled", () -> !targetChosen
-                || !roster.previewCaptainAssignment(targetCaptain, selected).valid());
         bind(reactor, "recruitment", this::recruitment);
         bind(reactor, "reinforceDisabled", () -> Math.min(vacancies(), roster.readyReserveCount() + cargoMarines.getAsInt()) == 0);
         bind(reactor, "issueSummary", () -> {
@@ -244,9 +236,6 @@ public final class BarracksCommandModel {
         props.put("previous", (Runnable) () -> { page = Math.max(0, pageNumber() - 1); refresh(); });
         props.put("next", (Runnable) () -> { page = Math.min(pages() - 1, pageNumber() + 1); refresh(); });
         props.put("back", (Runnable) this::showOverview);
-        props.put("targetPrevious", (Runnable) () -> cycleTarget(-1));
-        props.put("targetNext", (Runnable) () -> cycleTarget(1));
-        props.put("assignCommand", (Runnable) this::assignCommand);
         props.put("assignProfile", (Runnable) this::assignProfile);
         props.put("reinforce", (Runnable) this::reinforceSelected);
         props.put("issue", (Runnable) this::issueSelected);
@@ -268,7 +257,7 @@ public final class BarracksCommandModel {
     public Set<String> selected() { return Set.copyOf(selected); }
     public boolean inspecting() { revision.get(); return detail; }
     public void refresh() { revision.update(n -> n + 1); }
-    public void leave() { reviewedTransfers = null; editing = false; targetChosen = false; refresh(); }
+    public void leave() { reviewedTransfers = null; editing = false; refresh(); }
     public void showOverview() { detail = false; dossier = false; refresh(); }
     public void inspect(String id) { inspectedId = id; inspect.accept(id); detail = true; refresh(); }
     public void selectCommand(String id) {
@@ -401,10 +390,21 @@ public final class BarracksCommandModel {
     }
     private Map<String, Object> commandRow(String id, MarineCaptain captain, List<MarineSquad> squads) {
         long ready = squads.stream().filter(s -> !s.stationed() && roster.readyCount(s) == MarineSquad.CAPACITY).count();
+        var assignment = roster.previewCaptainAssignment(captain == null ? null : captain.id(), selected);
         return row("id", "command:" + id,
                 "commanderportraitId", "command:" + id + ":portrait", "commandercopyId", "command:" + id + ":copy",
                 "commandnameId", "command:" + id + ":name", "commandsummaryId", "command:" + id + ":summary",
                 "commandcapacityId", "command:" + id + ":capacity",
+                "cardStyle", "height: " + (id.equals("all") ? 126 : selected.isEmpty() ? 158 : 200) + "px;",
+                "cardId", "command:" + id + ":card", "assignId", "command:" + id + ":assign",
+                "assignClasses", id.equals("all") ? "hidden" : "command-assign console-action"
+                        + (assignment.valid() ? " command-assign-ready" : ""),
+                "assignLabel", selected.isEmpty() ? "SELECT SQUADS FIRST" : id.equals("independent") ? "MAKE INDEPENDENT (" + selected.size() + ")" : "ASSIGN SELECTED (" + selected.size() + ")",
+                "assignDisabled", id.equals("all") || !assignment.valid(),
+                "assign", (Runnable) () -> assignCommand(captain == null ? null : captain.id()),
+                "reasonId", "command:" + id + ":reason",
+                "reasonClasses", id.equals("all") || selected.isEmpty() ? "hidden" : "label muted wrap command-reason",
+                "reason", assignment.reason(),
                 "name", id.equals("all") ? "All formations" : captainName(captain),
                 "portrait", captain != null && captain.portraitSprite() != null ? captain.portraitSprite() : "graphics/ui/console/service-plate.svg",
                 "summary", ready + " ready / " + squads.size() + " assigned",
@@ -425,13 +425,14 @@ public final class BarracksCommandModel {
             String personnel = squad.stationed() ? "ON STATION" : ready + " ready / " + muster.woundedCount() + " WIA / " + muster.vacantCount() + " vacant";
             String kit = squad.squadProfileId() == null && squad.weaponDoctrineId() == null ? "NO PROFILE"
                     : plan.eligible() == 0 ? "ISSUE HELD" : plan.cost().isZero() ? "EQUIPPED" : "REFIT";
+            MarineCaptain home = roster.byId(squad.homeCaptainId());
             rows.add(row("id", "formation:" + squad.id(), "markId", "formation:" + squad.id() + ":mark",
                     "squadId", squad.id(), "musterId", "formation:" + squad.id() + ":muster",
                     "headerId", "formation:" + squad.id() + ":header", "checkId", "formation:" + squad.id() + ":check",
                     "strengthId", "formation:" + squad.id() + ":strength", "profileRowId", "formation:" + squad.id() + ":profile-row",
                     "armorIconId", "formation:" + squad.id() + ":armor-icon", "footerId", "formation:" + squad.id() + ":footer",
                     "kitId", "formation:" + squad.id() + ":kit", "armorIcon", armor == null ? "" : armor.iconPath(),
-                    "strength", ready + "/12", "personnel", personnel, "kit", selected.contains(squad.id()) ? "RECEIVING" : donors.contains(squad.id()) ? "DONOR" : kit,
+                    "strength", ready + "/12", "personnel", personnel, "kit", selected.contains(squad.id()) ? "SELECTED" : donors.contains(squad.id()) ? "DONOR" : kit,
                     "personnelClasses", "label card-personnel " + (squad.stationed() ? "muted" : ready == 12 ? "good" : "warm"),
                     "kitClasses", "label card-kit " + (kit.equals("EQUIPPED") ? "good" : "muted"),
                     "formationidentityId", "formation:" + squad.id() + ":identity",
@@ -440,8 +441,13 @@ public final class BarracksCommandModel {
                     "formationprofileId", "formation:" + squad.id() + ":profile",
                     "inspectId", "formation:" + squad.id() + ":inspect", "name", squad.name(),
                     "profile", profileName(squad),
+                    "commanderId", "formation:" + squad.id() + ":commander",
+                    "commanderImageId", "formation:" + squad.id() + ":commander-image",
+                    "commanderNameId", "formation:" + squad.id() + ":commander-name",
+                    "commanderName", home == null ? "Independent / Acting NCO" : captainName(home),
+                    "commanderImage", home == null || home.portraitSprite() == null ? "graphics/ui/console/service-plate.svg" : home.portraitSprite(),
                     "classes", "formation" + (selected.contains(squad.id()) ? " selected" : donors.contains(squad.id()) ? " donor" : "") + (squad.stationed() ? " stationed" : ""),
-                    "mark", selected.contains(squad.id()) ? "R" : donors.contains(squad.id()) ? "D" : "", "disabled", squad.stationed(),
+                    "mark", selected.contains(squad.id()) ? "+" : donors.contains(squad.id()) ? "D" : "", "disabled", squad.stationed(),
                     "toggle", (Runnable) () -> toggle(squad.id()), "inspect", (Runnable) () -> inspect(squad.id())));
         }
         return rows;
@@ -500,20 +506,11 @@ public final class BarracksCommandModel {
         profileFilter = index + 1 < profiles.size() ? profiles.get(index + 1).id() : null;
         resetSelection();
     }
-    private void cycleTarget(int step) {
-        List<String> targets = new ArrayList<>();
-        targets.add(null);
-        roster.active().forEach(c -> targets.add(c.id()));
-        int index = targetChosen ? targets.indexOf(targetCaptain) : step > 0 ? -1 : 0;
-        targetCaptain = targets.get(Math.floorMod(index + step, targets.size()));
-        targetChosen = true;
-        refresh();
-    }
-    public void assignCommand() {
-        if (!targetChosen) return;
-        var result = roster.assignCaptainToSquads(targetCaptain, selected);
-        feedback = result.valid() ? result.changedSquadCount() + " squads assigned to " + captainName(roster.byId(targetCaptain)) + "." : result.reason();
+    public void assignCommand(String captainId) {
+        var result = roster.assignCaptainToSquads(captainId, selected);
+        feedback = result.valid() ? result.changedSquadCount() + " squads assigned to " + captainName(roster.byId(captainId)) + "." : result.reason();
         changed.run();
+        refresh();
     }
     public void assignProfile() {
         boolean applied = roster.assignSquadProfile(selected, profileId);
@@ -643,20 +640,15 @@ public final class BarracksCommandModel {
         if (step == Step.FORMATION) return "barracks-raise-squad";
         if (!"all".equals(command)) return "command:all";
         if (selected.isEmpty()) return "barracks-select-all";
-        if (!organizing || editing) return "barracks-organization";
-        if (!targetChosen || inductionOfficer() == null || !inductionOfficer().id().equals(targetCaptain))
-            return "barracks-target-next";
-        return "barracks-assign-command";
+        return inductionOfficer() == null ? "barracks-command-list" : "command:" + inductionOfficer().id() + ":assign";
     }
     private List<List<String>> inductionRegions() {
         String target = inductionTarget();
         if (target.startsWith("officer-specialty-"))
             return List.of(List.of("officer-training", "officer-specialty-list"));
-        if ("barracks-select-all".equals(target) || "barracks-organization".equals(target)
-                || "barracks-target-next".equals(target) || "barracks-assign-command".equals(target))
+        if ("barracks-select-all".equals(target) || target.endsWith(":assign"))
             return List.of(List.of("barracks-selection-tools", "barracks-formation-list", "barracks-page-tools"),
-                    List.of("barracks-organization", "barracks-order-caption", "barracks-selector",
-                            "barracks-assignment-reason", "barracks-assign-command"));
+                    List.of(inductionOfficerTarget() + ":card"));
         return List.of(List.of(target));
     }
     private String inductionHint() {
@@ -671,12 +663,9 @@ public final class BarracksCommandModel {
             case "barracks-raise-squad" -> "Raise Squad opens Armory. Found a squad there, then return to Barracks.";
             case "command:all" -> "Choose All Formations so the unassigned squad is visible.";
             case "barracks-select-all" -> "Mark the squad you want her to lead. You can deselect extra squads if they exceed her capacity.";
-            case "barracks-organization" -> "Open Organization beside Preparation.";
-            case "barracks-target-next" -> "Use the command arrows to choose " + (inductionOfficer() == null ? "an officer" : inductionOfficer().name()) + ".";
-            case "barracks-assign-command" -> "Check the capacity preview, then Assign Command. An unsuccessful order does not advance this lesson.";
             case "barracks-command-list" -> "Recruit an available officer to continue.";
             case "officer-specialty-TACTICAL_COVER-train" -> "Scroll to compare all three specialties. Use any Train button; this spends the appointment point.";
-            default -> "Open the highlighted officer portrait.";
+            default -> inductionTarget().endsWith(":assign") ? "Click Assign Selected on the commander card. Capacity is checked before any squad moves." : "Open the highlighted officer portrait.";
         };
     }
     public String guideTargetId() {

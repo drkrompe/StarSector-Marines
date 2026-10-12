@@ -35,6 +35,10 @@ final class BriefingViewModel {
 
     static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("preparationClasses", "briefing-assign-hidden");
+        props.put("prepareReplay", (Runnable) () -> { });
+        props.put("prepareArmory", (Runnable) () -> { });
+        props.put("prepareBarracks", (Runnable) () -> { });
         props.put("screenHeader", "Mission Briefing");
         putNarration(props, null, false);
         props.put("replayNarrationAction", (Runnable) () -> { });

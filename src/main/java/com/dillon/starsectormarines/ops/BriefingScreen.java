@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
@@ -362,6 +363,9 @@ public class BriefingScreen implements Screen {
         installDocument();
     }
 
+    private PreparationGuide secondSquadGuide;
+    private boolean replaySecondSquadGuide;
+
     private void installDocument() {
         Map<String, Object> props = retainedProps();
         SpecSheetBinder candidateHints;
@@ -371,7 +375,7 @@ public class BriefingScreen implements Screen {
         try {
             requireRetainedElements(candidate);
             BriefingViewModel.applyVisibility(candidate, props);
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
             candidateHints = BriefingHints.install(built, candidate, props);
@@ -386,11 +390,22 @@ public class BriefingScreen implements Screen {
         MarkupInstance previousInstance = markupInstance;
         if (hints != null) hints.clear();
         document = built;
+        secondSquadGuide = PreparationGuide.install(built,
+                () -> SecondSquadPreparation.lesson(ctx.getSelectedMission(), liveRoster(),
+                        new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
+                            MarineRoster roster = liveRoster();
+                            if (roster != null) roster.acknowledgeSecondSquadPreparation();
+                            replaySecondSquadGuide = false;
+                        }), this::onBack);
         markupInstance = candidate;
         hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
-        if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
+        if (viewport != null) {
+            document.layout(viewport.documentWidth(), viewport.documentHeight());
+            secondSquadGuide.update();
+            input = new StarsectorUiInputAdapter(document, viewport);
+        }
     }
 
     private Map<String, Object> retainedProps() {
@@ -474,6 +489,10 @@ public class BriefingScreen implements Screen {
         props.put("carrierRows", retainedCarrierRows());
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
+        props.put("preparationClasses", SecondSquadPreparation.relevant(mission, liveRoster()) ? "mission-preparation" : "briefing-assign-hidden");
+        props.put("prepareReplay", (Runnable) () -> { narration.stop(); replaySecondSquadGuide = true; });
+        props.put("prepareArmory", (Runnable) () -> ctx.openSquadFoundingFrom(ScreenId.BRIEFING));
+        props.put("prepareBarracks", (Runnable) () -> ctx.goTo(ScreenId.BARRACKS));
         return BriefingViewModel.withEmptyStyles(props);
     }
 
@@ -2341,7 +2360,7 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        if (narrationAutoplay) {
+        if (narrationAutoplay && (secondSquadGuide == null || !secondSquadGuide.visible())) {
             narrationAutoplay = false;
             narration.start(briefingNarration());
         }
@@ -2355,6 +2374,7 @@ public class BriefingScreen implements Screen {
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
         if (hints != null) hints.update();
+        if (secondSquadGuide != null) secondSquadGuide.update();
     }
 
     @Override

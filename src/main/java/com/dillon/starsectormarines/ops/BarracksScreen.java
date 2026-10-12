@@ -83,7 +83,7 @@ public final class BarracksScreen implements Screen {
                 context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.COMPANY_HQ));
         viewModel.command().returnToBriefing(context.getSelectedMission() != null);
         viewModel.command().navigation(
-                () -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS),
+                () -> context.openSquadFoundingFrom(ScreenId.BARRACKS),
                 context::openSquadEquipmentFromBarracks,
                 () -> context.goTo(context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.MISSION_SELECT),
                 context.planet != null || context.getSelectedMission() != null);
