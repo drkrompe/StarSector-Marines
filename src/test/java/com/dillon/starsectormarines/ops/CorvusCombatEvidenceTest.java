@@ -1,0 +1,269 @@
+package com.dillon.starsectormarines.ops;
+
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
+import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
+import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
+import com.dillon.starsectormarines.battle.fixture.FiniteCommandPowerResources;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
+import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
+import javax.imageio.ImageIO;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** Full production chapter playback; outcome is a finding, not a required victory. */
+@Tag("corvus-command-evidence")
+class CorvusCombatEvidenceTest {
+    @Test void recommendedCompanyAndRecoveredHound() throws Exception {
+        assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
+        Path output = Path.of(System.getProperty("corvus.command.evidence.outputDir", "build/reports/commander/corvus"));
+        int boatCount = Integer.getInteger("battle.corvus.boats", 2);
+        if (boatCount < 1 || boatCount > 4) throw new IllegalArgumentException("Use one to four company boats");
+        if (boatCount != 2) output = output.resolve("boats-" + boatCount);
+        String selectedChapter = System.getProperty("battle.corvus.chapter", "");
+        if (!selectedChapter.isEmpty()) CorvusChapter.valueOf(selectedChapter);
+        Files.createDirectories(output);
+        TileRegistryTestInstaller.install(Path.of("."));
+        int maxTicks = Integer.getInteger("corvus.command.evidence.maxTicks", 18000);
+        if (maxTicks < 1) throw new IllegalArgumentException("maxTicks must be positive");
+        var progress = new CorvusWaylineProgress();
+        var route = CorvusWaylineCampaignTest.closedRoute(2, true);
+        var reports = new JSONArray();
+        var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080);
+        for (CorvusChapter chapter : CorvusChapter.values()) {
+            Mission mission = CorvusWaylineCampaign.offer(progress, chapter.planetName, route);
+            if (!selectedChapter.isEmpty() && !chapter.name().equals(selectedChapter)) {
+                assertTrue(progress.begin(mission.id, chapter.planetName));
+                progress.settle(mission.id, chapter.planetName, true, chapter.payment);
+                continue;
+            }
+            Path dir = output.resolve(chapter.name().toLowerCase(Locale.ROOT));
+            Files.createDirectories(dir);
+            var roster = new MarineRoster();
+            roster.ensureActiveSoldiers(chapter.squads * 12);
+            assertTrue(roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment())));
+            var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
+            for (String squad : selected) assertEquals(SquadEquipmentResult.APPLIED,
+                    roster.applySquadEquipment(squad, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                            SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
+            // Same campaign organization path; each squad has an acting NCO, with no officer buffs.
+            var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
+            var boats = IntStream.range(0, boatCount).mapToObj(i -> FittedBoat.standard(ShuttleType.AEROSHUTTLE)).toList();
+            var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
+            var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface));
+            var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
+            assertEquals(1, powers.size());
+            var resources = new FiniteCommandPowerResources(30);
+            try (var sim = fixture.build()) {
+                var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,
+                        resources.availableSupplies(), mission.fieldPresencePolicy);
+                overlay.applyTo(sim, resources);
+                Files.writeString(dir.resolve("fixture.json"), BattleFixtureJson.toJson(new BattleLaunchFixture(fixture, overlay)).toString(2));
+                sim.setCommandTraceEnabled(true, fixture.kind());
+                Set<Long> landed = new HashSet<>(), fallen = new HashSet<>(), enemyFallen = new HashSet<>();
+                sim.subscribeDeath(event -> {
+                    long id = event.unitId();
+                    if (sim.identity().faction(id) == Faction.DEFENDER) enemyFallen.add(id);
+                    else if (sim.identity().faction(id) == Faction.MARINE && sim.identity().campaignSquadId(id) != null) fallen.add(id);
+                });
+                int initialDefenders = count(sim, Faction.DEFENDER);
+                int requestedAt = -1, houndLandedAt = -1, firstLandedAt = -1, allLandedAt = -1, firstShotAt = -1;
+                long hound = -1;
+                int houndShots = 0, houndKills = 0;
+                float houndDamage = 0, houndHp = 0, houndArmor = 0;
+                boolean houndAlive = false;
+                var samples = new JSONArray();
+                writeFrame(renderer, sim, chapter, dir);
+                while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
+                    var service = sim.getCommandPowerService();
+                    var support = service.getPower(MechSupport.ID);
+                    if (requestedAt < 0 && service.canActivate(support)) {
+                        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim)) {
+                            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY);
+                            requestedAt = sim.getSimTickIndex() + 1;
+                            break;
+                        }
+                    }
+                    sim.advance(BattleSimulation.TICK_DT);
+                    int tick = sim.getSimTickIndex();
+                    for (int i = 0; i < sim.liveUnitCount(); i++) {
+                        long id = sim.liveUnitAt(i);
+                        if (sim.identity().faction(id) != Faction.MARINE) continue;
+                        if (sim.identity().type(id) == UnitType.HEAVY_MECH) {
+                            if (hound < 0) {
+                                hound = id; houndLandedAt = tick;
+                                assertEquals(WaylineHound.NAME, sim.identity().name(id));
+                                sim.getEntityWorld().addComponent(id, sim.getBattleComponents().TELEMETRY);
+                            }
+                            assertEquals(hound, id, "Exactly one owned Hound must land");
+                        } else if (sim.identity().campaignSquadId(id) != null) landed.add(id);
+                    }
+                    if (!landed.isEmpty() && firstLandedAt < 0) firstLandedAt = tick;
+                    if (landed.size() == deployment.size() && allLandedAt < 0) allLandedAt = tick;
+                    for (var shot : sim.getShotsThisFrame()) {
+                        if (firstShotAt < 0) firstShotAt = tick;
+                        if (shot.shooterId == hound) houndShots++;
+                    }
+                    houndAlive = hound >= 0 && sim.world().isAlive(hound);
+                    if (houndAlive) {
+                        houndHp = sim.world().hp(hound); houndArmor = sim.world().armor(hound);
+                        houndKills = sim.telemetry().kills(hound); houndDamage = sim.telemetry().damageDealt(hound);
+                    }
+                    if (tick % 300 == 0 || sim.isComplete() || tick == maxTicks) {
+                        samples.put(new JSONObject().put("tick", tick).put("landed", landed.size()).put("fallen", fallen.size())
+                                .put("liveMarines", count(sim, Faction.MARINE)).put("liveDefenders", count(sim, Faction.DEFENDER))
+                                .put("houndShots", houndShots).put("houndAlive", houndAlive).put("objectives", objectives(sim)));
+                        Files.writeString(dir.resolve("samples.json"), samples.toString(2));
+                    }
+                    if (tick % 1800 == 0 || sim.isComplete() || tick == maxTicks) {
+                        writeFrame(renderer, sim, chapter, dir);
+                        Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
+                        System.out.println("[corvus] " + chapter.title + " tick=" + tick + " landed=" + landed.size()
+                                + " fallen=" + fallen.size() + " defenders=" + count(sim,Faction.DEFENDER));
+                    }
+                }
+                if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+                if (hound >= 0) {
+                    houndKills = sim.telemetry().kills(hound);
+                    houndDamage = sim.telemetry().damageDealt(hound);
+                }
+                Files.writeString(dir.resolve("trace.jsonl"), sim.getCommandTraceJsonLines());
+                var kits = new JSONArray();
+                for (var seat : deployment.commitments()) kits.put(new JSONObject().put("soldier", seat.campaignSoldierId())
+                        .put("weapon", seat.primaryWeaponId()).put("grade", seat.equipmentGrade().name())
+                        .put("armorCapacity", seat.armorCapacity()).put("armorRating", seat.armorRating()));
+                var report = new JSONObject().put("chapter", chapter.title).put("seed",mission.battleSeed)
+                        .put("companyBoats",boatCount).put("captainBonuses",false)
+                        .put("weapons",SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)
+                        .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
+                        .put("result", sim.isComplete() ? String.valueOf(sim.getWinner()) : "TIMEOUT")
+                        .put("ticks",sim.getSimTickIndex()).put("namedSeats",deployment.size()).put("landed",landed.size())
+                        .put("infantryDeaths",fallen.size()).put("enemyDeaths",enemyFallen.size()).put("initialDefenders",initialDefenders)
+                        .put("remainingDefenders", count(sim,Faction.DEFENDER)).put("firstLandedAt",firstLandedAt)
+                        .put("allLandedAt",allLandedAt).put("firstShotAt",firstShotAt).put("supportRequestedAt",requestedAt)
+                        .put("supportChargesRemaining",sim.getCommandPowerService().getChargesRemaining(MechSupport.ID))
+                        .put("suppliesSpent",30-resources.availableSupplies()).put("houndLandedAt",houndLandedAt)
+                        .put("houndAlive",houndAlive).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
+                        .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
+                        .put("objectives",objectives(sim)).put("kits",kits);
+                Files.writeString(dir.resolve("summary.json"),report.toString(2));
+                reports.put(report);
+                Files.writeString(output.resolve("summary.json"),reports.toString(2));
+                writeSummary(output, reports, boatCount);
+                assertTrue(houndLandedAt > 0, "Must actually deliver the recovered chassis");
+                assertEquals(0, sim.getCommandPowerService().getChargesRemaining(MechSupport.ID));
+            }
+            // Independent force baselines: advance the offer even if the preceding playback lost.
+            assertTrue(progress.begin(mission.id, chapter.planetName));
+            progress.settle(mission.id, chapter.planetName, true, chapter.payment);
+        }
+    }
+
+    private static JSONArray objectives(BattleSimulation sim) throws Exception {
+        var result = new JSONArray();
+        for (var objective : sim.getObjectives()) {
+            var row = new JSONObject().put("name",objective.displayName()).put("faction",objective.owningFaction().name())
+                    .put("complete",objective.isComplete()).put("failed",objective.isFailed());
+            if (objective instanceof ChargeSiteObjective site) row.put("progress",site.progress());
+            if (objective instanceof RaidObjective raid) row.put("phase",raid.phase().name())
+                    .put("targetX",raid.targetCellX()).put("targetY",raid.targetCellY()).put("progress",raid.serviceProgress());
+            result.put(row);
+        }
+        return result;
+    }
+
+    private static void writeSummary(Path output, JSONArray reports, int boats) throws Exception {
+        var text = new StringBuilder("# Corvus combat evidence\n\n")
+                .append("Independent full-strength companies; Frontier Security Equipment and Frontier Patchwork Protection; ")
+                .append("acting NCOs without officer bonuses; ").append(boats).append(" standard Aeroshuttles. ")
+                .append("One recovered Wayward Hound with nose chaingun and empty missile mounts. ")
+                .append("Normal support activation at the first legal pad, then autonomous command. ")
+                .append("Forced-serial headless production simulation; no live campaign or player-control acceptance.\n\n")
+                .append("| Chapter | Result | Seconds | Named infantry lost | Hound | Hound kills |\n")
+                .append("|---|---|---:|---:|---|---:|\n");
+        for (int i = 0; i < reports.length(); i++) {
+            var row = reports.getJSONObject(i);
+            text.append("| ").append(row.getString("chapter")).append(" | ").append(row.getString("result"))
+                    .append(" | ").append(String.format(Locale.ROOT,"%.1f",row.getInt("ticks") / 30.0))
+                    .append(" | ").append(row.getInt("infantryDeaths")).append('/').append(row.getInt("namedSeats"))
+                    .append(" | ").append(row.getBoolean("houndAlive") ? "Survived" : "Destroyed")
+                    .append(" | ").append(row.getInt("houndKills")).append(" |\n");
+        }
+        text.append("\nTIMEOUT means unresolved at the observation limit, not defeat. ")
+                .append("Infantry losses are battlefield deaths, before campaign medical settlement. ")
+                .append("The evidence task succeeding verifies the instrumentation and delivery, not acceptable difficulty.\n");
+        Files.writeString(output.resolve("summary.md"),text);
+    }
+
+    private static void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {
+        ImageIO.write(renderer.render(sim, chapter.title + " / " + sim.getSimTickIndex()/30 + "s"), "png",
+                dir.resolve(String.format(Locale.ROOT,"frame-%05d.png",sim.getSimTickIndex())).toFile());
+    }
+
+    private static int count(BattleSimulation sim, Faction side) {
+        int result = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) if (sim.identity().faction(sim.liveUnitAt(i)) == side) result++;
+        return result;
+    }
+
+    /** Neutral diagnostic reads only; no path or command is installed by this observer. */
+    private static JSONArray units(BattleSimulation sim) throws Exception {
+        var rows = new JSONArray();
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long id = sim.liveUnitAt(i);
+            if (sim.identity().faction(id) != Faction.MARINE) continue;
+            var squad = sim.squadOf(id);
+            var row = new JSONObject().put("id", id).put("name",sim.identity().name(id))
+                    .put("type",sim.identity().type(id).name()).put("x",sim.world().x(id)).put("y",sim.world().y(id))
+                    .put("hp",sim.world().hp(id)).put("armor",sim.world().armor(id))
+                    .put("pathRemaining",Paths.cellCount(sim.world().path(id))-sim.world().pathIdx(id));
+            if (squad != null) {
+                row.put("squad",squad.id).put("goal",squad.currentGoal == null ? "NONE" : squad.currentGoal.name());
+                var step = squad.currentPlan == null ? null : squad.currentPlan.currentStep();
+                row.put("action",step == null ? "NONE" : step.action.name());
+                var assignment = squad.assignmentForExecution();
+                if (assignment != null) {
+                    row.put("assignment",assignment.kind().name()).put("targetX",assignment.targetCellX()).put("targetY",assignment.targetCellY());
+                    if (assignment.targetCellX() >= 0 && assignment.targetCellY() >= 0)
+                        row.put("infantryRouteCells", Paths.cellCount(GridPathfinder.findPath(sim.getGrid(),
+                                sim.world().cellX(id),sim.world().cellY(id),assignment.targetCellX(),assignment.targetCellY())));
+                }
+            }
+            rows.put(row);
+        }
+        return rows;
+    }
+}

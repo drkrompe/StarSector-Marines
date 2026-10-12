@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, and `supply-route`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, and `corvus`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -185,6 +185,16 @@ Do not run builds or leave generated task files there.
   1920x1080 PNGs at the final arrival.
   It is not a live campaign save or a full-mission balance replay. Broker/HQ flow
   evidence uses `createSnapshots -Psnapshot=supply-route` at 100% scale.
+  `-Pmission=corvus` plays the three fixed Corvus chapters with their recommended
+  named companies, starter squad equipment and recovered chaingun-only Hound.
+  It requests normal Mech Support at the first legal pad, then leaves command
+  autonomous. Each chapter starts fresh; no campaign casualty carryover or officer
+  bonuses are assumed. Default observation is 18000 ticks with two Aeroshuttles.
+  `-Dbattle.corvus.boats=4` selects a different allowed lift count and separate
+  output folder; `-Dbattle.corvus.chapter=BLIND_WATCH` selects one chapter.
+  Reports retain exact launch fixtures, losses, delivery times, mech output,
+  command traces, minute frames and unit/route diagnostics. Outcomes are findings,
+  not victory assertions: a successful task does not certify mission balance.
   `-Pmission=thunder-run` uses named campaign squads and fitted boats through
   the production launch seam on the 320x144 freight corridor. Three ordinary
   interiors, absent arrival, total cargo loss, partial-cargo retry and confirmed
