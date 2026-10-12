@@ -96,7 +96,7 @@ public final class BarracksCommandModel {
         props.put("raiseSquad", (Runnable) () -> raiseSquad.run());
         props.put("missions", (Runnable) () -> missions.run());
         props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
-        bind(reactor, "missionLabel", () -> returnToBriefing ? "RETURN TO BRIEFING" : "MISSIONS");
+        bind(reactor, "missionLabel", () -> returnToBriefing ? "BRIEFING" : "MISSIONS");
         bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier ? "hidden" : "formation-board panel console-section");
