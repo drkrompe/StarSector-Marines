@@ -268,7 +268,7 @@ public final class FleetArmoryViewModel {
                         : "organization-toolbar-copy label tone-muted"));
         organizationProps.put("galleryCopy", reactor.computed(() -> organizing.get()
                 ? "Choose several formations and their officer. Stationed squads are locked to their posting."
-                : "Found a formation from fleet cargo, then inspect its marines and issue doctrine."));
+                : "Found a formation from available stores, then inspect its marines and issue doctrine."));
         organizationProps.put("startAction", (Runnable) this::beginOrganization);
         organizationProps.put("cancelAction", (Runnable) this::cancelOrganization);
         organizationProps.put("applyAction", (Runnable) this::applyOrganization);
@@ -1886,7 +1886,7 @@ public final class FleetArmoryViewModel {
         return switch (preview.result()) {
             case APPLIED -> preview.issueCost().isZero()
                     ? "Ready  ·  The squad already matches this equipment issue."
-                    : "Ready  ·  Fleet cargo bill shown below.";
+                    : "Ready  ·  Available stores bill shown below.";
             case INVALID_SQUAD -> "Select a line squad.";
             case SQUAD_NOT_READY -> "Not ready  ·  This squad needs twelve RTD marines.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
@@ -1895,7 +1895,7 @@ public final class FleetArmoryViewModel {
             case MISSING_TEMPLATE ->
                     "Blocked  ·  One or more required equipment templates are not known.";
             case INSUFFICIENT_CARGO ->
-                    "Blocked  ·  Fleet cargo shortages are marked below.";
+                    "Blocked  ·  Material shortages are marked below.";
         };
     }
 
