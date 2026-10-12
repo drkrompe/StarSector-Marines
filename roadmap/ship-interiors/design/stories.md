@@ -1,10 +1,10 @@
 # Ship interior story board
 
-Status: ACTIVE — six bounded stories are open; two have shipped.
+Status: ACTIVE — seven bounded stories are open; two have shipped.
 
 Written: 2026-08-26
 
-Updated: 2026-08-28 — every shipboard purpose now has a fitting written for it rather than a generic aisle: the mess is a galley behind a servery, the three holds differ from one another, the armoury is a counter with a workshop behind it, the sick bay is a ward plus a clinic, and the heads are ranked rather than represented by a crate. The bridge moved to a purpose of its own, because sharing `CONTROL_ROOM` with a factory booth and a fortress guard post was putting a nav plot in both. Earlier: every furnished compartment publishes work somebody's trade owns, and the ship carries a lounge and a gymnasium so that doing nothing has somewhere to happen; a manned transport and capital both measure at a zero idle share. Earlier: circulation is no longer a tree; a link pass joins dead ends that are near in the hull and far along the halls, and measuring it found that nine in ten bad detours have nowhere legal to cut, which points back at the packing rather than at the pass. Earlier: `company-ship-deck-adoption.md` has shipped and been folded into `ship-interiors-nouns.md`: the Barracks and Mech Lab are room views on one generated company ship, and no constant scene layout remains. The open frontier is what a deck holds — `facility-room-themes.md` and `ship-deck-family.md` — and letting the player choose the hull it is generated from.
+Updated: 2026-10-12 -- ambient wear and condition-driven lighting implemented; live visual acceptance remains.
 
 The first two stories are sequenced and the second depends on the first.
 `deck-capacity-upgrades.md` is gated on an economic owner, and
@@ -17,6 +17,7 @@ The first two stories are sequenced and the second depends on the first.
 | `room-authoring.md` | IN PROGRESS | Make a shipboard room an authored artifact the workbench edits: footprint, floors and walls, and the fixtures on them, seeded from the procedural fitting and compared against it through the battle renderer before it is accepted. Rests on the fact that a room's footprint is fixed and only its pose varies, so the placer is not involved. |
 | `company-ship-selection.md` | IN PROGRESS | Founding, transfer, the refit fee and the loss toll all land: the player picks the company ship, pays the yard to move it, and is displaced - and cut down - when it does not come home. Left: whether named officers are at risk with her. |
 | `deck-capacity-upgrades.md` | PROPOSED | Make facility capacity spatial and let a bounded upgrade transaction change the room. Needs a named economic owner first. |
+| `ship-ambient-wear.md` | IMPLEMENTED | Persistent restoration-hull scars, steady room lights and local emergency-light faults; live visual/performance acceptance remains. |
 | `boarding-deck-missions.md` | PARKED | Generate hostile prize decks for boarding once a mission model owns objectives and extraction. |
 
 `cerberus-company-start.md` implements the optional permanent frigate conversion and

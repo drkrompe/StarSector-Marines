@@ -1,0 +1,72 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-wear.scuffs",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "ship-wear.paint",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "ship-wear.patch",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "ship-wear.scorch",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "ship-wear.scuffs",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-wear.paint",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-wear.patch",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-wear.scorch",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-wear.png"
+}

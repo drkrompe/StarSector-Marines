@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 - sealed pressure hatches identify damaged-compartment entrances.
+Updated: 2026-10-12 -- persistent hull wear and room-condition lighting distinguish old scars from active faults.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1524,6 +1524,20 @@ and soot make the initial compartment visibly uninhabitable. Its sealed hatch
 and excluded floor keep crew out. Clearance removes the collapse and seals
 the breach with a welded patch before restoring access. Machinery repair removes
 scorch marks and replaces broken equipment; the patch remains as a repair scar.
+The hull also carries **persistent wear**: sparse boot/cargo scuffs, chipped paint,
+old welded plates and soot scars outside the active restoration work. Those marks
+survive facility repair, so a working ship still has a history. They decorate
+actual floor beneath furnishings and own no navigation, cover or capacity.
+
+**Deck lighting** belongs to the company interior presentation. Compartments and
+passages have visible fixtures and readable pools of light. Damaged facilities
+use amber emergency lighting with staggered local faults; intact/repaired rooms
+have steady fixtures in the same locations. Clearing workshop rubble alone does
+not restore its faulty lights; machinery repair does. Bay restoration restores
+its lights with its other facilities. Room masks confine the shading; space and
+management controls retain their own appearance. Lighting follows the shared
+deck clock across views, and has no combat visibility or simulation effect.
+
 These are hull-owned interior conditions, not a simulated atmosphere system.
 Debris, damaged machinery, empty picking racks and the restored
 assembly tools express those stages in the ordinary generated deck. The closed
