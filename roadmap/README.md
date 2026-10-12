@@ -188,7 +188,10 @@ a player squad swaps in a compact retained 3-by-4 fire-team matrix with health a
 equipment shorthand; hover supplies the full loadout, suit-system, profile, armour,
 and readiness detail. GOAP diagnostics exist only for the squad selected in the world.
 An MLX-authored top-right rail holds time selection and a compact, map-conditional
-capture ledger while Conquest commander intent sits opposite at top-left and world
+capture ledger while Conquest commander intent sits opposite at top-left. The
+shared mission picture connects named map places, progress and observed blockers
+with friendly squad activity for Extraction, Rescue and Silent Colony; remaining
+family adapters are tracked in `shared-mission-objectives.md`. World
 markers remain the primary objective read. The battle world paints full-bleed beneath
 these overlays; developer tools cluster at top-center and selected-squad GOAP detail
 is bounded below the right rail. A second
