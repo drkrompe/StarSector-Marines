@@ -140,4 +140,32 @@ class WarshipSoundTest {
         assertEquals(1, lit.size(), "one cue for one sweep: " + heard);
         assertEquals("lance_start", lit.get(0).soundId());
     }
+
+    @Test
+    void aBurningLanceAsksForItsLoopEveryTickAndOnlyThen() throws Exception {
+        SceneWorld world = world(VARIANT_LANCE, 70f);
+        assertTrue(play(world, 30).isEmpty(), "silent while telegraphing");
+        BattleSimulation sim = world.sim();
+        int burningTicks = 0;
+        int loopTicks = 0;
+        int cuesAfterOut = 0;
+        for (int t = 0; t < 400; t++) {
+            sim.advance(BattleSimulation.TICK_DT * 1.001f);
+            boolean burning = sim.lanceSweeps().active().stream().anyMatch(a -> a.isBurning());
+            List<WarshipSoundCue> loops = sim.warships().cuesThisFrame().stream()
+                    .filter(c -> c.kind() == WarshipSoundCue.Kind.BEAM_BURNING).toList();
+            if (burning) {
+                burningTicks++;
+                if (!loops.isEmpty()) {
+                    loopTicks++;
+                    assertEquals("lance_loop", loops.get(0).soundId());
+                }
+            } else {
+                cuesAfterOut += loops.size();
+            }
+        }
+        assertTrue(burningTicks > 10, "the lance burned: " + burningTicks);
+        assertEquals(burningTicks, loopTicks, "a loop cue on every burning tick");
+        assertEquals(0, cuesAfterOut, "no loop cue outside the burn");
+    }
 }

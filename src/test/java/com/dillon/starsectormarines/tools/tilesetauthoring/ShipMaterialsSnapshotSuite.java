@@ -22,7 +22,10 @@ import com.dillon.starsectormarines.battle.world.gen.fit.ShipBriefingRoomFitting
 import com.dillon.starsectormarines.battle.world.gen.fit.ShipGymFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.ShipWashroomFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.FiringRangeFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.ShipUtilityFitting;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
+import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.FurnishableRoom;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -106,6 +109,37 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
                             room.originY() + room.depth() / 2f,
                             room.width() + 8, room.depth() + 8, 32)));
         }
+        // A bounded construction fixture exercises every utility recipe through the generator;
+        // any particular hull's leftover pockets need not contain every utility kind.
+        ShipDeckGenerator utilityGenerator = new ShipDeckGenerator();
+        MapResult utilityDeck = utilityGenerator.generateDeck(new DeckSizing.DeckPlan(80, 32,
+                RoomRecipe.UTILITY, ShipsBoats.carriedBy(HullRole.FREIGHTER)), 42, null);
+        // Utility pockets must be selected separately from the full-sized machine shop.
+        for (RoomPurpose purpose : List.of(RoomPurpose.SERVER_ROOM, RoomPurpose.PARTS_CAGE, RoomPurpose.GENERIC)) {
+            DeckGraph.Compartment room = generator.getLastDeckGraph().compartments().stream()
+                    .filter(c -> c.purpose() == purpose && c.shape().area() <= 24).findFirst().orElse(null);
+            if (room != null) {
+                if (deck.doodads.stream().noneMatch(d -> room.contains(d.cellX, d.cellY)
+                        && d.definitionId().startsWith("ship-utility.")))
+                    throw new IllegalStateException("Generated utility room lost its fitting: " + purpose);
+                for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
+                        "ship-materials-utility-" + purpose.name().toLowerCase() + "-" + scale + "px.png",
+                        renderer.renderView(deck, 42, room.originX() + room.width() / 2f,
+                                room.originY() + room.depth() / 2f, room.width() + 4, room.depth() + 4, scale)));
+            }
+            DeckGraph.Compartment utility = utilityGenerator.getLastDeckGraph().compartments().stream()
+                    .filter(c -> c.purpose() == purpose).findFirst().orElseThrow();
+            if (utilityDeck.doodads.stream().noneMatch(d -> utility.contains(d.cellX, d.cellY)
+                    && d.definitionId().startsWith("ship-utility.")))
+                throw new IllegalStateException("Utility deck lost its fitting: " + purpose);
+            for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
+                    "ship-materials-utility-" + purpose.name().toLowerCase() + "-generated-" + scale + "px.png",
+                    renderer.renderView(utilityDeck, 42, utility.originX() + utility.width() / 2f,
+                            utility.originY() + utility.depth() / 2f, utility.width() + 4, utility.depth() + 4, scale)));
+            for (int turn = 0; turn < 4; turn++) images.add(new SnapshotArtifact(
+                    "ship-materials-utility-" + purpose.name().toLowerCase() + "-pose-" + turn + ".png",
+                    renderer.render(roomPose(turn, purpose, true), 42, 64)));
+        }
         DeckGraph.Compartment hangar = generator.getLastDeckGraph().compartments().stream()
                 .filter(c -> c.purpose() == RoomPurpose.HANGAR).findFirst().orElseThrow();
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck, generator.getLastDeckGraph(), 42, null)) {
@@ -163,6 +197,10 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
 
     private static MapResult roomPose(int turn, RoomPurpose purpose, boolean gig) {
         RoomPose pose = new RoomPose(turn, false);
+        boolean server = purpose == RoomPurpose.SERVER_ROOM;
+        boolean closet = purpose == RoomPurpose.GENERIC;
+        boolean parts = purpose == RoomPurpose.PARTS_CAGE && gig;
+        boolean utility = server || closet || parts;
         boolean range = purpose == RoomPurpose.FIRING_RANGE;
         boolean washroom = purpose == RoomPurpose.WASHROOM;
         boolean gym = purpose == RoomPurpose.GYMNASIUM;
@@ -179,8 +217,8 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         boolean sickbay = purpose == RoomPurpose.PATIENT_WARD;
         boolean stores = purpose == RoomPurpose.STOCKROOM;
         boolean lounge = purpose == RoomPurpose.CREW_LOUNGE;
-        int along = range ? 30 : washroom ? 6 : gym ? 14 : briefing ? 14 : loading ? 18 : hangar ? (gig ? 16 : 24) : shop ? 14 : drive ? 24 : auxiliary ? 20 : bridge ? 13 : lounge ? 16 : stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
-        int across = range ? 8 : washroom ? 5 : gym ? 10 : briefing ? 10 : loading ? 12 : hangar ? (gig ? 10 : 30) : shop ? 10 : drive ? 22 : auxiliary ? 14 : bridge ? 11 : lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
+        int along = server ? 5 : closet ? 3 : parts ? 6 : range ? 30 : washroom ? 6 : gym ? 14 : briefing ? 14 : loading ? 18 : hangar ? (gig ? 16 : 24) : shop ? 14 : drive ? 24 : auxiliary ? 20 : bridge ? 13 : lounge ? 16 : stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
+        int across = server || parts ? 4 : closet ? 3 : range ? 8 : washroom ? 5 : gym ? 10 : briefing ? 10 : loading ? 12 : hangar ? (gig ? 10 : 30) : shop ? 10 : drive ? 22 : auxiliary ? 14 : bridge ? 11 : lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
         RoomShape shape = (range ? RoomRecipe.RANGE.shape() : bridge ? RoomRecipe.COMMAND.shape() : RoomShape.rectangle(along, across)).posed(pose);
         int width = shape.width() + 4, height = shape.height() + 4;
         NavigationGrid grid = new NavigationGrid(width, height);
@@ -195,7 +233,7 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
             grid.setWalkable(x, y, false); topology.setWall(x, y, true);
             topology.setSurface(x, y, topology.surfaceIndex("ship.neutral-bulkhead"));
         }
-        int[] door = range ? pose.map(-1, 6, along, across) : loading ? pose.map(-1,5,along,across) : bridge ? pose.map(6, -1, along, across) : lounge ? pose.map(7, -1, along, across) : stores ? pose.map(14, -1, along, across) : sickbay ? pose.map(-1, 4, along, across)
+        int[] door = utility ? pose.map(-1, 1, along, across) : range ? pose.map(-1, 6, along, across) : loading ? pose.map(-1,5,along,across) : bridge ? pose.map(6, -1, along, across) : lounge ? pose.map(7, -1, along, across) : stores ? pose.map(14, -1, along, across) : sickbay ? pose.map(-1, 4, along, across)
                 : pose.map(mess ? along - 2 : 3, -1, along, across);
         int dx = door[0] + 2, dy = door[1] + 2;
         grid.setWalkableFloor(dx, dy); grid.setDoorway(dx, dy, true); topology.setWall(dx, dy, false);
@@ -203,7 +241,8 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         GenContext ctx = new GenContext(grid, topology, new Random(42), width, height, 42);
         RoomFloor floor = new RoomFloor(ctx, new FittingRoom(shape, 2, 2, pose, purpose,
                 List.of(new Doorway(dx, dy))), RoomFit.STANDARD);
-        if (range) FiringRangeFitting.shipboard().fit(floor);
+        if (server || closet) new ShipUtilityFitting(purpose).fit(floor);
+        else if (range) FiringRangeFitting.shipboard().fit(floor);
         else if (washroom) new ShipWashroomFitting().fit(floor);
         else if (gym) new ShipGymFitting().fit(floor);
         else if (briefing) new ShipBriefingRoomFitting().fit(floor);
