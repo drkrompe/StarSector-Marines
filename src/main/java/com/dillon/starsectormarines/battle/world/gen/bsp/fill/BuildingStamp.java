@@ -281,9 +281,17 @@ public enum BuildingStamp {
                 Direction side = window(cell(x, y));
                 if (side == null) continue;
                 int[] position = posed(x, y, turns);
+                Direction outward = posed(side, turns);
+                // A procedurally placed lot can back onto a neighbour's wall or the map edge;
+                // a window there looks onto nothing, so the plan simply goes without it.
+                int outsideX = left + position[0] + outward.dx;
+                int outsideY = bottom + position[1] + outward.dy;
+                if (!ctx.grid.inBounds(outsideX, outsideY) || !ctx.grid.isWalkable(outsideX, outsideY)) {
+                    continue;
+                }
                 try {
                     ctx.grid.placeEdgeBarrier(left + position[0], bottom + position[1],
-                            posed(side, turns), SharedEdgeBarrier.Kind.WINDOW);
+                            outward, SharedEdgeBarrier.Kind.WINDOW);
                 } catch (IllegalArgumentException ex) {
                     throw new IllegalArgumentException(name() + " turn " + turns
                             + " window " + x + "," + y, ex);

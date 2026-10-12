@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 
 /**
@@ -205,6 +207,12 @@ public final class LaneSidestep {
         // — a fixed emplacement or a scene's planted defender losing a second
         // and a half of fire to a move it can never make.
         if (!(sim.movement().moveSpeed(unit) > 0f)) return false;
+        // A squad whose goal is survival owns its members' movement: breaking line of
+        // sight or falling back clears or replaces any path on the tick it is authored,
+        // so a step-aside begun now would be thrown away having covered no ground.
+        Squad squad = sim.squadOf(unit);
+        if (squad != null && squad.currentGoal != null
+                && squad.currentGoal.priority() == Goal.Priority.SURVIVAL) return false;
 
         long target = engagementTarget(unit, sim);
         if (target == 0L) return false;
@@ -258,7 +266,11 @@ public final class LaneSidestep {
      * of why the field exists.
      */
     private static boolean continueMove(long unit, BattleControl sim, World world) {
-        if (!stillWalking(unit, world)) world.setSidestepTimer(unit, 0f);
+        // A path longer than any step-aside is somebody else's: a replan replaced ours
+        // mid-move, and the marine is no longer stepping aside whatever the timer says.
+        if (!stillWalking(unit, world) || !isStepPath(world, unit)) {
+            world.setSidestepTimer(unit, 0f);
+        }
         return false;
     }
 
@@ -313,7 +325,13 @@ public final class LaneSidestep {
         World world = sim.world();
         return world.hasAiState(unit)
                 && world.sidestepTimer(unit) > 0f
-                && stillWalking(unit, world);
+                && stillWalking(unit, world)
+                && isStepPath(world, unit);
+    }
+
+    /** Whether the path in hand is short enough to be a step-aside rather than a replacement. */
+    private static boolean isStepPath(World world, long unit) {
+        return Paths.cellCount(world.path(unit)) <= MAX_PATH_CELLS;
     }
 
     /** In transit: a marine being moved by his step, whose lane changes anyway. */
