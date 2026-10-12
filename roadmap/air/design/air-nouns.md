@@ -1600,6 +1600,17 @@ MIRV bloom that preserve the weapon's damage and area as a budget, and point
 defence over individual bodies. Until its slices ship, a missile mount still flies
 the straight-line shell described above.
 
+**What a ship is trying to do in an ordinary fight or mission is designed in
+`warship-behaviours.md`.** A small doctrine above the orders would pick a
+sticky posture (air superiority, support, intercept, bombard, withdraw) from a
+threat picture and the ship's stance on the objective, and set only the
+parameters of the machinery described here: the director's areas, an
+opportunity range, a flux ceiling, a station. It issues ordinary orders and
+changes no weapon's damage. Honest state today: a warship's weapons cannot
+target aircraft, aircraft cannot hurt a warship, and ground defences cannot hurt
+one either, so the air-superiority half waits on owner decisions about those
+rules; the objective-aware, friendly-aware fire half does not.
+
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
 them is optional. Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
