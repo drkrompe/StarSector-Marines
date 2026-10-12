@@ -148,7 +148,10 @@ public enum Affordance {
      * a list, and the list is what keeps a trade moving around the hull rather
      * than circling one compartment.
      */
-    REPAIR;
+    REPAIR,
+
+    /** A fixed entrance sentry, facing the hatch while keeping its approach open. */
+    GUARD;
 
     /**
      * Whether doing this is work, as opposed to what somebody does when they
@@ -165,7 +168,7 @@ public enum Affordance {
     public boolean duty() {
         return switch (this) {
             case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
-                    ROUNDS, REPAIR, COOK -> true;
+                    ROUNDS, REPAIR, COOK, GUARD -> true;
             case REST, MESS, PRACTICE, WASH, UNWIND, EXERCISE -> false;
         };
     }

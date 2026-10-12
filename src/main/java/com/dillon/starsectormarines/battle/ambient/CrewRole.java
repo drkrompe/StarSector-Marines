@@ -105,7 +105,12 @@ public enum CrewRole {
      */
     MARINE(RoomPurpose.BARRACKS, UnitType.MARINE,
             onWatchWith(Affordance.MESS, Affordance.PRACTICE),
-            List.of(Affordance.REST, Affordance.STOW));
+            List.of(Affordance.REST, Affordance.STOW)),
+
+    /** Ship's security rating; occupies crew berthing, not the company's marine roster. */
+    SECURITY(RoomPurpose.CREW_QUARTERS, UnitType.MARINE,
+            onWatchWith(Affordance.GUARD, Affordance.ROUNDS),
+            Amenities.AND_A_BUNK);
 
     /**
      * A trade's own work, and then the rooms everybody aboard uses.
@@ -282,7 +287,7 @@ public enum CrewRole {
     public static AmbientActivity activityFor(Affordance affordance) {
         return switch (affordance) {
             case SERVICE, FABRICATE, TREAT, ISSUE, TEND, REPAIR, COOK -> AmbientActivity.WORKING;
-            case STOW, READOUT, WATCH, ROUNDS -> AmbientActivity.INSPECTING;
+            case STOW, READOUT, WATCH, ROUNDS, GUARD -> AmbientActivity.INSPECTING;
             case REST, WASH -> AmbientActivity.RESTING;
             case MESS, UNWIND -> AmbientActivity.SOCIALIZING;
             case EXERCISE -> AmbientActivity.EXERCISING;
@@ -323,7 +328,7 @@ public enum CrewRole {
             case PRACTICE -> 19f;
             case WASH -> 8f;
             case TREAT -> 31f;
-            case WATCH -> 46f;
+            case WATCH, GUARD -> 46f;
             case ISSUE -> 17f;
             case TEND -> 25f;
             case REPAIR -> 37f;

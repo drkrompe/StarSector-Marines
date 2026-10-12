@@ -27,8 +27,8 @@ import java.util.List;
  * berth more people than she has bunks.
  *
  * <p>The {@link RoomShape} is a mask, not a rectangle and not an orientation.
- * {@link #COMMAND} is a diamond because a bridge is not a box; a range will be
- * an L. The placer turns a shape freely, so a berth laid across the beam to fill
+ * {@link #COMMAND} has chamfered corners around an enclosed operations floor;
+ * a range is an L. The placer turns a shape freely, so a berth laid across the beam to fill
  * a pocket is the same room as one laid along the hull.
  *
  * <p>{@link #zone} is the stretch of hull the room belongs in, or null for the
@@ -90,24 +90,26 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
             RoomPurpose.ARMORY, RoomShape.rectangle(12, 8), DeckZone.MIDSHIPS, 400);
 
     /**
-     * Bridge or combat information centre, forward, and one per deck at most.
-     * Cut as a chamfered diamond so the watch stands around a plot rather than
-     * along a wall — and, less romantically, as the standing proof that the
-     * packer handles a shape that is not a rectangle.
+     * Enclosed combat information centre, forward, and one per deck at most.
+     * The broad operations floor holds a central plot and independent console
+     * banks with circulation behind the operators. Small chamfers retain a
+     * shaped compartment without sacrificing the working corners to a diamond.
      */
     public static final RoomRecipe COMMAND = new RoomRecipe(
             RoomPurpose.BRIDGE, RoomShape.of(
-                    ".....###.....",
-                    "...#######...",
-                    "..#########..",
-                    ".###########.",
-                    "#############",
-                    "#############",
-                    "#############",
-                    ".###########.",
-                    "..#########..",
-                    "...#######...",
-                    ".....###....."),
+                    "..#############..",
+                    ".###############.",
+                    "#################",
+                    "#################",
+                    "#################",
+                    "#################",
+                    "#################",
+                    "#################",
+                    "#################",
+                    "#################",
+                    "#################",
+                    ".###############.",
+                    "..#############.."),
             DeckZone.FORE, 0);
 
     /**
