@@ -16,6 +16,12 @@ public record WarshipSoundCue(Kind kind, String soundId, float x, float y, float
         FIRE,
         /** A lance sweep went from telegraphing to burning. */
         BEAM_LIT,
+        /**
+         * A lance beam is burning this tick. Emitted every tick it burns, at the
+         * beam's tip, because the game's loop sounds play only for frames they are
+         * re-requested; the presenter calls {@code playLoop} on each.
+         */
+        BEAM_BURNING,
         /** A round landed. */
         IMPACT
     }
