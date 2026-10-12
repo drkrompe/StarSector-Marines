@@ -327,6 +327,11 @@ public final class WarshipSystem {
                     if (litBeams.add(m)) {
                         cue(WarshipSoundCue.Kind.BEAM_LIT, w.fireSoundId(), ship.mountX(m), ship.mountY(m));
                     }
+                    LanceSweep s = m.lance.sweep;
+                    float angle = m.lance.angle();
+                    cue(WarshipSoundCue.Kind.BEAM_BURNING, w.loopSoundId(),
+                            s.originX() + (float) Math.cos(angle) * s.reach(),
+                            s.originY() + (float) Math.sin(angle) * s.reach());
                 }
                 return;
             }
