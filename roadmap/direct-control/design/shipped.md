@@ -13,3 +13,4 @@ Written: 2026-09-26
 | `mech-terrain-clearance.md` | 2026-09-26 | this commit | `continuous-positions-nouns.md` — clearance routes and arrival; `mechs-nouns.md` — shared chassis clearance, placement, and tactical route intent |
 | `controlled-mech.md` | 2026-09-26 | this commit | `direct-control-nouns.md` — Mech control and handback; `mechs-nouns.md` — autonomous lance ownership; `ballistics-nouns.md` — posed mount sources |
 | `controlled-vehicle.md` | 2026-09-26 | this commit | `direct-control-nouns.md` — deployed APC control; `convoy-nouns.md` — swept motion, turret ownership, and suspended-order handback |
+| `click-weapon-groups` | 2026-10-12 | this commit | `direct-control-nouns.md` — mouse buttons and weapon groups (Mech primary/secondary groups, Marine secondary equipment) |
