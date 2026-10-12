@@ -1592,6 +1592,14 @@ take their own share. At the hull table's own figures a ground bombardment never
 nears an Onslaught's capacity. It is readable for a HUD (`fluxFraction`,
 `overloaded`, `overloadSecondsRemaining`), and the debug warship panel can toggle it.
 
+**Missiles are the plainest part of this model, and their rework is designed in
+`warship-missiles.md`.** It catalogues the vanilla missile lines a capital carries
+and their lore, and proposes an in-atmosphere flight model read from each
+weapon's own spec (boost, cruise, coast, bounded weave), swarm-burst volleys and
+MIRV bloom that preserve the weapon's damage and area as a budget, and point
+defence over individual bodies. Until its slices ship, a missile mount still flies
+the straight-line shell described above.
+
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
 them is optional. Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
