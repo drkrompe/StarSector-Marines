@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup;
+import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup.Satellite;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -127,6 +130,36 @@ public final class FortressInterior {
     }
 
     private FortressInterior() {}
+
+    /** Finish explicitly arranged buildings through the same shell and fitting rules as packed rooms. */
+    public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms) {
+        for (var room : rooms) {
+            for (int[] cell : room.shape().wall()) {
+                int x = room.originX() + cell[0], y = room.originY() + cell[1];
+                ctx.grid.setWalkable(x, y, false);
+            }
+            for (int[] cell : room.shape().filled()) {
+                int x = room.originX() + cell[0], y = room.originY() + cell[1];
+                ctx.grid.setWalkableFloor(x, y);
+                ctx.topology.setGroundKind(x, y, PALETTE.roomFloor());
+                ctx.topology.setRoomPurpose(x, y, room.purpose());
+                ctx.topology.setSurface(x, y, 0);
+            }
+            for (Doorway door : room.doors()) {
+                ctx.grid.setWalkableFloor(door.x(), door.y());
+                ctx.grid.setDoorway(door.x(), door.y(), true);
+                ctx.topology.setGroundKind(door.x(), door.y(), PALETTE.threshold());
+                ctx.topology.setRoomPurpose(door.x(), door.y(), RoomPurpose.CORRIDOR);
+                ctx.topology.setSurface(door.x(), door.y(), 0);
+            }
+        }
+        stampWalls(ctx, rooms);
+        furnish(ctx, rooms, true);
+        stampWindows(ctx, rooms);
+        InstallationFloors.dress(ctx, rooms);
+        InstallationWalls.dress(ctx, rooms);
+        return new Result(rooms, List.of());
+    }
 
     /**
      * Lay the program into {@code ground}, approached from {@code axis}.
@@ -253,8 +286,20 @@ public final class FortressInterior {
      * empty floor and look entirely correct from outside.
      */
     private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed) {
+        furnish(ctx, placed, false);
+    }
+
+    private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed, boolean authored) {
         for (RoomPacker.Placed room : placed) {
             RoomFitting fitting = RoomFittings.forPurpose(room.purpose());
+            if (fitting == null && authored) fitting = switch (room.purpose()) {
+                case CIVIC_OFFICE -> new AisleFitting(room.purpose(), FixtureGroup.of(
+                        "doodad.civic-workstation-bank", 4, 2,
+                        new Satellite("doodad.office-records-bank", 2, 0)));
+                case KEEP_THRONE, CONTROL_ROOM -> new AisleFitting(room.purpose(), FixtureGroup.of(
+                        "doodad.military-command-console", 2, 1));
+                default -> null;
+            };
             if (fitting == null) continue;
 
             int doodads = ctx.doodads.size();

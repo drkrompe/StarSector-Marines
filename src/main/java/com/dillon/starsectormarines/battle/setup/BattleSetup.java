@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.fortress.MaintenanceOutpost;
+
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 
 import com.dillon.starsectormarines.battle.command.ThunderRunCommand;
@@ -1007,8 +1009,10 @@ public final class BattleSetup {
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
-        MapResult map = MAP_GEN.generate(
-                scale.width, scale.height, seed, null, profile, precincts);
+        MapResult map = coldAccount
+                ? MaintenanceOutpost.generate(scale.width, scale.height, seed, profile,
+                        precincts.objective().fortification())
+                : MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precincts);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);

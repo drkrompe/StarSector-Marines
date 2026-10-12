@@ -3,10 +3,17 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.fortress.MaintenanceOutpost;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -42,6 +49,25 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
             try (var sim = fixture.build()) {
                 var grid = sim.getGrid();
                 var topology = sim.getTopology();
+                var site = MaintenanceOutpost.layout(true).at(7, (grid.getHeight() - 58) / 2, 0);
+                var clearance = VehicleClearance.erode(grid, 1);
+                var vehicleGrid = new NavigationGrid(grid.getWidth(), grid.getHeight());
+                for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++)
+                    if (clearance.isPassable(x, y)) vehicleGrid.setWalkableFloor(x, y);
+                int[] approach = site.cell(73, 29);
+                for (int[] local : new int[][]{{3, 31}, {25, 31}, {39, 46}}) {
+                    int[] target = site.cell(local[0], local[1]);
+                    assertTrue(GridPathfinder.findPath(vehicleGrid, approach[0], approach[1], target[0], target[1]).length > 0,
+                            "finished gate, service yard and bay approach must carry a three-cell vehicle");
+                }
+                for (var room : site.buildings()) for (var door : room.doors()) {
+                    assertTrue(grid.isDoorway(door.x(), door.y()), "authored doorway lost its identity");
+                    assertTrue(GridPathfinder.findPath(grid, approach[0], approach[1], door.x(), door.y()).length > 0,
+                            "furnishing/defenses must preserve every facility entrance");
+                }
+                var evidence = sim.getColdAccount().layout();
+                assertTrue(topology.getRoomPurpose(evidence.evidenceX(), evidence.evidenceY()) == RoomPurpose.CIVIC_OFFICE,
+                        "pirate records belong in dispatch, not a random gatehouse");
                 long geometry = 1;
                 int curvedCells = 0;
                 var walls = new TreeMap<String, Integer>();
@@ -72,11 +98,23 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                 }
                 assertTrue(curvedCells > 0, "generated road curves must reach the production renderer");
                 report.append(surface).append(" geometry=").append(geometry)
+                        .append(" vehicleRoutes=3 facilityDoors=reachable records=dispatch")
                         .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
                         .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
                         renderer.render(sim, "Installation / " + surface)));
                 if (surface == SurfacePalette.FROZEN) {
+                    var labels = ReviewAnnotations.builder();
+                    String[] names = {"Mech bay", "Workshop", "Magazine", "Command", "Power", "Mess hall",
+                            "Barracks court", "Dispatch records", "Service entrance"};
+                    int[][] anchors = {{17, 49}, {10, 22}, {26, 21}, {9, 7}, {22, 8}, {35, 8},
+                            {52, 14}, {52, 39}, {70, 29}};
+                    for (int i = 0; i < names.length; i++) {
+                        int[] at = site.cell(anchors[i][0], anchors[i][1]);
+                        labels.label(at[0], at[1], names[i], ReviewStyle.NOTE);
+                    }
+                    frames.add(new SnapshotArtifact("frozen-layout.png",
+                            renderer.render(sim, "Maintenance outpost / layout review", labels.build())));
                     // Diagnostic cuts through the ordinary combat wall path, not a mission replay.
                     for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++) {
                         if (topology.isWall(x, y) && !topology.isFixture(x, y)

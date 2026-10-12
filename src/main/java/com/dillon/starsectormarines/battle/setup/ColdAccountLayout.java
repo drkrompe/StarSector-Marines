@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import java.util.Comparator;
 import java.util.List;
 
-/** Records at the near dispatch office; the installation footprint is the strike target. */
+/** Records belong to dispatch; the installation footprint is the strike target. */
 public record ColdAccountLayout(int evidenceX, int evidenceY, int withdrawalX, int withdrawalY,
                                 float strikeX, float strikeY, float strikeRadius) {
     public static final float WITHDRAWAL_RADIUS = 12f;
@@ -19,7 +19,9 @@ public record ColdAccountLayout(int evidenceX, int evidenceY, int withdrawalX, i
                 .filter(p -> map.grid.isWalkable(p.interiorAnchorX, p.interiorAnchorY))
                 .filter(p -> GridPathfinder.findPath(map.grid, exit.centerX, exit.centerY,
                         p.interiorAnchorX, p.interiorAnchorY).length > 0).toList();
-        PointOfInterest records = places.stream().min(Comparator.comparingDouble(p -> distance(p, exit)))
+        PointOfInterest records = places.stream()
+                .filter(p -> p.kind == PointOfInterest.Kind.ADMINISTRATIVE)
+                .min(Comparator.comparingDouble(p -> distance(p, exit)))
                 .orElseThrow(() -> new IllegalStateException("Cold Account needs an accessible dispatch office"));
         int left = places.stream().mapToInt(p -> p.left).min().orElseThrow();
         int right = places.stream().mapToInt(p -> p.right).max().orElseThrow();
