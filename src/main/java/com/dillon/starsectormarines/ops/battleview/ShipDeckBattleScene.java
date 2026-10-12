@@ -747,6 +747,21 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 postings.add(new Posting(room, role));
             }
         }
+        // Give each as-yet unstaffed trade a first roaming hand before adding
+        // more hands to departments already covered by the required watch.
+        // Otherwise early machinery rooms consume the remainder and moving two
+        // duty slots to the CIC silently removes the galley's only cook.
+        EnumSet<CrewRole> represented = EnumSet.noneOf(CrewRole.class);
+        for (Posting posting : postings)
+            if (billets.getOrDefault(billet(posting.room(), posting.role()), 0) > 0)
+                represented.add(posting.role());
+        List<Posting> firstHands = new ArrayList<>(), furtherHands = new ArrayList<>();
+        for (Posting posting : postings) {
+            if (represented.add(posting.role())) firstHands.add(posting);
+            else furtherHands.add(posting);
+        }
+        firstHands.addAll(furtherHands);
+        postings = firstHands;
         // One at a time, round the postings, until either the work runs out or
         // the bunks do. Filling each posting to its own capacity in turn would
         // let the first rooms in the list take the whole complement, and the

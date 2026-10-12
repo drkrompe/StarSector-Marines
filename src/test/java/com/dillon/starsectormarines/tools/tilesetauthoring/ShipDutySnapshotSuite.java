@@ -71,12 +71,25 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Command entrance has no occupied guard post");
             if (scene.dutyCrew().size() > hull.minCrew())
                 throw new IllegalStateException("Guard exceeded duty complement");
+            long commandWatch = scene.dutyCrew().values().stream()
+                    .filter(post -> post.role() == CrewRole.BRIDGE_WATCH && post.room().purpose() == RoomPurpose.BRIDGE).count();
+            long engineWatch = scene.dutyCrew().values().stream()
+                    .filter(post -> post.role() == CrewRole.ENGINE_WATCH).count();
+            if (commandWatch != 5 || engineWatch != 2)
+                throw new IllegalStateException("CIC side consoles or engineering understaffed: " + commandWatch + "/" + engineWatch);
             var sim = scene.simulation();
+            for (String trade : List.of("cook-", "armourer-", "machinist-", "storekeeper-")) {
+                boolean staffed = false;
+                for (long actor : hired)
+                    if (!scene.dutyCrew().containsKey(actor) && sim.identity().name(actor).startsWith(trade)) staffed = true;
+                if (!staffed) throw new IllegalStateException("CIC allocation removed roaming trade " + trade);
+            }
             if (named.length != 2 || named[0] == 0 || named[1] == 0
                     || !sim.identity().name(named[0]).equals("Morgan Vale"))
                 throw new IllegalStateException("Named roster lost");
             System.out.println("ship-duty: " + hired.length + " ship crew; " + scene.dutyCrew().size()
-                    + " on duty; 2 named marines; minCrew=" + hull.minCrew());
+                    + " on duty; " + commandWatch + " command operators; " + engineWatch
+                    + " engineering; 1 guard; 2 named marines; minCrew=" + hull.minCrew());
             var drain = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             for (int tick = 0; tick <= 3600; tick++) {
@@ -87,11 +100,11 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                     if (post.role() != CrewRole.BRIDGE_WATCH && post.role() != CrewRole.ENGINE_WATCH
                             && post.role() != CrewRole.SECURITY) continue;
                     long actor = entry.getKey();
-                    if (post.role() == CrewRole.SECURITY) {
+                    if (post.role() == CrewRole.SECURITY || post.role() == CrewRole.BRIDGE_WATCH) {
                         var stand = post.route().stops().get(0);
                         if (sim.world().cellX(actor) != (int) stand.worldX()
                                 || sim.world().cellY(actor) != (int) stand.worldY())
-                            throw new IllegalStateException("Entrance guard left post at tick " + tick);
+                            throw new IllegalStateException("Command watch left post at tick " + tick + ": " + post.route().id());
                     }
                     if (!post.room().contains(sim.world().cellX(actor), sim.world().cellY(actor))
                             || sim.ambientTasks().jobInHand(actor) == null)
