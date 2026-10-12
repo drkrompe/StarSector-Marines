@@ -1,0 +1,36 @@
+<template props="later,resume,continueAction">
+  <div id="preparation-overlay" class="preparation-overlay">
+    <div id="preparation-shade" class="preparation-shade"></div>
+    <div id="preparation-callout" class="preparation-callout">
+      <div id="preparation-heading" class="preparation-heading">
+        <img id="preparation-portrait" class="preparation-portrait" src="graphics/portraits/castle.png" />
+        <div id="preparation-heading-copy" class="preparation-heading-copy">
+          <div id="preparation-speaker" class="preparation-speaker">CASTLE / COMPANY OFFICER</div>
+          <div id="preparation-title" class="preparation-title"></div>
+          <img id="preparation-progress" class="preparation-progress" src="graphics/ui/officers/preparation-step-0.svg" />
+        </div>
+      </div>
+      <div id="preparation-copy" class="preparation-copy"></div>
+      <div id="preparation-actions" class="preparation-actions">
+        <button id="preparation-later" class="preparation-button" onclick="{later}">LATER</button>
+        <button id="preparation-continue" class="preparation-button" onclick="{continueAction}">CONTINUE</button>
+      </div>
+    </div>
+    <button id="preparation-resume" class="preparation-resume" onclick="{resume}">CASTLE'S LESSON</button>
+  </div>
+</template>
+<style>
+  .preparation-overlay, .preparation-shade { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
+  .preparation-callout { position: absolute; flex-direction: column; width: 500px; height: 364px; padding: 12px; gap: 10px; border-width: 2px; border-color: #dfc588; background-color: #202d28; pointer-events: auto; }
+  .preparation-heading { flex-direction: row; height: 88px; gap: 12px; }
+  .preparation-portrait { width: 84px; height: 84px; border-width: 2px; border-color: #8a967f; }
+  .preparation-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .preparation-speaker { height: 18px; font-family: heading; color: #dfc588; }
+  .preparation-title { height: 38px; white-space: normal; font-family: heading; }
+  .preparation-progress { width: 180px; height: 20px; }
+  .preparation-copy { height: 0px; flex-grow: 1; white-space: normal; overflow: scroll; }
+  .preparation-actions { flex-direction: row; height: 32px; gap: 10px; }
+  .preparation-button { width: 140px; height: 30px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
+  .preparation-resume { position: absolute; left: 20px; top: 70px; width: 176px; height: 32px; border-width: 1px; border-color: #dfc588; background-color: #202d28; pointer-events: auto; }
+  .preparation-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; gap: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+</style>

@@ -79,6 +79,8 @@ public final class BarracksScreen implements Screen {
             viewModel.refresh();
         }
         if (context.takeOfficerInductionRequest()) viewModel.command().resumeGuide();
+        viewModel.command().onPreparationComplete(() -> context.goTo(
+                context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.COMPANY_HQ));
         viewModel.command().returnToBriefing(context.getSelectedMission() != null);
         viewModel.command().navigation(
                 () -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS),

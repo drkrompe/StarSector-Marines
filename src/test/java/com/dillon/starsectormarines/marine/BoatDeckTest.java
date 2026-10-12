@@ -29,7 +29,7 @@ class BoatDeckTest {
     private static final String WARSHIP = "fleet-member-warship";
 
     @Test
-    void aFreshDeckComesUpHoldingTheHullsOwnBoatsAtStandardFit() {
+    void aLegacyDeckRetainsItsHistoricalInitialComplement() {
         BoatDeck deck = new BoatDeck();
 
         BoatDeck.LeftBehind cost = deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
@@ -90,14 +90,11 @@ class BoatDeckTest {
 
         assertEquals(6, cost.count());
         assertEquals(2, deck.berths());
-        for (CampaignBoat boat : deck.airworthy()) {
-            assertEquals(ShuttleType.HERMES, boat.pattern());
-            assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
-        }
+        assertTrue(deck.airworthy().isEmpty());
     }
 
     @Test
-    void movingToABiggerHullKeepsEveryBoatAndFillsTheRestAtStandardFit() {
+    void movingToABiggerHullKeepsEveryBoatAndLeavesVacancies() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 3);
         List<String> before = ids(deck);
@@ -106,7 +103,8 @@ class BoatDeckTest {
 
         assertFalse(cost.any());
         assertEquals(6, deck.berths());
-        assertEquals(before, ids(deck).subList(0, 3));
+        assertEquals(before, ids(deck));
+        assertEquals(List.of(3, 4, 5), deck.vacantBerths());
     }
 
     /**
@@ -143,13 +141,9 @@ class BoatDeckTest {
         assertEquals(6, deck.airworthy().size());
     }
 
-    /**
-     * The berths belong to the hull, so the losses stay with her. Aboard another
-     * ship the company simply has her boats, and what happened over a compound
-     * two systems ago is not her bays' problem.
-     */
+    /** A change of home never pays the replacement bill. */
     @Test
-    void movingShipFillsTheVacanciesWithHerOwnBoats() {
+    void movingShipPreservesLosses() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
         List<String> before = ids(deck);
@@ -157,8 +151,8 @@ class BoatDeckTest {
 
         deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 6);
 
-        assertEquals(6, deck.airworthy().size());
-        assertEquals(List.of(), deck.vacantBerths());
+        assertEquals(4, deck.airworthy().size());
+        assertEquals(List.of(4, 5), deck.vacantBerths());
         assertEquals(List.of(before.get(0), before.get(2), before.get(3), before.get(5)),
                 ids(deck).subList(0, 4), "the survivors compact into her berths in order");
     }
@@ -174,8 +168,10 @@ class BoatDeckTest {
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
         collect(deck, seen);
         deck.reconcile(WARSHIP, ShuttleType.HERMES, 2);
+        for (int berth : deck.vacantBerths()) deck.fabricate(berth);
         collect(deck, seen);
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        for (int berth : deck.vacantBerths()) deck.fabricate(berth);
         collect(deck, seen);
 
         assertEquals(14, seen.size(), "6 landing craft, 2 gigs, then 6 more landing craft");
