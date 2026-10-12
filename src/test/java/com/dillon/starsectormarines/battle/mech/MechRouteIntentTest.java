@@ -50,6 +50,7 @@ class MechRouteIntentTest {
                 case "liveUnitAt" -> roster.denseArray()[(int) args[0]];
                 case "bodies" -> roster.bodies();
                 case "asyncDefendTrackRoutes" -> null;
+                case "survivorPickup" -> null;
                 case "requestPath" -> {
                     requests.add(MechRouteIntent.cellKey((int) args[1], (int) args[2]));
                     yield response;

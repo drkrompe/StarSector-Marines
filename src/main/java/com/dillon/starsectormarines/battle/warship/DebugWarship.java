@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -173,6 +174,25 @@ public final class DebugWarship {
     public static void fireAt(Warship ship, float cellX, float cellY) {
         ship.stopDirecting();
         ship.order(new WarshipOrder.FireOnArea(cellX, cellY, AREA_RADIUS_CELLS, true));
+    }
+
+    /** Sends the ship to hover over the cell, leaving any route it was flying. */
+    public static void goTo(Warship ship, float cellX, float cellY) {
+        ship.flyRoute(null, false);
+        ship.stationTo(cellX, cellY);
+    }
+
+    /**
+     * Flies the ship round the waypoints forever, passing through each at speed; a single
+     * waypoint is just {@link #goTo}. Whatever it was ordered to fire on, it keeps firing.
+     */
+    public static void patrol(Warship ship, List<float[]> waypoints) {
+        if (waypoints == null || waypoints.isEmpty()) return;
+        if (waypoints.size() == 1) {
+            goTo(ship, waypoints.get(0)[0], waypoints.get(0)[1]);
+            return;
+        }
+        ship.flyRoute(waypoints.toArray(new float[0][]), true);
     }
 
     /** Puts the ship on, or takes it off, its hull's flux; the pool starts empty either way. */
