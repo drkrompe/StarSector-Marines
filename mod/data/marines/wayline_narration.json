@@ -703,7 +703,7 @@
       "id": "marines_castle_thunder_crossing_window_complete",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.crossing_window_complete",
-      "text": "The armor is ready at staging. Push on and secure Outbound Gate to release it. Replace any Defend Area orders on squads you want to advance; leave enough people covering the road.",
+      "text": "The armor is moving up behind us. Push on and secure Outbound Gate to release the breakthrough. Replace any Defend Area orders on squads you want to advance; leave enough people covering the road.",
       "durationSeconds": 16,
       "priority": 40,
       "expiresSeconds": 40,

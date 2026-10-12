@@ -37,6 +37,7 @@ public final class ThunderRunSequence {
     private final List<Integer> releasedCargo = new ArrayList<>();
     private final int[] gunWork = new int[2];
     private final boolean[] gunsBuilt = new boolean[2];
+    private final boolean[] armorStaged = new boolean[3];
     private final List<Long> supportGuns = new ArrayList<>();
     private int phaseTick, currentTick;
     private final long advanceHauler;
@@ -103,8 +104,14 @@ public final class ThunderRunSequence {
         currentTick = sim.getSimTickIndex();
         beat(sim, "started");
         if (advanceHauler != 0L) beat(sim, "advance_distress");
-        if (phase > 0 && phase < 3 && holdRemainingTicks() == 0)
+        if (phase > 0 && phase < 3 && holdRemainingTicks() == 0) {
             beat(sim, phase == 1 ? "dispatch_window_complete" : "crossing_window_complete");
+            if (!armorStaged[phase] && heldThrough(sim, phase)) {
+                armorStaged[phase] = true;
+                for (long id : escorts) order(sim, id);
+                order(sim, heavyLead);
+            }
+        }
         releaseBatches(sim);
         prepareSupportGuns(sim);
         observeDefendOrder(sim);
@@ -160,11 +167,8 @@ public final class ThunderRunSequence {
                 beat(sim, "rear_clear");
             }
         }
-        var sites = new ArrayList<>(sim.getCompoundService().getRecords());
         // Militia must retain earlier gains when a new leg is released. A release is not revocable mid-road.
-        boolean held = sites.size() == 4;
-        for (int i = 0; i <= Math.min(phase + 1, 3) && held; i++) held &= sites.get(i).state == CompoundState.MARINE_HELD;
-        if (phase < 3 && held && holdRemainingTicks() == 0 && columnStopped(sim)) {
+        if (phase < 3 && heldThrough(sim, phase + 1) && holdRemainingTicks() == 0 && columnStopped(sim)) {
             phase++;
             phaseTick = currentTick;
             beat(sim, phase == 1 ? "column_released" : phase == 2 ? "crossing_secured" : "final_run");
@@ -182,6 +186,12 @@ public final class ThunderRunSequence {
                 order(sim, advanceHauler);
             }
         }
+    }
+    private boolean heldThrough(BattleSimulation sim, int lastSite) {
+        var sites = List.copyOf(sim.getCompoundService().getRecords());
+        if (sites.size() != 4) return false;
+        for (int i = 0; i <= lastSite; i++) if (sites.get(i).state != CompoundState.MARINE_HELD) return false;
+        return true;
     }
     private boolean columnStopped(BattleSimulation sim) {
         for (long id : cargo.values()) if (sim.convoy().isVehicle(id)

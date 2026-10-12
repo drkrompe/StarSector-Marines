@@ -583,8 +583,9 @@ not player inventory grants or missile-defense pods converted into anti-infantry
 weapons. Both mounts must have walkable connected approach cells.
 
 The first load moves to the Dispatch stop, and two move to the East stop. The
-remaining freight waits west. Armor joins for the final breakthrough after the
-defensive windows and Outbound Gate capture. The tank takes the forward center position,
+remaining freight waits west. Armor moves to the next road stop after each
+defensive window, closing behind the company before Outbound Gate capture
+releases its final breakthrough. The tank takes the forward center position,
 using slower paired high-explosive cannon fire against the exit gun line. It
 holds ahead of the crossing until the first surviving hauler approaches, then
 pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
