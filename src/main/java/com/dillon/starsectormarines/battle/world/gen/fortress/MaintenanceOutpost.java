@@ -31,6 +31,8 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Building;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Cluster;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Yard;
@@ -146,10 +148,16 @@ public final class MaintenanceOutpost {
                 c.topology.setGroundKind(at[0], at[1], GroundKind.COURTYARD);
                 c.topology.setSurface(at[0], at[1], c.topology.surfaceIndex(Material.CONCRETE.block(1)));
             }
+        supplyPads(c);
         var localRoads = new ArrayList<>(site.roads(c.seed));
         localRoads.add(new Route("Outpost access", List.of(point(site, 79, 35),
-                new Point(158, 78), new Point(190, 65), new Point(226, 67),
+                new Point(158, 78), new Point(190, 65), new Point(214, 67),
+                new Point(c.width - 62, c.height / 2),
                 new Point(c.width - 1, c.height / 2)), 5, 1, .4, c.seed, Material.ASPHALT));
+        localRoads.add(new Route("Supply stand service lane", List.of(
+                new Point(c.width - 58, c.height / 2 - 22),
+                new Point(c.width - 58, c.height / 2 + 22)), 3, 1, .55, c.seed,
+                Material.CONCRETE));
         var routes = new RoadPlan(c.width, c.height, localRoads);
         var raster = RoadRasterizer.rasterize(routes);
         RoadRasterizer.stamp(routes, raster, c.grid, c.topology);
@@ -158,15 +166,32 @@ public final class MaintenanceOutpost {
             if (raster.road(x, y)) road[x][y] = 0;
             reservation[x][y] = raster.shoulder()[y * c.width + x];
         }
-        // Four clear field berths support both the ordinary pair and four-boat launches.
-        for (int y : new int[]{c.height / 2 - 22, c.height / 2 - 8, c.height / 2 + 8, c.height / 2 + 22})
-            c.landingPads.add(new LandingPad(c.width - 48, y, 5, 3, LandingPad.Approach.EAST,
-                    LandingPad.Purpose.FALLBACK));
         c.put(BspKeys.PRECINCT_CLAIM, claim);
         c.put(BspKeys.PRECINCT_ROAD, road);
         c.put(BspKeys.ROAD_RESERVATION, reservation);
         c.put(BspKeys.ROAD_CELLS, reservation);
         c.put(BspKeys.ROAD_GRAPH, RoadGraphBuilder.build(reservation));
+    }
+
+    /** Supply-run hardstands: only paved working ground is cleared of fine field dressing. */
+    private static void supplyPads(GenContext c) {
+        var tiles = TileRegistry.installed();
+        var stripe = tiles == null ? null : tiles.doodad("doodad.fl-striped-yellow");
+        for (int y : new int[]{c.height / 2 - 22, c.height / 2 - 8, c.height / 2 + 8, c.height / 2 + 22}) {
+            var pad = new LandingPad(c.width - 48, y, 5, 3, LandingPad.Approach.EAST,
+                    LandingPad.Purpose.FALLBACK);
+            c.landingPads.add(pad);
+            for (int yy = pad.bottom() - 1; yy <= pad.top() + 1; yy++)
+                for (int x = pad.left() - 3; x <= pad.right() + 2; x++) {
+                    boolean corner = (x == pad.left() - 1 || x == pad.right() + 1)
+                            && (yy == pad.bottom() - 1 || yy == pad.top() + 1);
+                    c.topology.setGroundKind(x, yy, GroundKind.COURTYARD);
+                    c.topology.setSurface(x, yy, c.topology.surfaceIndex(
+                            Material.CONCRETE.block(RoadRasterizer.age(.55, c.seed, x, yy))));
+                    if (corner && stripe != null) c.doodads.add(new Doodad(x, yy, stripe));
+                    c.markMadeGround(x, yy);
+                }
+        }
     }
 
     private static Point point(CompoundLayout.Placement site, int x, int y) {

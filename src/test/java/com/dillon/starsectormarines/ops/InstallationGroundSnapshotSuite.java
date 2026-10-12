@@ -131,15 +131,41 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                 assertTrue(fieldRocks > 200, "open country must retain planet-aware small scatter");
                 assertTrue(mountainCells > 2500, "mountain basin must have substantial relief");
                 assertTrue(curvedCells > 0, "generated road curves must reach the production renderer");
+                int approachScatter = 0;
+                var approachGround = new EnumMap<GroundKind, Integer>(GroundKind.class);
+                for (int y = 51; y <= 109; y++) for (int x = 250; x < grid.getWidth(); x++) {
+                    assertFalse(grid.hasTag(x, y, CellTag.NATURAL_SOLID),
+                            "supply flight approach must exclude trees and mineral formations");
+                    if (topology.getNatureOverlayIndex(x, y) >= 0) approachScatter++;
+                    if (topology.getSurface(x, y) == 0)
+                        approachGround.merge(topology.getGroundKind(x, y), 1, Integer::sum);
+                }
+                assertTrue(approachScatter > 50, "air clearance must not erase passable field scatter");
+                if (surface == SurfacePalette.VERDANT)
+                    assertTrue(approachGround.size() > 1, "air clearance must retain native ground patches");
+                for (int y : new int[]{58, 72, 88, 102}) {
+                    for (int yy = y - 3; yy <= y + 3; yy++) for (int x = 235; x <= 245; x++) {
+                        assertTrue(grid.isWalkable(x, yy), "supply stand must stay clear");
+                        assertTrue(topology.getGroundKind(x, yy) == GroundKind.COURTYARD,
+                                "supply stand must retain its concrete instead of field or through-road");
+                        assertTrue(topology.getNatureOverlayIndex(x, yy) < 0, "no scatter on working pads");
+                    }
+                    assertTrue(GridPathfinder.findPath(vehicleGrid, 240, y, approach[0], approach[1]).length > 0,
+                            "supply stands need vehicle access to the compound");
+                }
                 report.append(surface).append(" geometry=").append(geometry)
                         .append(" vehicleRoutes=3 facilityDoors=reachable records=dispatch")
                         .append(" fieldOverlays=").append(fieldRocks).append(" naturalSolidCells=").append(mountainCells)
                         .append(" summitFormations=").append(summitProps.size()).append(" edgeMassCells=").append(edgeMass)
+                        .append(" supplyStands=4 approachScatter=").append(approachScatter)
                         .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
                         .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
                         renderer.render(sim, "Installation / " + surface)));
                 if (surface == SurfacePalette.FROZEN) {
+                    var supplyView = new BattleReviewFrameRenderer(context.modRoot(), 1600, 1000, 241, 80, 108);
+                    frames.add(new SnapshotArtifact("frozen-supply-pads.png",
+                            supplyView.render(sim, "Supply landing area / clear stands, natural approaches")));
                     var labels = ReviewAnnotations.builder();
                     String[] names = {"Mech bay", "Workshop", "Magazine", "Command", "Power", "Mess hall",
                             "Barracks court", "Dispatch records", "Service entrance"};
