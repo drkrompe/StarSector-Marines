@@ -79,7 +79,7 @@ class PropDamageTest {
     @Test void overlappingStaticFixtureAndWalkableCoverKeepTheirOwnProfiles() {
         try (Ground g = new Ground()) {
             g.prop("doodad.industrial-generator", true, 0, false);
-            g.prop("doodad.shelf-2", true, 0, false);
+            g.prop("doodad.civic-server-rack", true, 0, false);
             g.editor.damageWall(3, 3, 100);
             assertFalse(g.grid.isWalkable(3, 3)); assertTrue(g.topology.isFixture(3, 3));
             assertEquals(3, g.grid.getCellCoverAtFacing(2, 3, NavigationGrid.FACING_E));

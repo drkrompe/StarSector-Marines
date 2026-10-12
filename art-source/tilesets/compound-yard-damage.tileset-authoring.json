@@ -1,0 +1,172 @@
+{
+  "sheetName": "compound-yard-damage",
+  "sheet": "art-source/tilesets/compound-yard-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 5,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Geometry-first ImageGen reskin with retained guide and reference. Five equal full-canvas slots per row; preserve gutters and pivot, no silhouette trim or recenter. Top damaged, bottom separated low remnants. Central debris void reviewed.",
+  "entries": [
+    {
+      "id": "doodad.industrial-cable-reel-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        397,
+        396
+      ]
+    },
+    {
+      "id": "doodad.industrial-pallet-stack-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        397,
+        0,
+        396,
+        396
+      ]
+    },
+    {
+      "id": "doodad.industrial-pipe-bundle-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.32,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        793,
+        0,
+        397,
+        396
+      ]
+    },
+    {
+      "id": "doodad.military-bunk-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.25,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1190,
+        0,
+        396,
+        396
+      ]
+    },
+    {
+      "id": "doodad.desk-2-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1586,
+        0,
+        397,
+        396
+      ]
+    },
+    {
+      "id": "doodad.industrial-cable-reel-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        396,
+        397,
+        397
+      ]
+    },
+    {
+      "id": "doodad.industrial-pallet-stack-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        397,
+        396,
+        396,
+        397
+      ]
+    },
+    {
+      "id": "doodad.industrial-pipe-bundle-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        793,
+        396,
+        397,
+        397
+      ]
+    },
+    {
+      "id": "doodad.military-bunk-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1190,
+        396,
+        396,
+        397
+      ]
+    },
+    {
+      "id": "doodad.desk-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1586,
+        396,
+        397,
+        397
+      ]
+    }
+  ]
+}
