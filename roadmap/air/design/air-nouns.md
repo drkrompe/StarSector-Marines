@@ -1474,10 +1474,19 @@ every area the director held and stands alone until its ground is empty, after
 which the director resumes; the ship's single standing order reads as its first
 (densest) area, and spotting lights every area it holds.
 
-**A shell's blast wears the weapon's own colour and its own size.** A heavy
-landing carries the round's explosion colour to the presentation, which tints the
-fire, the flash and the ground light with it and sizes the burst to the blast's
-radius, so a capital's heavier shell reads larger than a cannon's.
+**A shell's blast wears the weapon's own colour, and hurts as far as its own footprint.**
+A heavy landing carries the round's explosion colour to the presentation, which
+tints the fire, the flash and the ground light with it. Two radii are kept apart
+because the game's data keeps them apart: a projectile's `explosionRadius` is the
+*visual* fireball ("purely visual", in the spec's own words) and sizes the drawn
+burst, while `explosionSpec.radius` (with `coreRadius`, the full-damage centre) is
+the damage footprint. Damage, wall breach and roof loss use the footprint; a round
+that declares none falls back to its visual size, since the ground battle needs
+some area and that is the only one the spec gives. The footprint is one flat
+radius today: the ground detonation has no falloff, so the spec's outer radius
+applies at full damage and the core radius is carried but not yet used. A Reaper's
+fireball is about sixteen cells across and its blast about eight; the first
+version of the model blasted the fireball, which was a defect and not a decision.
 
 **A scripted flyby is a route the ship passes through without stopping.** Given
 waypoints (and optionally told to loop), the hull flies each leg at speed,
@@ -1592,13 +1601,48 @@ take their own share. At the hull table's own figures a ground bombardment never
 nears an Onslaught's capacity. It is readable for a HUD (`fluxFraction`,
 `overloaded`, `overloadSecondsRemaining`), and the debug warship panel can toggle it.
 
-**Missiles are the plainest part of this model, and their rework is designed in
-`warship-missiles.md`.** It catalogues the vanilla missile lines a capital carries
-and their lore, and proposes an in-atmosphere flight model read from each
-weapon's own spec (boost, cruise, coast, bounded weave), swarm-burst volleys and
-MIRV bloom that preserve the weapon's damage and area as a budget, and point
-defence over individual bodies. Until its slices ship, a missile mount still flies
-the straight-line shell described above.
+**A missile flies the flight its own spec gives it.** A missile mount's round
+follows a closed-form path, evaluated rather than integrated, so what is drawn,
+what point defence can shoot and what the ground suffers all read one clock.
+The path is read from the projectile and the weapon table, with nothing authored
+per weapon: it launches at the table's launch speed, boosts at the motor's
+acceleration to cruising speed, cruises while the motor burns for the weapon's
+flight time, and, if the aimed ground is beyond what the motor can carry it,
+coasts with the speed decaying exponentially and lands short by what the coast
+loses. Gravity moves nothing a warship fires. A round is held to its arming time.
+Across the line it bulges to one side, a launch fan that makes a volley a
+trumpet, and weaves. What kind of missile it is is derived from the spec, not
+declared: an unguided rocket (`ROCKET`, or no turn rate) only wobbles lazily on
+its bulge, while a guided missile (homing, poorly guided, a carrier) jinks across
+the line with an amplitude bounded by what its own turn rate can do at its own
+speed, so a swarm missile jinks hard and a stiff one barely. Both ends of the
+path are exactly the committed ones. Every random-looking quantity is a pure
+hash of one seed taken from who fired what, where and when, never from the shared
+random stream, so a missile cannot shift another gun's draws. The nose points
+along the path's tangent; the drawn flame, glow and smoke are the projectile's
+own engine slot and contrail spec, the smoke being the path sampled at earlier
+times so it hangs along the weave.
+
+**A multi-warhead missile carries its warheads' payload, not its own table row.**
+The Hurricane's row says 500 but its spec releases seven warheads of 500; the Sabot
+five of 200 kinetic; the Hydra six of 500 energy. A multi-warhead missile flies as
+a carrier to its split point (the spec's split range short of the ground, no
+nearer than a third of the way), then releases its warheads, each a detonation
+committed when the round was fired: its own damage, damage type and footprint from
+the submunition's spec, an aim point spread over a disc by a golden-angle pattern
+with jitter, and a delay of its own travel plus a short random stagger so the sheaf
+walks across the ground. A carrier shot down before it splits loses the whole
+payload. Warheads in flight are drawn as streaks and are not yet interceptable.
+The aim of the volley is the centre of the spread; the spread's radius grows with
+the number and the size of the warheads.
+
+**Point defence reads the same path.** A mount engages a missile where it is
+drawn, at its speed at that instant; one engagement still kills at most one round.
+
+The wider design, which carries the lore of each missile line, the swarm-burst
+volley and body model, and the open questions, is `warship-missiles.md`; the
+owner's direction there is spectacle first, point defence as the counter on the
+ground and in the air, and balance after.
 
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of

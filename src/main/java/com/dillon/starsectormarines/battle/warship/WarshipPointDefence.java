@@ -48,6 +48,10 @@ import java.util.Random;
  * A miss still costs the engagement, so a salvo larger than the mounts can answer
  * saturates them and the surplus lands. Interception is not damage: a destroyed
  * round simply never lands.
+ *
+ * <p>A shell's position and speed are read off its {@link MissilePath} at the
+ * round's own clock, so a missile is engaged where it is drawn, weaving and
+ * boosting, and a carrier shot down before its split releases no warheads.
  */
 public final class WarshipPointDefence {
 

@@ -4,8 +4,10 @@ Status: PLANNED
 
 Written: 2026-10-11
 
-Read `warship-missiles.md` (the whole design) and `warship-missile-flight.md`
-(the slice this builds on) first.
+Read `warship-missiles.md` (the whole design) and `air-nouns.md` (**Overhead ships**,
+which now holds the flight model slice 1 shipped) first.
+
+Updated: 2026-10-11 — slice 1 shipped the flight model, the true MIRV payload (committed warhead detonations released at the split, drawn as streaks, not yet interceptable) and the damage-radius fix; this slice makes the warheads and rack rounds real bodies.
 
 ## Problem
 
@@ -32,10 +34,10 @@ volume.
    footprint, near-to-far or far-to-near ripple, stagger jitter, via the
    authored archetype table (`ROCKET_RACK`, `SWARM_LIGHT`, `MIRV_BLOOM`, `HEAVY`)
    with id overrides; unmatched weapons derive from the spec.
-3. **Bloom for MIRV.** Carrier to `splitRange` (`minTimeToSplit`, `canSplitEarly`),
-   split sound and smoke, `numShots` warheads in the spec's `arc` at `spreadSpeed`
-   curving to aim points. Damage per warhead is the sub-spec's, so the real
-   payload lands (design question 3).
+3. **Bloom for MIRV.** Slice 1 already releases `numShots` warheads of the
+   sub-spec's own damage at the split. Here they become interceptable bodies
+   leaving in the spec's `arc` at `spreadSpeed` and curving to their aim points,
+   with `minTimeToSplit`, `canSplitEarly`, the split sound and smoke honoured.
 4. **Budget.** Summed damage equals the weapon's for any body count; where the
    body count is synthetic the area is preserved (`R / sqrt(n)` per body).
 5. **Caps and fusing.** 32 bodies per volley, 160 per ship, 480 per battle; over
