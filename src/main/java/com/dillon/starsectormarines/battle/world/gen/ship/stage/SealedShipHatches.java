@@ -30,7 +30,7 @@ final class SealedShipHatches {
 
     /**
      * Finalize seeds structural HP/cover on these blocked cells. Their picture is
-     * still a threshold, not a full-cell wall: keep deck beneath the thin hatch.
+     * still a threshold, not a full-cell wall: keep deck beneath the hatch.
      * Run before ship material/trim so adjacent bulkheads receive ordinary jambs.
      * Navigation, opacity and structural HP remain untouched.
      */
