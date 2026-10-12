@@ -12,21 +12,38 @@ import static org.junit.jupiter.api.Assertions.*;
 class ShipMaterialStageTest {
     @Test
     void hullBoundaryWallsReceiveBulkheadsEvenOverVacuum() {
-        NavigationGrid grid = new NavigationGrid(3, 1);
-        CellTopology topology = new CellTopology(3, 1);
-        for (int x = 0; x < 3; x++) topology.setGroundKind(x, 0, GroundKind.VOID);
+        NavigationGrid grid = new NavigationGrid(4, 1);
+        CellTopology topology = new CellTopology(4, 1);
+        for (int x = 0; x < 4; x++) topology.setGroundKind(x, 0, GroundKind.VOID);
+        topology.setGroundKind(1, 0, GroundKind.INDOOR);
         topology.setWall(0, 0, true);
         topology.setSurface(0, 0, topology.surfaceIndex("urban.wall"));
         grid.setWallHp(0, 0, 83);
-        topology.setWall(1, 0, true);
-        topology.setSurface(1, 0, topology.surfaceIndex("authored.hull"));
-        new ShipMaterialStage().run(new GenContext(grid, topology, new Random(1), 3, 1, 1));
+        topology.setWall(2, 0, true);
+        topology.setSurface(2, 0, topology.surfaceIndex("authored.hull"));
+        new ShipMaterialStage().run(new GenContext(grid, topology, new Random(1), 4, 1, 1));
         assertEquals("ship.neutral-bulkhead", topology.getSurfaceId(0, 0));
-        assertEquals("authored.hull", topology.getSurfaceId(1, 0));
-        assertNull(topology.getSurfaceId(2, 0));
+        assertEquals("authored.hull", topology.getSurfaceId(2, 0));
+        assertNull(topology.getSurfaceId(3, 0));
         assertEquals(GroundKind.VOID, topology.getGroundKind(0, 0));
         assertEquals(83, grid.getWallHp(0, 0));
         assertFalse(grid.isWalkable(0, 0));
+    }
+
+    @Test
+    void solidCellsOutInSpaceStayUnpaintedSoTheHullArtShowsThrough() {
+        NavigationGrid grid = new NavigationGrid(5, 1);
+        CellTopology topology = new CellTopology(5, 1);
+        for (int x = 0; x < 5; x++) {
+            topology.setGroundKind(x, 0, GroundKind.VOID);
+            topology.setWall(x, 0, true);
+            topology.setSurface(x, 0, topology.surfaceIndex("urban.wall"));
+        }
+        topology.setGroundKind(0, 0, GroundKind.INDOOR);
+        new ShipMaterialStage().run(new GenContext(grid, topology, new Random(1), 5, 1, 1));
+        assertEquals("ship.neutral-bulkhead", topology.getSurfaceId(1, 0));
+        assertEquals("urban.wall", topology.getSurfaceId(3, 0));
+        assertEquals("urban.wall", topology.getSurfaceId(4, 0));
     }
 
     @Test
