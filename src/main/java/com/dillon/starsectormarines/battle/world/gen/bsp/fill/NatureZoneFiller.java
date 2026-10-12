@@ -105,6 +105,27 @@ public final class NatureZoneFiller implements BlockFiller {
         scatterOverlays(leaf, grid, topology, rng, reg, params);
     }
 
+    /** Dress only eligible open country, without changing navigation or consuming layout randomness. */
+    public static void dressOpenGround(GenContext ctx, boolean[] eligible) {
+        if (eligible.length != ctx.width * ctx.height) throw new IllegalArgumentException("Ground mask size");
+        var filler = new NatureZoneFiller(BlockKind.NATURE_GRASSLAND);
+        var mapping = GenMappingRegistry.installed();
+        var profile = ctx.get(BspKeys.MARKET_PROFILE);
+        var palette = profile == null ? SurfacePalette.ROCK : profile.surface();
+        var params = mapping == null ? null : mapping.fillerParams(BlockKind.NATURE_GRASSLAND, palette);
+        var patches = new PatchField(ctx.seed, PATCH_CELLS);
+        var random = new Random(ctx.seed ^ 0x4649454c4453L);
+        var tiles = TileRegistry.installed();
+        for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
+            if (!eligible[y * ctx.width + x]) continue;
+            ctx.topology.setGroundKind(x, y, params == null ? palette.inlandGround()
+                    : filler.pickBaseGround(patches.sample(x, y), params));
+        }
+        if (params != null && tiles != null)
+            filler.scatterOverlays(new BlockLeaf(0, 0, ctx.width - 1, ctx.height - 1, true),
+                    ctx.grid, ctx.topology, random, tiles, params, eligible);
+    }
+
     /**
      * Paint the base ground layer for this leaf. Walkability follows the
      * GroundKind — water cells are flipped to non-walkable + see-through;
@@ -322,8 +343,15 @@ public final class NatureZoneFiller implements BlockFiller {
     private void scatterOverlays(BlockLeaf leaf, NavigationGrid grid,
                                  CellTopology topology, Random rng,
                                  TileRegistry reg, FillerParams params) {
+        scatterOverlays(leaf, grid, topology, rng, reg, params, null);
+    }
+
+    private void scatterOverlays(BlockLeaf leaf, NavigationGrid grid,
+                                 CellTopology topology, Random rng,
+                                 TileRegistry reg, FillerParams params, boolean[] openGround) {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
+                if (openGround != null && !openGround[y * grid.getWidth() + x]) continue;
                 GroundKind base = topology.getGroundKind(x, y);
                 if (base == GroundKind.WATER) continue;
                 String baseId = baseTileIdFor(base);
@@ -344,6 +372,8 @@ public final class NatureZoneFiller implements BlockFiller {
                 if (rng.nextFloat() < params.rockChance) {
                     TileDef rockDef = reg.tile(params.pickRockId(rng));
                     if (!rockDef.canOverlayOn(baseDef)) continue;
+                    // This masked pass adds field texture to finished routes, never new obstacles.
+                    if (openGround != null && !rockDef.passable) continue;
                     if (!rockDef.passable && !canBlockWithoutDisconnecting(leaf, grid, x, y)) {
                         continue;
                     }

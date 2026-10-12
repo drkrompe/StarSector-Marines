@@ -702,12 +702,20 @@ opening, material, tactical-place and destruction rules as packed installations.
 
 The maintenance-outpost family groups a vehicle shed and workshop around a
 service apron, pairs barracks across a court beside the mess, and separates
-command, dispatch and utilities. Its projecting shed gives the perimeter a
-stepped outline. A Cold Account uses this family, with records in the accessible
+command, dispatch and utilities. Its expanded perimeter uses clipped corners and a long diagonal return around
+the vehicle yard. Diagonal cell contacts join on the claimed interior side,
+keeping a continuous structural wall while reserved gate widths stay open.
+A Cold Account uses this family, with records in the accessible
 dispatch office rather than whichever facility happens to be nearest. Its
 vehicle gates and bay approach preserve three-cell clearance after furnishing
 and defenses; field berths and infantry approaches remain connected. This is
 an authored mission consumer, not a replacement for every procedural garrison.
+Its wider battlefield places the outpost in a mountain basin with an open eastern
+approach. Planet-specific ridges, forests or mineral formations, fine rock scatter
+and coherent ground patches remain separate layers. Authoring a compound does
+not replace the surrounding landscape: field dressing respects claimed ground,
+roads, terrain masses and the full berth approaches, and preserves navigation
+and the facility placement random stream.
 
 A programmed precinct owns its working ground even where that ground was
 already walkable before its buildings were packed. Its kept circulation takes

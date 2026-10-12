@@ -212,6 +212,22 @@ public final class PrecinctBoundary {
         return wall;
     }
 
+    /** Join diagonal cell contacts on the interior side, retaining reserved gate width. */
+    public static void joinDiagonalSteps(boolean[][] wall, int[][] claim, int who, boolean[][] reserved) {
+        int width = wall.length, height = wall[0].length;
+        boolean[][] joins = new boolean[width][height];
+        for (int x = 0; x < width - 1; x++) for (int y = 0; y < height - 1; y++) {
+            if (wall[x][y] && wall[x + 1][y + 1] && !wall[x + 1][y] && !wall[x][y + 1]) {
+                joins[x + 1][y] = claim[x + 1][y] == who && !reserved[x + 1][y];
+                joins[x][y + 1] = claim[x][y + 1] == who && !reserved[x][y + 1];
+            } else if (wall[x + 1][y] && wall[x][y + 1] && !wall[x][y] && !wall[x + 1][y + 1]) {
+                joins[x][y] = claim[x][y] == who && !reserved[x][y];
+                joins[x + 1][y + 1] = claim[x + 1][y + 1] == who && !reserved[x + 1][y + 1];
+            }
+        }
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) wall[x][y] |= joins[x][y];
+    }
+
     /**
      * The crossings that stay open, widest first.
      *
