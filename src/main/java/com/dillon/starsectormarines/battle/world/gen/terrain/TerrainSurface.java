@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.terrain;
 
 import com.dillon.starsectormarines.battle.world.gen.CellContour;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import java.util.Arrays;
 
 /** Retained, clipped texture geometry. Borrowed arrays are read-only. No render-time shape generation. */
 public final class TerrainSurface {
@@ -12,6 +13,12 @@ public final class TerrainSurface {
     private final Patch[][] patches;
     private TerrainSurface(int width,Patch[][] patches) { this.width=width;this.patches=patches; }
     public Patch patch(int x,int y,int layer) { return patches[layer][y*width+x]; }
+    /** Full cap cells can support props without their sprites spilling over a cliff face. */
+    public boolean isFullSummit(int x, int y) {
+        Patch cap = patch(x, y, 6);
+        return cap != null && Arrays.equals(cap.vertices(), FULL_CELL);
+    }
+    private static final float[] FULL_CELL = {0, 0, 1, 0, 1, 1, 0, 1};
     public static TerrainSurface build(TerrainPlan plan,TerrainField field,CellTopology topology) {
         int w=plan.width(),h=plan.height();Patch[][] patches=new Patch[LAYERS][w*h];
         String material=plan.finish().materialPrefix();

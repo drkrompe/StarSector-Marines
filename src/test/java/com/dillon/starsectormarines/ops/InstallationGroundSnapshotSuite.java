@@ -116,12 +116,25 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                                 && topology.getSurface(x, y) == 0 && !topology.isWall(x, y),
                                 "Unplanted installation grass on " + surface + " at " + x + "," + y);
                 }
+                int edgeMass = 0;
+                for (int x = 0; x < grid.getWidth(); x++) {
+                    if (!grid.isWalkable(x, 0)) edgeMass++;
+                    if (!grid.isWalkable(x, grid.getHeight() - 1)) edgeMass++;
+                }
+                for (int y = 0; y < grid.getHeight(); y++)
+                    assertTrue(grid.hasTag(0, y, CellTag.NATURAL_SOLID), "western mountain continues beyond map");
+                assertTrue(edgeMass > 400, "northern and southern masses must meet map edges");
+                var summitProps = sim.getDoodads().stream().filter(p -> p.definitionId() != null
+                        && p.definitionId().startsWith("formation.")
+                        && topology.terrainSurface().isFullSummit(p.cellX, p.cellY)).toList();
+                assertTrue(summitProps.size() > 20, "summits need substantial rock and pillar dressing");
                 assertTrue(fieldRocks > 200, "open country must retain planet-aware small scatter");
                 assertTrue(mountainCells > 2500, "mountain basin must have substantial relief");
                 assertTrue(curvedCells > 0, "generated road curves must reach the production renderer");
                 report.append(surface).append(" geometry=").append(geometry)
                         .append(" vehicleRoutes=3 facilityDoors=reachable records=dispatch")
                         .append(" fieldOverlays=").append(fieldRocks).append(" naturalSolidCells=").append(mountainCells)
+                        .append(" summitFormations=").append(summitProps.size()).append(" edgeMassCells=").append(edgeMass)
                         .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
                         .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
@@ -136,6 +149,11 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                         int[] at = site.cell(anchors[i][0] + 6, anchors[i][1] + 6);
                         labels.label(at[0], at[1], names[i], ReviewStyle.NOTE);
                     }
+                    labels.label(59, 148, "Remote relay", ReviewStyle.NOTE);
+                    var summitView = new BattleReviewFrameRenderer(context.modRoot(), 1600, 900, 70, 133, 90);
+                    frames.add(new SnapshotArtifact("frozen-summit.png",
+                            summitView.render(sim, "Summit rocks, pillars and unattended relay",
+                                    ReviewAnnotations.builder().label(59, 148, "Remote relay", ReviewStyle.NOTE).build())));
                     var close = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
                             site.x() + 40, site.y() + 35, 145);
                     frames.add(new SnapshotArtifact("frozen-compound.png",
@@ -151,6 +169,17 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     frames.add(new SnapshotArtifact("frozen-breaches.png",
                             renderer.render(sim, "Controlled wall-breach material preview / FROZEN")));
                 }
+                // Real damage path: destroyed mineral props cannot excavate permanent rock/ice/grass caps.
+                var rock = summitProps.get(0);
+                for (int y = rock.cellY; y < rock.cellY + rock.footprintCellsY; y++)
+                    for (int x = rock.cellX; x < rock.cellX + rock.footprintCellsX; x++) sim.damageCell(x, y, 1200);
+                assertTrue(sim.getDoodads().stream().anyMatch(p -> p.cellX == rock.cellX && p.cellY == rock.cellY
+                        && (rock.definitionId() + "-destroyed").equals(p.definitionId())), "summit prop must leave debris");
+                for (int y = rock.cellY; y < rock.cellY + rock.footprintCellsY; y++)
+                    for (int x = rock.cellX; x < rock.cellX + rock.footprintCellsX; x++) {
+                        assertFalse(grid.isWalkable(x, y), "destroying a prop cannot excavate its summit");
+                        assertTrue(grid.hasTag(x, y, CellTag.NATURAL_SOLID));
+                    }
             }
         }
         var output = context.projectRoot().resolve("build/reports/installation-ground.txt");

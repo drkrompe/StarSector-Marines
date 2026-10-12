@@ -131,7 +131,9 @@ stone or ice retains the original silhouette's obstruction; low fragments open
 the former footprint and reveal the ground beneath it. Rock and ice may have
 different structure capacities, but neither has actor armor or building-collapse
 semantics. One blast spends once per formation, regardless of how many cells
-it reaches. Continuous terrain ridges remain permanent and cannot be breached
+it reaches. Summit placements leave debris over the permanent cap; destroying
+a rock or ice formation never opens a hole in its supporting mountain, regardless
+of summit material. Continuous terrain ridges remain permanent and cannot be breached
 through this prop damage channel.
 
 The seven built-in nature rock groups also spend weapon-authored structure:

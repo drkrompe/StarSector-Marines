@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — planet landscapes select rock or ice masses and destructible mineral fields while preserving access and supporting ground.
+Updated: 2026-10-12 — mountain basins continue beyond map edges; summit dressing preserves permanent terrain and cliff rims.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -565,7 +565,10 @@ at the obstruction; sight and direct fire stop beyond it.
 
 Procedural fields belong on eligible wild low ground and obey the same finished
 place reservations and local detour proof as forests. They do not occupy cliff
-faces or summits. A crowded facility may leave no room for an optional field;
+faces. Authored summit dressing may place whole formations on complete cap
+cells, with their full visual bounds held back from the rim. Destroying those
+formations preserves the permanent rock, ice or grassy mountain beneath.
+A crowded facility may leave no room for an optional field;
 required access takes precedence over landscape density. Arid and living
 palettes do not receive ice or barren mineral fields.
 
@@ -711,7 +714,12 @@ vehicle gates and bay approach preserve three-cell clearance after furnishing
 and defenses; field berths and infantry approaches remain connected. This is
 an authored mission consumer, not a replacement for every procedural garrison.
 Its wider battlefield places the outpost in a mountain basin with an open eastern
-approach. Planet-specific ridges, forests or mineral formations, fine rock scatter
+approach. Its mountains continue beyond the western, northern and southern
+map boundaries; overlapping masses, projecting spurs and open gullies vary
+their depth rather than enclosing the basin with constant-width strips.
+Complete summit shelves carry clustered stones, boulders, pillars and unattended
+relay equipment. These props do not create a playable upper level, repaint the
+mountain material or extend over cliff faces. Planet-specific ridges, forests or mineral formations, fine rock scatter
 and coherent ground patches remain separate layers. Authoring a compound does
 not replace the surrounding landscape: field dressing respects claimed ground,
 roads, terrain masses and the full berth approaches, and preserves navigation
