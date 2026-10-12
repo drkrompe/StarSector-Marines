@@ -4,7 +4,7 @@ Status: PLANNED
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — flux shipped as the fire-rate governor; readiness and shields recorded as deliberately open.
+Updated: 2026-10-11 — shields shipped on the flux pool (the half-flux stand-in is retained as the brawler's fire-rate setting); readiness recorded as deliberately open.
 
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
 `combat-durability-nouns.md`, `command-powers-nouns.md` and
@@ -74,6 +74,19 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
     (briefing row and F8) with a status-line readout. Acceptance is the
     `onslaught-flux` scene. Standing rule lives in `air-nouns.md`.
 
+11. **Shields (shipped).** The hull's shield (type, arc, upkeep, efficiency,
+    radius, centre) is read from the data; raised, it draws upkeep, stops the pool
+    venting, and absorbs hostile detonations from inside its arc as flux; a full
+    pool drops it and overloads the ship. Automatic by default, `raiseShield` /
+    `shieldAuto` override; shown in the debug status line and drawn in the
+    renderer. The `Warship.SHIELD_RESERVE_SCALE` half-flux stand-in is renamed
+    `BRAWLER_FLUX_SCALE` and kept at 0.5: the `warship-shields` scene's
+    `guns-full-pool` loop shows the unshielded guns peak at 28% of the full pool
+    and never rest, so shields (only raised under threat) do not carry the ground
+    rhythm. Acceptance is the `warship-shields` scene. Standing rule lives in
+    `air-nouns.md`. Still provisional: the half scale, the three-second hold and
+    90% drop level, and the absence of hard flux and damage-type efficiency.
+
 ## Owner direction: overpowered by design
 
 These ships are not balanced in battle. They are gated in the world by
@@ -88,8 +101,8 @@ exists.
 - **Readiness (combat readiness).** Deferred until fleet ship support exists:
   without a fleet to draw from, a readiness cost has nothing to be spent from, and
   the world-level gating above already does that job.
-- **Shields.** Deferred for the same reason; a shield would be a second pool beside
-  flux and has no counterplay story until ship-to-ship combat exists.
+- **Shield refinements.** Hard flux, damage-type multipliers on efficiency, rounds
+  stopped at the bubble rather than the hull, and per-hull shield colours.
 
 ## Fitting from a fleet member (shipped) and the flagship hand-off
 

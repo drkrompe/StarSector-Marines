@@ -71,6 +71,7 @@ final class WarshipFlux {
     private State state = State.FIRING;
     private float overloadSecondsRemaining;
     private int overloads;
+    private boolean dissipationHeld;
 
     WarshipFlux(float baseCapacity, float baseDissipation) {
         this.baseCapacity = baseCapacity;
@@ -160,10 +161,24 @@ final class WarshipFlux {
         return !overloaded();
     }
 
+    /**
+     * Holds the pool's dissipation off: while a shield is raised the ship vents
+     * nothing. Set afresh every tick by whoever holds it (the shield); an
+     * overload ignores it, because a ship that has overloaded has no shield up
+     * and dissipates throughout.
+     */
+    void holdDissipation(boolean held) {
+        this.dissipationHeld = held;
+    }
+
+    boolean dissipationHeld() {
+        return dissipationHeld && !overloaded();
+    }
+
     /** Drains the pool and moves between states. */
     void update(float dt) {
         if (!enabled) return;
-        flux = Math.max(0f, flux - dissipation() * dt);
+        if (!dissipationHeld()) flux = Math.max(0f, flux - dissipation() * dt);
         if (state == State.OVERLOADED) {
             overloadSecondsRemaining -= dt;
             if (overloadSecondsRemaining <= 0f) {

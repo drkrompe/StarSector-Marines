@@ -1591,15 +1591,48 @@ bursts in progress are abandoned for four to ten seconds (longer the further pas
 capacity), a laid lance still burns out, dissipation continues, and the pool is
 empty when it resumes. Capacity and dissipation scale together
 (`Warship.fluxScale`). A directed ship is on flux by default, at half the hull
-table's figures (`Warship.SHIELD_RESERVE_SCALE`); a ship given only explicit
+table's figures (`Warship.BRAWLER_FLUX_SCALE`); a ship given only explicit
 orders, as a cinematic script does, is not, and `limitFlux`/`unlimitedFlux`/
-`fluxScale` override either way. The half is provisional: in the game a ship's
-shield is the major draw on flux and a raised shield stops venting, so a brawler's
-guns never see the whole pool or the whole dissipation. Shields are not modelled;
-this half stands in for what they would take and is replaced when they arrive and
-take their own share. At the hull table's own figures a ground bombardment never
-nears an Onslaught's capacity. It is readable for a HUD (`fluxFraction`,
+`fluxScale` override either way. The half used to be a stand-in for the
+shield's share of the pool; shields are modelled now (next paragraph) and take
+their own share when they are raised, but the half stays, deliberately: a
+shield is up only when something threatens the hull, so in a ground fight
+nothing is drawing on it, and at the hull table's own figures a ground
+bombardment never nears an Onslaught's capacity (measured in the
+`warship-shields` scene: the guns alone peak at 28% of the full pool and never
+rest, against 82% of the half pool and a visible surge-and-rest). It is a
+brawler's fire-rate setting, not a placeholder. It is readable for a HUD (`fluxFraction`,
 `overloaded`, `overloadSecondsRemaining`), and the debug warship panel can toggle it.
+
+**A shield is the major draw on that flux, and the trade is one pool.** Owner
+direction is half of the game's functionality for a brawler, so the model is the
+part that moves the budget and nothing finer. The figures are the hull's own: the
+table's `shield type` (FRONT, OMNI or none; a phase cloak is none), `shield arc`,
+`shield upkeep` and `shield efficiency`, and the spec's `shieldRadius` and
+`shieldCenter`. While a shield is raised it draws its upkeep (a share of the
+ship's dissipation, per second) from the pool and **the pool stops venting
+entirely**; a ship that holds its shield and keeps firing can only climb. A
+hostile detonation that reaches the hull from inside the arc is absorbed: its
+damage times the shield's efficiency becomes flux and the hull takes nothing. A
+FRONT shield faces the hull's heading; an OMNI shield covers every bearing. A hit
+from outside the arc, or while the shield is down or still rising (0.4 s), goes to
+the armour exactly as before. If the pool reaches capacity the shield drops and
+the ship overloads, the ordinary overload. A raised shield therefore costs the
+guns their venting and, held long enough, the whole ship its guns: the brawler
+that fires hard behind its shield cannot do both indefinitely.
+By default the shield is automatic: it rises when a hostile round that would hurt
+the hull is about to land within a few cells of it from inside the arc (a queued
+detonation, a projectile in flight, a hostile warship's shell, or a landing that
+close), drops three seconds after the last such round, and drops at once when the
+pool passes 90% and stays down until it has vented to 55% (the ship takes hull damage
+rather than overload). `raiseShield` holds it as commanded and `shieldAuto` gives it back.
+A shield works only on a ship that is on flux, so a scripted hull's armour answers
+as it always has. It is readable for a HUD (`shieldUp`, `shieldLevel`, `shieldState`,
+absorbed hits and flux) and drawn as the arc of the hull's own bubble. A round too
+weak to hurt the hull never raises an automatic shield, but a raised one absorbs it like any other.
+Not modelled: hard flux, damage-type multipliers on efficiency, rounds stopped at
+the bubble's radius rather than at the hull, and per-hull shield colours (the
+stock hulls name none; every shield is the default pale cyan).
 
 **A missile flies the flight its own spec gives it.** A missile mount's round
 follows a closed-form path, evaluated rather than integrated, so what is drawn,
@@ -1643,6 +1676,17 @@ The wider design, which carries the lore of each missile line, the swarm-burst
 volley and body model, and the open questions, is `warship-missiles.md`; the
 owner's direction there is spectacle first, point defence as the counter on the
 ground and in the air, and balance after.
+
+**What a ship is trying to do in an ordinary fight or mission is designed in
+`warship-behaviours.md`.** A small doctrine above the orders would pick a
+sticky posture (air superiority, support, intercept, bombard, withdraw) from a
+threat picture and the ship's stance on the objective, and set only the
+parameters of the machinery described here: the director's areas, an
+opportunity range, a flux ceiling, a station. It issues ordinary orders and
+changes no weapon's damage. Honest state today: a warship's weapons cannot
+target aircraft, aircraft cannot hurt a warship, and ground defences cannot hurt
+one either, so the air-superiority half waits on owner decisions about those
+rules; the objective-aware, friendly-aware fire half does not.
 
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of

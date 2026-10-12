@@ -26,9 +26,9 @@ public final class DebugWarship {
 
     /**
      * Flux scale the debug toggle applies: the brawler's share (see
-     * {@link Warship#SHIELD_RESERVE_SCALE}), the same a directed ship gets by default.
+     * {@link Warship#BRAWLER_FLUX_SCALE}), the same a directed ship gets by default.
      */
-    public static final float FLUX_SCALE = Warship.SHIELD_RESERVE_SCALE;
+    public static final float FLUX_SCALE = Warship.BRAWLER_FLUX_SCALE;
 
     private DebugWarship() {}
 
@@ -202,10 +202,10 @@ public final class DebugWarship {
             else rounds += m.shotsFired;
         }
         return String.format(Locale.ROOT,
-                "WARSHIP %s [%s]  hull %d%%  order %s  heading %d  rounds %d  lances %d  PD kills %d  %s",
+                "WARSHIP %s [%s]  hull %d%%  order %s  heading %d  rounds %d  lances %d  PD kills %d  %s  %s",
                 ship.hullId, ship.faction == Faction.MARINE ? "friendly" : "hostile",
                 Math.round(ship.hullFraction() * 100f), describe(ship), Math.round(headingOf(ship)),
-                rounds, lances, intercepts, fluxReadout(ship));
+                rounds, lances, intercepts, fluxReadout(ship), shieldReadout(ship));
     }
 
     /** {@code flux off}, or flux over capacity with the state, and the seconds left when overloaded. */
@@ -215,6 +215,22 @@ public final class DebugWarship {
                 Math.round(ship.fluxCapacity()), ship.fluxState().toUpperCase(Locale.ROOT));
         if (!ship.overloaded()) return base;
         return base + String.format(Locale.ROOT, " %.1fs", ship.overloadSecondsRemaining());
+    }
+
+    /**
+     * {@code shield none}, or the shield's type and state: {@code shield OMNI up 95%}.
+     * The percentage is how far the bubble has risen, and a shield that has taken
+     * hits says how many and how much flux they made.
+     */
+    static String shieldReadout(Warship ship) {
+        if (ship.shieldType().equals("none")) return "shield none";
+        String base = String.format(Locale.ROOT, "shield %s %s", ship.shieldType().toUpperCase(Locale.ROOT),
+                ship.shieldState().toUpperCase(Locale.ROOT));
+        if (!ship.hasShield()) return base;
+        base += String.format(Locale.ROOT, " %d%%", Math.round(ship.shieldLevel() * 100f));
+        if (ship.shieldHits() == 0) return base;
+        return base + String.format(Locale.ROOT, " hits %d (+%d flux)", ship.shieldHits(),
+                Math.round(ship.shieldAbsorbedFlux()));
     }
 
     /** The hull's facing wrapped to [0, 360), zero being north. */
