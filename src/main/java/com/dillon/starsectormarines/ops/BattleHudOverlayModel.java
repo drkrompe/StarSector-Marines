@@ -251,7 +251,7 @@ final class BattleHudOverlayModel {
         objectiveScore.set(delivered + " / " + cargo.size());
         List<ObjectiveChip> chips = new ArrayList<>();
         for (int i = 0; i < cargo.size(); i++) chips.add(new ObjectiveChip("battle-cargo-" + i,
-                (identities.get(i) + 1) + " / " + (cargo.get(i).equals("DELIVERED") ? "OUT" : cargo.get(i).equals("LOST") ? "LOST" : "ROAD"), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
+                (identities.get(i) + 1) + " / " + (cargo.get(i).equals("DELIVERED") ? "OUT" : cargo.get(i).equals("LOST") ? "LOST" : cargo.get(i).equals("WAITING") ? "WAIT" : "ROAD"), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
                 : cargo.get(i).equals("LOST") ? "objective-hostile" : "objective-contested")));
         objectiveChips.set(List.copyOf(chips));
         objectiveTally.set(delivered + " DELIVERED  /  " + lost + " LOST");
@@ -263,6 +263,13 @@ final class BattleHudOverlayModel {
             default -> "COVER THE COLUMN TO THE EXIT";
         });
         objectiveProgressStyle.set("width: " + Math.round(100f * (delivered + lost) / Math.max(1, cargo.size())) + "%;");
+    }
+
+    void updateFreightHold(int site, int ticks) {
+        if (site <= 0) return;
+        objectiveTitle.set("HOLD THE FREIGHT ROAD");
+        objectiveFocus.set((site == 1 ? "DISPATCH" : "EAST CROSSING")
+                + " / HOLD " + (ticks + 29) / 30 + "s");
     }
 
     private boolean updateConquestCommand(CommanderSnapshot<?> commander) {

@@ -628,6 +628,149 @@
       ]
     },
     {
+      "id": "marines_castle_thunder_advance_distress",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.advance_distress",
+      "text": "Captain, an earlier Wayline dispatch is taking fire ahead. We have the hauler's nearby camera feed while it survives. Our three contracted loads are still at staging. Open the road before they follow.",
+      "durationSeconds": 18,
+      "priority": 25,
+      "expiresSeconds": 40,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_defend_dispatch",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.defend_dispatch",
+      "text": "Hold here for the next dispatch. Select an infantry squad, choose DEFEND AREA, then click a roadside position. They will hold that area until you give another order. Wayline militia will help anchor the post.",
+      "durationSeconds": 18,
+      "priority": 40,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "supply_route.thunder_run.column_released"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_defend_order_placed",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.defend_order_placed",
+      "text": "Defensive order received. Keep an approach covered while the freight moves. That squad will stay on your order; give it a new one when it is time to advance.",
+      "durationSeconds": 14,
+      "priority": 25,
+      "expiresSeconds": 40,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_defend_crossing",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.defend_crossing",
+      "text": "Two minutes until the next dispatch clears. Cover the cross streets with DEFEND AREA. Our militia will hold the captured posts and assemble their field guns if they can reach the mounts. The armor joins at Outbound Gate.",
+      "durationSeconds": 18,
+      "priority": 40,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "supply_route.thunder_run.crossing_secured"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_dispatch_window_complete",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.dispatch_window_complete",
+      "text": "Dispatch window complete. The militia can hold here. Select your holding squad and give a new move order toward East Crossing when you are ready. Your Defend Area order does not expire on its own.",
+      "durationSeconds": 16,
+      "priority": 40,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "supply_route.thunder_run.defend_dispatch",
+        "supply_route.thunder_run.defend_order_placed"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_crossing_window_complete",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.crossing_window_complete",
+      "text": "The armor is moving up behind us. Push on and secure Outbound Gate to release the breakthrough. Replace any Defend Area orders on squads you want to advance; leave enough people covering the road.",
+      "durationSeconds": 16,
+      "priority": 40,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "supply_route.thunder_run.defend_crossing"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_militia_gun_0_ready",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.militia_gun_0_ready",
+      "text": "Wayline has assembled the Dispatch machine gun. The crew holds the shoulder; keep the freight lane open. That gun has a finite ammunition belt.",
+      "durationSeconds": 12,
+      "priority": 20,
+      "expiresSeconds": 40,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_militia_gun_1_ready",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.militia_gun_1_ready",
+      "text": "The East Crossing gun is ready. Militia cover this post while the company takes the outbound strongpoint. Keep an eye on the other approach.",
+      "durationSeconds": 12,
+      "priority": 20,
+      "expiresSeconds": 40,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_advance_load_lost",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.advance_load_lost",
+      "text": "We lost the earlier dispatch. Our contracted freight is still accounted for separately. That is why we hold the road before sending the rest.",
+      "durationSeconds": 12,
+      "priority": 30,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "supply_route.thunder_run.advance_distress"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
+      "id": "marines_castle_thunder_advance_load_clear",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.advance_load_clear",
+      "text": "The earlier driver is clear. Finish bringing our contracted loads through; dispatch is counting those separately.",
+      "durationSeconds": 10,
+      "priority": 20,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "supply_route.thunder_run.advance_distress"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false
+    },
+    {
       "id": "marines_mara_thunder_run_briefing",
       "missionId": "story_supply_route_thunder_run",
       "event": "briefing",

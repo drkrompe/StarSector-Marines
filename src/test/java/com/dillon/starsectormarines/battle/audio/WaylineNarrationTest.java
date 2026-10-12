@@ -60,7 +60,23 @@ class WaylineNarrationTest {
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
         assertEquals(83, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
-        assertEquals(83, ids.size());
+        assertEquals(catalog.lines().size(), ids.size());
+    }
+
+    @Test void thunderDefenseGuidanceIsTextOnlyAndExplainsHandback() throws Exception {
+        var catalog = catalog();
+        String chapter = "story_supply_route_thunder_run";
+        for (String key : List.of("advance_distress", "defend_dispatch", "defend_crossing",
+                "defend_order_placed", "dispatch_window_complete", "crossing_window_complete",
+                "militia_gun_0_ready", "militia_gun_1_ready", "advance_load_lost", "advance_load_clear")) {
+            var line = catalog.find(chapter, "supply_route.thunder_run." + key);
+            assertNotNull(line);
+            assertFalse(line.voiced());
+            assertTrue(line.speaker().startsWith("CASTLE"));
+            for (String prior : line.supersedes()) assertNotNull(catalog.find(chapter, prior));
+        }
+        assertTrue(catalog.find(chapter, "supply_route.thunder_run.defend_dispatch").text().contains("DEFEND AREA"));
+        assertTrue(catalog.find(chapter, "supply_route.thunder_run.dispatch_window_complete").text().contains("does not expire"));
     }
 
     @Test void coldAccountRetriesShareKordsPublicDialogue() throws Exception {

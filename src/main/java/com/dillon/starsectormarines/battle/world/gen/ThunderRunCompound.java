@@ -32,6 +32,7 @@ import java.util.Random;
 public final class ThunderRunCompound {
     public static final int WIDTH = 320, HEIGHT = 144;
     public record Cell(int x, int y) {}
+    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(105, 65), new Cell(175, 84));
     public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
     public static final List<Cell> EXIT_GUNS = List.of(new Cell(304, 65), new Cell(304, 85));
     public static final List<String> SITE_NAMES = List.of("Convoy staging", "Dispatch Post", "East Crossing", "Outbound Gate");
@@ -74,6 +75,7 @@ public final class ThunderRunCompound {
         requireRoute(map, 275, 2);
         requireRoute(map, 275, 141);
         for (Cell gun : EXIT_GUNS) requireRoute(map, gun.x + 2, gun.y);
+        for (Cell post : SUPPORT_POSTS) requireRoute(map, post.x, post.y);
         for (Cell post : EXIT_RIFLE_POSTS) requireRoute(map, post.x, post.y);
         for (int[] gate : new int[][]{{284,51},{316,51},{300,64},{284,98},{316,98},{300,86}})
             requireRoute(map, gate[0], gate[1]);

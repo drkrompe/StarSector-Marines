@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Separate assault, two stable militia holds, and a finite counterattack pool. */
-public final class ThunderRunCommand implements AutonomousMissionCommand<ConquestCommandFrame, ThunderRunCommand.Picture> {
+public final class ThunderRunCommand implements AutonomousMissionCommand<ThunderRunCommandFrame, ThunderRunCommand.Picture> {
     public record Duty(int squadId, int site, String reason) {}
     public record Picture(List<Duty> duties) { public Picture { duties = List.copyOf(duties); } }
     private final Faction faction;
@@ -25,7 +26,7 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Conques
     @Override public String strategyId() { return issuer(faction); }
     public Picture picture() { return picture; }
     @Override public void publish(CommanderSnapshot<Picture> snapshot) { picture = snapshot.detail(); }
-    @Override public CommandPlan<Picture> plan(ConquestCommandFrame frame) {
+    @Override public CommandPlan<Picture> plan(ThunderRunCommandFrame frame) {
         var sites = frame.facts().compounds();
         var states = sites.stream().map(ConquestCommandFacts.Compound::state).toList();
         tactics.observe(states);
@@ -41,13 +42,20 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Conques
             int site = faction == Faction.MARINE ? tactics.assaultTarget(states)
                     : faction == Faction.DEFENDER ? tactics.counterTarget(states)
                     : tactics.militiaTarget(detachments.computeIfAbsent(squad.squadId(), id -> detachments.size()));
+            boolean hold = faction == Faction.MARINE && frame.holdSite() > 0
+                    && states.get(frame.holdSite()) == CompoundState.MARINE_HELD
+                    && site >= frame.holdSite();
+            if (hold) site = frame.holdSite();
             var place = sites.get(site);
-            String reason = faction == Faction.MARINE ? "FREIGHT_SECURE_SITE"
+            String reason = hold ? "FREIGHT_DEFEND_DISPATCH_WINDOW" : faction == Faction.MARINE ? "FREIGHT_SECURE_SITE"
                     : faction == Faction.DEFENDER ? "FREIGHT_RETAKE_GAIN"
                     : site == 0 ? "FREIGHT_COVER_LANDING" : "FREIGHT_HOLD_GAIN";
-            ObjectiveAssignment assignment = faction == Faction.MARINE
+            ObjectiveAssignment assignment = faction == Faction.MARINE && !hold
                     ? ObjectiveAssignment.secureCompound(squad.squadId(), place.captureZoneId(), place.node())
-                    : ObjectiveAssignment.defendArea(squad.squadId(), place.captureCellX(), place.captureCellY(), 3);
+                    : ObjectiveAssignment.defendArea(squad.squadId(),
+                            site == 1 || site == 2 ? ThunderRunCompound.SUPPORT_POSTS.get(site - 1).x() : place.captureCellX(),
+                            site == 1 || site == 2 ? ThunderRunCompound.SUPPORT_POSTS.get(site - 1).y() : place.captureCellY(),
+                            hold ? 16 : 5);
             if (same(old.assignment(), assignment)) assignment = old.assignment();
             proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, reason,
                     assignment == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
