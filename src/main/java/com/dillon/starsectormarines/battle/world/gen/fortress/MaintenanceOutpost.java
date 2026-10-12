@@ -105,6 +105,7 @@ public final class MaintenanceOutpost {
         int[] gate = placement.cell(78, 35);
         new GenRecipe("Maintenance outpost", List.of(
                 ctx -> grounds(ctx, placement, fortification),
+                OutpostSupplyYard::stamp,
                 ctx -> PrecinctWardStage.finishAuthored(ctx,
                         FortressInterior.author(ctx, placement.buildings()), 0),
                 new PrecinctDefenceStage(), MaintenanceOutpostLandscape::mountains,
