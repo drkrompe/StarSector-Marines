@@ -328,7 +328,7 @@ public final class MovementService {
                 ? drive.advanceFacing(axisX, axisY, moveSpeed(id), loadout.variant.relativeMass, facing, dt)
                 : drive.advance(axisX, axisY, moveSpeed(id), loadout.variant.relativeMass, dt);
         ManualTerrainMotion.Result result = ManualTerrainMotion.move(grid, x, y,
-                step.dx(), step.dy(), radius);
+                step.dx(), step.dy(), radius, true);
         // The sweep reports position differences: compare against the same float
         // endpoint rounding, so ordinary large-coordinate precision is not contact.
         ManualMechDrive.Step quantized = new ManualMechDrive.Step(
