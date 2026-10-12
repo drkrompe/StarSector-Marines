@@ -490,7 +490,15 @@ public class BattleScreen implements Screen, BattleUiContext {
             AirBody body = airWorld.kinematics(id);
             vis.addEphemeralSource((int) Math.floor(body.x), (int) Math.floor(body.y), 50, 3.5f);
         }
-        // Player recon-ping reveals — same ephemeral-source seam as shuttles.
+        // Wayline's earlier convoy reports only its immediate surroundings while its cab survives.
+        if (sim.getThunderRun() != null) {
+            long hauler = sim.getThunderRun().advanceHauler();
+            if (sim.convoy().isTargetable(hauler)) {
+                var body = sim.convoy().body(hauler);
+                vis.addEphemeralSource((int) Math.floor(body.x), (int) Math.floor(body.y), 24, 0f);
+            }
+        }
+        // Player recon-ping reveals use the same ephemeral-source seam as shuttles.
         // The sim owns the ping list + time-to-live; we just project the live
         // ones into the fog each frame (airLosRadius 0 = walls block, so the
         // reveal respects line of sight via the existing shadowcast).
