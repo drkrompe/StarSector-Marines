@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.tender.DebugTender;
+import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.warship.DebugWarship;
@@ -87,6 +89,15 @@ public final class WarshipDebugPanel implements HudPanel {
         Warship ship = ship();
         for (InputEventAPI e : events) {
             if (ship == null || e.isConsumed() || !e.isKeyDownEvent()) continue;
+            Tender tender = DebugTender.of(ctx.getSim(), ship);
+            if (tender != null) {
+                if (handleTenderKey(tender, e.getEventValue())) e.consume();
+                else if (e.getEventValue() == GO_KEY || e.getEventValue() == ROUTE_KEY) {
+                    routeToCursor(ship, e.getEventValue() == ROUTE_KEY);
+                    e.consume();
+                }
+                continue;
+            }
             if (e.getEventValue() == FIRE_KEY) {
                 fireAtCursor(ship);
                 e.consume();
@@ -104,6 +115,28 @@ public final class WarshipDebugPanel implements HudPanel {
                 e.consume();
             }
         }
+    }
+
+    /** A tender's keys: build at the cursor, cancel the builds, recall or deploy the defence drones. */
+    private boolean handleTenderKey(Tender tender, int key) {
+        if (key == FIRE_KEY) {
+            BattleCamera camera = ctx.getCamera();
+            float mouseX = Global.getSettings().getMouseX();
+            float mouseY = Global.getSettings().getMouseY();
+            if (camera != null && camera.containsScreen(mouseX, mouseY)) {
+                DebugTender.buildAt(ctx.getSim(), tender, camera.screenToCellX(mouseX), camera.screenToCellY(mouseY));
+            }
+            return true;
+        }
+        if (key == HOLD_KEY) {
+            tender.cancelAll();
+            return true;
+        }
+        if (key == FLUX_KEY) {
+            DebugTender.toggleDefence(tender);
+            return true;
+        }
+        return false;
     }
 
     private void routeToCursor(Warship ship, boolean append) {
@@ -133,8 +166,11 @@ public final class WarshipDebugPanel implements HudPanel {
         BattleLayout layout = ctx.getLayout();
         if (ship == null || layout == null) return;
         font.ensureLoaded();
-        String line = DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
-        String hint = "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
+        Tender tender = DebugTender.of(ctx.getSim(), ship);
+        String line = tender != null ? tender.statusLine()
+                : DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
+        String hint = tender != null ? DebugTender.HINT
+                : "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
         float w = Math.max(font.measureWidth(line), font.measureWidth(hint)) + 2f * PAD;
         float lineH = font.getLineHeight();
         float h = 2f * lineH + 2f * PAD;

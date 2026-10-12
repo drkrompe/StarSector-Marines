@@ -1,0 +1,290 @@
+package com.dillon.starsectormarines.battle.tender;
+
+import com.dillon.starsectormarines.battle.drone.DroneAnchor;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.VanillaData;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipSlot;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * A drone tender: the vanilla Shepherd's hull as a mobile construction ship.
+ *
+ * <p>It is not a second ship model. The body is an ordinary {@link Warship} that
+ * flies, hovers, casts a shadow and takes ordnance like any other overhead hull;
+ * this class adds what makes it a tender and nothing else: a complement of drones
+ * (half defend it, half build), a small stock of build charges, and a line of
+ * {@link ConstructionOrder}s. {@link TenderSystem} runs it.
+ *
+ * <p>The complement is the hull's own: the Shepherd's built-in {@code borer_wing}
+ * names how many drones the bay holds. Every drone lost stays lost for the rest
+ * of the battle, as does every charge spent; a tender is bounded the way a
+ * carried emplacement is, by what it brought.
+ */
+public final class Tender implements DroneAnchor {
+
+    /** The hull a tender is fitted from. */
+    public static final String HULL_ID = "shepherd";
+    /** The wing the hull carries built in; its size is the tender's drone complement. */
+    public static final String WING_ID = "borer_wing";
+    /** Complement used when the game's wing table cannot be read. */
+    static final int FALLBACK_COMPLEMENT = 6;
+    /** Build charges a fresh tender carries. */
+    public static final int DEFAULT_STOCK = 3;
+    /** Spacing, in cells, two sites must keep. */
+    public static final float SITE_SPACING = 2f;
+
+    private final Warship ship;
+    private final List<WarshipSlot> bays;
+    private final int builderComplement;
+    private final int defenceComplement;
+    private final List<ConstructionOrder> orders = new ArrayList<>();
+    final List<Long> builders = new ArrayList<>();
+    final List<Long> defenders = new ArrayList<>();
+    private int stock = DEFAULT_STOCK;
+    private int builderReserve;
+    private int defenceReserve;
+    private boolean defenceOut = true;
+    private int built;
+    private int defenceLost;
+    private int builderLost;
+    int defenceSquadId = -1;
+    float launchClock;
+
+    private Tender(Warship ship, List<WarshipSlot> bays, int complement) {
+        this.ship = ship;
+        this.bays = bays;
+        this.builderComplement = complement / 2;
+        this.defenceComplement = complement - builderComplement;
+        this.builderReserve = builderComplement;
+        this.defenceReserve = defenceComplement;
+    }
+
+    /**
+     * Fits the Shepherd over {@code (x, y)} pointing {@code facingDegrees}. The
+     * hull, its launch bays and its complement are read through
+     * {@link VanillaData}, so a mod's re-tuned Shepherd is a re-tuned tender.
+     */
+    public static Tender fit(Faction faction, float x, float y, float facingDegrees) throws Exception {
+        Warship ship = Warship.fit(new TenderLoadout(), faction, x, y, facingDegrees);
+        List<WarshipSlot> bays = new ArrayList<>();
+        for (WarshipSlot slot : WarshipSlot.parse(VanillaData.json("data/hulls/" + HULL_ID + ".ship"))) {
+            if ("LAUNCH_BAY".equals(slot.type())) bays.add(slot);
+        }
+        return new Tender(ship, bays, complement());
+    }
+
+    /** The built-in wing's size from the wing table, or {@link #FALLBACK_COMPLEMENT}. */
+    static int complement() {
+        try {
+            for (Map<String, String> row : VanillaData.csv("data/hulls/wing_data.csv")) {
+                if (!WING_ID.equals(row.get("id"))) continue;
+                int n = (int) Float.parseFloat(row.get("num").trim());
+                return Math.max(2, n);
+            }
+        } catch (Exception e) {
+            // A wing table that cannot be read leaves the hull its usual six.
+        }
+        return FALLBACK_COMPLEMENT;
+    }
+
+    /** The hull. It is also registered with the simulation's warships, which fly it. */
+    public Warship ship() {
+        return ship;
+    }
+
+    public Faction faction() {
+        return ship.faction;
+    }
+
+    @Override public float anchorX() {
+        return ship.x;
+    }
+
+    @Override public float anchorY() {
+        return ship.y;
+    }
+
+    @Override public boolean anchorAlive() {
+        return !ship.destroyed() && !ship.departed();
+    }
+
+    /** World x of the launch bay drones leave and return through; the hull's centre when it lists none. */
+    public float bayX() {
+        return bays.isEmpty() ? ship.x : ship.slotX(bays.get(0));
+    }
+
+    /** World y of the launch bay. */
+    public float bayY() {
+        return bays.isEmpty() ? ship.y : ship.slotY(bays.get(0));
+    }
+
+    /** Build charges left. A laid order has already drawn its charge. */
+    public int stock() {
+        return stock;
+    }
+
+    /** Sets the stock, for a mission that sends a better- or worse-provisioned tender. */
+    public void stock(int charges) {
+        this.stock = Math.max(0, charges);
+    }
+
+    public int builderComplement() {
+        return builderComplement;
+    }
+
+    public int defenceComplement() {
+        return defenceComplement;
+    }
+
+    /** Builders still in the bay. */
+    public int builderReserve() {
+        return builderReserve;
+    }
+
+    /** Defence drones still in the bay. */
+    public int defenceReserve() {
+        return defenceReserve;
+    }
+
+    /** Builders and defenders that have been shot down. */
+    public int dronesLost() {
+        return builderLost + defenceLost;
+    }
+
+    /** Builders shot down. */
+    public int buildersLost() {
+        return builderLost;
+    }
+
+    /** Defence drones shot down. */
+    public int defendersLost() {
+        return defenceLost;
+    }
+
+    public int defendersOut() {
+        return defenders.size();
+    }
+
+    public int buildersOut() {
+        return builders.size();
+    }
+
+    /** Sites finished. */
+    public int built() {
+        return built;
+    }
+
+    /** Whether the defence drones are wanted out; false recalls them into the bay. */
+    public boolean defenceOut() {
+        return defenceOut;
+    }
+
+    public void defenceOut(boolean out) {
+        this.defenceOut = out;
+    }
+
+    /** The orders still live, in the order they will be worked. */
+    public List<ConstructionOrder> orders() {
+        return Collections.unmodifiableList(orders);
+    }
+
+    /** The order being worked, or {@code null} when the line is empty. */
+    public ConstructionOrder current() {
+        return orders.isEmpty() ? null : orders.get(0);
+    }
+
+    /**
+     * Lays a site: draws the option's charge and joins the line. Refused (null)
+     * when the stock cannot pay, the cell is not open ground, or another site is
+     * already there. Whether the player may see the ground is the caller's rule.
+     */
+    public ConstructionOrder lay(BuildOption option, float x, float y, NavigationGrid grid) {
+        if (ship.destroyed() || option == null || option.cost() > stock) return null;
+        int cx = (int) Math.floor(x);
+        int cy = (int) Math.floor(y);
+        if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
+        for (ConstructionOrder other : orders) {
+            if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < SITE_SPACING) return null;
+        }
+        stock -= option.cost();
+        ConstructionOrder order = new ConstructionOrder(option, cx + 0.5f, cy + 0.5f);
+        orders.add(order);
+        return order;
+    }
+
+    /** Withdraws every order that has not finished; their charges come back. */
+    public void cancelAll() {
+        for (ConstructionOrder order : orders) retire(order, null);
+    }
+
+    /** Withdraws one order; its charge comes back. */
+    public void cancel(ConstructionOrder order) {
+        retire(order, null);
+    }
+
+    /** Ends {@code order} as cancelled, or failed with {@code failure}, and returns its charge. */
+    void retire(ConstructionOrder order, String failure) {
+        if (order.phase().terminal()) return;
+        if (failure == null) order.cancel();
+        else order.fail(failure);
+        stock += order.option().cost();
+    }
+
+    /** Takes terminal orders off the line. */
+    void sweep() {
+        for (int i = orders.size() - 1; i >= 0; i--) {
+            ConstructionOrder order = orders.get(i);
+            if (!order.phase().terminal()) continue;
+            if (order.phase() == ConstructionOrder.Phase.COMPLETE) built++;
+            orders.remove(i);
+        }
+    }
+
+    void launchedBuilder(long id) {
+        builders.add(id);
+        builderReserve--;
+    }
+
+    void launchedDefender(long id) {
+        defenders.add(id);
+        defenceReserve--;
+    }
+
+    void dockedBuilder(long id) {
+        builders.remove(id);
+        builderReserve++;
+    }
+
+    void dockedDefender(long id) {
+        defenders.remove(id);
+        defenceReserve++;
+    }
+
+    void lostBuilder(long id) {
+        if (builders.remove(id)) builderLost++;
+    }
+
+    void lostDefender(long id) {
+        if (defenders.remove(id)) defenceLost++;
+    }
+
+    /** One line for the debug readout. */
+    public String statusLine() {
+        ConstructionOrder o = current();
+        String work = o == null ? "idle" : String.format(Locale.ROOT, "%s %s %d%%%s",
+                o.option().label(), o.phase(), Math.round(o.fraction() * 100f), o.contested() ? " CONTESTED" : "");
+        return String.format(Locale.ROOT,
+                "TENDER %s  hull %d%%  charges %d  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
+                ship.faction == Faction.MARINE ? "[friendly]" : "[hostile]",
+                Math.round(ship.hullFraction() * 100f), stock, builders.size() + builderReserve, builderComplement,
+                defenders.size() + defenceReserve, defenceComplement, defenceOut ? "" : " (recalled)",
+                dronesLost(), built, work);
+    }
+}
