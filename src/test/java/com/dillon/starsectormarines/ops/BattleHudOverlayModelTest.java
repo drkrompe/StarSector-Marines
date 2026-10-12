@@ -18,7 +18,6 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
-import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -46,13 +45,13 @@ class BattleHudOverlayModelTest {
         loader.reload();
         try (var instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
             var doc = document(instance, BattleHudOverlay.documentHeight(state));
-            doc.layout(1896, BattleHudOverlay.documentHeight(state));
             assertEquals(0f, instance.requireElement("mission-COLONY-ARCHIVE-progress").box().borderBox().width(), .01f);
             assertEquals("sealed colony archive", instance.requireElement("mission-COLONY-ARCHIVE-name").text());
             assertEquals(UiWhiteSpace.NORMAL, instance.requireElement("mission-COLONY-ARCHIVE-instruction").whiteSpace());
-            @SuppressWarnings("unchecked")
-            var cards = (MutableSignal<List<BattleHudOverlayModel.MissionCard>>) model.props().get("missionCards");
-            cards.get().get(0).locate().run();
+            var locate = instance.requireElement("mission-COLONY-ARCHIVE-locate").box().borderBox();
+            float x = locate.x() + locate.width() / 2, y = locate.y() + locate.height() / 2;
+            assertTrue(doc.pointerDown(x, y));
+            assertTrue(doc.pointerUp(x, y));
             assertEquals(40, selected.get().x());
             assertEquals(50, selected.get().y());
             assertFalse(BattleHudOverlay.insideInteractiveSurface(instance, 600, 100), "middle battlefield stays clickable");
@@ -279,7 +278,7 @@ class BattleHudOverlayModelTest {
         UiDocument document = new UiDocument(instance.root());
         for (var style : instance.styles()) document.addStyleSheet(style);
         document.theme(MarineOpsThemes.standard());
-        document.layout(BattleHudOverlay.RAIL_WIDTH * 2f + 240f, height);
+        document.layout(1896, height); // 1920px screen with the production 12px side insets, 100% scale.
         return document;
     }
 
