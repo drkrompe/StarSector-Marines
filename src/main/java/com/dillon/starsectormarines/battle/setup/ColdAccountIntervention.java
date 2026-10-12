@@ -30,6 +30,7 @@ public final class ColdAccountIntervention implements Objective {
     private int remainingWalls, outsideWithdrawal;
     private final int installationRight;
     private boolean pendingArrivals;
+    private boolean companyRecovered;
     private final StructuralDemolitionPlan demolition;
     private boolean batteriesPrepared;
     private float firingHeading = Float.NaN;
@@ -63,6 +64,7 @@ public final class ColdAccountIntervention implements Objective {
     public int remainingWalls() { return remainingWalls; }
     public int outsideWithdrawal() { return outsideWithdrawal; }
     public boolean pendingArrivals() { return pendingArrivals; }
+    public boolean companyRecovered() { return companyRecovered; }
     public float firingHeading() { return firingHeading; }
     public int demolitionSector() { return demolition.sectorNumber(); }
     public int preparedTick() { return preparedTick; }
@@ -76,13 +78,15 @@ public final class ColdAccountIntervention implements Objective {
         if (isComplete() || isFailed()) return;
         if (!evidence.targetSecured()) return;
         int tick = sim.getSimTickIndex();
+        pendingArrivals = hasPendingArrivals(sim);
+        companyRecovered = !pendingArrivals && sim.survivorPickup().complete(sim);
         if (phase == Phase.PATROL || phase == Phase.AFTERMATH) {
             if (ship.destroyed()) {
                 phase = Phase.FAILED; beat(sim, "intervention_failed"); return;
             }
             if (ship.departed()) {
                 if (departedTick < 0) { departedTick = tick; phase = Phase.AFTERMATH; }
-                if (tick - departedTick >= AFTERMATH_TICKS) phase = Phase.COMPLETE;
+                if (tick - departedTick >= AFTERMATH_TICKS && companyRecovered) phase = Phase.COMPLETE;
             }
             return;
         }
@@ -112,6 +116,17 @@ public final class ColdAccountIntervention implements Objective {
             ship.order(WarshipOrder.HoldFire.INSTANCE);
             phase = Phase.FAILED; beat(sim, "intervention_failed"); return;
         }
+        // Demolition and its final impacts own departure; company movement owns only recovery.
+        if (demolition.complete() && shotsFired() > 0) {
+            ship.order(WarshipOrder.HoldFire.INSTANCE);
+            if (sim.warships().shells().isEmpty() && sim.warships().strikes().isEmpty()) {
+                patrolTick = tick;
+                phase = Phase.PATROL;
+                beat(sim, "stronghold_destroyed");
+                ship.departForward(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            }
+            return;
+        }
         int survivors = 0;
         outsideWithdrawal = 0;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -122,7 +137,6 @@ public final class ColdAccountIntervention implements Objective {
             if (Math.hypot(x - layout.strikeX(), y - layout.strikeY())
                     <= layout.strikeRadius() + ColdAccountLayout.BLAST_MARGIN) outsideWithdrawal++;
         }
-        pendingArrivals = hasPendingArrivals(sim);
         if (groundClearTick < 0 && survivors + sim.survivorPickup().survivingCount(Faction.MARINE) > 0
                 && outsideWithdrawal == 0) groundClearTick = tick;
         // Arrive nose-first, then train during the company's withdrawal. Triggers stay closed.
@@ -141,17 +155,6 @@ public final class ColdAccountIntervention implements Objective {
         if (clearance.warningTick() < 0) {
             ship.groundFire(Warship.GroundFire.HOLD);
             phase = Phase.WITHDRAW; return;
-        }
-        if (demolition.complete() && shotsFired() > 0) {
-            ship.order(WarshipOrder.HoldFire.INSTANCE);
-            if ((sim.warships().shells().isEmpty() && sim.warships().strikes().isEmpty())
-                    && sim.survivorPickup().complete(sim)) {
-                patrolTick = tick;
-                phase = Phase.PATROL;
-                beat(sim, "stronghold_destroyed");
-                ship.departForward(sim.getGrid().getWidth(), sim.getGrid().getHeight());
-            }
-            return;
         }
         if (phase == Phase.WITHDRAW) {
             phase = Phase.WARNING; beat(sim, "company_clear_open_fire");
@@ -200,8 +203,8 @@ public final class ColdAccountIntervention implements Objective {
             case WARNING -> "Hegemony batteries engaging";
             case BOMBARD -> "Demolition sector " + demolition.sectorNumber() + "/" + demolition.sectorCount()
                     + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
-            case PATROL -> "HSS Resolute resuming patrol";
-            case AFTERMATH -> "Stronghold silenced";
+            case PATROL -> "HSS Resolute resuming patrol" + (companyRecovered ? "" : "; reach shuttle pickup");
+            case AFTERMATH -> "Stronghold silenced" + (companyRecovered ? "" : "; recover remaining survivors at shuttle pickup");
             case COMPLETE -> "Pirate evidence secured; company withdrawn; stronghold destroyed";
             case FAILED -> "Hegemony intervention failed to destroy the stronghold";
         };

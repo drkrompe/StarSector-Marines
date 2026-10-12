@@ -9,13 +9,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class ColdAccountObjectivePresentationTest {
     @Test void hudDisclosesOnlyTheCurrentStageAndRetiresWithdrawalAfterRecovery() {
         var model = new BattleHudOverlayModel(new Reactor(), ignored -> { }, "Pause", "1x", "2x", "4x");
-        model.updateIntervention(Phase.EVIDENCE, "Secure the dispatch office", 100, 100);
+        model.updateIntervention(Phase.EVIDENCE, "Secure the dispatch office", 100, 100, false);
         assertEquals("A COLD ACCOUNT", value(model, "objectiveTitle"));
         assertEquals("DISPATCH OFFICE / RECOVER RECORDS", value(model, "objectiveTally"));
-        model.updateIntervention(Phase.WITHDRAW, "Clear the bombardment zone", 100, 100);
+        model.updateIntervention(Phase.WITHDRAW, "Clear the bombardment zone", 100, 100, false);
         assertEquals("HEGEMONY / WITHDRAW", value(model, "objectiveTitle"));
         assertEquals("CLEAR FIRING AREA > SHUTTLE PICKUP", value(model, "objectiveTally"));
-        model.updateIntervention(Phase.PATROL, "Resolute resuming patrol", 20, 100);
+        model.updateIntervention(Phase.PATROL, "Resolute resuming patrol", 20, 100, false);
+        assertEquals("STRONGHOLD SILENCED / SHUTTLE PICKUP", value(model, "objectiveTally"));
+        model.updateIntervention(Phase.AFTERMATH, "Stronghold silenced", 20, 100, true);
         assertEquals("COMPANY RECOVERED / STRONGHOLD SILENCED", value(model, "objectiveTally"));
     }
 

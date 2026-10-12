@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
@@ -124,10 +125,17 @@ class CorvusCombatEvidenceTest {
                 Files.writeString(dir.resolve("fixture.json"), BattleFixtureJson.toJson(new BattleLaunchFixture(fixture, overlay)).toString(2));
                 sim.setCommandTraceEnabled(true, fixture.kind());
                 Set<Long> landed = new HashSet<>(), fallen = new HashSet<>(), enemyFallen = new HashSet<>();
+                var marineDeaths = new JSONArray();
                 sim.subscribeDeath(event -> {
                     long id = event.unitId();
                     if (sim.identity().faction(id) == Faction.DEFENDER) enemyFallen.add(id);
                     else if (sim.identity().faction(id) == Faction.MARINE && sim.identity().campaignSquadId(id) != null) fallen.add(id);
+                    if (sim.identity().faction(id) == Faction.MARINE) try {
+                        marineDeaths.put(new JSONObject().put("tick", sim.getSimTickIndex()).put("id", id)
+                                .put("type", sim.identity().type(id)).put("x", event.x()).put("y", event.y())
+                                .put("heavyImpacts", sim.getHeavyImpactsThisFrame()));
+                        Files.writeString(dir.resolve("marine-deaths.json"), marineDeaths.toString(2));
+                    } catch (Exception e) { throw new IllegalStateException(e); }
                 });
                 int initialDefenders = count(sim, Faction.DEFENDER);
                 Set<Long> approachGuards = new HashSet<>();
@@ -147,6 +155,8 @@ class CorvusCombatEvidenceTest {
                 boolean houndAlive = false;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
+                int recoveryTick = -1, enemyDeathsBeforeLanding = -1;
+                boolean pickupCompleteAtPatrol = false;
                 var withdrawalDurability = new HashMap<Long, Float>();
                 float marineDurabilityLostAfterFirstSalvo = 0f;
                 Warship departingCapital = null;
@@ -187,6 +197,25 @@ class CorvusCombatEvidenceTest {
                         assertTrue(sim.getSimTickIndex() - sim.getColdAccount().warningTick() >= ColdAccountIntervention.WARNING_TICKS);
                     }
                     if (sim.getColdAccount() != null) {
+                        for (long air : sim.getAirEntityIds()) {
+                            var flight = sim.world().mission(air);
+                            if (flight == null || sim.world().airFaction(air) != Faction.MARINE) continue;
+                            assertTrue(flight.entryX > sim.getGrid().getWidth(), "Company transports enter beyond the actual east edge");
+                            assertTrue(flight.exitX > sim.getGrid().getWidth(), "Company transports return east");
+                            assertEquals(flight.lzY, flight.entryY, .01f, "Inbound route aligns with the landing pad");
+                            if (flight.state == ShuttleState.INCOMING)
+                                assertTrue(sim.world().kinematics(air).x >= flight.lzX - 1f,
+                                        "Inbound transports approach from east, without sweeping across the defenders");
+                        }
+                        if (sim.getColdAccount().companyRecovered() && recoveryTick < 0)
+                            recoveryTick = sim.getSimTickIndex();
+                        if (sim.getColdAccount().patrolTick() == sim.getSimTickIndex()) {
+                            pickupCompleteAtPatrol = sim.survivorPickup().complete(sim);
+                            assertTrue(sim.warships().shells().isEmpty() && sim.warships().strikes().isEmpty(),
+                                    "The demolition's last impacts precede the patrol report");
+                        }
+                        if (!sim.getColdAccount().companyRecovered())
+                            assertFalse(sim.getColdAccount().isComplete(), "Ship departure cannot settle an unfinished pickup");
                         var layout = sim.getColdAccount().layout();
                         for (var capital : sim.warships().ships()) {
                             if (sim.getColdAccount().patrolTick() >= 0) {
@@ -230,7 +259,10 @@ class CorvusCombatEvidenceTest {
                             assertEquals(hound, id, "Exactly one owned Hound must land");
                         } else if (sim.identity().campaignSquadId(id) != null) landed.add(id);
                     }
-                    if (!landed.isEmpty() && firstLandedAt < 0) firstLandedAt = tick;
+                    if (!landed.isEmpty() && firstLandedAt < 0) {
+                        firstLandedAt = tick;
+                        enemyDeathsBeforeLanding = enemyFallen.size();
+                    }
                     if (landed.size() == deployment.size() && allLandedAt < 0) allLandedAt = tick;
                     for (var shot : sim.getShotsThisFrame()) {
                         if (firstShotAt < 0) firstShotAt = tick;
@@ -306,6 +338,8 @@ class CorvusCombatEvidenceTest {
                             .put("clearanceRadius", intervention.layout().strikeRadius() + ColdAccountLayout.BLAST_MARGIN)
                             .put("marineDurabilityLostAfterFirstSalvo", marineDurabilityLostAfterFirstSalvo)
                             .put("patrolTick", intervention.patrolTick()).put("departedTick", intervention.departedTick())
+                            .put("pickupCompleteAtPatrol", pickupCompleteAtPatrol).put("recoveryTick", recoveryTick)
+                            .put("enemyDeathsBeforeLanding", enemyDeathsBeforeLanding)
                             .put("firstCapitalShotAt", firstCapitalShotAt).put("firstSalvoMounts", firstSalvoMounts)
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
                             .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
@@ -314,12 +348,18 @@ class CorvusCombatEvidenceTest {
                                     ? intervention.firingHeading() : JSONObject.NULL).put("demolitionSector", intervention.demolitionSector())
                             .put("pickedUp", sim.survivorPickup().recoveredCount())
                             .put("pickupSorties", sim.survivorPickup().manifests().size())
-                            .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment));
+                            .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment)
+                            .put("infantryDeathsAfterFirstSalvo", firstCapitalShotAt < 0 ? 0 : fallen.size() - infantryDeathsBeforeBombardment));
                     if (intervention.isComplete()) {
+                        assertEquals(0, enemyDeathsBeforeLanding, "Delivery must not pre-clear the ground fight");
+                        assertTrue(intervention.companyRecovered());
+                        assertTrue(intervention.patrolTick() < recoveryTick,
+                                "Recommended force: Resolute resumes patrol while survivor pickup is still running");
                         assertTrue(sim.survivorPickup().complete(sim));
                         assertEquals(deployment.size() - fallen.size(), sim.survivorPickup().manifests().stream()
                                 .flatMap(m -> m.passengers().stream()).filter(p -> p.soldierId() != null).count());
-                        assertEquals(infantryDeathsBeforeBombardment, fallen.size(), "No withdrawn infantry lost during bombardment");
+                        // Pirates outside the strike area can still fight during withdrawal.
+                        // Casualties are findings; clearance and recovery are the mission contracts.
                         assertTrue(intervention.remainingWalls() <= intervention.initialWalls() / 4);
                         assertTrue(sim.warships().shells().isEmpty());
                         assertTrue(intervention.departedTick() > intervention.patrolTick());

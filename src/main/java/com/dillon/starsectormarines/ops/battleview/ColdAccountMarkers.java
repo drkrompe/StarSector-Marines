@@ -10,7 +10,7 @@ public final class ColdAccountMarkers {
     public record Marker(Kind kind, String label, float x, float y, float radius) { }
     private ColdAccountMarkers() { }
 
-    public static List<Marker> forPhase(Phase phase, ColdAccountLayout layout) {
+    public static List<Marker> forPhase(Phase phase, ColdAccountLayout layout, boolean companyRecovered) {
         return switch (phase) {
             case EVIDENCE -> List.of(new Marker(Kind.EVIDENCE, "SECURE DISPATCH OFFICE",
                     layout.evidenceX() + .5f, layout.evidenceY() + .5f, 2f));
@@ -19,7 +19,10 @@ public final class ColdAccountMarkers {
                             layout.withdrawalY() + .5f, ColdAccountLayout.WITHDRAWAL_RADIUS),
                     new Marker(Kind.DANGER, "BOMBARDMENT / KEEP CLEAR", layout.strikeX(),
                             layout.strikeY(), layout.strikeRadius() + ColdAccountLayout.BLAST_MARGIN));
-            case PATROL, AFTERMATH, COMPLETE, FAILED -> List.of();
+            case PATROL, AFTERMATH -> companyRecovered ? List.of() : List.of(
+                    new Marker(Kind.PICKUP, "SHUTTLE PICKUP", layout.withdrawalX() + .5f,
+                            layout.withdrawalY() + .5f, ColdAccountLayout.WITHDRAWAL_RADIUS));
+            case COMPLETE, FAILED -> List.of();
         };
     }
 }
