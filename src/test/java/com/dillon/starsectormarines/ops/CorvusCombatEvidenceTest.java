@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
@@ -48,6 +48,7 @@ import java.awt.RenderingHints;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -155,6 +156,10 @@ class CorvusCombatEvidenceTest {
                 boolean houndAlive = false;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
+                int peakInfantryPickups = 0, peakLandedPickups = 0;
+                boolean pickupFrameWritten = false;
+                var pickupAircraft = new HashSet<Long>();
+                var pickupFlights = new JSONArray();
                 int recoveryTick = -1, enemyDeathsBeforeLanding = -1;
                 boolean pickupCompleteAtPatrol = false;
                 var withdrawalDurability = new HashMap<Long, Float>();
@@ -243,6 +248,36 @@ class CorvusCombatEvidenceTest {
                         }
                     }
                     int tick = sim.getSimTickIndex();
+                    int infantryPickups = 0, landedPickups = 0;
+                    var flyingBoats = new ArrayList<FittedBoat>();
+                    for (long air : sim.getAirEntityIds()) {
+                        var pickup = sim.world().mission(air);
+                        if (pickup == null || pickup.pickup == null || pickup.state == ShuttleState.GONE) continue;
+                        var frame = sim.world().airframe(air);
+                        if (frame instanceof FittedBoat boat) {
+                            // Fixture boats without campaign ids compare equal by fit; their object identities remain distinct.
+                            assertTrue(flyingBoats.stream().noneMatch(b -> b == boat), "One physical boat cannot fly two pickups");
+                            flyingBoats.add(boat);
+                            infantryPickups++;
+                            if (pickup.state == ShuttleState.LANDED) landedPickups++;
+                        }
+                        if (pickupAircraft.add(air)) pickupFlights.put(new JSONObject().put("entity", air)
+                                .put("tick", tick).put("frame", frame.toString())
+                                .put("x", pickup.lzX).put("y", pickup.lzY));
+                    }
+                    peakInfantryPickups = Math.max(peakInfantryPickups, infantryPickups);
+                    peakLandedPickups = Math.max(peakLandedPickups, landedPickups);
+                    if (landedPickups >= 2 && !pickupFrameWritten) {
+                        writeFrame(renderer, sim, chapter, dir);
+                        frameTicks.put(tick);
+                        var pickupArea = sim.getColdAccount().layout();
+                        var close = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080,
+                                pickupArea.withdrawalX(), pickupArea.withdrawalY(), 65).withUnitShadows();
+                        ImageIO.write(close.render(sim, "A Cold Account / concurrent survivor pickup / "
+                                + tick + " ticks / 1920x1080, 100% UI scale"), "PNG",
+                                dir.resolve("concurrent-pickup.png").toFile());
+                        pickupFrameWritten = true;
+                    }
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
                         long id = sim.liveUnitAt(i);
                         if (sim.identity().faction(id) != Faction.MARINE) continue;
@@ -348,6 +383,8 @@ class CorvusCombatEvidenceTest {
                                     ? intervention.firingHeading() : JSONObject.NULL).put("demolitionSector", intervention.demolitionSector())
                             .put("pickedUp", sim.survivorPickup().recoveredCount())
                             .put("pickupSorties", sim.survivorPickup().manifests().size())
+                            .put("peakInfantryPickups", peakInfantryPickups).put("peakLandedPickups", peakLandedPickups)
+                            .put("pickupFlights", pickupFlights)
                             .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment)
                             .put("infantryDeathsAfterFirstSalvo", firstCapitalShotAt < 0 ? 0 : fallen.size() - infantryDeathsBeforeBombardment));
                     if (intervention.isComplete()) {
