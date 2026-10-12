@@ -1561,6 +1561,37 @@ flight when the pool empties still land; nothing new is fired, even mid-burst.
 Both budgets are unlimited unless a mission sets them, and both are readable
 (remaining seconds, remaining rounds, per-mount magazine) for a HUD.
 
+**A warship is overpowered on purpose, and flux governs its rhythm, not its
+balance.** Owner direction: these ships are not balanced inside the battle. In the
+world they are gated by role-play context (diplomacy with the local government, a
+fleet already busy with hostile fleets) and later by the player choosing
+compatible fleet ships for compatible missions. Readiness (combat readiness) and
+a command-power commitment are deliberately **not** modelled until general ship
+support exists. So the in-battle limits are about rhythm and legibility, and no
+weapon does less damage for them. Flux is the fire-rate governor, read from the
+game's own data: the hull's `max flux` and `flux dissipation` and each weapon's
+`energy/shot` and `energy/second`. All mounts, point defence included, add to one
+pool that drains at the hull's dissipation rate. A burst or a lance is paid for
+when it is started. Below 85% of capacity the ship fires freely; at 85% it stops
+starting new fire (what is under way finishes, a laid lance burns out) until the
+pool has drained to 55%, so a battery surges, rests and surges again, and a salvo
+that would not fit in what is left is not started, which keeps a governed ship off
+real overload. If the pool does reach capacity (point defence, or the soft limit
+switched off) the ship overloads: every mount, point defence too, falls silent and
+bursts in progress are abandoned for four to ten seconds (longer the further past
+capacity), a laid lance still burns out, dissipation continues, and the pool is
+empty when it resumes. Capacity and dissipation scale together
+(`Warship.fluxScale`). A directed ship is on flux by default, at half the hull
+table's figures (`Warship.SHIELD_RESERVE_SCALE`); a ship given only explicit
+orders, as a cinematic script does, is not, and `limitFlux`/`unlimitedFlux`/
+`fluxScale` override either way. The half is provisional: in the game a ship's
+shield is the major draw on flux and a raised shield stops venting, so a brawler's
+guns never see the whole pool or the whole dissipation. Shields are not modelled;
+this half stands in for what they would take and is replaced when they arrive and
+take their own share. At the hull table's own figures a ground bombardment never
+nears an Onslaught's capacity. It is readable for a HUD (`fluxFraction`,
+`overloaded`, `overloadSecondsRemaining`), and the debug warship panel can toggle it.
+
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
 them is optional. Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling

@@ -666,6 +666,9 @@ public class BriefingScreen implements Screen {
                 controls.add(conquestControl("debug-warship-mode", "WARSHIP DEBUG · mode",
                         debugWarship.mode().label, false, false,
                         this::toggleDebugWarshipMode, this::toggleDebugWarshipMode));
+                controls.add(conquestControl("debug-warship-flux", "WARSHIP DEBUG · flux",
+                        debugWarship.flux() ? "On" : "Off", false, false,
+                        this::toggleDebugWarshipFlux, this::toggleDebugWarshipFlux));
             }
         }
         int maxTransports = Math.max(0, mission.requiredDrops);
@@ -782,6 +785,11 @@ public class BriefingScreen implements Screen {
 
     private void toggleDebugWarshipMode() {
         debugWarship = debugWarship.withOtherMode();
+        rebuild();
+    }
+
+    private void toggleDebugWarshipFlux() {
+        debugWarship = debugWarship.withOtherFlux();
         rebuild();
     }
 

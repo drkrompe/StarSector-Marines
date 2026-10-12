@@ -119,6 +119,7 @@ public final class WarshipSystem {
         for (Warship ship : ships) {
             depart(dt, sim, ship);
             direct(dt, sim, ship);
+            ship.fluxPool().update(dt);
             moveHull(dt, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
@@ -351,6 +352,13 @@ public final class WarshipSystem {
             tickBeam(dt, sim, ship, m);
             return;
         }
+        if (ship.overloaded()) {
+            // An overloaded ship is silent: the burst under way is abandoned where it stands.
+            m.burstRemaining = 0;
+            m.aimed = false;
+            traverse(dt, ship, m, ship.facingDegrees + m.slot.angleDegrees());
+            return;
+        }
         if (m.burstRemaining > 0) {
             traverse(dt, ship, m, AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)));
             m.burstTimer -= dt;
@@ -391,6 +399,10 @@ public final class WarshipSystem {
             m.aimed = false;
             return;
         }
+        // Venting: the barrel stays on its choice and waits for the pool to drain.
+        float cost = w.fluxPerShot() * w.burstSize();
+        if (!ship.fluxPool().canStart(cost)) return;
+        ship.fluxPool().spend(cost);
         m.burstRemaining = w.burstSize();
         m.burstTimer = 0f;
     }
@@ -425,7 +437,7 @@ public final class WarshipSystem {
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         WarshipOrder.FireOnArea area = null;
         if (ship.areas().isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
-                || !ship.hasOrdnance(m) || (area = pickTarget(sim, ship, m)) == null) {
+                || !ship.hasOrdnance(m) || !ship.fluxPool().canStartFire() || (area = pickTarget(sim, ship, m)) == null) {
             traverse(dt, ship, m, rest);
             return;
         }
@@ -448,6 +460,10 @@ public final class WarshipSystem {
         }
         float rate = Math.max(LANCE_MIN_SWEEP_RATE, w.turnRateDegPerSec());
         float burn = Math.max(1f, (float) Math.toDegrees(end - start) / rate);
+        if (!ship.fluxPool().canStart(w.fluxPerSecond() * burn)) {
+            traverse(dt, ship, m, rest);
+            return;
+        }
         LanceSweep sweep = new LanceSweep(0L, ship.faction, mx, my,
                 slotWorld + start, slotWorld + end,
                 WarshipScale.cells(w.rangePx()),
@@ -455,6 +471,7 @@ public final class WarshipSystem {
                 LANCE_TELEGRAPH_SECONDS, burn, w.damagePerSecond(),
                 LANCE_PENETRATION, LANCE_WALL_DAMAGE, w.id());
         m.lance = sim.startLanceSweep(sweep);
+        ship.fluxPool().spend(w.fluxPerSecond() * burn);
         m.shotsFired++;
         ship.spendOrdnance(m);
         m.cooldown = sweep.totalSeconds() + Math.max(w.cooldownSeconds(), LANCE_REST_SECONDS);
