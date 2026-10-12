@@ -16,4 +16,5 @@ com.dillon.starsectormarines.battle.warship.ParagonSweepScene
 com.dillon.starsectormarines.battle.warship.WarshipAnswerabilityScene
 com.dillon.starsectormarines.battle.warship.WarshipPointDefenceScene
 com.dillon.starsectormarines.battle.warship.OnslaughtDirectorScene
+com.dillon.starsectormarines.battle.warship.WarshipBudgetScene
 com.dillon.starsectormarines.battle.warship.OnslaughtFlybyScene
