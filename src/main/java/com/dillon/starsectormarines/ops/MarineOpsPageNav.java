@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -129,20 +130,28 @@ final class MarineOpsPageNav {
         String name = page.button();
         Runnable wired = required(action, name + "Action");
         Aboard available = page.availableAboard(aboard);
-        // An unavailable page keeps its button rather than losing it, so the
-        // player can see that the ship has no such place instead of wondering
-        // where the Mech Lab went. Its action is dropped here rather than left
-        // to the styling, because a route nothing can reach is the actual rule
-        // and a greyed-out button that still worked would be a lie.
-        //
-        // A page that is only waiting keeps its action, because it stops
-        // waiting. These properties are read once, when the page is built, and
-        // a ship gets ready some seconds later; an action dropped here would
-        // stay dropped on the page the player is looking at. Routing refuses
-        // it until she is ready and stops refusing when she is, so the button
-        // corrects itself even if nothing rebuilds it.
-        props.put(name + "Action", available == Aboard.NO ? (Runnable) () -> { } : wired);
+        // Keep the route alive: the company can choose or replace its hull while
+        // this retained page is open. The context still gates UNKNOWN on readiness.
+        props.put(name + "Action", (Runnable) () -> {
+            if (page.availableAboard(aboard) != Aboard.NO) wired.run();
+        });
         props.put(name + "Classes", classes(page == current, available));
+    }
+
+    /** Update existing controls after designation or asynchronous deck preparation. */
+    static void refresh(MarkupInstance markup, Page current, Function<RoomPurpose, Aboard> aboard) {
+        if (markup == null) return;
+        for (Page page : Page.values()) {
+            if (page.button() == null) continue;
+            String id = "page-nav-" + (page == Page.MECH_LAB ? "mech-lab" : page.button());
+            Aboard available = page.availableAboard(aboard);
+            boolean selected = page == current && available == Aboard.YES;
+            markup.requireElement(id)
+                    .classed("page-nav-absent", available == Aboard.NO)
+                    .classed("page-nav-waiting", available == Aboard.UNKNOWN)
+                    .classed("selected", selected)
+                    .classed("page-nav-current", selected);
+        }
     }
 
     private static Runnable required(Runnable action, String name) {

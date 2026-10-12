@@ -350,6 +350,7 @@ public final class BoatDeckScreen implements Screen {
     public void advance(float dt) {
         if (deckMayHaveChanged) adoptChangedDeck();
         if (markupInstance != null) markupInstance.flush();
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard);
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
     }

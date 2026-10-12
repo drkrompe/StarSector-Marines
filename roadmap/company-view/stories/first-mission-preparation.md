@@ -35,6 +35,9 @@ Armory includes the real founding action and a return to assignment. Completion 
 
 ## Acceptance
 
+- Selecting the company hull unlocks its available room routes in the already-open
+  UI once preparation finishes. No close, refresh or second designation is needed;
+  missing rooms remain unavailable and changing hulls updates the same controls.
 - Exact and insufficient cargo; combined shared-commodity requirements; no charge
   or designation on failed preparation preflight.
 - Paid first boat, no transfer refill, preserved legacy boats and saved progress.
@@ -52,6 +55,12 @@ and produces 75 frames at 100% and 150%; packaging and the mod/tool boundary
 check also pass. This evidence does not replace a live campaign save/reload,
 first-contract handoff or mission launch. Those checks remain open, along with
 recording Castle's new lines using the existing company-officer voice.
+
+The live-navigation fix uses click-time room checks and updates the existing room
+buttons each frame, replacing the ineffective one-time screen reattachment. Five
+focused tests cover the retained no-ship/preparing/ready transition, all four room
+routes, keyboard activation, a later missing bay, and existing preparation guards.
+The mod package boundary check passes. Live campaign acceptance remains open.
 
 ## Follow-on
 

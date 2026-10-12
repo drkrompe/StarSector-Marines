@@ -202,6 +202,7 @@ public final class CompanyHqScreen implements Screen {
         }
         intelTerminal.advance(dt);
         if (markupInstance != null) markupInstance.flush();
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.HQ, context::roomAboard);
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
     }

@@ -130,6 +130,7 @@ public final class ShipViewScreen implements Screen {
     @Override
     public void advance(float dt) {
         if (markupInstance != null) markupInstance.flush();
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard);
         if (document != null) document.advance(dt);
         if (deck != null) controls.advance(dt, deck.camera());
     }
