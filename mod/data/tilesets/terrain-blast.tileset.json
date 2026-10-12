@@ -1,0 +1,144 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "id": "terrain.blast-earth"
+    },
+    {
+      "cells": [
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "terrain.blast-paving"
+    },
+    {
+      "cells": [
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          0
+        ]
+      ],
+      "id": "terrain.blast-metal"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "terrain.blast-earth v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "terrain.blast-earth v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "variant 3 of the pool",
+      "name": "terrain.blast-earth v3",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 4 of the pool",
+      "name": "terrain.blast-earth v4",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "variant 1 of the pool",
+      "name": "terrain.blast-paving v1",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 2 of the pool",
+      "name": "terrain.blast-paving v2",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 3 of the pool",
+      "name": "terrain.blast-paving v3",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 4 of the pool",
+      "name": "terrain.blast-paving v4",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 1 of the pool",
+      "name": "terrain.blast-metal v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "variant 2 of the pool",
+      "name": "terrain.blast-metal v2",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "variant 3 of the pool",
+      "name": "terrain.blast-metal v3",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "variant 4 of the pool",
+      "name": "terrain.blast-metal v4",
+      "row": 0
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/terrain-blast.png"
+}

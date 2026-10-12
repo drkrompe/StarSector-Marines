@@ -29,7 +29,9 @@ public final class RoadMaterialBaker {
                 out.drawImage(tile(size,recipe.getLong("seed")+v*1337L,family,age),v*size,(f*3+age)*size,null);
                 cells.put(new JSONArray().put(v).put(f*3+age));
             }
-            blocks.put(new JSONObject().put("id","pavement."+family.getString("id")+"."+new String[]{"new","worn","cracked"}[age]).put("cells",cells));
+            JSONObject block = new JSONObject().put("id","pavement."+family.getString("id")+"."+new String[]{"new","worn","cracked"}[age]).put("cells",cells);
+            if (family.has("damageBlock")) block.put("damageBlock",family.getString("damageBlock"));
+            blocks.put(block);
         }
         out.dispose();
         // Six material/age rows, sixteen cardinal masks, eight coordinate variants.

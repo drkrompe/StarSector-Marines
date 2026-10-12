@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.catalog.CatalogSource;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
@@ -55,6 +56,8 @@ public final class GenMappingRegistry {
     /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
     private final Map<GroundKind, CatalogSource> groundRenderSources = new EnumMap<>(GroundKind.class);
+    private final Map<GroundKind, String> groundDamage = new EnumMap<>(GroundKind.class);
+    private final Map<GroundKind, CatalogSource> groundDamageSources = new EnumMap<>(GroundKind.class);
     /** {@link SurfaceRole} -> the tileset block/tile id that orthogonal surface renders as. The wall, doorway and roof half of render dispatch; {@code groundRender}'s sibling, separate because the two vocabularies are orthogonal per cell. */
     private final Map<SurfaceRole, String> surfaceRender = new EnumMap<>(SurfaceRole.class);
     private final Map<SurfaceRole, CatalogSource> surfaceRenderSources = new EnumMap<>(SurfaceRole.class);
@@ -116,6 +119,16 @@ public final class GenMappingRegistry {
                 requireUnique("ground render mapping", kind, groundRenderSources, source);
                 groundRender.put(kind, ground.getString(kindName));
                 groundRenderSources.put(kind, source);
+            }
+        }
+        JSONObject damage = root.optJSONObject("groundDamage");
+        if (damage != null) {
+            for (Iterator<String> it = damage.keys(); it.hasNext(); ) {
+                String name = it.next();
+                GroundKind kind = GroundKind.valueOf(name);
+                requireUnique("ground damage mapping", kind, groundDamageSources, source);
+                groundDamage.put(kind, damage.getString(name));
+                groundDamageSources.put(kind, source);
             }
         }
         JSONObject surfaces = root.optJSONObject("surfaceRender");
@@ -223,6 +236,11 @@ public final class GenMappingRegistry {
      */
     public String groundBlockId(GroundKind kind) {
         return groundRender.get(kind);
+    }
+
+    /** Default blast overlay when the actual surface has no authored material pair. */
+    public String groundDamageBlockId(GroundKind kind) {
+        return groundDamage.get(kind);
     }
 
     /**
@@ -433,6 +451,14 @@ public final class GenMappingRegistry {
                         + entry.getKey() + "' from "
                         + groundRenderSources.get(entry.getKey()).describe()
                         + " references unknown tile or block id '" + id + "'");
+            }
+        }
+        for (Map.Entry<GroundKind, String> entry : groundDamage.entrySet()) {
+            var block = tiles.block(entry.getValue());
+            if (block == null || (!block.isVariantPool() && block.layout != GridLayout.SINGLE)) {
+                throw new IllegalStateException("GenMappingRegistry: ground damage mapping '" + entry.getKey()
+                        + "' from " + groundDamageSources.get(entry.getKey()).describe()
+                        + " must reference a single block or variant pool: " + entry.getValue());
             }
         }
         for (Map.Entry<SurfaceRole, String> entry : surfaceRender.entrySet()) {

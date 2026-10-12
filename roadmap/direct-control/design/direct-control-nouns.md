@@ -166,7 +166,12 @@ Wheel zoom remains available, reaching twice the former close-up limit in
 strategic and action views. Action zoom preserves the body’s screen framing;
 strategic zoom retains its cursor anchor. Camera projection remains shared
 with point aiming and the crosshair. Right-click issues no world order while
-controlling; a Warship reads it as its second trigger (see Warship carrier).
+controlling. It is a second trigger for the carriers that have a second battery: a
+Warship's missiles (see Warship carrier), a Mech's secondary weapon group, and a
+Marine's secondary equipment (see Mouse buttons). A carrier with nothing to put on
+it, such as the APC turret, lets the press fall on the floor; the press never
+reaches the world, the camera, or the command layer, and releasing input clears it
+exactly as it clears the left button.
 
 The mode is a freely entered one-unit intervention. It consumes
 the player's attention and excludes simultaneous control of another body.
@@ -340,18 +345,47 @@ not a range limit: an unobstructed round travels to the weapon’s full modeled
 reach beyond it. Accuracy, falloff, spread, and smoke depth are calibrated at
 weapon range so placing the cursor nearer cannot improve distant accuracy.
 
-For a Mech, the held primary trigger requests either all installed ground-direct
-mounts or one selected hardpoint, subject to each mount's arc, alignment,
-cooldown, ammunition, and burst gates. The action HUD's buttons and keys 1–4
-select all direct mounts, arms, left shoulder, or right shoulder. Empty or
-indirect hardpoints cannot be selected; an installed direct mount remains
+### Mouse buttons and weapon groups
+
+Two held buttons, one model across carriers: the left button is the primary
+trigger and the right button the secondary, and both may be held together.
+
+A Mech's point-fire hardpoints split into two **groups by weapon role**. Guns,
+cannons and lasers are the primary group; missile and rocket racks are the
+secondary group. Indirect launchers (LRM) are in neither because the cursor cannot
+aim them. The Hound therefore fires its nose chaingun on the left button and its
+SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks right.
+A chassis whose point-fire mounts are all one role keeps them all on the left
+button and leaves the right one inert (an all-rack chassis is not stranded without
+a primary). Each button's trigger still requests only its own group's mounts,
+subject to each mount's arc, alignment, cooldown, ammunition, heat and burst gates.
+
+Keys 1-4 keep their place but act on the left button only. Key 1 is the default
+(left = primary group); keys 2-4 re-point the left button at a single hardpoint
+(arms, left shoulder, right shoulder), including a rack. The right button always
+fires the secondary group. The strip marks every card with the button(s) that
+fire it: `L`, `R`, `LR`, or nothing (an indirect rack or an unfired hardpoint).
+Empty or indirect hardpoints cannot be selected; an installed direct mount remains
 selectable when its ammunition is exhausted. Selection belongs to the control
 session, survives pause, and resets on takeover or handback. Changing it cancels
 queued manual rounds and releases held fire while preserving movement, aim,
-ammunition, and clocks; a new press must trigger the new choice. Repeated input
-cannot replay a cancelled burst. Selection does not change the installed
-equipment, authored packet size, or AI firing policy. The authored single shot,
+ammunition, and clocks; a new press must trigger the new choice. A queued burst
+keeps firing after its button is released and is dropped only when its mount leaves
+both buttons' groups. Repeated input cannot replay a cancelled burst. Neither
+selection nor groups change the installed equipment, authored packet size, or AI
+firing policy. The authored single shot,
 timed burst, or simultaneous volley remains distinct from this player choice.
+
+A Marine's primary weapon stays on the left button. The right button is the
+Marine's secondary equipment, through the same one-shot request as the G and E
+keys: on the press it throws the carried smoke at the cursor and, for a Marine with
+no smoke, raises the integral shield toward it. It acts on the press and does not
+repeat while held, so a held button cannot spend a magazine of grenades; ammunition,
+cooldown and the committed throw are the equipment's own. No other secondary item
+has a manual contract (grenade launchers and satchels are autonomous), so a Marine
+carrying only those leaves the right button inert rather than inventing a new free
+action. E and G keep working.
+
 Indirect mounts stay untriggered. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
@@ -17,9 +18,10 @@ public final class DirectControlAimOrigins {
     public static List<Origin> mech(MechLoadoutComponent loadout, int selected,
                                     float x, float y, float waistX, float waistY) {
         List<Origin> origins = new ArrayList<>();
+        int fired = MechFireGroups.leftMask(loadout.mounts(), selected)
+                | MechFireGroups.rightMask(loadout.mounts(), selected);
         for (var mount : loadout.mounts()) {
-            if (!HeavyWeapons.supportsPointFire(mount)
-                    || selected != 0 && mount.slot.ordinal() != selected - 1) continue;
+            if (!HeavyWeapons.supportsPointFire(mount) || !MechFireGroups.contains(fired, mount)) continue;
             var muzzle = MechHardpointGeometry.muzzle(x, y, waistX, waistY,
                     loadout.torsoFacingDegrees, loadout, mount, MechHardpointGeometry.nextReleaseIndex(mount));
             origins.add(new Origin(muzzle.x(), muzzle.y(), x, y));

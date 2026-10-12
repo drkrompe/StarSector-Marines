@@ -15,6 +15,21 @@
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
+  "groundDamage": {
+    "INDOOR": "terrain.blast-paving",
+    "STREET": "terrain.blast-paving",
+    "COURTYARD": "terrain.blast-paving",
+    "TILE": "terrain.blast-metal",
+    "STRIPED": "terrain.blast-metal",
+    "LZ_MARKER": "terrain.blast-metal",
+    "GRASS": "terrain.blast-earth",
+    "DIRT": "terrain.blast-earth",
+    "STONE": "terrain.blast-paving",
+    "SAND": "terrain.blast-earth",
+    "SNOW": "terrain.blast-earth",
+    "BRICK": "terrain.blast-paving",
+    "SIDEWALK": "terrain.blast-paving"
+  },
   "surfaceRender": {
     "WALL": "urban.wall",
     "DOOR_OPEN": "urban.door-open",

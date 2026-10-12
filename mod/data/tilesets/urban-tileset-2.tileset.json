@@ -19,6 +19,7 @@
       ]
     },
     {
+      "damageBlock": "terrain.blast-metal",
       "id": "road.striped",
       "layout": "striped-3x3",
       "origin": [
@@ -27,6 +28,7 @@
       ]
     },
     {
+      "damageBlock": "terrain.blast-metal",
       "id": "road.tile",
       "layout": "single",
       "origin": [
@@ -43,6 +45,7 @@
       ]
     },
     {
+      "damageBlock": "terrain.blast-metal",
       "id": "road.lz-marker",
       "layout": "single",
       "origin": [
@@ -59,6 +62,7 @@
       ]
     },
     {
+      "damageBlock": "terrain.blast-metal",
       "id": "road.vent",
       "layout": "single",
       "origin": [

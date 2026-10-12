@@ -226,7 +226,6 @@ public class Detonations {
                     float cdy = (cy + 0.5f) - det.endpointY;
                     if (cdx * cdx + cdy * cdy > r2) continue;
                     if (!grid.hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
-                    if (det.wallDamage > 0) mapEditor.damageGround(cx, cy);
                     if (topology.getBuildingId(cx, cy) == 0) continue;
                     if (topology.isRoofDestroyed(cx, cy)) continue;
                     mapEditor.destroyRoof(cx, cy);
@@ -245,6 +244,10 @@ public class Detonations {
                 }
             }
             damageEdgeBarriers(det);
+            // Evaluate visual exposure after the shell has breached its target wall.
+            // Structural-only rounds have aftermath too, even without anti-personnel splash.
+            mapEditor.damageGroundInRadius(det.endpointX, det.endpointY,
+                    Math.max(det.aoeRadius, det.wallDamageRadius));
         }
     }
 

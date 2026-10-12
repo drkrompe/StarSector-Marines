@@ -126,7 +126,19 @@ final class CompoundDamageReview implements AutoCloseable {
                     .put("damagePair",variant(e.getKey(),"damaged") != null && variant(e.getKey(),"destroyed") != null)
                     .put("damaged",n[2]).put("destroyed",n[3]).put("changed",n[4]));
         }
-        return new JSONObject().put("tick",sim.getSimTickIndex()).put("families",families).put("props",rows);
+        return new JSONObject().put("tick",sim.getSimTickIndex()).put("families",families).put("props",rows)
+                .put("terrain",terrainInventory()).put("retainedBattleDecals",sim.getDecals().size());
+    }
+    private JSONObject terrainInventory() throws Exception {
+        var topology = sim.getTopology(); var layout = sim.getColdAccount().layout();
+        Map<String,Integer> byKind = new TreeMap<>(); int marked = 0;
+        for(int y=0;y<topology.getHeight();y++) for(int x=0;x<topology.getWidth();x++) {
+            if (Math.hypot(x+.5f-layout.strikeX(),y+.5f-layout.strikeY()) > layout.strikeRadius()) continue;
+            if (!topology.hasTag(x,y,CellTopology.Tag.GROUND_DAMAGED)) continue;
+            marked++; byKind.merge(topology.getGroundKind(x,y).name(),1,Integer::sum);
+        }
+        return new JSONObject().put("scope","Ground-damage tags inside the authored strike circle")
+                .put("markedCells",marked).put("byGroundKind",new JSONObject(byKind));
     }
     private void writeReport() throws Exception {
         var c = sim.getColdAccount();
