@@ -78,3 +78,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.CompoundPropDamageSnapshotSu
 
 com.dillon.starsectormarines.tools.tilesetauthoring.FurnishingDamageSnapshotSuite
 com.dillon.starsectormarines.ops.InstallationGroundSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipPilotSceneSnapshotSuite

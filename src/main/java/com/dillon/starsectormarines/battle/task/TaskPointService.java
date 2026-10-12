@@ -80,6 +80,23 @@ public final class TaskPointService {
         return best;
     }
 
+    /** Claim one authored stand within a group, retaining the old claim if that stand is busy. */
+    public TaskPoint claimAt(long actorId, String group, float worldX, float worldY) {
+        if (actorId == 0L) throw new IllegalArgumentException("task point claimant is required");
+        if (group == null || group.isBlank()) throw new IllegalArgumentException("task point group is required");
+        for (TaskPoint point : points.values()) {
+            if (!point.group().equals(group) || point.worldX() != worldX || point.worldY() != worldY) continue;
+            long owner = claimant(point.id());
+            if (owner == actorId) return point;
+            if (owner != 0L || !grid.isWalkable(point.cellX(), point.cellY())) return null;
+            release(actorId);
+            claimantByPoint.put(point.id(), actorId);
+            pointByActor.put(actorId, point.id());
+            return point;
+        }
+        return null;
+    }
+
     public TaskPoint claimedPoint(long actorId) {
         String pointId = pointByActor.get(actorId);
         return pointId != null ? points.get(pointId) : null;

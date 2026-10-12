@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 /** Held manual controls at the host boundary. No simulation or selection authority. */
 final class BattleDirectControlInput {
     private boolean active;
-    private boolean north, south, west, east, firing;
+    private boolean north, south, west, east, firing, secondaryFiring;
     private boolean leftShift, rightShift;
     private boolean leftShiftKeyHeld, rightShiftKeyHeld;
     private boolean pointerKnown;
@@ -41,7 +41,8 @@ final class BattleDirectControlInput {
                     event.isKeyDownEvent() || event.isKeyUpEvent() ? event.getEventValue() : 0,
                     pointer, pointer ? event.getX() : 0f, pointer ? event.getY() : 0f,
                     event.isLMBDownEvent(), event.isLMBUpEvent(),
-                    event.isRMBDownEvent() || event.isRMBUpEvent()));
+                    event.isRMBDownEvent() || event.isRMBUpEvent(),
+                    event.isRMBDownEvent(), event.isRMBUpEvent()));
             // Reserve Tab before retained UI can turn it into focus traversal.
             if (toggleKey) event.consume();
         }
@@ -84,6 +85,7 @@ final class BattleDirectControlInput {
             if (sample.keyUp && abilityKey >= 0) abilityKeyHeld[abilityKey] = false;
             if (sample.keyDown && abilityKey >= 0) abilityKeyHeld[abilityKey] = true;
             if (sample.primaryUp) firing = false;
+            if (sample.secondaryUp) secondaryFiring = false;
             if (active && sample.keyDown && sample.key == Keyboard.KEY_ESCAPE) {
                 exit.run();
                 sample.event.consume();
@@ -124,6 +126,7 @@ final class BattleDirectControlInput {
                 sample.event.consume();
             }
             if (sample.primaryDown) firing = !chrome.test(pointerX, pointerY);
+            if (sample.secondaryDown) secondaryFiring = !chrome.test(pointerX, pointerY);
             if (sample.primaryDown || sample.primaryUp || sample.secondary) {
                 sample.event.consume();
             }
@@ -138,7 +141,7 @@ final class BattleDirectControlInput {
         float dy = blocked ? 0f : (north ? 1f : 0f) - (south ? 1f : 0f);
         return new ManualIntent(dx, dy, camera.screenToCellX(pointerX),
                 camera.screenToCellY(pointerY), !blocked && firing,
-                !blocked && (leftShift || rightShift));
+                !blocked && (leftShift || rightShift), !blocked && secondaryFiring);
     }
 
     float enter(float currentSpeed) {
@@ -170,7 +173,7 @@ final class BattleDirectControlInput {
     }
 
     void releaseHeld() {
-        north = south = west = east = firing = leftShift = rightShift = false;
+        north = south = west = east = firing = secondaryFiring = leftShift = rightShift = false;
         for (int i = 0; i < weaponKeyHeld.length; i++) weaponKeyHeld[i] = false;
         // Ability presses have no held intent. Keep their physical debounce until
         // keyup so pause, rejected input, or handback cannot turn repeat into a new use.
@@ -196,7 +199,7 @@ final class BattleDirectControlInput {
             rightShiftKeyHeld = false;
         }
     }
-    void releaseFire() { firing = false; }
+    void releaseFire() { firing = false; secondaryFiring = false; }
     /** Reconcile simulation fallback before publishing held input again. */
     void syncSelectedWeapon(int selection) {
         if (selectedWeapon == selection) return;
@@ -261,5 +264,5 @@ final class BattleDirectControlInput {
 
     record Sample(InputEventAPI event, boolean keyDown, boolean keyUp, int key,
                   boolean pointer, float x, float y, boolean primaryDown,
-                  boolean primaryUp, boolean secondary) {}
+                  boolean primaryUp, boolean secondary, boolean secondaryDown, boolean secondaryUp) {}
 }

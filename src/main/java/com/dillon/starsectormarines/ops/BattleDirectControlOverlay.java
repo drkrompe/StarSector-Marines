@@ -139,7 +139,9 @@ final class BattleDirectControlOverlay {
         if (!active) dockTop = false;
         long selected = selection.hasVehicleSelection() ? selection.getSelectedVehicleId()
                 : selection.getSelectedUnitEntityId();
-        boolean eligible = sim != null && sim.directControl().canEnter(selected);
+        boolean eligible = sim != null && (sim.directControl().canEnter(selected)
+                || selection.hasWarshipSelection()
+                && sim.directControl().canEnterWarship(selection.getSelectedWarship()));
         boolean nextVisible = sim != null && !sim.isComplete() && (active || eligible);
         if (visible && !nextVisible) deactivateDocuments();
         visible = nextVisible;
@@ -155,7 +157,7 @@ final class BattleDirectControlOverlay {
         UiDocument current = currentDocument();
         if (position != null && current != null) {
             UiViewport next = active ? viewport(position, true, dockTop)
-                    : entryViewport(position, eligible && sim.world().hasMechLoadout(selected));
+                    : entryViewport(position, eligible && selected != 0L && sim.world().hasMechLoadout(selected));
             if (!next.equals(viewport) || input == null) {
                 deactivateDocuments();
                 viewport = next;

@@ -9,6 +9,26 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 class TaskPointServiceTest {
 
+    @Test void specificStationsShareOrdinaryClaimsAndSwitchWithinOneGroup() {
+        NavigationGrid grid = new NavigationGrid(8, 8);
+        grid.setWalkableFloor(1, 1); grid.setWalkableFloor(4, 1);
+        TaskPointService points = new TaskPointService(grid);
+        TaskPoint first = new TaskPoint("first", "treat", 1.5f, 1.5f, 1.5f, 2.5f);
+        TaskPoint second = new TaskPoint("second", "treat", 4.5f, 1.5f, 4.5f, 2.5f);
+        points.register(first); points.register(second);
+        assertSame(first, points.claimAt(1, "treat", 1.5f, 1.5f));
+        assertSame(second, points.claimNearest(2, "treat", 1.5f, 1.5f));
+        assertNull(points.claimAt(1, "treat", 4.5f, 1.5f));
+        assertSame(first, points.claimedPoint(1));
+        assertNull(points.claimAt(1, "wrong", 4.5f, 1.5f));
+        assertNull(points.claimAt(1, "treat", 6.5f, 6.5f));
+        points.release(2);
+        assertSame(second, points.claimAt(1, "treat", 4.5f, 1.5f));
+        assertEquals(0, points.claimant("first"));
+        assertEquals(1, points.claimCount());
+        assertSame(first, points.claimNearest(2, "treat", 1.5f, 1.5f));
+    }
+
     @Test
     void pointsAreExclusivelyClaimedAndReleasedByActor() {
         NavigationGrid grid = new NavigationGrid(12, 12);

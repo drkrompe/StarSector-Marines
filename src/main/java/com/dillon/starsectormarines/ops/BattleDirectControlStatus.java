@@ -30,14 +30,14 @@ import java.util.function.Predicate;
 final class BattleDirectControlStatus {
     private BattleDirectControlStatus() { }
 
-    enum Carrier { NONE, MARINE, MECH, VEHICLE }
+    enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP }
     enum FireKind { SINGLE, BURST, PACKET, INDIRECT }
     enum WeaponState { BURST, CYCLING, LOADED, EMPTY }
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                     List<WeaponStatus> weapons, List<AbilityStatus> abilities,
-                    MarineSprint.Status sprint, HeatStatus heat) {
+                    MarineSprint.Status sprint, HeatStatus heat, WarshipStatus warship) {
         static final Snapshot EMPTY = new Snapshot(0L, "", Carrier.NONE,
                 new Durability(0f, 0f, 0f, 0f, 0f), List.of());
 
@@ -49,8 +49,14 @@ final class BattleDirectControlStatus {
         }
 
         Snapshot(long entityId, String name, Carrier carrier, Durability durability,
+                 List<WeaponStatus> weapons, List<AbilityStatus> abilities, MarineSprint.Status sprint,
+                 HeatStatus heat) {
+            this(entityId, name, carrier, durability, weapons, abilities, sprint, heat, null);
+        }
+
+        Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                  List<WeaponStatus> weapons, List<AbilityStatus> abilities, MarineSprint.Status sprint) {
-            this(entityId, name, carrier, durability, weapons, abilities, sprint, null);
+            this(entityId, name, carrier, durability, weapons, abilities, sprint, null, null);
         }
 
         Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -65,6 +71,26 @@ final class BattleDirectControlStatus {
     }
 
     record HeatStatus(float value, boolean venting) { }
+
+    /** How a status card reads at a glance: ready, busy, or something the pilot should look at. */
+    enum Tone { READY, BUSY, WARN }
+
+    /**
+     * One card in a warship's equipment strip: a battery, the shield, or the ship's own
+     * automation. {@code fill} is its readiness or level, 0 to 1.
+     */
+    record ShipCard(String key, String name, String detail, String resource, String state,
+                    Tone tone, float fill) { }
+
+    /** The flux gauge: absent when the ship is not on flux. */
+    record FluxStatus(boolean limited, float fraction, String label, String state, Tone tone) { }
+
+    /** What a pilot reads of the hull beyond its two durability lines. */
+    record WarshipStatus(List<ShipCard> cards, FluxStatus flux) {
+        WarshipStatus {
+            cards = List.copyOf(cards);
+        }
+    }
 
     /** A broken screen is a durability fact; the suit's remaining boost is not shield uptime. */
     record AbilityStatus(DirectControlAbility ability, String name, boolean ready,
@@ -119,6 +145,9 @@ final class BattleDirectControlStatus {
 
     static Snapshot snapshot(BattleSimulation sim) {
         if (sim == null || !sim.directControl().active()) return Snapshot.EMPTY;
+        if (sim.directControl().warshipControl()) {
+            return BattleDirectWarshipStatus.snapshot(sim, sim.directControl().controlledWarship());
+        }
         long id = sim.directControl().activeUnitId();
         World world = sim.world();
         if (!world.isAlive(id)) return Snapshot.EMPTY;
