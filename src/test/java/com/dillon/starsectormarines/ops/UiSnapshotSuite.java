@@ -1836,6 +1836,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = PreparationGuide.document(instance.root());
             instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
+            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.foundingLesson(null, null));
+            frames.add(preparationFrame("00-required-conversion", renderer, document, guide, scale));
+        }
+        try (MarkupInstance instance = loader.build(reactor, "ship-transfer", properties)) {
+            UiDocument document = PreparationGuide.document(instance.root());
+            instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
             var guide = preparationGuide(context, document, () -> roster.companyShipId() == null
                     ? CompanyPreparationGuide.ship(roster, model, null) : null);
             frames.add(preparationFrame("01-ship", renderer, document, guide, scale));

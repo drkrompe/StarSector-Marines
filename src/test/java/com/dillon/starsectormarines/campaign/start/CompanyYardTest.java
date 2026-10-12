@@ -7,6 +7,16 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.FleetDataAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.campaign.OptionPanelAPI;
+import com.fs.starfarer.api.campaign.TextPanelAPI;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
+import com.fs.starfarer.api.campaign.rules.MemKeys;
+import com.fs.starfarer.api.impl.campaign.rulecmd.CompanyYardCMD;
+import com.dillon.starsectormarines.ops.CompanyMeans;
+import com.dillon.starsectormarines.ops.CompanyShipDesignation;
+import com.dillon.starsectormarines.ops.ShipTransferViewModel;
+import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
@@ -19,6 +29,7 @@ import com.fs.starfarer.api.util.MutableValue;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +64,38 @@ class CompanyYardTest {
         try {
             Global.setSector(stub(SectorAPI.class, Map.of("getPersistentData", saved, "getPlayerFleet", fleet,
                     "getPlayerFaction", faction, "getCampaignUI", stub(CampaignUIAPI.class, uiMethods))));
+            assertTrue(CerberusCompanyStart.conversionRequired());
+            var candidate = new ShipTransferViewModel.Candidate("other", "Transport", "Transport", 100, 200, TestHulls.transport());
+            var means = CompanyMeans.of(12, 0, 100_000);
+            var transfer = new ShipTransferViewModel(new Reactor(), () -> List.of(candidate),
+                    () -> CompanyShipDesignation.Home.NONE, id -> fail("Cannot bypass the founding conversion"), means);
+            transfer.commit();
+            assertTrue(transfer.preparationBlocked());
+            assertEquals(100_000, means.credits());
             assertNotNull(CompanyYard.install(ship, market));
             assertFalse(installed[0]);
             assertEquals(15000, credits.get());
-            uiMethods.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
+            Map<String, Object> localData = new HashMap<>();
+            MemoryAPI memory = stub(MemoryAPI.class, Map.of("set", (Function<Object[], Object>) a -> {
+                localData.put((String) a[0], a[1]); return null;
+            }));
+            var lines = new ArrayList<String>();
+            var options = new ArrayList<String>();
+            var dialog = stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet,
+                    "getTextPanel", stub(TextPanelAPI.class, Map.of("addPara", (Function<Object[], Object>) a -> { lines.add((String) a[0]); return null; })),
+                    "getOptionPanel", stub(OptionPanelAPI.class, Map.of("addOption", (Function<Object[], Object>) a -> { options.add((String) a[0]); return null; }))));
+            assertFalse(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)), "No yard review away from port");
+            uiMethods.put("getCurrentInteractionDialog", dialog);
+            assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
+            assertTrue(lines.stream().anyMatch(line -> line.contains("Mercenary Company Conversion")));
+            assertTrue(options.contains("Install conversion - 5,000 credits"));
+            assertEquals("starter", localData.get("$smYardSelectedShip"));
+            assertEquals(15000, credits.get(), "Opening the required review spends nothing");
+            assertFalse(installed[0]);
             assertNull(CompanyYard.install(ship, market));
             assertTrue(installed[0]);
+            assertFalse(CerberusCompanyStart.conversionRequired());
+            assertFalse(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
             assertEquals(10000, credits.get());
             PreparationDepot depot = CerberusCompanyStart.accessibleDepot();
             assertNotNull(depot);
