@@ -324,7 +324,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("choiceSummary", SupplyRouteCampaign.choiceSummary(mission));
         props.put("choiceClasses", choice == 0 ? "choice-consequence choice-hidden" : "choice-consequence console-well");
         props.put("briefLabel", choice == BrokenSupplyRouteProgress.LIFT ? "COMMIT SUPPORT TO RILL"
-                : choice == BrokenSupplyRouteProgress.RELAY ? "COMMIT SUPPORT TO RELAY NINE" : "BRIEF & DEPLOY");
+                : choice == BrokenSupplyRouteProgress.RELAY ? "COMMIT SUPPORT TO FREIGHT" : "BRIEF & DEPLOY");
         props.put("briefDisabled", !present);
         props.put("briefAction", brief);
         props.put("declineDisabled", !present);

@@ -774,12 +774,13 @@
       "id": "marines_mara_thunder_run_briefing",
       "missionId": "story_supply_route_thunder_run",
       "event": "briefing",
-      "text": "The relay is ours. Now we put freight through it. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. Eight militia will help cover the ground. A twin-cannon heavy tank leads two armored escorts and the unarmed freight haulers. The tank takes on the exit checkpoint's gun line; the escorts screen the crossing while the freight passes. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
-      "synthesisText": "The relay is ours. Now we put freight through it. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. Eight militia will help cover the ground. A twin-cannon heavy tank leads two armored escorts and the unarmed freight haulers. The tank takes on the exit checkpoint's gun line; the escorts screen the crossing while the freight passes. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "text": "The junction is open. Now we put freight through the corridor. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. Eight militia will help cover the ground. A twin-cannon heavy tank leads two armored escorts and the unarmed freight haulers. The tank takes on the exit checkpoint's gun line; the escorts screen the crossing while the freight passes. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "synthesisText": "The junction is open. Now we put freight through the corridor. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. Eight militia will help cover the ground. A twin-cannon heavy tank leads two armored escorts and the unarmed freight haulers. The tank takes on the exit checkpoint's gun line; the escorts screen the crossing while the freight passes. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
       "durationSeconds": 41.84,
       "priority": 10,
       "expiresSeconds": 25,
-      "supersedes": []
+      "supersedes": [],
+      "voiced": false
     },
     {
       "id": "marines_mara_thunder_run_started",

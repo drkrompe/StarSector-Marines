@@ -61,8 +61,14 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(89, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(88, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
+    }
+
+    @Test void convoyBriefingFollowsJunctionWithoutPlayingTheRetiredRelayIntroduction() throws Exception {
+        var line = catalog().find("story_supply_route_thunder_run", "briefing");
+        assertTrue(line.text().startsWith("The junction is open."));
+        assertFalse(line.voiced(), "The previous recording assumes a separate Relay Nine victory");
     }
 
     @Test void thunderDefenseGuidanceIsTextOnlyAndExplainsHandback() throws Exception {

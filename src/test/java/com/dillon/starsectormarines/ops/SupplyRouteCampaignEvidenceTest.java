@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
@@ -42,7 +43,11 @@ class SupplyRouteCampaignEvidenceTest {
                 for(String liftCase : strength == 8 ? List.of("mixed") : List.of("paired-six", "single-ferry", "mixed")) {
             var route=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");
             if(kind!=1){String id=route.missionId();route.begin(id);route.settle(id,true,null);route.commit(kind == 4 ? 3 : kind);}
-            if(kind==4){String id=route.missionId();route.begin(id);route.settle(id,true,null);}
+            if(kind==3){
+                String id=route.missionId();route.begin(id);
+                route.settle(id,true,null,new FreightRunProgress.Outcome(route.freight().previewAttempt(),List.of(0,1,2),List.of(),true));
+            }
+            assertEquals(kind,route.operation());
             Mission mission=SupplyRouteCampaign.offers(route).get(0);
             var roster=new MarineRoster();roster.ensureActiveSoldiers(strength);
             if(strength==8) {

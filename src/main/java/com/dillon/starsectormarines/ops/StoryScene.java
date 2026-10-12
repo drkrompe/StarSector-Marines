@@ -37,7 +37,7 @@ enum StoryScene {
         if (mission.source != MissionSource.STORY) return forRecord(mission.id, mission.source);
         return switch (SupplyRouteCampaign.choice(mission)) {
             case BrokenSupplyRouteProgress.LIFT -> RILL;
-            case BrokenSupplyRouteProgress.RELAY -> RELAY;
+            case BrokenSupplyRouteProgress.RELAY -> THUNDER;
             default -> forRecord(mission.id, mission.source);
         };
     }

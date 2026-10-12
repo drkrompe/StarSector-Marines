@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 â€” Dust Ledger identifies its indoor archive and return objectives; freight defense uses separated screens, prepared gun bays and pressure through convoy travel.
+Updated: 2026-10-12 — Junction leads directly to the rescue or convoy finale; Relay Nine supplies recurring Route Security.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -110,7 +110,7 @@ accepted work: an inaccessible frozen site pauses deployment, and HQ retains
 its name with an explanation. Older completed Wayline saves start uncommitted.
 
 Junction victory pays 12,000 credits once and opens two inspectable requests.
-Only **Commit support to Rill** or **Commit support to Relay Nine** issues the
+Only **Commit support to Rill** or **Commit support to Freight** issues the
 permanent support order. Inspection, Back and terrain preparation do not choose.
 The cooperative funds one recovery mobilization; the other crew receives a
 withdrawal order. Spare company boats, defeat, delay and reload do not reverse
@@ -118,23 +118,20 @@ that commercial decision. There is no menu timer or hidden faction penalty.
 Commitment alone earns neither money nor recurring access. The commitment
 panel remains visible beside its button, outside scrollable briefing prose.
 It explicitly names Last Lift as the rescue branch's last story chapter, its
-successful Crew Recovery unlock, and the forgone Relay Nine / Thunder Run path.
-The freight choice names Relay Nine, Thunder Run, the successful Route Security
-unlock, and Rill's lost escort without inventing deaths. These are different
-commercial outcomes and amounts of authored story, not two labels for the same
-next mission.
+successful Crew Recovery unlock, and the forgone Thunder Run path.
+The freight choice names Thunder Run, the successful Route Security
+unlock, and Rill's lost escort without inventing deaths. Each branch has one distinct finale: civilian escort and boarding at Rill, or
+physical cargo delivery along the freight corridor.
 
 - **Last Lift** promises 4,000 credits plus 500 per cumulatively rescued person,
   at most 10,000, once on qualifying victory. Rescued and confirmed dead workers
   persist across defeated attempts; only stranded people enter another battle.
   Exhausting the cohort without victory closes the actual result without payment
   or an unlock. Successful rescue leaves this commercial route suspended and
-  establishes Iona's **Crew Recovery** arrangement. Relay Nine is not undertaken.
-- **Relay Nine** victory pays 16,000 once and authorizes **Thunder Run**. It
-  secures the relay but does not by itself deliver freight or unlock recurring
-  work. Rill's rescue is not undertaken: correspondence invents neither deaths
-  nor a safe evacuation. Iona remains a correspondent.
-- **Thunder Run** closes the freight branch. Three identified employer cargo
+  establishes Iona's **Crew Recovery** arrangement. Thunder Run is not undertaken.
+- **Thunder Run** begins immediately on freight commitment and closes that branch.
+  Junction is the common territorial setup; no second capture-and-hold chapter or
+  separate relay fee precedes the convoy. Three identified employer cargo
   carriers have persistent delivered, lost and awaiting-transport states.
   Retry fields only unresolved carriers. A qualifying victory accounts for all
   active cargo with a surviving company presence and at least one delivery
@@ -142,12 +139,16 @@ next mission.
   18,000, once, and establishes Mara's **Route Security** arrangement. Exhausted
   cargo on a defeated sortie closes the actual result without payment or an
   unlock. Older saves already closed after Relay Nine retain Route Security;
-  unfinished freight commitments continue through the convoy finale.
+  unfinished, unlaunched Relay Nine commitments migrate directly to the convoy
+  finale without inventing a relay victory or paying for a skipped battle. A saved
+  active Relay Nine attempt keeps its identity and agreed award through settlement,
+  then proceeds to Thunder Run even after defeat. Prior payments, cargo receipts,
+  frozen sites and recurring entitlements survive migration.
 
 Recurring offers carry new job and attempt identities. Crew Recovery receives a
 new twelve-person ledger for each job and the same rescue formula; a retry keeps
-that job's stranded identities. Route Security pays 12,000 per successful new
-job. Recurring results retain aggregate rescue/loss and payment records without
+that job's stranded identities. Route Security uses the Relay Nine capture-and-hold battlefield and pays 12,000
+per successful new job. Recurring results retain aggregate rescue/loss and payment records without
 resetting the story crew or replaying a chapter bonus. The completed dossier
 separates historical results from the current posting. Existing Wayline
 repeatables and unrelated contracts remain available.
@@ -549,7 +550,8 @@ employer lift is separately identified. Victory requires all four territories
 held together and a company participant in play, including committed inbound
 personnel. Killing every raider alone does not close the mission.
 
-**Relay Nine** secures the freight route before the convoy finale. Its western apron, Power Yard,
+**Relay Nine** is the battlefield for recurring Route Security and preserved
+legacy battles. It is not a required story chapter between Junction and Thunder Run. Its western apron, Power Yard,
 Freight Gate and Relay Hall are four required territories, with the hall as the
 canonical command post. The hall guarantees opposed direct-road and loading-road
 entrances. Decorative service buildings add no objectives. Company boats retain

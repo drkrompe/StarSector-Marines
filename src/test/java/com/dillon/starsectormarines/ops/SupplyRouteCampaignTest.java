@@ -21,8 +21,8 @@ class SupplyRouteCampaignTest {
         String freight = SupplyRouteCampaign.choiceSummary(choices.get(1));
         assertTrue(rill.contains("Last Lift ends"));
         assertTrue(rill.contains("recurring Crew Recovery"));
-        assertTrue(rill.contains("Relay Nine and Thunder Run are forgone"));
-        assertTrue(freight.contains("Relay Nine leads to Thunder Run"));
+        assertTrue(rill.contains("Thunder Run is forgone"));
+        assertTrue(freight.contains("Thunder Run is next"));
         assertTrue(freight.contains("Last Lift is forgone"));
         var props = MissionSelectScreen.previewProps();
         MissionSelectScreen.putDetail(props, choices.get(0), () -> {}, () -> {});
@@ -39,14 +39,20 @@ class SupplyRouteCampaignTest {
         assertTrue(p.choicePending());assertFalse(p.successful());assertEquals(0,p.branch());
         assertEquals(2,SupplyRouteCampaign.choice(choices.get(0)));assertEquals(3,SupplyRouteCampaign.choice(choices.get(1)));
         assertFalse(SupplyRouteCampaign.isBattle(choices.get(0)));
-        p.commit(3);var relay=SupplyRouteCampaign.offers(p).get(0); assertTrue(SupplyRouteCampaign.isBattle(relay));
-        assertEquals(MissionSource.STORY,relay.source);p.begin(relay.id);p.settle(relay.id,true,null);
+        assertEquals("Thunder Run", choices.get(1).name);
+        assertEquals(18000, choices.get(1).payout);
+        assertTrue(SupplyRouteCampaign.freight(choices.get(1)));
+        assertEquals("CONVOY / BREAKTHROUGH", SupplyRouteCampaign.operationLabel(choices.get(1)));
+        assertEquals(StoryScene.THUNDER, StoryScene.forMission(choices.get(1)));
+        var guide = new SupplyRouteWorkGuide(p, null, () -> {});
+        p.commit(3);
         var convoy=SupplyRouteCampaign.offers(p).get(0); assertEquals("Thunder Run",convoy.name);
+        assertEquals("Thunder Run", guide.markupProperty("mission"));
         assertTrue(SupplyRouteCampaign.freight(convoy)); assertEquals(MissionSource.STORY,convoy.source);
         p.begin(convoy.id); p.settle(convoy.id,true,null,new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(0,1),List.of(2),true));
         var repeat=SupplyRouteCampaign.offers(p).get(0);assertEquals("Route Security",repeat.name);
         assertEquals(MissionSource.RECURRING,repeat.source);assertEquals(12000,repeat.payout);
-        assertNotEquals(relay.id,repeat.id);assertTrue(repeat.flavor.contains("new security job"));
+        assertNotEquals(convoy.id,repeat.id);assertTrue(repeat.flavor.contains("new security job"));
     }
     @Test void resolutionRejectsWrongPaymentSiteSourceAndReplayedCasualtyWriteback() {
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");String id=p.missionId();p.begin(id);

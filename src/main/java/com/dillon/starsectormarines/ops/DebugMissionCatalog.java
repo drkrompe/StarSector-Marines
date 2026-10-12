@@ -31,7 +31,7 @@ public final class DebugMissionCatalog {
         COUNTERATTACK("Wayline", "Take Back the Depot", "Recover Wayward, capture dispatch and hold against two counterattacks.", 1, false),
         JUNCTION("Broken Supply Route", "Open the Junction", "Capture the three road posts while militia hold your gains.", 2, true),
         LAST_LIFT("Broken Supply Route", "Last Lift", "Evacuation branch: escort and board a fresh civilian manifest.", 2, true),
-        RELAY_NINE("Broken Supply Route", "Relay Nine", "Freight branch: capture and hold the relay against recapture attempts.", 2, true),
+        RELAY_NINE("Legacy scenarios", "Relay Nine", "Legacy capture-and-hold chapter; this map now serves recurring Route Security.", 2, true),
         THUNDER_RUN("Broken Supply Route", "Thunder Run", "Open the corridor for the tank, APCs and three loaded freight haulers.", 2, true),
         DUST_LEDGER("The Corvus Account", "The Dust Ledger", "Seize the dispatch archive and extract on Asharu.", 2, true),
         BLIND_WATCH("The Corvus Account", "Blind Watch", "Cover the planters at the three Warion installations.", 3, true),

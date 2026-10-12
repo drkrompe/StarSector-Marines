@@ -31,7 +31,7 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
         var frames=new ArrayList<SnapshotArtifact>();
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");
         frames.add(board(context,renderer,p,0,"01-junction"));
-        win(p);frames.add(board(context,renderer,p,0,"02-inspect-rill"));frames.add(board(context,renderer,p,1,"03-inspect-relay"));
+        win(p);frames.add(board(context,renderer,p,0,"02-inspect-rill"));frames.add(board(context,renderer,p,1,"03-inspect-freight"));
         p.commit(2);frames.add(board(context,renderer,p,0,"04-rill-committed"));
         String first=p.missionId();p.begin(first);p.settle(first,false,new LastLiftProgress.Outcome(p.crew().previewAttempt(),List.of(0,1),List.of(2),false));
         frames.add(board(context,renderer,p,0,"05-rill-retry-nine"));
@@ -39,7 +39,7 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
         frames.add(board(context,renderer,p,0,"06-crew-recovery-new-job"));
         var hq=CompanyHqViewModel.supplyRoutePreview(p,new OpeningBroker.Destination("jangala","Jangala","Corvus",null));
         frames.add(new SnapshotArtifact("07-hq-rescue-record.png",UiSnapshotSuite.renderCompanyHq(context,renderer,1920,1080,1f,hq)));
-        var freight=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");win(freight);freight.commit(3);frames.add(board(context,renderer,freight,0,"08-relay-committed"));win(freight);
+        var freight=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");win(freight);freight.commit(3);frames.add(board(context,renderer,freight,0,"08-freight-committed"));
         frames.add(board(context,renderer,freight,0,"09-thunder-run-available"));
         String column=freight.missionId();freight.begin(column);
         freight.settle(column,true,null,new FreightRunProgress.Outcome(freight.freight().previewAttempt(),List.of(0,1),List.of(2),true));
@@ -48,7 +48,6 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
         frames.add(new SnapshotArtifact("10-hq-frozen-site-unavailable.png",UiSnapshotSuite.renderCompanyHq(context,renderer,1920,1080,1f,hq)));
         frames.add(debrief(context, renderer, 1, true, "11-junction-debrief"));
         frames.add(debrief(context, renderer, 2, false, "12-rill-partial-retreat"));
-        frames.add(debrief(context, renderer, 3, true, "13-relay-debrief"));
         frames.add(debrief(context, renderer, 4, true, "15-freight-debrief"));
         return frames;
     }
@@ -56,7 +55,6 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
                                       int kind, boolean victory, String name) throws Exception {
         var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         if (kind != BrokenSupplyRouteProgress.JUNCTION) { win(route); route.commit(kind == 4 ? 3 : kind); }
-        if (kind == 4) win(route);
         var mission = SupplyRouteCampaign.offers(route).get(0);
         var result = MissionOutcome.builder().mission(mission).victory(victory)
                 .payoutEarned(victory ? mission.payout : 0).marinesEngaged(24).marinesLost(2);

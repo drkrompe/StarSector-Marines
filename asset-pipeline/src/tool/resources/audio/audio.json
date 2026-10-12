@@ -185,7 +185,6 @@
     {"id": "marines_mara_relay_nine_freight_gate_restored", "source": "wayline/marines_mara_relay_nine_freight_gate_restored.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relay_nine_relay_hall_retaken", "source": "wayline/marines_mara_relay_nine_relay_hall_retaken.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relay_nine_relay_hall_restored", "source": "wayline/marines_mara_relay_nine_relay_hall_restored.mp3", "kind": "ui", "out": "story/wayline"},
-    {"id": "marines_mara_thunder_run_briefing", "source": "wayline/marines_mara_thunder_run_briefing.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_thunder_run_started", "source": "wayline/marines_mara_thunder_run_started.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_thunder_run_player_landed", "source": "wayline/marines_mara_thunder_run_player_landed.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_thunder_run_column_released", "source": "wayline/marines_mara_thunder_run_column_released.mp3", "kind": "ui", "out": "story/wayline"},

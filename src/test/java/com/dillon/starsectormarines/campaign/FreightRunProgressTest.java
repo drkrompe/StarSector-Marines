@@ -12,7 +12,6 @@ class FreightRunProgressTest {
     private BrokenSupplyRouteProgress finale() {
         var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         String id=p.missionId();p.begin(id);p.settle(id,true,null);p.commit(3);
-        id=p.missionId();p.begin(id);p.settle(id,true,null);
         assertEquals(4,p.operation()); assertFalse(p.closed()); return p;
     }
     @Test void receiptsSurviveSaveAndRetryOnlyMovesUnresolvedCargo() throws Exception {
@@ -26,16 +25,16 @@ class FreightRunProgressTest {
         String retry=p.missionId();p.begin(retry);
         var last=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(2),List.of(),true);
         assertEquals(14000,p.payment(retry,true,null,last)); assertEquals(14000,p.settle(retry,true,null,last));
-        assertEquals(-1,p.settle(retry,true,null,last)); assertEquals(42000,p.storyPayment());
+        assertEquals(-1,p.settle(retry,true,null,last)); assertEquals(26000,p.storyPayment());
         assertTrue(p.successful());assertEquals(3,p.operation());assertEquals(1,p.job());
         String recurring=p.missionId();p.begin(recurring);assertEquals(12000,p.settle(recurring,true,null));
-        assertEquals(42000,p.storyPayment());assertEquals(12000,p.recurringPayment());
+        assertEquals(26000,p.storyPayment());assertEquals(12000,p.recurringPayment());
     }
     @Test void allCargoLostClosesWithoutPaymentOrRecurringWork() {
         var p=finale();String id=p.missionId();p.begin(id);
         var lost=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(),List.of(0,1,2),false);
         assertEquals(0,p.settle(id,false,null,lost));assertTrue(p.closed());assertFalse(p.successful());assertFalse(p.available());
-        assertEquals(28000,p.storyPayment());assertNull(p.missionId());
+        assertEquals(12000,p.storyPayment());assertNull(p.missionId());
     }
     @Test void forgedVictoryForeignAndMissingReceiptsCannotConsumeAttempt() {
         var p=finale();String id=p.missionId();p.begin(id);
@@ -56,6 +55,7 @@ class FreightRunProgressTest {
         var job=BrokenSupplyRouteProgress.class.getDeclaredField("job");job.setAccessible(true);job.setInt(p,1);
         var relay=BrokenSupplyRouteProgress.class.getDeclaredField("relayWon");relay.setAccessible(true);relay.setBoolean(p,false);
         var freight=BrokenSupplyRouteProgress.class.getDeclaredField("freight");freight.setAccessible(true);freight.set(p,null);
+        var payment=BrokenSupplyRouteProgress.class.getDeclaredField("storyPayment");payment.setAccessible(true);payment.setInt(p,28000);
         assertTrue(p.readable());assertEquals(3,p.operation());assertTrue(p.available());
         String id=p.missionId();p.begin(id);assertEquals(12000,p.settle(id,true,null));assertEquals(28000,p.storyPayment());
     }
