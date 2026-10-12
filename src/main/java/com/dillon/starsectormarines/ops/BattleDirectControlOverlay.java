@@ -202,6 +202,8 @@ final class BattleDirectControlOverlay {
     /** The help tab is hover-only: pointer events are observed here, never consumed or acted on. */
     private void trackPointer(List<InputEventAPI> events) {
         for (InputEventAPI event : events) {
+            // An earlier handler may already have consumed the event; its coordinates are then unreadable.
+            if (event.isConsumed()) continue;
             if (event.isMouseMoveEvent() || event.isLMBDownEvent() || event.isLMBUpEvent()
                     || event.isRMBDownEvent() || event.isRMBUpEvent()) {
                 helpPointerKnown = true;
