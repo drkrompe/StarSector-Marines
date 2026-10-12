@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
@@ -104,6 +105,11 @@ public record BoatFitting(
     /** Whether this is the fitting a boat is built with rather than refitted to. */
     public boolean standard() {
         return bill == null;
+    }
+
+    /** Hermes is a repairable courier stopgap; its frame has no upgrade path. */
+    public boolean supports(ShuttleType pattern) {
+        return pattern != ShuttleType.HERMES || standard();
     }
 
     /** Every authored fitting, in slot then tier order. */

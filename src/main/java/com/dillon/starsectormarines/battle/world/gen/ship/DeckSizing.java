@@ -62,6 +62,10 @@ public final class DeckSizing {
         public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats, CompanyShip.BoatBayState boatBay) {
             this(frames, height, rooms, boats, boatBay, WorkshopState.NONE);
         }
+        public DeckPlan withBoats(ShuttleType pattern) {
+            return new DeckPlan(frames, height, rooms, pattern, boatBay, workshop);
+        }
+
         public DeckPlan withWorkshop(WorkshopState state) {
             return new DeckPlan(frames, height, rooms, boats, boatBay, state);
         }

@@ -512,7 +512,7 @@ public final class ShipTransferViewModel {
         if (!CompanyPreparation.required(preparationRoster)) return false;
         Candidate ship = selected();
         return ship == null || !ship.quarters() || !CompanyPreparation.canPrepare(preparationRoster,
-                ShipsBoats.carriedBy(ship.ship().role()), ShipsBoats.aboard(ship.ship()).size(), preparationResources);
+                ShipsBoats.carriedBy(ship.ship()), ShipsBoats.aboard(ship.ship()).size(), preparationResources);
     }
 
     public String preparationBill() {
@@ -521,7 +521,7 @@ public final class ShipTransferViewModel {
         if (ship == null || !ship.quarters()) return "Select a ship with company quarters and a boat bay.";
         if (ShipsBoats.aboard(ship.ship()).isEmpty()) return "This hull has no boat berth. Choose a ship with a hangar.";
         StringBuilder text = new StringBuilder("FIRST MISSION STORES   Cost / Available / Short by\n");
-        for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship().role()))) {
+        for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship()))) {
             int available = preparationResources.available(line.commodityId());
             text.append(preparationResources.commodityName(line.commodityId())).append(": ")
                     .append(line.quantity()).append(" / ").append(available).append(" / ")

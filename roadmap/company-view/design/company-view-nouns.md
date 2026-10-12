@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 - workshop clearance seals the breach before reopening the compartment.
+Updated: 2026-10-12 - Hermes repairs retain a fixed fit; Aeroshuttles own the upgrade progression.
 
 ## Purpose
 
@@ -99,7 +99,7 @@ shared mapping instead of assigning paths independently in each screen.
   frozen frame.
 - **Fitting** — installed work in one of a boat's **slots**: plating, which is
   hull, and drive, which is speed and acceleration. Each slot has a standard
-  fitting every boat is built with and upgrade tiers above it.
+  fitting every boat is built with and upgrade tiers for compatible airframes.
 - **Boat workshop** — the atomic cargo-backed authority that installs a fitting
   and builds a boat into an empty berth. It shares the fleet's hold with the
   Mech Lab rather than owning a second one.
@@ -480,6 +480,16 @@ route does. A hull with more than one hangar gets the same fore-to-aft pager,
 and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
+**Second Wind starts with two wrecked Hermes, not two usable boats.** The accessible
+wreck is repaired for the opening contracts using the existing Hermes material bill
+and finite local depot. Restoring the sealed bay exposes the second wreck; its repair
+is a separate material order. Each original wreck is consumed once by a successful
+repair. Failed payment leaves it intact, and a later combat loss never recreates it.
+Legacy occupied or previously opened berths are treated as already recovered; the
+still-sealed second berth can retain its original wreck. Other hulls keep ordinary
+commissioning. The room draws dismantled wrecks through the existing aircraft wreck
+renderer; they supply neither lift nor ambient servicing or sorties.
+
 **New companies commission their boats.** A hull supplies the berth count and
 compatible pattern, while a new company's berths start empty. Commissioning
 consumes the authored fabrication bill and creates a standard-fit boat. One
@@ -533,6 +543,12 @@ because there is nothing to count. The room header keeps a compact live stock
 strip for the shared fabrication materials, separate from the selected fitting's
 or boat's cost rows. Material badges resolve through the same shared commodity
 presentation the Fleet Armory and the Mech Lab use.
+
+**The Hermes is a dead-end courier design.** Repair and replacement retain its
+standard fit, but the workshop refuses plating and drive upgrades before charging.
+Its slots are inspection-only in Boat Deck; better lift comes from replacing the
+airframe. Aeroshuttles retain their fitting progression. Already-installed fittings
+in older saves remain intact, without allowing further Hermes upgrades.
 
 A failed fit changes nothing but the room's feedback line — neither the boat nor
 the hold — because the workshop rechecks affordability at the commit and spends
@@ -1116,8 +1132,31 @@ from an empty working berth. Completing **Hold Until Relieved** unlocks an optio
 8,000-credit restoration at an accessible planetary spaceport. Boat Deck presents
 Castle with her portrait, the repair's Cost / Available / Short by, and an inspection
 followed by explicit payment. The yard price includes labor and structural materials.
-Repair opens an empty berth; the second Hermes still requires its ordinary fabrication
-bill. This spending is optional and does not gate subsequent missions.
+Repair exposes the second Hermes wreck; making it airworthy still requires the ordinary
+Hermes material bill. This spending is optional and does not gate subsequent missions.
+
+**Secondhand Wings** is an optional post-Counterattack purchase for the original
+Second Wind hull. HQ points to Castle's portrait conversation on the Boat Deck;
+Mara offers two surplus Aeroshuttles for 5,000 credits (3,000 for the airframes,
+2,000 for refurbishment, standard fittings and bay adapters). The existing 8,000-credit
+second-bay restoration must be completed separately first. Delivery requires the
+active, converted original hull to be the owned company home at an accessible
+planetary spaceport. Repairing the second Hermes is optional before replacement.
+
+The review names every outgoing Hermes and its installed fittings; the exchange
+also takes any original unrepaired wrecks. Those fittings do not transfer or return
+to stores. A successful purchase records the conversion on that hull and supplies
+exactly two standard Aeroshuttles once. The 6-seat boats give 12 simultaneous seats;
+larger detachments still use repeat sorties. The fleet credit account, current
+eligibility and exact reviewed complement are rechecked at payment. Deferring,
+insufficient funds and stale review change nothing. Surviving boats remain ordinary
+owned assets, and destroyed replacements receive no story refund or free respawn.
+The hull's saved adapters remain with Second Wind through company transfers.
+
+Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
+no additional purchase is required. The conversation overlays the room and owns input
+while open. Later briefings freeze the purchased boats and their actual fittings through
+the shared campaign lift authority. Replayed Depot Clearance never unlocks the offer.
 
 The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,

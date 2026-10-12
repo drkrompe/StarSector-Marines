@@ -10,12 +10,9 @@ import java.util.List;
 /**
  * What a hull keeps in her bays.
  *
- * <p><b>A ship's boats are a fitting, not property.</b> They are hers the way
- * her boat bay is hers: you do not bring them aboard and you cannot take them
- * with you, and a company that changes ships changes boats. That is the whole
- * reason this is derived from the hull rather than looked up against anybody's
- * roster — the ship the company is standing in is the ship, and what is in her
- * bays follows from what she is, exactly as her room program does.
+ * <p>The hull supplies compatible berths; the campaign BoatDeck owns the actual
+ * boats. Hull role supplies the default pattern, with a paid hull-specific
+ * Aeroshuttle conversion as an explicit override. An empty berth supplies no lift.
  *
  * <p><b>A boat is small.</b> {@link ShuttleType} spans both ends of a range it
  * once had to: a Valkyrie in that list is a transport that flies a detachment
@@ -74,13 +71,17 @@ public final class ShipsBoats {
      */
     public static List<ShuttleType> aboard(CompanyShip ship) {
         if (ship == null) return List.of();
-        ShuttleType boat = carriedBy(ship.role());
+        ShuttleType boat = carriedBy(ship);
         int berths = 0;
         for (RoomRecipe recipe : ship.deckPlan().rooms()) {
             if (recipe.purpose() != RoomPurpose.HANGAR) continue;
             berths += BoatBayFitting.boatsIn(recipe.shape().width(), recipe.shape().height());
         }
         return Collections.nCopies(Math.max(0, berths - (ship.boatBay() == CompanyShip.BoatBayState.DAMAGED ? 1 : 0)), boat);
+    }
+
+    public static ShuttleType carriedBy(CompanyShip ship) {
+        return ship.aeroshuttleConversion() ? LANDING_CRAFT : carriedBy(ship.role());
     }
 
     public static ShuttleType carriedBy(HullRole role) {

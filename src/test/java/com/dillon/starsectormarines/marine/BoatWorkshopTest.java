@@ -22,6 +22,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BoatWorkshopTest {
 
     @Test
+    void hermesRejectsEveryUpgradeBeforeChargingAndStillRepairsAtStandardFit() {
+        BoatDeck deck = new BoatDeck();
+        deck.registerFoundingWrecks("second-wind");
+        deck.reconcile("second-wind", ShuttleType.HERMES, 1);
+        TestResources hold = TestResources.stocked(200);
+        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+        CampaignBoat boat = workshop.fabricate(0).boat();
+        Map<String, Integer> afterRepair = Map.copyOf(hold.stock);
+        for (BoatFitting fitting : BoatFitting.catalog()) {
+            if (fitting.standard()) continue;
+            assertEquals(BoatWorkshop.Status.INCOMPATIBLE_FITTING,
+                    workshop.fit(boat.id(), fitting.id()).status());
+            assertEquals(afterRepair, hold.stock);
+        }
+        assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
+        assertSame(BoatFitting.STANDARD_DRIVE, boat.drive());
+    }
+
+    @Test
     void fittingSpendsExactlyTheBillAndInstallsTheWork() {
         BoatDeck deck = deck();
         TestResources hold = TestResources.stocked(100);

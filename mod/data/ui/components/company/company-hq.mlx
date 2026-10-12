@@ -1,4 +1,4 @@
-<template props="debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -14,6 +14,8 @@
       </div>
       <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">DEBUG MISSIONS</button>
     </div>
+
+    <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">SECONDHAND WINGS / Castle has a lead on two surplus Aeroshuttles. Review on the Boat Deck.</button>
 
     <div id="company-hq-main" class="company-hq-main">
       <div id="company-hq-sidebar" class="company-hq-sidebar">
@@ -180,6 +182,7 @@
 </template>
 
 <style>
+  .hq-wings { height: 30px; width: 100%; text-align: left; padding: 4px 12px; font-family: heading; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
 .hq-debug-hidden { width: 0px; height: 0px; opacity: 0; pointer-events: none; }
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
