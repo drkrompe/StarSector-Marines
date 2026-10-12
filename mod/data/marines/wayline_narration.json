@@ -958,49 +958,54 @@
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.pirate_evidence_confirmed",
       "text": "Resolute, this is Wayline. Sable Wake's dispatch archive, intact. The company secured it for you. That should settle the question of who owns this place.",
-      "durationSeconds": 7,
+      "durationSeconds": 10.32,
       "priority": 60,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
-      "voiced": false,
-      "terminal": false
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[businesslike, quietly confident] Resolute, this is Wayline. Sable Wake's dispatch archive, intact. The company secured it for you. That should settle the question of who owns this place."
     },
     {
       "id": "marines_kord_cold_account_hegemony_arriving_hold_fire",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.hegemony_arriving_hold_fire",
       "text": "Captain Kord, HSS Resolute. Authentication accepted. Pirate installation confirmed. Gunnery, prepare a demolition pattern.",
-      "durationSeconds": 6,
+      "durationSeconds": 8.48,
       "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
       "portrait": "",
-      "voiced": false,
-      "terminal": false
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[cool, level voice, clipped military diction, matter-of-fact] Captain Kord, HSS Resolute. Authentication accepted. Pirate installation confirmed. Gunnery, prepare a demolition pattern.",
+      "voiceId": "Qbw4VpyUrHEG7NigKzty"
     },
     {
       "id": "marines_castle_cold_account_batteries_preparing",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.batteries_preparing",
       "text": "Resolute, acknowledge our withdrawal. Resolute? ... Damn it. Captain, those guns are training on the compound. Get our people out. Now.",
-      "durationSeconds": 7,
+      "durationSeconds": 9.36,
       "priority": 70,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
-      "terminal": false
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[tense, trying to sound composed] Resolute, acknowledge our withdrawal. Resolute? ... [strained, quickening] Damn it. Captain, those guns are training on the compound. [urgent, tightly controlled fear] Get our people out. Now.",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
     },
     {
       "id": "marines_kord_cold_account_company_clear_open_fire",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.company_clear_open_fire",
       "text": "Gunnery. Commence bombardment.",
-      "durationSeconds": 2,
+      "durationSeconds": 2.56,
       "priority": 100,
       "expiresSeconds": 30,
       "supersedes": [
@@ -1010,43 +1015,49 @@
       ],
       "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
       "portrait": "",
-      "voiced": false,
-      "terminal": false
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[flat, precise, unhurried] Gunnery. Commence bombardment.",
+      "voiceId": "Qbw4VpyUrHEG7NigKzty"
     },
     {
       "id": "marines_castle_cold_account_bombardment_authorized",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.bombardment_authorized",
       "text": "Incoming! Keep moving. Get to the shuttles! We are not losing anyone to this.",
-      "durationSeconds": 5,
+      "durationSeconds": 5.68,
       "priority": 90,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
-      "terminal": false
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[urgent, strained, struggling to keep control] Incoming! Keep moving. Get to the shuttles! [firm, fear beneath the command] We are not losing anyone to this.",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
     },
     {
       "id": "marines_kord_cold_account_demolition_sweep",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.demolition_sweep",
       "text": "Continue through the remaining structures. Leave nothing operational.",
-      "durationSeconds": 4,
+      "durationSeconds": 4.08,
       "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
       "portrait": "",
-      "voiced": false,
-      "terminal": false
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[level voice, clipped and procedural] Continue through the remaining structures. Leave nothing operational.",
+      "voiceId": "Qbw4VpyUrHEG7NigKzty"
     },
     {
       "id": "marines_kord_cold_account_stronghold_destroyed",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.stronghold_destroyed",
       "text": "Installation neutralized. Resuming patrol.",
-      "durationSeconds": 5,
+      "durationSeconds": 3.36,
       "priority": 100,
       "expiresSeconds": 30,
       "supersedes": [
@@ -1055,8 +1066,10 @@
       ],
       "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
       "portrait": "",
-      "voiced": false,
-      "terminal": true
+      "voiced": true,
+      "terminal": true,
+      "synthesisText": "[matter-of-fact, detached, evenly paced] Installation neutralized. Resuming patrol.",
+      "voiceId": "Qbw4VpyUrHEG7NigKzty"
     }
   ]
 }

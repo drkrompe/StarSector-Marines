@@ -14,8 +14,9 @@ import java.util.List;
 
 /** Mission-owned fire authorization. No enemy deletion or timed victory. */
 public final class ColdAccountIntervention implements Objective {
-    public enum Phase { EVIDENCE, WITHDRAW, WARNING, BOMBARD, COMPLETE, FAILED }
+    public enum Phase { EVIDENCE, WITHDRAW, WARNING, BOMBARD, PATROL, AFTERMATH, COMPLETE, FAILED }
     public static final int WARNING_TICKS = 0;
+    public static final int AFTERMATH_TICKS = 150;
     private final ColdAccountLayout layout;
     private final RaidObjective evidence;
     private final StoryBeatLog beats;
@@ -25,6 +26,7 @@ public final class ColdAccountIntervention implements Objective {
     private final BombardmentClearance clearance = new BombardmentClearance(WARNING_TICKS);
     private Phase phase = Phase.EVIDENCE;
     private int evidenceTick = -1, bombardTick = -1;
+    private int patrolTick = -1, departedTick = -1;
     private int remainingWalls, outsideWithdrawal;
     private final int installationRight;
     private boolean pendingArrivals;
@@ -55,6 +57,8 @@ public final class ColdAccountIntervention implements Objective {
     public int evidenceTick() { return evidenceTick; }
     public int warningTick() { return clearance.warningTick(); }
     public int bombardTick() { return bombardTick; }
+    public int patrolTick() { return patrolTick; }
+    public int departedTick() { return departedTick; }
     public int initialWalls() { return walls.size(); }
     public int remainingWalls() { return remainingWalls; }
     public int outsideWithdrawal() { return outsideWithdrawal; }
@@ -72,6 +76,16 @@ public final class ColdAccountIntervention implements Objective {
         if (isComplete() || isFailed()) return;
         if (!evidence.targetSecured()) return;
         int tick = sim.getSimTickIndex();
+        if (phase == Phase.PATROL || phase == Phase.AFTERMATH) {
+            if (ship.destroyed()) {
+                phase = Phase.FAILED; beat(sim, "intervention_failed"); return;
+            }
+            if (ship.departed()) {
+                if (departedTick < 0) { departedTick = tick; phase = Phase.AFTERMATH; }
+                if (tick - departedTick >= AFTERMATH_TICKS) phase = Phase.COMPLETE;
+            }
+            return;
+        }
         if (ship == null) {
             evidenceTick = tick;
             beat(sim, "pirate_evidence_confirmed");
@@ -131,7 +145,10 @@ public final class ColdAccountIntervention implements Objective {
             ship.order(WarshipOrder.HoldFire.INSTANCE);
             if ((sim.warships().shells().isEmpty() && sim.warships().strikes().isEmpty())
                     && sim.survivorPickup().complete(sim)) {
-                phase = Phase.COMPLETE; beat(sim, "stronghold_destroyed");
+                patrolTick = tick;
+                phase = Phase.PATROL;
+                beat(sim, "stronghold_destroyed");
+                ship.departForward(sim.getGrid().getWidth(), sim.getGrid().getHeight());
             }
             return;
         }
@@ -183,6 +200,8 @@ public final class ColdAccountIntervention implements Objective {
             case WARNING -> "Hegemony batteries engaging";
             case BOMBARD -> "Demolition sector " + demolition.sectorNumber() + "/" + demolition.sectorCount()
                     + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
+            case PATROL -> "HSS Resolute resuming patrol";
+            case AFTERMATH -> "Stronghold silenced";
             case COMPLETE -> "Pirate evidence secured; company withdrawn; stronghold destroyed";
             case FAILED -> "Hegemony intervention failed to destroy the stronghold";
         };
