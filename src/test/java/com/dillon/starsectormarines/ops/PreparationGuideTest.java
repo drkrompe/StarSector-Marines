@@ -30,7 +30,7 @@ class PreparationGuideTest {
         var guide = new PreparationGuide(document, () -> complete.get() ? null
                 : new PreparationGuide.Lesson(0, "REQUIRED ORDER", "Use the highlighted order to continue.",
                 List.of("required-order"), null, null), exits::incrementAndGet, loader);
-        document.layout(1200, 800); guide.update();
+        document.layout(1920, 1080); guide.update();
         assertNull(find(document.root(), "preparation-later"));
         document.keyPressed(UiKey.ESCAPE, Set.of(), false); guide.update();
         assertEquals(0, exits.get());
@@ -45,6 +45,20 @@ class PreparationGuideTest {
         assertEquals(1, blockedClicks.get(), "Completion releases the spotlight");
         document.keyPressed(UiKey.ESCAPE, Set.of(), false);
         assertEquals(2, exits.get());
+    }
+
+    @Test void dialogueActionRemainsClickableAndReleasesTheSpotlight() {
+        var complete = new AtomicBoolean();
+        var document = PreparationGuide.document(new UiElement("content"));
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                List.of("data/ui/components/company/preparation-guide.mlx"));
+        var guide = new PreparationGuide(document, () -> complete.get() ? null
+                : new PreparationGuide.Lesson(3, "TWO SQUADS", "Check the real stores first.",
+                        List.of(), "UNDERSTOOD", () -> complete.set(true)), () -> {}, loader);
+        document.theme(MarineOpsThemes.standard());
+        document.layout(1920, 1080); guide.update();
+        click(document, find(document.root(), "preparation-continue")); guide.update();
+        assertTrue(complete.get(), "The dialogue must accept input independently of its dim backdrop");
     }
 
     private static UiElement button(String id, int left, Runnable action) {

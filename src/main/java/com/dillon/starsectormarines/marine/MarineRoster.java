@@ -60,6 +60,9 @@ public class MarineRoster implements Serializable {
     private boolean initialComplementIssued;
     /** Optional company-management introduction; absent legacy values mean not yet dismissed. */
     private boolean managementGuideDismissed;
+    private boolean secondSquadPreparationSeen;
+    public boolean secondSquadPreparationSeen() { return secondSquadPreparationSeen; }
+    public void acknowledgeSecondSquadPreparation() { secondSquadPreparationSeen = true; }
     private FirstRefit firstRefit;
     public FirstRefit firstRefit() {
         if (firstRefit == null) firstRefit = new FirstRefit();

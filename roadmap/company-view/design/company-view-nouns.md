@@ -597,8 +597,8 @@ faster on the deck.
 ## Shipboard Barracks
 
 Barracks leads with **Preparation**: consolidate survivors, fill vacancies, then
-restore assigned equipment. **Organization** holds officer assignments and saved
-profiles. These are separate explicit orders, not a button that silently spends
+restore assigned equipment. **Profiles** holds saved loadout and tactic-sheet
+pairings. These are separate explicit orders, not a button that silently spends
 all available resources. Current billet counts state ready, wounded and vacant
 separately. Inspecting a squad can open its exact Armory equipment workspace;
 returning retains the Barracks selection. Raise Squad opens the existing Armory
@@ -640,6 +640,18 @@ with the company; older saves default to an available introduction. Text is comp
 without a recording; stable beat IDs allow separately auditioned ElevenLabs clips
 using the existing company-officer cast.
 
+The first non-debug briefing that recommends at least two squads introduces
+Castle's **From One Squad to Two** reminder after initial induction. It states
+both the recommended strength and the route's permitted depleted minimum,
+counts actual ready personnel, and shows the authoritative one-squad founding
+bill with available stores and the amount to buy. Founding includes the initial
+kit; later refits have separate bills. Direct Armory and Barracks routes teach
+raising a squad, assigning its home commander, and selecting it for deployment.
+The reminder never spends cargo or changes launch rules. Explicit acknowledgement
+is saved; leaving to buy stores or raise a squad keeps the unfinished reminder,
+and the briefing can replay it. Existing two-squad companies are told not to
+raise an unnecessary formation. Casualties do not reset acknowledgement.
+
 New companies receive one **First Mission Preparation** sequence with Castle:
 company ship, commissioned lift, founding field commander, and her first squad.
 It extends the saved officer induction rather than keeping a second tutorial
@@ -668,7 +680,7 @@ without replacing player-customized likenesses.
 After commissioning, Castle introduces Mira's portrait and guides an actual
 specialty choice. Armory then guides the ordinary twelve-Marine, 36-supply,
 24-food founding transaction, which includes baseline field kit. Barracks guides
-home-command assignment through its capacity-checked Organization controls.
+home-command assignment through the capacity-checked Assign Selected button on the commander card.
 Completion requires a current company ship with owned lift, an actually trained
 officer, and a full ready available squad assigned to that officer, followed by
 acknowledgement. It returns to the retained briefing, or to HQ's existing Mara
@@ -717,6 +729,14 @@ squads. It records intent separately from the last issued doctrine pair and each
 marine's real kit. A successful manual issue of a different pair clears the desired
 profile. Weapon definitions referenced by saved profiles cannot be deleted.
 Existing saves start without profiles and retain their exact personnel and equipment.
+
+Select squad cards, then use **Assign Selected** on the desired commander card.
+The button shows the selected count and a live capacity preview; unavailable or
+full officers cannot receive an invalid selection. The Independent card clears
+home command through the same transaction. Commander portraits and names on
+squad cards identify their saved home command. Viewing an officer dossier is a
+separate action from assignment. Personnel and equipment preparation remain in
+the right panel; commander assignment has no separate selector there.
 
 Home-command assignment uses the same atomic capacity checks as Fleet Armory.
 Personnel replacement uses ready reserves first, then the existing one-Marine-per-
