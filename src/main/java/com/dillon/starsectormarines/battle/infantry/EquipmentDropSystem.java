@@ -70,7 +70,7 @@ public final class EquipmentDropSystem {
             if (drop.objective.isComplete()) { drop.consumed = true; continue; }
             for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
                 long u = rosterService.get(i);
-                if (rosterService.identity().faction(u) != Faction.MARINE) continue;
+                if (!canCarryKit(u)) continue;
                 if (squadHasConflictingSpecialTask(u, drop, role, task)) continue;
                 if (!rosterService.movement().atCell(u, drop.cellX, drop.cellY)) continue;
                 role.setRole(u, UnitRole.PLANTER);
@@ -100,6 +100,12 @@ public final class EquipmentDropSystem {
         drops.removeConsumed();
     }
 
+    /** Only marine infantry handle demolition kits; a mech can neither be recruited to fetch one nor pick one up by standing on it. */
+    private boolean canCarryKit(long u) {
+        return rosterService.identity().faction(u) == Faction.MARINE
+                && !rosterService.identity().type(u).isMech();
+    }
+
     private boolean hasLivingRetriever(EquipmentDrop drop) {
         RoleService role = rosterService.role();
         TaskService task = rosterService.task();
@@ -126,7 +132,7 @@ public final class EquipmentDropSystem {
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
             long u = rosterService.get(i);
-            if (rosterService.identity().faction(u) != Faction.MARINE) continue;
+            if (!canCarryKit(u)) continue;
             if (squadHasActiveSpecialTask(u, role, task)) continue;
             Objective ao = task.assignedObjective(u);
             if (role.role(u) == UnitRole.PLANTER

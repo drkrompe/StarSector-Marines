@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
@@ -55,6 +56,10 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
                         ShipDeckBattleScene.DeckView.fitting(65,40,48,27,1920,1080)),1920,1080)));
                 frames.add(new SnapshotArtifact("crossing-building.png",renderer.renderHostPass(scene.pass(
                         ShipDeckBattleScene.DeckView.fitting(171,84,48,27,1920,1080)),1920,1080)));
+                frames.add(new SnapshotArtifact("dispatch-emplacement.png",renderer.renderHostPass(scene.pass(
+                        ShipDeckBattleScene.DeckView.fitting(105,55,48,27,1920,1080)),1920,1080)));
+                frames.add(new SnapshotArtifact("crossing-emplacement.png",renderer.renderHostPass(scene.pass(
+                        ShipDeckBattleScene.DeckView.fitting(151,70,48,27,1920,1080)),1920,1080)));
                 frames.add(new SnapshotArtifact("checkpoint.png",renderer.renderHostPass(scene.pass(
                         ShipDeckBattleScene.DeckView.over(205,18,115,108,10)),1920,1080)));
             }
@@ -89,10 +94,17 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
             for (int y = 0; y < doodad.footprintCellsY; y++) for (int x = 0; x < doodad.footprintCellsX; x++)
                 if (canopy.blocks(x, y, doodad.quarterTurns)) crowns[(doodad.cellY+y)*w+doodad.cellX+x] = true;
         }
+        // Rock and frozen palettes also stamp solid mineral formations during landscaping.
+        for (var doodad : map.doodads) for (var formation : MineralFormation.values()) {
+            var def = TileRegistry.installed().doodad(formation.id());
+            if (!doodad.sheetPath.equals(def.sheetPath) || doodad.tile.col != def.col || doodad.tile.row != def.row) continue;
+            for (int y = 0; y < doodad.footprintCellsY; y++) for (int x = 0; x < doodad.footprintCellsX; x++)
+                if (formation.blocks(x, y, doodad.quarterTurns)) crowns[(doodad.cellY+y)*w+doodad.cellX+x] = true;
+        }
         int solid=0,openNatural=0;
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             boolean natural=grid.hasTag(x,y,CellTag.NATURAL_SOLID);
-            if(natural!=(field.blocked(x,y)||crowns[y*w+x]))throw new IllegalStateException("Terrain field/grid mismatch");
+            if(natural!=(field.blocked(x,y)||crowns[y*w+x]))throw new IllegalStateException("Terrain field/grid mismatch at "+x+","+y);
             if(natural) {
                 solid++;
                 if(grid.isWalkable(x,y)||grid.isSeeThrough(x,y)||grid.getWallHp(x,y)!=0
