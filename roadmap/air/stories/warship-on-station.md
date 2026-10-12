@@ -54,7 +54,7 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
    vanilla turret sprites.
 5. **Sweep, later.** Beam weapons resolve through `LanceSweep` with the vanilla
    beam textures. Not in the first slice.
-6. **Orders.** Hold fire and area fire (with optional bring-guns-to-bear heading) are shipped; station-keeping movement and a density director are shipped.
+6. **Orders.** Hold fire and area fire (with optional bring-guns-to-bear heading) are shipped; station-keeping movement and a density director are shipped. A directed ship holds up to three non-overlapping areas at once (`direct(radius, bringGuns, maxAreas)`), mounts dealt among them; `onslaught-district` is the acceptance.
 7. **Faction, not allegiance.** The entity is owned by a faction supplied by its
    committer; the first acceptance uses the company's own ship and an enemy one.
 8. **Point defence (shipped).** Flak, vulcan and PD-laser mounts shoot down
