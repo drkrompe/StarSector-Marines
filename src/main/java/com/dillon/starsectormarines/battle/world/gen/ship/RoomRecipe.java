@@ -82,6 +82,13 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
     public static final RoomRecipe VEHICLE_BAY = new RoomRecipe(
             RoomPurpose.VEHICLE_BAY, RoomShape.rectangle(40, 16), DeckZone.MIDSHIPS, 4);
 
+    /** One full-depth gantry and its workshop in a converted frigate hold. */
+    public static final RoomRecipe COMPACT_VEHICLE_BAY = new RoomRecipe(
+            RoomPurpose.VEHICLE_BAY, RoomShape.rectangle(16, 10), DeckZone.MIDSHIPS, 1);
+
+    public static final RoomRecipe CONVERTED_HOLD = new RoomRecipe(
+            RoomPurpose.STOCKROOM, RoomShape.rectangle(12, 8), DeckZone.MIDSHIPS, 250);
+
     /**
      * Racked weapons and an issue counter. A ship keeps one, or a second on a
      * very large complement — never one per hundred hands.

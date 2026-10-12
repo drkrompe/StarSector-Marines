@@ -96,11 +96,16 @@ public final class DeckSizing {
      */
     public static DeckPlan planFor(HullClass hullClass, HullRole role,
                                    int minCrew, int maxCrew, int cargo, float aspect) {
+        return planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, false);
+    }
+
+    public static DeckPlan planFor(HullClass hullClass, HullRole role, int minCrew,
+                                   int maxCrew, int cargo, float aspect, boolean conversion) {
         if (!hullClass.boardable()) {
             return new DeckPlan(0, 0, List.of(), ShipsBoats.carriedBy(role));
         }
 
-        List<RoomRecipe> rooms = programFor(hullClass, role, minCrew, maxCrew, cargo);
+        List<RoomRecipe> rooms = programFor(hullClass, role, minCrew, maxCrew, cargo, conversion);
 
         int roomArea = 0;
         for (RoomRecipe room : rooms) roomArea += room.area();
@@ -133,6 +138,11 @@ public final class DeckSizing {
      */
     public static List<RoomRecipe> programFor(HullClass hullClass, HullRole role,
                                               int minCrew, int maxCrew, int cargo) {
+        return programFor(hullClass, role, minCrew, maxCrew, cargo, false);
+    }
+
+    public static List<RoomRecipe> programFor(HullClass hullClass, HullRole role,
+                                              int minCrew, int maxCrew, int cargo, boolean conversion) {
         int lift = Math.max(0, maxCrew - minCrew);
         // Below destroyer size a hull has no room to spare and nobody aboard to
         // spare it for. A frigate keeps a gig and a locker; the range, the
@@ -150,8 +160,9 @@ public final class DeckSizing {
                 RoomRecipe.ENGINEERING.countFor(maxCrew)));
         add(rooms, RoomRecipe.PROVISIONS, RoomRecipe.PROVISIONS.countFor(maxCrew));
         RoomRecipe boats = substantial ? RoomRecipe.SHUTTLE_BAY : RoomRecipe.BOAT_BAY;
-        add(rooms, boats, boats.countFor(lift));
-        if (cargo > 0) add(rooms, RoomRecipe.HOLD, RoomRecipe.HOLD.countFor(cargo));
+        add(rooms, boats, conversion ? 1 : boats.countFor(lift));
+        if (cargo > 0) add(rooms, conversion ? RoomRecipe.CONVERTED_HOLD : RoomRecipe.HOLD,
+                RoomRecipe.HOLD.countFor(cargo));
         addCrewSpaces(rooms, minCrew, lift, maxCrew, substantial);
         rooms.add(RoomRecipe.MACHINE_SHOP);
 
@@ -186,6 +197,7 @@ public final class DeckSizing {
             // nobody aboard has any business on a range.
             case FREIGHTER, TANKER, LINER -> rooms.add(RoomRecipe.ARMORY);
         }
+        if (conversion) rooms.add(RoomRecipe.COMPACT_VEHICLE_BAY);
         return rooms;
     }
 

@@ -77,5 +77,6 @@ com.dillon.starsectormarines.battle.warship.WarshipVsAirSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.CompoundPropDamageSnapshotSuite
 
 com.dillon.starsectormarines.tools.tilesetauthoring.FurnishingDamageSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ship.CerberusStartSnapshotSuite
 com.dillon.starsectormarines.ops.InstallationGroundSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipPilotSceneSnapshotSuite

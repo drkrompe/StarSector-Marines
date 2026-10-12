@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.EnumMap;
 import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Opt-in production installation renders across the world's surface families. */
 public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
@@ -38,6 +39,7 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                 var grid = sim.getGrid();
                 var topology = sim.getTopology();
                 long geometry = 1;
+                int curvedCells = 0;
                 var ground = new EnumMap<GroundKind, Integer>(GroundKind.class);
                 for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++) {
                     geometry = 31 * geometry + (grid.isWalkable(x, y) ? 1 : 0);
@@ -45,13 +47,19 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     geometry = 31 * geometry + grid.getWallHp(x, y);
                     geometry = 31 * geometry + (grid.isDoorway(x, y) ? 1 : 0);
                     ground.merge(topology.getGroundKind(x, y), 1, Integer::sum);
+                    if (topology.roadSurface() != null) {
+                        var patch = topology.roadSurface().patch(x, y, 0);
+                        if (patch != null && patch.second() != null) curvedCells++;
+                    }
                     if (surface != SurfacePalette.VERDANT)
                         assertFalse(topology.getGroundKind(x, y) == GroundKind.GRASS
                                 && topology.getSurface(x, y) == 0 && !topology.isWall(x, y),
                                 "Unplanted installation grass on " + surface + " at " + x + "," + y);
                 }
+                assertTrue(curvedCells > 0, "generated road curves must reach the production renderer");
                 report.append(surface).append(" geometry=").append(geometry)
-                        .append(" doodads=").append(sim.getDoodads().size()).append(" ground=").append(ground).append('\n');
+                        .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
+                        .append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
                         renderer.render(sim, "Installation / " + surface)));
             }

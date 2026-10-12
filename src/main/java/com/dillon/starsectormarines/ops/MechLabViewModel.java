@@ -83,6 +83,13 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> overviewRailClasses;
     private final ComputedSignal<String> garageTitle;
 
+    private int physicalGantries = CampaignMechSquad.CAPACITY;
+
+    public void physicalGantries(int count) {
+        physicalGantries = Math.max(0, Math.min(CampaignMechSquad.CAPACITY, count));
+        revision.update(value -> value + 1);
+    }
+
     public MechLabViewModel(Reactor reactor, MechBay bay) {
         this(reactor, bay, FabricationResources.NONE, () -> { });
     }
@@ -128,9 +135,9 @@ public final class MechLabViewModel {
         gantryRows = reactor.computed(this::buildGantryRows);
         activeGantryLabel = reactor.computed(() -> {
             int index = selectedGantryIndex();
-            CampaignMech mech = mechAt(selectedSquad(), index);
+            CampaignMech mech = selectedMech() != null ? selectedMech() : mechAt(selectedSquad(), index);
             return String.format(Locale.ROOT, "GANTRY %02d / %02d%s", index + 1,
-                    CampaignMechSquad.CAPACITY, mech != null ? "" : "  ·  VACANT");
+                    physicalGantries, mech != null ? "" : "  ·  VACANT");
         });
         selectedMechName = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
@@ -435,7 +442,8 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMechSquad squad = selectedSquad();
         if (squad == null) return List.of();
-        return squad.mechs().stream().map(CampaignMech::variant).toList();
+        if (physicalGantries == 1 && selectedMech() != null) return List.of(selectedMech().variant());
+        return squad.mechs().stream().limit(physicalGantries).map(CampaignMech::variant).toList();
     }
 
     /** Frozen fitting values used to keep the physical gantries visually honest. */
@@ -443,13 +451,15 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMechSquad squad = selectedSquad();
         if (squad == null) return List.of();
-        return squad.mechs().stream().map(CampaignMech::freezeForDeployment).toList();
+        if (physicalGantries == 1 && selectedMech() != null)
+            return List.of(selectedMech().freezeForDeployment());
+        return squad.mechs().stream().limit(physicalGantries).map(CampaignMech::freezeForDeployment).toList();
     }
 
     /** Selected vehicle's stable camera target within the current lance. */
     public int selectedGantryIndex() {
         revision.get();
-        return Math.max(0, Math.min(CampaignMechSquad.CAPACITY - 1,
+        return Math.max(0, Math.min(physicalGantries - 1,
                 selectedGantry.get()));
     }
 
@@ -515,7 +525,7 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMechSquad squad = selectedSquad();
         List<GantryRow> rows = new ArrayList<>();
-        for (int index = 0; index < CampaignMechSquad.CAPACITY; index++) {
+        for (int index = 0; index < physicalGantries; index++) {
             CampaignMech mech = mechAt(squad, index);
             String base = "overview-gantry:" + index;
             int gantry = index;
@@ -764,7 +774,7 @@ public final class MechLabViewModel {
 
     private List<CatalogRow> chassisCatalog() {
         CampaignMechSquad squad = selectedSquad();
-        boolean hasSpace = squad != null && bay.canAddMech(squad.id());
+        boolean hasSpace = squad != null && squad.mechs().size() < physicalGantries && bay.canAddMech(squad.id());
         List<CatalogRow> rows = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
             if (!bay.canFabricate(recipe.variant())) continue;
@@ -782,7 +792,7 @@ public final class MechLabViewModel {
                     "", "catalog-delta hidden",
                     roleLabel(variant.defaultRole),
                     !hasSpace ? "LANCE FULL" : !affordable ? "MATERIALS SHORT" : "FABRICATE CHASSIS",
-                    !hasSpace ? "All four gantries in this lance are occupied."
+                    !hasSpace ? "This workshop has no vacant gantry."
                             : !affordable ? "Not enough materials. Hover a cost for its shortfall."
                             : "Build this chassis into the vacant gantry.",
                     !hasSpace || !affordable, materialRows(base, recipe.cost()), "material-costs",
@@ -895,7 +905,8 @@ public final class MechLabViewModel {
     }
 
     private void selectGantry(int requested) {
-        int capacity = CampaignMechSquad.CAPACITY;
+        int capacity = physicalGantries;
+        if (capacity == 0) return;
         int index = Math.floorMod(requested, capacity);
         CampaignMech mech = mechAt(selectedSquad(), index);
         selectedGantry.set(index);
@@ -1033,7 +1044,7 @@ public final class MechLabViewModel {
 
     private void fabricateChassis(MechVariant variant) {
         CampaignMechSquad squad = selectedSquad();
-        if (squad == null) return;
+        if (squad == null || squad.mechs().size() >= physicalGantries) return;
         MechWorkshop.Result result = workshop.fabricateChassis(squad.id(), variant);
         CampaignMech fabricated = result.mech();
         if (fabricated != null) {
