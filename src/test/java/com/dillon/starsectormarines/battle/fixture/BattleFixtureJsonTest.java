@@ -60,6 +60,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleFixtureJsonTest {
+    @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {
+        var base = new AssaultBattleFixture(201827786L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4)),
+                false, OperationTier.ESTABLISHED, RiskLevel.HIGH, TargetProfile.NEUTRAL,
+                List.of(), List.of(), PrecinctPlan.Sprawl.REMOTE);
+        var fixture = new ColdAccountBattleFixture(base);
+        assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
+        assertEquals(base, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(base)));
+    }
+
     @Test void launchRoundTripPreservesOfficerSpecialtiesAndAlreadyModifiedArmor() throws Exception {
         var roster = new MarineRoster(); roster.bootstrapInitialComplement(12);
         var officer = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f); roster.add(officer);

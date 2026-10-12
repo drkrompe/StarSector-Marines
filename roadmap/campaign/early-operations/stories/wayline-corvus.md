@@ -1,6 +1,6 @@
 # The Corvus Account
 
-Status: IN PROGRESS — combat playback exposes objective execution stalls and excessive sabotage losses.
+Status: IN PROGRESS — execution repaired; intervention implemented; live balance acceptance remains.
 Written: 2026-10-11
 Updated: 2026-10-11 — recommended-force playback completed; balance acceptance remains blocked by the findings below.
 
@@ -11,8 +11,8 @@ for force scale, and `campaign-battle-bridge-nouns.md` for target authority.
 
 Mara Venn follows Sable Wake's sale of Wayline sailing schedules across Corvus.
 The Dust Ledger raids a counting house on Asharu; Blind Watch demolishes three
-installations at a temporary Warion listening post; A Cold Account clears a
-dispatch compound on Garnir. These are authored jobs against one pirate crew.
+installations at a temporary Warion listening post; A Cold Account confirms
+pirate evidence and withdraws before Hegemony bombardment on Garnir. These are authored jobs against one pirate crew.
 Neither Asharu's government, Garnir's orbital depot nor the abandoned
 terraforming platform becomes an enemy asset or a campaign conquest.
 
@@ -73,17 +73,44 @@ command autonomous. Saved launch fixtures, command traces, ten-second samples,
 minute frames and unit/route diagnostics accompany the report. A timeout is
 unresolved, not a defeat, and the evidence task succeeding does not certify balance.
 
-## Proposed Hegemony intervention
+## Hegemony intervention
 
-The user proposed a Hegemony capital ship intervention once the installation is
-proven pirate. The shipped Onslaught station/hold-fire/area-fire/budget seams
-in `warship-on-station.md` support this direction. A Cold
-Account is the natural culmination: earlier chapters supply evidence, ground
-forces confirm the target, and the ship receives explicit authority after the
-company clears the bombardment area. Arrival, identification, warning, safe
-withdrawal and objective credit need one authored mission contract before wiring
-this in. Friendly fire remains real. This is planned content, not a ship already
-present in the current combat trials or a substitute for repairing command stalls.
+A Cold Account now uses an explicit intervention fixture around the fortified
+Assault map. The near dispatch office holds pirate evidence; the company secures
+it through the ordinary contested service objective and withdraws through Raid
+command, respecting player orders. The installation footprint is the structural
+target. No reinforcement layer is installed for this finite authored encounter.
 
-No new voice recording is required for this implementation; all correspondence
-is readable text. Any later narration uses the existing authored voice workflow.
+The Onslaught enters after proof and holds fire until every surviving company
+unit is inside the marked withdrawal area, all committed lift is resolved, and
+the ship is on station. A continuous ten-second warning gates fire. Re-entry
+cancels unlaunched burst rounds and restarts clearance. Existing projectiles
+remain real. The objective HUD, briefing survey and ground markers show the
+records, withdrawal area, exclusion area and current instruction.
+
+The ship targets standing walls with its actual vanilla guns, bounded ordnance
+and station time. At least 75% of original target wall cells must fall, shells
+must finish landing, and the survivors must remain clear before victory. No
+pirate deletion or elapsed-time success is used. Normal chapter settlement and
+casualty writeback remain the campaign boundary.
+
+- [x] First production playback proves evidence, whole-company withdrawal,
+  warning and physical bombardment, with no premature ground shots.
+- [x] Final replay against the merged ship combat: Marine victory at 9,587 ticks
+  (5:19.6), 29/48 infantry lost, Hound destroyed at 2,589 ticks before evidence.
+  Proof at 5,764; all survivors clear at 8,267; fire at 8,567. All 423 rounds
+  followed clearance and the ten-second warning. Bombardment destroyed 557/725
+  target wall cells; all 19 withdrawn infantry survived. Five pirates remained.
+- [ ] Ground losses remain severe (60% and the recovered Hound). The intervention
+  resolves the mission but is not final balance acceptance; revisit the approach
+  and records position with player-controlled evidence.
+
+Focused verification: 67 tests, the recommended-force production replay and
+`verifyModJarBoundary` pass. Retained evidence is in the local visualization
+artifact `cold-account-intervention`, including launch fixture, trace, samples,
+phase frames and summary.
+- [ ] Player-controlled live acceptance, including overriding withdrawal and
+  seeing fire hold, remains required before balance acceptance.
+
+No new voice recording is required; mission instructions and countdown are
+readable on the HUD. Any later narration uses the authored voice workflow.
