@@ -20,6 +20,7 @@ com.dillon.starsectormarines.battle.warship.WarshipBudgetScene
 com.dillon.starsectormarines.battle.warship.OnslaughtFlybyScene
 com.dillon.starsectormarines.battle.warship.OnslaughtDistrictScene
 com.dillon.starsectormarines.battle.warship.OnslaughtFluxScene
+com.dillon.starsectormarines.battle.warship.WarshipMissilesScene
 com.dillon.starsectormarines.battle.warship.WarshipShieldScene
 com.dillon.starsectormarines.battle.warship.WarshipPostureScene
 com.dillon.starsectormarines.battle.warship.WarshipSupportFireScene

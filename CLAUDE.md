@@ -193,7 +193,10 @@ Do not run builds or leave generated task files there.
   `-Dbattle.corvus.boats=4` selects a different allowed lift count and separate
   output folder; `-Dbattle.corvus.chapter=BLIND_WATCH` selects one chapter.
   Reports retain exact launch fixtures, losses, delivery times, mech output,
-  command traces, minute frames and unit/route diagnostics. Outcomes are findings,
+  command traces, minute frames and unit/route diagnostics. Corvus also accepts
+  `-PsnapshotEveryTicks=15` for denser action replay frames with weapons, impacts
+  and shadows; phase-change frames are always retained. Unit/route dumps keep
+  their minute/phase cadence independently of the frame interval. Outcomes are findings,
   not victory assertions: a successful task does not certify mission balance.
   `-Pmission=thunder-run` uses named campaign squads and fitted boats through
   the production launch seam on the 320x144 freight corridor. Three ordinary

@@ -114,3 +114,32 @@ phase frames and summary.
 
 No new voice recording is required; mission instructions and countdown are
 readable on the HUD. Any later narration uses the authored voice workflow.
+
+## One-off Hegemony commander: narrative direction
+
+The intervention should introduce a cold, ruthless Hegemony naval officer for
+this chapter. Their voice treats the evidence as a jurisdictional threshold:
+once pirate ownership is established, demolition is an administrative decision.
+The officer believes disciplined military force restores order. Keep their
+speech restrained, formal and brief; the violence of the guns carries the
+threat. Mara remains the human counterpoint. This is a proposed character pass,
+not dialogue or a portrait already wired into the battle.
+
+Working concept: Captain Irena Kord, commanding the Onslaught HSS Resolute.
+Proposed event lines:
+
+- Evidence: "Authentication accepted. This installation is now designated a
+  pirate military asset. Withdraw your personnel."
+- Withdrawal: "Your company has completed its function. Clear the exclusion zone."
+- All clear: "Friendly elements accounted for. Batteries: demolition pattern.
+  Commence in ten seconds."
+- After the guns: "The installation is no longer operational. Record the matter
+  closed."
+- Mara: "Keep the original records. I want an account of what happened here."
+
+The bombardment should feel deliberate and overwhelming, with a clear opening
+salvo and sustained structural destruction. Ruthlessness concerns the treatment
+of the pirate installation; it does not silently revoke the player's promised
+withdrawal interlock. Any change to completion or the fire pattern needs its own
+production replay. Portrait, subtitles, optional voice, and the final fire-pattern
+presentation remain to be implemented and reviewed.
