@@ -174,11 +174,24 @@ public final class CompanyShipResolver {
         return outline;
     }
 
+    /**
+     * Whether a spec's declared file path is one {@code loadJSON} will accept.
+     *
+     * <p>The hull spec can report the absolute install path of a vanilla
+     * {@code .ship}, which the settings loader refuses ("starting with a / are
+     * not allowed"), so every such hull silently lost its outline and took the
+     * synthetic taper. Those fall back to the conventional relative path.
+     */
+    private static boolean isModRelative(String declared) {
+        if (declared == null || declared.isBlank()) return false;
+        return !declared.startsWith("/") && !declared.startsWith("\\") && declared.indexOf(':') < 0;
+    }
+
     private static HullSilhouette scrapeOutline(String baseHullId) {
         String path = "data/hulls/" + baseHullId + ".ship";
         try {
             String declared = Global.getSettings().getHullSpec(baseHullId).getShipFilePath();
-            if (declared != null && !declared.isBlank()) path = declared;
+            if (isModRelative(declared)) path = declared.replace('\\', '/');
             JSONObject spec = Global.getSettings().loadJSON(path);
             JSONArray bounds = spec.optJSONArray("bounds");
             if (bounds == null || bounds.length() < 6) {
