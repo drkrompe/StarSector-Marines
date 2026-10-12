@@ -229,7 +229,8 @@ class CorvusCombatEvidenceTest {
                                 assertEquals(beforeShipShots, sim.getColdAccount().shotsFired(), "Patrol fires no new rounds");
                                 assertEquals(sim.getColdAccount().firingHeading(), capital.facingDegrees, .02f,
                                         "Departure continues nose-first on the firing bearing");
-                                assertFalse(sim.isComplete(), "Let the ship leave before mission completion");
+                                if (!sim.getColdAccount().companyRecovered())
+                                    assertFalse(sim.isComplete(), "Wait for the last survivor lift, not the capital");
                                 continue;
                             }
                             assertTrue(capital.x - Math.hypot(capital.lengthCells, capital.widthCells) / 2f
@@ -399,15 +400,11 @@ class CorvusCombatEvidenceTest {
                         // Casualties are findings; clearance and recovery are the mission contracts.
                         assertTrue(intervention.remainingWalls() <= intervention.initialWalls() / 4);
                         assertTrue(sim.warships().shells().isEmpty());
-                        assertTrue(intervention.departedTick() > intervention.patrolTick());
-                        assertTrue(sim.getSimTickIndex() - intervention.departedTick() >= ColdAccountIntervention.AFTERMATH_TICKS);
-                        assertTrue(sim.warships().ships().isEmpty(), "Resolute has physically left the scene");
+                        assertEquals(recoveryTick, sim.getSimTickIndex(), "The last survivor return ends the mission immediately");
+                        assertEquals(-1, intervention.departedTick(), "Recommended force extracts before Resolute leaves");
+                        assertFalse(sim.warships().ships().isEmpty(), "No wait for the capital's map exit");
                         assertNotNull(departingCapital);
-                        float margin = departingCapital.lengthCells / 2f;
-                        assertTrue(departingCapital.x < -margin || departingCapital.y < -margin
-                                || departingCapital.x > sim.getGrid().getWidth() + margin
-                                || departingCapital.y > sim.getGrid().getHeight() + margin,
-                                "The full hull clears the map, rather than timing out");
+                        assertFalse(departingCapital.departed());
                         assertTrue(dialogue.toString().contains("corvus.cold_account.stronghold_destroyed"),
                                 "The patrol report plays before completion");
                     }

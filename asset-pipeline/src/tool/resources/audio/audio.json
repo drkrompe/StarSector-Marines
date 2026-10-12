@@ -545,6 +545,12 @@
     { "id": "marines_voice_dead_19", "source": "voice-dead-lines/19.mp3", "kind": "positional", "out": "battle/voice-dead" },
 
     // Cold Account / Castle, Mara, and Captain Kord
+    {"id": "marines_castle_cold_account_debrief_orders", "source": "wayline/marines_castle_cold_account_debrief_orders.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_cold_account_debrief_consideration", "source": "wayline/marines_mara_cold_account_debrief_consideration.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_cold_account_debrief_one_ship", "source": "wayline/marines_castle_cold_account_debrief_one_ship.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_cold_account_debrief_payroll", "source": "wayline/marines_mara_cold_account_debrief_payroll.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_cold_account_debrief_way_out", "source": "wayline/marines_castle_cold_account_debrief_way_out.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_cold_account_debrief_debt", "source": "wayline/marines_mara_cold_account_debrief_debt.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_cold_account_patrol_hail", "source": "wayline/marines_mara_cold_account_patrol_hail.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_kord_cold_account_patrol_requires_proof", "source": "wayline/marines_kord_cold_account_patrol_requires_proof.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_cold_account_archive_offer", "source": "wayline/marines_mara_cold_account_archive_offer.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
