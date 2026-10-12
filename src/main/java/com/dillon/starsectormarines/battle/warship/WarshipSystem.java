@@ -170,6 +170,8 @@ public final class WarshipSystem {
     private static final float RETRY_SECONDS = 1f;
     /** A ship that has moved this far since choosing its heading chooses it again. */
     private static final float REHEADING_DISTANCE = 3f;
+    /** A scripted flight counts a waypoint as passed within this many cells, and flies on without braking. */
+    private static final float ROUTE_PASS_RADIUS = 3f;
 
     /** A directed ship issues itself an area order, and a fresh one once its ground is empty. */
     private void direct(float dt, BattleSimulation sim, Warship ship) {
@@ -210,10 +212,12 @@ public final class WarshipSystem {
      */
     private static void moveHull(float dt, Warship ship) {
         if (!ship.hasStation()) return;
+        ship.advanceRoute(ROUTE_PASS_RADIUS);
         float dx = ship.stationX() - ship.x;
         float dy = ship.stationY() - ship.y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        float speed = Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
+        float speed = ship.isPassingThrough() ? ship.maxSpeed
+                : Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
         float wantX = dist > 0f ? dx / dist * speed : 0f;
         float wantY = dist > 0f ? dy / dist * speed : 0f;
         float ax = wantX - ship.velocityX;
@@ -250,6 +254,10 @@ public final class WarshipSystem {
                         ship.y - ship.headingChosenAtY) > REHEADING_DISTANCE)) {
             ship.desiredHeading = WarshipFacing.bestHeading(ship, area.x(), area.y());
             ship.markHeadingChosen();
+        } else if (ship.isPassingThrough() && !(ship.order() instanceof WarshipOrder.FireOnArea g && g.bringGunsToBear())
+                && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Flying a route with no instruction to bring guns to bear, it points along its travel.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
         }
         float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
         float wanted = Math.signum(error)
