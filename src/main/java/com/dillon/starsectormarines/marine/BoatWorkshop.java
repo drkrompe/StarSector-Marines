@@ -45,6 +45,7 @@ public final class BoatWorkshop {
         if (fitting.id().equals(boat.fittingIn(fitting.slot()).id())) {
             return new Result(Status.ALREADY_FITTED, boat);
         }
+        if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
         FabricationCost bill = resources.quote(fitting.bill());
         if (bill != null && !resources.spend(bill)) {
             return new Result(Status.CANNOT_AFFORD, boat);
@@ -86,6 +87,7 @@ public final class BoatWorkshop {
     public enum Status {
         UNKNOWN_BOAT,
         UNKNOWN_FITTING,
+        INCOMPATIBLE_FITTING,
         ALREADY_FITTED,
         CANNOT_AFFORD,
         FITTED,

@@ -28,6 +28,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BoatDeckViewModelTest {
 
+    @Test
+    void hermesShowsOnlyInstalledFittingsAndExplainsReplacement() {
+        BoatDeck boats = new BoatDeck();
+        boats.reconcile("courier", ShuttleType.HERMES, 1);
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), boats, TestResources.stocked(200), "Second Wind");
+        model.selectBoatAction(0).run();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            model.selectSlotAction(slot).run();
+            assertEquals(1, model.catalogRows().get().size());
+            assertTrue(model.selectedSlotCopy().get().contains("no plating or drive upgrade path"));
+        }
+    }
+
     private static final float EPSILON = 0.01f;
     private static final int BERTHS = 6;
     private static final List<String> COMPONENTS = List.of(
