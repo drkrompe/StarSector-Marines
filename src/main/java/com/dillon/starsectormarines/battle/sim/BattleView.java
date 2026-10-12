@@ -30,6 +30,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 
+import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -56,6 +58,7 @@ import java.util.Random;
  * transitively through every returned handle.
  */
 public interface BattleView {
+    default SurvivorPickupSystem survivorPickup() { return null; }
 
     /** Committed ground forces whose authored arrival is still pending. */
     default int pendingGroundArrivals(Faction faction) { return 0; }
