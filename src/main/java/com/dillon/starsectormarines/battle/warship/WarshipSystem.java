@@ -1039,8 +1039,10 @@ public final class WarshipSystem {
             if (random.nextInt(seen) == 0) {
                 m.aimX = ux;
                 m.aimY = uy;
-                m.aimVx = sim.movement().velX(u);
-                m.aimVy = sim.movement().velY(u);
+                // A turret or emplacement has no movement to read.
+                boolean mover = sim.movement().has(u);
+                m.aimVx = mover ? sim.movement().velX(u) : 0f;
+                m.aimVy = mover ? sim.movement().velY(u) : 0f;
             }
         }
         return seen > 0;
