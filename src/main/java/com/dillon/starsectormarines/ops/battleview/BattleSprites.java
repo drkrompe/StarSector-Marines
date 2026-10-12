@@ -759,6 +759,18 @@ public class BattleSprites {
         loadLayeredFamilyAt(LayeredArmorFamily.SCIENTIST,
                 "graphics/battle/colonist-modular-topdown/scientist/",
                 foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_COMMAND,
+                "graphics/battle/ship-crew-modular-topdown/command/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/command/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_ENGINEERING,
+                "graphics/battle/ship-crew-modular-topdown/engineering/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/engineering/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_MEDICAL,
+                "graphics/battle/ship-crew-modular-topdown/medical/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/medical/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_SERVICE,
+                "graphics/battle/ship-crew-modular-topdown/service/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/service/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         LayeredSpriteCache alienFoot = loadLayeredSprite(
                 "graphics/battle/alien-modular-topdown/foot.png");
         LayeredSpriteCache alienForeClaw = loadLayeredSprite(
