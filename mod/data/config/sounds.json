@@ -625,4 +625,13 @@
 	"marines_officer_mech_spotted_02":[{"file":"sounds/battle/company-officer/marines_officer_mech_spotted_02.ogg","pitch":1,"volume":0.8}],
 	"marines_officer_enemy_down_01":[{"file":"sounds/battle/company-officer/marines_officer_enemy_down_01.ogg","pitch":1,"volume":0.8}],
 	"marines_officer_enemy_down_02":[{"file":"sounds/battle/company-officer/marines_officer_enemy_down_02.ogg","pitch":1,"volume":0.8}],
+
+	# Cold Account / voiced intervention
+	"marines_mara_cold_account_pirate_evidence_confirmed":[{"file": "sounds/story/wayline/marines_mara_cold_account_pirate_evidence_confirmed.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_kord_cold_account_hegemony_arriving_hold_fire":[{"file": "sounds/story/wayline/marines_kord_cold_account_hegemony_arriving_hold_fire.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_castle_cold_account_batteries_preparing":[{"file": "sounds/story/wayline/marines_castle_cold_account_batteries_preparing.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_kord_cold_account_company_clear_open_fire":[{"file": "sounds/story/wayline/marines_kord_cold_account_company_clear_open_fire.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_castle_cold_account_bombardment_authorized":[{"file": "sounds/story/wayline/marines_castle_cold_account_bombardment_authorized.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_kord_cold_account_demolition_sweep":[{"file": "sounds/story/wayline/marines_kord_cold_account_demolition_sweep.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_kord_cold_account_stronghold_destroyed":[{"file": "sounds/story/wayline/marines_kord_cold_account_stronghold_destroyed.ogg", "pitch": 1, "volume": 1.0}],
 }

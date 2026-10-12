@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Castle has a company-command portrait and character-specific story speech; debrief conversations retain ordered playback.
+Updated: 2026-10-12 — Cold Account retains speaker-specific recordings and separates patrol closure from speech duration.
 
 Read `stories.md` for the open-work board.
 
@@ -131,8 +131,11 @@ its declared reading duration owns the subtitle and no sound lookup occurs.
 An absent portrait uses the retained text panel. A confirmed terminal report may
 explicitly survive completion and start on the completed battlefield, after any
 active sentence finishes; this exception never retains ordinary tactical
-instructions or delays mission settlement. Cold Account's Kord reports use these
-capabilities and valid Corvus retry identities resolve to the same chapter set.
+instructions or delays mission settlement. Cold Account uses recorded Mara,
+Castle and Kord lines with speaker-specific voice assignments. Its final patrol
+report starts during the mission-owned departure; that departure and aftermath,
+rather than audio duration, defer victory. Valid Corvus retry identities resolve
+to the same chapter set.
 
 ## Company command
 

@@ -708,6 +708,18 @@ public final class Warship {
         return stationSecondsRemaining <= 0f;
     }
 
+    /** Resumes flight nose-first on the current bearing, using ordinary departure and propulsion. */
+    public void departForward(float mapWidth, float mapHeight) {
+        if (departing || departed || destroyed()) return;
+        beginDeparture();
+        desiredHeading = facingDegrees;
+        double nose = Math.toRadians(facingDegrees + 90f);
+        float reach = (float) Math.hypot(mapWidth, mapHeight) + lengthCells;
+        // Two collinear points keep this a through-flight until the entire hull is off map.
+        float dx = (float) Math.cos(nose) * reach, dy = (float) Math.sin(nose) * reach;
+        flyRoute(new float[][]{{x + dx, y + dy}, {x + 2f * dx, y + 2f * dy}}, false);
+    }
+
     /** Begins leaving: no order, no director, and every burst in progress is abandoned. */
     void beginDeparture() {
         departing = true;

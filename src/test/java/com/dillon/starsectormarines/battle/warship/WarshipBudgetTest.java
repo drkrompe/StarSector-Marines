@@ -125,6 +125,26 @@ class WarshipBudgetTest {
     }
 
     @Test
+    void forwardDepartureUsesTheNoseBearingAndAbandonsFire() throws Exception {
+        Warship s = ship();
+        s.facingDegrees = 65f;
+        s.order(new WarshipOrder.FireOnArea(40, 40, 5, false, true));
+        for (var mount : s.mounts()) mount.burstRemaining = 5;
+        s.departForward(100, 100);
+        assertTrue(s.departing());
+        assertTrue(s.isPassingThrough());
+        assertEquals(65f, s.facingDegrees);
+        assertEquals(155d, Math.toDegrees(Math.atan2(s.stationY() - s.y, s.stationX() - s.x)), .001d);
+        assertTrue(Math.hypot(s.stationX() - s.x, s.stationY() - s.y) > Math.hypot(100, 100));
+        assertEquals(WarshipOrder.HoldFire.INSTANCE, s.order());
+        for (var mount : s.mounts()) assertEquals(0, mount.burstRemaining);
+        float destinationX = s.stationX(), destinationY = s.stationY();
+        s.departForward(200, 200);
+        assertEquals(destinationX, s.stationX(), "Repeated orders do not restart departure");
+        assertEquals(destinationY, s.stationY());
+    }
+
+    @Test
     void theSharedPoolIsSpentRoundByRound() throws Exception {
         Warship s = ship();
         s.limitOrdnance(3);
