@@ -16,6 +16,15 @@
     },
     "rook": {
       "voiceId": "gpYq8Tu9Py4uI902kHOw"
+    },
+    "jackal": {
+      "voiceId": "YHOEWmZLDoCD6QyvyJKr"
+    },
+    "ox": {
+      "voiceId": "YUvgK8Ap5BSxIwdo4Uvr"
+    },
+    "rivet": {
+      "voiceId": "fGdXUaoUKa9laV1tzoOT"
     }
   },
   "actors": [
@@ -148,6 +157,138 @@
           "marines_op_viper_combat",
           "marines_op_viper_combat_02",
           "marines_op_viper_combat_03"
+        ]
+      }
+    },
+    {
+      "id": "jackal",
+      "label": "Jackal",
+      "call": "marines_op_jackal_call",
+      "ack": "marines_op_jackal_ack",
+      "readback": "marines_op_jackal_readback",
+      "reports": {
+        "CONTACT": [
+          "marines_op_jackal_contact",
+          "marines_op_jackal_contact_02",
+          "marines_op_jackal_contact_03"
+        ],
+        "FALLBACK": [
+          "marines_op_jackal_fallback",
+          "marines_op_jackal_fallback_02",
+          "marines_op_jackal_fallback_03"
+        ],
+        "CHECK_FIRE": [
+          "marines_op_jackal_check_fire",
+          "marines_op_jackal_check_fire_02",
+          "marines_op_jackal_check_fire_03"
+        ],
+        "MECH_SPOTTED": [
+          "marines_op_jackal_mech_spotted",
+          "marines_op_jackal_mech_spotted_02",
+          "marines_op_jackal_mech_spotted_03"
+        ],
+        "ENEMY_DOWN": [
+          "marines_op_jackal_enemy_down",
+          "marines_op_jackal_enemy_down_02",
+          "marines_op_jackal_enemy_down_03"
+        ],
+        "ACKNOWLEDGE": [
+          "marines_op_jackal_acknowledge",
+          "marines_op_jackal_acknowledge_02",
+          "marines_op_jackal_acknowledge_03"
+        ],
+        "COMBAT": [
+          "marines_op_jackal_combat",
+          "marines_op_jackal_combat_02",
+          "marines_op_jackal_combat_03"
+        ]
+      }
+    },
+    {
+      "id": "ox",
+      "label": "Ox",
+      "call": "marines_op_ox_call",
+      "ack": "marines_op_ox_ack",
+      "readback": "marines_op_ox_readback",
+      "reports": {
+        "CONTACT": [
+          "marines_op_ox_contact",
+          "marines_op_ox_contact_02",
+          "marines_op_ox_contact_03"
+        ],
+        "FALLBACK": [
+          "marines_op_ox_fallback",
+          "marines_op_ox_fallback_02",
+          "marines_op_ox_fallback_03"
+        ],
+        "CHECK_FIRE": [
+          "marines_op_ox_check_fire",
+          "marines_op_ox_check_fire_02",
+          "marines_op_ox_check_fire_03"
+        ],
+        "MECH_SPOTTED": [
+          "marines_op_ox_mech_spotted",
+          "marines_op_ox_mech_spotted_02",
+          "marines_op_ox_mech_spotted_03"
+        ],
+        "ENEMY_DOWN": [
+          "marines_op_ox_enemy_down",
+          "marines_op_ox_enemy_down_02",
+          "marines_op_ox_enemy_down_03"
+        ],
+        "ACKNOWLEDGE": [
+          "marines_op_ox_acknowledge",
+          "marines_op_ox_acknowledge_02",
+          "marines_op_ox_acknowledge_03"
+        ],
+        "COMBAT": [
+          "marines_op_ox_combat",
+          "marines_op_ox_combat_02",
+          "marines_op_ox_combat_03"
+        ]
+      }
+    },
+    {
+      "id": "rivet",
+      "label": "Rivet",
+      "call": "marines_op_rivet_call",
+      "ack": "marines_op_rivet_ack",
+      "readback": "marines_op_rivet_readback",
+      "reports": {
+        "CONTACT": [
+          "marines_op_rivet_contact",
+          "marines_op_rivet_contact_02",
+          "marines_op_rivet_contact_03"
+        ],
+        "FALLBACK": [
+          "marines_op_rivet_fallback",
+          "marines_op_rivet_fallback_02",
+          "marines_op_rivet_fallback_03"
+        ],
+        "CHECK_FIRE": [
+          "marines_op_rivet_check_fire",
+          "marines_op_rivet_check_fire_02",
+          "marines_op_rivet_check_fire_03"
+        ],
+        "MECH_SPOTTED": [
+          "marines_op_rivet_mech_spotted",
+          "marines_op_rivet_mech_spotted_02",
+          "marines_op_rivet_mech_spotted_03"
+        ],
+        "ENEMY_DOWN": [
+          "marines_op_rivet_enemy_down",
+          "marines_op_rivet_enemy_down_02",
+          "marines_op_rivet_enemy_down_03"
+        ],
+        "ACKNOWLEDGE": [
+          "marines_op_rivet_acknowledge",
+          "marines_op_rivet_acknowledge_02",
+          "marines_op_rivet_acknowledge_03"
+        ],
+        "COMBAT": [
+          "marines_op_rivet_combat",
+          "marines_op_rivet_combat_02",
+          "marines_op_rivet_combat_03"
         ]
       }
     }
@@ -723,6 +864,510 @@
       "text": "Keep your wits about you! Watch your lanes!",
       "synthesisText": "[shouting] [strained voice] Keep your wits about you! Watch your lanes!",
       "durationSeconds": 3.2
+    },
+    {
+      "id": "marines_op_jackal_call",
+      "speaker": "command",
+      "text": "Jackal. Command.",
+      "synthesisText": "[focused, brisk voice] Jackal. Command.",
+      "durationSeconds": 1.76
+    },
+    {
+      "id": "marines_op_jackal_ack",
+      "speaker": "jackal",
+      "text": "Jackal here. Go on, Command.",
+      "synthesisText": "[brisk, conversational voice] Jackal here. Go on, Command.",
+      "durationSeconds": 2.16
+    },
+    {
+      "id": "marines_op_jackal_readback",
+      "speaker": "jackal",
+      "text": "Understood. Leave it with us.",
+      "synthesisText": "[brisk, conversational voice] Understood. Leave it with us.",
+      "durationSeconds": 2.08
+    },
+    {
+      "id": "marines_op_jackal_contact",
+      "speaker": "jackal",
+      "text": "Jackal, contact! Heads up!",
+      "synthesisText": "[firm, alert voice] Jackal, contact! Heads up!",
+      "durationSeconds": 2.16
+    },
+    {
+      "id": "marines_op_jackal_contact_02",
+      "speaker": "jackal",
+      "text": "Command, Jackal. We're engaged.",
+      "synthesisText": "[firm, alert voice] Command, Jackal. We're engaged.",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_jackal_contact_03",
+      "speaker": "jackal",
+      "text": "Eyes up! We've got hostiles!",
+      "synthesisText": "[firm, alert voice] Eyes up! We've got hostiles!",
+      "durationSeconds": 2.08
+    },
+    {
+      "id": "marines_op_jackal_fallback",
+      "speaker": "jackal",
+      "text": "Jackal! We're falling back!",
+      "synthesisText": "[urgent, clipped, projecting voice] Jackal! We're falling back!",
+      "durationSeconds": 2.0
+    },
+    {
+      "id": "marines_op_jackal_fallback_02",
+      "speaker": "jackal",
+      "text": "Too much fire! Back, back!",
+      "synthesisText": "[urgent, clipped, projecting voice] Too much fire! Back, back!",
+      "durationSeconds": 2.24
+    },
+    {
+      "id": "marines_op_jackal_fallback_03",
+      "speaker": "jackal",
+      "text": "We can't stay here! Pull back!",
+      "synthesisText": "[urgent, clipped, projecting voice] We can't stay here! Pull back!",
+      "durationSeconds": 2.24
+    },
+    {
+      "id": "marines_op_jackal_check_fire",
+      "speaker": "jackal",
+      "text": "Check fire! You're hitting Jackal!",
+      "synthesisText": "[urgent, clipped, projecting voice] Check fire! You're hitting Jackal!",
+      "durationSeconds": 2.16
+    },
+    {
+      "id": "marines_op_jackal_check_fire_02",
+      "speaker": "jackal",
+      "text": "Friendly fire! Watch your targets!",
+      "synthesisText": "[urgent, clipped, projecting voice] Friendly fire! Watch your targets!",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_jackal_check_fire_03",
+      "speaker": "jackal",
+      "text": "We're on your side! Check fire!",
+      "synthesisText": "[urgent, clipped, projecting voice] We're on your side! Check fire!",
+      "durationSeconds": 2.24
+    },
+    {
+      "id": "marines_op_jackal_mech_spotted",
+      "speaker": "jackal",
+      "text": "Command, Jackal. Enemy mech sighted.",
+      "synthesisText": "[firm, alert voice] Command, Jackal. Enemy mech sighted.",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_jackal_mech_spotted_02",
+      "speaker": "jackal",
+      "text": "Hostile walker! Mind its guns!",
+      "synthesisText": "[firm, alert voice] Hostile walker! Mind its guns!",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_jackal_mech_spotted_03",
+      "speaker": "jackal",
+      "text": "Eyes on an enemy mech. Stay sharp.",
+      "synthesisText": "[firm, alert voice] Eyes on an enemy mech. Stay sharp.",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_jackal_enemy_down",
+      "speaker": "jackal",
+      "text": "Hostile down. Keep watching.",
+      "synthesisText": "[firm, alert voice] Hostile down. Keep watching.",
+      "durationSeconds": 2.08
+    },
+    {
+      "id": "marines_op_jackal_enemy_down_02",
+      "speaker": "jackal",
+      "text": "That's one down. Eyes up.",
+      "synthesisText": "[firm, alert voice] That's one down. Eyes up.",
+      "durationSeconds": 2.16
+    },
+    {
+      "id": "marines_op_jackal_enemy_down_03",
+      "speaker": "jackal",
+      "text": "Confirmed, enemy down. Stay awake.",
+      "synthesisText": "[firm, alert voice] Confirmed, enemy down. Stay awake.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_jackal_acknowledge",
+      "speaker": "jackal",
+      "text": "Jackal. Still in the fight.",
+      "synthesisText": "[brisk, conversational voice] Jackal. Still in the fight.",
+      "durationSeconds": 2.16
+    },
+    {
+      "id": "marines_op_jackal_acknowledge_02",
+      "speaker": "jackal",
+      "text": "Command, Jackal. Busy down here.",
+      "synthesisText": "[brisk, conversational voice] Command, Jackal. Busy down here.",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_jackal_acknowledge_03",
+      "speaker": "jackal",
+      "text": "Jackal here. Still earning our keep.",
+      "synthesisText": "[brisk, conversational voice] Jackal here. Still earning our keep.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_jackal_combat",
+      "speaker": "jackal",
+      "text": "Easy, lads. Make the shots count.",
+      "synthesisText": "[firm, alert voice] Easy, lads. Make the shots count.",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_jackal_combat_02",
+      "speaker": "jackal",
+      "text": "Keep your heads down and your eyes open.",
+      "synthesisText": "[firm, alert voice] Keep your heads down and your eyes open.",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_jackal_combat_03",
+      "speaker": "jackal",
+      "text": "Breathe. Pick your shot. You've got this.",
+      "synthesisText": "[firm, alert voice] Breathe. Pick your shot. You've got this.",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_ox_call",
+      "speaker": "command",
+      "text": "Ox. Command.",
+      "synthesisText": "[focused, brisk voice] Ox. Command.",
+      "durationSeconds": 1.6
+    },
+    {
+      "id": "marines_op_ox_ack",
+      "speaker": "ox",
+      "text": "Ox here, Command. I'm listening.",
+      "synthesisText": "[warm, low, steady voice] Ox here, Command. I'm listening.",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_ox_readback",
+      "speaker": "ox",
+      "text": "Understood. Right, team. You heard the order.",
+      "synthesisText": "[warm, low, steady voice] Understood. Right, team. You heard the order.",
+      "durationSeconds": 3.52
+    },
+    {
+      "id": "marines_op_ox_contact",
+      "speaker": "ox",
+      "text": "Ox. Enemy contact. Steady, team.",
+      "synthesisText": "[calm, firm, projecting voice] Ox. Enemy contact. Steady, team.",
+      "durationSeconds": 3.12
+    },
+    {
+      "id": "marines_op_ox_contact_02",
+      "speaker": "ox",
+      "text": "Command, Ox. We're engaged.",
+      "synthesisText": "[calm, firm, projecting voice] Command, Ox. We're engaged.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_ox_contact_03",
+      "speaker": "ox",
+      "text": "Hostiles! Keep your heads, now.",
+      "synthesisText": "[calm, firm, projecting voice] Hostiles! Keep your heads, now.",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_ox_fallback",
+      "speaker": "ox",
+      "text": "Ox! We're falling back!",
+      "synthesisText": "[urgent, firm, chest-supported voice] Ox! We're falling back!",
+      "durationSeconds": 2.0
+    },
+    {
+      "id": "marines_op_ox_fallback_02",
+      "speaker": "ox",
+      "text": "Can't hold here! Pull back, team!",
+      "synthesisText": "[urgent, firm, chest-supported voice] Can't hold here! Pull back, team!",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_ox_fallback_03",
+      "speaker": "ox",
+      "text": "Back now! Keep each other close!",
+      "synthesisText": "[urgent, firm, chest-supported voice] Back now! Keep each other close!",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_ox_check_fire",
+      "speaker": "ox",
+      "text": "Check fire! You're hitting our people!",
+      "synthesisText": "[urgent, firm, chest-supported voice] Check fire! You're hitting our people!",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_ox_check_fire_02",
+      "speaker": "ox",
+      "text": "Friendly fire on Ox! Check your targets!",
+      "synthesisText": "[urgent, firm, chest-supported voice] Friendly fire on Ox! Check your targets!",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_ox_check_fire_03",
+      "speaker": "ox",
+      "text": "Those are our troops! Check fire!",
+      "synthesisText": "[urgent, firm, chest-supported voice] Those are our troops! Check fire!",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_ox_mech_spotted",
+      "speaker": "ox",
+      "text": "Command, Ox. Hostile mech in sight.",
+      "synthesisText": "[calm, firm, projecting voice] Command, Ox. Hostile mech in sight.",
+      "durationSeconds": 3.2
+    },
+    {
+      "id": "marines_op_ox_mech_spotted_02",
+      "speaker": "ox",
+      "text": "Enemy walker. Mind those guns, team.",
+      "synthesisText": "[calm, firm, projecting voice] Enemy walker. Mind those guns, team.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_ox_mech_spotted_03",
+      "speaker": "ox",
+      "text": "We've sighted an enemy mech. Stay alert.",
+      "synthesisText": "[calm, firm, projecting voice] We've sighted an enemy mech. Stay alert.",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_ox_enemy_down",
+      "speaker": "ox",
+      "text": "Hostile down. Stay steady.",
+      "synthesisText": "[calm, firm, projecting voice] Hostile down. Stay steady.",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_ox_enemy_down_02",
+      "speaker": "ox",
+      "text": "One down. Keep your eyes up, team.",
+      "synthesisText": "[calm, firm, projecting voice] One down. Keep your eyes up, team.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_ox_enemy_down_03",
+      "speaker": "ox",
+      "text": "Enemy down. Take a breath. Stay sharp.",
+      "synthesisText": "[calm, firm, projecting voice] Enemy down. Take a breath. Stay sharp.",
+      "durationSeconds": 3.36
+    },
+    {
+      "id": "marines_op_ox_acknowledge",
+      "speaker": "ox",
+      "text": "Ox here. Still engaged, Command.",
+      "synthesisText": "[warm, low, steady voice] Ox here. Still engaged, Command.",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_ox_acknowledge_02",
+      "speaker": "ox",
+      "text": "Ox. We're still in this.",
+      "synthesisText": "[warm, low, steady voice] Ox. We're still in this.",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_ox_acknowledge_03",
+      "speaker": "ox",
+      "text": "Command, Ox. Still fighting.",
+      "synthesisText": "[warm, low, steady voice] Command, Ox. Still fighting.",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_ox_combat",
+      "speaker": "ox",
+      "text": "Steady, team. One shot at a time.",
+      "synthesisText": "[calm, firm, projecting voice] Steady, team. One shot at a time.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_ox_combat_02",
+      "speaker": "ox",
+      "text": "Look after each other. Keep your spacing.",
+      "synthesisText": "[calm, firm, projecting voice] Look after each other. Keep your spacing.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_ox_combat_03",
+      "speaker": "ox",
+      "text": "Breathe, now. You know your job.",
+      "synthesisText": "[calm, firm, projecting voice] Breathe, now. You know your job.",
+      "durationSeconds": 3.04
+    },
+    {
+      "id": "marines_op_rivet_call",
+      "speaker": "command",
+      "text": "Rivet. Command.",
+      "synthesisText": "[focused, brisk voice] Rivet. Command.",
+      "durationSeconds": 1.6
+    },
+    {
+      "id": "marines_op_rivet_ack",
+      "speaker": "rivet",
+      "text": "Rivet. Go ahead, Command.",
+      "synthesisText": "[dry, brisk, low voice] Rivet. Go ahead, Command.",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_rivet_readback",
+      "speaker": "rivet",
+      "text": "Understood. Right then. Let's get it done.",
+      "synthesisText": "[dry, brisk, low voice] Understood. Right then. Let's get it done.",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_rivet_contact",
+      "speaker": "rivet",
+      "text": "Rivet. Contact. Eyes up.",
+      "synthesisText": "[firm, brisk, smoky voice] Rivet. Contact. Eyes up.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_rivet_contact_02",
+      "speaker": "rivet",
+      "text": "Command, Rivet. We're engaged.",
+      "synthesisText": "[firm, brisk, smoky voice] Command, Rivet. We're engaged.",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_rivet_contact_03",
+      "speaker": "rivet",
+      "text": "Hostiles! Keep your wits about you!",
+      "synthesisText": "[firm, brisk, smoky voice] Hostiles! Keep your wits about you!",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_rivet_fallback",
+      "speaker": "rivet",
+      "text": "Rivet! We're pulling back!",
+      "synthesisText": "[urgent, rasp-edged, projecting voice] Rivet! We're pulling back!",
+      "durationSeconds": 2.0
+    },
+    {
+      "id": "marines_op_rivet_fallback_02",
+      "speaker": "rivet",
+      "text": "Can't hold this! Back, now!",
+      "synthesisText": "[urgent, rasp-edged, projecting voice] Can't hold this! Back, now!",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_rivet_fallback_03",
+      "speaker": "rivet",
+      "text": "Too much fire! Get back!",
+      "synthesisText": "[urgent, rasp-edged, projecting voice] Too much fire! Get back!",
+      "durationSeconds": 2.08
+    },
+    {
+      "id": "marines_op_rivet_check_fire",
+      "speaker": "rivet",
+      "text": "Check fire! That's us you're hitting!",
+      "synthesisText": "[urgent, rasp-edged, projecting voice] Check fire! That's us you're hitting!",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_rivet_check_fire_02",
+      "speaker": "rivet",
+      "text": "Friendly fire on Rivet! Sort your aim out!",
+      "synthesisText": "[urgent, rasp-edged, projecting voice] Friendly fire on Rivet! Sort your aim out!",
+      "durationSeconds": 3.28
+    },
+    {
+      "id": "marines_op_rivet_check_fire_03",
+      "speaker": "rivet",
+      "text": "Check your targets! We're friendlies!",
+      "synthesisText": "[urgent, rasp-edged, projecting voice] Check your targets! We're friendlies!",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_rivet_mech_spotted",
+      "speaker": "rivet",
+      "text": "Command, Rivet. Enemy mech sighted.",
+      "synthesisText": "[firm, brisk, smoky voice] Command, Rivet. Enemy mech sighted.",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_rivet_mech_spotted_02",
+      "speaker": "rivet",
+      "text": "Hostile walker. Watch those guns.",
+      "synthesisText": "[firm, brisk, smoky voice] Hostile walker. Watch those guns.",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_rivet_mech_spotted_03",
+      "speaker": "rivet",
+      "text": "Enemy mech in view. Mind yourselves.",
+      "synthesisText": "[firm, brisk, smoky voice] Enemy mech in view. Mind yourselves.",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_rivet_enemy_down",
+      "speaker": "rivet",
+      "text": "Hostile down. Keep at it.",
+      "synthesisText": "[firm, brisk, smoky voice] Hostile down. Keep at it.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_rivet_enemy_down_02",
+      "speaker": "rivet",
+      "text": "One down. Don't get careless.",
+      "synthesisText": "[firm, brisk, smoky voice] One down. Don't get careless.",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_rivet_enemy_down_03",
+      "speaker": "rivet",
+      "text": "Enemy down. Eyes up, we're working.",
+      "synthesisText": "[firm, brisk, smoky voice] Enemy down. Eyes up, we're working.",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_rivet_acknowledge",
+      "speaker": "rivet",
+      "text": "Rivet here. Still busy, Command.",
+      "synthesisText": "[dry, brisk, low voice] Rivet here. Still busy, Command.",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_rivet_acknowledge_02",
+      "speaker": "rivet",
+      "text": "Rivet. Still in the fight.",
+      "synthesisText": "[dry, brisk, low voice] Rivet. Still in the fight.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_rivet_acknowledge_03",
+      "speaker": "rivet",
+      "text": "Command, Rivet. Getting on with it.",
+      "synthesisText": "[dry, brisk, low voice] Command, Rivet. Getting on with it.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_rivet_combat",
+      "speaker": "rivet",
+      "text": "Pick your shots. Ammunition isn't free.",
+      "synthesisText": "[firm, brisk, smoky voice] Pick your shots. Ammunition isn't free.",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_rivet_combat_02",
+      "speaker": "rivet",
+      "text": "Keep your spacing. Give each other room.",
+      "synthesisText": "[firm, brisk, smoky voice] Keep your spacing. Give each other room.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_rivet_combat_03",
+      "speaker": "rivet",
+      "text": "Steady hands. Do the job properly.",
+      "synthesisText": "[firm, brisk, smoky voice] Steady hands. Do the job properly.",
+      "durationSeconds": 2.96
     }
   ]
 }

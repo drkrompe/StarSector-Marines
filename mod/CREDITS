@@ -114,6 +114,16 @@ Mara Venn: generated with ElevenLabs, using Mora - Gritty and Enigmatic
 Dialogue written for Starsector Marines. Source takes and production metadata
 are retained in asset-pipeline/src/tool/resources/audio/wayline/.
 
+Additional infantry radio voices
+--------------------------------
+Jackal (voice YHOEWmZLDoCD6QyvyJKr), Ox (voice YUvgK8Ap5BSxIwdo4Uvr),
+and Rivet (voice fGdXUaoUKa9laV1tzoOT): original ElevenLabs Voice Design
+characters, with dialogue generated using eleven_v4, October 2026.
+Dialogue written for Starsector Marines. Clean source takes, casting selections,
+and production receipts are retained in
+asset-pipeline/src/tool/resources/audio/operation-radio/.
+The shared radio effect is applied separately during the audio build.
+
 Wayline portrait
 ----------------
 Mara Venn portrait generated with built-in imagegen, October 2026.
