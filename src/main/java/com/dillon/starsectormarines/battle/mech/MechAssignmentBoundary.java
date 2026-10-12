@@ -124,6 +124,11 @@ final class MechAssignmentBoundary {
                 return insideAttackMoveProgress(
                         member, assignment, exact[0], exact[1], x, y, sim);
             }
+            // Service requires a settled body for the objective's whole duration.
+            // Passing near the marker once does not grant a tactical roam leash.
+            if (assignment.kind() == AssignmentKind.RUSH_OBJECTIVE) {
+                return x == exact[0] && y == exact[1];
+            }
             if (!hasReachedExactCell(
                     member, assignment, exact[0], exact[1], sim)) {
                 return x == exact[0] && y == exact[1];

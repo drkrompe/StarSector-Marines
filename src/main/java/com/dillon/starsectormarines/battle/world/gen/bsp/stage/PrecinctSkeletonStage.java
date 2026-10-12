@@ -51,9 +51,17 @@ public final class PrecinctSkeletonStage implements GenStage {
         int[][] claim = PrecinctClaim.byKind(plan.precincts())
                 .assign(grown.owner(), ctx.width, ctx.height, allowance);
 
+        // Growth does not stop at a claim, so a place throws a street network
+        // across the country around it: measured on a remote map, two thirds of
+        // all road lay outside every precinct, connected and serving nothing.
+        // What survives out there is what carries a place off the map, because
+        // that is what a road in open country is for.
+        PrecinctHighways.prune(grown.owner(), claim, ctx.width, ctx.height);
+
         // A walled place owes a way out, and growth does not always leave one.
-        // Done before anything is painted so a carved artery is ordinary road
-        // to every stage after this one.
+        // Do this after highway pruning: pruning may erase the exterior end
+        // of a short gate approach. The wall must read the final road network.
+        // Nothing is painted yet, so the artery remains ordinary circulation.
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (precinct.boundary() != Precinct.Boundary.WALLED) continue;
@@ -64,13 +72,6 @@ public final class PrecinctSkeletonStage implements GenStage {
                     precinct.seedX(), precinct.seedY(), ctx.width, ctx.height,
                     nextLink(plan, precinct));
         }
-
-        // Growth does not stop at a claim, so a place throws a street network
-        // across the country around it: measured on a remote map, two thirds of
-        // all road lay outside every precinct, connected and serving nothing.
-        // What survives out there is what carries a place off the map, because
-        // that is what a road in open country is for.
-        PrecinctHighways.prune(grown.owner(), claim, ctx.width, ctx.height);
 
         // Separately grown places share a road network only by accident.
         // Measured over four derived maps, three came out whole and one came

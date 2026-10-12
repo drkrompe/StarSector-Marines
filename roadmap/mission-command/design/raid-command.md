@@ -37,8 +37,11 @@ phases. Approach includes the tactical breach; the explicit service order stays
 relevant even after the target room is clear. One closest reachable squad is the
 service element while other available squads take spread cordon positions.
 After seizure, every available squad receives a spread withdrawal rally around
-egress. Local contact doctrine may interrupt exact-cell movement to fight, then
-the surviving assignment resumes.
+egress. Service and withdrawal retain their exact destination through remembered
+contact and anonymous sound bearings. A servicing mech holds the interaction
+cell until mission command changes the order: passing nearby once does not
+release it onto a tactical roam leash. Survival can still preempt execution,
+and opportunity fire remains available during the return.
 
 ## Intended defender picture
 

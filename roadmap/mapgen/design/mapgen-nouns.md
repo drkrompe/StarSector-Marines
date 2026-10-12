@@ -1108,6 +1108,11 @@ leaf can exist on hinterland ground. Measured across 144 maps they overlapped
 zero times; the labels that seemed to land on fields were the debug overlay
 drawing the district grid across the whole map.
 
+A walled precinct's guaranteed gate approach is resolved after optional
+open-country road pruning. Pruning may remove a short road beyond the claim;
+a gate proved before that pass is no longer a guarantee. The final road network
+must retain an on-map exterior approach before packing and wall stamping.
+
 Where the settlement stands and how far it reaches is the precinct model's
 business — see `precincts.md`, which also owns the **lane**: the path a
 Conquest's ladder of places stands on, and the walkable route between them that

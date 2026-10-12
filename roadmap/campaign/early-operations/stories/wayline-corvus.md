@@ -38,15 +38,15 @@ free replacement troops or chassis.
 - [x] Run each chapter with its recommended company and recovered owned Hound
   through production construction, campaign equipment/organization overlay,
   normal support activation and physical delivery.
-- [ ] Resolve the Dust Ledger service stall: command assigns the Hound to the
-  target at (1,1), but it holds at (3.5,2.5), outside the objective's service
-  radius. Infantry retain cordon assignments. The ten-minute trial loses 9/24
-  infantry while the intact Hound kills 30 enemies; seizure never starts.
-- [ ] Investigate A Cold Account's contact/search execution: all 48 infantry
-  and the Hound land, but no shot is fired in ten minutes. Infantry route
-  proofs to current search assignments exist; groups near the perimeter hold
-  Engage/Overwatch while other search groups remain outside. This is not
-  evidence of an easy encounter or proof of a disconnected map.
+- [x] Dust Ledger now seizes and withdraws: 4,222 ticks (2:21), 1/24 infantry
+  lost, with the recovered Hound. Mech servicing holds the exact interaction
+  cell; service/withdrawal do not discard their order on remembered contact.
+- [x] A Cold Account now enters combat and resolves. Unfinished search legs
+  survive directive stability expiry, contact cannot erase the search order,
+  and gate approaches are guaranteed after optional road pruning. The earlier
+  routes to outdoor search waypoints did not prove access inside the base.
+- [ ] Tune A Cold Account: the unchanged High-risk force defeats all 48 infantry
+  and the Hound at 9,202 ticks (5:07). Resolution is fixed; balance is not accepted.
 - [ ] Revisit Blind Watch's exposure and arrival pacing. All three charges
   complete at 2:27, but 31/36 infantry and the Hound are lost. First fire is
   at 8 seconds; the last marine arrives at 75 seconds. The four-boat control
@@ -65,6 +65,18 @@ The script calls the Hound at the first legal landing pad and otherwise leaves
 command autonomous. Saved launch fixtures, command traces, ten-second samples,
 minute frames and unit/route diagnostics accompany the report. A timeout is
 unresolved, not a defeat, and the evidence task succeeding does not certify balance.
+
+## Proposed Hegemony intervention
+
+The user proposed a Hegemony capital ship intervention once the installation is
+proven pirate. The shipped Onslaught station/hold-fire/area-fire/budget seams
+in `roadmap/air/stories/warship-on-station.md` support this direction. A Cold
+Account is the natural culmination: earlier chapters supply evidence, ground
+forces confirm the target, and the ship receives explicit authority after the
+company clears the bombardment area. Arrival, identification, warning, safe
+withdrawal and objective credit need one authored mission contract before wiring
+this in. Friendly fire remains real. This is planned content, not a ship already
+present in the current combat trials or a substitute for repairing command stalls.
 
 No new voice recording is required for this implementation; all correspondence
 is readable text. Any later narration uses the existing authored voice workflow.

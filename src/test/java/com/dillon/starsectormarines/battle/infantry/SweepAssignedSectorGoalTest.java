@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.decision.goap.action.DefendTrack;
+import com.dillon.starsectormarines.battle.squad.SquadBeliefTestAccess;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -15,6 +18,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SweepAssignedSectorGoalTest {
 
     @Test
-    void noContactBuildsMovingSweepPlanAndContactYieldsToEngagement() {
+    void searchRetainsDestinationThroughContact() {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec(
                 "marine", Faction.MARINE, UnitType.MARINE, 2, 2));
@@ -44,9 +48,9 @@ class SweepAssignedSectorGoalTest {
         assertEquals(7, Paths.destY(sim.world().path(marine)));
 
         WorldState contact = WorldState.EMPTY.with(Predicate.HAS_TARGET, true);
-        assertEquals(0f, SweepAssignedSectorGoal.INSTANCE.relevance(
-                contact, squad, sim),
-                "identified contact must hand control to EliminateEnemies");
+        assertTrue(SweepAssignedSectorGoal.INSTANCE.relevance(
+                contact, squad, sim) > 0f,
+                "identified contact must retain the search destination");
     }
 
     @Test
@@ -95,8 +99,33 @@ class SweepAssignedSectorGoalTest {
                 "the observation should remain as non-actionable memory");
         SweepSector action = new SweepSector(16, 7);
         assertEquals(ActionStatus.RUNNING, action.execute(marine, squad, sim));
+        for (int tick = 0; tick < 90 && Paths.destX(sim.world().path(marine)) != 16; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            action.execute(marine, squad, sim);
+        }
         assertEquals(16, Paths.destX(sim.world().path(marine)));
         assertEquals(7, Paths.destY(sim.world().path(marine)));
+    }
+
+    @Test
+    void serviceAndWithdrawalKeepTheirDestinationUnderKnownContact() {
+        for (AssignmentKind kind : List.of(AssignmentKind.RUSH_OBJECTIVE, AssignmentKind.WITHDRAW)) {
+            try (BattleSimulation sim = openSim()) {
+                long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 2, 2));
+                int squadId = sim.mintSquad(Faction.MARINE, marine);
+                sim.squad().assignSquad(marine, squadId);
+                Squad squad = sim.getSquad(squadId);
+                squad.aliveMembers = 1;
+                squad.assignedObjective = kind == AssignmentKind.WITHDRAW
+                        ? ObjectiveAssignment.withdraw(squadId, 16, 7)
+                        : ObjectiveAssignment.rushObjective(squadId, 0, -1, 16, 7);
+                long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MILITIA, 3, 2));
+                SquadBeliefTestAccess.observeDirect(squad, enemy, 3, 2, sim.getSimTickIndex());
+                assertEquals(ActionStatus.RUNNING, new DefendTrack(kind, 16, 7).execute(marine, squad, sim));
+                assertEquals(16, Paths.destX(sim.world().path(marine)));
+                assertEquals(7, Paths.destY(sim.world().path(marine)));
+            }
+        }
     }
 
     private static BattleSimulation openSim() {

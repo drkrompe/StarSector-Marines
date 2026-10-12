@@ -1887,6 +1887,14 @@ form while moving without merging unrelated squads. `company-view-nouns.md`
 owns fireteam membership and company organization, while AI consumes that
 organization for maneuver.
 
+Timed objective service and withdrawal retain their command destination through
+identified contact and anonymous noise. A mech serving an exact interaction
+cell stays there until command releases it; an arrival latch is not permission
+to leave before the objective's own service clock finishes. Assault search also
+retains its assigned leg through contact. It uses shared advancing fire and
+forms a contact line when the squad can engage or is receiving fire, rather
+than planting outside an opaque perimeter on remembered presence alone.
+
 Mission command still chooses the assignment and its legal destination. Each
 live mech applies its own effective role as the manner of serving that
 assignment: Brawler closes, Frontline Support attaches and leads from the

@@ -77,14 +77,16 @@ public final class DefendTrack implements Action {
             sim.clearPath(member);
             return ActionStatus.FAILURE;
         }
-        if (WorldStateBuilder.hasActionableContact(squad, sim)) {
+        boolean serviceOrWithdrawal = assignmentKind == AssignmentKind.RUSH_OBJECTIVE
+                || assignmentKind == AssignmentKind.WITHDRAW;
+        if (!serviceOrWithdrawal && WorldStateBuilder.hasActionableContact(squad, sim)) {
             if (async != null) async.cancel(member);
             sim.clearPath(member);
             return ActionStatus.FAILURE;
         }
         int moveX = targetX;
         int moveY = targetY;
-        AudibleBearing bearing = squad.audibleBearing();
+        AudibleBearing bearing = serviceOrWithdrawal ? null : squad.audibleBearing();
         if (bearing != null) { moveX = bearing.cellX(); moveY = bearing.cellY(); }
         // A local sound bearing is a tactical interrupt, not slow strategic
         // rally travel; it keeps the existing immediate route behavior.

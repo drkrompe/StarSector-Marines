@@ -250,7 +250,18 @@ class CorvusCombatEvidenceTest {
                     .put("type",sim.identity().type(id).name()).put("x",sim.world().x(id)).put("y",sim.world().y(id))
                     .put("hp",sim.world().hp(id)).put("armor",sim.world().armor(id))
                     .put("pathRemaining",Paths.cellCount(sim.world().path(id))-sim.world().pathIdx(id));
+            if (sim.world().hasMechLoadout(id)) {
+                var route = sim.movement().continuousRoute(id);
+                row.put("mechArrivedLatch", sim.world().mechLoadout(id).assignmentBoundaryReached);
+                if (route != null) row.put("routeRequestedX", route.requestedCellX())
+                        .put("routeRequestedY", route.requestedCellY()).put("routeEndX", route.endX())
+                        .put("routeEndY", route.endY()).put("routeCompleted", route.completed());
+            }
             if (squad != null) {
+                row.put("contactPicture", squad.contactPicture.toString())
+                        .put("advanceCommitted", squad.advanceEngageCommitted)
+                        .put("advanceThreat", squad.advanceThreatId)
+                        .put("target", sim.targetOf(id));
                 row.put("squad",squad.id).put("goal",squad.currentGoal == null ? "NONE" : squad.currentGoal.name());
                 var step = squad.currentPlan == null ? null : squad.currentPlan.currentStep();
                 row.put("action",step == null ? "NONE" : step.action.name());

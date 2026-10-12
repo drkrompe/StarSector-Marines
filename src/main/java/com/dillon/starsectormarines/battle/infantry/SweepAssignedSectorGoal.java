@@ -12,14 +12,7 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
 import java.util.List;
 
-/**
- * Assault search-and-destroy goal. While the squad has no identified contact,
- * it executes the commander's sector waypoint instead of selecting the
- * impossible no-target {@link EliminateEnemiesGoal} plan. Direct or
- * source-linked audio belief makes {@link Predicate#HAS_TARGET} true and
- * yields immediately to ordinary engagement. Anonymous noise remains an
- * investigation bearing consumed by {@link SweepSector}.
- */
+/** Assault search retains its mission destination while the shared advance handles contact. */
 public final class SweepAssignedSectorGoal implements Goal {
 
     public static final SweepAssignedSectorGoal INSTANCE = new SweepAssignedSectorGoal();
@@ -41,7 +34,7 @@ public final class SweepAssignedSectorGoal implements Goal {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.SWEEP_SECTOR) return 0f;
         if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) return 0f;
-        if (state.get(Predicate.MORALE_BROKEN) || state.get(Predicate.HAS_TARGET)) return 0f;
+        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         return 0.8f;
     }
 
