@@ -44,17 +44,13 @@
     }
   ],
   "selectedCandidate": "B",
-  "savedVoiceId": null,
+  "savedVoiceId": "fGdXUaoUKa9laV1tzoOT",
   "status": "selected",
   "saveRequest": {
     "voice_name": "Rivet - Infantry",
     "voice_description": "Native British English, a grounded Lancashire dialect from north-west England. Female, 42 to 50. Excellent clean recording quality. Persona: practical infantry veteran. Emotion: sharp, irreverent, determined. A low-middle feminine voice with a smoky grain and occasional creak at the ends of phrases. Brisk economical speech and dry descending inflections. She treats danger like difficult work she knows how to do, reserving her irritation for avoidable mistakes. Practical warmth emerges through blunt encouragement. Her warnings cut through with firm rasp-edged projection, then settle immediately back into conversational speech. Natural character dialogue, older and heavier in timbre with minimal habitual shouting.",
     "generated_voice_id": "fGdXUaoUKa9laV1tzoOT"
   },
-  "saveFailure": {
-    "httpStatus": 400,
-    "resolution": "Provider lookup confirmed selected voice is not saved; account uses all 10 voice slots. Free a slot before retrying.",
-    "voiceLimit": 10,
-    "voiceSlotsUsed": 10
-  }
+  "savedVoiceName": "Rivet - Infantry",
+  "saveRequestId": null
 }

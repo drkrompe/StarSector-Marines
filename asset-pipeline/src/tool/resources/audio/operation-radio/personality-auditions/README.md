@@ -1,10 +1,9 @@
 # Infantry personality auditions
 
 Selected cast: **Jackal A, Ox B and Rivet B**. The selected previews are retained.
-Jackal and Ox are saved as reusable provider voices; their receipts and
-`ensemble/cast.json` record the permanent voice IDs. Rivet's save was refused at
-the account's ten-voice limit; her selected preview ID is retained for saving
-after a slot is freed. Production-model auditions remain pending before
+All three are saved as reusable provider voices; their receipts and
+`ensemble/cast.json` record the permanent voice IDs.
+Production-model auditions remain pending before
 runtime registration. Warden, Relay and all unselected alternatives were rejected
 by the user. Their audio masters have been removed; request and rejection metadata
 remain for provenance, and Git retains the original audition set.
