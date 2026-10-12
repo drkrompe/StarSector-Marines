@@ -61,6 +61,7 @@ class InstallationGroundTest {
             assertTrue(topology.getSurfaceId(8, 8).startsWith("pavement.concrete."), "L cutout is outdoor apron");
             assertTrue(topology.getSurfaceId(20, 12).startsWith("pavement.asphalt."));
             assertEquals(planet.inlandGround(), topology.getGroundKind(16, 16));
+            assertFalse(ctx.isMadeGround(20, 12), "do not grow a clearance halo outside the claim");
             for (int y = 0; y < 24; y++) for (int x = 0; x < 24; x++)
                 assertEquals(x != 1 || y != 1, grid.isWalkable(x, y), "surface painting cannot change access");
             assertEquals(new Random(42).nextLong(), ctx.rng.nextLong(), "no layout RNG consumed");
