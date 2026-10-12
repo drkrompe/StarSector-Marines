@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 public final class ShipMaterialStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
+        SealedShipHatches.revealThresholds(ctx);
         CellTopology topology = ctx.topology;
         for (int y = 0; y < ctx.height; y++) {
             for (int x = 0; x < ctx.width; x++) {

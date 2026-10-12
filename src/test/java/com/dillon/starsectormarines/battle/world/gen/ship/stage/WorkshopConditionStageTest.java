@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
@@ -44,6 +45,8 @@ class WorkshopConditionStageTest {
             new ShipMachineShopFitting().fit(floor);
             floor.seal();
             new WorkshopConditionStage(state).run(ctx);
+            new FinalizeStage().run(ctx);
+            new ShipMaterialStage().run(ctx);
             WorkshopConditionStage.restrictAccess(ctx, state);
             assertEquals(state != WorkshopState.BURIED, grid.isWalkable(door.x(), door.y()));
             for (var d : ctx.doodads) {
@@ -60,7 +63,11 @@ class WorkshopConditionStageTest {
                 assertEquals(door.y(), seal.cellY);
                 assertEquals(pose.quarterTurns() & 1, seal.quarterTurns);
                 assertFalse(grid.isSeeThrough(door.x(), door.y()));
-                assertTrue(topology.isWall(door.x(), door.y()));
+                assertFalse(topology.isWall(door.x(), door.y()), "No full-cell wall behind the hatch");
+                assertEquals("ship-floor-trim.passage", topology.getSurfaceId(door.x(), door.y()));
+                assertTrue(grid.isDoorway(door.x(), door.y()));
+                assertTrue(grid.getWallHp(door.x(), door.y()) > 0, "Keep the physical seal");
+                assertTrue(grid.blocksStructuralLineOfSightAt(grid.index(door.x(), door.y())));
             }
             assertEquals(buried, has(ctx, "breach"));
             assertEquals(buried, has(ctx, "collapse"));

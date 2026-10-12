@@ -1507,7 +1507,10 @@ order. The same layout seed always identifies the same damaged compartment.
 
 Sealed personnel entrances show closed steel pressure hatches, locking bars and
 hazard markings aligned with their bulkheads. Their narrow overhead profile spans
-the opening but occupies only about a quarter-cell thickness. The workshop and reserved second
+the opening but occupies only about a quarter-cell thickness. Deck remains visible
+on either side of that thin seal within the doorway cell; no full-cell bulkhead
+fill or cross-rib is drawn beneath it. Physical blocking and opacity remain in
+force independently of this appearance. The workshop and reserved second
 bay share this treatment, retaining the original doorway location rather than
 disguising it as an uninterrupted wall. They block passage and sight until their
 restoration stage reopens the ordinary doorway. The launch-aperture closure is
