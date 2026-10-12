@@ -25,12 +25,10 @@ public final class DebugWarship {
     public static final float AREA_RADIUS_CELLS = 10f;
 
     /**
-     * Flux scale the debug toggle applies. A stock capital's flux, at the cadence
-     * its guns keep against ground, never nears capacity (an Onslaught peaks under
-     * half), so at the hull table's own figures the readout would show a pool that
-     * never matters; a quarter makes the surge-and-rest rhythm visible.
+     * Flux scale the debug toggle applies: the brawler's share (see
+     * {@link Warship#SHIELD_RESERVE_SCALE}), the same a directed ship gets by default.
      */
-    public static final float FLUX_SCALE = 0.25f;
+    public static final float FLUX_SCALE = Warship.SHIELD_RESERVE_SCALE;
 
     private DebugWarship() {}
 
@@ -71,10 +69,10 @@ public final class DebugWarship {
 
     /** The briefing's whole choice; {@code flux} puts the ship's guns on its hull's flux. */
     public record Spec(Hull hull, Faction side, Mode mode, boolean flux) {
-        public static final Spec OFF = new Spec(Hull.OFF, Faction.MARINE, Mode.DIRECTOR, false);
+        public static final Spec OFF = new Spec(Hull.OFF, Faction.MARINE, Mode.DIRECTOR, true);
 
         public Spec(Hull hull, Faction side, Mode mode) {
-            this(hull, side, mode, false);
+            this(hull, side, mode, true);
         }
 
         public Spec {
