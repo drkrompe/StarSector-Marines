@@ -540,7 +540,10 @@ the whole bill before installing anything.
 
 **Presentation conveys the deck; it does not own it.** The picture is the ship's
 own hangar drawn by the deck scene, and the boats in it are the aircraft the bay
-actually keeps and turns round. What the room adds over that render is the one
+actually keeps and turns round. The shared company deck loads aircraft hull art
+before building its renderer, alongside crew and machinery. Commissioning rebuilds
+berth occupancy and the open Boat Deck adopts that scene without a manual refresh.
+What the room adds over that render is the one
 thing a render cannot say — which berth is selected — so a click on a berth and
 a click on its card are the same act. The campaign deck is one berth list across
 the whole ship while a bay knows only its own, so a bay's berths are read as its
