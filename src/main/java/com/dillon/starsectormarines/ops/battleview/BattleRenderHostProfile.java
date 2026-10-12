@@ -61,6 +61,11 @@ public enum BattleRenderHostProfile {
         return residentGroundAllowed;
     }
 
+    /** Hosts without a GL accumulator submit retained decal sources as ordinary quads. */
+    public boolean residentDecalsAllowed() {
+        return residentGroundAllowed;
+    }
+
     /** Whether the world paints a solid quad under its whole grid. */
     public boolean worldBackingPainted() {
         return worldBackingPainted;

@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 - compound equipment, yard stock and furniture retain matched damage states and compact material-specific effects.
+Updated: 2026-10-12 - blast aftermath covers ordinary terrain and retains material-specific floor pairs.
 
 Read `stories.md` for open work.
 
@@ -184,12 +184,20 @@ its appearance does not add collision or change cover.
 A floor material may name a `damageBlock`: a single transparent overlay or a
 coordinate-stable variant pool. The nine colony floors pair with localized
 cracks and shallow gouges. The original floor remains underneath, so its
-pattern and tile seams survive. The ordinary scatter layer resolves the pair
-in both streamed and resident rendering; unpaired surfaces keep their existing
-appearance and impact decals.
+pattern and tile seams survive. Explicit material pairs take precedence over
+the mapped base material, then the mapping's `groundDamage` defaults select
+churned earth, fractured paving or torn metal by ground kind. Defaults cover
+ordinary outdoor terrain and industrial floors as well as authored colony floors.
+They are catalog references to single overlays or coordinate-stable variant
+pools, with the same additive-provider and validation laws as other mappings.
+Ground damage has its own resident sub-layer beneath surviving nature scatter;
+both the resident and streamed paths retain rocks, vegetation and fixture art.
 
-Structural area blasts mark solid, non-wall cells within their splash circle
-and line of sight. `GROUND_DAMAGED` is a persistent visual tag, recorded once
+Structural impacts mark exposed solid ground after resolving their wall and
+barrier damage, so a breached target does not shield its newly exposed floor
+from the visual aftermath. The footprint is the larger of the structural and
+anti-personnel splash circles; a point impact marks its own cell. Surviving
+obstruction still shields cells through line of sight. `GROUND_DAMAGED` is a persistent visual tag, recorded once
 in the cell change log; it changes neither the material id, ground kind,
 walkability nor cover. Water, void and rubble are excluded. Wall-collapse
 rubble retains its own material/footprint history and takes precedence.
@@ -198,7 +206,10 @@ rubble retains its own material/footprint history and takes precedence.
 ImageGen reskins them to each floor material. The retained guide, prompt, raw
 plate and full-cell cuts reproduce the exported atlas. The `ground-damage`
 snapshot suite compares intact and damaged fields through the battle renderer.
-The repeatable production procedure is in `art-source/geometry-first-imagegen.md`.
+The ordinary-terrain blast atlas follows the same retained-guide and export
+contract, with four shallow scar variants per material family. These marks are
+visual damage, not excavated collision geometry. The repeatable production
+procedure is in `art-source/geometry-first-imagegen.md`.
 
 ### Id-addressed visual catalog
 

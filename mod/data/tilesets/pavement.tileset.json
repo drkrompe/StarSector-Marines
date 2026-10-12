@@ -35,6 +35,7 @@
           0
         ]
       ],
+      "damageBlock": "terrain.blast-paving",
       "id": "pavement.asphalt.new"
     },
     {
@@ -72,6 +73,7 @@
           1
         ]
       ],
+      "damageBlock": "terrain.blast-paving",
       "id": "pavement.asphalt.worn"
     },
     {
@@ -109,6 +111,7 @@
           2
         ]
       ],
+      "damageBlock": "terrain.blast-paving",
       "id": "pavement.asphalt.cracked"
     },
     {
@@ -146,6 +149,7 @@
           3
         ]
       ],
+      "damageBlock": "terrain.blast-paving",
       "id": "pavement.concrete.new"
     },
     {
@@ -183,6 +187,7 @@
           4
         ]
       ],
+      "damageBlock": "terrain.blast-paving",
       "id": "pavement.concrete.worn"
     },
     {
@@ -220,6 +225,7 @@
           5
         ]
       ],
+      "damageBlock": "terrain.blast-paving",
       "id": "pavement.concrete.cracked"
     }
   ],

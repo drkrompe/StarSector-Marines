@@ -197,6 +197,21 @@ public final class MapEditor {
         return true;
     }
 
+    /** Visual aftermath after structural damage opens the impact cell; cover still shields terrain. */
+    public void damageGroundInRadius(float x, float y, float radius) {
+        int originX = (int)Math.floor(x), originY = (int)Math.floor(y);
+        if (!topology.inBounds(originX, originY)) return;
+        damageGround(originX, originY);
+        int reach = (int)Math.ceil(radius);
+        for (int cy = Math.max(0,originY-reach); cy <= Math.min(topology.getHeight()-1,originY+reach); cy++) {
+            for (int cx = Math.max(0,originX-reach); cx <= Math.min(topology.getWidth()-1,originX+reach); cx++) {
+                float dx = cx+.5f-x, dy = cy+.5f-y;
+                if (dx*dx+dy*dy <= radius*radius && grid.hasLineOfSight(originX,originY,cx,cy))
+                    damageGround(cx,cy);
+            }
+        }
+    }
+
     private void rememberWall(int x, int y) {
         int faces = 0;
         if (wasExposed(x, y + 1)) faces |= CellTopology.WALL_DIR_N;

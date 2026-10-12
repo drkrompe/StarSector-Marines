@@ -1,0 +1,230 @@
+{
+  "sheetName": "terrain-blast",
+  "sheet": "art-source/tilesets/terrain-blast.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 3,
+  "idPrefix": "terrain",
+  "alphaMin": 40,
+  "note": "Geometry-first wider blast aftermath, not central craters. TerrainBlastTemplate defines four distinct full-cell footprints per earth/paving/metal row: abrasion, branching gouge, separated patches, fractured seams. Built-in ImageGen reskin, exact accepted prompt retained in terrain-blast.prompt.txt. Full-frame 4x3 cuts preserve registration and source alpha; never trim or recenter.",
+  "blocks": [
+    {
+      "id": "terrain.blast-earth",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.blast-paving",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.blast-metal",
+      "layout": "variants"
+    }
+  ],
+  "entries": [
+    {
+      "id": "terrain.blast-earth.0",
+      "block": "terrain.blast-earth",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-earth.1",
+      "block": "terrain.blast-earth",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        362,
+        0,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-earth.2",
+      "block": "terrain.blast-earth",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        724,
+        0,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-earth.3",
+      "block": "terrain.blast-earth",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1086,
+        0,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-paving.0",
+      "block": "terrain.blast-paving",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        362,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-paving.1",
+      "block": "terrain.blast-paving",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        362,
+        362,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-paving.2",
+      "block": "terrain.blast-paving",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        724,
+        362,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-paving.3",
+      "block": "terrain.blast-paving",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1086,
+        362,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-metal.0",
+      "block": "terrain.blast-metal",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        724,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-metal.1",
+      "block": "terrain.blast-metal",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        362,
+        724,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-metal.2",
+      "block": "terrain.blast-metal",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        724,
+        724,
+        362,
+        362
+      ]
+    },
+    {
+      "id": "terrain.blast-metal.3",
+      "block": "terrain.blast-metal",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1086,
+        724,
+        362,
+        362
+      ]
+    }
+  ]
+}
