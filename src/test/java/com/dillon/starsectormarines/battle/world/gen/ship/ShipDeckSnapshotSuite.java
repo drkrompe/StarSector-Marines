@@ -564,7 +564,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
      * installed in a headless snapshot run. Load it from the shipped tilesets so
      * the rooms come out furnished rather than silently bare.
      */
-    private static void installTileRegistry() throws Exception {
+    static void installTileRegistry() throws Exception {
         if (TileRegistry.installed() == null) {
             TileRegistry registry = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {
@@ -586,7 +586,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderPlan(MapResult map, DeckProfile profile, DeckGraph graph,
+    static BufferedImage renderPlan(MapResult map, DeckProfile profile, DeckGraph graph,
                                             String name, DeckSizing.DeckPlan deckPlan,
                                             String complement, RoomFit fit) {
         int width = deckPlan.frames();

@@ -77,7 +77,7 @@ public final class ShipsBoats {
         ShuttleType boat = carriedBy(ship.role());
         int berths = 0;
         for (RoomRecipe recipe : DeckSizing.programFor(ship.hullClass(), ship.role(),
-                ship.minCrew(), ship.maxCrew(), ship.cargo())) {
+                ship.minCrew(), ship.maxCrew(), ship.cargo(), ship.mercenaryConversion())) {
             if (recipe.purpose() != RoomPurpose.HANGAR) continue;
             berths += BoatBayFitting.boatsIn(recipe.shape().width(), recipe.shape().height());
         }

@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
 import com.fs.starfarer.api.Global;
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 
 import java.util.List;
 
@@ -24,10 +26,21 @@ final class CompanyPreparationGuide {
     static PreparationGuide.Lesson ship(MarineRoster roster, ShipTransferViewModel model, MarineOpsContext context) {
         if (!CompanyPreparation.required(roster)) return null;
         if (roster.companyShipId() != null) return handoff(roster, context);
+        if (CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, model.preparationBill());
         return new PreparationGuide.Lesson(0, "CHOOSE OUR COMPANY SHIP",
                 "Commander, choose a home with quarters and a boat bay. These stores cover one reusable shuttle and a fully equipped squad. Mira already has her appointment and first training point.\n\n"
                         + model.preparationBill(),
                 List.of("transfer-commit", "transfer-fleet-list"), null, null);
+    }
+
+    private static PreparationGuide.Lesson foundingLesson(MarineOpsContext context, String bill) {
+        boolean installed = MercenaryCompanyConversion.installed(CerberusCompanyStart.startingShip());
+        return new PreparationGuide.Lesson(0, installed ? "OUR COMPANY COMMAND VESSEL" : "TAKE US TO THE YARD",
+                CerberusCompanyStart.instructions() + (installed && bill != null ? "\n\n" + bill : ""),
+                installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit")
+                        : List.of("page-nav-return"),
+                installed ? "CHOOSE SHIP" : null,
+                installed ? () -> context.goTo(ScreenId.SHIP_TRANSFER) : null);
     }
 
     static PreparationGuide.Lesson headquarters(MarineOpsContext context) {
@@ -38,6 +51,7 @@ final class CompanyPreparationGuide {
 
     private static PreparationGuide.Lesson handoff(MarineRoster roster, MarineOpsContext context) {
         Step step = roster.officerInduction().step(roster);
+        if (step == Step.SHIP && CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, null);
         if (step == Step.SHIP) return new PreparationGuide.Lesson(0, "A HOME FOR THE COMPANY",
                 OfficerInductionGuide.line(Step.SHIP, "Mira Hale").text(),
                 List.of("company-hq-ship"), "CHOOSE SHIP", () -> context.goTo(ScreenId.SHIP_TRANSFER));
@@ -60,7 +74,8 @@ final class CompanyPreparationGuide {
             boolean building = model.fabricationFocused();
             return new PreparationGuide.Lesson(1, "COMMISSION OUR FIRST SHUTTLE",
                     OfficerInductionGuide.line(Step.LIFT, "Mira Hale").text()
-                            + (building ? " Check the material bill, then Commission." : " Select a vacant berth on the right."),
+                            + (building ? " Check the material bill, then Commission." : " Select a vacant berth on the right.")
+                            + (CerberusCompanyStart.depot() != null ? " Our prepaid stores are available while docked at the conversion planet." : ""),
                     building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
                             : List.of("boat-list"), null, null);
         }

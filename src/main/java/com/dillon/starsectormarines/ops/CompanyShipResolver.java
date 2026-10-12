@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullOutline;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
+import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -76,11 +77,12 @@ public final class CompanyShipResolver {
         ShipHullSpecAPI hull = member.getHullSpec();
         if (hull == null) return null;
         FleetMemberAPI whole = undamaged(member);
-        return shipOf(
+        CompanyShip ship = shipOf(
                 hull.getHullSize() == null ? null : hull.getHullSize().name(),
                 hull.getDesignation(),
                 whole.getMinCrew(), whole.getMaxCrew(), whole.getCargoCapacity(),
                 outlineOf(hull.getBaseHullId()), hull.getSpriteName());
+        return MercenaryCompanyConversion.installed(member) ? ship.converted() : ship;
     }
 
     /**
@@ -171,7 +173,7 @@ public final class CompanyShipResolver {
     }
 
     private static HullSilhouette scrapeOutline(String baseHullId) {
-        String path = "data/hulls/" + baseHullId + ".ship";
+        String path = Global.getSettings().getHullSpec(baseHullId).getShipFilePath();
         try {
             JSONObject spec = Global.getSettings().loadJSON(path);
             JSONArray bounds = spec.optJSONArray("bounds");

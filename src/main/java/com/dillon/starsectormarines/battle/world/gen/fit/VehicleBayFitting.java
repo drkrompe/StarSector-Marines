@@ -283,7 +283,7 @@ public final class VehicleBayFitting implements RoomFitting {
     public List<Hookup.DoorSlot> furtherDoors(RoomShape canonical) {
         int depth = canonical.height();
         List<Hookup.DoorSlot> slots = new ArrayList<>();
-        for (int aisle : Plan.of(canonical.width(), depth).aisles()) {
+        for (int aisle : Plan.of(canonical.width(), depth, shipboard).aisles()) {
             slots.add(Hookup.DoorSlot.run(aisle, -1, 1, 1));
             slots.add(Hookup.DoorSlot.run(aisle, depth, 1, 1));
         }
@@ -305,11 +305,12 @@ public final class VehicleBayFitting implements RoomFitting {
                         int vestibule, int shopWidth, int bayLimit,
                         int laneFrom, int laneSpan, int[] aisles) {
 
-        static Plan of(int along, int across) {
+        static Plan of(int along, int across, boolean shipboard) {
             int bayDepth = Math.min(BAY_DEPTH, (across - SERVICE_LANE) / 2);
-            boolean facingRanks = bayDepth >= 3;
+            boolean facingRanks = shipboard ? across >= 2 * BAY_DEPTH + SERVICE_LANE : bayDepth >= 3;
             if (!facingRanks) {
-                bayDepth = Math.max(3, across - SERVICE_LANE);
+                bayDepth = shipboard ? Math.max(3, Math.min(BAY_DEPTH, across - SERVICE_LANE))
+                        : Math.max(3, across - SERVICE_LANE);
             }
 
             int vestibule = Math.min(VESTIBULE, Math.max(0, along - BAY_WIDTH));
@@ -347,7 +348,7 @@ public final class VehicleBayFitting implements RoomFitting {
 
     @Override
     public void fit(RoomFloor floor) {
-        Plan plan = Plan.of(floor.canonicalWidth(), floor.canonicalHeight());
+        Plan plan = Plan.of(floor.canonicalWidth(), floor.canonicalHeight(), shipboard);
         int along = plan.along();
         int across = plan.across();
 
