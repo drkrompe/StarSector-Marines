@@ -26,6 +26,9 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
+import com.dillon.starsectormarines.DevConfig;
+import com.fs.starfarer.api.Global;
+import com.dillon.starsectormarines.battle.warship.DebugWarship;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
@@ -326,6 +329,13 @@ public final class MissionLaunch {
     /** Applies campaign state only after the player explicitly accepts deployment. */
     static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
                                           ScenarioPlan plan, BattleSimulation sim) {
+        return finishSimulation(ctx, m, debugWings, DebugWarship.Spec.OFF, plan, sim);
+    }
+
+    /** As above, plus the briefing's WARSHIP DEBUG choice, installed after the launch overlay. */
+    static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
+                                          DebugWarship.Spec debugWarship,
+                                          ScenarioPlan plan, BattleSimulation sim) {
         Detachment det = plan.detachment();
         int firstPlayerShuttle = plan.firstPlayerShuttle();
         BattleFixture fixture = plan.fixture();
@@ -368,6 +378,7 @@ public final class MissionLaunch {
                     det.powers, Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
+            installDebugWarship(m, debugWarship, sim);
             sim.setOperationOfficer(OfficerCommandProfile.capture(ctx.getSelectedCaptain()));
             if (fixture != null) {
                 fixture = new BattleLaunchFixture(fixture, launch);
@@ -378,6 +389,16 @@ public final class MissionLaunch {
         } catch (RuntimeException | Error failure) {
             sim.close();
             throw failure;
+        }
+    }
+
+    /** Debug missions only; a failure to fit the ship costs the ship, never the battle. */
+    private static void installDebugWarship(Mission m, DebugWarship.Spec spec, BattleSimulation sim) {
+        if (!DevConfig.DEBUG_WARSHIP_PICKER || !m.source.isDebug() || spec == null || !spec.active()) return;
+        try {
+            DebugWarship.install(sim, spec);
+        } catch (Exception e) {
+            Global.getLogger(MissionLaunch.class).warn("MarineOps: debug warship " + spec.hull() + " could not be fitted", e);
         }
     }
 
