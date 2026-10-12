@@ -561,22 +561,49 @@ these strongpoints removes sheltered small-arms positions before the next
 convoy leg; it does not disable an abstract damage aura or invent anti-tank
 weapons for their militia garrisons. Recovered earlier gains are required to release the
 next convoy leg; a leg already underway is not canceled by a later recapture.
-The column waits at two road stops. The tank takes the forward center position,
+An earlier unescorted hauler is already under attack on the first attempt. Its
+ordinary hull and local, wall-limited camera feed show the danger; neither its
+loss nor survival is scripted. It is outside the three-load contract and does
+not respawn on retries or change the award ledger.
+
+Capturing Dispatch opens a 90-second defensive dispatch window; East Crossing
+opens a 120-second window. The countdown is a public timetable, not a hidden
+survival test or a capture reset. Earlier gains must still be held before the
+next leg releases. Mission command holds the company during each window unless
+a lost site needs restoring; player orders remain authoritative. Castle's
+text-only guidance teaches selecting a squad, placing **DEFEND AREA**, and
+replacing that persistent order to resume the advance. The HUD names the post
+and remaining dispatch time. The tutorial never locks the player into a hold.
+
+Two employer militia sections anchor the first and second secured road posts.
+A living militia member spending eight continuous seconds at a secured prepared
+mount assembles its one ordinary machine gun, with a finite belt. Interrupted
+work restarts; a destroyed gun is not rebuilt. These are employer field supplies,
+not player inventory grants or missile-defense pods converted into anti-infantry
+weapons. Both mounts must have walkable connected approach cells.
+
+The first load moves to the Dispatch stop, and two move to the East stop. The
+remaining freight waits west. Armor moves to the next road stop after each
+defensive window, closing behind the company before Outbound Gate capture
+releases its final breakthrough. The tank takes the forward center position,
 using slower paired high-explosive cannon fire against the exit gun line. It
 holds ahead of the crossing until the first surviving hauler approaches, then
 pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
 advance along the road flanks and hold the crossing; freight follows after a
-short lead interval. The escorts leave only after the last surviving load passes
+14-second lead interval, with subsequent loads released 45 seconds apart. The escorts leave only after the last surviving load passes
 the crossing. Physical chassis steering, terrain, shared damage, turret fire
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
 Fourteen low-tech raiders guard the roadside buildings. Six more already man
-two rifle bays at the exit checkpoint; twelve enter from the north and south
-road mouths when the final run commits. Repeated capture cannot create another
-wave. Two fixed machine-gun pits flank the eastern exit, surrounded by
+two rifle bays at the exit checkpoint. A finite forty-four-person pressure pool
+arrives in eleven four-person batches: one already attacking the earlier load,
+three during Dispatch defense, four during East Crossing defense, and three
+at the final crossing. Later batches enter through the north/south road mouths
+and interdict the road using ordinary squad combat. Repeated capture cannot
+create another batch, and unseen arrival events remain observer-only. Two fixed machine-gun pits flank the eastern exit, surrounded by
 open-backed sandbags, fenced inspection yards, support buildings and concrete
 gate abutments. Gates connect the yards to the flanks and gun positions; none
 narrows the reserved road. This prepared line gives the heavy lead a distinct

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 
 import com.dillon.starsectormarines.battle.command.ThunderRunCommand;
+import com.dillon.starsectormarines.battle.command.ThunderRunCommandFrame;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.world.gen.LastLiftCompound;
@@ -1500,13 +1501,19 @@ public final class BattleSetup {
                     Faction.DEFENDER, "freight-checkpoint-" + cell.y(), post, rng, 3);
         }
         List<EntitySpec> reserve = new ArrayList<>();
-        for (int side = 0; side < 2; side++) for (int[] cell : pickSpawnCluster(map.grid, 275, side == 0 ? 2 : 140, 6))
-            reserve.add(makeOpeningMilitia("freight-ambush-" + reserve.size(), Faction.DEFENDER,
-                    cell[0], cell[1], rng).role(UnitRole.PATROL));
-        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
-            sim.setAutonomousCommander(faction, new ThunderRunCommand(faction), ConquestCommandDisclosure.INSTANCE);
-        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ThunderRunCommand.issuer(Faction.MARINE), "Company support joins the operation"));
+        for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++) {
+            int x = batch == 0 ? 128 : batch < 8 ? 165 : 275;
+            int y = batch == 0 ? 65 : batch % 2 == 0 ? 140 : 2;
+            for (int[] cell : pickSpawnCluster(map.grid, x, y, ThunderRunPacing.RAIDERS_PER_BATCH))
+                reserve.add(makeOpeningMilitia("freight-road-raider-" + reserve.size(), Faction.DEFENDER,
+                        cell[0], cell[1], rng).role(UnitRole.PATROL));
+        }
         sim.installThunderRun(attempt, delivered, reserve);
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new ThunderRunCommand(faction),
+                    (view, perspective, topology, claims) -> ThunderRunCommandFrame.disclose(
+                            view, perspective, topology, claims, sim.getThunderRun().holdSite()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ThunderRunCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         return sim;
     }
 

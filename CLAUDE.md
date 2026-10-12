@@ -211,10 +211,13 @@ Do not run builds or leave generated task files there.
   withdrawal controls report physical exits, losses, phase times, once-only
   settlement and story hooks. Frames are 1920x1080 at 100%; close views change
   camera framing only. Optional fixtures select `id`, `seed`, `absent`,
-  `destroyCargo`, `retry`, `retreat` or `unarmedFinal` (diagnostic empty escort
+  `destroyCargo`, `retry`, `retreat`, `playerDefend` (places Defend Area during
+  both dispatch windows and replaces it with a move afterward), or `unarmedFinal` (diagnostic empty escort
   magazines on the final leg), or `silentTankFinal` (only the heavy lead
   loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
-  and remaining durability. Default observation is 18000 ticks.
+  and remaining durability. `companySize` selects named personnel (default 24).
+  Reports separate living militia from their assembled field guns. Default
+  observation is 27000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —
