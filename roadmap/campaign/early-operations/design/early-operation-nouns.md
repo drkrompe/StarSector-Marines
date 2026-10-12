@@ -237,7 +237,10 @@ for the service element; a reachable corner tile is not a formation-sized object
 Its finite High-quality garrison protects the records and installation, including
 two staggered roadside pickets along the landing-to-compound approach. Their
 east-facing sandbag positions leave the road and both flanks open. These draw
-from the same committed force rather than adding replacement waves. The
+from the same committed force rather than adding replacement waves. Company
+transports enter from beyond the actual eastern map edge, fly west onto the
+supply pads, and return east; their delivery route does not cross the defenses.
+The
 Hegemony Onslaught arrives nose-first from the east and stations its entire hull
 outside the installation's eastern footprint. It fires inward as soon as every
 surviving ground unit clears the marked bombardment exclusion area and its
@@ -254,8 +257,12 @@ half to the western half. Each sector advances only after at least three quarter
 of its original wall cells have actually fallen; blast overlap is real damage,
 not a scripted deletion. Every sector must reach that threshold: an overall
 three-quarter total cannot leave the last quarter of the base untouched.
-The actual deployment boats return for serial survivor pickups, with a heavy
-lift for a surviving mech. Troops walk to a landed ramp, board to capacity, and
+The actual surviving deployment boats return concurrently for survivor pickups,
+with a separate heavy lift for a surviving mech. Each boat flies one trip at a
+time, boards through its own separated ramp inside the safe pickup area, and
+returns for another load only when survivors still need seats. Uncommitted fleet
+boats do not appear, and a destroyed boat cannot return. Survivors reserve seats
+on individual landed craft so the available lifts can load together. Troops walk to a landed ramp, board to capacity, and
 leave through ordinary flight. Campaign identity and combat records travel with
 the passengers; a destroyed loaded boat loses them. Safe extraction does not
 satisfy the defender's elimination objective.
@@ -265,18 +272,28 @@ weapon damage and friendly fire. It carries finite ordnance and station time;
 arrival or a timer alone never wins. Success requires the records, safe survivors,
 at least three quarters of each sector's original target wall cells destroyed, and the
 last shells and released warheads landed, and every surviving unit recovered by
-its pickup craft. Resolute then ceases fire and resumes patrol nose-first on its
-existing bearing, passing over the ruins through ordinary propulsion. Completion
-waits for the capital to leave the map and a five-second aftermath hold; the
-neutralization report begins at departure. This closure follows confirmed
-destruction and extraction, and never substitutes for either. Remaining pirates
+its pickup craft. Resolute ceases fire and resumes patrol as soon as demolition
+and its last impacts finish, independently of company recovery. It continues
+nose-first on its existing bearing, passing over the ruins through ordinary
+propulsion; the neutralization report begins at this departure. Pickup continues
+concurrently, with its marker and instructions retained until the company is
+recovered. Completion waits for both recovery (including outstanding deliveries)
+and the capital's map exit plus a five-second aftermath hold. Neither timeline
+substitutes for the other. Remaining pirates
 need not be hunted down. Losing the ship
 or exhausting its intervention without destroying the target fails the operation.
 This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
 
 Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
-The voiced exchange starts with Mara presenting the archive as a favor.
+Her original painted portrait identifies her transmissions throughout the operation.
+The opening radio exchange has Mara request a patrol diversion and Kord require
+authenticated evidence before changing fleet orders for an unknown hired company.
+Mara identifies the dispatch archive as that evidence. Castle's actual landing
+and approach calls connect the request to securing the marked office. The opening
+turns share one ordered presentation queue; speech never delays the simulation,
+and capture retires any unspoken requests for proof or approach instructions.
+After capture, Mara presents the recovered archive as a favor.
 Kord accepts the intelligence and turns to gunnery without thanking the company
 or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
 and urgent extraction orders. Her established voice strains to keep control as

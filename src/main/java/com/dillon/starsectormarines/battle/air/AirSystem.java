@@ -684,6 +684,7 @@ public class AirSystem {
             effects.spawnSmokingWreck(wx, wy);
         }
 
+        mission.destroyed = true;
         if (mission.pickup != null) mission.pickup.lose();
         handBackToField(mission, /*recovered*/ false, world.hp(id));
         // Written before the state flips, because GONE is the end of anything

@@ -367,14 +367,17 @@ final class BattleHudOverlayModel {
         return new Presentation(true, false);
     }
 
-    Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls) {
+    Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls,
+                                    boolean companyRecovered) {
         objectiveTitle.set(phase == Phase.EVIDENCE ? "A COLD ACCOUNT" : "HEGEMONY / " + phase);
         objectivePanelClasses.set(OBJECTIVE_PANEL);
         objectiveScore.set("");
         objectiveTally.set(switch (phase) {
             case EVIDENCE -> "DISPATCH OFFICE / RECOVER RECORDS";
             case WITHDRAW, WARNING, BOMBARD -> "CLEAR FIRING AREA > SHUTTLE PICKUP";
-            case PATROL, AFTERMATH, COMPLETE -> "COMPANY RECOVERED / STRONGHOLD SILENCED";
+            case PATROL, AFTERMATH -> companyRecovered ? "COMPANY RECOVERED / STRONGHOLD SILENCED"
+                    : "STRONGHOLD SILENCED / SHUTTLE PICKUP";
+            case COMPLETE -> "COMPANY RECOVERED / STRONGHOLD SILENCED";
             case FAILED -> "INTERVENTION FAILED";
         });
         objectiveChips.set(List.of());

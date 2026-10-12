@@ -67,6 +67,7 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         model.selectBoatAction(0).run();
         frames.add(frame(context, hull, reactor, boats, model, null, "01-repair-first-hermes.png"));
         model.fabricateAction().run();
+        frames.add(frame(context, hull, reactor, boats, model, null, "01b-first-hermes-repaired.png"));
         AtomicInteger credits = new AtomicInteger(15000);
         boolean[] restored = {false};
         var wings = new SecondhandWingsModel(reactor, boats,
@@ -81,6 +82,10 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         wings.row().get().action().run();
         frames.add(frame(context, hull, reactor, boats, model, wings, "03-separate-bay-required.png"));
         wings.dismiss();
+        model.backToDeckAction().run();
+        frames.add(frame(context, hull, reactor, boats, model, null,
+                new BoatBayRestorationModel.Row(true, true, credits.get(), null, () -> { }),
+                1, "03b-inspect-second-bay.png"));
         // The existing bay transaction is represented explicitly: 8,000 credits, no boat reward.
         credits.addAndGet(-8000); restored[0] = true;
         hull = hull.withBoatBay(BoatBayState.RESTORED);
@@ -88,6 +93,7 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         model.refresh(); model.selectBoatAction(1).run();
         frames.add(frame(context, hull, reactor, boats, model, null, "04-second-hermes-wreck.png"));
         model.fabricateAction().run();
+        frames.add(frame(context, hull, reactor, boats, model, null, "04b-second-hermes-repaired.png"));
         wings.open(); wings.row().get().action().run();
         frames.add(frame(context, hull, reactor, boats, model, wings, "05-reviewed-exchange.png"));
         wings.row().get().action().run();
@@ -103,6 +109,13 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
     private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
                                    BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
                                    String name) throws Exception {
+        return frame(context, hull, reactor, boats, model, wings, BoatBayRestorationModel.Row.hidden(),
+                Math.max(0, model.selectedBerthIndex()), name);
+    }
+
+    private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
+                                   BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
+                                   BoatBayRestorationModel.Row restoration, int selected, String name) throws Exception {
         var ship = CompanyDeck.home(hull, 42, null, List::of, List::of, () -> {
             boolean[] occupied = new boolean[boats.berths()];
             for (int i = 0; i < occupied.length; i++) occupied[i] = boats.boats().get(i) != null;
@@ -127,9 +140,11 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
                 throw new AssertionError("Wreck became an active aircraft");
             if (airfield.berths().stream().anyMatch(b -> b.airframe != boats.pattern()))
                 throw new AssertionError("Cached hangar still carries the wrong airframe");
-            int selected = Math.max(0, model.selectedBerthIndex());
             var bay = ship.rooms(RoomPurpose.HANGAR).get(selected);
             var props = UiSnapshotSuite.props(model, ship, bay, 2);
+            props.put("activeBayLabel", selected == 0 ? "BAY 01 / 02"
+                    : restoration.visible() ? "02/02 SEALED" : "BAY 02 / 02");
+            props.put("restoration", restoration);
             if (wings != null) { wings.refresh(); props.put("wings", wings.row()); }
             var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
                     "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx"));
@@ -139,7 +154,8 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
                 markup.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard());
                 document.canvases().set(markup.requireElement("boat-deck-canvas"), new BoatDeckCanvas(ship, () -> bay,
-                        model::selectedBerthIndex, () -> selected, n -> boats.boats().get(n) != null));
+                        model::selectedBerthIndex, () -> selected,
+                        n -> n >= 0 && n < boats.berths() && boats.boats().get(n) != null));
                 if (wings != null) TutorialModal.bind(document, markup, wings::visible,
                         "wings-modal", "boat-deck-root", wings::dismiss, () -> { });
                 var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
