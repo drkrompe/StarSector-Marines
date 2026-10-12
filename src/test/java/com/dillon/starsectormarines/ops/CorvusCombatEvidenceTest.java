@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
+import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -45,6 +46,7 @@ import java.awt.RenderingHints;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -132,6 +134,8 @@ class CorvusCombatEvidenceTest {
                 boolean houndAlive = false;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
+                var withdrawalDurability = new HashMap<Long, Float>();
+                float marineDurabilityLostAfterFirstSalvo = 0f;
                 Warship departingCapital = null;
                 var frameTicks = new JSONArray().put(0);
                 var samples = new JSONArray();
@@ -200,6 +204,10 @@ class CorvusCombatEvidenceTest {
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
                         long id = sim.liveUnitAt(i);
                         if (sim.identity().faction(id) != Faction.MARINE) continue;
+                        float durability = sim.world().hp(id) + sim.world().armor(id);
+                        Float previousDurability = withdrawalDurability.put(id, durability);
+                        if (firstCapitalShotAt >= 0 && previousDurability != null)
+                            marineDurabilityLostAfterFirstSalvo += Math.max(0f, previousDurability - durability);
                         if (sim.identity().type(id) == UnitType.HEAVY_MECH) {
                             if (hound < 0) {
                                 hound = id; houndLandedAt = tick;
@@ -274,6 +282,8 @@ class CorvusCombatEvidenceTest {
                             .put("phase", intervention.phase().name()).put("evidenceTick", intervention.evidenceTick())
                             .put("warningTick", intervention.warningTick()).put("bombardTick", intervention.bombardTick())
                             .put("preparedTick", intervention.preparedTick()).put("groundClearTick", intervention.groundClearTick())
+                            .put("clearanceRadius", intervention.layout().strikeRadius() + ColdAccountLayout.BLAST_MARGIN)
+                            .put("marineDurabilityLostAfterFirstSalvo", marineDurabilityLostAfterFirstSalvo)
                             .put("patrolTick", intervention.patrolTick()).put("departedTick", intervention.departedTick())
                             .put("firstCapitalShotAt", firstCapitalShotAt).put("firstSalvoMounts", firstSalvoMounts)
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
