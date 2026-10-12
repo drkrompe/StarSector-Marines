@@ -226,7 +226,7 @@ public final class WarshipSystem {
             direct(dt, sim, ship);
             tickShield(dt, sim, ship);
             ship.fluxPool().update(dt);
-            moveHull(dt, ship);
+            moveHull(dt, sim, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.pointDefence()) {
@@ -357,7 +357,7 @@ public final class WarshipSystem {
     }
 
     /** Whether a round aimed at any hostile in {@code area} would reach a friendly within the blast and its margin. */
-    private static boolean endangersFriendlies(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area,
+    static boolean endangersFriendlies(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area,
                                                WarshipDirector.Friendlies friendlies) {
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
@@ -462,6 +462,10 @@ public final class WarshipSystem {
      */
     private void doctrine(float dt, BattleSimulation sim, Warship ship) {
         ship.ageDoctrine(dt);
+        if (ship.piloted()) {
+            ship.doctrineClock = 0f;
+            return;
+        }
         ship.doctrineClock += dt;
         if (ship.doctrineClock < DOCTRINE_PERIOD_SECONDS) return;
         float elapsed = ship.doctrineClock;
@@ -531,7 +535,11 @@ public final class WarshipSystem {
      * Hovers the hull toward its station at its own speed: it accelerates, cruises
      * and brakes in time to stop on the spot rather than drifting through it.
      */
-    private static void moveHull(float dt, Warship ship) {
+    private static void moveHull(float dt, BattleSimulation sim, Warship ship) {
+        if (ship.piloted()) {
+            WarshipHelm.drive(ship, dt, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            return;
+        }
         if (!ship.hasStation()) return;
         ship.advanceRoute(ROUTE_PASS_RADIUS);
         float dx = ship.stationX() - ship.x;
@@ -570,6 +578,27 @@ public final class WarshipSystem {
      * to stop on the heading rather than swinging through it.
      */
     private static void turnHull(float dt, Warship ship) {
+        if (ship.piloted()) {
+            WarshipHelm.steer(ship);
+        } else {
+            chooseHeading(ship);
+        }
+        float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
+        float wanted = Math.signum(error)
+                * Math.min(ship.maxTurnDegPerSec, (float) Math.sqrt(2f * ship.turnAccelDegPerSec2 * Math.abs(error)));
+        float step = ship.turnAccelDegPerSec2 * dt;
+        ship.turnVelocity += Math.max(-step, Math.min(step, wanted - ship.turnVelocity));
+        float move = ship.turnVelocity * dt;
+        if (Math.abs(error) <= Math.abs(move) && Math.abs(ship.turnVelocity) < step * 2f) {
+            ship.facingDegrees = ship.desiredHeading;
+            ship.turnVelocity = 0f;
+        } else {
+            ship.facingDegrees = WarshipFacing.wrap(ship.facingDegrees + move);
+        }
+    }
+
+    /** Chooses the heading an unpiloted ship wants: the one that brings its guns to bear, or along its route. */
+    private static void chooseHeading(Warship ship) {
         List<Warship.Held> held = ship.held();
         boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
         if (bring && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
@@ -589,18 +618,6 @@ public final class WarshipSystem {
                 && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
             // Flying a route with no instruction to bring guns to bear, it points along its travel.
             ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
-        }
-        float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
-        float wanted = Math.signum(error)
-                * Math.min(ship.maxTurnDegPerSec, (float) Math.sqrt(2f * ship.turnAccelDegPerSec2 * Math.abs(error)));
-        float step = ship.turnAccelDegPerSec2 * dt;
-        ship.turnVelocity += Math.max(-step, Math.min(step, wanted - ship.turnVelocity));
-        float move = ship.turnVelocity * dt;
-        if (Math.abs(error) <= Math.abs(move) && Math.abs(ship.turnVelocity) < step * 2f) {
-            ship.facingDegrees = ship.desiredHeading;
-            ship.turnVelocity = 0f;
-        } else {
-            ship.facingDegrees = WarshipFacing.wrap(ship.facingDegrees + move);
         }
     }
 
@@ -786,12 +803,12 @@ public final class WarshipSystem {
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         // A choice is kept until the mount has fired on it, so a turret can finish
         // swinging; it is dropped if its area was dropped or the hull has turned it out of arc.
-        if (m.aimed && (!ship.holdsGround(m.aimX, m.aimY) || !Warship.bears(
+        if (m.aimed && (!ship.holdsGround(m, m.aimX, m.aimY) || !Warship.bears(
                 m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY,
                 ship.groundRangeMultiplier(m.aimX, m.aimY)) || beyondOpportunity(ship, m))) {
             m.aimed = false;
         }
-        if (!m.aimed && !ship.areas().isEmpty()) m.aimed = pickTarget(sim, ship, m) != null;
+        if (!m.aimed && !ship.areasFor(m).isEmpty()) m.aimed = pickTarget(sim, ship, m) != null;
         if (!m.aimed) {
             traverse(dt, ship, m, rest);
             return;
@@ -834,7 +851,7 @@ public final class WarshipSystem {
      */
     private static boolean beyondOpportunity(Warship ship, Warship.Mount m) {
         float range = ship.opportunityRange();
-        if (range == Float.POSITIVE_INFINITY || ship.manualOrder()) return false;
+        if (range == Float.POSITIVE_INFINITY || ship.exempt(m, m.aimX, m.aimY)) return false;
         return Math.hypot(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)) > range;
     }
 
@@ -867,7 +884,7 @@ public final class WarshipSystem {
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         WarshipOrder.FireOnArea area = null;
-        if (!ship.groundFireAllowed(m) || ship.areas().isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
+        if (!ship.groundFireAllowed(m) || ship.areasFor(m).isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
                 || !ship.hasOrdnance(m) || !ship.fluxPool().canStartFire() || (area = pickTarget(sim, ship, m)) == null) {
             traverse(dt, ship, m, rest);
             return;
@@ -942,7 +959,7 @@ public final class WarshipSystem {
      * can bear on.
      */
     private WarshipOrder.FireOnArea pickTarget(BattleSimulation sim, Warship ship, Warship.Mount m) {
-        List<WarshipOrder.FireOnArea> areas = ship.areas();
+        List<WarshipOrder.FireOnArea> areas = ship.areasFor(m);
         int k = areas.size();
         int cycle = k + 1;
         int start = ship.dealCounter % cycle;
@@ -993,8 +1010,9 @@ public final class WarshipSystem {
             return false;
         }
         // A posture's opportunity range and battery limit directed fire; a manual order is never limited.
-        if (!ship.manualOrder() && !ship.mayFireAtGround(m)) return false;
-        float opportunity = ship.manualOrder() ? Float.POSITIVE_INFINITY : ship.opportunityRange();
+        boolean byHand = ship.exempt(m, area.x(), area.y()) || ship.isLaid(area);
+        if (!byHand && !ship.mayFireAtGround(m)) return false;
+        float opportunity = byHand ? Float.POSITIVE_INFINITY : ship.opportunityRange();
         if (area.bombardStructures()) {
             int left = Math.max(0, (int) Math.floor(area.x() - area.radius()));
             int top = Math.max(0, (int) Math.floor(area.y() - area.radius()));

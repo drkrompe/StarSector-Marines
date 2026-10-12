@@ -138,4 +138,27 @@ final class HudDraw {
         }
         glEnd();
     }
+
+    /** An unfilled circle of screen radius {@code r}. */
+    static void ring(float cx, float cy, float r, Color c, float alphaMult, int segments, float lineWidth) {
+        glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                c.getAlpha() / 255f * alphaMult);
+        glLineWidth(lineWidth);
+        glBegin(GL_LINE_LOOP);
+        for (int i = 0; i < segments; i++) {
+            double a = (Math.PI * 2.0 * i) / segments;
+            glVertex2f(cx + (float) (Math.cos(a) * r), cy + (float) (Math.sin(a) * r));
+        }
+        glEnd();
+    }
+
+    /** A closed outline through screen points given as x,y pairs. */
+    static void outline(float[] xy, Color c, float alphaMult, float lineWidth) {
+        glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                c.getAlpha() / 255f * alphaMult);
+        glLineWidth(lineWidth);
+        glBegin(GL_LINE_LOOP);
+        for (int i = 0; i + 1 < xy.length; i += 2) glVertex2f(xy[i], xy[i + 1]);
+        glEnd();
+    }
 }
