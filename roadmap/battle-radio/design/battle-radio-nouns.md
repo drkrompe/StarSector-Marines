@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account retains speaker-specific recordings and separates patrol closure from speech duration.
+Updated: 2026-10-12 — Combat reports rotate complete variant pools independently of the voice budget.
 
 Read `stories.md` for the open-work board.
 
@@ -166,6 +166,14 @@ The generated ensemble supplies tactical reports admitted by the existing cue
 policy. The older generic officer replies remain only as a fallback when the
 ensemble catalog is unavailable. No generic reply is added behind an ensemble
 report. Assignment handshakes provide the officer's addressed coordination.
+
+Each ensemble actor may supply several recordings for one combat cue. Selection
+uses every recording in that cue's pool before repeating, avoids the preceding
+line when a pool refills, and prefers a different actor when unused alternatives
+remain. Each cue keeps its own history across intervening events and mission
+speech; a new battle resets that history. More recordings expand variety without
+increasing the voice budget or inventing tactical facts. A one-line pool remains
+valid and necessarily repeats.
 
 Command subtitles identify CASTLE / COMPANY COMMAND and use her original
 painted portrait; infantry subtitles identify the
