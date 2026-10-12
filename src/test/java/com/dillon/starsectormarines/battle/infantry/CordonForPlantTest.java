@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -118,6 +120,20 @@ public class CordonForPlantTest {
     }
 
     @Test
+    void firstMemberInsideHandsOffEvenWhileLeaderAndPlanterAreOutside() {
+        BattleSimulation sim = roomWithTwoDoorways();
+        ChargeSiteObjective charge = new ChargeSiteObjective(6, 6, 5f, "lab");
+        sim.addObjective(charge);
+        Squad squad = marineSquadAt(1, 1f, 1f, 3);
+        sim.spawn(new EntitySpec("planter", Faction.MARINE, UnitType.MARINE, 1, 1)
+                .squad(1).role(UnitRole.PLANTER).assignedObjective(charge));
+        sim.spawn(new EntitySpec("point", Faction.MARINE, UnitType.MARINE, 5, 6).squad(1));
+        assertTrue(CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f);
+        assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim));
+        assertNotNull(CordonForPlant.INSTANCE.customPlan(squad, sim));
+    }
+
+    @Test
     public void customPlanSynthesizesOneStepWithOneGuardPostPerPortal() {
         BattleSimulation sim = roomWithTwoDoorways();
         ChargeSiteObjective charge = new ChargeSiteObjective(6, 6, 5f, "lab");
@@ -147,6 +163,26 @@ public class CordonForPlantTest {
             int gz = sim.getZoneGraph().zoneIdAt(p.cellX, p.cellY);
             assertEquals(roomZone, gz, "guard cell should be inside the planter zone");
         }
+    }
+
+    @Test
+    void activeKitCarrierWinsOverFinishedAndOtherSitePlanters() {
+        BattleSimulation sim = roomWithTwoDoorways();
+        Squad squad = marineSquadAt(1, 6f, 6f, 3);
+        ChargeSiteObjective finished = new ChargeSiteObjective(6, 6, 0.01f, "finished");
+        ChargeSiteObjective active = new ChargeSiteObjective(7, 6, 5f, "active");
+        ChargeSiteObjective other = new ChargeSiteObjective(7, 7, 5f, "other");
+        long first = sim.spawn(new EntitySpec("finished", Faction.MARINE, UnitType.MARINE, 6, 6)
+                .squad(1).role(UnitRole.PLANTER).assignedObjective(finished));
+        finished.tick(sim);
+        assertTrue(finished.isComplete());
+        long second = sim.spawn(new EntitySpec("active", Faction.MARINE, UnitType.MARINE, 5, 6)
+                .squad(1).role(UnitRole.PLANTER).assignedObjective(active));
+        long third = sim.spawn(new EntitySpec("other", Faction.MARINE, UnitType.MARINE, 6, 7)
+                .squad(1).role(UnitRole.PLANTER).assignedObjective(other));
+        HoldPortalCordon cordon = new HoldPortalCordon(7, 6, List.of());
+        var assigned = RoleAssigner.assign(List.of(first, third, second), cordon.roles(squad, sim));
+        assertEquals(List.of(second), assigned.get(HoldPortalCordon.PLANTER_SLOT));
     }
 
     @Test

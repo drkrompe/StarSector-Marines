@@ -275,7 +275,7 @@ public final class MissionLaunch {
                         SabotageBattleFixture.fromFactoryInputs(seed,
                                 constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
                                 m.tier, m.risk, profile, constructionDetachment.marineWings,
-                                m.enemyFighterSupport);
+                                m.enemyFighterSupport, m.sprawl);
                 builder = sabotageFixture::build;
                 fixture = sabotageFixture;
                 break;

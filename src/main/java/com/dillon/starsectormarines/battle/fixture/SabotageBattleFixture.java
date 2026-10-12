@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -20,7 +21,9 @@ public record SabotageBattleFixture(
         RiskLevel risk,
         TargetProfile targetProfile,
         List<FighterWingCommitment> marineFighterSupport,
-        List<FighterWingCommitment> enemyFighterSupport) implements BattleFixture {
+        List<FighterWingCommitment> enemyFighterSupport,
+        PrecinctPlan.Sprawl sprawl,
+        boolean defenderReinforcements) implements BattleFixture {
 
     public static final String KIND = "SABOTAGE";
 
@@ -35,17 +38,46 @@ public record SabotageBattleFixture(
                 enemyFighterSupport, "enemyFighterSupport"));
     }
 
+    /** Omitted sprawl preserves the legacy settlement recipe. */
+    public SabotageBattleFixture(long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, null, true);
+    }
+
     /** Captures the exact inputs already accepted by {@link BattleSetup}. */
     public static SabotageBattleFixture fromFactoryInputs(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport, null, true);
+    }
+
+    public static SabotageBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport, sprawl, true);
+    }
+
+    /** A finite garrison is authored independently of terrain or settlement density. */
+    public static SabotageBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl,
+            boolean defenderReinforcements) {
         return new SabotageBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
-                FighterWingCommitment.captureRoster(enemyFighterSupport));
+                FighterWingCommitment.captureRoster(enemyFighterSupport), sprawl, defenderReinforcements);
     }
 
     @Override
@@ -58,6 +90,6 @@ public record SabotageBattleFixture(
         return BattleSetup.createSabotage(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport));
+                FighterWingCommitment.toRoster(enemyFighterSupport), sprawl, defenderReinforcements);
     }
 }

@@ -213,6 +213,22 @@ class BattleFixtureJsonTest {
     }
 
     @Test
+    void sabotagePreservesAuthoredSprawlAndFiniteForceWithoutChangingLegacyDefaults() throws Exception {
+        SabotageBattleFixture fixture = new SabotageBattleFixture(42L, List.of(), false,
+                OperationTier.ESTABLISHED, RiskLevel.LOW,
+                new TargetProfile(3, 5, 1, 0, "pirates", EnumSet.of(EconomicFunction.MILITARY),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
+                List.of(), List.of(), PrecinctPlan.Sprawl.REMOTE, false);
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        assertEquals(fixture, BattleFixtureJson.fromJson(encoded));
+        encoded.remove("sprawl");
+        encoded.remove("defenderReinforcements");
+        SabotageBattleFixture legacy = (SabotageBattleFixture) BattleFixtureJson.fromJson(encoded);
+        assertNull(legacy.sprawl());
+        assertTrue(legacy.defenderReinforcements());
+    }
+
+    @Test
     void roundTripsEveryAssaultFactoryInputInAuthoredOrder() throws Exception {
         AssaultBattleFixture fixture = new AssaultBattleFixture(
                 607_898L,
