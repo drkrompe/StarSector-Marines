@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.road;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import java.util.Arrays;
+import java.util.List;
 import com.dillon.starsectormarines.battle.world.gen.CellContour;
 
 /** Immutable subcell pavement boundary. Navigation continues to use the center-sampled raster. */
@@ -22,12 +23,43 @@ public final class RoadSurface {
 
     /** Sample signed distances at cell corners, preserving first-authored-road precedence. */
     public static RoadSurface build(RoadPlan plan,RoadRasterizer.Raster raster,CellTopology topology) {
-        int w=plan.width(),h=plan.height(),vw=w+1,vertices=vw*(h+1),cells=w*h;
+        return build(plan.routes(),plan.width(),plan.height(),raster,topology);
+    }
+
+    /** Generated pavement is a finish over an already reserved, fully placed map. */
+    public static RoadSurface generated(List<RoadPlan.Route> routes, CellTopology topology,
+                                        Underlay[][] allowed) {
+        int w=allowed.length,h=allowed[0].length;
+        RoadSurface result=build(routes,w,h,null,topology);
+        // Expose the underlay in the corners cut off by a round end too. Cells
+        // outside every sweep's bounds retain their original hard paving.
+        for(var route:routes) {
+            var samples=RoadRasterizer.sample(route);
+            double radius=route.width()/2;
+            double x0=Double.POSITIVE_INFINITY,y0=x0,x1=Double.NEGATIVE_INFINITY,y1=x1;
+            for(var p:samples) { x0=Math.min(x0,p.x());x1=Math.max(x1,p.x());y0=Math.min(y0,p.y());y1=Math.max(y1,p.y()); }
+            for(int y=Math.max(0,(int)Math.ceil(y0-radius));y<=Math.min(h-1,(int)Math.floor(y1+radius));y++)
+                for(int x=Math.max(0,(int)Math.ceil(x0-radius));x<=Math.min(w-1,(int)Math.floor(x1+radius));x++)
+                    if(allowed[x][y]!=null)result.underlays[y*w+x]=allowed[x][y];
+        }
+        for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
+            int cell=y*w+x;
+            if(allowed[x][y]==null) {
+                for(int m=0;m<MATERIALS;m++)result.patches[m][cell]=null;
+                result.underlays[cell]=null;
+            } else if(result.underlays[cell]!=null) result.underlays[cell]=allowed[x][y];
+        }
+        return result;
+    }
+
+    private static RoadSurface build(List<RoadPlan.Route> routes,int w,int h,
+                                     RoadRasterizer.Raster raster,CellTopology topology) {
+        int vw=w+1,vertices=vw*(h+1),cells=w*h;
         double[][] fields=new double[MATERIALS][vertices];
         int[][] owner=new int[MATERIALS][cells];
         for(int m=0;m<MATERIALS;m++){Arrays.fill(fields[m],-1000);Arrays.fill(owner[m],-1);}
-        for(int ri=0;ri<plan.routes().size();ri++) {
-            var route=plan.routes().get(ri);if(!route.autoEdge())continue;
+        for(int ri=0;ri<routes.size();ri++) {
+            var route=routes.get(ri);if(!route.autoEdge())continue;
             int material=route.material().ordinal();
             double[] distance=distances(route,w,h);
             for(int vertex=0;vertex<vertices;vertex++) {
@@ -44,17 +76,17 @@ public final class RoadSurface {
         Patch[][] patches=new Patch[MATERIALS][cells];
         Underlay[] underlays=new Underlay[cells];
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
-            int cell=y*w+x,navOwner=raster.owner()[cell];
-            boolean hard=navOwner>=0 && !plan.routes().get(navOwner).autoEdge();
-            boolean touched=navOwner>=0 || raster.shoulder()[cell];
+            int cell=y*w+x,navOwner=raster==null?-1:raster.owner()[cell];
+            boolean hard=navOwner>=0 && !routes.get(navOwner).autoEdge();
+            boolean touched=navOwner>=0 || (raster!=null && raster.shoulder()[cell]);
             for(int m=0;m<MATERIALS;m++) {
                 int ri=owner[m][cell];if(ri<0 || (hard && navOwner<ri))continue;
                 double[] f=fields[m];
                 double a=f[y*vw+x],b=f[y*vw+x+1],c=f[(y+1)*vw+x+1],d=f[(y+1)*vw+x];
                 if(Math.max(Math.max(a,b),Math.max(c,d))<0)continue;
-                var route=plan.routes().get(ri);
-                if(navOwner>=0 && plan.routes().get(navOwner).material().ordinal()==m)
-                    route=plan.routes().get(navOwner);
+                var route=routes.get(ri);
+                if(navOwner>=0 && routes.get(navOwner).material().ordinal()==m)
+                    route=routes.get(navOwner);
                 int surface=topology.surfaceIndex(route.material().block(RoadRasterizer.age(route.wear(),route.seed(),x,y)));
                 float[] first,second;
                 if(Math.min(Math.min(a,b),Math.min(c,d))>=0) {
@@ -66,7 +98,7 @@ public final class RoadSurface {
                 patches[m][cell]=new Patch(surface,first,second);touched=true;
             }
             if(touched)underlays[cell]=new Underlay(topology.getGroundKind(x,y),topology.getSurface(x,y),
-                    raster.shoulder()[cell],hard);
+                    raster!=null && raster.shoulder()[cell],hard);
         }
         return new RoadSurface(w,patches,underlays);
     }
