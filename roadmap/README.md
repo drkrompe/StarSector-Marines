@@ -170,6 +170,10 @@ consolidation and a guided preparation handoff; `company-resource-bills.md` foll
 with consistent upgrade bills across rooms. `castle-officer-induction.md` adds
 Castle's portrait-led first specialty and squad assignment for founding commander
 Mira Hale, required before a new company deploys; live acceptance remains open.
+`first-mission-preparation.md` extends that lesson into one sequence from ship
+selection and the combined cargo preflight through commissioning lift, Mira's
+specialty, squad founding and assignment, ending at the first Jangala story lead.
+`boat-condition-and-repairs.md` tracks subsequent upkeep separately.
 Its practice range now fires issued primaries through a disposable bounded
 battle simulation while campaign personnel and inventory remain untouched. The UI
 toolkit remains presentation infrastructure rather than company or inventory authority.

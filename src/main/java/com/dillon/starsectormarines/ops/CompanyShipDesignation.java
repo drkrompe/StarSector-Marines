@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
+import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
@@ -188,6 +192,11 @@ public final class CompanyShipDesignation {
         MarineRoster roster = roster();
         if (roster == null || member == null) return false;
         if (!candidates().contains(member) || !quarters(member)) return false;
+        if (CompanyPreparation.required(roster)) {
+            CompanyShip ship = CompanyShipResolver.read(member);
+            if (!CompanyPreparation.canPrepare(roster, ShipsBoats.carriedBy(ship.role()),
+                    ShipsBoats.aboard(ship).size(), new CampaignFabricationResources())) return false;
+        }
         roster.setCompanyShip(member.getId(), shipName(member),
                 Math.round(member.getCargoCapacity()));
         LOG.info("CompanyShipDesignation: the company now lives aboard "

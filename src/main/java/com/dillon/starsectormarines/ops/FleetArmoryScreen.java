@@ -59,6 +59,7 @@ public final class FleetArmoryScreen implements Screen {
     private EquipmentDoctrineDesignerViewModel designerViewModel;
     private UiViewport viewport;
     private UiDocument document;
+    private PreparationGuide preparationGuide;
     private MarkupInstance markupInstance;
     /**
      * This screen's spec-sheet bindings. It is not a {@code MissionFlowMlxScreen},
@@ -107,6 +108,7 @@ public final class FleetArmoryScreen implements Screen {
         }
         installDocument(true);
         document.layout(viewport.documentWidth(), viewport.documentHeight());
+        if (preparationGuide != null) preparationGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -129,7 +131,7 @@ public final class FleetArmoryScreen implements Screen {
                 candidate.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
             }
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(switch (view) {
                 case SQUADS -> this::cancelGallery;
@@ -181,6 +183,7 @@ public final class FleetArmoryScreen implements Screen {
         MarkupInstance previousInstance = markupInstance;
         if (prepared != null) prepared.commit();
         document = built;
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.armory(roster, context), this::cancelGallery);
         markupInstance = candidate;
         specSheets = candidateSheets;
         boundSquadCards = view == View.SQUADS ? viewModel.squadCards().get() : null;
@@ -435,6 +438,7 @@ public final class FleetArmoryScreen implements Screen {
             previewAnimationSeconds = (previewAnimationSeconds + dt) % 60f;
         }
         if (document != null) document.advance(dt);
+        if (preparationGuide != null) preparationGuide.update();
     }
 
     private static int campaignHour() {

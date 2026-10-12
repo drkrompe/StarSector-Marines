@@ -66,6 +66,8 @@ public final class BarracksCommandModel {
     private final Set<String> donors = new LinkedHashSet<>();
     private SquadConsolidation.Plan reviewedTransfers;
     private boolean guideOpen;
+    private Runnable preparationComplete = () -> { };
+    public void onPreparationComplete(Runnable action) { preparationComplete = action; }
     private int guideStep;
     private String inspectedId;
     private Runnable raiseSquad = () -> { };
@@ -164,8 +166,7 @@ public final class BarracksCommandModel {
         bind(reactor, "guideHelpLabel", () -> inductionRequired() ? "CASTLE'S LESSON" : "COMPANY GUIDE");
         bind(reactor, "guidePreviousClasses", () -> inductionRequired() ? "hidden" : "tool-button console-action");
         bind(reactor, "guideProgressClasses", () -> inductionRequired() ? "guide-progress" : "hidden");
-        bind(reactor, "guideProgressImage", () -> "graphics/ui/officers/induction-step-"
-                + (inductionRequired() ? Math.min(4, inductionStep().ordinal()) : 0) + ".svg");
+        bind(reactor, "guideProgressImage", this::guideProgressImage);
         bind(reactor, "guideNextLabel", () -> inductionRequired() ? "READY" : "NEXT");
         bind(reactor, "guideDismissLabel", () -> inductionRequired() ? "LATER" : "DISMISS");
         props.put("guideHelp", (Runnable) this::resumeGuide);
@@ -174,6 +175,7 @@ public final class BarracksCommandModel {
             if (inductionRequired()) {
                 if (roster.officerInduction().finish(roster)) {
                     guideOpen = false; changed.run();
+                    if (roster.officerInduction().companyPreparation()) preparationComplete.run();
                 }
                 refresh(); return;
             }
@@ -597,6 +599,19 @@ public final class BarracksCommandModel {
         command = "all"; search = ""; profileFilter = null; attention = false;
         guideOpen = true; resetSelection();
     }
+    private String guideProgressImage() {
+        if (inductionRequired() && roster.officerInduction().companyPreparation()) {
+            int index = switch (inductionStep()) {
+                case SHIP -> 0;
+                case LIFT -> 1;
+                case INTRODUCTION, SPECIALTY -> 2;
+                default -> 3;
+            };
+            return "graphics/ui/officers/preparation-step-" + index + ".svg";
+        }
+        return "graphics/ui/officers/induction-step-"
+                + (inductionRequired() ? Math.min(4, inductionStep().ordinal()) : 0) + ".svg";
+    }
     public boolean inductionRequired() { return roster.officerInductionRequired(); }
     private Step inductionStep() { return roster.officerInduction().step(roster); }
     private MarineCaptain inductionOfficer() { return roster.officerInduction().officer(roster); }
@@ -613,6 +628,8 @@ public final class BarracksCommandModel {
     private String inductionTarget() {
         if (detail) return "barracks-back-command";
         Step step = inductionStep();
+        if (step == Step.SHIP) return "page-nav-hq";
+        if (step == Step.LIFT) return "page-nav-boats";
         if (step == Step.INTRODUCTION) return inductionOfficerTarget();
         if (step == Step.SPECIALTY)
             return !dossier || selectedOfficer() != inductionOfficer() ? inductionOfficerTarget()
@@ -639,8 +656,12 @@ public final class BarracksCommandModel {
         return List.of(List.of(target));
     }
     private String inductionHint() {
-        if (inductionStep() == Step.READY) return "Choose Ready to complete induction, then return to briefing to assign your deployment.";
+        if (inductionStep() == Step.READY) return roster.officerInduction().companyPreparation()
+                ? "Choose Ready to finish preparation and continue to your briefing or Mara Venn's first-contract directions in HQ."
+                : "Choose Ready to complete induction, then return to briefing to assign your deployment.";
         return switch (inductionTarget()) {
+            case "page-nav-hq" -> "Choose a company ship in HQ before we continue.";
+            case "page-nav-boats" -> "Commission our first shuttle on the Boat Deck, then return to meet Mira.";
             case "barracks-back-command" -> "Return to the command board to continue.";
             case "officer-formations" -> "Choose View Formations to return to the squad board.";
             case "barracks-raise-squad" -> "Raise Squad opens Armory. Found a squad there, then return to Barracks. Later lets you resupply.";
@@ -718,6 +739,9 @@ public final class BarracksCommandModel {
     }
 
     private CompanyManagementGuide.Line guideLine() {
+        if (inductionRequired() && roster.officerInduction().companyPreparation() && inductionStep() == Step.READY)
+            return new CompanyManagementGuide.Line("preparation-ready", "READY FOR OUR FIRST CONTRACT",
+                    "A ship, our own lift, and a full squad under Mira. Good work, Commander. Mara Venn has our first job: Hold Until Relieved. Choose Ready for your briefing, or follow her office directions from HQ. At briefing, select Mira's squad for deployment.");
         if (inductionRequired()) return OfficerInductionGuide.line(inductionStep(),
                 inductionOfficer() == null ? "your field commander" : inductionOfficer().name());
         var lines = CompanyManagementGuide.lines();
