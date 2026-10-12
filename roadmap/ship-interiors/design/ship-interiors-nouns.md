@@ -5,8 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — washrooms group sinks opposite toilet and shower cubicles,
-with a two-person aisle and complete hatch approaches in the muted ship materials.
+Updated: 2026-10-11 — ship ranges align clear live-fire lanes with solid backstops and an organized preparation/storage area.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1059,6 +1058,16 @@ A firing range is the standing example of the argued case, and the only room so
 far whose empty deck *is* the room. The stretch between the firing line and the
 butts is marked, reserved before anything is placed, and kept clear of fixtures
 in both directions — nothing may stand in it, and nothing may open onto it.
+
+On a ship, substantial dividers flank the firing positions and a continuous
+bank of traps backs the lanes. Each real practice target stands just in front
+of its trap, so solid scenery never occupies the target or blocks the shot
+before it arrives. A nonblocking target plate marks that exact focus without
+adding another combatant. Quiet contrasting deck materials mark the lanes. Preparation
+benches and range control face a clear aisle, with layered weapon racks against
+the opposite ready-end bulkhead. These support practice without creating extra
+staff jobs. The existing L footprint, firing-point capacity and safe hatch
+choices remain authoritative; ground ranges keep their field furniture.
 
 That deck is **shut** rather than merely reserved. A reservation is a rule about
 furniture: it stops the fill standing anything in the lane and leaves everybody

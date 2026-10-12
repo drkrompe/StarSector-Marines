@@ -1,0 +1,29 @@
+{
+  "sheetName": "firing-range-target",
+  "sheet": "art-source/tilesets/firing-range-target.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "firing-range-target",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/firing-range-target.png",
+  "note": "Full transparent canvas retained. Rotationally symmetric decorative plate at the simulation-owned target focus; never claims occupancy or cover.",
+  "entries": [
+    {
+      "id": "firing-range-target.plate",
+      "rect": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}

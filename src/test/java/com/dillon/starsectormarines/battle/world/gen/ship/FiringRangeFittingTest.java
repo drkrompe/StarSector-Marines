@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -88,17 +87,9 @@ class FiringRangeFittingTest {
                     lanes++;
                     int stepX = Integer.signum(point.fixtureX() - point.cellX());
                     int stepY = Integer.signum(point.fixtureY() - point.cellY());
-                    String facing = stepX < 0 ? "w" : stepX > 0 ? "e" : stepY < 0 ? "s" : "n";
-                    var barrier = TileRegistry.installed().doodad("doodad.sandbag-straight-" + facing);
-                    Doodad placed = deck.map().doodads.stream().filter(d ->
-                            d.cellX == point.cellX() + stepX && d.cellY == point.cellY() + stepY)
-                            .findFirst().orElseThrow();
-                    assertEquals(barrier.col, placed.tile.col, "barrier must face downrange");
-                    assertEquals(barrier.row, placed.tile.row);
-                    // Skip the barrier the shooter fires over, which is the one
-                    // fixture that belongs between them and the butts.
-                    int x = point.cellX() + 2 * stepX;
-                    int y = point.cellY() + 2 * stepY;
+                    // Ship dividers stand beside the shooter, leaving the entire ray clear.
+                    int x = point.cellX() + stepX;
+                    int y = point.cellY() + stepY;
                     while (x != point.fixtureX() || y != point.fixtureY()) {
                         assertTrue(!blocked.contains(key(x, y)),
                                 "seed " + seed + ": range " + range.id()
@@ -220,8 +211,8 @@ class FiringRangeFittingTest {
                                     + point.cellY() + " is somewhere nobody can stand");
                     int stepX = Integer.signum(point.fixtureX() - point.cellX());
                     int stepY = Integer.signum(point.fixtureY() - point.cellY());
-                    int x = point.cellX() + 2 * stepX;
-                    int y = point.cellY() + 2 * stepY;
+                    int x = point.cellX() + stepX;
+                    int y = point.cellY() + stepY;
                     while (x != point.fixtureX() + stepX || y != point.fixtureY() + stepY) {
                         checked++;
                         assertTrue(!deck.map().grid.isWalkable(x, y),
