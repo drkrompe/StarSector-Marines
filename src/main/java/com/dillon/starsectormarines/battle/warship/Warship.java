@@ -155,6 +155,16 @@ public final class Warship {
     private final List<Mount> mounts;
     private final List<Mount> mountsView;
     private final WarshipFlux flux;
+    private boolean fluxConfigured;
+
+    /**
+     * Share of the hull table's flux a brawler's guns get. PROVISIONAL: in the game a
+     * ship's shield is the major draw on flux (upkeep and every hit absorbed) and a
+     * raised shield stops venting, so the guns never see the whole pool or the whole
+     * dissipation. Shields are not modelled yet; this half stands in for the half
+     * they would take, and goes when shields arrive and take their own share.
+     */
+    public static final float SHIELD_RESERVE_SCALE = 0.5f;
 
     private Warship(String hullId, String spritePath, float lengthCells, float pivotX, float pivotY,
                     Handling handling, float widthCells, float hitPoints, float armour,
@@ -195,11 +205,13 @@ public final class Warship {
      * rhythm, not balance: no weapon does less damage for it.
      */
     public void limitFlux() {
+        fluxConfigured = true;
         flux.enabled(true);
     }
 
     /** Takes the ship off flux again: the pool empties and the guns are never held back. This is the default. */
     public void unlimitedFlux() {
+        fluxConfigured = true;
         flux.enabled(false);
     }
 
@@ -210,6 +222,7 @@ public final class Warship {
 
     /** Scales the hull's flux capacity and dissipation together; 1 is the hull table's own. */
     public void fluxScale(float scale) {
+        fluxConfigured = true;
         flux.scale(scale);
     }
 
@@ -588,6 +601,12 @@ public final class Warship {
         this.directorMaxAreas = maxAreas;
         this.directing = true;
         this.retrySeconds = Float.MAX_VALUE;
+        // A directed ship is governed by flux unless its owner said otherwise; a
+        // scripted (cinematic) ship with only explicit orders is not.
+        if (!fluxConfigured) {
+            flux.scale(SHIELD_RESERVE_SCALE);
+            flux.enabled(true);
+        }
     }
 
     int directorMaxAreas() {

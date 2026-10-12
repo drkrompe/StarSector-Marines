@@ -1581,10 +1581,15 @@ switched off) the ship overloads: every mount, point defence too, falls silent a
 bursts in progress are abandoned for four to ten seconds (longer the further past
 capacity), a laid lance still burns out, dissipation continues, and the pool is
 empty when it resumes. Capacity and dissipation scale together
-(`Warship.fluxScale`), and the whole system is off unless a mission turns it on
-(`limitFlux`), so existing scenes are unchanged. At the hull table's own figures a
-ground bombardment never nears an Onslaught's capacity, so a mission that wants the
-rhythm shows scales it down. It is readable for a HUD (`fluxFraction`,
+(`Warship.fluxScale`). A directed ship is on flux by default, at half the hull
+table's figures (`Warship.SHIELD_RESERVE_SCALE`); a ship given only explicit
+orders, as a cinematic script does, is not, and `limitFlux`/`unlimitedFlux`/
+`fluxScale` override either way. The half is provisional: in the game a ship's
+shield is the major draw on flux and a raised shield stops venting, so a brawler's
+guns never see the whole pool or the whole dissipation. Shields are not modelled;
+this half stands in for what they would take and is replaced when they arrive and
+take their own share. At the hull table's own figures a ground bombardment never
+nears an Onslaught's capacity. It is readable for a HUD (`fluxFraction`,
 `overloaded`, `overloadSecondsRemaining`), and the debug warship panel can toggle it.
 
 It must be answerable. The hull and armour pool above, a bounded time on station
