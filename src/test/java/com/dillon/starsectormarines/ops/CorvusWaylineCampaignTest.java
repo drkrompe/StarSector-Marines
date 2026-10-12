@@ -36,6 +36,36 @@ class CorvusWaylineCampaignTest {
             assertTrue(offer.flavor.contains(prior));
             assertEquals(prior, route.status());
             assertEquals(success, route.successful());
+            if (branch == 2) {
+                assertEquals(success, offer.flavor.contains("people brought home"));
+                assertEquals(!success, offer.flavor.contains("without a recovery"));
+                assertFalse(offer.flavor.contains("delivered loads"));
+            } else {
+                assertEquals(success, offer.flavor.contains("delivered loads"));
+                assertEquals(!success, offer.flavor.contains("No freight made it through"));
+                assertFalse(offer.flavor.contains("people brought home"));
+            }
+        }
+    }
+
+    @Test void earlierRecoveriesRemainMeaningfulEvenWhenTheFinalAttemptFails() {
+        for (int branch : List.of(2, 3)) {
+            var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+            String id = p.missionId(); p.begin(id); p.settle(id, true, null); p.commit(branch);
+            id = p.missionId(); p.begin(id);
+            if (branch == 2) {
+                p.settle(id, false, new LastLiftProgress.Outcome(p.crew().previewAttempt(), List.of(0), List.of(), false));
+                id = p.missionId(); p.begin(id);
+                p.settle(id, false, new LastLiftProgress.Outcome(p.crew().previewAttempt(), List.of(), p.crew().stranded(), false));
+            } else {
+                p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(0), List.of(), false));
+                id = p.missionId(); p.begin(id);
+                p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(), p.freight().waiting(), false));
+            }
+            assertTrue(p.closed()); assertFalse(p.successful());
+            String intro = CorvusWaylineCampaign.introduction(p);
+            assertTrue(intro.contains(branch == 2 ? "people brought home: 1" : "delivered loads: 1"));
+            assertFalse(intro.contains(branch == 2 ? "without a recovery" : "No freight made it through"));
         }
     }
 
@@ -121,7 +151,6 @@ class CorvusWaylineCampaignTest {
         var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         p.begin(p.missionId()); p.settle(p.missionId(), true, null); p.commit(branch);
         if (branch == 3) {
-            p.begin(p.missionId()); p.settle(p.missionId(), true, null);
             p.begin(p.missionId());
             p.settle(p.missionId(), success, null, new FreightRunProgress.Outcome(
                     p.freight().previewAttempt(), success ? List.of(0, 1, 2) : List.of(),

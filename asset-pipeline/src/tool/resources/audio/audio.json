@@ -205,6 +205,8 @@
     {"id": "marines_mech_land_02", "source": "mech-footsteps/marines_mech_land_02.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     {"id": "marines_mech_lift_01", "source": "mech-footsteps/marines_mech_lift_01.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     {"id": "marines_mech_lift_02", "source": "mech-footsteps/marines_mech_lift_02.wav", "kind": "positional", "out": "battle/mech-footsteps"},
+    {"id": "marines_mara_blind_watch_debrief_initiative", "source": "wayline/marines_mara_blind_watch_debrief_initiative.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_blind_watch_debrief_ready", "source": "wayline/marines_castle_blind_watch_debrief_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     // Mara Venn / Wayline story narration
     {"id": "marines_mara_relief_briefing", "source": "wayline/marines_mara_relief_briefing.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relief_started", "source": "wayline/marines_mara_relief_started.mp3", "kind": "ui", "out": "story/wayline"},

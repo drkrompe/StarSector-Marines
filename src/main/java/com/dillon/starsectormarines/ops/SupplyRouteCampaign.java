@@ -138,6 +138,19 @@ public final class SupplyRouteCampaign {
                 .filter(squad -> roster.squadMembers(squad).stream()
                         .filter(soldier -> soldier.status() == MarineSoldierStatus.ACTIVE).count() >= 4).count() >= 2;
     }
+    /** The quiet beat after a story victory; recurring work and defeated attempts keep their factual reports. */
+    static String recoveryDebrief(MissionOutcome outcome) {
+        if (outcome == null || !outcome.victory || outcome.missionSource != MissionSource.STORY
+                || !owns(outcome.missionId)) return "";
+        if (outcome.lastLiftOutcome != null)
+            return " The people you recovered have a way home. The freight route stays suspended; that does not diminish the rescue. Take time to see to your company. Iona's Crew Recovery work will be here when you are ready.";
+        if (outcome.freightOutcome != null)
+            return " The delivered loads are real work on Wayline's books again. We can fund regular Route Security. Rill's rescue was not undertaken; I will keep that on the account too. Take time to see to your company before we talk about the next contract.";
+        if (outcome.missionId.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.JUNCTION + "_"))
+            return " You have opened the junction. We have ground to organize from and a choice about where to send support. I have two requests for you to consider once your company is ready.";
+        return "";
+    }
+
     static BrokenSupplyRouteProgress requireCurrent(Mission m) {
         BrokenSupplyRouteProgress p = current();
         if (!isBattle(m) || p == null || !p.matches(m.id) || destination() == null

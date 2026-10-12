@@ -54,6 +54,16 @@ class SupplyRouteCampaignTest {
         assertEquals(MissionSource.RECURRING,repeat.source);assertEquals(12000,repeat.payout);
         assertNotEquals(convoy.id,repeat.id);assertTrue(repeat.flavor.contains("new security job"));
     }
+    @Test void recoveryBeatBelongsOnlyToSuccessfulStoryWork() {
+        var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        var mission = SupplyRouteCampaign.offers(route).get(0);
+        assertTrue(SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission).victory(true).build())
+                .contains("opened the junction"));
+        assertEquals("", SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission).victory(false).build()));
+        assertEquals("", SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission)
+                .missionSource(MissionSource.RECURRING).victory(true).build()));
+    }
+
     @Test void resolutionRejectsWrongPaymentSiteSourceAndReplayedCasualtyWriteback() {
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");String id=p.missionId();p.begin(id);
         for (MissionOutcome wrong : List.of(

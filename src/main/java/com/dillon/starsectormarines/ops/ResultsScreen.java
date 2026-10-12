@@ -173,7 +173,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storyPortrait", OpeningBroker.PORTRAIT);
             props.put("storySender", OpeningBroker.NAME + " / WAYLINE");
             props.put("storyProgress", CorvusWaylineCampaign.TITLE + (outcome.victory ? " / CHAPTER COMPLETE" : " / RETRY AVAILABLE"));
-            props.put("storyMessage", outcome.victory ? corvus.debrief
+            props.put("storyMessage", outcome.victory ? corvus.debrief + (outcome.marinesLost > 0 ? " Your company paid for this in lives. The achievement does not cancel that cost." : "")
                     : "The objective remains unresolved. Bring the company home and refit before trying again. No contract payment; confirmed losses remain on record.");
         }
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
@@ -196,6 +196,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                         + freight.lost().size() + " lost / " + waiting + " awaiting transport."
                         + (waiting > 0 ? " Only unresolved freight returns on a retry." : " This column is fully accounted for.");
             }
+            report += SupplyRouteCampaign.recoveryDebrief(outcome);
             var route = SupplyRouteCampaign.current();
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);
