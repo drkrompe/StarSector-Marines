@@ -172,6 +172,7 @@ public final class FleetArmoryScreen implements Screen {
                 }
             }
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
+            if (view == View.FIRST_REFIT) bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
             if (view == View.FIRETEAMS) {
                 ArmorySpecSheets.bindMarineCards(
                         candidateSheets, candidate, viewModel.marineCards());
@@ -395,6 +396,17 @@ public final class FleetArmoryScreen implements Screen {
                 new ArmoryMarinePreviewCanvas(() -> FirstRefitModel.example(false), assets));
         document.canvases().set(markup.requireElement("refit-scout-preview"),
                 new ArmoryMarinePreviewCanvas(() -> FirstRefitModel.example(true), assets));
+    }
+
+    static void bindFirstRefitSheets(SpecSheetBinder binder, MarkupInstance markup, FirstRefitModel model) {
+        for (boolean proposed : new boolean[]{false, true}) {
+            String prefix = "refit-" + (proposed ? "proposed" : "current") + "-item:";
+            for (int i = 0; i < 3; i++) {
+                int item = i;
+                binder.bindLive(markup.requireElement(prefix + i), () -> model.sheet(proposed, item));
+            }
+            binder.bindLive(markup.requireElement(prefix + "1:system"), () -> model.sheet(proposed, 3));
+        }
     }
 
     private void showFirstRefit() {
