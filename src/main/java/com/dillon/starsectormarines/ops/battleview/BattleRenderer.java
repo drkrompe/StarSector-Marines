@@ -272,8 +272,12 @@ public class BattleRenderer {
                     if (ctx.debugZonesVisible)
                         out.addCustom(RenderLayer.GROUND, () -> renderZoneOverlayDebug(ctx.sim, ctx.alphaMult));
                 }),
-                RenderSystem.of(RenderLayer.DECALS, (ctx, out) ->
-                        out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult))),
+                RenderSystem.of(RenderLayer.DECALS, (ctx, out) -> {
+                    if (ctx.hostProfile.residentDecalsAllowed())
+                        out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult));
+                    else DecalRenderSystem.collect(ctx.sim.getDecals(),sprites.decalSheet(),sprites.decalFrames(),
+                            ctx.camera,ctx.alphaMult,out);
+                }),
                 new ParkedAircraftRenderSystem(sprites),
                 doodads,
                 // Bodies cast here rather than through the ground composite:
@@ -348,6 +352,8 @@ public class BattleRenderer {
      * all {@code sprites.ensureX()} calls.
      */
     public void onAttach() {
+        sprites.ensureDecalSheet();
+        registerDecalBatch();
         sprites.ensureSmokeSprites();
         registerSmokeFieldBatch();
         sprites.ensureSatchelSprite();
@@ -405,6 +411,7 @@ public class BattleRenderer {
         registerBatch(sprites.natureSheet(), natureBatch);
         registerBatch(sprites.doodadSheet(), doodadBatch);
         registerBatch(sprites.parkedVehicleSheet(), parkedVehicleBatch);
+        registerDecalBatch();
         for (SpriteAPI sheet : sprites.extraTerrainSheets()) {
             if (batchBySheet.containsKey(sheet)) continue;
             registerBatch(sheet, new QuadBatch(sheet,
@@ -436,6 +443,13 @@ public class BattleRenderer {
         // Register from both lifecycle seams so whichever one sees the sheet
         // first makes deployed smoke drawable by the live GL drain.
         registerSmokeFieldBatch();
+    }
+
+    private void registerDecalBatch() {
+        SpriteAPI sheet = sprites.decalSheet();
+        var frames = sprites.decalFrames();
+        if (sheet != null && frames != null && !batchBySheet.containsKey(sheet))
+            registerBatch(sheet,new QuadBatch(sheet,frames.sheetWidth,frames.sheetHeight,128));
     }
 
     private void registerSmokeFieldBatch() {

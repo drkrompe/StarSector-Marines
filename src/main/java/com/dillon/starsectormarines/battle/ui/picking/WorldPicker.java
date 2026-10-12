@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipPilot;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -175,6 +177,12 @@ public final class WorldPicker implements HudPanel {
         long picked = nearestUnit(sim, worldX, worldY);
         if (picked != 0L && sim.squad().hasSquad(picked)) {
             ctx.getSelection().selectUnit(sim.squad().squadId(picked), picked);
+            return;
+        }
+        // A capital hovers over the fight, so it is picked only where no unit was.
+        Warship ship = WarshipPilot.pick(sim.warships().ships(), worldX, worldY, Faction.MARINE);
+        if (ship != null) {
+            ctx.getSelection().selectWarship(ship);
         } else {
             ctx.getSelection().clear();
         }

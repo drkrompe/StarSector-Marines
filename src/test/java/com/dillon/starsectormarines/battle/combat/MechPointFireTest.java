@@ -312,6 +312,66 @@ class MechPointFireTest {
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
     }
 
+    @Test
+    void leftButtonFiresThePrimaryGroupAndRightButtonTheSecondaryGroupIndependently() {
+        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS,
+                MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5);
+        MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount left = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        MechWeaponMount right = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
+        f.weapons.tick(f.shooter, NORTH, true, false, 0);
+        assertEquals(arms.component.cycleSeconds() - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
+        assertEquals(0f, left.cycleRemaining, "the left button leaves the rockets alone");
+        assertEquals(left.component.ammoCapacity, left.ammo);
+        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        assertEquals(left.component.ammoCapacity - 1, left.ammo);
+        assertEquals(right.component.ammoCapacity - 1, right.ammo);
+        assertEquals(arms.component.ammoCapacity, arms.ammo);
+    }
+
+    @Test
+    void rightButtonAloneNeverFiresTheGunsAndBothButtonsTogetherFireEverything() {
+        Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
+        MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        assertEquals(0f, arms.cycleRemaining);
+        assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
+        Fixture both = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
+        both.weapons.tick(both.shooter, NORTH, true, true, 0);
+        assertTrue(both.loadout.mount(MechMountSlot.ARMS).cycleRemaining > 0f);
+        assertTrue(both.loadout.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
+    }
+
+    @Test
+    void numberKeyRepointsTheLeftButtonOnlyAndRightStaysSecondary() {
+        Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
+        MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        f.weapons.tick(f.shooter, NORTH, true, false, 2);
+        assertEquals(0f, arms.cycleRemaining, "key 3 moved the left button onto the left shoulder");
+        assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
+    }
+
+    @Test
+    void aSingleGroupChassisLeavesTheRightButtonIdle() {
+        Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, null, null);
+        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        assertTrue(f.shots.getActiveShots().isEmpty());
+        assertEquals(0f, f.loadout.mount(MechMountSlot.ARMS).cycleRemaining);
+    }
+
+    @Test
+    void releasingAGroupButtonLetsItsQueuedBurstFinishButAnotherSelectionDropsIt() {
+        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, MechWeaponComponent.SRM_5, null);
+        MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        assertEquals(1, srm.burstRemaining);
+        f.weapons.tick(f.shooter, NORTH, false, false, 0);
+        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, 0);
+        assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
+    }
+
     private static final class Fixture {
         final NavigationGrid grid = new NavigationGrid(128, 128);
         final UnitSpatialIndex index = new UnitSpatialIndex(128, 128);
@@ -336,6 +396,7 @@ class MechPointFireTest {
                     detonations, new Random() { @Override public float nextFloat() { return 0f; } });
         }
 
-        void fire(PointFireAim aim) { weapons.tick(shooter, aim, true); }
+        /** Both mouse buttons down: every point-fire mount is triggered. */
+        void fire(PointFireAim aim) { weapons.tick(shooter, aim, true, true, 0); }
     }
 }

@@ -52,6 +52,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Fence damage | `FenceDamageReskinTemplate`; matching edge roots, bent spans and open breaches | `templates/industrial-fence-damage.png`, `doodads/industrial-fence-damage*`, `doodads/fence-damage-sources/` | `fences` |
 | Wall rubble | `RubbleReskinTemplate`; broken roots retain former connectivity and leave ground exposed | `templates/colony-rubble.png`, `tilesets/colony-rubble.*` | `wall-rubble` |
 | Ground damage | `GroundDamageReskinTemplate`; local cracks/gouges over the original material, clear perimeter | `templates/colony-ground-damage.png`, `tilesets/colony-ground-damage.*` | `ground-damage` |
+| Ordinary terrain blast scars | `TerrainBlastTemplate`; four shallow earth/paving/metal scars with transparent cell boundaries | `templates/terrain-blast*.png`, `tilesets/terrain-blast.*` | `ground-damage` |
 | Forest canopies | `TreeCanopy` and `TreeReskinTemplate`; overhead rounded crowns, full foliage obstruction across 3-6 cells | `templates/forest-canopies.png`, `tilesets/forest-canopies.*`, `forests/` | `forest-brush` |
 | Crate damage | `CrateDamageReskinTemplate`; matching box/wood/metal silhouettes, broken panels and separated contents | `templates/crate-*.png`, `tilesets/crate-damage.*` | `crate-damage` |
 | Barrel damage | `BarrelDamageReskinTemplate`; matching drum groups, dented lids, open curved metal shells and separate scraps | `templates/barrel-*.png`, `tilesets/barrel-damage.*` | `barrel-damage` |

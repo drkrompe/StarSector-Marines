@@ -40,6 +40,35 @@ class BattleDirectControlInputTest {
     }
 
     @Test
+    void theRightButtonIsASecondTriggerHeldIndependentlyOfTheFirst() {
+        BattleDirectControlInput input = active();
+        BattleCamera camera = camera();
+        List<InputEventAPI> down = List.of(event(Kind.MOVE, 70, 60, 0), event(Kind.RIGHT_DOWN, 70, 60, 0));
+        process(input, down);
+        ManualIntent held = input.intent(camera, false, NO_CHROME);
+        assertTrue(held.secondary());
+        assertFalse(held.firing(), "the right button is not the primary trigger");
+        assertTrue(down.get(1).isConsumed(), "no world order is issued by it");
+        process(input, List.of(event(Kind.LEFT_DOWN, 70, 60, 0)));
+        ManualIntent both = input.intent(camera, false, NO_CHROME);
+        assertTrue(both.firing() && both.secondary());
+        process(input, List.of(event(Kind.RIGHT_UP, 70, 60, 0)));
+        ManualIntent left = input.intent(camera, false, NO_CHROME);
+        assertTrue(left.firing());
+        assertFalse(left.secondary());
+        assertFalse(input.intent(camera, true, NO_CHROME).secondary(), "paused, it fires nothing");
+    }
+
+    @Test
+    void aRightPressOverChromeNeverStartsTheSecondTrigger() {
+        BattleDirectControlInput input = active();
+        process(input, List.of(event(Kind.MOVE, 70, 60, 0)));
+        InputEventAPI press = event(Kind.RIGHT_DOWN, 70, 60, 0);
+        input.process(BattleDirectControlInput.capture(List.of(press)), () -> {}, () -> {}, (x, y) -> true);
+        assertFalse(input.intent(camera(), false, NO_CHROME).secondary());
+    }
+
+    @Test
     void releasesConsumedByChromeStillClearHeldControlsWithoutReadingConsumedHostValues() {
         BattleDirectControlInput input = active();
         process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_W),
@@ -470,7 +499,7 @@ class BattleDirectControlInputTest {
         input.process(BattleDirectControlInput.capture(events), () -> {}, () -> {}, NO_CHROME);
     }
 
-    private enum Kind { DOWN, UP, MOVE, LEFT_DOWN, LEFT_UP, RIGHT_DOWN }
+    private enum Kind { DOWN, UP, MOVE, LEFT_DOWN, LEFT_UP, RIGHT_DOWN, RIGHT_UP }
 
     private static InputEventAPI event(Kind kind, int x, int y, int key) {
         boolean[] consumed = {false};
@@ -488,6 +517,7 @@ class BattleDirectControlInputTest {
                         case "isLMBDownEvent" -> kind == Kind.LEFT_DOWN;
                         case "isLMBUpEvent" -> kind == Kind.LEFT_UP;
                         case "isRMBDownEvent" -> kind == Kind.RIGHT_DOWN;
+                        case "isRMBUpEvent" -> kind == Kind.RIGHT_UP;
                         case "getX" -> x;
                         case "getY" -> y;
                         case "getEventValue" -> key;

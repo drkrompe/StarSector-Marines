@@ -50,7 +50,7 @@ public final class BattleReviewFrameRenderer {
 
     /** GL-owned custom and ribbon decorations are deliberately absent — the Java2D drain cannot produce them. */
     private static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
-            RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.DOODADS,
+            RenderLayer.GROUND, RenderLayer.DECALS, RenderLayer.VEHICLES, RenderLayer.DOODADS,
             RenderLayer.UNITS, RenderLayer.HAZARDS, RenderLayer.SMOKE,
             RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
             RenderLayer.CONVOY, RenderLayer.SHUTTLES);

@@ -293,7 +293,7 @@
 		"battleDirectHudRating": "RATING",
 		"battleDirectHudExposed": "EXPOSED",
 		"battleDirectHudUnarmored": "UNARMORED",
-		"battleDirectHudAllDirect": "ALL [1]",
+		"battleDirectHudAllDirect": "L/R GROUPS [1]",
 		"battleDirectHudPrimary": "LMB FIRE",
 		"battleDirectHudSelectHint": "Select a mount · Hold LMB to fire when aimed",
 		"battleDirectHudAimHint": "Hold LMB to fire when aimed",

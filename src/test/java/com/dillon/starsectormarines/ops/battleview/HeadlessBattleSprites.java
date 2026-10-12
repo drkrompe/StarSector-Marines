@@ -296,9 +296,8 @@ final class HeadlessBattleSprites extends BattleSprites {
      * <p>Loaded here because the base class reaches it through
      * {@code Global.getSettings().openStream}, which is a stub headless, so a
      * headless decal pass had nothing to stamp and quietly cost nothing. The
-     * collected command stream is unchanged either way — the accumulator is a
-     * {@code CUSTOM} whether or not it has a sheet — so this only matters to a
-     * drain that actually runs it.
+     * standalone accumulator is GL-owned, while embedded hosts submit these
+     * same frames through the ordinary decal command path.
      */
     @Override public SpriteAPI decalSheet() { return decals; }
     @Override public SpriteSheetFrames decalFrames() { return decalFrames; }
