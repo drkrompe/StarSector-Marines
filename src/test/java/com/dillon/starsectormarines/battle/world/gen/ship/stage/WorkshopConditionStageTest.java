@@ -52,6 +52,16 @@ class WorkshopConditionStageTest {
                 assertTrue(room.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1));
             }
             boolean buried = state == WorkshopState.BURIED;
+            var seals = ctx.doodads.stream().filter(d -> SealedShipHatches.ART.equals(d.definitionId())).toList();
+            assertEquals(buried ? 1 : 0, seals.size());
+            if (buried) {
+                var seal = seals.get(0);
+                assertEquals(door.x(), seal.cellX);
+                assertEquals(door.y(), seal.cellY);
+                assertEquals(pose.quarterTurns() & 1, seal.quarterTurns);
+                assertFalse(grid.isSeeThrough(door.x(), door.y()));
+                assertTrue(topology.isWall(door.x(), door.y()));
+            }
             assertEquals(buried, has(ctx, "breach"));
             assertEquals(buried, has(ctx, "collapse"));
             assertEquals(!buried, has(ctx, "patch"));
@@ -81,6 +91,17 @@ class WorkshopConditionStageTest {
             assertEquals(intact.footprintCellsY, broken.footprintCellsY);
             assertEquals(intact.cover, broken.cover);
             assertEquals(intact.ballisticHalfHeight, broken.ballisticHalfHeight);
+        }
+    }
+
+    @Test void sealedHatchHasClosedLeavesAndTransparentMargins() throws Exception {
+        var image = ImageIO.read(Path.of("mod/graphics/tilesets/ship-sealed-hatches.png").toFile());
+        var hatch = TileRegistry.installed().doodad(SealedShipHatches.ART);
+        int x = hatch.col * 64, y = hatch.row * 64;
+        for (int across : new int[]{4, 16, 32, 48, 59}) {
+            assertTrue((image.getRGB(x + across, y + 32) >>> 24) >= 245, "Closed locking-bar silhouette");
+            assertTrue((image.getRGB(x + across, y + 4) >>> 24) < 40, "Keep top margin clear");
+            assertTrue((image.getRGB(x + across, y + 59) >>> 24) < 40, "Keep bottom margin clear");
         }
     }
 

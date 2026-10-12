@@ -82,7 +82,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                     if (conversion && state == BoatBayState.DAMAGED) {
                         var restored = ship.withBoatBay(BoatBayState.RESTORED);
                         var other = new ShipDeckGenerator();
-                        other.generateDeck(restored.deckPlan(), seed, restored.outline());
+                        var restoredMap = other.generateDeck(restored.deckPlan(), seed, restored.outline());
                         var after = other.getLastDeckGraph();
                         if (!layout(graph).equals(layout(after))) throw new AssertionError("Repair moved a compartment");
                         if (ship.deckPlan().frames() != restored.deckPlan().frames()
@@ -91,8 +91,17 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                         if (graph.apertures().size() != 1 || after.apertures().size() != 2)
                             throw new AssertionError("Repair must open exactly one sealed launch door");
                         var sealed = graph.compartments().stream().filter(r -> graph.damaged(r.id())).findFirst().orElseThrow();
-                        for (var door : sealed.doors()) if (map.grid.isWalkable(door.x(), door.y()))
-                            throw new AssertionError("Damaged bay hatch remains open");
+                        for (var door : sealed.doors()) {
+                            if (map.grid.isWalkable(door.x(), door.y()))
+                                throw new AssertionError("Damaged bay hatch remains open");
+                            if (map.doodads.stream().noneMatch(d -> d.cellX == door.x() && d.cellY == door.y()
+                                    && "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())))
+                                throw new AssertionError("Sealed entrance has no visible hatch");
+                            if (!restoredMap.grid.isWalkable(door.x(), door.y()))
+                                throw new AssertionError("Repair did not reopen the personnel hatch");
+                        }
+                        if (restoredMap.doodads.stream().anyMatch(d -> "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())))
+                            throw new AssertionError("Restored bay retained a sealed-hatch sprite");
                     }
                     if (conversion && seed == 42) {
                         if (state == BoatBayState.DAMAGED) {
@@ -106,6 +115,13 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                             deck.advance(1f / 30f);
                             if (deck.rooms().apertures().size() != (state == BoatBayState.DAMAGED ? 1 : 2))
                                 throw new AssertionError("Home deck cache returned the wrong bay condition");
+                            var bay = deck.rooms(RoomPurpose.HANGAR).get(1);
+                            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+                            frames.add(new SnapshotArtifact("bay-" + state.name().toLowerCase() + "-detail.png",
+                                    renderer.renderHostPass(deck.scene().pass(ShipDeckBattleScene.DeckView.over(bay, 2, 64),
+                                            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES)),
+                                            (bay.width() + 4) * 64, (bay.depth() + 4) * 64)));
                             for (float scale : new float[]{1f, 1.5f}) {
                                 frames.add(new SnapshotArtifact("bay-" + state.name().toLowerCase() + "-" + scale + ".png",
                                         UiSnapshotSuite.renderBayRestoration(context, deck, state == BoatBayState.RESTORED, 12000, true, scale)));
