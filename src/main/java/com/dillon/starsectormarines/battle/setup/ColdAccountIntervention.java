@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.story.ColdAccountStoryHooks;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public final class ColdAccountIntervention implements Objective {
     private final ColdAccountLayout layout;
     private final RaidObjective evidence;
     private final StoryBeatLog beats;
+    private final ColdAccountStoryHooks approach;
     private final List<int[]> walls = new ArrayList<>();
     private final WarshipOrder.FireOnArea strike;
     private Warship ship;
@@ -39,6 +42,7 @@ public final class ColdAccountIntervention implements Objective {
 
     public ColdAccountIntervention(BattleSimulation sim, ColdAccountLayout layout, StoryBeatLog beats) {
         this.layout = layout; this.beats = beats;
+        approach = new ColdAccountStoryHooks(beats);
         evidence = new RaidObjective("COLD-RECORDS", "dispatch office records", layout.evidenceX(),
                 layout.evidenceY(), sim.getZoneGraph().zoneIdAt(layout.evidenceX(), layout.evidenceY()),
                 layout.withdrawalX(), layout.withdrawalY());
@@ -76,8 +80,21 @@ public final class ColdAccountIntervention implements Objective {
     /** Called before the weapons update so a hold order cancels even queued burst rounds. */
     public void advance(BattleSimulation sim) {
         if (isComplete() || isFailed()) return;
-        if (!evidence.targetSecured()) return;
+        if (!evidence.targetSecured()) {
+            boolean landed = false, nearDispatch = false;
+            for (int i = 0; i < sim.liveUnitCount(); i++) {
+                long unit = sim.liveUnitAt(i);
+                if (sim.identity().faction(unit) != Faction.MARINE
+                        || sim.identity().type(unit) != UnitType.MARINE) continue;
+                landed = true;
+                if (Math.hypot(sim.world().x(unit) - layout.evidenceX(),
+                        sim.world().y(unit) - layout.evidenceY()) <= 14f) nearDispatch = true;
+            }
+            approach.observe(sim.getSimTickIndex(), landed, nearDispatch, false);
+            return;
+        }
         int tick = sim.getSimTickIndex();
+        approach.observe(tick, false, false, true);
         pendingArrivals = hasPendingArrivals(sim);
         companyRecovered = !pendingArrivals && sim.survivorPickup().complete(sim);
         if (phase == Phase.PATROL || phase == Phase.AFTERMATH) {

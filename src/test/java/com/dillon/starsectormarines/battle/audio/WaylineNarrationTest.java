@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.story.ColdAccountStoryHooks;
 import com.dillon.starsectormarines.battle.story.OpeningOperationStoryHooks;
 import com.dillon.starsectormarines.battle.story.JunctionStoryHooks;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryHooks;
@@ -60,7 +61,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(83, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(89, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 
@@ -91,6 +92,35 @@ class WaylineNarrationTest {
         assertTrue(line.terminal());
         assertTrue(line.voiced());
         assertTrue(line.speaker().contains("KORD"));
+    }
+
+    @Test void patrolExchangeKeepsTurnOrderAndCaptureRetiresUnspokenApproach() throws Exception {
+        var catalog = catalog();
+        String chapter = "story_corvus_cold_account";
+        var log = new StoryBeatLog();
+        var hooks = new ColdAccountStoryHooks(log);
+        hooks.observe(1, true, true, false);
+        var queue = new StoryNarrationQueue(catalog, chapter);
+        queue.advance(0, log.events(), false);
+        for (var event : log.events()) {
+            var line = queue.poll();
+            assertNotNull(line);
+            assertEquals(event.id(), line.event());
+            assertTrue(line.voiced());
+        }
+        assertNull(queue.poll());
+
+        queue = new StoryNarrationQueue(catalog, chapter);
+        queue.advance(0, log.events(), false);
+        assertEquals(ColdAccountStoryHooks.PREFIX + "patrol_hail", queue.poll().event());
+        log.emitOnce(2, ColdAccountStoryHooks.PREFIX + "pirate_evidence_confirmed", StoryBeatLog.Audience.PLAYER);
+        queue.advance(1, log.events(), false);
+        assertEquals(ColdAccountStoryHooks.PREFIX + "pirate_evidence_confirmed", queue.poll().event());
+        assertNull(queue.poll(), "No request for proof should play after proof was obtained");
+        for (var line : catalog.lines()) if (line.speaker().contains("KORD")) {
+            assertEquals("graphics/portraits/irena-kord.png", line.portrait());
+            assertTrue(Files.isRegularFile(Path.of("mod", line.portrait())));
+        }
     }
 
     @Test

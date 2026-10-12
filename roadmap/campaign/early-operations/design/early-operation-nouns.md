@@ -282,7 +282,14 @@ This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
 
 Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
-The voiced exchange starts with Mara presenting the archive as a favor.
+Her original painted portrait identifies her transmissions throughout the operation.
+The opening radio exchange has Mara request a patrol diversion and Kord require
+authenticated evidence before changing fleet orders for an unknown hired company.
+Mara identifies the dispatch archive as that evidence. Castle's actual landing
+and approach calls connect the request to securing the marked office. The opening
+turns share one ordered presentation queue; speech never delays the simulation,
+and capture retires any unspoken requests for proof or approach instructions.
+After capture, Mara presents the recovered archive as a favor.
 Kord accepts the intelligence and turns to gunnery without thanking the company
 or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
 and urgent extraction orders. Her established voice strains to keep control as

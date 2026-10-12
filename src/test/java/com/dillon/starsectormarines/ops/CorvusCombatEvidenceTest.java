@@ -425,8 +425,8 @@ class CorvusCombatEvidenceTest {
     }
 
     private static float replaySpeed(BattleSimulation sim) {
-        if (sim.getColdAccount() == null || sim.getColdAccount().evidenceTick() < 0) return 8f;
-        return 1f;
+        // Cold Account has mission speech throughout the approach as well as the intervention.
+        return sim.getColdAccount() == null ? 8f : 1f;
     }
 
     private void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {
