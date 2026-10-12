@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.engine.EngineStylePalette;
+import com.dillon.starsectormarines.battle.warship.MissileFlightSpec;
+import com.dillon.starsectormarines.battle.warship.MissilePath;
 import com.dillon.starsectormarines.battle.warship.VanillaBeamLook;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
 import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
+import com.dillon.starsectormarines.battle.warship.WarheadStrike;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipEngine;
 import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
@@ -43,8 +45,11 @@ public final class WarshipRenderSystem implements RenderSystem {
     private static final float MUZZLE_FLASH_SECONDS = 0.15f;
     /** Diameter of the glow under a slug's sprite, in cells. */
     private static final float BOLT_GLOW_CELLS = 1.4f;
-    private static final int TAIL_PUFFS = 8;
-    private static final float TAIL_SPACING_CELLS = 0.6f;
+    private static final int TAIL_PUFFS = 10;
+    /** The longest a missile's smoke is drawn behind it, in seconds, however long its spec lets a contrail hang. */
+    private static final float TRAIL_MAX_SECONDS = 1.2f;
+    private static final float SPLIT_FLASH_SECONDS = 0.35f;
+    private static final float STRIKE_STREAK_CELLS = 3f;
     private static final String GLOW = "graphics/fx/particlealpha64linear.png";
     private static final Color DEFAULT_FLASH = new Color(255, 225, 165);
     private static final Color PD_FRINGE = new Color(255, 200, 90);
@@ -96,6 +101,9 @@ public final class WarshipRenderSystem implements RenderSystem {
         }
         for (WarshipShell shell : ctx.sim.warships().shells()) {
             drawShell(out, cam, cellPx, ctx.alphaMult, shell);
+        }
+        for (WarheadStrike strike : ctx.sim.warships().strikes()) {
+            drawStrike(out, cam, cellPx, ctx.alphaMult, strike);
         }
         for (WarshipPointDefence.Mark mark : ctx.sim.warships().pointDefence().marks()) {
             drawEngagement(out, cam, cellPx, ctx.alphaMult, mark);
@@ -257,10 +265,10 @@ public final class WarshipRenderSystem implements RenderSystem {
 
     private void drawShell(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipShell shell) {
         VanillaWeapon w = shell.weapon;
-        float t = shell.progress();
-        float x = shell.fromX + (shell.toX - shell.fromX) * t;
-        float y = shell.fromY + (shell.toY - shell.fromY) * t;
-        float heading = AirBody.facingToward(shell.toX - shell.fromX, shell.toY - shell.fromY);
+        // The round is where its flight function says it is now, nose along the path's tangent.
+        float x = shell.x();
+        float y = shell.y();
+        float heading = shell.headingDegrees();
         ShuttleSpriteCache art = sprites.spriteByPath(w.projectileSprite());
         if (art != null) {
             float wPx = WarshipScale.cells(art.pxW) * cellPx * ROUND_VISUAL_SCALE;
@@ -306,28 +314,88 @@ public final class WarshipRenderSystem implements RenderSystem {
                 c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.7f * alpha);
     }
 
-    /** A missile's burning tail and the smoke it leaves, fading back along the line it has flown. */
+    /**
+     * A missile's flame at its tail and the smoke behind it. The smoke is the same
+     * flight function sampled at earlier times, so it hangs along the weave the
+     * missile actually flew and costs no state; its colours, lifetime and width
+     * are the projectile's own contrail spec, and its flame the engine slot's.
+     */
     private void drawMissileTail(DrawList out, BattleCamera cam, float cellPx, float alpha,
                                  WarshipShell shell, float x, float y) {
         ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
         if (glow == null) return;
-        float dx = shell.toX - shell.fromX;
-        float dy = shell.toY - shell.fromY;
-        float len = (float) Math.sqrt(dx * dx + dy * dy);
-        if (len < 0.001f) return;
-        float ux = dx / len;
-        float uy = dy / len;
-        float flown = shell.progress() * len;
+        MissileFlightSpec flight = shell.weapon.flight();
+        Color flame = flight != null && flight.engineColor() != null ? flight.engineColor() : MISSILE_FLAME;
+        Color smoke = flight != null && flight.contrailColor() != null ? flight.contrailColor() : MISSILE_SMOKE;
+        float smokeAlpha = smoke.getAlpha() / 255f;
+        float lifetime = Math.max(0.3f, Math.min(TRAIL_MAX_SECONDS, flight == null ? 0.6f : flight.contrailSeconds()));
+        float widthMult = flight == null ? 1f : Math.max(0.5f, Math.min(2.5f, flight.contrailWidthMult()));
+        MissilePath path = shell.path();
+        float now = shell.elapsed();
+        float span = Math.min(now, lifetime);
         for (int i = 0; i < TAIL_PUFFS; i++) {
-            float back = i * TAIL_SPACING_CELLS;
-            if (back > flown) break;
+            float back = span * i / TAIL_PUFFS;
             float fade = 1f - (float) i / TAIL_PUFFS;
-            float size = (0.9f + 0.2f * i) * cellPx * ROUND_VISUAL_SCALE * 2f;
-            Color c = i < 2 ? MISSILE_FLAME : MISSILE_SMOKE;
+            float size = (0.6f + 0.1f * i) * (float) Math.sqrt(widthMult) * cellPx * ROUND_VISUAL_SCALE * 2f;
+            Color c = i < 2 ? flame : smoke;
+            float a = i < 2 ? 0.6f : 0.4f * Math.max(0.35f, smokeAlpha);
             out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
-                    cam.cellToScreenX(x - ux * back), cam.cellToScreenY(y - uy * back),
+                    cam.cellToScreenX(path.x(now - back)), cam.cellToScreenY(path.y(now - back)),
                     size, size, 0f,
-                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.55f * fade * alpha);
+                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, a * fade * alpha);
         }
+        SpriteAPI flameSprite = sprites.engineFlameSprite();
+        if (flameSprite == null || flight == null) return;
+        // The nozzle burns while the motor does; the flame points back down the path.
+        if (now > flight.burnSeconds() && flight.burnSeconds() > 0f) return;
+        float heading = path.headingDegrees(now) + 180f;
+        double hr = Math.toRadians(heading);
+        float lenPx = Math.max(0.6f, WarshipScale.cells(flight.flameLengthPx())) * cellPx * 1.6f;
+        float widthPx = Math.max(0.3f, WarshipScale.cells(flight.flameWidthPx())) * cellPx * 1.4f;
+        float sx = cam.cellToScreenX(x);
+        float sy = cam.cellToScreenY(y);
+        float flicker = 0.85f + 0.15f * (float) Math.sin(engineClockSeconds * 47f + x * 3.1f);
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, flameSprite,
+                sx + (float) -Math.sin(hr) * lenPx * 0.5f, sy + (float) Math.cos(hr) * lenPx * 0.5f,
+                widthPx, lenPx * flicker, heading,
+                flame.getRed() / 255f, flame.getGreen() / 255f, flame.getBlue() / 255f, 0.9f * alpha);
+    }
+
+    /**
+     * A warhead a carrier has let go, crossing from the split point to where it will
+     * burst: a bright dart with a short streak behind it, and, for the first instants, the
+     * flash and smoke of the split itself. Presentation of a landing already decided.
+     */
+    private void drawStrike(DrawList out, BattleCamera cam, float cellPx, float alpha, WarheadStrike strike) {
+        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
+        if (glow == null) return;
+        Color c = strike.weapon.explosionColor() != null ? strike.weapon.explosionColor() : DEFAULT_FLASH;
+        float r = c.getRed() / 255f;
+        float g = c.getGreen() / 255f;
+        float b = c.getBlue() / 255f;
+        if (strike.age() < SPLIT_FLASH_SECONDS) {
+            float fade = 1f - strike.age() / SPLIT_FLASH_SECONDS;
+            float size = (2f + 6f * (1f - fade)) * cellPx;
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
+                    cam.cellToScreenX(strike.releaseX), cam.cellToScreenY(strike.releaseY), size, size, 0f,
+                    1f, 0.9f, 0.7f, 0.8f * fade * alpha);
+        }
+        float x = strike.x();
+        float y = strike.y();
+        float dx = strike.aimX - strike.releaseX;
+        float dy = strike.aimY - strike.releaseY;
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        float ux = len > 0.001f ? dx / len : 0f;
+        float uy = len > 0.001f ? dy / len : 0f;
+        float tail = Math.min(STRIKE_STREAK_CELLS, strike.progress() * len);
+        float width = Math.max(2f, 0.2f * cellPx);
+        float hx = cam.cellToScreenX(x);
+        float hy = cam.cellToScreenY(y);
+        float tx = cam.cellToScreenX(x - ux * tail);
+        float ty = cam.cellToScreenY(y - uy * tail);
+        out.addLine(RenderLayer.SHUTTLES, hx, hy, tx, ty, width, r, g, b, 0.75f * alpha);
+        out.addLine(RenderLayer.SHUTTLES, hx, hy, tx, ty, width * 0.4f, 1f, 1f, 1f, alpha);
+        float head = 1.3f * cellPx;
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, hx, hy, head, head, 0f, r, g, b, 0.85f * alpha);
     }
 }
