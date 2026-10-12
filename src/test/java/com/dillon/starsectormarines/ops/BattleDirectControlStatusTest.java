@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
+import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -114,6 +115,19 @@ class BattleDirectControlStatusTest {
         mount.ammo = 0;
         assertEquals(BattleDirectControlStatus.WeaponState.EMPTY,
                 BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{mount}).get(0).state());
+    }
+
+    @Test
+    void mechCardsNameTheMouseButtonsThatFireThem() {
+        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.NOSE_CHAINGUN);
+        var pod = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
+        var lrm = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_5);
+        var mounts = new MechWeaponMount[]{arms, pod, lrm};
+        var heat = new MechHeat();
+        assertEquals(List.of("L", "R", ""), BattleDirectControlStatus.mechWeapons(mounts, heat, 0)
+                .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
+        assertEquals(List.of("", "LR", ""), BattleDirectControlStatus.mechWeapons(mounts, heat, 2)
+                .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
     }
 
     @Test
