@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -37,6 +38,8 @@ public final class InstallationGround {
         int[] concrete = surfaces(ctx, Material.CONCRETE);
         int[] asphalt = surfaces(ctx, Material.ASPHALT);
         GroundKind margin = planet.inlandGround();
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        int marginSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(margin));
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             if ((!ground[x][y] && !circulation[x][y]) || building[x][y]
                     || ctx.topology.isWall(x, y) || ctx.topology.isFixture(x, y)
@@ -53,12 +56,12 @@ public final class InstallationGround {
                 ctx.topology.setSurface(x, y, concrete[age]);
             } else {
                 ctx.topology.setGroundKind(x, y, margin);
-                ctx.topology.setSurface(x, y, 0);
+                ctx.topology.setSurface(x, y, marginSurface);
             }
             ctx.topology.setNatureOverlayIndex(x, y, -1);
-            // Unpaved margins are maintained clear too: no later ridge or
-            // forest may grow across the installation's working ground.
-            ctx.markMadeGround(x, y);
+            // Explicit surfaces exclude later landscape on these exact cells.
+            // A made-ground reservation would also clear a two-cell halo outside
+            // the wall, moving obstacles and the mission's selected landing zone.
         }
     }
 

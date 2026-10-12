@@ -689,8 +689,12 @@ asphalt, its building aprons and cut access paths take concrete, and unused
 margins take the world's inland surface. Aprons follow actual wall rings,
 including concave building footprints. Existing pads, interior floors, windows,
 thresholds and wall materials keep their own treatment. Surface wear is a
-coordinate field and consumes no layout randomness; maintained yards reserve
-their clearance from later landscape placement.
+coordinate field and consumes no layout randomness. Authored surfaces keep
+later landscape off the working yard itself without clearing an extra halo
+outside its wall and moving the mission's landing approach.
+Frozen ground accepts the same defense footprints as other walkable outdoor
+ground; changing a margin's surface must not reroll emplacements and later
+spawn choices.
 
 Open country includes the thin scraps between a precinct's claim and its
 surroundings. A minimum-sized nature rectangle cannot cover them all, so the
