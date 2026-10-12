@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention.Phase;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -59,6 +61,9 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> objectiveFocusClasses;
     private final MutableSignal<String> objectiveFocus;
     private final MutableSignal<String> objectiveProgressStyle;
+    private final MutableSignal<String> objectiveLocateClasses;
+    private final MutableSignal<Boolean> objectiveLocateDisabled;
+    private Runnable locateObjective = () -> { };
     private final MutableSignal<String> commandPanelClasses;
     private final MutableSignal<String> commandPhase;
     private final MutableSignal<String> commandForce;
@@ -92,6 +97,8 @@ final class BattleHudOverlayModel {
         objectiveFocusClasses = reactor.signal(OBJECTIVE_FOCUS_HIDDEN);
         objectiveFocus = reactor.signal("");
         objectiveProgressStyle = reactor.signal("width: 0%;");
+        objectiveLocateClasses = reactor.signal("objective-locate objective-locate-hidden");
+        objectiveLocateDisabled = reactor.signal(true);
         commandPanelClasses = reactor.signal(COMMAND_PANEL_HIDDEN);
         commandPhase = reactor.signal("");
         commandForce = reactor.signal("");
@@ -129,6 +136,9 @@ final class BattleHudOverlayModel {
         props.put("objectiveFocusClasses", objectiveFocusClasses);
         props.put("objectiveFocus", objectiveFocus);
         props.put("objectiveProgressStyle", objectiveProgressStyle);
+        props.put("objectiveLocateClasses", objectiveLocateClasses);
+        props.put("objectiveLocateDisabled", objectiveLocateDisabled);
+        props.put("objectiveLocateAction", (Runnable) () -> locateObjective.run());
         props.put("commandPanelClasses", commandPanelClasses);
         props.put("commandPhase", commandPhase);
         props.put("commandForce", commandForce);
@@ -162,6 +172,9 @@ final class BattleHudOverlayModel {
                                  List<CaptureObjective> objectives,
                                  CommanderSnapshot<?> commander) {
         objectiveTitle.set("CAPTURE");
+        objectiveLocateClasses.set("objective-locate objective-locate-hidden");
+        objectiveLocateDisabled.set(true);
+        locateObjective = () -> { };
         setSelectedSpeed(speedMultiplier);
         List<CaptureObjective> stable = objectives == null ? List.of() : List.copyOf(objectives);
         boolean visible = !stable.isEmpty();
@@ -232,11 +245,44 @@ final class BattleHudOverlayModel {
         return new Presentation(visible, updateConquestCommand(commander));
     }
 
-    Presentation updateIntervention(String phase, String instruction, int remainingWalls, int initialWalls) {
-        objectiveTitle.set("HEGEMONY / " + phase);
+    /** Public objective state, independent of commander cadence and debug visibility. */
+    Presentation updateRaid(String targetName, RaidObjective.Phase phase,
+                            float progress, float duration, Runnable locate) {
+        boolean secured = phase == RaidObjective.Phase.EGRESS || phase == RaidObjective.Phase.COMPLETE;
+        boolean complete = phase == RaidObjective.Phase.COMPLETE;
+        objectiveTitle.set("MISSION OBJECTIVES");
+        objectivePanelClasses.set(OBJECTIVE_PANEL);
+        objectiveScore.set((complete ? 2 : secured ? 1 : 0) + " / 2");
+        objectiveChips.set(List.of(
+                new ObjectiveChip("battle-raid-seize", "1 / SEIZE" + (secured ? " / DONE" : " / ACTIVE"),
+                        "objective-chip objective-raid " + (secured ? "objective-secured" : "objective-contested")),
+                new ObjectiveChip("battle-raid-return", "2 / RETURN" + (complete ? " / DONE" : secured ? " / ACTIVE" : " / NEXT"),
+                        "objective-chip objective-raid " + (complete ? "objective-secured" : secured ? "objective-contested" : "objective-pending"))));
+        objectiveTally.set(targetName + (secured ? " / SECURED" : ""));
+        objectiveFocusClasses.set(OBJECTIVE_FOCUS);
+        objectiveFocus.set(switch (phase) {
+            case APPROACH -> "Secure site; hold " + Math.round(duration) + "s without enemies";
+            case SERVICE -> "Securing target / " + Math.round(clamp01(progress / duration) * 100) + "%";
+            case EGRESS -> "Target secured. Return to landing zone.";
+            case COMPLETE -> "Target recovered. Extraction complete.";
+        });
+        objectiveProgressStyle.set("width: " + Math.round(100 * (secured ? 1f : clamp01(progress / duration))) + "%;");
+        objectiveLocateClasses.set("objective-locate");
+        objectiveLocateDisabled.set(false);
+        locateObjective = locate;
+        return new Presentation(true, false);
+    }
+
+    Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls) {
+        objectiveTitle.set(phase == Phase.EVIDENCE ? "A COLD ACCOUNT" : "HEGEMONY / " + phase);
         objectivePanelClasses.set(OBJECTIVE_PANEL);
         objectiveScore.set("");
-        objectiveTally.set("PIRATE RECORDS > WITHDRAW > BOMBARD");
+        objectiveTally.set(switch (phase) {
+            case EVIDENCE -> "DISPATCH OFFICE / RECOVER RECORDS";
+            case WITHDRAW, WARNING, BOMBARD -> "CLEAR FIRING AREA > SHUTTLE PICKUP";
+            case PATROL, AFTERMATH, COMPLETE -> "COMPANY RECOVERED / STRONGHOLD SILENCED";
+            case FAILED -> "INTERVENTION FAILED";
+        });
         objectiveChips.set(List.of());
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(instruction);

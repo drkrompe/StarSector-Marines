@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — live campaign acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — staged interiors, transactions and UI verified; live walkthrough remains.
+Updated: 2026-10-12 — heavy damage art and pressure-patch restoration; live walkthrough remains.
 
 ## Outcome
 
@@ -14,7 +14,8 @@ indication, a reviewed bill, and the current workshop service.
 
 ## First chain
 
-- Clear workspace: 750 credits at a planetary yard; recover 10 metals once.
+- Clear workspace: 750 credits at a planetary yard; remove collapsed structure,
+  seal the breach with a pressure patch, and recover 10 metals once.
 - Repair machinery: 3,000 credits, including labor/parts; enable reclamation of
   one cargo heavy-machinery unit into four metals, with explicit confirmation.
 - Install tooling: 4,500 credits; reduce supplies costs by 20% for boat building,
@@ -61,11 +62,11 @@ across three seeds and all four workshop states, with ship-view renders at
 cover every stage, holding the seed, shuttle and damaged second bay constant.
 Mod-jar boundary verification passes.
 
-Visual storytelling still needs an art pass: the buried state's small repeated
-scrap piles look arranged, the machines look largely intact, and the differences
-are weak at full-ship scale. Clearance and the opened hatch read better up close;
-larger irregular wreckage and stronger machine damage should make the initial
-condition legible before relying on Castle's explanation.
+The damage art uses large collapsed ribs and plating, a torn opening to space,
+full-size broken lathe/mill sprites and scorch overlays. Clearance retains broken
+machines but replaces the breach with a welded patch; repair removes soot and
+restores machinery. The patch survives as a scar. Review legibility in the live
+ship view at the player's normal zoom as part of the remaining walkthrough.
 
 In a live campaign, complete Hold Until Relieved, visit a planetary spaceport,
 and use HQ's ship view to inspect and buy each stage. Confirm the visible room

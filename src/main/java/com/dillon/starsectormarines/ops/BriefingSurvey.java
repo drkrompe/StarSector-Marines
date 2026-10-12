@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.ops.battleview.ColdAccountMarkers;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -95,16 +96,24 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
             objectives.add("Escort the freight through the marked exit");
         }
         if (sim.getColdAccount() != null) {
-            var layout = sim.getColdAccount().layout();
-            markers.add(new Marker("WITHDRAW", layout.withdrawalX(), layout.withdrawalY(), false));
-            markers.add(new Marker("STRIKE", (int) layout.strikeX(), (int) layout.strikeY(), false));
-            objectives.add("Confirm pirate records, withdraw the whole company, then hold for bombardment");
+            var intervention = sim.getColdAccount();
+            for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout()))
+                markers.add(new Marker(marker.label(), (int) marker.x(), (int) marker.y(), false));
+            objectives.add(intervention.displayName());
         }
         for (Objective objective : sim.getObjectives()) {
             if (objective.owningFaction() != Faction.MARINE) continue;
             int x = -1, y = -1;
             if (objective instanceof ChargeSiteObjective site) { x = site.cellX(); y = site.cellY(); }
-            else if (objective instanceof RaidObjective raid) { x = raid.targetCellX(); y = raid.targetCellY(); }
+            else if (objective instanceof RaidObjective raid) {
+                if (sim.getColdAccount() != null) continue;
+                markers.add(new Marker("1 / SEIZE", raid.targetCellX(), raid.targetCellY(), false));
+                markers.add(new Marker("2 / RETURN", raid.egressCellX(), raid.egressCellY(), false));
+                objectives.add("1 / Seize " + raid.targetName() + "; hold uncontested for "
+                        + Math.round(raid.serviceDuration()) + " seconds");
+                objectives.add("2 / Return to the landing zone to extract");
+                continue;
+            }
             else if (objective instanceof ExtractionPayloadObjective payload) {
                 x = payload.sourceCellX(); y = payload.sourceCellY();
                 if (payload.egressCellX() >= 0 && payload.egressCellY() >= 0

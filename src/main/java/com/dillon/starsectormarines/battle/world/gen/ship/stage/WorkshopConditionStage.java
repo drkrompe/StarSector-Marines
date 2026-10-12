@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.HashSet;
-import java.util.ArrayList;
 
 /** Overlay after furnishing: neither placement nor any other room's random stream changes. */
 public final class WorkshopConditionStage implements GenStage {
@@ -32,26 +31,25 @@ public final class WorkshopConditionStage implements GenStage {
                     && (d.definitionId().equals("machine-shop.bar-stock")
                     || d.definitionId().equals("machine-shop.bearings")
                     || d.definitionId().equals("machine-shop.electrical")));
-        var damage = new ArrayList<Doodad>();
-        for (Doodad d : ctx.doodads) {
-            if (!room.contains(d.cellX, d.cellY) || d.definitionId() == null) continue;
-            if (!state.operational() && (d.definitionId().equals("machine-shop.lathe")
-                    || d.definitionId().equals("machine-shop.mill"))) {
-                var broken = tiles.doodad("doodad.industrial-machine-tool-damaged");
-                // The original machine still occupies its full physical footprint.
-                // Loose broken assemblies lie across it rather than shrinking the machine to a one-cell sprite.
-                if (broken != null) damage.add(new Doodad(d.cellX + d.footprintCellsX / 2,
-                        d.cellY + d.footprintCellsY / 2, broken, d.quarterTurns, d.mirrored));
-            }
-        }
-        ctx.doodads.addAll(damage);
         RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
+        // Full-size replacement sprites keep the original machine anchors, pose and collision.
+        if (!state.operational()) {
+            ctx.doodads.replaceAll(d -> {
+                if (!room.contains(d.cellX, d.cellY)) return d;
+                String replacement = "machine-shop.lathe".equals(d.definitionId()) ? "lathe"
+                        : "machine-shop.mill".equals(d.definitionId()) ? "mill" : null;
+                return replacement == null ? d : new Doodad(d.cellX, d.cellY,
+                        tiles.doodad("workshop-damage." + replacement), d.quarterTurns, d.mirrored);
+            });
+            // Soot sits beneath the equipment; cleanup removes it when the machines are repaired.
+            overlay(ctx, room, floor, 0, 0, "scorch", true, false);
+            overlay(ctx, room, floor, 7, 5, "scorch", true, true);
+        }
+        // The welded pressure patch remains as a scar even after the room is fully equipped.
+        overlay(ctx, room, floor, 4, 3, state == WorkshopState.BURIED ? "breach" : "patch", true, false);
         if (state == WorkshopState.BURIED) {
-            // Uneven accumulations around the machinery, leaving no evenly spaced decorative row.
-            for (int[] spot : new int[][]{{2, 3}, {3, 4}, {4, 3}, {7, 3}, {8, 4}, {9, 3}}) {
-                int[] local = floor.toLocal(spot[0], spot[1]);
-                floor.pave(local[0], local[1], "doodad.industrial-scrap-pile");
-            }
+            overlay(ctx, room, floor, 0, 3, "collapse", false, false);
+            overlay(ctx, room, floor, 8, 6, "collapse", false, true);
             for (var door : room.doors()) {
                 ctx.grid.setDoorway(door.x(), door.y(), false);
                 ctx.grid.setWalkable(door.x(), door.y(), false);
@@ -74,5 +72,25 @@ public final class WorkshopConditionStage implements GenStage {
         if (!state.operational()) damaged.add(room.id());
         ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(graph.compartments(), graph.unplaced(),
                 graph.apertures(), graph.boats(), damaged));
+    }
+
+    /** Apply after floor/wall finalization: a decompressed floor is forbidden, not a solid bulkhead. */
+    public static void restrictAccess(GenContext ctx, WorkshopState state) {
+        if (state != WorkshopState.BURIED) return;
+        var room = ctx.get(ShipKeys.DECK_GRAPH).largest(RoomPurpose.PARTS_CAGE);
+        for (int y = room.top(); y <= room.bottom(); y++)
+            for (int x = room.left(); x <= room.right(); x++)
+                if (room.contains(x, y)) ctx.grid.setWalkable(x, y, false);
+    }
+
+    private static void overlay(GenContext ctx, DeckGraph.Compartment room, RoomFloor floor,
+                                int x, int y, String name, boolean underneath, boolean flipped) {
+        var def = TileRegistry.installed().doodad("workshop-damage." + name);
+        if (def == null) throw new IllegalStateException("Missing workshop damage art: " + name);
+        int[] rect = floor.toLocalRect(x, y, def.footprintCellsX, def.footprintCellsY);
+        var d = new Doodad(room.left() + rect[0], room.top() + rect[1], def,
+                room.pose().quarterTurns(), room.pose().mirrored() ^ flipped);
+        if (underneath) ctx.doodads.add(0, d);
+        else ctx.doodads.add(d);
     }
 }

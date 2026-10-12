@@ -49,6 +49,12 @@ public record RaidTargetLayout(
 
     public static RaidTargetLayout select(MapResult map,
                                           List<LandingPad> landingPads) {
+        return select(map, landingPads, null);
+    }
+
+    /** A chapter may require a specific kind of building for its authored target. */
+    public static RaidTargetLayout select(MapResult map, List<LandingPad> landingPads,
+                                          PointOfInterest.Kind requiredKind) {
         Objects.requireNonNull(map, "map");
         Objects.requireNonNull(landingPads, "landingPads");
         if (landingPads.isEmpty()) {
@@ -57,11 +63,17 @@ public record RaidTargetLayout(
         LandingPad egress = landingPads.get(0);
         Candidate selected = map.pointsOfInterest.stream()
                 .filter(poi -> poi.kind != PointOfInterest.Kind.RESIDENTIAL)
+                .filter(poi -> requiredKind == null || poi.kind == requiredKind)
                 .filter(poi -> isOnDefenderSide(map, poi))
                 .filter(poi -> map.grid.inBounds(poi.interiorAnchorX,
                         poi.interiorAnchorY))
                 .filter(poi -> map.grid.isWalkable(poi.interiorAnchorX,
                         poi.interiorAnchorY))
+                // An exterior fallback is useful to patrols, but cannot host an indoor prize.
+                .filter(poi -> poi.interiorAnchorX >= poi.left && poi.interiorAnchorX <= poi.right
+                        && poi.interiorAnchorY >= poi.top && poi.interiorAnchorY <= poi.bottom)
+                .filter(poi -> !map.grid.isDoorway(poi.interiorAnchorX, poi.interiorAnchorY))
+                .filter(poi -> map.topology.getBuildingId(poi.interiorAnchorX, poi.interiorAnchorY) != 0)
                 .map(poi -> candidate(map, egress, poi))
                 .filter(Objects::nonNull)
                 .max(Comparator.comparingInt(Candidate::distanceFromEgressSquared)

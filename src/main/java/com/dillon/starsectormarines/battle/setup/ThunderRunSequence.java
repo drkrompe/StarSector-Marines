@@ -77,7 +77,7 @@ public final class ThunderRunSequence {
     public List<Integer> cargoIdentities() { return attempt.cargo(); }
     public List<String> cargoStates() {
         return attempt.cargo().stream().map(i -> delivered.contains(i) ? "DELIVERED" : lost.contains(i) ? "LOST"
-                : attempt.cargo().indexOf(i) < Math.min(phase, 2) || releasedCargo.contains(i) ? "IN_TRANSIT" : "WAITING").toList();
+                : phase >= 2 || attempt.cargo().indexOf(i) < phase || releasedCargo.contains(i) ? "IN_TRANSIT" : "WAITING").toList();
     }
     public int deliveredCount() { return delivered.size(); }
     public int lostCount() { return lost.size(); }
@@ -175,7 +175,7 @@ public final class ThunderRunSequence {
             if (phase < 3) {
                 int ordinal = 0;
                 for (long id : cargo.values()) {
-                    if (ordinal++ < phase) order(sim, id);
+                    if (ordinal++ == 0 || phase == 2) order(sim, id);
                 }
                 order(sim, advanceHauler);
                 beat(sim, phase == 1 ? "defend_dispatch" : "defend_crossing");
@@ -214,12 +214,14 @@ public final class ThunderRunSequence {
     }
     private void releaseBatches(BattleSimulation sim) {
         for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++) {
-            if (!pacing.takeBatch(batch, phase, currentTick - phaseTick)) continue;
+            if (!pacing.takeBatch(batch, phase, currentTick)) continue;
             int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
             int start = batch * ThunderRunPacing.RAIDERS_PER_BATCH;
             for (int i = start; i < start + ThunderRunPacing.RAIDERS_PER_BATCH; i++) sim.spawn(reserve.get(i).squad(squad));
             sim.getSquad(squad).originalSize = ThunderRunPacing.RAIDERS_PER_BATCH;
-            int targetX = phase == 0 ? 117 : phase == 1 ? 105 : phase == 2 ? 181 : 275;
+            int attackPhase = ThunderRunPacing.batchPhase(batch);
+            int targetX = attackPhase == 0 ? 117 : attackPhase == 1 ? 133
+                    : attackPhase == 2 ? (ThunderRunPacing.usesOutboundRoad(batch) ? 245 : 172) : 275;
             sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, targetX, 75, 18),
                     CommandAuthority.SCRIPTED, "thunder-run-road-raiders", "interdict the authored freight crossing");
             log.emitOnce(currentTick, "supply_route.thunder_run.road_batch_" + batch,

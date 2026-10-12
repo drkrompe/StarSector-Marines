@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 - fixed workshop restoration stages and their visible working fixtures.
+Updated: 2026-10-12 - heavy workshop damage, pressure exclusion and a persistent repair scar.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1509,7 +1509,13 @@ A damaged facility can have several useful stages within its permanent footprint
 Second Wind's main machine shop begins buried, becomes accessible after clearance,
 regains working machinery after repair, and gains installed tools afterward.
 The main shop is the largest parts-work compartment, distinct from small utility
-parts closets. Debris, damaged machinery, empty picking racks and the restored
+parts closets. A torn deck breach, collapsed ribs, broken full-size machines,
+and soot make the initial compartment visibly uninhabitable. Its sealed hatch
+and excluded floor keep crew out. Clearance removes the collapse and seals
+the breach with a welded patch before restoring access. Machinery repair removes
+scorch marks and replaces broken equipment; the patch remains as a repair scar.
+These are hull-owned interior conditions, not a simulated atmosphere system.
+Debris, damaged machinery, empty picking racks and the restored
 assembly tools express those stages in the ordinary generated deck. The closed
 shop provides no work postings; restored stations offer appropriate reachable
 jobs, with fabrication postings returning when tooling is installed.
