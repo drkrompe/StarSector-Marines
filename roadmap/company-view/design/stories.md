@@ -1,13 +1,15 @@
 # Company view open work
 
-Status: ACTIVE — 13 open stories
+Status: ACTIVE — 15 open stories
 Written: 2026-08-23
-Updated: 2026-10-11 — Castle's first-command induction added to the Alpha pickup.
+Updated: 2026-10-11 - cohesive ship-to-mission preparation; boat repairs tracked separately.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
+| `first-mission-preparation.md` | Implemented; live acceptance open | Ship and combined stores preflight, paid lift, Mira, full squad and first Jangala story handoff. |
+| `boat-condition-and-repairs.md` | Planned | Persist surviving damage, price explicit repairs and teach the first damaged return. |
 | `barracks-turnaround.md` | In progress | Alpha pickup: explicit survivor consolidation, replenishment, preparation navigation and castellan guidance; WIA keep billets. |
 | `company-resource-bills.md` | Planned | Follow turnaround with one Cost / Available / Short by presentation across company rooms. |
 | `c2-formation-model.md` | Planned | Defines the shared read model required by C3 and C4. |

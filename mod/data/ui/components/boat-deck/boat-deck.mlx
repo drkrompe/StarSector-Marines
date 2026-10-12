@@ -58,7 +58,9 @@
             </div>
           </div>
           <div id="boat-fabrication-reason" class="label heading tone-muted catalog-reason">{fabricationReason}</div>
-          <button id="boat-fabricate" class="{fabricationActionClasses}" disabled="{fabricationBlocked}" onclick="{fabricate}">FABRICATE</button>
+          <div id="boat-fabrication-actions" class="boat-fabrication-actions">
+            <button id="boat-fabricate" class="{fabricationActionClasses}" disabled="{fabricationBlocked}" onclick="{fabricate}">COMMISSION</button>
+          </div>
         </div>
       </div>
 
@@ -164,7 +166,8 @@
   .fabrication-yard { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 7px; gap: 5px; overflow: hidden; }
   .fabrication-copy { width: 100%; height: 40px; white-space: normal; overflow: hidden; }
   .fabrication-costs { flex-direction: column; width: 100%; height: 56px; gap: 2px; overflow: hidden; }
-  .fabricate-action { width: 100%; height: 30px; text-align: center; }
+  .boat-fabrication-actions { flex-direction: row; height: 32px; }
+  .fabricate-action { width: 160px; height: 30px; text-align: center; }
   .fabricate-action.blocked { border-color: #8f3f44; background-color: #251419; }
 
   .boat-fitting { flex-direction: row; width: 800px; gap: 7px; overflow: hidden; }

@@ -1,6 +1,12 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
+import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.marine.CompanyPreparation;
+import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.InteriorChange;
@@ -93,6 +99,8 @@ public final class ShipTransferViewModel {
     private final Supplier<CompanyShipDesignation.Home> home;
     private final Consumer<String> moveAboard;
     private final CompanyMeans means;
+    private MarineRoster preparationRoster;
+    private FabricationResources preparationResources = FabricationResources.NONE;
     private final Map<String, ShipInterior> interiors = new HashMap<>();
     /** Hulls being laid out off this thread, by ship id. @see #advance() */
     private final Map<String, CompletableFuture<Laid>> laying = new LinkedHashMap<>();
@@ -125,6 +133,8 @@ public final class ShipTransferViewModel {
                 CompanyShipDesignation::home,
                 ShipTransferViewModel::designate,
                 CompanyMeans.ofPlayer());
+        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        preparation(script == null ? null : script.roster(), new CampaignFabricationResources());
     }
 
     public ShipTransferViewModel(Reactor reactor, Supplier<List<Candidate>> fleet,
@@ -279,6 +289,7 @@ public final class ShipTransferViewModel {
     public void commit() {
         Candidate ship = selected();
         if (ship == null || isHome(ship) || !ship.quarters()) return;
+        if (preparationBlocked()) return;
         TransferCost price = costOf(ship);
         if (price.credits() > means.credits()) return;
         means.charge(price.credits());
@@ -457,6 +468,7 @@ public final class ShipTransferViewModel {
         revision.get();
         Candidate ship = selected();
         if (ship == null || isHome(ship)) return "";
+        if (preparationBlocked()) return "First-mission stores or boat berth missing. Castle's lesson shows the complete bill.";
         TransferCost price = costOf(ship);
         if (price.free()) {
             return unquartered() ? "No charge. There is nowhere to move out of." : "";
@@ -483,7 +495,35 @@ public final class ShipTransferViewModel {
 
     /** Whether the purse covers the move the player is looking at. */
     private boolean affordable() {
-        return selectedCost().credits() <= means.credits();
+        return !preparationBlocked() && selectedCost().credits() <= means.credits();
+    }
+
+    /** Supplies are checked here and again by designation; nothing is reserved or spent. */
+    public void preparation(MarineRoster roster, FabricationResources resources) {
+        preparationRoster = roster;
+        preparationResources = resources;
+        refresh();
+    }
+
+    public boolean preparationBlocked() {
+        if (!CompanyPreparation.required(preparationRoster)) return false;
+        Candidate ship = selected();
+        return ship == null || !ship.quarters() || !CompanyPreparation.canPrepare(preparationRoster,
+                ShipsBoats.carriedBy(ship.ship().role()), ShipsBoats.aboard(ship.ship()).size(), preparationResources);
+    }
+
+    public String preparationBill() {
+        Candidate ship = selected();
+        if (ship == null || !ship.quarters()) return "Select a ship with company quarters and a boat bay.";
+        if (ShipsBoats.aboard(ship.ship()).isEmpty()) return "This hull has no boat berth. Choose a ship with a hangar.";
+        StringBuilder text = new StringBuilder("FIRST MISSION STORES   Cost / Available / Short by\n");
+        for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship().role()))) {
+            int available = preparationResources.available(line.commodityId());
+            text.append(preparationResources.commodityName(line.commodityId())).append(": ")
+                    .append(line.quantity()).append(" / ").append(available).append(" / ")
+                    .append(Math.max(0, line.quantity() - available)).append('\n');
+        }
+        return text.append("Checked now; each workshop spends only when you confirm its order.").toString();
     }
 
     /**
