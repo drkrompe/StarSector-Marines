@@ -377,7 +377,7 @@ public final class MechLabViewModel {
             return true;
         }
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
-        return bay.canFabricate(component) && recipe != null && resources.canAfford(recipe.cost());
+        return bay.canFabricate(component) && recipe != null && resources.canAfford(resources.quote(recipe.cost()));
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -705,7 +705,7 @@ public final class MechLabViewModel {
             boolean installed = mech.weaponAt(mount) == component;
             boolean inCargo = free > 0;
             boolean fabricate = !inCargo;
-            boolean affordable = resources.canAfford(recipe.cost());
+            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             boolean locked = !bay.canFabricate(component);
             boolean disabled = installed || !fits || fabricate && (locked || !affordable);
 
@@ -744,7 +744,7 @@ public final class MechLabViewModel {
 
             String base = "mech-catalog:" + component.id;
             boolean showMaterials = !inCargo && !installed && fits && !locked;
-            List<MaterialRow> materials = showMaterials ? materialRows(base, recipe.cost()) : List.of();
+            List<MaterialRow> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
@@ -778,7 +778,7 @@ public final class MechLabViewModel {
         List<CatalogRow> rows = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
             if (!bay.canFabricate(recipe.variant())) continue;
-            boolean affordable = resources.canAfford(recipe.cost());
+            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
@@ -795,7 +795,7 @@ public final class MechLabViewModel {
                     !hasSpace ? "This workshop has no vacant gantry."
                             : !affordable ? "Not enough materials. Hover a cost for its shortfall."
                             : "Build this chassis into the vacant gantry.",
-                    !hasSpace || !affordable, materialRows(base, recipe.cost()), "material-costs",
+                    !hasSpace || !affordable, materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> fabricateChassis(variant)));
         }
         return List.copyOf(rows);

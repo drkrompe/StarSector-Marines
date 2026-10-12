@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
@@ -29,8 +33,8 @@ import java.util.Map;
  * armory, and how much of her is passage, none of which survive being cropped
  * to one room.
  *
- * <p>Passive by design. Nothing here is commanded and nothing is selected; the
- * watch goes about its business and the player watches it. See
+ * <p>The watch goes about its business. The restoration panel offers inspection
+ * and yard work for the starting hull's machine shop. See
  * {@link ShipViewCanvas}.
  *
  * <p>The camera and the gestures that fly it are the same ones the battle uses
@@ -58,6 +62,9 @@ public final class ShipViewScreen implements Screen {
     private StarsectorUiInputAdapter input;
     private ShipViewCanvas deck;
     private UiElement deckElement;
+    private CompanyDeck shownDeck;
+    private WorkshopRestorationModel workshop;
+    private boolean deckChanged;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -71,6 +78,14 @@ public final class ShipViewScreen implements Screen {
             ctx.goTo(ScreenId.SHIP_TRANSFER);
             return;
         }
+        var ship = CompanyShipDesignation.aboard();
+        var script = MarineRosterScript.getInstance();
+        var roster = script == null ? null : script.roster();
+        workshop = new WorkshopRestorationModel(reactor,
+                () -> CompanyWorkshopRestoration.offer(ship, roster),
+                state -> CompanyWorkshopRestoration.advance(ship, roster, state),
+                () -> CompanyWorkshopRestoration.reclaim(ship, roster),
+                this::inspectWorkshop, () -> deckChanged = true);
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -88,7 +103,8 @@ public final class ShipViewScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
-            deck = new ShipViewCanvas(context.companyDeck());
+            shownDeck = context.companyDeck();
+            deck = new ShipViewCanvas(shownDeck);
             deckElement = candidate.requireElement("ship-view-deck");
             built.canvases().set(deckElement, deck);
             if (viewport != null) {
@@ -109,6 +125,7 @@ public final class ShipViewScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("workshop", workshop.row());
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
         props.put("roomCopy", "Drag to look around her. Wheel to close in, WASD to walk the view.");
         props.put("contextLabel", "COMPANY SHIP / UNDERWAY");
@@ -123,12 +140,26 @@ public final class ShipViewScreen implements Screen {
         return props;
     }
 
+    private void inspectWorkshop() {
+        if (deck != null) deck.focus(RoomPurpose.PARTS_CAGE);
+    }
+
     private void close() {
         if (dismissDialog != null) dismissDialog.run();
     }
 
     @Override
     public void advance(float dt) {
+        if (deckChanged && context != null && document != null) {
+            deckChanged = false;
+            shownDeck = context.companyDeck();
+            if (shownDeck != null) {
+                deck = new ShipViewCanvas(shownDeck);
+                inspectWorkshop();
+                document.canvases().set(deckElement, deck);
+            }
+        }
+        if (workshop != null) workshop.refresh();
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard);
         if (document != null) document.advance(dt);

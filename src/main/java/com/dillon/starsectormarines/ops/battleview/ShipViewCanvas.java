@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
@@ -66,6 +67,10 @@ public final class ShipViewCanvas implements CanvasProducer {
 
     private final CompanyDeck ship;
     private BattleCamera camera;
+    private RoomPurpose focus;
+
+    /** Applied on draw, when the generated deck and viewport are both ready. */
+    public void focus(RoomPurpose purpose) { focus = purpose; }
     /**
      * The host rectangle the deck was last drawn into, or null before the first
      * frame. Held so the screen flying the camera can put a pointer into the
@@ -157,6 +162,16 @@ public final class ShipViewCanvas implements CanvasProducer {
         camera.setViewport(rect.screenX(), rect.screenY(),
                 rect.width(), rect.height(), baseCell);
 
+        if (focus != null) {
+            var room = ship.room(focus);
+            if (room != null) {
+                float target = Math.min(rect.width() / (room.width() + 8f), rect.height() / (room.depth() + 8f));
+                camera.zoomAt((float) (Math.log(target / camera.cellPxSize()) / Math.log(1.2)),
+                        rect.screenX() + rect.width() / 2f, rect.screenY() + rect.height() / 2f);
+                camera.centerOn(room.originX() + room.width() / 2f, room.originY() + room.depth() / 2f);
+            }
+            focus = null;
+        }
         drawHull(context, rect, cellsAcross, cellsDown);
 
         ShipDeckBattleScene.DeckView view = new ShipDeckBattleScene.DeckView(

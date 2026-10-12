@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.start;
 
 import com.fs.starfarer.api.Global;
+import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -190,6 +191,85 @@ class CompanyYardTest {
         assertNotNull(CompanyBayRestoration.refusal(true, BoatBayState.DAMAGED, false, true, false, true, 9000));
         assertNotNull(CompanyBayRestoration.refusal(true, BoatBayState.DAMAGED, true, true, true, true, 9000));
         assertNull(CompanyBayRestoration.refusal(true, BoatBayState.DAMAGED, true, true, false, true, 8000));
+    }
+
+    @Test void workshopOrdersAreSequentialSavedAndBoundToTheActiveHome() throws Exception {
+        SectorAPI previous = Global.getSector();
+        MutableValue credits = new MutableValue(20000);
+        Map<String, Float> stock = new HashMap<>(Map.of("metals", 0f, "heavy_machinery", 2f));
+        float[] space = {30};
+        var cargo = stub(CargoAPI.class, Map.of("getCredits", credits,
+                "getSpaceLeft", (Function<Object[], Object>) a -> space[0],
+                "getCommodityQuantity", (Function<Object[], Object>) a -> stock.getOrDefault(a[0], 0f),
+                "addCommodity", (Function<Object[], Object>) a -> {
+                    float n = ((Number) a[1]).floatValue(); stock.merge((String) a[0], n, Float::sum); space[0] -= n; return null; },
+                "removeCommodity", (Function<Object[], Object>) a -> {
+                    float n = ((Number) a[1]).floatValue(); stock.merge((String) a[0], -n, Float::sum); space[0] += n; return null; }));
+        var ship = stub(FleetMemberAPI.class, Map.of("getId", "starter",
+                "getVariant", stub(ShipVariantAPI.class, Map.of("hasHullMod", true)),
+                "getHullSpec", stub(ShipHullSpecAPI.class, Map.of("getBaseHullId", "cerberus"))));
+        var owned = new ArrayList<>(List.of(ship));
+        var fleet = stub(CampaignFleetAPI.class, Map.of("getCargo", cargo,
+                "getFleetData", stub(FleetDataAPI.class, Map.of("getMembersListCopy", owned))));
+        var faction = stub(FactionAPI.class, Map.of("isHostileTo", false));
+        Map<String, Object> planetData = new HashMap<>();
+        var planet = stub(PlanetAPI.class, planetData);
+        var industry = stub(Industry.class, Map.of("isFunctional", true,
+                "getSpec", stub(IndustrySpecAPI.class, Map.of("hasTag", true))));
+        planetData.put("getMarket", stub(MarketAPI.class, Map.of("getPlanetEntity", planet,
+                "getFaction", faction, "getIndustries", List.of(industry))));
+        Map<String, Object> ui = new HashMap<>();
+        Map<String, Object> saved = new HashMap<>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter"));
+        MarineRoster roster = new MarineRoster();
+        roster.setCompanyShip("starter", "Second Wind", 75);
+        try {
+            Global.setSector(stub(SectorAPI.class, Map.of("getPersistentData", saved, "getPlayerFleet", fleet,
+                    "getPlayerFaction", faction, "getCampaignUI", stub(CampaignUIAPI.class, ui))));
+            assertEquals(WorkshopState.BURIED, CompanyWorkshopRestoration.state(ship));
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.BURIED));
+            roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.BURIED));
+            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
+            space[0] = 9;
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.BURIED));
+            assertEquals(20000, credits.get());
+            space[0] = 30;
+            assertNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.BURIED));
+            assertEquals(19250, credits.get());
+            assertEquals(10f, stock.get("metals"));
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.BURIED));
+            assertNotNull(CompanyWorkshopRestoration.reclaim(ship, roster));
+            credits.set(2999);
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.CLEARED));
+            credits.set(19250);
+            owned.clear();
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.CLEARED));
+            owned.add(ship);
+            assertNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.CLEARED));
+            ui.clear(); // Reclamation is available underway after repairing.
+            assertNull(CompanyWorkshopRestoration.reclaim(ship, roster));
+            assertEquals(1f, stock.get("heavy_machinery"));
+            assertEquals(14f, stock.get("metals"));
+            space[0] = 2;
+            assertNotNull(CompanyWorkshopRestoration.reclaim(ship, roster));
+            assertEquals(1f, stock.get("heavy_machinery"));
+            space[0] = 30;
+            roster.setCompanyShip("another", "Elsewhere", 100);
+            assertNotNull(CompanyWorkshopRestoration.reclaim(ship, roster));
+            roster.setCompanyShip("starter", "Second Wind", 75);
+            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
+            assertNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.REPAIRED));
+            assertEquals(11750, credits.get());
+            assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.REPAIRED));
+            var bytes = new ByteArrayOutputStream();
+            try (var out = new ObjectOutputStream(bytes)) { out.writeObject(saved); }
+            saved.clear();
+            try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+                ((Map<?, ?>) in.readObject()).forEach((k, v) -> saved.put((String) k, v));
+            }
+            assertEquals(WorkshopState.EQUIPPED, CompanyWorkshopRestoration.state(ship));
+            assertEquals(14f, stock.get("metals"), "Opening/reloading never repeats clearance salvage");
+        } finally { Global.setSector(previous); }
     }
 
     @SuppressWarnings("unchecked")

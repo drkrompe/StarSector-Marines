@@ -142,7 +142,7 @@ public final class BoatDeckViewModel {
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
             return recipe == null ? List.of()
-                    : materialRows("boat-fabrication", recipe.bill());
+                    : materialRows("boat-fabrication", resources.quote(recipe.bill()));
         });
         materialStock = reactor.computed(this::buildMaterialStock);
         fabricationActionClasses = reactor.computed(() -> affordableToBuild()
@@ -150,8 +150,8 @@ public final class BoatDeckViewModel {
         fabricationBlocked = reactor.computed(() -> !affordableToBuild());
         fabricationReason = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            if (recipe == null || resources.canAfford(recipe.bill())) return "";
-            return "SHORT " + shortest(recipe.bill());
+            if (recipe == null || resources.canAfford(resources.quote(recipe.bill()))) return "";
+            return "SHORT " + shortest(resources.quote(recipe.bill()));
         });
     }
 
@@ -332,8 +332,8 @@ public final class BoatDeckViewModel {
             // A standard fitting is what the boat left the yard with and costs
             // nothing to put back, so the only thing that can stop it is
             // already being on.
-            boolean affordable = fitting.bill() == null
-                    || resources.canAfford(fitting.bill());
+            boolean affordable = resources.quote(fitting.bill()) == null
+                    || resources.canAfford(resources.quote(fitting.bill()));
             String base = "boat-catalog:" + fitting.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":line",
                     base + ":tier",
@@ -342,10 +342,10 @@ public final class BoatDeckViewModel {
                     installed ? "catalog-row selected" : "catalog-row",
                     fitting.displayName(), tierLabel(fitting), effect(fitting),
                     fitting.provenance(),
-                    installed ? "FITTED" : affordable ? "" : "SHORT " + shortest(fitting.bill()),
+                    installed ? "FITTED" : affordable ? "" : "SHORT " + shortest(resources.quote(fitting.bill())),
                     "FIT",
                     installed || !affordable,
-                    materialRows(base, fitting.bill()),
+                    materialRows(base, resources.quote(fitting.bill())),
                     () -> fit(fitting.id())));
         }
         return List.copyOf(rows);
@@ -470,7 +470,7 @@ public final class BoatDeckViewModel {
 
     private boolean affordableToBuild() {
         BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-        return recipe != null && resources.canAfford(recipe.bill());
+        return recipe != null && resources.canAfford(resources.quote(recipe.bill()));
     }
 
     /** What a vacant berth would be built back up as, for its card. */
@@ -487,7 +487,7 @@ public final class BoatDeckViewModel {
                 BoatFabricationCatalog.recipe(deck.pattern());
         if (recipe == null) return "";
         StringBuilder bill = new StringBuilder();
-        for (FabricationCost.Line line : recipe.bill().lines()) {
+        for (FabricationCost.Line line : resources.quote(recipe.bill()).lines()) {
             if (bill.length() > 0) bill.append("  ·  ");
             bill.append(resources.commodityName(line.commodityId()))
                     .append(' ').append(line.quantity());

@@ -1,4 +1,4 @@
-<template props="roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -8,8 +8,34 @@
       <div id="ship-view-room-copy" class="label tone-muted">{roomCopy}</div>
     </div>
 
+    <div id="ship-view-body" class="ship-view-body">
     <div id="ship-view-stage" class="panel ship-view-stage console-well">
       <canvas id="ship-view-deck" class="ship-view-deck" width="1600" height="900" />
+    </div>
+    <div id="workshop-restoration" class="{workshop.classes}">
+      <div id="workshop-officer" class="officer-row">
+        <img id="workshop-portrait" class="officer-portrait" src="{workshop.portrait}" />
+        <div id="workshop-officer-title" class="label heading tone-accent officer-title">CASTLE / COMPANY OFFICER</div>
+      </div>
+      <div id="workshop-title" class="label heading tone-accent workshop-title">{workshop.title}</div>
+      <img id="workshop-progress" class="workshop-progress" src="{workshop.progress}" />
+      <div id="workshop-copy" class="label wrapped workshop-copy">{workshop.copy}</div>
+      <div id="workshop-benefit" class="label wrapped workshop-benefit tone-edge">{workshop.benefit}</div>
+      <div id="workshop-bill" class="label wrapped workshop-bill heading tone-accent">{workshop.bill}</div>
+      <div id="workshop-reason" class="label wrapped workshop-reason tone-muted">{workshop.reason}</div>
+      <div id="workshop-actions" class="action-row">
+        <button id="workshop-action" class="{workshop.actionClasses}" disabled="{workshop.disabled}" onclick="{workshop.action}">{workshop.actionLabel}</button>
+        <button id="workshop-focus" class="focus-action console-action" onclick="{workshop.inspect}">VIEW</button>
+      </div>
+      <div id="workshop-reclaim" class="{workshop.reclaimClasses}">
+        <div id="workshop-reclaim-copy" class="label wrapped reclaim-copy heading">{workshop.reclaimCopy}</div>
+        <div id="workshop-reclaim-reason" class="label wrapped reclaim-reason tone-muted">{workshop.reclaimReason}</div>
+        <div id="workshop-reclaim-actions" class="action-row">
+          <button id="workshop-reclaim-action" class="restoration-action console-action" disabled="{workshop.reclaimDisabled}" onclick="{workshop.reclaim}">{workshop.reclaimLabel}</button>
+        </div>
+      </div>
+      <div id="workshop-feedback" class="label wrapped workshop-feedback tone-accent">{workshop.feedback}</div>
+    </div>
     </div>
   </div>
 </template>
@@ -21,7 +47,27 @@
   .ship-view-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
   #ship-view-room-title { width: 330px; height: auto; white-space: normal; }
   #ship-view-room-copy { width: 540px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
-  .ship-view-stage { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 10px; overflow: hidden; border-width: 2px; }
+  .ship-view-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; }
+  .ship-view-stage { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 10px; overflow: hidden; border-width: 2px; }
   .ship-view-deck { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
+  .restoration-panel { flex-direction: column; width: 360px; padding: 10px; gap: 6px; border-width: 1px; border-color: #b99f65; background-color: #202c28; overflow: scroll; }
+  .officer-row { flex-direction: row; height: 64px; gap: 8px; }
+  .officer-portrait { width: 54px; height: 64px; }
+  .officer-title { width: 0px; flex-grow: 1; height: 50px; white-space: normal; }
+  .workshop-title { height: 22px; }
+  .workshop-progress { width: 240px; height: 26px; }
+  .wrapped { width: 100%; white-space: normal; }
+  .workshop-copy { height: 62px; }
+  .workshop-benefit { height: 62px; }
+  .workshop-bill { height: 38px; }
+  .workshop-reason { height: 34px; }
+  .action-row { flex-direction: row; height: 32px; gap: 8px; }
+  .restoration-action { width: 200px; height: 30px; }
+  .focus-action { width: 70px; height: 30px; }
+  .reclaim-block { flex-direction: column; height: 122px; gap: 5px; padding-top: 8px; }
+  .reclaim-copy { height: 40px; }
+  .reclaim-reason { height: 34px; }
+  .workshop-feedback { height: 34px; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>

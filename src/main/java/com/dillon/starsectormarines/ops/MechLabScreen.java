@@ -108,7 +108,7 @@ public final class MechLabScreen implements Screen {
             deck = liveDeck;
             selectedBayIndex.set(0);
             viewModel = new MechLabViewModel(reactor, roster.mechBay(),
-                    new CampaignFabricationResources(), this::syncGantryScene);
+                    new CampaignFabricationResources(true), this::syncGantryScene);
             viewModel.physicalGantries(berths().size());
             syncGantryScene();
             resetCamera(false);

@@ -2135,6 +2135,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
         props.put("roomCopy",
                 "Drag to look around her. Wheel to close in, WASD to walk the view.");
@@ -3113,6 +3114,30 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+    }
+
+    public static BufferedImage renderWorkshopRestoration(SnapshotContext context, CompanyDeck ship,
+                                                          WorkshopRestorationModel.Row workshop, float scale) throws Exception {
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
+        loader.reload();
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("workshop", workshop);
+        props.put("roomTitle", "SECOND WIND / RESTORATION");
+        props.put("roomCopy", "Inspect the workshop. Restoring her rooms keeps their place in the hull.");
+        props.put("contextLabel", "COMPANY SHIP / MACHINE SHOP");
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW, MarineOpsPageNav.ANY_SHIP,
+                () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        try (var instance = loader.build(new Reactor(), "ship-view", props)) {
+            var document = new UiDocument(instance.root());
+            instance.styles().forEach(document::addStyleSheet);
+            document.theme(MarineOpsThemes.standard());
+            var canvas = new ShipViewCanvas(ship);
+            canvas.focus(RoomPurpose.PARTS_CAGE);
+            document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
+            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            return renderRelative(renderer, document, 1920, 1080, scale);
+        }
     }
 
     public static BufferedImage renderBayRestoration(SnapshotContext context, CompanyDeck ship,
