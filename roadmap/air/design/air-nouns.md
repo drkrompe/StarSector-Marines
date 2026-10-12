@@ -1460,6 +1460,20 @@ issues ordinary area orders itself: the densest hostile concentration within
 the ship's longest reach that no friendly ship's area already covers, chosen
 again once that ground holds nobody. Ground beyond every gun is never chosen.
 
+**A directed ship holds several areas at once, so the fire is a stream.** A
+director keeps up to a limit of areas (three unless told otherwise): the densest
+free concentrations in reach, none overlapping another (centres at least a
+radius apart) and none already covered by a friendly ship. An area is dropped
+once it has held no hostile for a couple of seconds and replaced at once from
+the remaining ground. The area-fire mounts are dealt the areas in rotation, the
+densest twice per round, skipping any a mount cannot bear on, and a mount whose
+area is dropped chooses again; a beam mount sweeps the area it is dealt. When
+bringing guns to bear, the heading is the one that maximises firepower summed
+over all areas, each weighted by the hostiles it held. A manual order replaces
+every area the director held and stands alone until its ground is empty, after
+which the director resumes; the ship's single standing order reads as its first
+(densest) area, and spotting lights every area it holds.
+
 **A shell's blast wears the weapon's own colour and its own size.** A heavy
 landing carries the round's explosion colour to the presentation, which tints the
 fire, the flash and the ground light with it and sizes the burst to the blast's

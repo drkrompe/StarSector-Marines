@@ -23,11 +23,21 @@ public final class WarshipFacing {
 
     /** The heading, in degrees, that brings the most firepower onto {@code (tx, ty)}; the ship's own if nothing bears at any. */
     public static float bestHeading(Warship ship, float tx, float ty) {
+        return bestHeading(ship, new float[]{tx}, new float[]{ty}, new float[]{1f});
+    }
+
+    /**
+     * The heading that puts the most firepower on a set of grounds at once: each
+     * ground's firepower counts in proportion to its weight, so a dense cluster
+     * outbids a thin one and a heading that bears on several beats one that bears
+     * on a single heavy one only when the sum is larger.
+     */
+    public static float bestHeading(Warship ship, float[] tx, float[] ty, float[] weight) {
         float best = ship.facingDegrees;
-        float bestPower = firepowerAt(ship, ship.facingDegrees, tx, ty);
+        float bestPower = weightedFirepowerAt(ship, ship.facingDegrees, tx, ty, weight);
         float bestTurn = 0f;
         for (float h = -180f; h < 180f; h += STEP_DEGREES) {
-            float power = firepowerAt(ship, h, tx, ty);
+            float power = weightedFirepowerAt(ship, h, tx, ty, weight);
             float turn = Math.abs(wrap(h - ship.facingDegrees));
             boolean clearlyBetter = power > bestPower * (1f + WORTH_TURNING_FOR);
             boolean asGoodAndNearer = power >= bestPower * (1f - WORTH_TURNING_FOR) && turn < bestTurn;
@@ -38,6 +48,12 @@ public final class WarshipFacing {
             }
         }
         return best;
+    }
+
+    static float weightedFirepowerAt(Warship ship, float heading, float[] tx, float[] ty, float[] weight) {
+        float total = 0f;
+        for (int i = 0; i < tx.length; i++) total += weight[i] * firepowerAt(ship, heading, tx[i], ty[i]);
+        return total;
     }
 
     /** Damage per second, roughly, of every mount that could reach {@code (tx, ty)} with the hull at {@code heading}. */

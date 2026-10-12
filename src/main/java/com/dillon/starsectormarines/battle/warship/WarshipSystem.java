@@ -173,37 +173,60 @@ public final class WarshipSystem {
     /** A scripted flight counts a waypoint as passed within this many cells, and flies on without braking. */
     private static final float ROUTE_PASS_RADIUS = 3f;
 
-    /** A directed ship issues itself an area order, and a fresh one once its ground is empty. */
+    /**
+     * A directed ship holds up to its limit of areas at once. Each is dropped once
+     * it has held no hostile for a few seconds; a free slot is filled, densest
+     * ground first, as soon as one is dropped and otherwise looked for once a
+     * second. A ship under a manual order holds only that ground until it is empty.
+     */
     private void direct(float dt, BattleSimulation sim, Warship ship) {
         if (!ship.isDirected()) return;
-        if (ship.order() instanceof WarshipOrder.FireOnArea area) {
-            if (hostileWithin(sim, ship, area)) {
-                ship.areaEmptySeconds = 0f;
-                return;
+        List<Warship.Held> current = ship.held();
+        List<Warship.Held> kept = new ArrayList<>(current.size());
+        for (Warship.Held h : current) {
+            int count = hostilesWithin(sim, ship, h.area);
+            if (count > 0) {
+                h.emptySeconds = 0f;
+                h.weight = count;
+            } else {
+                h.emptySeconds += dt;
             }
-            ship.areaEmptySeconds += dt;
-            if (ship.areaEmptySeconds < EMPTY_AREA_SECONDS) return;
-        } else {
-            // With nothing to fire on it looks again once a second, not every tick.
-            ship.areaEmptySeconds += dt;
-            if (ship.areaEmptySeconds < RETRY_SECONDS) return;
+            if (h.emptySeconds < EMPTY_AREA_SECONDS) kept.add(h);
         }
-        WarshipOrder.FireOnArea next = WarshipDirector.choose(sim, ship, ships);
-        ship.areaEmptySeconds = 0f;
-        ship.order(next != null ? next : WarshipOrder.HoldFire.INSTANCE);
+        boolean dropped = kept.size() != current.size();
+        if (dropped) ship.setDirectedAreas(kept);
+        if (ship.manualOrder() || kept.size() >= ship.directorMaxAreas()) {
+            ship.resortByWeight();
+            return;
+        }
+        // With ground to spare it looks again once a second, not every tick.
+        ship.retrySeconds += dt;
+        if (!dropped && ship.retrySeconds < RETRY_SECONDS) {
+            ship.resortByWeight();
+            return;
+        }
+        ship.retrySeconds = 0f;
+        List<WarshipOrder.FireOnArea> avoid = new ArrayList<>(ship.areas());
+        List<Warship.Held> fresh = WarshipDirector.fill(sim, ship, ships, avoid, ship.directorMaxAreas() - kept.size());
+        if (!fresh.isEmpty()) {
+            kept.addAll(fresh);
+            ship.setDirectedAreas(kept);
+        }
+        ship.resortByWeight();
     }
 
-    private static boolean hostileWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
+    private static int hostilesWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
         long[] dense = roster.denseArray();
+        int count = 0;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
             if (ship.faction.hostileTo(roster.identity().faction(u)) && area.contains(world.x(u), world.y(u))) {
-                return true;
+                count++;
             }
         }
-        return false;
+        return count;
     }
 
     /**
@@ -249,12 +272,22 @@ public final class WarshipSystem {
      * to stop on the heading rather than swinging through it.
      */
     private static void turnHull(float dt, Warship ship) {
-        if (ship.order() instanceof WarshipOrder.FireOnArea area && area.bringGunsToBear()
-                && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
+        List<Warship.Held> held = ship.held();
+        boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
+        if (bring && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
                         ship.y - ship.headingChosenAtY) > REHEADING_DISTANCE)) {
-            ship.desiredHeading = WarshipFacing.bestHeading(ship, area.x(), area.y());
+            int k = held.size();
+            float[] tx = new float[k];
+            float[] ty = new float[k];
+            float[] weight = new float[k];
+            for (int i = 0; i < k; i++) {
+                tx[i] = held.get(i).area.x();
+                ty[i] = held.get(i).area.y();
+                weight[i] = Math.max(1, held.get(i).weight);
+            }
+            ship.desiredHeading = WarshipFacing.bestHeading(ship, tx, ty, weight);
             ship.markHeadingChosen();
-        } else if (ship.isPassingThrough() && !(ship.order() instanceof WarshipOrder.FireOnArea g && g.bringGunsToBear())
+        } else if (ship.isPassingThrough() && !bring
                 && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
             // Flying a route with no instruction to bring guns to bear, it points along its travel.
             ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
@@ -339,14 +372,13 @@ public final class WarshipSystem {
             return;
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
-        WarshipOrder.FireOnArea area = ship.order() instanceof WarshipOrder.FireOnArea a ? a : null;
         // A choice is kept until the mount has fired on it, so a turret can finish
-        // swinging; it is dropped if the order changed or the hull has turned it out of arc.
-        if (m.aimed && (area == null || !area.contains(m.aimX, m.aimY) || !Warship.bears(
+        // swinging; it is dropped if its area was dropped or the hull has turned it out of arc.
+        if (m.aimed && (!ship.holdsGround(m.aimX, m.aimY) || !Warship.bears(
                 m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY))) {
             m.aimed = false;
         }
-        if (!m.aimed && area != null) m.aimed = acquire(sim, ship, m, area);
+        if (!m.aimed && !ship.areas().isEmpty()) m.aimed = pickTarget(sim, ship, m) != null;
         if (!m.aimed) {
             traverse(dt, ship, m, rest);
             return;
@@ -391,9 +423,9 @@ public final class WarshipSystem {
             m.lance = null;
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
-        WarshipOrder.FireOnArea area = ship.order() instanceof WarshipOrder.FireOnArea a ? a : null;
-        if (area == null || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
-                || !ship.hasOrdnance(m) || !acquire(sim, ship, m, area)) {
+        WarshipOrder.FireOnArea area = null;
+        if (ship.areas().isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
+                || !ship.hasOrdnance(m) || (area = pickTarget(sim, ship, m)) == null) {
             traverse(dt, ship, m, rest);
             return;
         }
@@ -451,6 +483,33 @@ public final class WarshipSystem {
         float error = WarshipFacing.wrap(bearing - m.headingDegrees);
         m.headingDegrees = Math.abs(error) <= step
                 ? bearing : WarshipFacing.wrap(m.headingDegrees + Math.signum(error) * step);
+    }
+
+    /**
+     * Deals the mount one of the ship's areas and a target in it. Areas are dealt
+     * in rotation across every mount, the densest twice per round, so a battery
+     * spreads over all the ground it holds rather than all hammering one cluster;
+     * an area the mount cannot reach is skipped for the next. Returns the area
+     * chosen, with the mount's aim set, or {@code null} when none holds a target it
+     * can bear on.
+     */
+    private WarshipOrder.FireOnArea pickTarget(BattleSimulation sim, Warship ship, Warship.Mount m) {
+        List<WarshipOrder.FireOnArea> areas = ship.areas();
+        int k = areas.size();
+        int cycle = k + 1;
+        int start = ship.dealCounter % cycle;
+        boolean[] tried = new boolean[k];
+        for (int step = 0; step < cycle; step++) {
+            int position = (start + step) % cycle;
+            int index = position < k ? position : 0;
+            if (tried[index]) continue;
+            tried[index] = true;
+            if (acquire(sim, ship, m, areas.get(index))) {
+                ship.dealCounter = start + step + 1;
+                return areas.get(index);
+            }
+        }
+        return null;
     }
 
     /**
