@@ -96,7 +96,7 @@ class DebugWarshipTest {
         Warship plain = DebugWarship.install(world.sim(),
                 new DebugWarship.Spec(DebugWarship.Hull.ONSLAUGHT, Faction.MARINE, DebugWarship.Mode.MANUAL));
         assertTrue(plain.fluxLimited());
-        assertEquals(Warship.SHIELD_RESERVE_SCALE, plain.fluxScale());
+        assertEquals(Warship.BRAWLER_FLUX_SCALE, plain.fluxScale());
         assertTrue(DebugWarship.statusLine(plain).contains("FIRING"), DebugWarship.statusLine(plain));
         DebugWarship.toggleFlux(plain);
         assertFalse(plain.fluxLimited());

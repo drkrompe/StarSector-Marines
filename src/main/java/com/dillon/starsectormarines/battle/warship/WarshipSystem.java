@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -119,6 +120,7 @@ public final class WarshipSystem {
         for (Warship ship : ships) {
             depart(dt, sim, ship);
             direct(dt, sim, ship);
+            tickShield(dt, sim, ship);
             ship.fluxPool().update(dt);
             moveHull(dt, ship);
             turnHull(dt, ship);
@@ -316,12 +318,63 @@ public final class WarshipSystem {
     public void onDetonation(PendingDetonation det, BattleSimulation sim) {
         for (Warship ship : ships) {
             if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
-            if (ship.distanceTo(det.endpointX, det.endpointY) > det.aoeRadius) continue;
+            float gap = ship.distanceTo(det.endpointX, det.endpointY);
+            if (ship.hasShield() && gap <= det.aoeRadius + WarshipShield.THREAT_MARGIN_CELLS
+                    && threatens(ship, det.damage, det.penetration, det.endpointX, det.endpointY)) {
+                // A landing this close is itself the warning: the shield rises for the next one.
+                ship.shieldModel().noteThreat();
+            }
+            if (gap > det.aoeRadius) continue;
+            if (ship.shieldCovers(det.endpointX, det.endpointY)) {
+                // The shield takes the hit as flux; the hull takes nothing.
+                ship.shieldModel().absorb(det.damage, ship.fluxPool());
+                continue;
+            }
             ship.takeDamage(det.damage, det.penetration);
             if (ship.destroyed()) {
                 sim.spawnHeavyImpact(ship.x, ship.y, Math.max(6f, ship.lengthCells * 0.5f));
             }
         }
+    }
+
+    /** Whether a round of this strength landing at {@code (px, py)} would hurt the hull and comes from inside the shield's arc. */
+    private static boolean threatens(Warship ship, float damage, float penetration, float px, float py) {
+        return Warship.effectiveDamage(damage, penetration, ship.armour) > 0f && ship.arcCovers(px, py);
+    }
+
+    /**
+     * Advances the ship's shield. An automatic shield rises when a hostile round
+     * that would hurt the hull is about to land near it from inside the arc: a
+     * detonation in the queue, a projectile in flight or a hostile warship's shell.
+     */
+    private void tickShield(float dt, BattleSimulation sim, Warship ship) {
+        boolean threat = ship.hasShield() && ship.shieldAuto() && sensesThreat(sim, ship);
+        ship.shieldModel().update(dt, ship.fluxPool(), threat);
+    }
+
+    private boolean sensesThreat(BattleSimulation sim, Warship ship) {
+        for (PendingDetonation d : sim.getInflightDetonations()) {
+            if (d == null || !ship.faction.hostileTo(d.shooterFaction)) continue;
+            if (nearHull(ship, d.endpointX, d.endpointY, d.aoeRadius)
+                    && threatens(ship, d.damage, d.penetration, d.endpointX, d.endpointY)) return true;
+        }
+        for (Projectile p : sim.getActiveProjectiles()) {
+            PendingDetonation d = p.onArrival;
+            if (p.intercepted || d == null || !ship.faction.hostileTo(p.shooterFaction)) continue;
+            if (nearHull(ship, p.toX, p.toY, d.aoeRadius)
+                    && threatens(ship, d.damage, d.penetration, p.toX, p.toY)) return true;
+        }
+        for (WarshipShell s : shells) {
+            if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
+            PendingDetonation d = s.landing();
+            if (nearHull(ship, s.toX, s.toY, s.blastCells)
+                    && threatens(ship, d.damage, d.penetration, s.toX, s.toY)) return true;
+        }
+        return false;
+    }
+
+    private static boolean nearHull(Warship ship, float px, float py, float blast) {
+        return ship.distanceTo(px, py) <= blast + WarshipShield.THREAT_MARGIN_CELLS;
     }
 
     /** Advances every round in flight; one that arrives lands as a detonation and, if heavy, a heavy blast. */
