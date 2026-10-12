@@ -1507,6 +1507,16 @@ public final class Warship {
         return shipY + slot.localX() * (float) Math.sin(r) + slot.localY() * (float) Math.cos(r);
     }
 
+    /** World X of any slot of the hull (a launch bay, say) at the hull's current facing. */
+    public float slotX(WarshipSlot slot) {
+        return mountX(x, slot, facingDegrees);
+    }
+
+    /** World Y of any slot of the hull at the hull's current facing. */
+    public float slotY(WarshipSlot slot) {
+        return mountY(y, slot, facingDegrees);
+    }
+
     /** World X of a mount at the hull's current facing. */
     public float mountX(Mount m) {
         return mountX(x, m.slot, facingDegrees);

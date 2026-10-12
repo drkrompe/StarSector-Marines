@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.drone.DroneAnchor;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -861,6 +862,15 @@ public final class Squad {
     public long droneHubId;
 
     /**
+     * What a drone squad is anchored to when it is not a hub's: a mobile carrier
+     * (a tender) rather than a static structure, or {@code null} for a hub squad
+     * and for every non-drone squad. The squad screens and leashes to this point
+     * exactly as a hub squad does to its hub, and {@code DefendHubGoal} is
+     * relevant only while the anchor is alive.
+     */
+    public DroneAnchor droneAnchor;
+
+    /**
      * Per-squad monitor for guarding squad-shared mutable state from concurrent
      * mutation when {@code BattleSimulation.tick} dispatches UPDATE_UNITS in
      * parallel. GOAP actions and behaviors that mutate squad fields
@@ -1172,7 +1182,7 @@ public final class Squad {
      * skip the infantry/mech action sets entirely.
      */
     public boolean isDroneSquad() {
-        return droneHubId != 0L;
+        return droneHubId != 0L || droneAnchor != null;
     }
 
 }

@@ -280,16 +280,28 @@ public final class DroneSwarmAction implements Action {
      * outside the leash are pulled radially inward to the leash boundary.
      */
     private static float[] clampGoalToLeash(long member, DroneStateService droneState, BattleView sim, float gx, float gy) {
-        long hubId = droneState.homeHubId(member);
-        if (hubId == 0L) return new float[]{gx, gy};
-        float hubX = sim.world().x(hubId);
-        float hubY = sim.world().y(hubId);
+        float[] home = homePoint(member, droneState, sim);
+        if (home == null) return new float[]{gx, gy};
+        float hubX = home[0];
+        float hubY = home[1];
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist <= Drone.ENGAGE_LEASH_RADIUS_CELLS) return new float[]{gx, gy};
         float scale = Drone.ENGAGE_LEASH_RADIUS_CELLS / dist;
         return new float[]{hubX + dx * scale, hubY + dy * scale};
+    }
+
+    /**
+     * Where the drone's home is: its hub's position, or the position of the mobile
+     * carrier its squad is anchored to. {@code null} for a drone with neither.
+     */
+    private static float[] homePoint(long member, DroneStateService droneState, BattleView sim) {
+        long hubId = droneState.homeHubId(member);
+        if (hubId != 0L) return new float[]{sim.world().x(hubId), sim.world().y(hubId)};
+        Squad squad = sim.squadOf(member);
+        if (squad == null || squad.droneAnchor == null) return null;
+        return new float[]{squad.droneAnchor.anchorX(), squad.droneAnchor.anchorY()};
     }
 
     /** Picks an initial sector waypoint if the drone has never had one. */
@@ -309,16 +321,16 @@ public final class DroneSwarmAction implements Action {
      */
     private static void pickSectorWaypoint(long member, AirBody body, DroneStateService droneState, BattleView sim,
                                            int slotIdx, int slotCount) {
-        long hubId = droneState.homeHubId(member);
-        if (hubId == 0L) {
+        float[] home = homePoint(member, droneState, sim);
+        if (home == null) {
             droneState.setPatrolGoalX(member, body.x);
             droneState.setPatrolGoalY(member, body.y);
             return;
         }
         Random rng = sim.random();
         NavigationGrid grid = sim.getGrid();
-        float anchorX = sim.world().x(hubId);
-        float anchorY = sim.world().y(hubId);
+        float anchorX = home[0];
+        float anchorY = home[1];
         float sectorSize = 360f / slotCount;
         float sectorStart = sectorSize * slotIdx;
         for (int attempt = 0; attempt < 6; attempt++) {
