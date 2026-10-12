@@ -1064,6 +1064,31 @@ multi-company campaign authority exists, the first grid contains exactly the one
 campaign roster rather than fixture companies. The HQ roster area remains the host
 that the formation, whereabouts, and contract-board stories will expand.
 
+## Cerberus founding start and planetary stores
+
+The optional Cerberus company start is selected through vanilla character creation.
+It gives the player one unconverted Cerberus, 15,000 credits and travel reserves;
+it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
+Castle directs the player to an accessible planetary spaceport, preferring Jangala.
+A reviewed 5,000-credit yard order installs the permanent Mercenary Company
+Conversion on the owned, active hull. Company designation still uses the ordinary
+preparation preflight and resumes lift, Mira, squad founding and assignment.
+
+A `PreparationDepot` is a finite prepaid consignment at the planet that converted
+this start's Cerberus. Its contents derive from one Hermes recipe and one standard
+squad-founding bill. It is issued once, saved independently of cargo, and never
+loaded wholesale into the small ship's hold. `WorkshopStores` combines cargo with
+that depot only while interacting with its accessible working planetary port,
+checks the whole order, then consumes local stock before cargo. The existing
+fabrication and squad-founding adapters share that authority. It does not replenish
+on reload or on another conversion; unused stock remains at its planet. Ordinary
+starts and saves receive none. Equipment issue and enlistment retain their existing
+cargo authorities. Castle explains the local stores; workshop labels use available
+stores rather than claiming every counted item is in the hold.
+
+The variant owns conversion state; `ship-interiors-nouns.md` owns its room program.
+`cerberus-company-start.md` retains the uncompleted live start/save acceptance.
+
 ## Presentation boundaries
 
 Company reporting surfaces are read-only explanations. Barracks, Fleet Armory,

@@ -109,6 +109,7 @@ public final class MechLabScreen implements Screen {
             selectedBayIndex.set(0);
             viewModel = new MechLabViewModel(reactor, roster.mechBay(),
                     new CampaignFabricationResources(), this::syncGantryScene);
+            viewModel.physicalGantries(berths().size());
             syncGantryScene();
             resetCamera(false);
         } else {
@@ -505,6 +506,7 @@ public final class MechLabScreen implements Screen {
     }
 
     private void refreshBayPresentation() {
+        if (viewModel != null) viewModel.physicalGantries(berths().size());
         List<DeckGraph.Compartment> bays = mechBays();
         if (bays.isEmpty()) {
             activeBayLabel.set("NO MECH BAY");

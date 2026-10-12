@@ -42,6 +42,23 @@ class MechLabViewModelTest {
             "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/mech-lab/mech-lab.mlx");
 
+    @Test void compactWorkshopRejectsStaleFabricationAfterCapacityShrinks() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        TestResources resources = TestResources.stocked(2000);
+        var model = new MechLabViewModel(new Reactor(), bay, resources);
+        model.nextGantryAction().run();
+        var order = model.catalogRows().get().stream().filter(row -> !row.actionDisabled()).findFirst().orElseThrow();
+        int before = resources.available(Commodities.METALS);
+        model.physicalGantries(1);
+        assertEquals(1, model.gantryRows().get().size());
+        assertEquals(1, model.gantryDeployments().size());
+        assertEquals(1, model.gantryVariants().size());
+        assertEquals(0, model.selectedGantryIndex());
+        order.action().run();
+        assertEquals(1, bay.activeSquad().mechs().size());
+        assertEquals(before, resources.available(Commodities.METALS));
+    }
+
     @Test
     void dragCommandsFitMoveAndReturnWeaponsWithoutDuplicatingInventory() {
         MechBay bay = MechBay.legacyStarterFixture();

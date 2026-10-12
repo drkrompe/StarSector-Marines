@@ -93,12 +93,12 @@ public final class LaidDecks {
      * that never hits.
      */
     private record Hull(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
-                        int cargo, float aspect, String outline, long seed) {
+                        int cargo, float aspect, String outline, long seed, boolean conversion) {
 
         static Hull of(CompanyShip ship, long seed) {
             return new Hull(ship.hullClass(), ship.role(), ship.minCrew(), ship.maxCrew(),
                     ship.cargo(), ship.aspect(),
-                    ship.outline() == null ? null : ship.outline().source(), seed);
+                    ship.outline() == null ? null : ship.outline().source(), seed, ship.mercenaryConversion());
         }
     }
 
