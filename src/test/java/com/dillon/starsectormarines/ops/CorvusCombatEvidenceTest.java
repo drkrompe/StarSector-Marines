@@ -61,10 +61,13 @@ class CorvusCombatEvidenceTest {
         InstalledVanillaData.install();
         int maxTicks = Integer.getInteger("corvus.command.evidence.maxTicks", 18000);
         if (maxTicks < 1) throw new IllegalArgumentException("maxTicks must be positive");
+        int snapshotEveryTicks = Integer.getInteger("commander.evidence.snapshot.everyTicks", 1800);
+        if (snapshotEveryTicks < 1) throw new IllegalArgumentException("snapshotEveryTicks must be positive");
         var progress = new CorvusWaylineProgress();
         var route = CorvusWaylineCampaignTest.closedRoute(2, true);
         var reports = new JSONArray();
-        var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080);
+        var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080)
+                .withImpactEffects().withUnitShadows();
         for (CorvusChapter chapter : CorvusChapter.values()) {
             Mission mission = CorvusWaylineCampaign.offer(progress, chapter.planetName, route);
             if (!selectedChapter.isEmpty() && !chapter.name().equals(selectedChapter)) {
@@ -162,9 +165,10 @@ class CorvusCombatEvidenceTest {
                                 .put("houndShots", houndShots).put("houndAlive", houndAlive).put("objectives", objectives(sim)));
                         Files.writeString(dir.resolve("samples.json"), samples.toString(2));
                     }
-                    if (tick % 1800 == 0 || sim.isComplete() || tick == maxTicks
-                            || (sim.getColdAccount() != null && sim.getColdAccount().phase() != beforePhase)) {
+                    boolean phaseChanged = sim.getColdAccount() != null && sim.getColdAccount().phase() != beforePhase;
+                    if (tick % snapshotEveryTicks == 0 || phaseChanged || sim.isComplete() || tick == maxTicks)
                         writeFrame(renderer, sim, chapter, dir);
+                    if (tick % 1800 == 0 || phaseChanged || sim.isComplete() || tick == maxTicks) {
                         Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
                         System.out.println("[corvus] " + chapter.title + " tick=" + tick + " landed=" + landed.size()
                                 + " fallen=" + fallen.size() + " defenders=" + count(sim,Faction.DEFENDER)
