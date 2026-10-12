@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
@@ -48,6 +50,7 @@ import org.apache.log4j.Logger;
 import java.awt.Color;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -908,6 +911,7 @@ public class BattleRenderer {
         float cellPx = rc.camera.cellPxSize();
         objectiveArcMesh.reset();
         boolean hasChargeSites = false;
+        collectMissionMarkers(sim, out, alphaMult);
 
         // Cold Account owns the disclosure and extraction timing of its internal evidence objective.
         if (sim.getColdAccount() == null) for (Objective objective : sim.getObjectives()) {
@@ -1054,6 +1058,49 @@ public class BattleRenderer {
             drawObjectiveText(label, labelX, textY, BattlefieldMarkerPresentation.LABEL, .85f, alpha);
             drawObjectiveText(marker.status(), labelX, textY - 15, tone, .8f, alpha);
         });
+    }
+
+    /** Named public geometry and friendly payloads remain visible without debug overlays. */
+    private void collectMissionMarkers(BattleSimulation sim, DrawList out, float alpha) {
+        var picture = MissionObjectiveProjection.capture(sim);
+        List<float[]> labels = new ArrayList<>();
+        for (var item : picture.objectives()) for (var marker : item.markers()) {
+            float rawX = rc.camera.cellToScreenX(marker.x() + .5f);
+            float rawY = rc.camera.cellToScreenY(marker.y() + .5f);
+            boolean onScreen = rawX >= rc.camera.vpX() && rawX <= rc.camera.vpX() + rc.camera.vpW()
+                    && rawY >= rc.camera.vpY() && rawY <= rc.camera.vpY() + rc.camera.vpH();
+            if (!onScreen && !marker.id().equals(item.focusMarkerId())) continue;
+            float x = Math.max(rc.camera.vpX() + 145, Math.min(rc.camera.vpX() + rc.camera.vpW() - 145, rawX));
+            float y = Math.max(rc.camera.vpY() + 70, Math.min(rc.camera.vpY() + rc.camera.vpH() - 70, rawY));
+            Color tone = marker.state() == MissionObjectiveSnapshot.State.COMPLETE ? BattlefieldMarkerPresentation.VALID
+                    : marker.state() == MissionObjectiveSnapshot.State.FAILED ? BattlefieldMarkerPresentation.INVALID
+                    : BattlefieldMarkerPresentation.PROGRESS;
+            float r = tone.getRed() / 255f, g = tone.getGreen() / 255f, b = tone.getBlue() / 255f;
+            // Fixed-size beacons deliberately do not pretend to be the mission's service footprint.
+            appendObjectiveAnnulus(x, y, 8, 11, tone, alpha);
+            if (onScreen && (x != rawX || y != rawY)) out.addLine(RenderLayer.OBJECTIVES, x, y, rawX, rawY, 1, r, g, b, alpha);
+            if (!onScreen) {
+                float dx = rawX - x, dy = rawY - y;
+                float length = Math.max(1, (float) Math.hypot(dx, dy));
+                out.addLine(RenderLayer.OBJECTIVES, x, y, x + dx / length * 30, y + dy / length * 30, 2, r, g, b, alpha);
+            }
+            float labelY = y - 19;
+            for (int attempt = 0; attempt < 8; attempt++) {
+                boolean overlap = false;
+                for (float[] prior : labels) if (Math.abs(prior[0] - x) < 282 && Math.abs(prior[1] - labelY) < 38) overlap = true;
+                if (!overlap) break;
+                labelY += 38;
+            }
+            labelY = Math.min(rc.camera.vpY() + rc.camera.vpH() - 12, labelY);
+            labels.add(new float[]{x, labelY});
+            final float textY = labelY;
+            out.addSolidRect(RenderLayer.OBJECTIVES, x - 140, textY - 31, x + 140, textY + 3, .03f, .06f, .08f, .88f * alpha);
+            out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                objectiveMarkerFont.ensureLoaded();
+                drawObjectiveText(marker.name(), x, textY, BattlefieldMarkerPresentation.LABEL, .85f, alpha);
+                drawObjectiveText((onScreen ? "" : "OFF SCREEN / ") + marker.status(), x, textY - 15, tone, .8f, alpha);
+            });
+        }
     }
 
     private void appendObjectiveAnnulus(float cx, float cy, float inner,

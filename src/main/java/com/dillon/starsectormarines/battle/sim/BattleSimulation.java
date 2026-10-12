@@ -479,6 +479,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private LastLiftSequence lastLiftSequence;
     public LastLiftAttempt getLastLiftAttempt() { return lastLiftAttempt; }
     public LastLiftSequence getLastLiftSequence() { return lastLiftSequence; }
+    public CivilianEvacuationSystem.Progress getCivilianEvacuationProgress() { return civilianEvacuationSystem.progress(); }
     public CivilianEvacuationSystem.HoldReason getCivilianEscortHold() { return civilianEvacuationSystem.holdReason(); }
     public void installLastLift(LastLiftAttempt attempt, List<EntitySpec> west, List<EntitySpec> east, CivilianEvacuationPlacement placement) {
         if (simTickIndex != 0 || lastLiftAttempt != null || openingStory != null || junctionStory != null || relayNineStory != null)

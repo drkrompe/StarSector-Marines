@@ -50,6 +50,7 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     private int alarmTick = -1;
     private int controllingSquadId = -1;
     private boolean escortPresent;
+    private boolean contested;
 
     public ExtractionObjective(String payloadId, String payloadName,
                                int sourceZoneId, int[] route) {
@@ -106,6 +107,7 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
                 SOURCE_RADIUS, sourceZoneId);
         boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
                 sourceCellX(), sourceCellY(), SOURCE_RADIUS, sourceZoneId);
+        contested = defenderPresent;
         escortPresent = escort.present() && !defenderPresent;
         controllingSquadId = escortPresent ? escort.squadId() : -1;
         if (!escortPresent) {
@@ -126,6 +128,7 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
         Escort escort = nearestMarineEscort(sim, x, y, ESCORT_RADIUS, -1);
         boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
                 x, y, INTERDICTION_RADIUS, -1);
+        contested = defenderPresent;
         escortPresent = escort.present();
         controllingSquadId = escortPresent ? escort.squadId() : -1;
 
@@ -163,6 +166,7 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
                 EGRESS_RADIUS, -1);
         boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
                 egressCellX(), egressCellY(), EGRESS_RADIUS, -1);
+        contested = defenderPresent;
         escortPresent = escort.present() && !defenderPresent;
         controllingSquadId = escortPresent ? escort.squadId() : -1;
         if (!escortPresent) {
@@ -236,6 +240,10 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
         escortPresent = false;
         controllingSquadId = -1;
     }
+
+    public boolean contested() { return contested; }
+    public float lossDuration() { return lossDuration; }
+    public float abandonmentDuration() { return abandonmentDuration; }
 
     public float secureProgress() { return secureProgress; }
     public float secureDuration() { return secureDuration; }
