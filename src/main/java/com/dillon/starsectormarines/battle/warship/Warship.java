@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.warship;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.json.JSONArray;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -155,22 +157,32 @@ public final class Warship {
     private final List<Mount> mounts;
     private final List<Mount> mountsView;
     private final WarshipFlux flux;
+    private final WarshipShield shield;
     private boolean fluxConfigured;
 
     /**
-     * Share of the hull table's flux a brawler's guns get. PROVISIONAL: in the game a
-     * ship's shield is the major draw on flux (upkeep and every hit absorbed) and a
-     * raised shield stops venting, so the guns never see the whole pool or the whole
-     * dissipation. Shields are not modelled yet; this half stands in for the half
-     * they would take, and goes when shields arrive and take their own share.
+     * Share of the hull table's flux a directed ship runs on. Capacity and
+     * dissipation are halved together, so a brawler's guns surge and rest on a
+     * rhythm a player can read (at the hull table's own figures a ground
+     * bombardment never nears an Onslaught's capacity). This was once a stand-in
+     * for what a shield would take; shields are modelled now ({@link WarshipShield}:
+     * upkeep, no venting while raised, hits absorbed as flux) and draw on this same
+     * scaled pool, but a shield is only raised when something threatens the hull,
+     * so in a ground fight nothing is drawing and the half remains the brawler's
+     * deliberate fire-rate setting rather than a placeholder for shield cost.
      */
-    public static final float SHIELD_RESERVE_SCALE = 0.5f;
+    public static final float BRAWLER_FLUX_SCALE = 0.5f;
+
+    /** The old name of {@link #BRAWLER_FLUX_SCALE}, from when it stood in for an unmodelled shield. */
+    @Deprecated
+    public static final float SHIELD_RESERVE_SCALE = BRAWLER_FLUX_SCALE;
 
     private Warship(String hullId, String spritePath, float lengthCells, float pivotX, float pivotY,
                     Handling handling, float widthCells, float hitPoints, float armour,
                     Faction faction, float x, float y, float facingDegrees, List<Mount> mounts,
-                    float[] fluxFigures) {
+                    float[] fluxFigures, WarshipShield shield) {
         this.flux = new WarshipFlux(fluxFigures[0], fluxFigures[1]);
+        this.shield = shield;
         this.hullId = hullId;
         this.spritePath = spritePath;
         this.lengthCells = lengthCells;
@@ -271,6 +283,132 @@ public final class Warship {
     /** One word for the HUD: {@code off}, {@code firing}, {@code venting} or {@code overloaded}. */
     public String fluxState() {
         return flux.enabled() ? flux.state().label : "off";
+    }
+
+    WarshipShield shieldModel() {
+        return shield;
+    }
+
+    /** Whether the hull carries a shield at all, and the ship is on flux to power it. */
+    public boolean hasShield() {
+        return shield.present() && flux.enabled();
+    }
+
+    /** One word for the HUD and the evidence: {@code none}, {@code front} or {@code omni}. */
+    public String shieldType() {
+        return shield.type().name().toLowerCase(Locale.ROOT);
+    }
+
+    /** Whether the shield is raised: drawing upkeep and holding the pool from venting. */
+    public boolean shieldUp() {
+        return hasShield() && shield.raised();
+    }
+
+    /** 0 to 1: how far the shield has risen; hits are absorbed only at 1. */
+    public float shieldLevel() {
+        return hasShield() ? shield.level() : 0f;
+    }
+
+    /** Whether a hit from inside the arc would be absorbed this instant. */
+    public boolean shieldAbsorbing() {
+        return hasShield() && shield.absorbing();
+    }
+
+    /** Brightness of the last absorbed hit, 1 fading to 0. */
+    public float shieldHitFlash() {
+        return shield.hitFlash();
+    }
+
+    /** Brightness of the last collapse, 1 fading to 0. */
+    public float shieldDropFlash() {
+        return shield.dropFlash();
+    }
+
+    /** Degrees of arc: 360 for a full bubble. */
+    public float shieldArcDegrees() {
+        return shield.arcDegrees();
+    }
+
+    /** The bubble's radius in cells. */
+    public float shieldRadiusCells() {
+        return shield.radiusCells();
+    }
+
+    /** World X of the bubble's centre. */
+    public float shieldCentreX() {
+        double r = Math.toRadians(facingDegrees);
+        return x + shield.localX() * (float) Math.cos(r) - shield.localY() * (float) Math.sin(r);
+    }
+
+    /** World Y of the bubble's centre. */
+    public float shieldCentreY() {
+        double r = Math.toRadians(facingDegrees);
+        return y + shield.localX() * (float) Math.sin(r) + shield.localY() * (float) Math.cos(r);
+    }
+
+    /**
+     * Where the arc faces: the hull's heading for a front shield. An omni shield
+     * has no fixed facing and also reports the heading, which only places its
+     * drawing; every bearing is covered.
+     */
+    public float shieldFacingDegrees() {
+        return facingDegrees;
+    }
+
+    /** Hits the shield has absorbed, for evidence. */
+    public int shieldHits() {
+        return shield.hits();
+    }
+
+    /** Damage the shield has absorbed, in the hits' own units. */
+    public float shieldAbsorbedDamage() {
+        return shield.absorbedDamage();
+    }
+
+    /** Flux the shield has taken on from absorbed hits (not counting upkeep). */
+    public float shieldAbsorbedFlux() {
+        return shield.absorbedFlux();
+    }
+
+    /** How many times the shield has gone down under load. */
+    public int shieldCollapses() {
+        return shield.collapses();
+    }
+
+    /** Holds the shield up or down as commanded, leaving automatic mode. It has no effect on a ship that is not on flux. */
+    public void raiseShield(boolean up) {
+        shield.raise(up);
+    }
+
+    /** Puts the shield in, or takes it out of, automatic mode (the default): it rises when the hull is threatened and drops once the threat has passed. */
+    public void shieldAuto(boolean auto) {
+        shield.auto(auto);
+    }
+
+    public boolean shieldAuto() {
+        return shield.auto();
+    }
+
+    /** One word for the HUD: {@code none}, {@code off} (not on flux), {@code down}, {@code rising} or {@code up}. */
+    public String shieldState() {
+        if (!shield.present()) return "none";
+        if (!flux.enabled()) return "off";
+        if (!shield.raised()) return "down";
+        return shield.absorbing() ? "up" : "rising";
+    }
+
+    /** Whether the shield turns a blast at {@code (px, py)} aside: it is fully up and the blast falls inside its arc. */
+    boolean shieldCovers(float px, float py) {
+        return shieldAbsorbing() && arcCovers(px, py);
+    }
+
+    /** Whether {@code (px, py)} lies inside the arc, up or not. */
+    boolean arcCovers(float px, float py) {
+        float dx = px - shieldCentreX();
+        float dy = py - shieldCentreY();
+        // Right on the centre there is no bearing; the blast is taken as head-on.
+        float bearing = dx * dx + dy * dy < 0.0625f ? facingDegrees : AirBody.facingToward(dx, dy);
+        return shield.covers(facingDegrees, bearing);
     }
 
     WarshipFlux fluxPool() {
@@ -604,7 +742,7 @@ public final class Warship {
         // A directed ship is governed by flux unless its owner said otherwise; a
         // scripted (cinematic) ship with only explicit orders is not.
         if (!fluxConfigured) {
-            flux.scale(SHIELD_RESERVE_SCALE);
+            flux.scale(BRAWLER_FLUX_SCALE);
             flux.enabled(true);
         }
     }
@@ -671,7 +809,19 @@ public final class Warship {
         float[] toughness = toughness(hullId);
         return new Warship(hullId, hull.optString("spriteName"), h * k, pivotX, pivotY,
                 handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts,
-                fluxFigures(hullId));
+                fluxFigures(hullId), WarshipShield.read(hull, hullRow(hullId)));
+    }
+
+    /** The hull's row of the hull table, or {@code null} when it has none. */
+    private static Map<String, String> hullRow(String hullId) {
+        try {
+            for (Map<String, String> row : VanillaData.csv("data/hulls/ship_data.csv")) {
+                if (hullId.equals(row.get("id"))) return row;
+            }
+        } catch (Exception e) {
+            // A hull whose row cannot be read has no shield.
+        }
+        return null;
     }
 
     private static final float DEFAULT_FLUX_CAPACITY = 10000f;
