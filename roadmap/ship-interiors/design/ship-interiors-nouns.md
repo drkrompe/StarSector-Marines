@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — an enclosed CIC separates command stations, circulation and a crew-budgeted entrance sentry.
+Updated: 2026-10-12 — the CIC covers both side banks within the existing duty budget, after core command, engineering and entrance security.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -603,7 +603,8 @@ walkway and open perimeter join the groups across an enclosed, broad operations
 floor with small corner chamfers. A muted central floor inset distinguishes the
 command island from circulation behind the operators. The nine exclusive WATCH
 places belong to reachable standing cells beside physical fixtures; a short
-watch spreads across plot, navigation and systems before doubling a bank.
+watch spreads across plot, navigation, systems and both side banks before
+doubling a bank.
 Enclosed data cabinets occupy equipment pockets without publishing extra staff
 work. A single GUARD place stands beside an actual entrance, faces its hatch,
 and leaves the straight approach clear. It is fixed security duty rather than
@@ -744,8 +745,11 @@ The home ship keeps a **required watch** within her existing crew complement.
 Her minimum operating crew bounds this duty allocation, and the actual crew
 racks remain the population ceiling. Command and engineering take precedence:
 a short crew covers both before adding more conn and plant positions. The
-command entrance then receives a security rating before servicing, medical,
-galley, armoury, fabrication and stores receive support as hands permit. Only
+command entrance then receives a security rating, followed by one operator at
+each side console bank. Servicing, medical, galley, armoury, fabrication and
+stores receive fixed support as the remaining duty budget permits; ordinary
+roaming shifts still visit their work. Side-console coverage reallocates duty
+slots rather than increasing the population or its on-duty ceiling. Only
 live authored work earns a posting; missing machinery or a wrecked fixture cannot conjure a station. Unfilled posts remain a visible
 shortfall. This presentation allocation does not withdraw or create campaign
 cargo crew and is not a live fleet-crew census.
@@ -754,7 +758,10 @@ Essential consoles, plant stations and the entrance sentry stay claimed for
 the watch. The security rating uses crew berthing and the existing overhead
 layered combat kit; it neither borrows nor duplicates a named company marine.
 Support hands work local duty rotations, including every occupied machine in a servicing bay.
-The remaining complement keeps its ordinary movements through work and leisure;
+The remaining complement first supplies a roaming hand to each trade still
+without staff, before adding more hands to covered departments. This keeps a
+busier CIC from consuming the galley's only cook or the armoury's only rating.
+These hands keep their ordinary movements through work and leisure;
 named company marines retain their roster and issued kit. Duty and roaming hands
 share the same billet and bunk bounds, so manning the watch adds no second crew.
 Watch clothing follows the posting rather than current location: command,
