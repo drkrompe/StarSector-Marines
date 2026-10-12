@@ -100,8 +100,8 @@ class WorkshopConditionStageTest {
         int x = hatch.col * 64, y = hatch.row * 64;
         for (int across : new int[]{4, 16, 32, 48, 59}) {
             assertTrue((image.getRGB(x + across, y + 32) >>> 24) >= 245, "Closed locking-bar silhouette");
-            assertTrue((image.getRGB(x + across, y + 4) >>> 24) < 40, "Keep top margin clear");
-            assertTrue((image.getRGB(x + across, y + 59) >>> 24) < 40, "Keep bottom margin clear");
+            assertTrue((image.getRGB(x + across, y + 20) >>> 24) < 40, "Keep hatch thinner than the cell");
+            assertTrue((image.getRGB(x + across, y + 44) >>> 24) < 40, "Keep hatch thinner than the cell");
         }
     }
 

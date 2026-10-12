@@ -141,6 +141,8 @@ public final class CivilianEvacuationPayload {
             throw new IllegalStateException(
                     "planned evacuation routing configuration failed");
         }
+        objective.nameLocations(payloadName + " shelter", placement.shelterApproachX,
+                placement.shelterApproachY, "Evacuation pickup");
         sim.addObjective(objective);
         sim.setAutonomousCommander(Faction.MARINE,
                 new RescueEscortCommand(placement),

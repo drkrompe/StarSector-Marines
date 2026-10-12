@@ -78,6 +78,8 @@ public final class ColonyArchiveObjective implements ExtractionPayloadObjective 
         return zoneId;
     }
 
+    public float recoveryDuration() { return recoveryDuration; }
+
     public float progress() {
         return progress;
     }
@@ -86,6 +88,7 @@ public final class ColonyArchiveObjective implements ExtractionPayloadObjective 
         return recovered;
     }
 
+    @Override public String sourceName() { return "Colony archive"; }
     @Override public String payloadId() { return "COLONY-ARCHIVE"; }
     @Override public String payloadName() { return "sealed colony archive"; }
     @Override public Kind payloadKind() { return Kind.ARCHIVE; }

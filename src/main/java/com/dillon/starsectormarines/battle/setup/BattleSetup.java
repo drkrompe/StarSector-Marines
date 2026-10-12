@@ -1545,6 +1545,8 @@ public final class BattleSetup {
         sim.getBattleResources().disableCompoundProduction();
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission("rescue-corridor", "Company support joins the operation"));
         var payload = CivilianEvacuationPayload.installAuthored(sim, layout.placement(), "RILL-CREW", "Rill work crew", true);
+        payload.objective.nameLocations("Motor pool shelter", layout.placement().shelterApproachX,
+                layout.placement().shelterApproachY, "Southern apron pickup");
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         stampLzPads(sim, map.landingPads);
