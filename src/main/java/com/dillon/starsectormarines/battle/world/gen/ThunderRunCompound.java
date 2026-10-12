@@ -32,7 +32,25 @@ import java.util.Random;
 public final class ThunderRunCompound {
     public static final int WIDTH = 320, HEIGHT = 144;
     public record Cell(int x, int y) {}
-    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(105, 65), new Cell(175, 84));
+    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(121, 64), new Cell(173, 87));
+    /** Crew stands behind each gun, away from the company's roadside screens. */
+    public static final List<Cell> MILITIA_POSTS = List.of(new Cell(119, 64), new Cell(175, 87));
+    public static final List<List<Cell>> COMPANY_POSTS = List.of(
+            List.of(new Cell(33, 64), new Cell(33, 86), new Cell(38, 64), new Cell(38, 86)),
+            List.of(new Cell(133, 65), new Cell(122, 85), new Cell(145, 65), new Cell(114, 85)),
+            List.of(new Cell(153, 65), new Cell(161, 88), new Cell(194, 65), new Cell(201, 85)),
+            List.of(new Cell(263, 65), new Cell(263, 85), new Cell(285, 66), new Cell(285, 84)));
+
+    public static Cell companyPost(int site, int detachment) {
+        var posts = COMPANY_POSTS.get(site);
+        return posts.get(Math.floorMod(detachment, posts.size()));
+    }
+    public static Cell militiaPost(int site, int detachment) {
+        if (site == 0) return new Cell(27, detachment % 2 == 0 ? 64 : 86);
+        if (site == 1 && detachment % 2 != 0) return new Cell(97, 65);
+        if (site <= 2) return MILITIA_POSTS.get(site - 1);
+        return new Cell(251, detachment % 2 == 0 ? 65 : 85);
+    }
     public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
     public static final List<Cell> EXIT_GUNS = List.of(new Cell(304, 65), new Cell(304, 85));
     public static final List<String> SITE_NAMES = List.of("Convoy staging", "Dispatch Post", "East Crossing", "Outbound Gate");
@@ -76,6 +94,11 @@ public final class ThunderRunCompound {
         requireRoute(map, 275, 141);
         for (Cell gun : EXIT_GUNS) requireRoute(map, gun.x + 2, gun.y);
         for (Cell post : SUPPORT_POSTS) requireRoute(map, post.x, post.y);
+        for (var posts : COMPANY_POSTS) for (Cell post : posts) requireRoute(map, post.x, post.y);
+        for (int site = 0; site < 4; site++) for (int section = 0; section < 2; section++) {
+            Cell post = militiaPost(site, section);
+            requireRoute(map, post.x, post.y);
+        }
         for (Cell post : EXIT_RIFLE_POSTS) requireRoute(map, post.x, post.y);
         for (int[] gate : new int[][]{{284,51},{316,51},{300,64},{284,98},{316,98},{300,86}})
             requireRoute(map, gate[0], gate[1]);
@@ -194,6 +217,9 @@ public final class ThunderRunCompound {
     }
     /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
     private static void fortifications(GenContext c) {
+        // Dispatch looks east along the verge; Crossing covers its western side road.
+        supportEmplacement(c, SUPPORT_POSTS.get(0), true);
+        supportEmplacement(c, SUPPORT_POSTS.get(1), false);
         // Firing aprons face the road, with a wide opening aligned to each actual doorway.
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
@@ -230,6 +256,21 @@ public final class ThunderRunCompound {
         if (stripe == null) throw new IllegalStateException("Missing checkpoint road paint");
         for (int y = 68; y <= 82; y++) for (int x : new int[]{297, 310})
             c.doodads.add(new Doodad(x, y, stripe, 1));
+    }
+    private static void supportEmplacement(GenContext c, Cell gun, boolean eastFacing) {
+        int front = gun.x + (eastFacing ? 2 : -2);
+        for (int y = gun.y - 2; y <= gun.y + 2; y++)
+            fixture(c, front, y, "doodad.sandbag-" + (y == gun.y - 2 ? "corner-s"
+                    : y == gun.y + 2 ? "corner-n" : "straight-") + (eastFacing ? "e" : "w"));
+        for (int x = gun.x - 1; x <= gun.x + 1; x++) {
+            fixture(c, x, gun.y - 2, "doodad.sandbag-straight-s");
+            fixture(c, x, gun.y + 2, "doodad.sandbag-straight-n");
+        }
+        // A small prepared gravel bed; the open back remains connected for the crew.
+        int gravel = c.topology.surfaceIndex("floors.stone");
+        for (int y = gun.y - 1; y <= gun.y + 1; y++)
+            for (int x = gun.x - 1; x <= gun.x + 1; x++)
+                c.topology.setSurface(x, y, gravel);
     }
     private static void fencedYard(GenContext c, int l, int t, int r, int b, int sideGate, int roadEdge) {
         for (int y = t; y <= b; y++) for (int x = l; x <= r; x++) {

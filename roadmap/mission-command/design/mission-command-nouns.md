@@ -432,7 +432,11 @@ interventions retain their claims. The scenario separately authorizes employer
 vehicle travel from held-site facts and finite dispatch windows. The frame also
 carries the public active hold site: mission-owned company squads defend that
 post during the window, while lost territory takes priority. Militia retain
-stable first/second-post duties at reachable roadside mounts. Player defense
+stable first/second-post duties behind reachable roadside gun mounts. Company
+sections take separate, stable roadside defense sectors on both flanks, apart
+from the militia crew positions; the final capture switches them to screening
+the exit crossing. Before a second gain is available, militia sections occupy
+different positions around the first. Player defense
 leases survive the window ending and require a new player order. Infantry mission command receives no cargo
 entity positions or hidden ambush roster. Its final hold supports a physical
 convoy-exit objective; taking all sites is not itself victory.
