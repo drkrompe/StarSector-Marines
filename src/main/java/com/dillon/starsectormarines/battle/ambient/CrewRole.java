@@ -56,7 +56,7 @@ public enum CrewRole {
 
     /** Makes and repairs the parts a bay consumes, at the bench rather than the machine. */
     MACHINIST(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            onWatchWith(Affordance.FABRICATE, Affordance.REPAIR, Affordance.STOW),
+            onWatchWith(Affordance.FABRICATE, Affordance.REPAIR, Affordance.READOUT, Affordance.STOW),
             Amenities.AND_A_BUNK),
 
     /**
@@ -80,7 +80,7 @@ public enum CrewRole {
 
     /** Issues weapons and takes them back in, and keeps the racks straight. */
     ARMOURER(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            onWatchWith(Affordance.ISSUE, Affordance.ROUNDS, Affordance.STOW),
+            onWatchWith(Affordance.ISSUE, Affordance.REPAIR, Affordance.ROUNDS, Affordance.STOW),
             Amenities.AND_A_BUNK),
 
     /** Works the holds and the boat bay: stores in, stores out, and the tally. */
