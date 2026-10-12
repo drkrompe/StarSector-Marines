@@ -71,6 +71,7 @@ public class MarineOpsContext {
 
     private Client selectedClient;
     private Mission selectedMission;
+    private boolean officerInductionRequested;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
     private boolean captainSelectionInitialized;
@@ -385,6 +386,18 @@ public class MarineOpsContext {
 
     public ScreenId getCurrentScreen() {
         return currentScreen;
+    }
+
+    /** Resume Castle without discarding the selected briefing. */
+    public void openOfficerInduction() {
+        officerInductionRequested = true;
+        goTo(shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ);
+    }
+
+    public boolean takeOfficerInductionRequest() {
+        boolean requested = officerInductionRequested;
+        officerInductionRequested = false;
+        return requested;
     }
 
     /** Request a screen transition; the plugin observes this and re-attaches. */

@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.Global;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,6 +63,21 @@ import java.util.function.Supplier;
 public final class MissionLaunch {
 
     private MissionLaunch() {}
+
+    static boolean requiresOfficerInduction(MarineRoster roster, MissionSource source) {
+        return source != null && !source.isDebug() && roster != null && roster.officerInductionRequired();
+    }
+
+    static boolean requiresOfficerInduction(Mission mission) {
+        if (mission == null || mission.source.isDebug() || Global.getSector() == null) return false;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return requiresOfficerInduction(script == null ? null : script.roster(), mission.source);
+    }
+
+    static void requireOfficerInductionComplete(MarineRoster roster, MissionSource source) {
+        if (requiresOfficerInduction(roster, source))
+            throw new IllegalStateException("Complete Castle's First Command lesson in Barracks before deployment.");
+    }
 
     /**
      * Build the battle for {@code m} from the player's committed support and
@@ -340,12 +356,13 @@ public final class MissionLaunch {
         int firstPlayerShuttle = plan.firstPlayerShuttle();
         BattleFixture fixture = plan.fixture();
         try {
+            MarineRosterScript personnel = MarineRosterScript.getInstance();
+            requireOfficerInductionComplete(personnel == null ? null : personnel.roster(), m.source);
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.
             int playerSeats = CampaignMarineDeployment.requiredSeats(
                     det.shuttleManifest, firstPlayerShuttle);
             ctx.setMarineDeploymentCapacity(playerSeats);
-            MarineRosterScript personnel = MarineRosterScript.getInstance();
             CampaignMarineDeployment deployment = CampaignMarineDeployment.EMPTY;
             // One deployment shape for both sources: a debug mission fields a
             // detached MarineRoster built by DebugCompany, so it earns the same

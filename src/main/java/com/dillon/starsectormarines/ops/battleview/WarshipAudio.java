@@ -17,6 +17,9 @@ public final class WarshipAudio {
 
     private static final float PITCH_JITTER = 0.06f;
 
+    /** Identity the sound player keys a loop by; one is enough, as beams rarely overlap. */
+    private static final Object BEAM_LOOP_OWNER = new Object();
+
     private WarshipAudio() { }
 
     public static void play(List<WarshipSoundCue> cues) {
@@ -26,6 +29,11 @@ public final class WarshipAudio {
             Vector2f where = new Vector2f(
                     cue.x() * BattleShotAudio.WORLD_UNITS_PER_CELL,
                     cue.y() * BattleShotAudio.WORLD_UNITS_PER_CELL);
+            if (cue.kind() == WarshipSoundCue.Kind.BEAM_BURNING) {
+                // A loop lasts only the frames it is asked for again; no jitter, or it warbles.
+                Global.getSoundPlayer().playLoop(cue.soundId(), BEAM_LOOP_OWNER, 1f, cue.volume(), where, zeroVelocity);
+                continue;
+            }
             float pitch = 1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER);
             Global.getSoundPlayer().playSound(cue.soundId(), pitch, cue.volume(), where, zeroVelocity);
         }
