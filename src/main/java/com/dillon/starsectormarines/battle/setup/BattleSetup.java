@@ -1084,7 +1084,9 @@ public final class BattleSetup {
             LandingPad lz = lzCells.get(i);
             float lzCenterX = lz.centerX + 0.5f;
             float lzCenterY = lz.centerY + 0.5f;
-            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, lz.approach);
+            // Authored installations may be larger than the tier's nominal map scale.
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
+                    map.grid.getWidth(), map.grid.getHeight(), lz.approach);
             long shuttleId = sim.spawnShuttle(
                     a.type, a.airframe, Faction.MARINE,
                     lzCenterX, lzCenterY,

@@ -227,7 +227,10 @@ for the service element; a reachable corner tile is not a formation-sized object
 Its finite High-quality garrison protects the records and installation, including
 two staggered roadside pickets along the landing-to-compound approach. Their
 east-facing sandbag positions leave the road and both flanks open. These draw
-from the same committed force rather than adding replacement waves. The
+from the same committed force rather than adding replacement waves. Company
+transports enter from beyond the actual eastern map edge, fly west onto the
+supply pads, and return east; their delivery route does not cross the defenses.
+The
 Hegemony Onslaught arrives nose-first from the east and stations its entire hull
 outside the installation's eastern footprint. It fires inward as soon as every
 surviving ground unit clears the marked bombardment exclusion area and its
@@ -255,11 +258,14 @@ weapon damage and friendly fire. It carries finite ordnance and station time;
 arrival or a timer alone never wins. Success requires the records, safe survivors,
 at least three quarters of each sector's original target wall cells destroyed, and the
 last shells and released warheads landed, and every surviving unit recovered by
-its pickup craft. Resolute then ceases fire and resumes patrol nose-first on its
-existing bearing, passing over the ruins through ordinary propulsion. Completion
-waits for the capital to leave the map and a five-second aftermath hold; the
-neutralization report begins at departure. This closure follows confirmed
-destruction and extraction, and never substitutes for either. Remaining pirates
+its pickup craft. Resolute ceases fire and resumes patrol as soon as demolition
+and its last impacts finish, independently of company recovery. It continues
+nose-first on its existing bearing, passing over the ruins through ordinary
+propulsion; the neutralization report begins at this departure. Pickup continues
+concurrently, with its marker and instructions retained until the company is
+recovered. Completion waits for both recovery (including outstanding deliveries)
+and the capital's map exit plus a five-second aftermath hold. Neither timeline
+substitutes for the other. Remaining pirates
 need not be hunted down. Losing the ship
 or exhausting its intervention without destroying the target fails the operation.
 This local support does not transfer a campaign capital to the company or alter
