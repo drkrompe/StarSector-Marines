@@ -692,6 +692,23 @@ wall is. `compound-programs.md` owns the model, the measurements behind its
 sizing rules, and what remains before an ordinary compound can be built the same
 way.
 
+An authored **compound layout** may fix relationships between groups of buildings
+and their shared outdoor spaces before placement. Its footprint, buildings,
+doorways, courts and service roads share one cardinal pose. A yard is reserved
+working space, not a hole left by packing; optional facilities cannot consume
+that space or narrow its access. The footprint includes the perimeter and
+circulation it owes. Authored layouts use the same room fittings, wall strength,
+opening, material, tactical-place and destruction rules as packed installations.
+
+The maintenance-outpost family groups a vehicle shed and workshop around a
+service apron, pairs barracks across a court beside the mess, and separates
+command, dispatch and utilities. Its projecting shed gives the perimeter a
+stepped outline. A Cold Account uses this family, with records in the accessible
+dispatch office rather than whichever facility happens to be nearest. Its
+vehicle gates and bay approach preserve three-cell clearance after furnishing
+and defenses; field berths and infantry approaches remain connected. This is
+an authored mission consumer, not a replacement for every procedural garrison.
+
 A programmed precinct owns its working ground even where that ground was
 already walkable before its buildings were packed. Its kept circulation takes
 asphalt, its building aprons and cut access paths take concrete, and unused

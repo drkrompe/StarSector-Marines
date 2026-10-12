@@ -47,6 +47,18 @@ public final class PrecinctWardStage implements GenStage {
     /** Military floor, so a breached wall reads as one rather than as street. */
     private static final GroundKind WALL_GROUND = GroundKind.STRIPED;
 
+    /** An authored compound publishes the same places, perimeter and ground as a packed precinct. */
+    public static void finishAuthored(GenContext ctx, FortressInterior.Result rooms, int who) {
+        var precinct = ctx.get(BspKeys.PRECINCTS).precincts().get(who);
+        var claim = ctx.get(BspKeys.PRECINCT_CLAIM);
+        var road = ctx.get(BspKeys.PRECINCT_ROAD);
+        var masks = PrecinctFill.masks(claim, road, who, ctx.width, ctx.height);
+        emitTacticalNodes(ctx, rooms);
+        emitPointsOfInterest(ctx, rooms);
+        stampWall(ctx, claim, road, who, precinct.fortification());
+        InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), rooms.placed());
+    }
+
     @Override
     public void run(GenContext ctx) {
         PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
@@ -209,7 +221,7 @@ public final class PrecinctWardStage implements GenStage {
         for (RoomPacker.Placed room : result.placed()) {
             PointOfInterest.Kind kind = switch (room.purpose()) {
                 case ARMORY, VEHICLE_BAY, STOCKROOM, PARTS_CAGE -> PointOfInterest.Kind.DEPOT;
-                case KEEP_THRONE -> PointOfInterest.Kind.ADMINISTRATIVE;
+                case KEEP_THRONE, CIVIC_OFFICE -> PointOfInterest.Kind.ADMINISTRATIVE;
                 case CONTROL_ROOM -> PointOfInterest.Kind.COMMS;
                 default -> null;
             };
