@@ -102,6 +102,8 @@ public final class BattleFixtureJson {
                     wingsToJson(sabotage.marineFighterSupport()));
             root.put("enemyFighterSupport",
                     wingsToJson(sabotage.enemyFighterSupport()));
+            putSprawl(root, sabotage.sprawl());
+            root.put("defenderReinforcements", sabotage.defenderReinforcements());
             return root;
         }
         if (fixture instanceof AssaultBattleFixture assault) {
@@ -278,7 +280,9 @@ public final class BattleFixtureJson {
                 enumValue(RiskLevel.class, root.getString("risk"), "risk"),
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
-                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")),
+                sprawlFromJson(root),
+                root.optBoolean("defenderReinforcements", true));
     }
 
     private static AssaultBattleFixture decodeAssault(

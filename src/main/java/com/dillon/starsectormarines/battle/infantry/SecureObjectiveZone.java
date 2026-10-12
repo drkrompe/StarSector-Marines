@@ -52,7 +52,7 @@ public final class SecureObjectiveZone implements Goal {
         int targetZone = findObjectiveZone(squad, sim);
         if (targetZone < 0) return 0f;
         int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
-        if (currentZone < 0 || currentZone == targetZone) return 0f;
+        if (currentZone < 0 || CordonForPlant.hasEnteredZone(squad, targetZone, sim)) return 0f;
         // Reachability check — when the objective zone is disconnected from
         // the squad's current zone (rare, but possible if a wall got blown
         // and the BFS now hits a dead-end), fall back so EliminateEnemies

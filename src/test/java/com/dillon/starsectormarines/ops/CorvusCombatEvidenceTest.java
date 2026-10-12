@@ -249,6 +249,7 @@ class CorvusCombatEvidenceTest {
             var row = new JSONObject().put("id", id).put("name",sim.identity().name(id))
                     .put("type",sim.identity().type(id).name()).put("x",sim.world().x(id)).put("y",sim.world().y(id))
                     .put("hp",sim.world().hp(id)).put("armor",sim.world().armor(id))
+                    .put("role",sim.role().role(id).name()).put("settled",sim.movement().settled(id))
                     .put("pathRemaining",Paths.cellCount(sim.world().path(id))-sim.world().pathIdx(id));
             if (sim.world().hasMechLoadout(id)) {
                 var route = sim.movement().continuousRoute(id);
@@ -265,6 +266,7 @@ class CorvusCombatEvidenceTest {
                 row.put("squad",squad.id).put("goal",squad.currentGoal == null ? "NONE" : squad.currentGoal.name());
                 var step = squad.currentPlan == null ? null : squad.currentPlan.currentStep();
                 row.put("action",step == null ? "NONE" : step.action.name());
+                if (step != null) row.put("slot",step.slotOf(id));
                 var assignment = squad.assignmentForExecution();
                 if (assignment != null) {
                     row.put("assignment",assignment.kind().name()).put("targetX",assignment.targetCellX()).put("targetY",assignment.targetCellY());
