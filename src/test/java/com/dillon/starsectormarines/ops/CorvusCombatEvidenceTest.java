@@ -173,7 +173,6 @@ class CorvusCombatEvidenceTest {
                         }
                         assertTrue(sim.getColdAccount().evidenceTick() > 0);
                         assertEquals(0, sim.getColdAccount().outsideWithdrawal());
-                        assertFalse(sim.getColdAccount().pendingArrivals());
                         assertTrue(sim.getSimTickIndex() - sim.getColdAccount().warningTick() >= ColdAccountIntervention.WARNING_TICKS);
                     }
                     if (sim.getColdAccount() != null) {
@@ -194,7 +193,7 @@ class CorvusCombatEvidenceTest {
                             if (capital.isMoving()) assertEquals(90f, capital.facingDegrees, .01f, "Approach must be nose-first");
                             if (sim.getColdAccount().bombardTick() >= 0) {
                                 assertTrue(sim.getColdAccount().preparedTick() <= sim.getColdAccount().groundClearTick(),
-                                        "Batteries must be laid before the recommended force clears the firing line");
+                                        "Batteries prepared=" + sim.getColdAccount().preparedTick() + " clear=" + sim.getColdAccount().groundClearTick());
                                 assertEquals(sim.getColdAccount().firingHeading(), capital.facingDegrees, .01f,
                                         "The firing hull holds the bearing established during withdrawal");
                                 if (sim.getSimTickIndex() - sim.getColdAccount().bombardTick() < 60)

@@ -1,0 +1,140 @@
+{
+  "sheetName": "berthing-bed-damage",
+  "sheet": "art-source/tilesets/berthing-bed-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Built-in ImageGen reskin of retained geometry. Full two-cell placement frames, no silhouette trim; W/E/S/N columns, damaged/destroyed rows. Transparent low fragments release cover.",
+  "entries": [
+    {
+      "id": "doodad.residential-bed-h-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        9,
+        111,
+        444,
+        222
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-head-e-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        452,
+        111,
+        444,
+        222
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-v-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        1032,
+        0,
+        222,
+        444
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-head-n-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        1472,
+        0,
+        222,
+        444
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-h-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        9,
+        555,
+        444,
+        221
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-head-e-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        452,
+        555,
+        444,
+        221
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-v-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        1032,
+        444,
+        222,
+        443
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-head-n-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        1472,
+        444,
+        222,
+        443
+      ]
+    }
+  ]
+}

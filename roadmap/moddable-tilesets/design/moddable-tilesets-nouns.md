@@ -219,6 +219,9 @@ breach voids; ImageGen supplies one material family, and exact quarter turns
 supply the remaining facings. A damage swap retains placement rotation and
 mirroring. Destroyed sprites carry no cover; the combat map editor owns the
 opened cell and cover refresh, rather than inferring those from transparency.
+Walkable fences used as gantry rails and walkable sandbag placements share this
+lifecycle through removable physical cover. Walkability never opts a registered
+barrier out of damage, and its debris must not manufacture a wall breach.
 The retained sources and cuts reproduce separate damage atlases through the
 ordinary doodad packer. The `fences` and `sandbags` visual suites exercise the same damage
 entry point used by structural attacks.
@@ -252,6 +255,10 @@ and their destruction leaves underlying rack and pallet bases intact.
 Registered compound equipment shares that whole-prop damage model: generators,
 radar dishes, machine tools, fluid tanks, control/command consoles, tactical
 tables and workstation banks retain matching damaged shells and low wreckage.
+Directional two-cell barracks beds retain their own torn and collapsed states,
+with the same full footprint and orientation as the intact rack. A blast shares
+one damage pool across both cells; collapse releases the whole rack and leaves
+the original ground visible.
 Cable reels, pallet stacks, pipe bundles, military bunks, both ordinary desks
 and the four shelf variants follow the same lifecycle. Their remnants retain
 metal, wood, bedding and stock differences, with ground visible between pieces;

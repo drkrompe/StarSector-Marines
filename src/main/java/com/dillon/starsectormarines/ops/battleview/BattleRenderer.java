@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
@@ -914,7 +913,8 @@ public class BattleRenderer {
         boolean hasChargeSites = false;
         collectMissionMarkers(sim, out, alphaMult);
 
-        for (Objective objective : sim.getObjectives()) {
+        // Cold Account owns the disclosure and extraction timing of its internal evidence objective.
+        if (sim.getColdAccount() == null) for (Objective objective : sim.getObjectives()) {
             if (!(objective instanceof RaidObjective raid)) continue;
             collectRaidMarker(out, raid, false, cellPx, alphaMult);
             collectRaidMarker(out, raid, true, cellPx, alphaMult);
@@ -953,25 +953,19 @@ public class BattleRenderer {
         }
 
         if (sim.getColdAccount() != null) {
-            var layout = sim.getColdAccount().layout();
-            float ex = rc.camera.cellToScreenX(layout.evidenceX() + .5f);
-            float ey = rc.camera.cellToScreenY(layout.evidenceY() + .5f);
-            float wx = rc.camera.cellToScreenX(layout.withdrawalX() + .5f);
-            float wy = rc.camera.cellToScreenY(layout.withdrawalY() + .5f);
-            float sx = rc.camera.cellToScreenX(layout.strikeX());
-            float sy = rc.camera.cellToScreenY(layout.strikeY());
-            appendObjectiveAnnulus(ex, ey, cellPx * 1.8f, cellPx * 2f, BattlefieldMarkerPresentation.PROGRESS, alphaMult);
-            appendObjectiveAnnulus(wx, wy, cellPx * ColdAccountLayout.WITHDRAWAL_RADIUS - 2f,
-                    cellPx * ColdAccountLayout.WITHDRAWAL_RADIUS,
-                    BattlefieldMarkerPresentation.PROGRESS, .8f * alphaMult);
-            float exclusion = cellPx * (layout.strikeRadius() + ColdAccountLayout.BLAST_MARGIN);
-            appendObjectiveAnnulus(sx, sy, exclusion - 2f, exclusion, ORBITAL_WARNING, .65f * alphaMult);
-            out.addCustom(RenderLayer.OBJECTIVES, () -> {
-                objectiveMarkerFont.ensureLoaded();
-                drawObjectiveText("PIRATE RECORDS", ex, ey, BattlefieldMarkerPresentation.LABEL, .8f, alphaMult);
-                drawObjectiveText("WITHDRAW / HOLD HERE", wx, wy, BattlefieldMarkerPresentation.PROGRESS, .8f, alphaMult);
-                drawObjectiveText("BOMBARDMENT / KEEP CLEAR", sx, sy, ORBITAL_WARNING, .8f, alphaMult);
-            });
+            var intervention = sim.getColdAccount();
+            for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout())) {
+                float cx = rc.camera.cellToScreenX(marker.x());
+                float cy = rc.camera.cellToScreenY(marker.y());
+                float radius = cellPx * marker.radius();
+                Color tint = marker.kind() == ColdAccountMarkers.Kind.DANGER
+                        ? ORBITAL_WARNING : BattlefieldMarkerPresentation.PROGRESS;
+                appendObjectiveAnnulus(cx, cy, radius - 2f, radius, tint, .8f * alphaMult);
+                out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                    objectiveMarkerFont.ensureLoaded();
+                    drawObjectiveText(marker.label(), cx, cy, tint, .8f, alphaMult);
+                });
+            }
         }
 
         for (EquipmentDrop drop : sim.getEquipmentDrops()) {

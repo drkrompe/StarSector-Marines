@@ -30,6 +30,7 @@ public final class StructuralDemolitionPlan {
 
     public int sectorNumber() { return Math.min(index + 1, sectors.size()); }
     public int sectorCount() { return sectors.size(); }
+    public boolean complete() { return index == sectors.size(); }
     public WarshipOrder.FireOnArea advance(BiPredicate<Integer, Integer> standing) {
         while (index < sectors.size()) {
             Sector sector = sectors.get(index);

@@ -223,7 +223,7 @@ final class BattleHudOverlay {
         }
         if (sim != null && sim.getColdAccount() != null) {
             var intervention = sim.getColdAccount();
-            return model.updateIntervention(intervention.phase().name(), intervention.displayName(),
+            return model.updateIntervention(intervention.phase(), intervention.displayName(),
                     intervention.remainingWalls(), intervention.initialWalls());
         }
         if (sim != null) {

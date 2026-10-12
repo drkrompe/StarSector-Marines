@@ -50,13 +50,7 @@ public final class WorkshopConditionStage implements GenStage {
         if (state == WorkshopState.BURIED) {
             overlay(ctx, room, floor, 0, 3, "collapse", false, false);
             overlay(ctx, room, floor, 8, 6, "collapse", false, true);
-            for (var door : room.doors()) {
-                ctx.grid.setDoorway(door.x(), door.y(), false);
-                ctx.grid.setWalkable(door.x(), door.y(), false);
-                ctx.grid.setSeeThrough(door.x(), door.y(), false);
-                ctx.topology.setWall(door.x(), door.y(), true);
-                ctx.topology.setSurface(door.x(), door.y(), 0);
-            }
+            SealedShipHatches.seal(ctx, room);
         }
         if (state == WorkshopState.EQUIPPED) {
             var bench = ctx.doodads.stream().filter(d -> room.contains(d.cellX, d.cellY)

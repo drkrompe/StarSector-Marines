@@ -38,7 +38,7 @@ public final class ColdAccountIntervention implements Objective {
 
     public ColdAccountIntervention(BattleSimulation sim, ColdAccountLayout layout, StoryBeatLog beats) {
         this.layout = layout; this.beats = beats;
-        evidence = new RaidObjective("COLD-RECORDS", "pirate dispatch records", layout.evidenceX(),
+        evidence = new RaidObjective("COLD-RECORDS", "dispatch office records", layout.evidenceX(),
                 layout.evidenceY(), sim.getZoneGraph().zoneIdAt(layout.evidenceX(), layout.evidenceY()),
                 layout.withdrawalX(), layout.withdrawalY());
         strike = new WarshipOrder.FireOnArea(layout.strikeX(), layout.strikeY(), layout.strikeRadius(), true, true);
@@ -94,7 +94,7 @@ public final class ColdAccountIntervention implements Objective {
             float stationX = installationRight + 1f
                     + (float) Math.hypot(ship.lengthCells, ship.widthCells) / 2f + 8f;
             // A short eastern entry leaves time to lay the batteries while the company withdraws.
-            ship.x = Math.min(ship.x, stationX + 24f);
+            ship.x = Math.min(ship.x, stationX + 12f);
             ship.stationTo(stationX, stationY);
             ship.limitOrdnance(1500);
             ship.stayFor(300f);
@@ -105,9 +105,10 @@ public final class ColdAccountIntervention implements Objective {
             beat(sim, "hegemony_arriving_hold_fire");
         }
         remainingWalls = (int) walls.stream().filter(c -> sim.getTopology().isWall(c[0], c[1])).count();
+        var sector = demolition.advance(sim.getTopology()::isWall);
         if (ship.destroyed() || ship.departing() || ship.departed()
                 || (ship.ordnanceRemaining() == 0 && (sim.warships().shells().isEmpty() && sim.warships().strikes().isEmpty())
-                    && remainingWalls > walls.size() / 4)) {
+                    && !demolition.complete())) {
             ship.order(WarshipOrder.HoldFire.INSTANCE);
             phase = Phase.FAILED; beat(sim, "intervention_failed"); return;
         }
@@ -123,7 +124,7 @@ public final class ColdAccountIntervention implements Objective {
         }
         pendingArrivals = hasPendingArrivals(sim);
         if (groundClearTick < 0 && survivors + sim.survivorPickup().survivingCount(Faction.MARINE) > 0
-                && outsideWithdrawal == 0 && !pendingArrivals) groundClearTick = tick;
+                && outsideWithdrawal == 0) groundClearTick = tick;
         // Arrive nose-first, then train during the company's withdrawal. Triggers stay closed.
         if (!ship.isMoving() && !batteriesPrepared) {
             ship.groundFire(Warship.GroundFire.HOLD);
@@ -135,13 +136,13 @@ public final class ColdAccountIntervention implements Objective {
             preparedTick = tick;
         boolean authorized = clearance.authorize(tick, evidence.targetSecured(),
                 survivors + sim.survivorPickup().survivingCount(Faction.MARINE), outsideWithdrawal,
-                pendingArrivals, batteriesPrepared && !ship.isMoving() && ship.headingSettled()
+                batteriesPrepared && !ship.isMoving() && ship.headingSettled()
                         && (bombardTick >= 0 || ship.readyHeavyMounts() >= 2));
         if (clearance.warningTick() < 0) {
             ship.groundFire(Warship.GroundFire.HOLD);
             phase = Phase.WITHDRAW; return;
         }
-        if (remainingWalls <= walls.size() / 4 && shotsFired() > 0) {
+        if (demolition.complete() && shotsFired() > 0) {
             ship.order(WarshipOrder.HoldFire.INSTANCE);
             if ((sim.warships().shells().isEmpty() && sim.warships().strikes().isEmpty())
                     && sim.survivorPickup().complete(sim)) {
@@ -167,7 +168,6 @@ public final class ColdAccountIntervention implements Objective {
             ship.groundFire(tick - bombardTick < OPENING_SALVO_TICKS
                     ? Warship.GroundFire.HEAVY : Warship.GroundFire.ALL);
             if (tick - bombardTick >= OPENING_SALVO_TICKS) {
-                var sector = demolition.advance(sim.getTopology()::isWall);
                 if (sector != null && !sector.equals(ship.order())) ship.order(sector);
                 beat(sim, "demolition_sweep");
             }
@@ -194,9 +194,9 @@ public final class ColdAccountIntervention implements Objective {
     @Override public boolean isFailed() { return phase == Phase.FAILED; }
     @Override public String displayName() {
         return switch (phase) {
-            case EVIDENCE -> "Secure pirate dispatch records to authorize Hegemony intervention";
-            case WITHDRAW -> "Get clear and reach the shuttle pickup (" + outsideWithdrawal
-                    + " in firing area" + (pendingArrivals ? "; lift inbound" : "") + ")";
+            case EVIDENCE -> "Secure the dispatch office and recover proof of Sable Wake's operations";
+            case WITHDRAW -> "Clear the bombardment zone, then reach shuttle pickup (" + outsideWithdrawal
+                    + " still in danger)";
             case WARNING -> "Hegemony batteries engaging";
             case BOMBARD -> "Demolition sector " + demolition.sectorNumber() + "/" + demolition.sectorCount()
                     + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
