@@ -35,6 +35,14 @@ vacancy filling remains reserves-first and consumes generic Marines one billet a
 time. Existing saves keep their roster; free complement bootstrap is fixture and
 legacy tooling, not a campaign transition.
 
+A newly established company appoints Lieutenant Mira Hale as its founding field
+commander. Castle's first-command induction persists with the roster and requires
+one actual specialty choice and a manned home-command assignment before ordinary
+mission deployment. It creates no enlisted personnel and spends only the ordinary
+appointment training point. Companies saved before induction remain exempt; later
+losses never revoke completed induction. `company-view-nouns.md` owns its portrait
+lesson and screen flow.
+
 A squad may name one home officer. Home command is an organizational default,
 not ownership of people or a record of temporary borrowing. Officer capacity is
 in whole squads and does not shrink with casualties. A garrison remains a
@@ -79,8 +87,7 @@ company shortage may offer cargo-backed recruitment.
 Where that draw is offered, the base-game Marines icon identifies the cargo
 input without becoming a new personnel or availability authority.
 
-An **operation commander** is the single officer whose operation outcome is
-currently settled. A **task force** is the deployment-time grouping derived
+An **operation commander** is the selected officer overseeing the operation. A **task force** is the deployment-time grouping derived
 from the selected squads: a squad follows its fit home officer, while an
 unassigned squad or one whose home officer is unfit falls to the operation
 commander. Each represented officer is checked against that officer's squad
@@ -100,10 +107,12 @@ frozen commitment and individual fates, then personnel applies the deterministic
 RTD, WIA, MIA, or KIA result once. Survivor career evidence and experience are
 recorded from that report; recovery later returns eligible WIA to ACTIVE.
 
-The operation commander currently receives officer experience, promotion, and
-injury settlement. Other officers may lead task-force elements for deployment,
-but their outcome settlement is not inferred from mutable home assignments.
-Per-officer outcome work remains owned by `c13-the-task-force.md`.
+Each participating officer receives experience, promotion and fate settlement from
+their own launch-frozen element; operation command is also represented. Actual
+engagement includes marines lost aboard company lift. A held-back home officer
+receives no participation credit. Persisted attempt receipts prevent repeated
+settlement; mutable home assignments never rewrite attribution.
+`company-view-nouns.md` owns the task-force presentation and specialty scope.
 
 ## Named stationing
 
