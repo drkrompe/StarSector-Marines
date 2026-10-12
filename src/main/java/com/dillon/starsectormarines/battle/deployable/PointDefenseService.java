@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.deployable;
 
+import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -115,18 +116,25 @@ public final class PointDefenseService {
             pod.engagementTimer -= dt;
             if (pod.engagementTimer > 0f) continue;
             Projectile engaged = pickEngageable(pod, inFlight, sim);
-            if (engaged == null) continue;
+            Interceptable body = pickBody(pod, sim, engaged);
+            if (engaged == null && body == null) continue;
             // An engagement is a burst fired at a moving warhead, not a
             // guaranteed deletion. It costs a round from the magazine and puts
             // the mount on its interval whether or not it connects, so "it
             // fired and lost" is a real, reachable, visible state.
-            boolean stopped = rng.nextFloat() < pod.hitChance;
-            if (stopped) engaged.intercepted = true;
+            // A warship's missile that is nearer than any round is the one engaged; a tough one is harder to stop.
+            float chance = body != null ? pod.hitChance * Interceptable.toughnessFactor(body.hitpoints()) : pod.hitChance;
+            boolean stopped = rng.nextFloat() < chance;
+            if (stopped) {
+                if (body != null) body.intercept();
+                else engaged.intercepted = true;
+            }
             pod.engagementsRemaining--;
             pod.engagementTimer = pod.engagementInterval;
             sim.telemetry().recordOrdnanceEngaged(pod.carrierId);
             if (stopped) sim.telemetry().recordOrdnanceIntercepted(pod.carrierId);
-            postEngagement(pod, engaged, stopped, sim);
+            if (body != null) postEngagement(pod, body.x(), body.y(), stopped, sim);
+            else postEngagement(pod, engaged.currentX(), engaged.currentY(), stopped, sim);
         }
         ageMarks(dt);
         publishSnapshot();
@@ -192,6 +200,35 @@ public final class PointDefenseService {
      * radius. Nearest-first so a saturating salvo loses the round closest to
      * landing rather than an arbitrary one.
      */
+    /**
+     * The nearest hostile warship missile or warhead physically inside the radius, if it is nearer
+     * than the round already picked (or none was); null otherwise.
+     */
+    private Interceptable pickBody(LiveEmplacement pod, BattleControl sim, Projectile engaged) {
+        List<Interceptable> bodies = sim.interceptableOrdnance();
+        if (bodies.isEmpty()) return null;
+        float podX = sim.world().x(pod.entityId);
+        float podY = sim.world().y(pod.entityId);
+        float bestDistanceSq = pod.interceptRadius * pod.interceptRadius;
+        if (engaged != null) {
+            float dx = engaged.currentX() - podX;
+            float dy = engaged.currentY() - podY;
+            bestDistanceSq = Math.min(bestDistanceSq, dx * dx + dy * dy);
+        }
+        Interceptable best = null;
+        for (int i = 0, n = bodies.size(); i < n; i++) {
+            Interceptable b = bodies.get(i);
+            if (b.isIntercepted() || !pod.faction.hostileTo(b.faction())) continue;
+            float dx = b.x() - podX;
+            float dy = b.y() - podY;
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq >= bestDistanceSq) continue;
+            best = b;
+            bestDistanceSq = distanceSq;
+        }
+        return best;
+    }
+
     private Projectile pickEngageable(LiveEmplacement pod, List<Projectile> inFlight,
                                       BattleControl sim) {
         float podX = sim.world().x(pod.entityId);
@@ -219,12 +256,10 @@ public final class PointDefenseService {
      * audio, and its noise footprint all apply — an emplacement the enemy can
      * hear and see firing is the point, not a hidden field that eats missiles.
      */
-    private void postEngagement(LiveEmplacement pod, Projectile engaged,
+    private void postEngagement(LiveEmplacement pod, float toX, float toY,
                                 boolean stopped, BattleControl sim) {
         float fromX = sim.world().x(pod.entityId);
         float fromY = sim.world().y(pod.entityId);
-        float toX = engaged.currentX();
-        float toY = engaged.currentY();
         // Point the mount at what it just shot, so a bystander can read which
         // way the pod is working rather than seeing a tracer leave a fixed
         // barrel. Snapped rather than slewed: the traverse on a cluster mount

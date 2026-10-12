@@ -308,7 +308,7 @@ public final class WarshipMissilesScene implements BehaviorScene {
             flights.put(shell, new Flight(tick, shell.flightSeconds));
             if (landingRadius == 0f && shell.landing() != null) {
                 landingRadius = shell.landing().aoeRadius;
-                fireballCells = shell.blastCells;
+                fireballCells = shell.blastCells();
             }
             MissilePath path = shell.path();
             // The path is committed and closed-form: its whole shape can be read the moment it is fired.

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — slice 1 (flight, true MIRV payload, damage radius) shipped; owner decisions recorded below. Slice 2 is `warship-swarm-burst.md`.
+Updated: 2026-10-11 — slice 2 (swarm bursts) shipped and folded; the swarm design calls below are decided; what remains is listed under Slicing.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, barrage, point defence, flux) is that doc's; this one adds the *missile* half of the barrage.
 
@@ -30,6 +30,48 @@ Decided 2026-10-11, in answer to the questions at the end of the first design pa
    radius; the visual radius sizes only the drawn flash and fireball.
 
 These close questions 1 to 4 below; 5 to 9 remain open.
+
+5. **Spectacle before balance, and a random drumroll.** The reference is a film scene (3D,
+   night): a cluster munition launches and, on reaching an area, splits into submunitions
+   that hit at random for a large area burst. We work in 2D and aim for the feel. The
+   spread is a *random scatter* over a disc with a staggered arrival, not a tidy tulip: the
+   bodies fan out of the split, weave, then converge on random aim points. The owner is open
+   to changing existing behaviours to get it. Point defence must be able to counter it, for
+   ground and for air defence, so swarm bodies are individually killable.
+
+## Decided for the swarm (slice 2)
+
+These are design calls made while building slice 2, recorded as decided.
+
+- **Caps and fusing.** A volley's damage-bearing bodies are many, capped at 32 per pull of
+  the trigger, 160 per ship and 480 per battle. Beyond a cap a round fuses into a body
+  already in the air (damage and area summed), and a carrier's warheads fuse into fewer,
+  heavier ones, so total damage is conserved. A carrier always keeps one warhead, so a ship's
+  cap can be exceeded only by carriers, never by rack rounds.
+- **Random scatter, staggered arrival.** Aim points are a stratified random scatter over the
+  disc (even cover, random placement). The arrival window is a parameter of the preset: 0.6
+  to 2.5 s for FLAVOURED, 1.2 to 4 s for CINEMATIC, 0.15 to 0.8 s for FAITHFUL. It is a
+  stagger added to each warhead's own travel at its own speed, so a far split does not swallow
+  it; a fast warhead's stagger is held to what keeps it at 40% of its speed, so the Sabot
+  stays a tight kinetic shotgun rather than a crawl.
+- **Presets per ship.** FAITHFUL, FLAVOURED (default) and CINEMATIC, selected by
+  `Warship.missilePreset` and, in the debug panel, by F9.
+- **The budget.** Damage over the count and radius over its root, so the aggregate footprint
+  matches the vanilla weapon's; where the spec gives the count (a burst, `numShots`) the
+  shares are the spec's.
+- **Which weapons swarm.** MIRVs split into their true warheads as visible bodies; rack and
+  pod launchers fire many small bodies already and each is drawn and killable; heavy single
+  torpedoes stay single. CINEMATIC also splits the Hammer family into six bodies inside the
+  budget rule.
+- **Point defence.** The warship's own and the carried interceptor pods read warship bodies
+  through one interceptable seam; toughness comes from hit points (a warhead shares its
+  carrier's, since the spec names none); a carrier killed before its split loses the payload.
+- **Split cue and flash.** One split sound (the spec's own, through the sound-cue seam) and one
+  visible flash, ring and smoke per sheaf.
+- **Telegraph: yes.** A faint dashed pulsing ring on the target disc while the carrier or volley
+  is in flight, for FLAVOURED and CINEMATIC, off for FAITHFUL.
+- **A rack's burst is held to a rolling window** (3 s FLAVOURED, 2.5 s CINEMATIC) so a
+  Squall's twenty rounds roll out in seconds. This changes an existing cadence.
 
 ## Shipped (slice 1)
 
@@ -57,6 +99,41 @@ These close questions 1 to 4 below; 5 to 9 remain open.
 - **A data-file quirk.** The game files the Locust's projectile as `locust_srm.proj`
   though its weapon names it `locust`; the weapon reader tries that one alternative
   spelling because the data seam cannot list a folder.
+
+## Shipped (slice 2)
+
+- **Bodies.** A round, a carrier and a released warhead are each an interceptable body
+  (`Interceptable`): position, speed, faction, hit points, a kill mark. Point defence and
+  the carried interceptor pods read them through one seam.
+- **Bloom.** A carrier splits at the spec's range (not before its minimum time) with one flash,
+  ring, smoke puff and the spec's split sound (`WarshipSoundCue.Kind.SPLIT`). The warheads fan out
+  in the spec's arc, curve and weave onto random scatter points (`SwarmLayout`, `BloomPath`),
+  staggered across the preset's arrival window.
+- **Racks.** A burst of three or more is a volley scattered over a footprint, nearer rounds first for a
+  rocket rack and in no order for a swarm; the burst is held to a rolling window. The
+  archetype table (`MissileArchetype`) is keyed by weapon id with a spec-derived fallback.
+- **Budget, caps, fusing.** `SwarmBudget`: damage over the count, radius over its root, 32 per volley,
+  160 per ship, 480 per battle; a round beyond a cap folds into a live body of its weapon and a
+  carrier's warheads fuse, both preserving the sums. Fused rounds are counted for evidence.
+- **Point defence.** Toughness from hit points (none up to 60, then `1 / (1 + excess / 600)`); a warhead
+  shares its carrier's hit points; a carrier killed before its split releases nothing.
+- **Presets.** `MissilePreset` (FAITHFUL, FLAVOURED default, CINEMATIC) on `Warship.missilePreset`; F9
+  in the debug warship panel steps through them.
+- **Rendering.** Each body is drawn with its own sprite, engine glow and a trail sampled from the same
+  closed-form path; a dashed pulsing telegraph ring; one split flash per sheaf. Far-zoom degradation
+  through `ZoomDetail` (no flame or smoke below six pixels per cell, a shorter tail beyond 96 bodies) and
+  view culling cap what is drawn.
+- **Evidence.** The `warship-swarm` scene and snapshot suite: Hurricane cluster under each preset, a
+  Sabot shotgun, the same cluster against an umbrella of point defence over the district and against a
+  picket in the carriers' lane, an Annihilator volley, a Squall barrage, a cinematic Hammer cluster
+  and a ship firing Locusts from every slot until the caps bite; unit tests for the budget and fusing,
+  layout, path, archetypes, presets and bodies. Verdicts: `bodies-as-designed`, `damage-budget-conserved`,
+  `arrivals-staggered`, `footprint-wide`, `landing-clock-preserved`, `bodies-capped`,
+  `excess-is-fused-not-deleted`, `bodies-are-individually-killable`, `carrier-kill-loses-payload`,
+  `pd-takes-a-measurable-share`.
+- **Hardened targets, by reading.** Wall damage is hit-point accumulating (`MapEditor.damageWallsInRadius`),
+  so a swarm's many small shares breach in aggregate; per-volley accumulation was not needed. This is
+  read from the code, not measured against a compound.
 
 ## Why this doc exists
 
@@ -400,14 +477,13 @@ Reuse the game's art; author none. Per body:
 
 1. Shipped: data-driven flight for every missile mount, the true MIRV payload and
    the damage radius (see **Shipped (slice 1)** above).
-2. `warship-swarm-burst.md` — volleys and bodies: fan, weave and stagger for
-   racks, MIRV bloom with honoured payload, budgeted fusing, point defence
-   against bodies with toughness, and the swarm snapshot suite.
-3. Later, not yet stories: homing at moving ground units and `GUIDED_POOR`;
-   anti-fighter preference for `ANTI_FTR` weapons once aircraft are hittable;
-   Dragonfire standoff and non-interceptable beam payload; Hydra flanking;
-   CINEMATIC synthetic splitting; telegraph markers for swarm footprints;
-   threat-weighted point-defence target choice.
+2. Shipped: volleys and bodies (see **Shipped (slice 2)** above).
+3. Later, not yet stories: honouring `canSplitEarly`; homing at moving ground units
+   and `GUIDED_POOR`; anti-fighter preference for `ANTI_FTR` weapons once aircraft
+   are hittable; Dragonfire standoff and non-interceptable beam payload; Hydra
+   flanking; threat-weighted point-defence target choice; a `renderEvidence` figure
+   for the `SHUTTLES` layer with a full swarm in view; a measured hardened-target
+   breach by a swarm against a compound.
 
 ## Evidence plan
 
@@ -420,7 +496,7 @@ Reuse the game's art; author none. Per body:
 - **Behaviour scenes** in `src/test/.../battle/warship`: `warship-rocket-flight`
   (Annihilator volley over a field: landing dispersion and total arrival time
   within tolerance of the straight-line control, wobble visible, a walking
-  target missed by unguided and hit by homing), `warship-swarm-burst` (Locust,
+  target missed by unguided and hit by homing), `warship-swarm` (Locust,
   Hurricane and Squall on a dispersed squad against the single-blast control,
   summed damage equal, kill share higher, impacts staggered over seconds),
   extending `warship-point-defence` with a saturation loop (the same PD against
@@ -495,10 +571,12 @@ The data cannot answer these:
    punishes a running squad (and dispersal becomes the only counter); if no, every
    missile is effectively a rocket aimed at where the target was. Recommended:
    track until a terminal commit, with `GUIDED_POOR` lagging.
-7. **Should a swarm's footprint be telegraphed?** The barrage rule promises a
+7. **(Answered: yes, a faint dashed pulsing ring on the target disc for FLAVOURED and CINEMATIC, off for FAITHFUL. Shipped in slice 2.)**
+   **Should a swarm's footprint be telegraphed?** The barrage rule promises a
    telegraph; the swarm's aim points are individual. A ring on the footprint, a
    dot per body, or only the visible flight?
-8. **How long may a salvo take to arrive?** Staggering a 30-body volley over one
+8. **(Answered: 0.6 to 2.5 s of stagger on top of each body's own travel, about 4 s cinematic, a parameter of the preset. Shipped in slice 2.)**
+   **How long may a salvo take to arrive?** Staggering a 30-body volley over one
    to two seconds reads as a ripple; the same over eight seconds reads as
    many small separate shellings. What is the longest acceptable drumroll?
 9. **Restricted weapons**: Omega, Threat and Dweller launchers (Rift Torpedo,

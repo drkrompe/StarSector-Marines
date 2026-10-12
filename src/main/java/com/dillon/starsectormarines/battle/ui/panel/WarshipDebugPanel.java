@@ -47,6 +47,8 @@ public final class WarshipDebugPanel implements HudPanel {
     public static final int HOLD_KEY = Keyboard.KEY_F7;
     /** Put the ship on, or take it off, its hull's flux. */
     public static final int FLUX_KEY = Keyboard.KEY_F8;
+    /** Step the ship's missiles through faithful, flavoured and cinematic. */
+    public static final int MISSILE_PRESET_KEY = Keyboard.KEY_F9;
 
     private static final float PAD = 6f;
     private static final Color TEXT = new Color(0xFF, 0xE0, 0x90);
@@ -87,6 +89,9 @@ public final class WarshipDebugPanel implements HudPanel {
             } else if (e.getEventValue() == FLUX_KEY) {
                 DebugWarship.toggleFlux(ship);
                 e.consume();
+            } else if (e.getEventValue() == MISSILE_PRESET_KEY) {
+                DebugWarship.cycleMissilePreset(ship);
+                e.consume();
             }
         }
     }
@@ -108,8 +113,8 @@ public final class WarshipDebugPanel implements HudPanel {
         BattleLayout layout = ctx.getLayout();
         if (ship == null || layout == null) return;
         font.ensureLoaded();
-        String line = DebugWarship.statusLine(ship);
-        String hint = "F6 fire at cursor   F7 hold fire   F8 flux on/off";
+        String line = DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
+        String hint = "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset";
         float w = Math.max(font.measureWidth(line), font.measureWidth(hint)) + 2f * PAD;
         float lineH = font.getLineHeight();
         float h = 2f * lineH + 2f * PAD;
