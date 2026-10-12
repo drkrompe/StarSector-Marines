@@ -157,3 +157,16 @@ presentation remain to be implemented and reviewed.
 - [x] Repair site-security travel being abandoned for overwatch on distant
   remembered contact; the original replay's rear squad showed exactly that.
 - [ ] Player-controlled acceptance and final difficulty tuning remain open.
+
+Final merged-ship playback: victory at tick 7,160 (3:58.7). Evidence at 4,140;
+fire at 6,159 with no grace interval and pickup still underway. Four six-seat
+sorties physically recovered all 24 surviving infantry. Ground losses were
+24/48 and the Hound, compared with 29/48 and the Hound in the previous baseline.
+The capital fired 368 rounds, destroying 596/725 target wall cells; six pirates
+remained. No infantry died during bombardment. Per-tick assertions prove the
+full hull stays beyond the outermost wall, approach heading follows its straight
+flight line, and fire precedes pickup completion. The original accessible-POI
+bounds omitted outer structures; station placement now uses the original wall
+footprint, which remains fixed after demolition. Twenty-three focused tests and
+`verifyModJarBoundary` pass. The retained `cold-account-outskirts-pickup` artifact
+includes the updated silent replay, fixture, trace, samples and unit snapshots.

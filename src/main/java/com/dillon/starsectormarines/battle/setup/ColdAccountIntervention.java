@@ -26,6 +26,7 @@ public final class ColdAccountIntervention implements Objective {
     private Phase phase = Phase.EVIDENCE;
     private int evidenceTick = -1, bombardTick = -1;
     private int remainingWalls, outsideWithdrawal;
+    private final int installationRight;
     private boolean pendingArrivals;
 
     public ColdAccountIntervention(BattleSimulation sim, ColdAccountLayout layout, StoryBeatLog beats) {
@@ -38,9 +39,11 @@ public final class ColdAccountIntervention implements Objective {
             if (strike.contains(x + .5f, y + .5f) && sim.getTopology().isWall(x, y)) walls.add(new int[]{x,y});
         if (walls.isEmpty()) throw new IllegalStateException("Cold Account requires a destructible stronghold");
         remainingWalls = walls.size();
+        installationRight = walls.stream().mapToInt(c -> c[0]).max().orElseThrow();
         sim.addObjective(evidence);
         sim.survivorPickup().configure(Faction.MARINE, layout.withdrawalX(), layout.withdrawalY());
     }
+    public int installationRight() { return installationRight; }
     public ColdAccountLayout layout() { return layout; }
     public Phase phase() { return phase; }
     public int evidenceTick() { return evidenceTick; }
@@ -64,7 +67,7 @@ public final class ColdAccountIntervention implements Objective {
             beat(sim, "pirate_evidence_confirmed");
             float stationY = layout.strikeY();
             ship = fitShip(sim.getGrid().getWidth() + 30f, stationY);
-            float stationX = layout.installationRight() + 1f
+            float stationX = installationRight + 1f
                     + (float) Math.hypot(ship.lengthCells, ship.widthCells) / 2f + 8f;
             ship.stationTo(stationX, stationY);
             ship.limitOrdnance(1500);
