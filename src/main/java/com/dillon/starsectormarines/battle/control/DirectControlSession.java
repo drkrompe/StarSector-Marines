@@ -190,7 +190,8 @@ public final class DirectControlSession {
                     type.visualLengthCells, type.visualWidthCells, battle.getGrid());
         }
         return ManualTerrainMotion.canStand(battle.getGrid(), roster.world().renderX(id),
-                roster.world().renderY(id), battle.physicalRadius(id));
+                roster.world().renderY(id), battle.physicalRadius(id),
+                roster.identity().type(id).isMech());
     }
 
     private boolean eligible(long id) {

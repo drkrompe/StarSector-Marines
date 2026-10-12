@@ -214,4 +214,36 @@ class ManualTerrainMotionTest {
         }
         return grid;
     }
+
+    @Test
+    void aSteppingOverBodyCrossesALowFixtureThatStopsEveryoneElse() {
+        NavigationGrid grid = floor(12, 5);
+        for (int y = 0; y < 5; y++) {
+            grid.setWalkable(5, y, false);
+            grid.setTag(5, y, NavigationGrid.CellTag.LOW_FIXTURE, true);
+        }
+        float radius = 0.6f;
+        var infantry = ManualTerrainMotion.move(grid, 2.5f, 2.5f, 8f, 0f, radius);
+        var strider = ManualTerrainMotion.move(grid, 2.5f, 2.5f, 8f, 0f, radius, true);
+        assertEquals(5f - radius, infantry.x(), TOLERANCE);
+        assertEquals(10.5f, strider.x(), TOLERANCE);
+        assertTrue(ManualTerrainMotion.canStand(grid, 5.5f, 2.5f, radius, true));
+        assertFalse(ManualTerrainMotion.canStand(grid, 5.5f, 2.5f, radius));
+    }
+
+    @Test
+    void aSteppingOverBodyIsStillStoppedByAnOrdinaryWallAndByAClosedEdge() {
+        NavigationGrid grid = floor(12, 5);
+        grid.setWalkable(5, 2, false);
+        grid.setTag(5, 2, NavigationGrid.CellTag.LOW_FIXTURE, true);
+        grid.setWalkable(8, 2, false);
+        grid.blockEdge(10, 2, Direction.W);
+        float radius = 0.4f;
+        var overFixture = ManualTerrainMotion.move(grid, 3.5f, 2.5f, 2.5f, 0f, radius, true);
+        assertEquals(6f, overFixture.x(), TOLERANCE);
+        var intoWall = ManualTerrainMotion.move(grid, 6.5f, 2.5f, 4f, 0f, radius, true);
+        assertEquals(8f - radius, intoWall.x(), TOLERANCE);
+        var intoEdge = ManualTerrainMotion.move(grid, 9.5f, 2.5f, 3f, 0f, radius, true);
+        assertEquals(10f - radius, intoEdge.x(), TOLERANCE);
+    }
 }

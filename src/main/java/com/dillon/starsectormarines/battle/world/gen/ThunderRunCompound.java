@@ -292,6 +292,8 @@ public final class ThunderRunCompound {
             throw new IllegalStateException("Thunder Run fortification overlaps structure at " + x + "," + y);
         c.grid.setWalkable(x, y, false);
         c.grid.setSeeThrough(x, y, true);
+        // Sandbags are knee-high: infantry are stopped, a mech strides over them.
+        c.grid.setTag(x, y, NavigationGrid.CellTag.LOW_FIXTURE, id.startsWith("doodad.sandbag-"));
         c.topology.setWall(x, y, false);
         c.topology.setFixture(x, y, true);
         c.doodads.add(new Doodad(x, y, tiles.doodad(id)));
