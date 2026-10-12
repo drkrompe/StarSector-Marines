@@ -38,6 +38,9 @@ public final class Warship {
         float burstTimer;
         float aimX;
         float aimY;
+        /** The velocity, in cells per second, of the unit {@code aimX/aimY} was taken from; zero for open ground. */
+        float aimVx;
+        float aimVy;
         /** Whether {@code aimX/aimY} is a live choice the barrel is swinging to. */
         boolean aimed;
         /** The sweep this beam mount has committed, while it lasts. */
