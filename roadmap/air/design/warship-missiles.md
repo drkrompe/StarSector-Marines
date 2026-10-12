@@ -1,12 +1,62 @@
 # Warship missiles — flight, swarms and the lore they carry
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — first design pass; nothing here is implemented. Slices 1 and 2 are `warship-missile-flight.md` and `warship-swarm-burst.md`.
+Updated: 2026-10-11 — slice 1 (flight, true MIRV payload, damage radius) shipped; owner decisions recorded below. Slice 2 is `warship-swarm-burst.md`.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, barrage, point defence, flux) is that doc's; this one adds the *missile* half of the barrage.
+
+## Owner direction (standing)
+
+Decided 2026-10-11, in answer to the questions at the end of the first design pass.
+
+1. **Spectacle first, and open to changing behaviours.** The reference is a film
+   scene in which a cluster munition launches and, on reaching an area, splits into
+   submunitions that hit at random for a large area burst at night. The game is 2D,
+   so the aim is the *feel*, not the fidelity: a visible carrier, a visible split,
+   a sheaf of submunitions walking across the ground.
+2. **Point defence is the counter, for ground and for air defence.** Swarm bodies
+   are individually killable by point defence, so saturation is real.
+3. **Chase fun and spectacle first, then balance and counter it.** The player wants
+   power fantasy both ways, with their own ships and with enemy ships. The true MIRV
+   payloads (Hurricane 7 x 500, Sabot 5 x 200, Hydra 6 x 500) are wanted.
+4. **Why the visual and damage radii differ.** Vanilla's `explosionRadius` in a
+   projectile spec is the *visual* fireball size; `explosionSpec.radius` and
+   `coreRadius` are the damage footprint (the core takes full damage, the outer
+   radius falls off). The first version read the visual figure for damage, which was
+   a bug and not a design choice. Damage and wall and roof breach use the damage
+   radius; the visual radius sizes only the drawn flash and fireball.
+
+These close questions 1 to 4 below; 5 to 9 remain open.
+
+## Shipped (slice 1)
+
+- **Flight.** Every missile mount's round follows a closed-form path read from its
+  own spec: launch, boost, cruise and coast, a launch-fan bulge, and a wobble or
+  weave bounded by the missile's own turn rate; arming time honoured; the seed is
+  stateless. An unguided rocket and a homing missile are now visibly different
+  shapes (a rocket bulges to one side, a homing missile crosses its own line).
+  Point defence and the renderer read the same path. Deferred from the story: the
+  far-zoom degradation of the trail through `ZoomDetail`, and the contrail
+  ribbon, which stays the existing puff chain sampled along the path.
+- **Bug fix: MIRV payload.** A multi-warhead missile carries the sub-spec's warheads
+  (count, damage, damage type, footprint, speed) read through
+  `behaviorSpec.projectileSpec`, flies as a carrier, and on reaching its split point
+  releases that many committed detonations, spread over a disc with jitter and a
+  stagger. This is the carrier-and-sheaf foundation for slice 2, which makes the
+  warheads real bodies.
+- **Bug fix: blast radius.** Damage and wall and roof breach use `explosionSpec.radius`
+  (falling back to the visual size only where a round declares no footprint); the
+  fireball is drawn at the visual radius. The ground detonation has no falloff, so
+  the outer radius applies flat and `coreRadius` is read but not yet used.
+- **Evidence.** The `warship-missiles` scene and snapshot suite (rocket pod, homing
+  Harpoon, Hurricane, Reaper pair); unit tests for the path, the spec reader and
+  the scatter.
+- **A data-file quirk.** The game files the Locust's projectile as `locust_srm.proj`
+  though its weapon names it `locust`; the weapon reader tries that one alternative
+  spelling because the data seam cannot list a folder.
 
 ## Why this doc exists
 
@@ -21,7 +71,10 @@ weave and arrive as a swarm of many small impacts (the 2021 *Dune* reference:
 fleet munitions that arrive as a swarm burst, not a single shell), and wants the
 lore of each missile line read into the in-atmosphere model rather than ignored.
 
-## What exists today (facts to build from)
+## What existed before slice 1 (facts the first design pass built from)
+
+The list below is the state the design started from; the flight model, the MIRV
+payload and the radius fix above have since changed the first three points.
 
 - `VanillaWeapon` is read from the weapon table row, the `.wpn` and the `.proj`.
   `missile` is true when the projectile's `specClass` is `missile`. The weapon
@@ -345,10 +398,8 @@ Reuse the game's art; author none. Per body:
 
 ## Slicing (open work)
 
-1. `warship-missile-flight.md` — data-driven flight for every missile mount:
-   the spec reader, the kinematic path (boost, cruise, coast), rocket wobble and
-   rack scatter, tangent-aligned art with spec-driven flame and contrail. No
-   new bodies; landings and clocks are unchanged in shape.
+1. Shipped: data-driven flight for every missile mount, the true MIRV payload and
+   the damage radius (see **Shipped (slice 1)** above).
 2. `warship-swarm-burst.md` — volleys and bodies: fan, weave and stagger for
    racks, MIRV bloom with honoured payload, budgeted fusing, point defence
    against bodies with toughness, and the swarm snapshot suite.
@@ -416,19 +467,23 @@ Reuse the game's art; author none. Per body:
 
 The data cannot answer these:
 
-1. **How literal is the Dune swarm look?** Only where the game's weapon already is a
+1. **(Answered: spectacle first, open to changing behaviours; feel over fidelity.)**
+   **How literal is the Dune swarm look?** Only where the game's weapon already is a
    swarm (Locust, Swarmer, Squall, Annihilator streams, Hurricane/Sabot/Hydra
    bloom), or should heavy rockets (Hammer, even Reaper) also split into
    submunitions when asked? Recommended: FLAVOURED by default, CINEMATIC as a
    per-mission or per-ship switch, torpedoes single by default.
-2. **Are swarm bodies damage-bearing and individually killable by point defence?**
+2. **(Answered: yes, point defence is the counter on the ground and in the air.)**
+   **Are swarm bodies damage-bearing and individually killable by point defence?**
    Recommended yes (caps and fusing keep it affordable), so saturation is real.
-3. **Is a MIRV's true payload the intended power?** The Hurricane is 7 x 500
+3. **(Answered: yes; fun and spectacle first, balance afterwards. Shipped in slice 1.)**
+   **Is a MIRV's true payload the intended power?** The Hurricane is 7 x 500
    (3,500), the Sabot 5 x 200, the Hydra 6 x 500, against the one row each of
    the weapon table the barrage reads today. Honouring the spec makes them
    stronger than they are now; consistent with "overpowered by design", but
    it is a balance change.
-4. **Which blast radius is the damage?** The spec's `explosionRadius` is
+4. **(Answered: the damage footprint; the visual radius only draws. Shipped in slice 1.)**
+   **Which blast radius is the damage?** The spec's `explosionRadius` is
    "purely visual", the real one is `explosionSpec.radius`/`coreRadius`. The code
    uses the visual figure: a Reaper blasts 15.8 cells rather than 7.9 and a
    Hammer 10.4 rather than 4.5. Keep the large radius (spectacle, owner intent)
