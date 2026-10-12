@@ -21,7 +21,8 @@
       "generatedVoiceId": "YHOEWmZLDoCD6QyvyJKr",
       "mediaType": "audio/mpeg",
       "durationSeconds": 19.148,
-      "audioSha256": "a46f05f5f129c2a4054abf0588b7dc95305f32c9c7954910f52dd00ed000f536"
+      "audioSha256": "a46f05f5f129c2a4054abf0588b7dc95305f32c9c7954910f52dd00ed000f536",
+      "status": "selected"
     },
     {
       "candidate": "B",
@@ -29,7 +30,8 @@
       "generatedVoiceId": "B2mjU0qlCuZjiPH9j35c",
       "mediaType": "audio/mpeg",
       "durationSeconds": 19.722,
-      "audioSha256": "e24c0b36f6d601c522f8eb24b23e54be158472e8c493815399e95c60b54010bc"
+      "audioSha256": "e24c0b36f6d601c522f8eb24b23e54be158472e8c493815399e95c60b54010bc",
+      "status": "rejected"
     },
     {
       "candidate": "C",
@@ -37,9 +39,18 @@
       "generatedVoiceId": "6IDKvvpgmsEnNhIXrYRw",
       "mediaType": "audio/mpeg",
       "durationSeconds": 17.006,
-      "audioSha256": "e755b7503047f2d9e2075d0f425115d5a4a5b6d0a4b374a247a115ba04dc179e"
+      "audioSha256": "e755b7503047f2d9e2075d0f425115d5a4a5b6d0a4b374a247a115ba04dc179e",
+      "status": "rejected"
     }
   ],
-  "selectedCandidate": null,
-  "savedVoiceId": null
+  "selectedCandidate": "A",
+  "savedVoiceId": "YHOEWmZLDoCD6QyvyJKr",
+  "status": "selected",
+  "savedVoiceName": "Jackal - Infantry",
+  "saveRequest": {
+    "voice_name": "Jackal - Infantry",
+    "voice_description": "Native Irish English, a natural western Irish dialect. Male, 30 to 38. Excellent clean recording quality. Persona: dry-humoured infantry professional. Emotion: alert, wry, dependable. A medium-register masculine voice with a light sandpaper edge and easy conversational rhythm. Understatement and small changes in pitch carry the humour; the smile is audible without turning into a laugh. The instant someone is in danger, he becomes quick, clipped and forceful. Human uneven phrasing and brief breaths, casual confidence earned through experience. Lively spoken character dialogue at a brisk natural pace.",
+    "generated_voice_id": "YHOEWmZLDoCD6QyvyJKr"
+  },
+  "saveRequestId": null
 }

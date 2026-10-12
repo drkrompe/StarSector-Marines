@@ -1,7 +1,7 @@
 """Retained Voice Design auditions. Offline validation by default; --generate is paid.
 
-Each role is one design request returning alternative voices. This does not save
-voices to the provider account or register them for runtime. An unresolved request
+Each role is one design request returning alternative voices. --save-selected
+saves approved candidates to the provider account, without runtime registration. An unresolved request
 blocks retries; inspect its pending marker and raw response before proceeding.
 """
 import argparse
@@ -44,6 +44,8 @@ def retained(role, output_format):
     if pending.exists():
         raise SystemExit("Unresolved request: " + role["id"] + "; inspect before retrying.")
     if not receipt.exists():
+        if role.get("status") == "selected":
+            raise SystemExit("Missing approved receipt: " + role["id"])
         if list(SOURCE.glob(role["id"] + "-*.mp3")):
             raise SystemExit("Incomplete receipt: " + role["id"])
         return False
@@ -51,10 +53,58 @@ def retained(role, output_format):
     if saved["request"] != role["request"] or saved["outputFormat"] != output_format:
         raise SystemExit("Changed inputs; preserve these candidates under a new audition ID.")
     for candidate in saved["candidates"]:
+        if candidate.get("status") == "rejected":
+            continue
         audio = SOURCE / candidate["file"]
         if not audio.exists() or sha(audio.read_bytes()) != candidate["audioSha256"]:
             raise SystemExit("Missing or changed candidate: " + str(audio))
     return True
+
+
+def save_selected(role, key):
+    path = SOURCE / (role["id"] + ".receipt.json")
+    receipt = json.loads(path.read_text(encoding="utf-8"))
+    choice = role.get("selectedCandidate")
+    if not choice or choice != receipt.get("selectedCandidate"):
+        raise SystemExit("Selection is absent or inconsistent: " + role["id"])
+    candidate = next(c for c in receipt["candidates"] if c["candidate"] == choice)
+    if candidate.get("status") != "selected":
+        raise SystemExit("Candidate is not approved: " + role["id"])
+    pending = SOURCE / (role["id"] + ".save-pending.json")
+    if pending.exists():
+        raise SystemExit("Unresolved voice save; inspect account before retrying: " + role["id"])
+    if not receipt.get("savedVoiceId"):
+        if receipt.get("saveFailure"):
+            raise SystemExit("Resolve recorded voice-save failure before retrying: " + role["id"])
+        payload = {"voice_name": role["label"] + " - Infantry",
+                   "voice_description": role["description"],
+                   "generated_voice_id": candidate["generatedVoiceId"]}
+        write_json(pending, payload)
+        request = urllib.request.Request(
+            "https://api.elevenlabs.io/v1/text-to-voice",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"xi-api-key": key, "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                result = json.loads(response.read())
+                request_id = response.headers.get("request-id")
+        except urllib.error.HTTPError as error:
+            raise SystemExit(f"Voice save HTTP {error.code}; no retry: {role['id']}") from None
+        except (OSError, urllib.error.URLError):
+            raise SystemExit("Voice save connection failed; inspect account before retrying.") from None
+        receipt.update(savedVoiceId=result["voice_id"], savedVoiceName=result.get("name"),
+                       saveRequest=payload, saveRequestId=request_id)
+        write_json(path, receipt)
+        pending.unlink()
+    cast_path = SOURCE.parent / "ensemble/cast.json"
+    cast = json.loads(cast_path.read_text(encoding="utf-8"))
+    cast[role["id"]] = {"voiceId": receipt["savedVoiceId"], "name": role["label"],
+                        "generatedVoiceId": candidate["generatedVoiceId"], "candidate": choice,
+                        "status": "selected by user; production-model audition pending",
+                        "description": role["description"],
+                        "source": "personality-auditions/" + candidate["file"]}
+    write_json(cast_path, cast)
+    print("Saved selected voice:", role["label"], choice, receipt["savedVoiceId"], flush=True)
 
 
 def generate(role, output_format, key):
@@ -107,7 +157,8 @@ def render(catalog, output):
     output = output.resolve()
     if output.is_relative_to(SOURCE.resolve()):
         raise SystemExit("Render outside the retained source directory.")
-    for role in catalog["roles"]:
+    roles = [role for role in catalog["roles"] if role.get("status") != "rejected"]
+    for role in roles:
         if not retained(role, catalog["outputFormat"]):
             raise SystemExit("Missing candidates: " + role["id"])
     output.mkdir(parents=True, exist_ok=True)
@@ -129,11 +180,13 @@ def render(catalog, output):
     report = {"radioFilter": COMMS + ",volume=0.8", "gapSeconds": 2,
               "review": "Decode, duration, hash and level checks only; voice casting awaits listening.",
               "roles": []}
-    for role in catalog["roles"]:
+    for role in roles:
         receipt = json.loads((SOURCE / (role["id"] + ".receipt.json")).read_text(encoding="utf-8"))
         clean_reel, radio_reel = array.array("h"), array.array("h")
         row = {"id": role["id"], "label": role["label"], "candidates": []}
         for candidate in receipt["candidates"]:
+            if candidate.get("status") == "rejected":
+                continue
             path = SOURCE / candidate["file"]
             clean, radio = pcm(path), pcm(path, report["radioFilter"])
             prefix = role["id"] + "-" + candidate["candidate"]
@@ -159,6 +212,7 @@ def render(catalog, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
+    parser.add_argument("--save-selected", action="store_true", help="Save explicitly selected candidates as provider voices")
     parser.add_argument("--role", action="append")
     parser.add_argument("--render", type=Path, help="Offline clean/radio candidates and A/B/C reels")
     args = parser.parse_args()
@@ -172,6 +226,9 @@ def main():
     roles = [role for role in roles if not args.role or role["id"] in args.role]
     missing = []
     for role in roles:
+        if role.get("status") == "rejected":
+            print("Rejected:", role["id"])
+            continue
         request = role["request"]
         if not 20 <= len(request["voice_description"]) <= 1000 or not 100 <= len(request["text"]) <= 1000:
             raise SystemExit("Invalid prompt length: " + role["id"])
@@ -185,6 +242,13 @@ def main():
         key = credential()
         for role in missing:
             generate(role, catalog["outputFormat"], key)
+    if args.save_selected:
+        chosen = [role for role in roles if role.get("status") == "selected"]
+        if missing:
+            raise SystemExit("Validate all approved sources before saving voices.")
+        key = credential() if chosen else None
+        for role in chosen:
+            save_selected(role, key)
     if args.render:
         render(catalog, args.render)
 

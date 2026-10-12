@@ -1,5 +1,5 @@
 {
-  "status": "audition candidates; none selected or saved as a permanent voice",
+  "status": "casting selected: Jackal A, Ox B, Rivet B; Warden and Relay rejected",
   "outputFormat": "mp3_44100_128",
   "roles": [
     {
@@ -42,7 +42,9 @@
         "loudness": 0.2,
         "guidance_scale": 5,
         "auto_generate_text": false
-      }
+      },
+      "status": "rejected",
+      "selectedCandidate": null
     },
     {
       "id": "jackal",
@@ -84,7 +86,9 @@
         "loudness": 0.2,
         "guidance_scale": 5,
         "auto_generate_text": false
-      }
+      },
+      "status": "selected",
+      "selectedCandidate": "A"
     },
     {
       "id": "relay",
@@ -126,7 +130,9 @@
         "loudness": 0.2,
         "guidance_scale": 5,
         "auto_generate_text": false
-      }
+      },
+      "status": "rejected",
+      "selectedCandidate": null
     },
     {
       "id": "ox",
@@ -168,7 +174,9 @@
         "loudness": 0.2,
         "guidance_scale": 5,
         "auto_generate_text": false
-      }
+      },
+      "status": "selected",
+      "selectedCandidate": "B"
     },
     {
       "id": "rivet",
@@ -210,7 +218,9 @@
         "loudness": 0.2,
         "guidance_scale": 5,
         "auto_generate_text": false
-      }
+      },
+      "status": "selected",
+      "selectedCandidate": "B"
     }
   ]
 }
