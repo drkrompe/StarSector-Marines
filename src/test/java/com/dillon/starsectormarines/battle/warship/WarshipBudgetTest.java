@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +45,8 @@ class WarshipBudgetTest {
             @Override public List<Map<String, String>> csv(String path) {
                 if (path.endsWith("weapon_data.csv")) {
                     return List.of(
-                            Map.of("id", "gun_a", "damage/shot", "80", "range", "1000", "ammo", "3"),
-                            Map.of("id", "gun_b", "damage/shot", "80", "range", "1000", "ammo", ""));
+                            Map.of("id", "gun_a", "damage/shot", "80", "range", "1000", "ammo", "3", "turn rate", "180", "proj speed", "1000"),
+                            Map.of("id", "gun_b", "damage/shot", "80", "range", "1000", "ammo", "", "turn rate", "180", "proj speed", "1000"));
                 }
                 return List.of(Map.of("id", "test", "hitpoints", "20000", "armor rating", "1750"));
             }
@@ -76,6 +79,27 @@ class WarshipBudgetTest {
         assertEquals(6f, s.stationSecondsRemaining(), 1e-4f);
         assertTrue(s.spendStationTime(6f), "spent");
         assertEquals(0f, s.stationSecondsRemaining());
+    }
+
+    @Test
+    void onlyExplicitBombardmentShootsAnUnoccupiedStructure() throws Exception {
+        var grid = new NavigationGrid(80, 80);
+        var topology = new CellTopology(80, 80);
+        for (int y = 0; y < 80; y++) for (int x = 0; x < 80; x++)
+            if (x != 60 || y != 50) grid.setWalkableFloor(x, y);
+        grid.setWallHp(60, 50, 100);
+        topology.setWall(60, 50, true);
+        try (var sim = new BattleSimulation(grid, topology)) {
+            Warship ship = ship();
+            sim.addWarship(ship);
+            ship.order(new WarshipOrder.FireOnArea(60.5f, 50.5f, 2f, false));
+            for (int i = 0; i < 240; i++) sim.warships().tick(BattleSimulation.TICK_DT, sim);
+            assertEquals(0, ship.mounts().stream().mapToInt(m -> m.shotsFired).sum());
+            ship.order(new WarshipOrder.FireOnArea(60.5f, 50.5f, 2f, false, true));
+            for (int i = 0; i < 240; i++) sim.warships().tick(BattleSimulation.TICK_DT, sim);
+            assertTrue(ship.mounts().stream().mapToInt(m -> m.shotsFired).sum() > 0);
+            assertTrue(grid.getWallHp(60, 50) < 100, "actual projectile impacts damage the empty wall");
+        }
     }
 
     @Test

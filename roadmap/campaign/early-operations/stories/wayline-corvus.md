@@ -11,8 +11,8 @@ for force scale, and `campaign-battle-bridge-nouns.md` for target authority.
 
 Mara Venn follows Sable Wake's sale of Wayline sailing schedules across Corvus.
 The Dust Ledger raids a counting house on Asharu; Blind Watch demolishes three
-installations at a temporary Warion listening post; A Cold Account clears a
-dispatch compound on Garnir. These are authored jobs against one pirate crew.
+installations at a temporary Warion listening post; A Cold Account confirms
+pirate evidence and withdraws before Hegemony bombardment on Garnir. These are authored jobs against one pirate crew.
 Neither Asharu's government, Garnir's orbital depot nor the abandoned
 terraforming platform becomes an enemy asset or a campaign conquest.
 
@@ -96,8 +96,19 @@ casualty writeback remain the campaign boundary.
 
 - [x] First production playback proves evidence, whole-company withdrawal,
   warning and physical bombardment, with no premature ground shots.
-- [ ] Rerun the final installation-wide footprint against the latest ship combat
-  changes, retain evidence and review difficulty.
+- [x] Final replay against the merged ship combat: Marine victory at 9,587 ticks
+  (5:19.6), 29/48 infantry lost, Hound destroyed at 2,589 ticks before evidence.
+  Proof at 5,764; all survivors clear at 8,267; fire at 8,567. All 423 rounds
+  followed clearance and the ten-second warning. Bombardment destroyed 557/725
+  target wall cells; all 19 withdrawn infantry survived. Five pirates remained.
+- [ ] Ground losses remain severe (60% and the recovered Hound). The intervention
+  resolves the mission but is not final balance acceptance; revisit the approach
+  and records position with player-controlled evidence.
+
+Focused verification: 67 tests, the recommended-force production replay and
+`verifyModJarBoundary` pass. Retained evidence is in the local visualization
+artifact `cold-account-intervention`, including launch fixture, trace, samples,
+phase frames and summary.
 - [ ] Player-controlled live acceptance, including overriding withdrawal and
   seeing fire hold, remains required before balance acceptance.
 
