@@ -13,6 +13,14 @@ Each MP3 has a JSON generation receipt with input/audio hashes.
 | Last Lift | 1 | 6 |
 | Relay Nine | 1 | 17 |
 | Thunder Run | 1 | 14 |
+| A Cold Account | 0 | 13 |
+
+Cold Account alternates Mara, Castle and Captain Irena Kord; its cast assignments
+are retained in `cold-account-cast.json`. Four ordered opening turns establish
+the patrol's requirement for authenticated proof. Actual company landing and
+dispatch proximity provide two Castle cues. Archive capture cancels unspoken
+approach content and begins the seven intervention beats. Kord's selected
+veteran naval voice and portrait are shared throughout.
 
 The opening chapters use their story mission IDs. Broken Supply Route job-zero
 attempt IDs resolve to stable `story_supply_route_*` catalog keys. Recurring
