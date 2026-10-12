@@ -104,7 +104,9 @@ class CorvusCombatEvidenceTest {
             assertEquals(1, powers.size());
             var resources = new FiniteCommandPowerResources(30);
             fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
-            try (var sim = fixture.build()) {
+            try (var sim = fixture.build();
+                 var damageReview = Boolean.getBoolean("battle.corvus.damageReview") && sim.getColdAccount() != null
+                         ? new CompoundDamageReview(sim, dir) : null) {
                 var dialogue = new JSONArray();
                 double[] playbackSeconds = {0d};
                 narration = new StoryNarrationPlayer(WaylineNarration.parse(new JSONObject(
@@ -154,6 +156,7 @@ class CorvusCombatEvidenceTest {
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
                     sim.advance(BattleSimulation.TICK_DT);
+                    if (damageReview != null) damageReview.tick();
                     playbackSeconds[0] += BattleSimulation.TICK_DT / replaySpeed(sim);
                     narration.advance(BattleSimulation.TICK_DT / replaySpeed(sim),
                             sim.getPlayerStoryBeatsAfter(narration.cursor()), false, sim.isComplete());

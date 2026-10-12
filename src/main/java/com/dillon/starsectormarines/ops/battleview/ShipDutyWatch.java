@@ -35,6 +35,10 @@ public final class ShipDutyWatch {
         }
         // Secure the command entrance after conn and plant, before support work.
         ordered.addAll(fixed(rooms, tasks, berthed, CrewRole.SECURITY, RoomPurpose.BRIDGE));
+        // The ship fitting publishes plot, helm, systems, then one position on
+        // each side bank before second seats. Cover those banks within the same
+        // duty budget; support takes the remaining slots, not extra population.
+        for (int i = 3; i < Math.min(5, bridge.size()); i++) ordered.add(bridge.get(i));
         List<Post> additionalSupport = new ArrayList<>();
         for (CrewRole role : List.of(CrewRole.MECH_TECH, CrewRole.MEDIC, CrewRole.COOK,
                 CrewRole.ARMOURER, CrewRole.MACHINIST, CrewRole.STOREKEEPER)) {
@@ -57,7 +61,7 @@ public final class ShipDutyWatch {
                 }
             }
         }
-        for (int i = 3; i < bridge.size(); i++) ordered.add(bridge.get(i));
+        for (int i = 5; i < bridge.size(); i++) ordered.add(bridge.get(i));
         for (int i = 2; i < plant.size(); i++) ordered.add(plant.get(i));
         ordered.addAll(additionalSupport);
         return List.copyOf(ordered.subList(0, Math.min(Math.max(0, complement), ordered.size())));

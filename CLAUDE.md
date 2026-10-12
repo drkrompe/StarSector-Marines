@@ -198,6 +198,13 @@ Do not run builds or leave generated task files there.
   and shadows; phase-change frames are always retained. Unit/route dumps keep
   their minute/phase cadence independently of the frame interval. Outcomes are findings,
   not victory assertions: a successful task does not certify mission balance.
+  For `COLD_ACCOUNT`, `-Dbattle.corvus.damageReview=true` also records a compound
+  overview GIF (five times simulation speed), game-scale detail stills and a
+  before/after prop inventory under `prop-damage/`. It observes the real replay;
+  it never supplies targets or damage. Inventory scope is initial positive-cover
+  doodads centered inside the strike circle. `damagePair` means both state assets
+  exist, not proof that a runtime damage channel registered the prop;
+  `groundDamaged` records the terrain tag, not a direct hit on the prop.
   `-Pmission=thunder-run` uses named campaign squads and fitted boats through
   the production launch seam on the 320x144 freight corridor. Three ordinary
   interiors, absent arrival, total cargo loss, partial-cargo retry and confirmed

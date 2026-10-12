@@ -66,9 +66,18 @@ class ShipBridgeFittingTest {
     }
 
     private static void assertBanks(Fixture f) {
-        for(String id:List.of("plot","helm","systems","console-west","console-east"))
+        var firstWatch = f.ctx.fixtureTasks.stream().filter(task -> task.affordance() == Affordance.WATCH)
+                .limit(5).toList();
+        for(String id:List.of("plot","helm","systems","console-west","console-east")) {
             assertEquals(1,f.ops.stream().filter(op->op instanceof LayoutOp.Assembly a
                     && a.baseId().equals("ship-bridge."+id)).count(),id);
+            var bank = f.ctx.doodads.stream().filter(d -> ("ship-bridge." + id).equals(d.definitionId()))
+                    .findFirst().orElseThrow();
+            assertTrue(firstWatch.stream().anyMatch(task -> task.fixtureX() >= bank.cellX
+                    && task.fixtureX() < bank.cellX + bank.footprintCellsX
+                    && task.fixtureY() >= bank.cellY && task.fixtureY() < bank.cellY + bank.footprintCellsY),
+                    "First five watch positions must cover " + id);
+        }
     }
     private static void verify(Fixture f) {
         assertTrue(f.floor.circulationSurvives());assertEquals(0,f.floor.dropUnreachableWork());
