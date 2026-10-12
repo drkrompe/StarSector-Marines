@@ -14,7 +14,7 @@ import java.util.Locale;
  *
  * <p><b>The boats are the company's; the berths are the ship's.</b> That split
  * is the whole model here. A hull's bays hold a number of a particular pattern
- * and neither of those is negotiable, so the berth count is never a field of
+ * unless an explicit paid conversion changes that pattern. The berth count is not an independent authority of
  * this class — it is asked of the hull ({@code ShipsBoats.aboard(ship).size()})
  * every time the deck is read. What persists is the boats: their ids, their
  * names, and what has been fitted to them, which is the part a player has paid
@@ -37,6 +37,40 @@ public final class BoatDeck implements Serializable {
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
     private boolean commissioningRequired;
+    private String foundingWreckShipId;
+    private int recoveredWrecks;
+    private String aeroshuttleConversionShipId;
+
+    /** Registers the original wrecks once. Existing occupied or previously opened berths
+     * are treated as used when migrating a save; a lost boat must never respawn. */
+    public void registerFoundingWrecks(String originalShipId) {
+        if (originalShipId == null || foundingWreckShipId != null) return;
+        foundingWreckShipId = originalShipId;
+        if (shipId == null && !commissioningRequired) recoveredWrecks = 3;
+        if (shipId != null) recoveredWrecks = originalShipId.equals(shipId)
+                ? (1 << Math.min(2, berths.size())) - 1 : 3;
+    }
+
+    public boolean wreckInBerth(int berth) {
+        return berth >= 0 && berth < Math.min(2, berths.size())
+                && foundingWreckShipId != null && foundingWreckShipId.equals(shipId)
+                && pattern == ShuttleType.HERMES && berths.get(berth) == null
+                && (recoveredWrecks & (1 << berth)) == 0;
+    }
+
+    public boolean hasAeroshuttleConversion(String hullId) {
+        return hullId != null && hullId.equals(aeroshuttleConversionShipId);
+    }
+
+    public boolean secondhandWingsPurchased() { return aeroshuttleConversionShipId != null; }
+
+    /** Only the reviewed, paid Secondhand Wings transaction may replace the complement. */
+    void acceptSecondhandWings() {
+        aeroshuttleConversionShipId = shipId;
+        recoveredWrecks = 3;
+        pattern = ShuttleType.AEROSHUTTLE;
+        for (int i = 0; i < berths.size(); i++) berths.set(i, i < 2 ? build(pattern) : null);
+    }
 
     /** Only new companies opt out of the one-time legacy starting complement. */
     void requireCommissioning() { commissioningRequired = true; }
@@ -84,6 +118,7 @@ public final class BoatDeck implements Serializable {
      * @return the boats this call left behind; empty when nothing changed
      */
     public LeftBehind reconcile(String shipId, ShuttleType pattern, int berthCount) {
+        if (hasAeroshuttleConversion(shipId)) pattern = ShuttleType.AEROSHUTTLE;
         if (pattern == null) return LeftBehind.NONE;
         int wanted = Math.max(0, berthCount);
         boolean sameShip = shipId != null && shipId.equals(this.shipId);
@@ -177,6 +212,7 @@ public final class BoatDeck implements Serializable {
         if (pattern == null || berthIndex < 0 || berthIndex >= berths.size()) return null;
         if (berths.get(berthIndex) != null) return null;
         CampaignBoat boat = build(pattern);
+        if (wreckInBerth(berthIndex)) recoveredWrecks |= 1 << berthIndex;
         berths.set(berthIndex, boat);
         return boat;
     }

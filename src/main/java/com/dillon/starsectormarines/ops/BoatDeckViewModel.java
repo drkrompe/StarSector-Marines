@@ -137,7 +137,9 @@ public final class BoatDeckViewModel {
         });
         fabricationCopy = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            return recipe == null ? "" : recipe.provenance();
+            return recipe == null ? "" : deck.wreckInBerth(selectedBerth.get())
+                    ? "Original Hermes wreck. Patch her hull and overhaul the drive: four seats at standard fit."
+                    : recipe.provenance();
         });
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
@@ -174,6 +176,7 @@ public final class BoatDeckViewModel {
     public Signal<List<MaterialRow>> materialStock() { return materialStock; }
     public Signal<String> fabricationActionClasses() { return fabricationActionClasses; }
     public Signal<Boolean> fabricationBlocked() { return fabricationBlocked; }
+    public Signal<String> fabricationActionLabel() { return selectedBerth.map(berth -> { revision.get(); return deck.wreckInBerth(berth) ? "REPAIR HERMES" : "COMMISSION"; }); }
     public Signal<String> fabricationReason() { return fabricationReason; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
@@ -234,7 +237,9 @@ public final class BoatDeckViewModel {
         if (carrierName != null && !carrierName.isBlank()) {
             summary.append("  ·  carried by ").append(carrierName);
         }
-        int empty = deck.vacantBerths().size();
+        int wrecks = (int) deck.vacantBerths().stream().filter(deck::wreckInBerth).count();
+        if (wrecks > 0) summary.append("  ·  ").append(wrecks).append(" awaiting repair");
+        int empty = deck.vacantBerths().size() - wrecks;
         if (empty > 0) {
             summary.append("  ·  ").append(empty)
                     .append(empty == 1 ? " berth empty" : " berths empty");
@@ -264,8 +269,8 @@ public final class BoatDeckViewModel {
                     base + ":plating", base + ":drive",
                     classes,
                     berthLabel(index),
-                    vacant ? "EMPTY BERTH" : boat.displayName(),
-                    vacant ? buildablePattern() : boat.pattern().displayName(),
+                    vacant ? (deck.wreckInBerth(index) ? "WRECKED HERMES" : "EMPTY BERTH") : boat.displayName(),
+                    vacant ? (deck.wreckInBerth(index) ? "Original ship's boat / awaiting repair" : buildablePattern()) : boat.pattern().displayName(),
                     vacant ? buildableBill() : boat.plating().displayName(),
                     vacant ? "" : boat.drive().displayName(),
                     () -> selectBoat(berth)));
@@ -389,6 +394,7 @@ public final class BoatDeckViewModel {
         selectedSlot.set(BoatFittingSlot.PLATING);
         feedbackText.set(boat != null
                 ? "Inspecting " + boat.displayName() + ". Nothing has been refitted."
+                : deck.wreckInBerth(berthIndex) ? "An original Hermes wreck awaits repair in " + berthLabel(berthIndex) + ". It cannot fly until repaired."
                 : berthLabel(berthIndex) + " is empty. The yard can build the hull's"
                         + " own pattern into it at standard fit.");
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
@@ -440,10 +446,11 @@ public final class BoatDeckViewModel {
      * player is looking at the berth, and what is standing in it has changed.
      */
     private void fabricate(int berthIndex) {
+        boolean wreck = deck.wreckInBerth(berthIndex);
         BoatWorkshop.Result result = workshop.fabricate(berthIndex);
         CampaignBoat built = result.boat();
         feedbackText.set(switch (result.status()) {
-            case FABRICATED -> built.displayName() + " built into "
+            case FABRICATED -> built.displayName() + (wreck ? " repaired in " : " built into ")
                     + berthLabel(berthIndex) + " at standard fit.";
             case CANNOT_AFFORD ->
                     "Fabrication blocked: required fleet materials are short.";

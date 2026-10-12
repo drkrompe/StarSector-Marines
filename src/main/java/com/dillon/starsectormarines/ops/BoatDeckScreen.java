@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
+import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignBoat;
+import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -64,6 +66,7 @@ public final class BoatDeckScreen implements Screen {
     private CompanyDeck deck;
     private BoatDeckViewModel viewModel;
     private BoatBayRestorationModel restoration;
+    private SecondhandWingsModel wings;
     private UiViewport viewport;
     private UiDocument document;
     private PreparationGuide preparationGuide;
@@ -110,12 +113,20 @@ public final class BoatDeckScreen implements Screen {
                 () -> CompanyBayRestoration.repair(reviewedShip, roster),
                 () -> { selectedBayIndex.set(1); viewModel.backToDeckAction().run(); refreshBayPresentation(); invalidateBay(); },
                 () -> { ShipsBoatsAboard.reconcile(roster.boatDeck()); viewModel.refresh(); viewModel.selectBoatAction(1).run(); deckChanged(); });
+        wings = new SecondhandWingsModel(reactor, roster.boatDeck(),
+                () -> SecondhandWingsCampaign.offer(roster),
+                review -> SecondhandWingsCampaign.purchase(roster, review),
+                () -> { viewModel.refresh(); deckChanged(); },
+                () -> viewModel.selectBoatAction(0).run());
         // Rebinding uses a new model when the shell re-enters this screen.
         if (document != null) closeDocument();
         refreshBayPresentation();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         if (preparationGuide != null) preparationGuide.update();
+        if (document != null && wings != null && !CompanyPreparation.required(roster))
+            TutorialModal.bind(document, markupInstance, wings::visible,
+                    "wings-modal", "boat-deck-root", wings::dismiss, this::close);
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -155,6 +166,7 @@ public final class BoatDeckScreen implements Screen {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", bayContextLabel);
         props.put("restoration", restoration.row());
+        props.put("wings", wings.row());
         props.put("activeBayLabel", activeBayLabel);
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
@@ -179,6 +191,7 @@ public final class BoatDeckScreen implements Screen {
         props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
@@ -362,6 +375,7 @@ public final class BoatDeckScreen implements Screen {
     public void advance(float dt) {
         if (deckMayHaveChanged) adoptChangedDeck();
         if (restoration != null) restoration.refresh();
+        if (wings != null) wings.refresh();
         if (deck != null && deck.ready()) {
             int selected = viewModel.selectedBerthIndex();
             int offset = 0;
@@ -377,6 +391,9 @@ public final class BoatDeckScreen implements Screen {
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard);
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
+        if (document != null && wings != null && !CompanyPreparation.required(roster))
+            TutorialModal.bind(document, markupInstance, wings::visible,
+                    "wings-modal", "boat-deck-root", wings::dismiss, this::close);
     }
 
     @Override

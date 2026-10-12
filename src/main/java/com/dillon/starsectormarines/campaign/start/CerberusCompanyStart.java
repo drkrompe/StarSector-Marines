@@ -108,7 +108,7 @@ public final class CerberusCompanyStart implements Script {
         if (script != null && script.roster().companyShipId() != null) {
             if (!script.roster().officerInductionRequired())
                 return "Your company is ready, Commander. The first story contract on Jangala is waiting in Headquarters. Any unused depot stores remain here for our return.";
-            return "Our ship is home now. Stay docked here while we use the prepaid stores: commission our Hermes shuttle on the Boat Deck, meet Mira in Barracks and choose her first specialty, then muster a squad in the Armory and assign it to her. I will walk you through each order.";
+            return "Our ship is home now. Stay docked here while we use the prepaid stores: repair the first wrecked Hermes that came with her on the Boat Deck, meet Mira in Barracks and choose her first specialty, then muster a squad in the Armory and assign it to her. I will walk you through each order.";
         }
         PlanetAPI planet = destination();
         String destination = planet == null ? "an accessible planetary spaceport" : planet.getName();
@@ -119,6 +119,6 @@ public final class CerberusCompanyStart implements Script {
                     + "We must finish the conversion before designating our command vessel; our prepaid preparation stores will wait in the planetary depot.";
         return "The conversion is installed. Stay docked at " + destination
                 + " and open Marine operations, then choose our Cerberus as the company command vessel. "
-                + "The preparation bill includes our finite depot stock while we are docked here. Then we will commission the shuttle, meet Mira and muster her squad.";
+                + "The preparation bill includes our finite depot stock while we are docked here. Then we will repair the first Hermes, meet Mira and muster her squad.";
     }
 }

@@ -3175,7 +3175,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static Map<String, Object> props(BoatDeckViewModel viewModel,
+    static Map<String, Object> props(BoatDeckViewModel viewModel,
                                              CompanyDeck ship,
                                              DeckGraph.Compartment bay, int bays) {
         Map<String, Object> props = new LinkedHashMap<>();
@@ -3205,7 +3205,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("restoration", BoatBayRestorationModel.Row.hidden());
+        props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
