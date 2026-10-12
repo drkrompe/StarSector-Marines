@@ -61,6 +61,8 @@ class InstallationWallsTest {
                 assertFalse(grid.isWalkable(x, y));
                 assertTrue(editor.damageWall(x, y, 70));
                 assertEquals(InstallationWalls.material(purpose), topology.getWallRemnant(x, y).materialId());
+                assertEquals(InstallationFloors.material(purpose), topology.getWallRemnant(x, y).groundSurfaceId(),
+                        "corners and isolated walls retain their floor without inferring a neighbour");
                 assertTrue(grid.isWalkable(x, y));
                 assertNull(topology.getSurfaceId(x, y));
             }

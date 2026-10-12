@@ -1,0 +1,572 @@
+{
+  "sheetName": "concrete-walls",
+  "sheet": "art-source/tilesets/concrete-walls.raw.png",
+  "cellPx": 64,
+  "alphaMin": 40,
+  "idPrefix": "installation",
+  "gridCols": 8,
+  "gridRows": 4,
+  "blocks": [
+    {
+      "id": "installation.dark-concrete-wall",
+      "layout": "wall-faces-4x4",
+      "windowBlock": "installation.dark-concrete-window",
+      "doorBlock": "installation.dark-concrete-door",
+      "rubbleBlock": "installation.dark-concrete-rubble"
+    },
+    {
+      "id": "installation.light-concrete-wall",
+      "layout": "wall-faces-4x4",
+      "windowBlock": "installation.light-concrete-window",
+      "doorBlock": "installation.light-concrete-door",
+      "rubbleBlock": "installation.light-concrete-rubble"
+    }
+  ],
+  "entries": [
+    {
+      "id": "installation.dark-concrete-wall.faces-0",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        15,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-1",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        237,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-2",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        458,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-3",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        680,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-4",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        15,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-5",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        237,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-6",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        458,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-7",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        680,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-8",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        15,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-9",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        237,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-10",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        458,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-11",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        680,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-12",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        15,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-13",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        237,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-14",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        458,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-wall.faces-15",
+      "block": "installation.dark-concrete-wall",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        680,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-0",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        902,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-1",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1124,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-2",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1345,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-3",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1567,
+        15,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-4",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        902,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-5",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1124,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-6",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1345,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-7",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1567,
+        237,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-8",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        902,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-9",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1124,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-10",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1345,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-11",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1567,
+        458,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-12",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        902,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-13",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1124,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-14",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1345,
+        680,
+        192,
+        192
+      ]
+    },
+    {
+      "id": "installation.light-concrete-wall.faces-15",
+      "block": "installation.light-concrete-wall",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1567,
+        680,
+        192,
+        192
+      ]
+    }
+  ],
+  "note": "Built-in ImageGen reskin of ConcreteInstallationTemplate. Left dark reinforced concrete, right light concrete. Full-frame cuts preserve exposed-face masks N=1 E=2 S=4 W=8 and cardinal openings N,E,S,W. Retain source alpha; never trim/recenter. Raw 1774x887. Prompt and guide retained."
+}

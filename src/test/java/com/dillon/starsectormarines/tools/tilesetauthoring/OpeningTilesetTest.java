@@ -59,12 +59,27 @@ class OpeningTilesetTest {
     }
 
     @Test
+    void installationFloorCellsAreOpaqueAndKeepTheirDamagePair() throws Exception {
+        var registry = TileRegistry.installed();
+        for (String material : new String[]{"concrete", "command", "accommodation"}) {
+            var block = registry.block("installation." + material + "-floor");
+            assertNotNull(registry.block(block.damageBlockId));
+            var image = ImageIO.read(Path.of("mod", block.sheetPath).toFile());
+            int[] cell = block.resolve(false, false, false, false);
+            for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++)
+                assertEquals(255, image.getRGB(cell[0] * 64 + x, cell[1] * 64 + y) >>> 24,
+                        "floor material must fill its exported cell");
+        }
+    }
+
+    @Test
     void shippedOpeningVoidsRemainTransparentInEveryFacing() throws Exception {
         TileRegistry registry = TileRegistry.installed();
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/colony-openings.png").toFile());
-        for (String family : new String[]{"masonry", "ceramic", "olive"}) {
+        for (String family : new String[]{"colony.masonry", "colony.ceramic", "colony.olive",
+                "installation.dark-concrete", "installation.light-concrete"}) {
             for (String kind : new String[]{"window", "door"}) {
-                var block = registry.block("colony." + family + "-" + kind);
+                var block = registry.block(family + "-" + kind);
+                var image = ImageIO.read(Path.of("mod", block.sheetPath).toFile());
                 for (int facing = 0; facing < 4; facing++) {
                     int[] cell = block.resolve(facing == 0, facing == 2, facing == 1, facing == 3);
                     // Probe the void as a region, not average alpha (which could hide a plugged gap).
