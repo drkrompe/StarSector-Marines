@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -283,11 +284,23 @@ public final class Warship {
      */
     public static Warship fit(String hullId, String variantId, Faction faction,
                               float x, float y, float facingDegrees) throws Exception {
+        return fit(new StockVariantLoadout(hullId, variantId), faction, x, y, facingDegrees);
+    }
+
+    /** Fits a campaign fleet member as its own fitted variant arms it. */
+    public static Warship fit(FleetMemberAPI member, Faction faction,
+                              float x, float y, float facingDegrees) throws Exception {
+        return fit(new VariantApiLoadout(member.getVariant()), faction, x, y, facingDegrees);
+    }
+
+    /** Fits whatever {@code loadout} names; the stock and fleet-member paths both end here. */
+    public static Warship fit(WarshipLoadout loadout, Faction faction,
+                              float x, float y, float facingDegrees) throws Exception {
+        String hullId = loadout.hullId();
         JSONObject hull = VanillaData.json("data/hulls/" + hullId + ".ship");
-        Map<String, String> loadout = WarshipVariants.weaponsBySlot(hullId, variantId);
         List<Mount> mounts = new ArrayList<>();
         for (WarshipSlot slot : WarshipSlot.parse(hull)) {
-            VanillaWeapon weapon = VanillaWeapons.get(loadout.get(slot.id()));
+            VanillaWeapon weapon = VanillaWeapons.get(loadout.weaponInSlot(slot.id()));
             if (weapon == null) continue;
             Mount mount = new Mount(slot, weapon);
             mount.headingDegrees = facingDegrees + slot.angleDegrees();
