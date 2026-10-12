@@ -28,7 +28,7 @@ record SupplyRouteWorkGuide(BrokenSupplyRouteProgress progress, OpeningBroker.De
             case "preparation" -> progress == null ? "Venn introduces dispatch coordinator Iona Serr. Open their dossier to begin."
                     : progress.closed() && recovery ? "Rill: " + progress.storyCrew().rescuedCount() + " rescued / "
                             + progress.storyCrew().deadCount() + " dead / " + progress.storyCrew().stranded().size()
-                            + " stranded. Relay job not undertaken; route suspended."
+                            + " stranded. Freight convoy not undertaken; route suspended."
                     : progress.status();
             case "courseDisabled" -> destination == null;
             case "courseAction" -> plotCourse;

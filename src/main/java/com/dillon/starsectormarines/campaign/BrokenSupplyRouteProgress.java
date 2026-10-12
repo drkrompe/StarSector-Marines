@@ -6,7 +6,9 @@ import java.io.Serializable;
 public final class BrokenSupplyRouteProgress implements Serializable {
     public static final String PREFIX = "supply_route_v1_";
     public static final int JUNCTION = 1, LIFT = 2, RELAY = 3, THUNDER = 4;
-    private int version = 1;
+    // Preserve Java saves written before the explicit schema migration was introduced.
+    private static final long serialVersionUID = 4282145429580416505L;
+    private int version = 2;
     private final String planetId;
     private final String planetName;
     private final String systemName;
@@ -39,7 +41,7 @@ public final class BrokenSupplyRouteProgress implements Serializable {
     }
 
     public boolean readable() {
-        return version == 1 && planetId != null && planetName != null && attempt > 0 && job >= 0
+        return (version == 1 || version == 2) && planetId != null && planetName != null && attempt > 0 && job >= 0
                 && (branch == 0 || branch == LIFT || branch == RELAY)
                 && (branch == 0 || junctionWon) && (!closed || junctionWon && branch != 0)
                 && (!successful || closed) && (job == 0 || successful)
@@ -66,7 +68,7 @@ public final class BrokenSupplyRouteProgress implements Serializable {
     public LastLiftProgress storyCrew() { return storyCrew; }
     public LastLiftProgress crew() { return job == 0 ? storyCrew : recurringCrew; }
     public FreightRunProgress freight() { return freight; }
-    public int operation() { return !junctionWon ? JUNCTION : branch == RELAY && relayWon && !closed ? THUNDER : branch; }
+    public int operation() { return !junctionWon ? JUNCTION : branch == RELAY && freight != null && !closed ? THUNDER : branch; }
     public boolean available() {
         return readable() && !choicePending() && (!closed || successful)
                 && (operation() != LIFT || crew() != null && crew().available())
@@ -78,6 +80,8 @@ public final class BrokenSupplyRouteProgress implements Serializable {
         if (!choicePending() || (selected != LIFT && selected != RELAY)) return false;
         branch = selected;
         if (selected == LIFT) storyCrew = new LastLiftProgress(planetId + ":rill:story");
+        else freight = new FreightRunProgress(planetId + ":freight:story");
+        version = 2;
         return true;
     }
 
@@ -142,8 +146,9 @@ public final class BrokenSupplyRouteProgress implements Serializable {
             return paid;
         }
         // Old completed records have job > 0 and retain their existing recurring work.
-        if (kind == RELAY && job == 0 && victory) {
-            relayWon = true; storyPayment += paid;
+        if (kind == RELAY && job == 0) {
+            relayWon = victory; storyPayment += paid;
+            version = 2;
             freight = new FreightRunProgress(planetId + ":freight:story");
             return paid;
         }
@@ -162,13 +167,24 @@ public final class BrokenSupplyRouteProgress implements Serializable {
         return paid;
     }
 
+    /** Upgrade at load, never while a read-only offer or HQ projection is being built. */
+    private Object readResolve() {
+        if (version != 1 || !readable()) return this;
+        // An already launched legacy battle keeps its identity and agreed payment until settlement.
+        if (activeId != null && job == 0 && operation() == RELAY) return this;
+        if (branch == RELAY && !closed && freight == null)
+            freight = new FreightRunProgress(planetId + ":freight:story");
+        version = 2;
+        return this;
+    }
+
     public String status() {
         if (!readable()) return "Unrecognized supply-route record; operations paused.";
         if (!junctionWon) return "Open the Junction / route access contested";
         if (branch == 0) return "Junction held / choose one support mobilization";
-        if (!closed && relayWon) return "Relay Nine secured / Thunder Run pending. " + freight.summary() + ".";
+        if (!closed && freight != null) return "Junction held / Thunder Run pending. " + freight.summary() + ".";
         if (!closed) return branch == LIFT ? "Evacuation committed / recovery pending" : "Freight committed / relay contested";
-        if (branch == LIFT) return "Last Lift: " + storyCrew.summary() + ". Relay Nine not undertaken; route suspended. "
+        if (branch == LIFT) return "Last Lift: " + storyCrew.summary() + ". Freight convoy not undertaken; route suspended. "
                 + (successful ? "Iona's Crew Recovery available." : "No recoverable people remain; recovery arrangement not established.");
         if (freight != null) return "Thunder Run: " + freight.summary() + ". "
                 + (successful ? "Freight delivered / Mara's Route Security available." : "Freight lost / commercial route remains suspended.")

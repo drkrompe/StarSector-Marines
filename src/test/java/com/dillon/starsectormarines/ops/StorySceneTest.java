@@ -70,7 +70,7 @@ class StorySceneTest {
         route.begin(id); route.settle(id, true, null);
         var choices = SupplyRouteCampaign.offers(route);
         assertEquals(2, choices.size());
-        assertEquals(List.of(StoryScene.RILL, StoryScene.RELAY), choices.stream().map(StoryScene::forMission).toList());
+        assertEquals(List.of(StoryScene.RILL, StoryScene.THUNDER), choices.stream().map(StoryScene::forMission).toList());
         for (var choice : choices)
             assertNull(StoryScene.forMission(Mission.builder(choice).source(MissionSource.GENERATED).build()));
         for (String bad : List.of("supply_route_v1_4_0_0", "supply_route_v1_5_0_1",

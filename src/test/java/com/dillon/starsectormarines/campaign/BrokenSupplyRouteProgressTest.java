@@ -29,21 +29,22 @@ class BrokenSupplyRouteProgressTest {
         assertTrue(p.commit(BrokenSupplyRouteProgress.RELAY)); assertFalse(p.commit(BrokenSupplyRouteProgress.LIFT));
         assertFalse(p.successful()); assertEquals(0,p.job()); assertEquals(12000,p.storyPayment());
     }
-    @Test void relayDefeatKeepsCommitmentAndRecurringJobsNeverReplayStoryPayment() {
+    @Test void freightCommitmentGoesDirectlyToConvoyAndRecurringJobsNeverReplayStoryPayment() {
         var p = junctionWon(); p.commit(BrokenSupplyRouteProgress.RELAY);
-        String failed = p.missionId(); p.begin(failed); assertEquals(0,p.settle(failed,false,null));
-        assertFalse(p.commit(BrokenSupplyRouteProgress.LIFT)); assertEquals(0,p.job());
-        String won = p.missionId(); p.begin(won); assertEquals(16000,p.settle(won,true,null));
-        assertFalse(p.closed()); assertEquals(BrokenSupplyRouteProgress.THUNDER,p.operation());
-        assertEquals(28000,p.storyPayment());
-        String convoy=p.missionId(); p.begin(convoy);
-        var cargo=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(0,1,2),List.of(),true);
-        assertEquals(18000,p.settle(convoy,true,null,cargo));
-        assertTrue(p.closed()); assertTrue(p.successful()); assertEquals(46000,p.storyPayment());
-        String repeat = p.missionId(); assertNotEquals(won,repeat); p.begin(repeat);
-        assertEquals(-1,p.settle(won,true,null)); assertEquals(12000,p.settle(repeat,true,null));
-        assertEquals(-1,p.settle(repeat,true,null)); assertEquals(12000,p.recurringPayment());
-        assertEquals(1,p.jobsCompleted()); assertNull(p.storyCrew());
+        assertEquals(BrokenSupplyRouteProgress.THUNDER, p.operation());
+        assertEquals(12000, p.storyPayment());
+        String failed = p.missionId(); p.begin(failed);
+        assertEquals(0, p.settle(failed, false, null,
+                new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(), List.of(), false)));
+        assertFalse(p.commit(BrokenSupplyRouteProgress.LIFT)); assertEquals(0, p.job());
+        String convoy = p.missionId(); p.begin(convoy);
+        var cargo = new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(0,1,2), List.of(), true);
+        assertEquals(18000, p.settle(convoy, true, null, cargo));
+        assertTrue(p.closed()); assertTrue(p.successful()); assertEquals(30000, p.storyPayment());
+        String repeat = p.missionId(); assertNotEquals(convoy, repeat); p.begin(repeat);
+        assertEquals(-1, p.settle(convoy, true, null, cargo)); assertEquals(12000, p.settle(repeat, true, null));
+        assertEquals(-1, p.settle(repeat, true, null)); assertEquals(12000, p.recurringPayment());
+        assertEquals(1, p.jobsCompleted()); assertNull(p.storyCrew());
     }
     @Test void rescuedAndDeadPersistThroughCampaignSaveAndRetryPaysCumulativeOnlyOnce() throws Exception {
         CampaignState state = new CampaignState(); state.brokenSupplyRoute = junctionWon();
