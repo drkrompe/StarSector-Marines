@@ -138,6 +138,15 @@ class CorvusCombatEvidenceTest {
                         assertFalse(sim.getColdAccount().pendingArrivals());
                         assertTrue(sim.getSimTickIndex() - sim.getColdAccount().warningTick() >= ColdAccountIntervention.WARNING_TICKS);
                     }
+                    if (sim.getColdAccount() != null) {
+                        var layout = sim.getColdAccount().layout();
+                        for (var capital : sim.warships().ships()) {
+                            assertTrue(capital.x - Math.hypot(capital.lengthCells, capital.widthCells) / 2f
+                                    > sim.getColdAccount().installationRight(), "The full hull must stay east of the compound");
+                            assertEquals(layout.strikeY(), capital.y, .01f, "Arrival follows a straight east-west line");
+                            if (capital.isMoving()) assertEquals(90f, capital.facingDegrees, .01f, "Approach must be nose-first");
+                        }
+                    }
                     int tick = sim.getSimTickIndex();
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
                         long id = sim.liveUnitAt(i);
