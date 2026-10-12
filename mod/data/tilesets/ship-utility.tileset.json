@@ -1,0 +1,128 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-utility.server",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "ship-utility.console",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "ship-utility.electrical",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "ship-utility.shelf",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "ship-utility.parts",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "ship-utility.frame",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "ship-utility.pump",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "ship-utility.supply-locker",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "ship-utility.counter",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.2,
+      "col": 0,
+      "cover": "heavy",
+      "id": "ship-utility.server",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 1,
+      "cover": "med",
+      "id": "ship-utility.console",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 2,
+      "cover": "heavy",
+      "id": "ship-utility.electrical",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-utility.shelf",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-utility.parts",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-utility.frame",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 9,
+      "cover": "med",
+      "id": "ship-utility.pump",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 10,
+      "cover": "heavy",
+      "id": "ship-utility.supply-locker",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "col": 11,
+      "cover": "med",
+      "id": "ship-utility.counter",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-utility.png"
+}

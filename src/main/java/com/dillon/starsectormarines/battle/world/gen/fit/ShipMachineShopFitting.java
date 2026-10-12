@@ -15,6 +15,10 @@ public final class ShipMachineShopFitting implements RoomFitting {
 
     @Override public void fit(RoomFloor floor) {
         int w = floor.canonicalWidth(), h = floor.canonicalHeight();
+        if (w >= 4 && h >= 4 && (w < 14 || h < 10)) {
+            new ShipUtilityFitting(RoomPurpose.PARTS_CAGE).fit(floor);
+            return;
+        }
         if (w < 14 || h < 10 || TileRegistry.installed().doodad(KIT + "lathe") == null
                 || TileRegistry.installed().doodad("main-stores.rack") == null) {
             new PartsCageFitting().fit(floor);
