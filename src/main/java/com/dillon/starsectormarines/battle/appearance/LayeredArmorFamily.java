@@ -29,7 +29,11 @@ public enum LayeredArmorFamily {
     BULWARK_HEAVY,
     RELIQUARY_HEAVY,
     LIONS_MANTLE,
-    FOUNDRY_BREAKER;
+    FOUNDRY_BREAKER,
+    SHIP_COMMAND,
+    SHIP_ENGINEERING,
+    SHIP_MEDICAL,
+    SHIP_SERVICE;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {
