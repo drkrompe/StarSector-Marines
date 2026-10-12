@@ -935,7 +935,8 @@ public class BattleRenderer {
             float sx = rc.camera.cellToScreenX(layout.strikeX());
             float sy = rc.camera.cellToScreenY(layout.strikeY());
             appendObjectiveAnnulus(ex, ey, cellPx * 1.8f, cellPx * 2f, BattlefieldMarkerPresentation.PROGRESS, alphaMult);
-            appendObjectiveAnnulus(wx, wy, cellPx * 12f - 2f, cellPx * 12f,
+            appendObjectiveAnnulus(wx, wy, cellPx * ColdAccountLayout.WITHDRAWAL_RADIUS - 2f,
+                    cellPx * ColdAccountLayout.WITHDRAWAL_RADIUS,
                     BattlefieldMarkerPresentation.PROGRESS, .8f * alphaMult);
             float exclusion = cellPx * (layout.strikeRadius() + ColdAccountLayout.BLAST_MARGIN);
             appendObjectiveAnnulus(sx, sy, exclusion - 2f, exclusion, ORBITAL_WARNING, .65f * alphaMult);

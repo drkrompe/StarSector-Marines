@@ -108,6 +108,7 @@ class CorvusCombatEvidenceTest {
                 int houndShots = 0, houndKills = 0;
                 float houndDamage = 0, houndHp = 0, houndArmor = 0;
                 boolean houndAlive = false;
+                int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 var samples = new JSONArray();
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
@@ -120,9 +121,11 @@ class CorvusCombatEvidenceTest {
                             break;
                         }
                     }
+                    var beforePhase = sim.getColdAccount() == null ? null : sim.getColdAccount().phase();
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     sim.advance(BattleSimulation.TICK_DT);
                     if (sim.getColdAccount() != null && sim.getColdAccount().shotsFired() > beforeShipShots) {
+                        if (beforeShipShots == 0) infantryDeathsBeforeBombardment = fallen.size();
                         assertTrue(sim.getColdAccount().evidenceTick() > 0);
                         assertEquals(0, sim.getColdAccount().outsideWithdrawal());
                         assertFalse(sim.getColdAccount().pendingArrivals());
@@ -148,6 +151,7 @@ class CorvusCombatEvidenceTest {
                         if (shot.shooterId == hound) houndShots++;
                     }
                     houndAlive = hound >= 0 && sim.world().isAlive(hound);
+                    if (hound >= 0 && !houndAlive && houndLostAt < 0) houndLostAt = tick;
                     if (houndAlive) {
                         houndHp = sim.world().hp(hound); houndArmor = sim.world().armor(hound);
                         houndKills = sim.telemetry().kills(hound); houndDamage = sim.telemetry().damageDealt(hound);
@@ -158,7 +162,8 @@ class CorvusCombatEvidenceTest {
                                 .put("houndShots", houndShots).put("houndAlive", houndAlive).put("objectives", objectives(sim)));
                         Files.writeString(dir.resolve("samples.json"), samples.toString(2));
                     }
-                    if (tick % 1800 == 0 || sim.isComplete() || tick == maxTicks) {
+                    if (tick % 1800 == 0 || sim.isComplete() || tick == maxTicks
+                            || (sim.getColdAccount() != null && sim.getColdAccount().phase() != beforePhase)) {
                         writeFrame(renderer, sim, chapter, dir);
                         Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
                         System.out.println("[corvus] " + chapter.title + " tick=" + tick + " landed=" + landed.size()
@@ -187,7 +192,7 @@ class CorvusCombatEvidenceTest {
                         .put("allLandedAt",allLandedAt).put("firstShotAt",firstShotAt).put("supportRequestedAt",requestedAt)
                         .put("supportChargesRemaining",sim.getCommandPowerService().getChargesRemaining(MechSupport.ID))
                         .put("suppliesSpent",30-resources.availableSupplies()).put("houndLandedAt",houndLandedAt)
-                        .put("houndAlive",houndAlive).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
+                        .put("houndAlive",houndAlive).put("houndLostAt",houndLostAt).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
                         .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
                         .put("objectives",objectives(sim)).put("kits",kits);
                 var intervention = sim.getColdAccount();
@@ -197,7 +202,13 @@ class CorvusCombatEvidenceTest {
                             .put("warningTick", intervention.warningTick()).put("bombardTick", intervention.bombardTick())
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
                             .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
-                            .put("pendingArrivals", intervention.pendingArrivals()));
+                            .put("pendingArrivals", intervention.pendingArrivals())
+                            .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment));
+                    if (intervention.isComplete()) {
+                        assertEquals(infantryDeathsBeforeBombardment, fallen.size(), "No withdrawn infantry lost during bombardment");
+                        assertTrue(intervention.remainingWalls() <= intervention.initialWalls() / 4);
+                        assertTrue(sim.warships().shells().isEmpty());
+                    }
                 }
                 Files.writeString(dir.resolve("summary.json"),report.toString(2));
                 reports.put(report);
@@ -249,7 +260,8 @@ class CorvusCombatEvidenceTest {
     }
 
     private static void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {
-        ImageIO.write(renderer.render(sim, chapter.title + " / " + sim.getSimTickIndex()/30 + "s"), "png",
+        ImageIO.write(renderer.render(sim, chapter.title + " / " + sim.getSimTickIndex()/30 + "s"
+                + (sim.getColdAccount() == null ? "" : " / " + sim.getColdAccount().displayName())), "png",
                 dir.resolve(String.format(Locale.ROOT,"frame-%05d.png",sim.getSimTickIndex())).toFile());
     }
 
