@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.warship;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.Color;
@@ -57,7 +58,31 @@ public record VanillaWeapon(
         String fireSoundTwo,
         String impactSoundId,
         float fluxPerShot,
-        float fluxPerSecond) {
+        float fluxPerSecond,
+        float damageRadiusPx,
+        float coreRadiusPx,
+        MissileFlightSpec flight) {
+
+    /**
+     * A weapon with no declared damage footprint or flight: the damage radius is the blast radius
+     * it names, and there is no missile flight to read. Every older caller and hand-built test weapon.
+     */
+    public VanillaWeapon(String id, float damagePerShot, String damageType, float rangePx, int burstSize,
+                         float burstDelaySeconds, float cooldownSeconds, float projectileSpeedPx,
+                         float spreadDegrees, float turnRateDegPerSec, boolean beam, float damagePerSecond,
+                         float beamWidthPx, boolean missile, boolean pointDefenceOnly, float explosionRadiusPx,
+                         float hitGlowRadiusPx, Color explosionColor, Color fringe, Color core,
+                         String projectileSprite, float projectileLengthPx, float projectileWidthPx,
+                         Color muzzleColor, float muzzleLengthPx, String turretSprite, String turretGunSprite,
+                         String hardpointSprite, String hardpointGunSprite, String fireSoundOne,
+                         String fireSoundTwo, String impactSoundId, float fluxPerShot, float fluxPerSecond) {
+        this(id, damagePerShot, damageType, rangePx, burstSize, burstDelaySeconds, cooldownSeconds,
+                projectileSpeedPx, spreadDegrees, turnRateDegPerSec, beam, damagePerSecond, beamWidthPx,
+                missile, pointDefenceOnly, explosionRadiusPx, hitGlowRadiusPx, explosionColor, fringe, core,
+                projectileSprite, projectileLengthPx, projectileWidthPx, muzzleColor, muzzleLengthPx,
+                turretSprite, turretGunSprite, hardpointSprite, hardpointGunSprite, fireSoundOne,
+                fireSoundTwo, impactSoundId, fluxPerShot, fluxPerSecond, explosionRadiusPx, 0f, null);
+    }
 
     /** A weapon with no flux cost: every figure but the two that read the table's {@code energy} columns. */
     public VanillaWeapon(String id, float damagePerShot, String damageType, float rangePx, int burstSize,
@@ -74,7 +99,7 @@ public record VanillaWeapon(
                 missile, pointDefenceOnly, explosionRadiusPx, hitGlowRadiusPx, explosionColor, fringe, core,
                 projectileSprite, projectileLengthPx, projectileWidthPx, muzzleColor, muzzleLengthPx,
                 turretSprite, turretGunSprite, hardpointSprite, hardpointGunSprite, fireSoundOne,
-                fireSoundTwo, impactSoundId, 0f, 0f);
+                fireSoundTwo, impactSoundId, 0f, 0f, explosionRadiusPx, 0f, null);
     }
 
     /**
@@ -104,6 +129,16 @@ public record VanillaWeapon(
      * round does, and a missing sprite only costs the look.
      */
     public static VanillaWeapon of(String id, Map<String, String> row, JSONObject wpn, JSONObject proj) {
+        return of(id, row, wpn, proj, null);
+    }
+
+    /**
+     * As {@link #of(String, Map, JSONObject, JSONObject)}, with the spec of the submunition a
+     * multi-warhead missile releases (its {@code behaviorSpec.projectileSpec}), so the payload
+     * is the warheads' and not the carrier's table row.
+     */
+    public static VanillaWeapon of(String id, Map<String, String> row, JSONObject wpn, JSONObject proj,
+                                   JSONObject warheadProj) {
         String hints = row.getOrDefault("hints", "");
         boolean pd = hints.contains("PD") && !hints.contains("PD_ALSO");
         boolean beam = wpn != null && "beam".equals(wpn.optString("specClass"));
@@ -140,7 +175,38 @@ public record VanillaWeapon(
                 wpn == null ? null : wpn.optString("fireSoundTwo", null),
                 impactSound(proj),
                 number(row, "energy/shot", 0f),
-                number(row, "energy/second", 0f));
+                number(row, "energy/second", 0f),
+                damageRadius(proj, explosion),
+                coreRadius(proj),
+                missile ? MissileFlightSpec.read(row, proj, warheadProj) : null);
+    }
+
+    /** The blast spec a projectile declares for its damage footprint, on the projectile or its proximity fuse; else null. */
+    private static JSONObject blastSpec(JSONObject proj) {
+        if (proj == null) return null;
+        JSONObject blast = proj.optJSONObject("explosionSpec");
+        if (blast != null) return blast;
+        JSONObject behaviour = proj.optJSONObject("behaviorSpec");
+        return behaviour == null ? null : behaviour.optJSONObject("explosionSpec");
+    }
+
+    /**
+     * How far a blast hurts, in px. A projectile's {@code explosionRadius} is its
+     * <i>visual</i> fireball (the spec's own comment says "purely visual"); the
+     * footprint is {@code explosionSpec.radius}. A round that declares no
+     * footprint falls back to the visual size, because the ground battle needs
+     * some area and that is the only one the spec gives.
+     */
+    static float damageRadius(JSONObject proj, float visualFallback) {
+        JSONObject blast = blastSpec(proj);
+        double declared = blast == null ? 0.0 : blast.optDouble("radius", 0.0);
+        return declared > 0.0 ? (float) declared : visualFallback;
+    }
+
+    /** The radius inside which the blast does full damage ({@code explosionSpec.coreRadius}); zero when undeclared. */
+    static float coreRadius(JSONObject proj) {
+        JSONObject blast = blastSpec(proj);
+        return blast == null ? 0f : (float) blast.optDouble("coreRadius", 0.0);
     }
 
     /** The sound the round's blast names, on the projectile or inside its proximity-fuse explosion; else null. */
@@ -155,7 +221,11 @@ public record VanillaWeapon(
         return sound == null || sound.isBlank() ? null : sound;
     }
 
-    /** A missile's explosion radius, or a projectile's proximity-fuse blast; zero for a plain slug. */
+    /**
+     * The size of the fireball drawn, which is all {@code explosionRadius} means in the game's
+     * data ("purely visual"); the radius of a proximity-fuse blast when no such figure is
+     * given; zero for a plain slug. It is never the damage footprint: see {@link #damageRadius}.
+     */
     private static float explosionRadius(JSONObject proj) {
         if (proj == null) return 0f;
         double direct = proj.optDouble("explosionRadius", 0.0);
@@ -180,13 +250,13 @@ public record VanillaWeapon(
         return bullet != null ? bullet : proj.optString("sprite", null);
     }
 
-    private static Color color(JSONObject o, String key) {
-        org.json.JSONArray a = o.optJSONArray(key);
+    static Color color(JSONObject o, String key) {
+        JSONArray a = o.optJSONArray(key);
         if (a == null || a.length() < 3) return null;
         return new Color(a.optInt(0), a.optInt(1), a.optInt(2), a.length() > 3 ? a.optInt(3, 255) : 255);
     }
 
-    private static float number(Map<String, String> row, String key, float fallback) {
+    static float number(Map<String, String> row, String key, float fallback) {
         String v = row.get(key);
         if (v == null || v.isBlank()) return fallback;
         try {
