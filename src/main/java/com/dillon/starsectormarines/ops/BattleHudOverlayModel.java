@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
+import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention.Phase;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -366,11 +367,16 @@ final class BattleHudOverlayModel {
         return new Presentation(true, false);
     }
 
-    Presentation updateIntervention(String phase, String instruction, int remainingWalls, int initialWalls) {
-        objectiveTitle.set("HEGEMONY / " + phase);
+    Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls) {
+        objectiveTitle.set(phase == Phase.EVIDENCE ? "A COLD ACCOUNT" : "HEGEMONY / " + phase);
         objectivePanelClasses.set(OBJECTIVE_PANEL);
         objectiveScore.set("");
-        objectiveTally.set("PIRATE RECORDS > WITHDRAW > BOMBARD");
+        objectiveTally.set(switch (phase) {
+            case EVIDENCE -> "DISPATCH OFFICE / RECOVER RECORDS";
+            case WITHDRAW, WARNING, BOMBARD -> "CLEAR FIRING AREA > SHUTTLE PICKUP";
+            case PATROL, AFTERMATH, COMPLETE -> "COMPANY RECOVERED / STRONGHOLD SILENCED";
+            case FAILED -> "INTERVENTION FAILED";
+        });
         objectiveChips.set(List.of());
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(instruction);

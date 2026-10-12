@@ -21,6 +21,11 @@ class StructuralDemolitionPlanTest {
         var west = plan.advance((x,y) -> x == 0);
         assertTrue(west.contains(.5f, .5f));
         assertEquals(3, plan.sectorNumber());
+        var last = plan.advance((x,y) -> x == 0 && y == 9);
+        assertTrue(last.contains(.5f, 9.5f));
+        assertFalse(plan.complete(), "75% overall destruction must not skip the last sector");
+        assertEquals(4, plan.sectorNumber());
         assertNull(plan.advance((x,y) -> false));
+        assertTrue(plan.complete());
     }
 }
