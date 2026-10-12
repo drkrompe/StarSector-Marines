@@ -736,6 +736,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.combat.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
+        this.doodadService.setPropEffectSink(effects::spawnPropDamage);
         this.mapEditor.setDoodads(doodadService);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
@@ -1210,7 +1211,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
     /** Rounds an aircraft (or any other carrier) put on the ground during the last advance. Presentation only — the delivery itself already resolved. */
     public List<OrdnanceRelease> getOrdnanceReleasesThisFrame() { return effects.getOrdnanceReleasesThisFrame(); }
-    /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained once per frame by the host into {@code ImpactFx.spawnWallCollapse}, so a collapse looks the same however it happened. */
+    /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center, with an optional third size multiplier for small props. Drained once per frame by the host into {@code ImpactFx.spawnWallCollapse}, so a collapse looks the same however it happened. */
     public List<float[]> getWallDustsThisFrame() { return effects.getWallDustsThisFrame(); }
 
     /** Live smoking wrecks. Read-only view (consumed by the demolition/crash tests). */

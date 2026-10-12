@@ -32,7 +32,7 @@ class BarrelDamageTest {
     }
 
     @Test void everyStyleAndOrientationDentsThenCollapsesWithoutChangingGroundOrUnderlyingStorage() {
-        for (String id : BarrelDamage.IDS) for (boolean blocked : new boolean[]{false, true})
+        for (String id : PropDamage.BARRELS) for (boolean blocked : new boolean[]{false, true})
             for (int turn = 0; turn < 4; turn++) for (boolean mirror : new boolean[]{false, true})
                 try (Ground g = new Ground()) {
                     g.barrel(id, 3, 3, blocked, turn, mirror);

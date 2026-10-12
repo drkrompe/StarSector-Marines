@@ -59,6 +59,8 @@ public final class TileRegistry {
             "data/tilesets/rock-damage.tileset.json",
             "data/tilesets/crate-damage.tileset.json",
             "data/tilesets/barrel-damage.tileset.json",
+            "data/tilesets/compound-machinery-damage.tileset.json",
+            "data/tilesets/compound-command-damage.tileset.json",
             "data/tilesets/forest-destroyed.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",

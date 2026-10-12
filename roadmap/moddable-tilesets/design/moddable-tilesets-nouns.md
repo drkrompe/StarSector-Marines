@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — fences, sandbags and tree crowns retain matching damage states; permanent terrain remains independent of tree destruction.
+Updated: 2026-10-12 � compound equipment retains matched damage states and bounded, footprint-sized destruction cues.
 
 Read `stories.md` for open work.
 
@@ -237,6 +237,25 @@ footprints. Open curved shells and scattered metal expose the original ground.
 Full-frame cuts preserve pivots and orientation; the group owns one structure
 pool across its footprint. Stock overlays retain zero cover in every state,
 and their destruction leaves underlying rack and pallet bases intact.
+
+Registered compound equipment shares that whole-prop damage model: generators,
+radar dishes, machine tools, fluid tanks, control/command consoles, tactical
+tables and workstation banks retain matching damaged shells and low wreckage.
+Every state preserves the full placement frame, rotation and mirror. A single
+blast spends the group's structure once, even when it visits several footprint
+cells. Destroyed equipment releases its own physical or directional cover and
+fixture obstruction; it preserves the original ground, masonry, natural solids
+and surviving overlapping fixtures. It never turns a prop breach into a doorway.
+
+Equipment damage also selects a presentation cue by material and function.
+Powered equipment vents smoke and may briefly burn on destruction; inert
+metal collapses with dust, and a ruptured fluid tank smokes without assuming
+flammable contents. A cue fires once on entry into a damage state; direct
+lethal damage emits only the terminal cue. Puff size, growth and drift remain
+proportionate to the prop footprint, and emitters expire after a short tail.
+These are cosmetic effects, independent of smoke concealment and secondary
+blast damage. The `compound-prop-damage` suite compares all states and
+orientations and plays their effects through the production simulation seam.
 
 Tree crowns likewise retain intact, damaged and destroyed identities for each
 species, with identical multi-cell dimensions and placement pivots. Broken

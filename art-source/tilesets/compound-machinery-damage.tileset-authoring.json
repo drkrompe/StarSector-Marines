@@ -1,0 +1,140 @@
+{
+  "sheetName": "compound-machinery-damage",
+  "sheet": "art-source/tilesets/compound-machinery-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Geometry-first built-in ImageGen reskin. Four full-frame columns retain original pivots. Damaged equipment above matching low remnants. Transparent gutters and debris gaps reviewed; no trim/recenter. Prompt and guide retained.",
+  "entries": [
+    {
+      "id": "doodad.industrial-generator-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.military-radar-dish-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        443,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.industrial-machine-tool-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.68,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        887,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.industrial-fluid-tank-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.82,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1330,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.industrial-generator-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        443,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.military-radar-dish-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        443,
+        443,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.industrial-machine-tool-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        887,
+        443,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.industrial-fluid-tank-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1330,
+        443,
+        443,
+        443
+      ]
+    }
+  ]
+}
