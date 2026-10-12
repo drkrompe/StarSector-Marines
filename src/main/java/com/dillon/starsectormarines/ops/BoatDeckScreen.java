@@ -64,6 +64,7 @@ public final class BoatDeckScreen implements Screen {
     private BoatDeckViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
+    private PreparationGuide preparationGuide;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private BoatDeckCanvas bayCanvas;
@@ -104,6 +105,7 @@ public final class BoatDeckScreen implements Screen {
         refreshBayPresentation();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
+        if (preparationGuide != null) preparationGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -112,7 +114,7 @@ public final class BoatDeckScreen implements Screen {
         UiDocument built;
         try {
             requireWiredElements(candidate);
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             bayElement = candidate.requireElement("boat-deck-canvas");
@@ -133,6 +135,7 @@ public final class BoatDeckScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         document = built;
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.boats(roster, viewModel, context), this::close);
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
@@ -348,6 +351,7 @@ public final class BoatDeckScreen implements Screen {
         if (deckMayHaveChanged) adoptChangedDeck();
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
+        if (preparationGuide != null) preparationGuide.update();
     }
 
     @Override

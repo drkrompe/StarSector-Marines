@@ -391,6 +391,14 @@ public class MarineOpsContext {
     /** Resume Castle without discarding the selected briefing. */
     public void openOfficerInduction() {
         officerInductionRequested = true;
+        MarineRoster roster = CompanyPreparationGuide.roster();
+        if (roster != null && roster.officerInductionRequired()) {
+            switch (roster.officerInduction().step(roster)) {
+                case SHIP -> { goTo(ScreenId.SHIP_TRANSFER); return; }
+                case LIFT -> { goTo(shipReady() ? ScreenId.BOAT_DECK : ScreenId.COMPANY_HQ); return; }
+                default -> { }
+            }
+        }
         goTo(shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ);
     }
 
