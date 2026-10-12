@@ -254,8 +254,12 @@ half to the western half. Each sector advances only after at least three quarter
 of its original wall cells have actually fallen; blast overlap is real damage,
 not a scripted deletion. Every sector must reach that threshold: an overall
 three-quarter total cannot leave the last quarter of the base untouched.
-The actual deployment boats return for serial survivor pickups, with a heavy
-lift for a surviving mech. Troops walk to a landed ramp, board to capacity, and
+The actual surviving deployment boats return concurrently for survivor pickups,
+with a separate heavy lift for a surviving mech. Each boat flies one trip at a
+time, boards through its own separated ramp inside the safe pickup area, and
+returns for another load only when survivors still need seats. Uncommitted fleet
+boats do not appear, and a destroyed boat cannot return. Survivors reserve seats
+on individual landed craft so the available lifts can load together. Troops walk to a landed ramp, board to capacity, and
 leave through ordinary flight. Campaign identity and combat records travel with
 the passengers; a destroyed loaded boat loses them. Safe extraction does not
 satisfy the defender's elimination objective.

@@ -1962,10 +1962,15 @@ need. `fighter-air-entities.md` carries what is left of the fold.
 `SurvivorPickupSystem` can be configured with a faction and pickup cell before
 deployment, then requested independently of any mission objective. It retains
 the actual deployment craft's fitted frame and lift role, waits for delivery to
-finish, and returns surviving boats one at a time. Infantry lifts honor physical
-seat capacity; mech lifts carry one chassis. No extra company boats are minted.
-Units with withdrawal orders walk to the landed ramp and board individually at
-0.8-second intervals, with non-leaders at the ramp boarding first. A lift departs
+finish, and returns as many surviving boats concurrently as the remaining
+passengers need. Each aircraft has at most one trip active, and destruction
+removes that aircraft alone even when another boat flies the same hull pattern.
+Infantry lifts honor physical seat capacity; mech lifts carry one chassis. No
+extra company boats are minted. Separate reachable outdoor ramps stay inside
+the safe pickup area; when no free ramp fits, that boat waits for space.
+Units with withdrawal orders reserve seats on individual landed craft and walk
+to their assigned ramps. Each boat boards independently at 0.8-second intervals,
+with non-leaders at its ramp boarding first. A lift departs
 when full, when nobody eligible remains, or after 90 seconds on the pad; later
 trips collect those left behind.
 

@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupFleet.Carrier;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryReport;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
@@ -18,18 +19,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Reuses the deployment aircraft for serial, capacity-limited survivor lifts. */
+/** Reuses every available deployment aircraft for capacity-limited survivor lifts. */
 public final class SurvivorPickupSystem {
-    private record Carrier(long originalId, ShuttleMission delivery, ShuttleType type, Airframe frame, boolean mech) { }
-    private final List<Carrier> carriers = new ArrayList<>();
+    private final SurvivorPickupFleet fleet = new SurvivorPickupFleet();
     private final List<PickupManifest> manifests = new ArrayList<>();
     private final Set<Long> observed = new HashSet<>();
     private Faction faction;
-    private int x, y, nextBoardTick, nextCarrier;
+    private int x, y;
     private boolean requested;
-    private ShuttleMission active;
-    private Carrier activeCarrier;
-    private int landedTick = -1;
 
     /** Configure before deployment so the actual fitted aircraft can be retained. */
     public void configure(Faction faction, int x, int y) {
@@ -54,10 +51,9 @@ public final class SurvivorPickupSystem {
                 && manifests.stream().noneMatch(m -> m.state() == PickupManifest.State.ABOARD);
     }
     public int[] rampFor(long unit, BattleView sim) {
-        if (active == null || active.state != ShuttleState.LANDED || !active.awaitingEvacuees
-                || sim.identity().faction(unit) != faction
-                || (sim.identity().type(unit) == UnitType.HEAVY_MECH) != activeCarrier.mech()) return null;
-        return new int[]{x, y};
+        Carrier c = fleet.ramp(unit);
+        if (c == null || sim.identity().faction(unit) != faction) return null;
+        return new int[]{(int) c.pickup.lzX, (int) c.pickup.lzY};
     }
     public void tick(BattleSimulation sim) {
         if (faction == null) return;
@@ -66,39 +62,50 @@ public final class SurvivorPickupSystem {
             if (m == null || m.pickup != null || sim.world().airFaction(id) != faction || !observed.add(id)) continue;
             Airframe frame = sim.world().airframe(id);
             ShuttleType type = frame instanceof FittedBoat b ? b.pattern() : frame instanceof ShuttleType s ? s : null;
-            if (type != null && m.seatsPerSortie > 0) carriers.add(new Carrier(id, m, type, frame, m.payload == MechSupportPayload.INSTANCE));
+            if (type != null && m.seatsPerSortie > 0) fleet.register(new Carrier(m, type, frame, m.payload == MechSupportPayload.INSTANCE));
         }
         if (!requested) return;
-        if (active != null && active.pickup.state() != PickupManifest.State.ABOARD) {
-            if (active.pickup.state() == PickupManifest.State.LOST) carriers.remove(activeCarrier);
-            active = null; landedTick = -1;
+        fleet.dispatch(groundCount(sim, false), groundCount(sim, true), c -> launch(sim, c));
+        var waiting = new ArrayList<SurvivorPickupFleet.Waiting>();
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) == faction)
+                waiting.add(new SurvivorPickupFleet.Waiting(u, sim.identity().type(u) == UnitType.HEAVY_MECH,
+                        sim.world().x(u), sim.world().y(u)));
         }
-        if (active == null) {
-            for (int i = 0; i < carriers.size(); i++) {
-                Carrier c = carriers.get((nextCarrier + i) % carriers.size());
-                if (c.delivery().state != ShuttleState.GONE || groundCount(sim, c.mech()) == 0) continue;
-                if (sim.getAirLosses().stream().anyMatch(l -> l.frame() == c.frame())) continue;
-                long craft = sim.spawnShuttle(c.type(), c.frame(), faction, x + .5f, y + .5f,
-                        sim.getGrid().getWidth() + 20f, y + .5f, sim.getGrid().getWidth() + 20f, y + .5f, 0f, c.mech() ? 1 : c.type().capacity);
-                active = sim.world().mission(craft);
-                active.marinesRemaining = 0;
-                active.awaitingEvacuees = true;
-                active.pickup = new PickupManifest(c.mech() ? 1 : c.type().capacity, c.frame() instanceof FittedBoat b && b.boatId() != null);
-                manifests.add(active.pickup);
-                activeCarrier = c;
-                nextCarrier = (nextCarrier + i + 1) % carriers.size();
-                break;
-            }
-        }
+        fleet.assignRamps(waiting);
+        for (Carrier c : fleet.carriers()) board(sim, c);
+    }
+
+    private ShuttleMission launch(BattleSimulation sim, Carrier c) {
+        var occupied = fleet.carriers().stream().filter(other -> other.pickup != null)
+                .map(other -> new int[]{(int) other.pickup.lzX, (int) other.pickup.lzY}).toList();
+        int[] pad = PickupLandingSlots.find(sim.getGrid(), x, y, occupied,
+                (px, py) -> sim.getTopology().getBuildingId(px, py) == 0);
+        if (pad == null) return null;
+        long craft = sim.spawnShuttle(c.type, c.frame, faction, pad[0] + .5f, pad[1] + .5f,
+                sim.getGrid().getWidth() + 20f, pad[1] + .5f,
+                sim.getGrid().getWidth() + 20f, pad[1] + .5f, 0f, c.capacity());
+        ShuttleMission pickup = sim.world().mission(craft);
+        pickup.marinesRemaining = 0;
+        pickup.awaitingEvacuees = true;
+        pickup.pickup = new PickupManifest(c.capacity(), c.frame instanceof FittedBoat b && b.boatId() != null);
+        manifests.add(pickup.pickup);
+        return pickup;
+    }
+
+    private void board(BattleSimulation sim, Carrier c) {
+        ShuttleMission active = c.pickup;
         if (active == null || active.state != ShuttleState.LANDED) return;
         int tick = sim.getSimTickIndex();
-        if (landedTick < 0) landedTick = tick;
-        if (tick >= nextBoardTick && !active.pickup.full()) {
+        if (c.landedTick < 0) c.landedTick = tick;
+        if (c.readyToBoard(tick)) {
             long candidate = 0L;
             boolean candidateLeader = true;
             for (int i = 0; i < sim.liveUnitCount(); i++) {
                 long u = sim.liveUnitAt(i);
-                if (rampFor(u, sim) == null || Math.hypot(sim.world().x(u) - x - .5f, sim.world().y(u) - y - .5f) > 2.5f) continue;
+                if (fleet.ramp(u) != c || Math.hypot(sim.world().x(u) - active.lzX,
+                        sim.world().y(u) - active.lzY) > 2.5f) continue;
                 boolean leader = sim.squadOf(u) != null && sim.squadOf(u).leaderId == u;
                 if (candidate == 0L || (candidateLeader && !leader)) { candidate = u; candidateLeader = leader; }
             }
@@ -108,11 +115,11 @@ public final class SurvivorPickupSystem {
                         .stream().filter(r -> r.entityId() == boarded).findFirst().orElse(null);
                 if (active.pickup.board(new PickupManifest.Passenger(boarded, faction, (String) sim.getEntityWorld().getObject(boarded, sim.getBattleComponents().IDENTITY, BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID), row))) {
                     sim.takeOffTheField(boarded);
-                    nextBoardTick = tick + 24;
+                    c.boarded(tick);
                 }
             }
         }
-        if (active.pickup.full() || groundCount(sim, activeCarrier.mech()) == 0 || tick - landedTick >= 90 * 30)
+        if (active.pickup.full() || groundCount(sim, c.mech) == 0 || tick - c.landedTick >= 90 * 30)
             active.awaitingEvacuees = false;
     }
     private int groundCount(BattleView sim, boolean mech) {
