@@ -952,6 +952,81 @@
       "supersedes": [],
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png"
+    },
+    {
+      "id": "marines_kord_cold_account_pirate_evidence_confirmed",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.pirate_evidence_confirmed",
+      "text": "Captain Kord, HSS Resolute. Authentication accepted. This installation is designated a pirate military asset. Withdraw your personnel.",
+      "durationSeconds": 9,
+      "priority": 50,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
+      "portrait": "",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "marines_kord_cold_account_batteries_preparing",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.batteries_preparing",
+      "text": "Gunnery, lay batteries on the installation. Maintain bearing. Weapons release on friendly clearance.",
+      "durationSeconds": 6,
+      "priority": 40,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
+      "portrait": "",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "marines_kord_cold_account_company_clear_open_fire",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.company_clear_open_fire",
+      "text": "Friendly elements clear. Execute.",
+      "durationSeconds": 3,
+      "priority": 100,
+      "expiresSeconds": 30,
+      "supersedes": [
+        "corvus.cold_account.pirate_evidence_confirmed",
+        "corvus.cold_account.batteries_preparing"
+      ],
+      "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
+      "portrait": "",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "marines_kord_cold_account_demolition_sweep",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.demolition_sweep",
+      "text": "Continue through the remaining structures. Leave nothing operational.",
+      "durationSeconds": 4,
+      "priority": 50,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
+      "portrait": "",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "marines_kord_cold_account_stronghold_destroyed",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.stronghold_destroyed",
+      "text": "Installation neutralized. Resuming patrol.",
+      "durationSeconds": 5,
+      "priority": 100,
+      "expiresSeconds": 30,
+      "supersedes": [
+        "corvus.cold_account.demolition_sweep"
+      ],
+      "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
+      "portrait": "",
+      "voiced": false,
+      "terminal": true
     }
   ]
 }

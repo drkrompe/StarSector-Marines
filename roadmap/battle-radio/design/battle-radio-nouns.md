@@ -126,6 +126,14 @@ instructions but lets the active mission sentence finish. Leaving a screen stops
 not reset the battle cursor or replay briefings. The hybrid debug host has no
 campaign chapter identity and therefore does not play Mara's story dialogue.
 
+The same catalog may explicitly mark an authored line as text-only, in which case
+its declared reading duration owns the subtitle and no sound lookup occurs.
+An absent portrait uses the retained text panel. A confirmed terminal report may
+explicitly survive completion and start on the completed battlefield, after any
+active sentence finishes; this exception never retains ordinary tactical
+instructions or delays mission settlement. Cold Account's Kord reports use these
+capabilities and valid Corvus retry identities resolve to the same chapter set.
+
 ## Company command
 
 The company officer is an original mature British female Voice Design selection,

@@ -33,14 +33,14 @@ public final class StoryNarrationQueue {
         for (StoryBeatLog.Event event : events) {
             if (event.sequence() <= cursor) continue;
             cursor = event.sequence();
-            if (ended || event.audience() != StoryBeatLog.Audience.PLAYER || missionId == null) continue;
+            if (event.audience() != StoryBeatLog.Audience.PLAYER || missionId == null) continue;
             Line line = catalog.find(missionId, event.id());
-            if (line == null) continue;
+            if (line == null || ended && !line.terminal()) continue;
             superseded.addAll(line.supersedes());
             if (!superseded.contains(line.event()))
                 pending.add(new Pending(line, clock + line.expiresSeconds()));
         }
-        pending.removeIf(p -> ended || p.expiresAt() <= clock || superseded.contains(p.line().event()));
+        pending.removeIf(p -> ended && !p.line().terminal() || p.expiresAt() <= clock || superseded.contains(p.line().event()));
     }
 
     public void clearPending() { pending.clear(); }

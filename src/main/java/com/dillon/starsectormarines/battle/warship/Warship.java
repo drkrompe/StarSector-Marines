@@ -428,6 +428,37 @@ public final class Warship {
         return held.isEmpty() ? WarshipOrder.HoldFire.INSTANCE : held.get(0).area;
     }
 
+    /** Ground batteries may train while their triggers are withheld. PD remains independent. */
+    public enum GroundFire { HOLD, HEAVY, ALL }
+    private GroundFire groundFire = GroundFire.ALL;
+
+    public void groundFire(GroundFire permission) {
+        groundFire = permission;
+        for (Mount mount : mounts) if (!mount.pointDefence() && !groundFireAllowed(mount)) mount.burstRemaining = 0;
+    }
+
+    boolean groundFireAllowed(Mount mount) {
+        return groundFire == GroundFire.ALL || groundFire == GroundFire.HEAVY
+                && mount.weapon.damagePerShot() >= 100f;
+    }
+
+    public boolean headingSettled() {
+        return Math.abs(WarshipFacing.wrap(desiredHeading - facingDegrees)) < .01f
+                && Math.abs(turnVelocity) < .01f;
+    }
+
+    /** Heavy mounts already trained on legal ground, ready to start the opening volley. */
+    public int readyHeavyMounts() {
+        int ready = 0;
+        for (Mount m : mounts) {
+            if (m.pointDefence() || m.weapon.beam() || m.weapon.damagePerShot() < 100f
+                    || !m.aimed || m.cooldown > 0f || !hasOrdnance(m)) continue;
+            float bearing = (float) Math.toDegrees(Math.atan2(m.aimY - mountY(m), m.aimX - mountX(m))) - 90f;
+            if (Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) <= 2f) ready++;
+        }
+        return ready;
+    }
+
     /** Every area the ship is firing on now, densest first; empty when it holds fire. */
     public List<WarshipOrder.FireOnArea> areas() {
         return areasReadOnly;

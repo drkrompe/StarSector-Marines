@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -35,6 +38,9 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.RenderingHints;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -49,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Full production chapter playback; outcome is a finding, not a required victory. */
 @Tag("corvus-command-evidence")
 class CorvusCombatEvidenceTest {
+    private StoryNarrationPlayer narration;
     @Test void recommendedCompanyAndRecoveredHound() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
         Path output = Path.of(System.getProperty("corvus.command.evidence.outputDir", "build/reports/commander/corvus"));
@@ -95,6 +102,14 @@ class CorvusCombatEvidenceTest {
             var resources = new FiniteCommandPowerResources(30);
             fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
             try (var sim = fixture.build()) {
+                var dialogue = new JSONArray();
+                narration = new StoryNarrationPlayer(WaylineNarration.parse(new JSONObject(
+                        Files.readString(Path.of("mod", WaylineNarration.PATH)))),
+                        WaylineNarration.storyMissionId(mission), new NarrationPlayer(line -> null), line -> {
+                            try { dialogue.put(new JSONObject().put("tick", sim.getSimTickIndex())
+                                    .put("event", line.event()).put("speaker", line.speaker()).put("text", line.text())); }
+                            catch (Exception e) { throw new IllegalStateException(e); }
+                        });
                 var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,
                         resources.availableSupplies(), mission.fieldPresencePolicy);
                 overlay.applyTo(sim, resources);
@@ -113,6 +128,8 @@ class CorvusCombatEvidenceTest {
                 float houndDamage = 0, houndHp = 0, houndArmor = 0;
                 boolean houndAlive = false;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
+                int firstSalvoMounts = 0, firstCapitalShotAt = -1;
+                var frameTicks = new JSONArray().put(0);
                 var samples = new JSONArray();
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
@@ -127,9 +144,18 @@ class CorvusCombatEvidenceTest {
                     }
                     var beforePhase = sim.getColdAccount() == null ? null : sim.getColdAccount().phase();
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
+                    var beforeNarration = narration.current();
                     sim.advance(BattleSimulation.TICK_DT);
+                    narration.advance(BattleSimulation.TICK_DT / replaySpeed(sim),
+                            sim.getPlayerStoryBeatsAfter(narration.cursor()), false, sim.isComplete());
                     if (sim.getColdAccount() != null && sim.getColdAccount().shotsFired() > beforeShipShots) {
                         if (beforeShipShots == 0) {
+                            firstCapitalShotAt = sim.getSimTickIndex();
+                            firstSalvoMounts = (int) sim.warships().ships().stream().flatMap(s -> s.mounts().stream())
+                                    .filter(m -> !m.pointDefence() && m.shotsFired > 0).count();
+                            assertTrue(firstSalvoMounts >= 2, "The attack opens with a coordinated heavy salvo");
+                            assertTrue(firstCapitalShotAt <= sim.getColdAccount().groundClearTick() + 2,
+                                    "Ready batteries release immediately on clearance");
                             infantryDeathsBeforeBombardment = fallen.size();
                             assertFalse(sim.survivorPickup().complete(sim), "Bombardment begins before the last lift returns");
                         }
@@ -145,6 +171,15 @@ class CorvusCombatEvidenceTest {
                                     > sim.getColdAccount().installationRight(), "The full hull must stay east of the compound");
                             assertEquals(layout.strikeY(), capital.y, .01f, "Arrival follows a straight east-west line");
                             if (capital.isMoving()) assertEquals(90f, capital.facingDegrees, .01f, "Approach must be nose-first");
+                            if (sim.getColdAccount().bombardTick() >= 0) {
+                                assertTrue(sim.getColdAccount().preparedTick() <= sim.getColdAccount().groundClearTick(),
+                                        "Batteries must be laid before the recommended force clears the firing line");
+                                assertEquals(sim.getColdAccount().firingHeading(), capital.facingDegrees, .01f,
+                                        "The firing hull holds the bearing established during withdrawal");
+                                if (sim.getSimTickIndex() - sim.getColdAccount().bombardTick() < 60)
+                                    assertTrue(capital.mounts().stream().filter(m -> !m.pointDefence() && m.shotsFired > 0)
+                                            .allMatch(m -> m.weapon.damagePerShot() >= 100f), "Heavy batteries open the attack");
+                            }
                         }
                     }
                     int tick = sim.getSimTickIndex();
@@ -179,8 +214,13 @@ class CorvusCombatEvidenceTest {
                         Files.writeString(dir.resolve("samples.json"), samples.toString(2));
                     }
                     boolean phaseChanged = sim.getColdAccount() != null && sim.getColdAccount().phase() != beforePhase;
-                    if (tick % snapshotEveryTicks == 0 || phaseChanged || sim.isComplete() || tick == maxTicks)
+                    int frameStride = sim.getColdAccount() != null && sim.getColdAccount().evidenceTick() < 0
+                            ? Math.max(60, snapshotEveryTicks) : snapshotEveryTicks;
+                    if (tick % frameStride == 0 || phaseChanged || narration.current() != beforeNarration
+                            || sim.isComplete() || tick == maxTicks) {
                         writeFrame(renderer, sim, chapter, dir);
+                        frameTicks.put(tick);
+                    }
                     if (tick % 1800 == 0 || phaseChanged || sim.isComplete() || tick == maxTicks) {
                         Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
                         System.out.println("[corvus] " + chapter.title + " tick=" + tick + " landed=" + landed.size()
@@ -194,6 +234,7 @@ class CorvusCombatEvidenceTest {
                     houndDamage = sim.telemetry().damageDealt(hound);
                 }
                 Files.writeString(dir.resolve("trace.jsonl"), sim.getCommandTraceJsonLines());
+                Files.writeString(dir.resolve("frame-index.json"), frameTicks.toString());
                 var kits = new JSONArray();
                 for (var seat : deployment.commitments()) kits.put(new JSONObject().put("soldier", seat.campaignSoldierId())
                         .put("weapon", seat.primaryWeaponId()).put("grade", seat.equipmentGrade().name())
@@ -212,14 +253,18 @@ class CorvusCombatEvidenceTest {
                         .put("houndAlive",houndAlive).put("houndLostAt",houndLostAt).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
                         .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
                         .put("objectives",objectives(sim)).put("kits",kits);
+                report.put("dialogue", dialogue);
                 var intervention = sim.getColdAccount();
                 if (intervention != null) {
                     report.put("intervention", new JSONObject()
                             .put("phase", intervention.phase().name()).put("evidenceTick", intervention.evidenceTick())
                             .put("warningTick", intervention.warningTick()).put("bombardTick", intervention.bombardTick())
+                            .put("preparedTick", intervention.preparedTick()).put("groundClearTick", intervention.groundClearTick())
+                            .put("firstCapitalShotAt", firstCapitalShotAt).put("firstSalvoMounts", firstSalvoMounts)
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
                             .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
                             .put("pendingArrivals", intervention.pendingArrivals())
+                            .put("firingHeading", intervention.firingHeading()).put("demolitionSector", intervention.demolitionSector())
                             .put("pickedUp", sim.survivorPickup().recoveredCount())
                             .put("pickupSorties", sim.survivorPickup().manifests().size())
                             .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment));
@@ -230,6 +275,8 @@ class CorvusCombatEvidenceTest {
                         assertEquals(infantryDeathsBeforeBombardment, fallen.size(), "No withdrawn infantry lost during bombardment");
                         assertTrue(intervention.remainingWalls() <= intervention.initialWalls() / 4);
                         assertTrue(sim.warships().shells().isEmpty());
+                        assertEquals("corvus.cold_account.stronghold_destroyed",
+                                narration.current().event(), "The confirmed terminal line is presented at victory");
                     }
                 }
                 Files.writeString(dir.resolve("summary.json"),report.toString(2));
@@ -281,9 +328,32 @@ class CorvusCombatEvidenceTest {
         Files.writeString(output.resolve("summary.md"),text);
     }
 
-    private static void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {
-        ImageIO.write(renderer.render(sim, chapter.title + " / " + sim.getSimTickIndex()/30 + "s"
-                + (sim.getColdAccount() == null ? "" : " / " + sim.getColdAccount().displayName())), "png",
+    private static float replaySpeed(BattleSimulation sim) {
+        if (sim.getColdAccount() == null || sim.getColdAccount().evidenceTick() < 0) return 8f;
+        return sim.getColdAccount().bombardTick() < 0 ? 2f : 1f;
+    }
+
+    private void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {
+        var frame = renderer.render(sim, chapter.title + " / " + sim.getSimTickIndex()/30 + "s"
+                + (sim.getColdAccount() == null ? "" : " / " + sim.getColdAccount().displayName()));
+        var line = narration == null ? null : narration.current();
+        if (line != null) {
+            var g = frame.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setColor(new Color(8, 13, 22, 240)); g.fillRoundRect(24, frame.getHeight() - 146, 1400, 122, 12, 12);
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20)); g.setColor(new Color(231, 187, 109));
+            g.drawString(line.speaker(), 44, frame.getHeight() - 115);
+            g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 23)); g.setColor(Color.WHITE);
+            String row = ""; int y = frame.getHeight() - 78;
+            for (String word : line.text().split(" ")) {
+                if (g.getFontMetrics().stringWidth(row + word) > 1350) {
+                    g.drawString(row, 44, y); y += 31; row = "";
+                }
+                row += word + " ";
+            }
+            g.drawString(row, 44, y); g.dispose();
+        }
+        ImageIO.write(frame, "png",
                 dir.resolve(String.format(Locale.ROOT,"frame-%05d.png",sim.getSimTickIndex())).toFile());
     }
 

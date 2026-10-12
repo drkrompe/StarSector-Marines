@@ -1809,6 +1809,16 @@ rounds already in flight retain their ordinary impact and friendly-fire behavior
 The mission owns evidence, withdrawal, warning and completion; the ship owns its
 weapons and the damage they actually cause.
 
+Ground trigger permission is separate from the area order: batteries can acquire
+and traverse onto ordered ground while launches are withheld. Withholding cancels
+unlaunched burst rounds and leaves point defence independent. A heavy opening
+permission admits weapons whose individual rounds carry at least 100 damage;
+ordinary permission restores the whole battery. Neither changes weapon damage,
+cooldown, ammunition or travel. A settled bearing can be retained by subsequent
+area orders that do not request another hull turn. Structural orders may clip
+their circular acquisition envelope to a rectangular sector; ordinary splash
+and already committed rounds can still cross its edges.
+
 
 ## Standing laws
 

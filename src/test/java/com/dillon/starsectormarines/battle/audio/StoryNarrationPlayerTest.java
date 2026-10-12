@@ -11,6 +11,16 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class StoryNarrationPlayerTest {
+    @Test void terminalSubtitleStartsAtCompletionWithoutRequestingMissingAudio() {
+        Line terminal = new Line("done", "chapter", "done", "Installation neutralized.",
+                5, 100, 30, List.of(), "KORD", "", false, true);
+        var player = new StoryNarrationPlayer(new WaylineNarration(List.of(line("start"), terminal)),
+                "chapter", new NarrationPlayer(l -> { fail("Text-only dialogue has no sound lookup"); return null; }), l -> { });
+        player.advance(0, List.of(event(1, "start"), event(2, "done")), true, true);
+        assertEquals(terminal, player.current());
+        player.advance(6, List.of(event(2, "done")), false, true);
+        assertNull(player.current());
+    }
     private final List<FakeSound> sounds = new ArrayList<>();
     private final NarrationPlayer audio = new NarrationPlayer(line -> {
         FakeSound sound = new FakeSound();

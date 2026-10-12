@@ -63,7 +63,9 @@ final class StorySubtitleOverlay {
             current = next;
             if (next != null) {
                 markup = line != null
-                        ? loader.reloadAndBuild(reactor, COMPONENT, Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text()))
+                        ? (line.portrait().isBlank()
+                            ? loader.reloadAndBuild(reactor, "company-subtitle", Map.of("speaker", line.speaker(), "subtitle", line.text()))
+                            : loader.reloadAndBuild(reactor, COMPONENT, Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text())))
                         : (radio != null ? radio.line().speaker().equals("command") : officer != null)
                         ? loader.reloadAndBuild(reactor, COMPONENT, Map.of(
                                 "speaker", "CASTLE / COMPANY COMMAND", "portrait", "graphics/portraits/castle.png",

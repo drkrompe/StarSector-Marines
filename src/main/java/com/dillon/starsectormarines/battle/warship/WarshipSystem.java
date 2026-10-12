@@ -725,6 +725,7 @@ public final class WarshipSystem {
         }
         float bearing = AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m));
         traverse(dt, ship, m, bearing);
+        if (!ship.groundFireAllowed(m)) return;
         if (m.cooldown > 0f) return;
         if (Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) > ALIGNED_DEGREES) return;
         if (denialNotYet(ship, m)) return;
@@ -793,7 +794,7 @@ public final class WarshipSystem {
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         WarshipOrder.FireOnArea area = null;
-        if (ship.areas().isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
+        if (!ship.groundFireAllowed(m) || ship.areas().isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
                 || !ship.hasOrdnance(m) || !ship.fluxPool().canStartFire() || (area = pickTarget(sim, ship, m)) == null) {
             traverse(dt, ship, m, rest);
             return;
