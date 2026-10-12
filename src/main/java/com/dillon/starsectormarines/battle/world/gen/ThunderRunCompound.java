@@ -290,7 +290,10 @@ public final class ThunderRunCompound {
             throw new IllegalStateException("Missing Thunder Run fortification: " + id);
         if (!c.grid.isWalkable(x, y))
             throw new IllegalStateException("Thunder Run fortification overlaps structure at " + x + "," + y);
-        c.grid.setWalkable(x, y, false);
+        // Sandbags are knee-high cover everyone steps over, mechs and infantry
+        // alike: the cell stays walkable and the doodad supplies the cover.
+        // Fences and other fixtures still close their cell.
+        if (!id.startsWith("doodad.sandbag-")) c.grid.setWalkable(x, y, false);
         c.grid.setSeeThrough(x, y, true);
         c.topology.setWall(x, y, false);
         c.topology.setFixture(x, y, true);
