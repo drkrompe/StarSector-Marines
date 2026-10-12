@@ -4,7 +4,9 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,6 +67,26 @@ public final class VanillaWeapons {
             return v == null || v.isBlank() ? 0 : Math.max(0, (int) Float.parseFloat(v.trim()));
         } catch (Exception e) {
             return 0;
+        }
+    }
+
+    /**
+     * The weapon table's {@code hints} column for a weapon, split into its comma-separated
+     * tokens (trimmed, as written); empty when the weapon is unknown or has none.
+     */
+    public static List<String> hints(String weaponId) {
+        try {
+            Map<String, String> row = table().get(weaponId);
+            String v = row == null ? null : row.get("hints");
+            if (v == null || v.isBlank()) return List.of();
+            List<String> out = new ArrayList<>();
+            for (String token : v.split(",")) {
+                String t = token.trim();
+                if (!t.isEmpty()) out.add(t);
+            }
+            return out;
+        } catch (Exception e) {
+            return List.of();
         }
     }
 

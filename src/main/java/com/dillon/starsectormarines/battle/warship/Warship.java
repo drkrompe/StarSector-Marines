@@ -118,6 +118,10 @@ public final class Warship {
         final WarshipOrder.FireOnArea area;
         int weight;
         float emptySeconds;
+        /** Whether this is a landing zone denied before anybody stands on it; it is aimed at as ground, not at a unit. */
+        boolean denial;
+        /** For a denied landing zone: seconds until the boat touches down, as of the last tick. */
+        float denialEta;
 
         Held(WarshipOrder.FireOnArea area, int weight) {
             this.area = area;
@@ -728,6 +732,270 @@ public final class Warship {
         if (m.ammoRemaining > 0) m.ammoRemaining--;
     }
 
+    // ---- doctrine: posture, stance and the mission's declarations -------------------------------------
+
+    private WarshipDoctrine doctrine;
+    private WarshipPosture pinnedPosture;
+    private WarshipPosture posture = WarshipPosture.BOMBARD;
+    private String postureReason = "no doctrine";
+    private float postureSeconds;
+    private int postureTransitions;
+    private PostureProfile profile = PostureProfile.BOMBARD;
+    private MissionStance stance = MissionStance.HOLD;
+    private boolean dangerClose;
+    private float declaredThreat;
+    private float declaredThreatSeconds;
+    private final List<float[]> focusPoints = new ArrayList<>();
+    private final List<float[]> protectedGround = new ArrayList<>();
+    private int friendlyRefusals;
+    private boolean holdingForFriendlies;
+    private float originalStationX;
+    private float originalStationY;
+    private boolean standoffApplied;
+    private boolean originalHadStation;
+    /** Seconds since the last doctrine pass; the system staggers the first one per ship. */
+    float doctrineClock = 1f;
+
+    /**
+     * Puts the ship's posture in the hands of a {@link WarshipDoctrine}, which
+     * re-assesses once a second. A ship without one behaves as it always did
+     * (BOMBARD). Pinning a posture ({@link #pinPosture}) stops the doctrine.
+     */
+    public void useDoctrine() {
+        if (doctrine == null) doctrine = new WarshipDoctrine();
+    }
+
+    public boolean hasDoctrine() {
+        return doctrine != null;
+    }
+
+    WarshipDoctrine doctrine() {
+        return doctrine;
+    }
+
+    /** A mission pins the posture; the doctrine is not consulted while it stands. */
+    public void pinPosture(WarshipPosture pinned) {
+        if (pinned == null) throw new IllegalArgumentException("pin a posture or unpin");
+        this.pinnedPosture = pinned;
+        setPosture(pinned, "pinned by the mission");
+    }
+
+    /** Hands the posture back to the doctrine (or to BOMBARD when the ship has none). */
+    public void unpinPosture() {
+        this.pinnedPosture = null;
+        if (doctrine == null) setPosture(WarshipPosture.BOMBARD, "no doctrine");
+    }
+
+    public WarshipPosture pinnedPosture() {
+        return pinnedPosture;
+    }
+
+    /** What the ship is trying to do now. */
+    public WarshipPosture posture() {
+        return posture;
+    }
+
+    /** Why, in a sentence; never empty. */
+    public String postureReason() {
+        return postureReason;
+    }
+
+    /** Seconds the ship has held its current posture. */
+    public float postureSeconds() {
+        return postureSeconds;
+    }
+
+    /** How many times the posture has changed, for evidence that it does not flap. */
+    public int postureTransitions() {
+        return postureTransitions;
+    }
+
+    PostureProfile profile() {
+        return profile;
+    }
+
+    /**
+     * Whether the posture lets {@code m} start a burst at directed ground: under
+     * a posture that limits bursts to the secondary battery, a mount whose burst
+     * costs more than its share of the pool, and every lance, holds fire. Always
+     * true for a ship off flux (there is no pool to spend) and for a posture with
+     * no such limit.
+     */
+    boolean mayFireAtGround(Mount m) {
+        float share = profile.maxBurstShare();
+        if (share <= 0f || !flux.enabled()) return true;
+        VanillaWeapon w = m.weapon;
+        if (w.beam()) return false;
+        return w.fluxPerShot() * w.burstSize() <= share * flux.capacity();
+    }
+
+    void ageDoctrine(float dt) {
+        postureSeconds += dt;
+        if (declaredThreatSeconds > 0f) {
+            declaredThreatSeconds -= dt;
+            if (declaredThreatSeconds <= 0f) {
+                declaredThreatSeconds = 0f;
+                declaredThreat = 0f;
+            }
+        }
+    }
+
+    /** Takes {@code next}, with the sentence that explains it. A change restarts the clock and counts as a transition. */
+    void setPosture(WarshipPosture next, String reason) {
+        postureReason = reason;
+        if (next == posture) return;
+        posture = next;
+        profile = PostureProfile.of(next);
+        postureSeconds = 0f;
+        postureTransitions++;
+        flux.thresholds(profile.softLimit(), profile.resumeLevel());
+        // The ground held under the old posture was chosen by its rules; the new one chooses afresh.
+        if (!manual) {
+            held.clear();
+            refreshAreas();
+            headingChosen = false;
+            retrySeconds = Float.MAX_VALUE;
+            for (Mount m : mounts) {
+                m.aimed = false;
+                // A burst under way was aimed under the old posture's rules.
+                m.burstRemaining = 0;
+            }
+        }
+        if (next == WarshipPosture.WITHDRAW) stayFor(0f);
+    }
+
+    /** What the mission wants done about its objective; may be changed at any time. */
+    public void stance(MissionStance stance) {
+        if (stance == null) throw new IllegalArgumentException("a stance is needed");
+        this.stance = stance;
+    }
+
+    public MissionStance stance() {
+        return stance;
+    }
+
+    /**
+     * Lets the ship fire where friendlies stand within the blast and its margin.
+     * Off by default: a weighted director refuses such ground. It still prefers
+     * the ground with fewer friendlies. A manual order is never refused either way.
+     */
+    public void dangerClose(boolean on) {
+        this.dangerClose = on;
+    }
+
+    public boolean dangerClose() {
+        return dangerClose;
+    }
+
+    private AirFireOrder airFire = AirFireOrder.AUTO;
+
+    /** What the ship's weapons may fire at in the air; see {@link AirFireOrder}. */
+    public void airFire(AirFireOrder order) {
+        if (order == null) throw new IllegalArgumentException("an air-fire order is needed");
+        this.airFire = order;
+    }
+
+    public AirFireOrder airFire() {
+        return airFire;
+    }
+
+    /**
+     * Declares a threat to this ship (the fleet is busy with hostile fleets, a
+     * scripted ambush) of {@code strength} that lasts {@code seconds}; the
+     * doctrine scores it with the threats it can see. A later declaration
+     * replaces an earlier one.
+     */
+    public void declareAirThreat(float strength, float seconds) {
+        if (!(strength >= 0f) || !(seconds >= 0f)) throw new IllegalArgumentException("a threat has a size and a length");
+        this.declaredThreat = strength;
+        this.declaredThreatSeconds = seconds;
+    }
+
+    /** Withdraws a declared threat now. */
+    public void clearAirThreat() {
+        declaredThreat = 0f;
+        declaredThreatSeconds = 0f;
+    }
+
+    public float declaredAirThreat() {
+        return declaredThreat;
+    }
+
+    /** Declares ground the mission wants supported or defended, beside whatever the objectives and squads say. */
+    public void declareFocus(float fx, float fy) {
+        focusPoints.add(new float[]{fx, fy});
+    }
+
+    public void clearFocus() {
+        focusPoints.clear();
+    }
+
+    List<float[]> declaredFocus() {
+        return focusPoints;
+    }
+
+    /** Declares friendly ground (an objective, a held keep) a weighted director must not shell, to {@code radius}. */
+    public void declareProtected(float px, float py, float radius) {
+        protectedGround.add(new float[]{px, py, radius});
+    }
+
+    public void clearProtected() {
+        protectedGround.clear();
+    }
+
+    List<float[]> protectedGround() {
+        return protectedGround;
+    }
+
+    /** Director passes in which every candidate was refused for friendlies; a starved ship is visible, not mistaken for broken. */
+    public int friendlyRefusals() {
+        return friendlyRefusals;
+    }
+
+    /** Whether the last director pass found hostiles in reach and held fire for friendlies. */
+    public boolean holdingForFriendlies() {
+        return holdingForFriendlies;
+    }
+
+    void noteFriendlyPass(boolean held) {
+        holdingForFriendlies = held;
+        if (held) friendlyRefusals++;
+    }
+
+    /** Remembers the station the mission gave, and moves to {@code (sx, sy)} clear of a hazard. */
+    void standoffTo(float sx, float sy) {
+        if (!standoffApplied) {
+            originalStationX = stationX;
+            originalStationY = stationY;
+            originalHadStation = hasStation;
+            standoffApplied = true;
+        }
+        stationTo(sx, sy);
+    }
+
+    /** Goes back to the station the mission gave once the standoff posture is over. */
+    void endStandoff() {
+        if (!standoffApplied) return;
+        standoffApplied = false;
+        if (originalHadStation) {
+            stationTo(originalStationX, originalStationY);
+        } else {
+            hasStation = false;
+        }
+    }
+
+    /** The held denied landing zone that contains {@code (px, py)}, or {@code null} when none does. */
+    Held denialHeldAt(float px, float py) {
+        for (Held h : held) if (h.denial && h.area.contains(px, py)) return h;
+        return null;
+    }
+
+    /** The held denied landing zone whose area is {@code area}, or {@code null} when it is not one. */
+    Held denialHeld(WarshipOrder.FireOnArea area) {
+        for (Held h : held) if (h.denial && h.area == area) return h;
+        return null;
+    }
+
     /**
      * Puts the ship's targeting in the hands of a director: it picks the densest
      * hostile concentration within {@code radius} that is not already being worked,
@@ -760,7 +1028,7 @@ public final class Warship {
     }
 
     int directorMaxAreas() {
-        return directorMaxAreas;
+        return Math.min(directorMaxAreas, profile.maxAreas());
     }
 
     /** Takes targeting back from the director; the standing order stays until replaced. */
@@ -773,11 +1041,21 @@ public final class Warship {
     }
 
     float directorRadius() {
-        return directorRadius;
+        return directorRadius * profile.radiusScale();
     }
 
     boolean directorBringsGunsToBear() {
-        return directorBringsGunsToBear;
+        return directorBringsGunsToBear && profile.bringGunsToBear();
+    }
+
+    /**
+     * How far from a mount a directed ground target may lie under the current
+     * posture, in cells; unlimited unless the posture sets an opportunity range
+     * (a share of the ship's longest reach). A manual order is never limited.
+     */
+    public float opportunityRange() {
+        return profile.opportunityShare() > 0f
+                ? profile.opportunityShare() * WarshipDirector.reach(this) : Float.POSITIVE_INFINITY;
     }
 
     /**
@@ -925,9 +1203,21 @@ public final class Warship {
      * so it asks the hull to point at the target.
      */
     static boolean bears(Mount m, float shipFacing, float mx, float my, float tx, float ty) {
+        return bears(m, shipFacing, mx, my, tx, ty, 1f);
+    }
+
+    /** Standoff bombardment is an explicit stationary-structure envelope. */
+    public static final float STRUCTURAL_RANGE_MULTIPLIER = 3f;
+
+    float groundRangeMultiplier(float tx, float ty) {
+        return areas().stream().anyMatch(a -> a.bombardStructures() && a.contains(tx, ty))
+                ? STRUCTURAL_RANGE_MULTIPLIER : 1f;
+    }
+
+    static boolean bears(Mount m, float shipFacing, float mx, float my, float tx, float ty, float rangeMultiplier) {
         float dx = tx - mx;
         float dy = ty - my;
-        float range = WarshipScale.cells(m.weapon.rangePx());
+        float range = WarshipScale.cells(m.weapon.rangePx()) * rangeMultiplier;
         if (dx * dx + dy * dy > range * range) return false;
         float bearing = WarshipFacing.bearing(mx, my, tx, ty);
         float diff = Math.abs(WarshipFacing.wrap(bearing - (shipFacing + m.slot.angleDegrees())));

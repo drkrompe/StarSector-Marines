@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -80,6 +81,8 @@ public final class ShuttleMission {
      * to take over.
      */
     public boolean awaitingEvacuees;
+    /** Outbound survivor manifest, distinct from the inbound delivery payload. */
+    public PickupManifest pickup;
     /** Number of rescued civilians represented aboard this craft. */
     public int evacueesAboard;
     /** Maximum representative civilians this craft was dispatched to collect. */

@@ -30,6 +30,7 @@ final class ObjectiveFactionPresence {
             if (factions.contains(sim.identity().faction(unit))) return true;
         }
         for (Faction faction : factions) if (sim.pendingGroundArrivals(faction) > 0) return true;
+        if (sim.survivorPickup() != null && factions.stream().anyMatch(f -> sim.survivorPickup().survivingCount(f) > 0)) return true;
         World world = sim.world();
         for (long id : sim.getAirEntityIds()) {
             if (!factions.contains(world.airFaction(id))) continue;

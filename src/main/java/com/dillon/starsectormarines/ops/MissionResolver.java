@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
@@ -251,6 +252,18 @@ public final class MissionResolver {
             fallenSoldierIds.addAll(loss.passengerSoldierIds());
         }
 
+        for (PickupManifest manifest : sim.survivorPickup().manifests()) {
+            for (PickupManifest.Passenger passenger : manifest.passengers()) {
+                if (passenger.faction() != Faction.MARINE) continue;
+                if (manifest.state() == PickupManifest.State.LOST) {
+                    if (!manifest.lossInOwnedBoatLedger()) marinesLostAboard++;
+                    if (passenger.soldierId() != null) fallenSoldierIds.add(passenger.soldierId());
+                } else {
+                    marinesAlive++;
+                    if (passenger.soldierId() != null) survivingSoldierIds.add(passenger.soldierId());
+                }
+            }
+        }
         int marinesEngaged = marinesAlive + rawMarinesLost + marinesLostAboard;
 
         // Per-soldier combat telemetry. One gather, two consumers: the whole

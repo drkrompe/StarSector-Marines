@@ -54,6 +54,21 @@ class WarshipFacingTest {
     }
 
     @Test
+    void structuralStandoffRangeStillRequiresArcAndAnExplicitOrder() throws Exception {
+        Warship ship = ship(0f);
+        float reach = WarshipScale.cells(1000f) * 2f;
+        assertEquals(1f, ship.groundRangeMultiplier(reach, 0f));
+        ship.order(new WarshipOrder.FireOnArea(reach, 0f, 5f, true, true));
+        assertEquals(3f, ship.groundRangeMultiplier(reach, 0f));
+        assertEquals(-90f, WarshipFacing.bestHeading(ship, reach, 0f), 5f);
+        var m = ship.mounts().get(0);
+        assertTrue(Warship.bears(m, -90f, 0f, 0f, reach, 0f, 3f));
+        assertTrue(!Warship.bears(m, 90f, 0f, 0f, reach, 0f, 3f));
+        ship.order(WarshipOrder.HoldFire.INSTANCE);
+        assertEquals(1f, ship.groundRangeMultiplier(reach, 0f));
+    }
+
+    @Test
     void theHullTurnsAtItsOwnTableRate() throws Exception {
         Warship ship = ship(0f);
         assertEquals(6f, ship.maxTurnDegPerSec, 0.001f);

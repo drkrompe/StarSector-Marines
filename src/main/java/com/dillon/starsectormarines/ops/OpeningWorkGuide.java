@@ -23,6 +23,12 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
                 ? "Found and equip your first squad in Armory before deployment."
                 : reliefWon ? "The assault is broken. Return to Venn for the depot job."
                 : "Bring ready marines and ship's boats. Venn provides militia support.";
+        if (roster.officerInduction() != null && roster.officerInduction().companyPreparation()) {
+            preparation = roster.officerInductionRequired()
+                    ? "Complete Castle's preparation: company ship, shuttle, Mira's specialty and her first squad."
+                    : !reliefWon ? "Preparation complete: your shuttle and Mira's squad are ready. Plot course, then open Marine operations > Mara Venn for Hold Until Relieved."
+                    : preparation;
+        }
         return new OpeningWorkGuide(true, reliefWon ? OpeningOperationKind.COUNTERATTACK
                 : OpeningOperationKind.RELIEF, preparation, destination, plotCourse);
     }

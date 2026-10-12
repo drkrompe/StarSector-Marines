@@ -157,6 +157,7 @@ public final class DebugWarship {
         ship.stationTo(p.stationX(), p.stationY());
         if (spec.mode() == Mode.DIRECTOR) {
             ship.direct(AREA_RADIUS_CELLS, true);
+            ship.useDoctrine();
         } else {
             ship.order(WarshipOrder.HoldFire.INSTANCE);
         }
@@ -207,10 +208,23 @@ public final class DebugWarship {
             else rounds += m.shotsFired;
         }
         return String.format(Locale.ROOT,
-                "WARSHIP %s [%s]  hull %d%%  order %s  heading %d  rounds %d  lances %d  PD kills %d  %s  %s",
+                "WARSHIP %s [%s]  hull %d%%  order %s  heading %d  rounds %d  lances %d  PD kills %d  %s  %s  %s",
                 ship.hullId, ship.faction == Faction.MARINE ? "friendly" : "hostile",
                 Math.round(ship.hullFraction() * 100f), describe(ship), Math.round(headingOf(ship)),
-                rounds, lances, intercepts, fluxReadout(ship), shieldReadout(ship));
+                rounds, lances, intercepts, fluxReadout(ship), shieldReadout(ship), postureReadout(ship));
+    }
+
+    /**
+     * {@code posture bombard (no stance, no air threat)}: what the ship is doing and why.
+     * A manual order outranks the posture and the line says so; a ship that is
+     * holding fire for friendlies says that too.
+     */
+    static String postureReadout(Warship ship) {
+        String base = String.format(Locale.ROOT, "posture %s %ds (%s)", ship.posture().label(),
+                Math.round(ship.postureSeconds()), ship.postureReason());
+        if (ship.manualOrder()) base = "posture manual (" + base.substring("posture ".length()) + ")";
+        if (ship.holdingForFriendlies()) base += " held for friendlies";
+        return base;
     }
 
     /** {@code flux off}, or flux over capacity with the state, and the seconds left when overloaded. */

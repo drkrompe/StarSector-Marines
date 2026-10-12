@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Barracks preparation and officer guidance; HQ follows the current Corvus chapter.
+Updated: 2026-10-11 - cohesive first-mission preparation and paid initial lift.
 
 ## Purpose
 
@@ -470,20 +470,17 @@ route does. A hull with more than one hangar gets the same fore-to-aft pager,
 and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
-**The hull comes with her boats.** A campaign starts with every berth holding
-the hull's own pattern at standard fit, so a boat is never something the company
-must buy before it can leave the ship. What it must do is replace one it has
-lost: a vacant berth is built back up through the same workshop, at standard
-fit, for a bill authored per pattern. The player names a berth rather than a
-pattern, which is the one place this departs from the lab's chassis forge — a
-lance is a choice of machines and a hangar is a fitting of the hull.
+**New companies commission their boats.** A hull supplies the berth count and
+compatible pattern, while a new company's berths start empty. Commissioning
+consumes the authored fabrication bill and creates a standard-fit boat. One
+reusable boat supplies the opening mission's lift through repeated trips; further
+boats increase simultaneous delivery. Existing owned boats remain intact, and a
+legacy deck without an established ship receives its historical complement once.
 
-**A boat that was shot down is gone.** The deck does not quietly replace it on
-the next read. Reconciling against the ship the company is already on keeps
-every berth exactly as it is, empty ones included; only a move to another hull
-compacts the survivors and fills what is left with her own boats. A read that
-refilled a hole would make the loss unobservable, which is the same as its not
-having happened.
+**A boat that was shot down is gone.** Reads preserve vacant berths. Moving to
+another hull compacts compatible survivors but never fills vacancies for free;
+incompatible and surplus boats are left behind and reported. Every replacement
+requires the ordinary workshop bill.
 
 **Who was aboard went down with her.** The marines still aboard on the sortie
 that was lost are fallen, and roll the same outcome as a marine shot on the
@@ -507,8 +504,7 @@ holds a berth count of its own: how many berths there are is asked of the hull,
 and what stands in them is what the company owns. When the company moves ship
 its boats go into the new hull's berths in berth order up to her count; boats
 beyond it, and boats of a pattern her bays do not hold, are left with the old
-hull and the room says so in its summary. Vacant berths on the new hull are
-filled with her own boats at standard fit.
+hull and the room says so in its summary. Vacant berths on the new hull remain empty until the company commissions boats.
 
 That reconcile is idempotent and runs **whenever the deck is read against the
 ship the company is on** — the room attaching and the lift itself — so a stale
@@ -590,30 +586,54 @@ with the company; older saves default to an available introduction. Text is comp
 without a recording; stable beat IDs allow separately auditioned ElevenLabs clips
 using the existing company-officer cast.
 
-New companies also receive **First Command**, Castle's required officer induction.
+New companies receive one **First Mission Preparation** sequence with Castle:
+company ship, commissioned lift, founding field commander, and her first squad.
+It extends the saved officer induction rather than keeping a second tutorial
+ledger. HQ introduces the sequence and ship selection triggers its workshop flow.
+
+Ship confirmation checks quarters, at least one compatible boat berth and the
+combined remaining cargo bill for one boat and one full twelve-person squad.
+The bill is derived from the existing fabrication and founding catalogs, with
+shared commodities summed. Compatible owned lift and an already complete ready
+squad reduce the remaining bill. Cost, Available and Short by are shown before
+confirmation, which rechecks the hold. Selection spends nothing; each subsequent
+workshop order consumes its own bill. Following the lesson needs no market trip.
+Deliberately pausing to spend or sell those stores elsewhere can still create a
+shortfall; the lesson never manufactures resources or overrides a workshop refusal.
+
 Lieutenant Mira Hale is the recurring founding field commander: a former convoy
-escort who values clear orders and an accounted muster. Her saved officer identity,
-ordinary career and service record carry that role; it grants no immunity from loss
-and no extra specialty points. The dossier retains her authored background and dedicated female portrait.
-Existing default Mira portraits upgrade without replacing player-customized likenesses.
+escort who values clear orders and an accounted muster. Her ordinary appointment,
+career and service record carry that role; it grants no immunity from loss, extra
+specialty point or invented recruitment charge. The dossier retains her authored
+background and dedicated female portrait. Existing default Mira portraits upgrade
+without replacing player-customized likenesses.
 
-Castle introduces her portrait, asks the player to choose one of the three actual
-specialty orders, then guides squad founding and home-command assignment. The normal
-Armory founding bill remains authoritative. Assignment uses the same capacity-checked
-Organization controls as later company management. The lesson can be paused for
-resupply, but its completion requires an actual trained officer and an available,
-manned squad under that officer, followed by acknowledgement. Opening a page or
-pressing Next cannot substitute for those orders. If Mira has been lost or dismissed,
-another surviving officer can carry the unfinished lesson without resurrecting her.
+After commissioning, Castle introduces Mira's portrait and guides an actual
+specialty choice. Armory then guides the ordinary twelve-Marine, 36-supply,
+24-food founding transaction, which includes baseline field kit. Barracks guides
+home-command assignment through its capacity-checked Organization controls.
+Completion requires a current company ship with owned lift, an actually trained
+officer, and a full ready available squad assigned to that officer, followed by
+acknowledgement. It returns to the retained briefing, or to HQ's existing Mara
+Venn course/contact lead for Hold Until Relieved, canonically on Jangala.
+The accessible-office policy remains the mission domain's authority.
 
-The new-company marker and completion live with the roster. Legacy companies have
-no mandatory induction; detached debug missions are exempt. All ordinary deployment
-routes enforce the same completion guard before committing battle resources. A
-blocked briefing routes to Castle and retains the mission for return. Once complete,
-later losses and reorganization never re-lock deployment. The officer lesson takes
-precedence over the optional replenishment guide and uses the same portrait,
-dimming, scrolling and click-through infrastructure. `castle-officer-induction.md`
-tracks live acceptance and separately produced narration.
+The portrait popover moves beside the real controls. Its dimmed background has
+live click-through openings, and four SVG milestones identify ship, lift, officer
+and squad preparation. Ship selection, commissioning, specialty training, squad
+founding and assignment remain real orders. Pausing or advancing dialogue cannot
+substitute for them. If Mira has been lost or dismissed, a surviving officer can
+carry the unfinished lesson without resurrecting her.
+
+Legacy companies without induction stay exempt; existing officer-only lessons
+retain their scope and progress. All ordinary deployment routes enforce the same
+saved completion guard before committing resources, while debug missions remain
+exempt. Once complete, later losses never re-lock the tutorial. Readiness and lift
+checks still apply to each mission. The lesson takes precedence over the optional
+replenishment guide. `first-mission-preparation.md` and
+`castle-officer-induction.md` retain live acceptance; narration remains a separate
+production pass. Persistent surviving boat condition and repair bills remain
+planned in `boat-condition-and-repairs.md`.
 
 Barracks opens on company formations grouped by their home officer, with an
 independent acting-NCO group for squads without an officer. Commander portraits,
@@ -925,8 +945,8 @@ filtered squad list. One permanent training choice is available on appointment
 and one per promotion, including cadre-earned promotions. Existing officers
 receive their current rank's equivalent budget without invented service history.
 Specialty cards pair an SVG emblem and two explicit earned/unearned rank markers
-with a compact Train action and adjacent point cost. Castle's induction similarly
-shows five SVG milestones; neither progression display uses a stretched add button.
+with a compact Train action and adjacent point cost. Castle's officer-only induction shows five SVG milestones; full preparation
+shows its four company milestones; neither progression display uses a stretched add button.
 Each of three specialties has two ranks:
 
 - Tactical Cover: incoming accuracy multiplied by 0.95/0.90 for marines in this

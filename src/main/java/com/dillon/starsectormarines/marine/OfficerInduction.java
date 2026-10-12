@@ -16,15 +16,18 @@ public final class OfficerInduction implements Serializable {
         }
     }
 
-    public enum Step { INTRODUCTION, SPECIALTY, FORMATION, ASSIGNMENT, READY, COMPLETE }
+    public enum Step { INTRODUCTION, SPECIALTY, FORMATION, ASSIGNMENT, READY, COMPLETE, SHIP, LIFT }
 
     private final String miraId;
     private boolean introduced;
     private boolean complete;
+    private boolean companyPreparation;
 
     public OfficerInduction(String miraId) { this.miraId = miraId; }
     public String miraId() { return miraId; }
     public boolean complete() { return complete; }
+    public boolean companyPreparation() { return companyPreparation; }
+    void prepareCompany() { companyPreparation = true; }
 
     /** A lost/dismissed story officer is never resurrected to repair a tutorial. */
     public MarineCaptain officer(MarineRoster roster) {
@@ -39,12 +42,18 @@ public final class OfficerInduction implements Serializable {
 
     public Step step(MarineRoster roster) {
         if (complete) return Step.COMPLETE;
+        if (companyPreparation) {
+            if (roster.companyShipId() == null) return Step.SHIP;
+            if (!roster.companyShipId().equals(roster.boatDeck().shipId())
+                    || roster.boatDeck().airworthy().isEmpty()) return Step.LIFT;
+        }
         MarineCaptain officer = officer(roster);
         if (!introduced || officer == null) return Step.INTRODUCTION;
         if (Arrays.stream(OfficerSpecialty.values()).noneMatch(s -> officer.career().level(s) > 0))
             return Step.SPECIALTY;
         var squads = roster.squads().stream()
-                .filter(s -> !s.reserve() && !s.stationed() && roster.readyCount(s) > 0).toList();
+                .filter(s -> !s.reserve() && !s.stationed()
+                        && roster.readyCount(s) >= (companyPreparation ? MarineSquad.CAPACITY : 1)).toList();
         if (squads.isEmpty()) return Step.FORMATION;
         if (squads.stream().noneMatch(s -> officer.id().equals(s.homeCaptainId()))) return Step.ASSIGNMENT;
         return Step.READY;
