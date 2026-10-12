@@ -36,13 +36,17 @@ class MissionScenarioPlanTest {
         FittedBoat boat = new FittedBoat(ShuttleType.HERMES,
                 BoatFitting.REINFORCED_PLATING, BoatFitting.TUNED_DRIVE, "company-boat-03");
         var plan = MissionLaunch.captureScenario(null, mission, List.of(boat), FlybyRoster.EMPTY,
-                List.of(), List.of(), null, 42);
+                List.of(), List.of(), null, 42, 12);
         assertEquals(1, plan.firstPlayerShuttle());
         var player = plan.detachment().shuttleManifest.get(1);
         assertSame(boat, player.airframe);
         assertEquals(ShuttleType.HERMES, player.type);
-        assertEquals(2, player.cycles);
+        assertEquals(3, player.cycles);
+        assertEquals(12, player.embarkedPersonnel);
         assertEquals(boat.pattern().capacity, player.seatsPerSortie);
+        var largerForce = MissionLaunch.captureScenario(null, mission, List.of(boat), FlybyRoster.EMPTY,
+                List.of(), List.of(), null, 42, 16);
+        assertNotEquals(plan.key(), largerForce.key(), "Squad selection must invalidate the surveyed manifest");
     }
 
     @Test

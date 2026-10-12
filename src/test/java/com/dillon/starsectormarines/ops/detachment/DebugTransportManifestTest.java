@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -83,6 +84,35 @@ class DebugTransportManifestTest {
 
     @ParameterizedTest
     @EnumSource(value = MissionSource.class, names = {"STATIONING"}, mode = EnumSource.Mode.EXCLUDE)
+    void selectedSquadGetsEveryReturnTripRegardlessOfOfferSource(MissionSource source) {
+        Mission mission = mission(source, 2, 1);
+        var boat = FittedBoat.standard(ShuttleType.HERMES);
+        var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, List.of(boat), 12);
+        int firstPlayer = DetachmentResolver.employerPhysicalShipCount(mission);
+        assertEquals(12, CampaignMarineDeployment.requiredSeats(manifest, firstPlayer));
+        var lift = manifest.get(firstPlayer);
+        assertEquals(3, lift.cycles);
+        assertEquals(4, lift.seatsPerSortie);
+        assertEquals(boat, lift.airframe);
+        for (int cycle = 0; cycle < 3; cycle++) assertEquals(4, lift.seatsForCycle(cycle));
+        if (firstPlayer > 0) assertEquals(6, manifest.get(0).embarkedPersonnel);
+    }
+
+    @ParameterizedTest
+    @EnumSource(ShuttleType.class)
+    void storyLiftPreservesPartialFinalLoadsForEveryHull(ShuttleType type) {
+        var mission = mission(MissionSource.STORY, 2, 1);
+        var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(
+                mission, boats(type), 13);
+        var lift = manifest.get(1);
+        assertEquals(13, lift.embarkedPersonnel);
+        assertEquals((13 + type.capacity - 1) / type.capacity, lift.cycles);
+        assertEquals(13, IntStream.range(0, lift.cycles)
+                .map(lift::seatsForCycle).sum());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = MissionSource.class, names = {"STATIONING"}, mode = EnumSource.Mode.EXCLUDE)
     void missingPlayerLiftNeverFabricatesReplacementBoats(MissionSource source) {
         Mission mission = mission(source, 5, 2);
         assertFalse(DetachmentResolver.hasRequiredTransport(mission, List.of()));
@@ -91,6 +121,27 @@ class DebugTransportManifestTest {
         assertEquals(source.isDebug() ? 0 : 2, manifest.size());
         assertTrue(DetachmentResolver.hasRequiredTransport(mission, boats(ShuttleType.KITE)),
                 "one real boat can cover remaining drops through repeat trips");
+    }
+
+    @Test
+    void stationingAndConquestKeepTheirOwnArrivalCommitments() {
+        Mission local = mission(MissionSource.STATIONING, 5, 2);
+        Mission conquest = Mission.builder(mission(MissionSource.STORY, 5, 2))
+                .type(MissionType.CONQUEST).build();
+        for (Mission mission : List.of(local, conquest)) {
+            var boats = boats(ShuttleType.HERMES);
+            assertFalse(DetachmentResolver.usesSelectedPersonnel(mission));
+            assertEquals(DetachmentResolver.buildShuttleManifest(mission, boats),
+                    DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, 12));
+        }
+    }
+
+    @Test
+    void emptyCompanySelectionDoesNotManufacturePassengers() {
+        var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(
+                mission(MissionSource.STORY, 2, 1), boats(ShuttleType.HERMES), 0);
+        assertEquals(1, manifest.size(), "Only the employer craft remains");
+        assertEquals(0, CampaignMarineDeployment.requiredSeats(manifest, 1));
     }
 
     @Test

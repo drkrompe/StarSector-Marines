@@ -149,6 +149,11 @@ Do not run builds or leave generated task files there.
   Aeroshuttle. Reports
   separate original militia from arriving allies; timeout is not defeat. This
   is controlled construction evidence, not a Jangala campaign/loadout capture.
+  The Relief task also writes `campaign-lift.json`: both opening chapters,
+  two seeds, and standard/upgraded Hermes fittings run through production scenario
+  capture with a twelve-person named company. It verifies three physical trips,
+  all twelve identities landing, and their reunion into one squad. This uses a
+  detached starter roster, never a live campaign save.
   Counterattack's default matrix has three verdant depot interiors, each with
   ordinary, +30s delayed and absent-player controls (300s observation), plus a
   paired-boat case. Ordinary lift is two six-seat sorties on one fitted boat;
