@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
@@ -44,6 +45,8 @@ class WorkshopConditionStageTest {
             new ShipMachineShopFitting().fit(floor);
             floor.seal();
             new WorkshopConditionStage(state).run(ctx);
+            new FinalizeStage().run(ctx);
+            new ShipMaterialStage().run(ctx);
             WorkshopConditionStage.restrictAccess(ctx, state);
             assertEquals(state != WorkshopState.BURIED, grid.isWalkable(door.x(), door.y()));
             for (var d : ctx.doodads) {
@@ -52,6 +55,20 @@ class WorkshopConditionStageTest {
                 assertTrue(room.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1));
             }
             boolean buried = state == WorkshopState.BURIED;
+            var seals = ctx.doodads.stream().filter(d -> SealedShipHatches.ART.equals(d.definitionId())).toList();
+            assertEquals(buried ? 1 : 0, seals.size());
+            if (buried) {
+                var seal = seals.get(0);
+                assertEquals(door.x(), seal.cellX);
+                assertEquals(door.y(), seal.cellY);
+                assertEquals(pose.quarterTurns() & 1, seal.quarterTurns);
+                assertFalse(grid.isSeeThrough(door.x(), door.y()));
+                assertFalse(topology.isWall(door.x(), door.y()), "No full-cell wall behind the hatch");
+                assertEquals("ship-floor-trim.passage", topology.getSurfaceId(door.x(), door.y()));
+                assertTrue(grid.isDoorway(door.x(), door.y()));
+                assertTrue(grid.getWallHp(door.x(), door.y()) > 0, "Keep the physical seal");
+                assertTrue(grid.blocksStructuralLineOfSightAt(grid.index(door.x(), door.y())));
+            }
             assertEquals(buried, has(ctx, "breach"));
             assertEquals(buried, has(ctx, "collapse"));
             assertEquals(!buried, has(ctx, "patch"));
@@ -81,6 +98,17 @@ class WorkshopConditionStageTest {
             assertEquals(intact.footprintCellsY, broken.footprintCellsY);
             assertEquals(intact.cover, broken.cover);
             assertEquals(intact.ballisticHalfHeight, broken.ballisticHalfHeight);
+        }
+    }
+
+    @Test void sealedHatchHasClosedLeavesAndTransparentMargins() throws Exception {
+        var image = ImageIO.read(Path.of("mod/graphics/tilesets/ship-sealed-hatches.png").toFile());
+        var hatch = TileRegistry.installed().doodad(SealedShipHatches.ART);
+        int x = hatch.col * 64, y = hatch.row * 64;
+        for (int across : new int[]{4, 16, 32, 48, 59}) {
+            assertTrue((image.getRGB(x + across, y + 32) >>> 24) >= 245, "Closed locking-bar silhouette");
+            assertTrue((image.getRGB(x + across, y + 20) >>> 24) < 40, "Keep hatch thinner than the cell");
+            assertTrue((image.getRGB(x + across, y + 44) >>> 24) < 40, "Keep hatch thinner than the cell");
         }
     }
 

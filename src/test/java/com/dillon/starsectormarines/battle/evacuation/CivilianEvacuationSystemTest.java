@@ -63,6 +63,8 @@ class CivilianEvacuationSystemTest {
         sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(Paths.isEmpty(sim.movement().path(first)));
+        assertTrue(sim.getCivilianEvacuationProgress().unescorted() > 0,
+                "ordinary rescue publishes the actual escort wait, not only story missions");
     }
 
     @Test

@@ -506,7 +506,28 @@ Player-facing Conquest command intent occupies the top-left opposite the top-rig
 time/objective rail. When organizational groups are published, this bounded
 readout shows named leaders, deployed squad strength, task and regrouping state;
 additional groups are explicitly summarized rather than extending over the
-battlefield. Raid's right rail instead projects its two objective steps,
+battlefield. Extraction, civilian rescue (including Last Lift), and Silent Colony
+use a shared public mission picture: named objective branches, current step,
+completion conditions, measured progress, and observed blockers. The briefing,
+world beacons, and per-objective Locate action refer to the same authored places;
+shelter beacons identify the entrance where release is triggered. A moving
+friendly payload receives its own beacon. Off-camera active objectives retain
+an edge indicator, and Locate moves only the camera.
+
+The right rail keeps independent branches visible together; an archive does
+not acquire a fictitious extraction step. Cohort counts separate boarded,
+remaining and lost people, including partial-survival completion. Blockers come
+from the systems that actually gate recovery, movement and boarding, rather than
+being inferred from a commander's intent. Terminal results clear obsolete wait
+messages. The left rail lists friendly squad assignments and local contact,
+scrolling when needed instead of silently dropping squads. Player orders take
+precedence immediately. Assigned task is distinct from confirmed execution.
+Both surfaces remain bounded and preserve a clickable battlefield between them.
+This common presentation is extensible by mission family; other families retain
+their current displays until adapted. `shared-mission-objectives.md` tracks that
+remaining migration.
+
+Raid's right rail instead projects its two objective steps,
 seizure progress and return instruction. Numbered world markers and the briefing
 survey identify the same target and landing zone. Its Locate control centers
 the current objective without issuing a tactical order; completion and progress
