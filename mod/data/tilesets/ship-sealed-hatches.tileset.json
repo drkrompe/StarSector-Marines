@@ -1,0 +1,16 @@
+{
+  "cellPx": 64,
+  "cells": [{
+    "col": 0,
+    "name": "ship-sealed-hatches.pressure-hatch",
+    "row": 0
+  }],
+  "doodads": [{
+    "ballisticHalfHeight": 0,
+    "col": 0,
+    "cover": "none",
+    "id": "ship-sealed-hatches.pressure-hatch",
+    "row": 0
+  }],
+  "sheet": "graphics/tilesets/ship-sealed-hatches.png"
+}
