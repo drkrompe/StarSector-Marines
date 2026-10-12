@@ -1506,7 +1506,8 @@ campaign lift count agree in both states, with the original bay first in berth
 order. The same layout seed always identifies the same damaged compartment.
 
 Sealed personnel entrances show closed steel pressure hatches, locking bars and
-hazard markings aligned with their bulkheads. The workshop and reserved second
+hazard markings aligned with their bulkheads. Their narrow overhead profile spans
+the opening but occupies only about a quarter-cell thickness. The workshop and reserved second
 bay share this treatment, retaining the original doorway location rather than
 disguising it as an uninterrupted wall. They block passage and sight until their
 restoration stage reopens the ordinary doorway. The launch-aperture closure is
