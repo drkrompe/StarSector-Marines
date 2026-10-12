@@ -35,7 +35,8 @@
         <div id="barracks-section-heading" class="label heading section-heading">OFFICER COMMANDS</div>
         <div id="barracks-rail-note" class="label muted wrap rail-note">Named officers coordinate their squads. Independent squads act under their NCOs.</div>
         <div id="barracks-command-list" class="command-list">
-          <button each="group in command.commands" key="{group.id}" id="{group.id}" class="{group.classes}" onclick="{group.select}">
+          <div each="group in command.commands" key="{group.id}" id="{group.cardId}" class="command-entry" style="{group.cardStyle}">
+          <button id="{group.id}" class="{group.classes}" onclick="{group.select}">
             <img id="{group.commanderportraitId}" class="commander-portrait" src="{group.portrait}" />
             <div id="{group.commandercopyId}" class="commander-copy">
               <div id="{group.commandnameId}" class="label heading wrap command-name">{group.name}</div>
@@ -43,6 +44,9 @@
               <div id="{group.commandcapacityId}" class="label muted wrap command-capacity">{group.capacity}</div>
             </div>
           </button>
+          <button id="{group.assignId}" class="{group.assignClasses}" disabled="{group.assignDisabled}" onclick="{group.assign}">{group.assignLabel}</button>
+          <div id="{group.reasonId}" class="{group.reasonClasses}">{group.reason}</div>
+          </div>
         </div>
       </div>
       <div id="officer-dossier" class="{command.dossierClasses}">
@@ -114,6 +118,10 @@
                   <div id="{squad.formationstatusId}" class="{squad.personnelClasses}">{squad.personnel}</div>
                 </div>
               </div>
+              <div id="{squad.commanderId}" class="squad-commander">
+                <img id="{squad.commanderImageId}" class="squad-commander-portrait" src="{squad.commanderImage}" />
+                <div id="{squad.commanderNameId}" class="label muted squad-commander-name">{squad.commanderName}</div>
+              </div>
               <canvas id="{squad.musterId}" class="formation-muster" width="260" height="78" />
             </button>
             <div id="{squad.footerId}" class="card-footer">
@@ -132,7 +140,7 @@
         <div id="barracks-order-heading" class="label heading order-heading">{command.selection}</div>
         <div id="barracks-order-tabs" class="board-tools">
           <button id="barracks-preparation" class="tab-button console-action" onclick="{command.preparation}">PREPARATION</button>
-          <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">ORGANIZATION</button>
+          <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">PROFILES</button>
         </div>
         <div id="barracks-preparation-body" class="{command.preparationClasses}">
           <div id="transfer-heading" class="label heading warm order-caption">1 / CONSOLIDATE SURVIVORS</div>
@@ -170,16 +178,6 @@
           </div>
         </div>
         <div id="barracks-orders-body" class="{command.ordersClasses}">
-          <div id="barracks-order-caption" class="label heading warm order-caption">HOME COMMAND</div>
-          <div id="barracks-selector" class="selector">
-            <button id="barracks-target-previous" class="step console-action" onclick="{command.targetPrevious}">&lt;</button>
-            <div id="barracks-selector-value" class="label wrap selector-value">{command.target}</div>
-            <button id="barracks-target-next" class="step console-action" onclick="{command.targetNext}">&gt;</button>
-          </div>
-          <div id="barracks-assignment-reason" class="label muted wrap assignment-reason">{command.assignmentReason}</div>
-          <div id="barracks-assign-command-action" class="order-action-row">
-            <button id="barracks-assign-command" class="order-button console-action" disabled="{command.assignmentDisabled}" onclick="{command.assignCommand}">ASSIGN COMMAND</button>
-          </div>
           <div id="barracks-profile-heading" class="profile-heading">
             <div id="barracks-order-caption-71" class="label heading warm order-caption">SQUAD PROFILES</div>
             <button id="barracks-new-profile" class="new-profile console-action" onclick="{command.newProfile}">NEW</button>
@@ -353,11 +351,18 @@
   .muted { color: #a5b0a9; } .warm { color: #dfc588; } .wrap { white-space: normal; }
   .rail-note { height: 46px; }
   .command-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .command-entry { flex-direction: column; width: 100%; gap: 3px; }
+  .command-assign { width: 100%; height: 28px; font-family: heading; text-align: center; }
+  .command-assign-ready { color: #fff0c2; background-color: #42533d; border-color: #dfc588; border-width: 1px; }
+  .command-reason { width: 100%; height: 38px; }
+  .squad-commander { flex-direction: row; width: 100%; height: 24px; gap: 6px; align-items: center; }
+  .squad-commander-portrait { width: 24px; height: 24px; }
+  .squad-commander-name { width: 0px; flex-grow: 1; height: 22px; }
   .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #242b28; border-color: #60685c; }
   .command-card.selected, .profile-card.selected, .formation.selected { background-color: #393b2e; border-color: #dfc588; }
   .command-card:hover, .profile-card:hover { border-color: #dfc588; }
   .commander-portrait { width: 58px; height: 58px; }
-  .commander-copy { flex-direction: column; width: 0px; height: 102px; flex-grow: 1; gap: 4px; }
+  .commander-copy { flex-direction: column; width: 0px; height: 92px; flex-grow: 1; gap: 4px; }
   .command-name { height: 34px; } .command-summary { height: 30px; } .command-capacity { height: 30px; }
   .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
   .board-title { height: 26px; color: #dfc588; }
@@ -371,9 +376,9 @@
   .clear-selection { width: 66px; height: 26px; padding: 0px 4px; text-align: center; }
   .column-key { height: 17px; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .formation { flex-direction: column; width: 260px; height: 190px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
+  .formation { flex-direction: column; width: 260px; height: 220px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
   .formation.selected { border-color: #dfc588; background-color: #383c2d; }
-  .formation-select { flex-direction: column; width: 100%; height: 150px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
+  .formation-select { flex-direction: column; width: 100%; height: 180px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
   .formation-select:hover { background-color: #303b30; }
   .formation.selected .formation-select { background-color: #383c2d; }
   .formation.stationed .formation-select { opacity: 1; }

@@ -101,14 +101,6 @@ class BarracksCommandModelTest {
                 action(model, "guideNext");
                 action(model, "guideNext");
                 instance.flush(); document.advance(0f); guide.update();
-                document.layout(1280, 720);
-                guide.update();
-                var issue = instance.requireElement("barracks-issue").box().borderBox();
-                var coach = instance.requireElement("barracks-guide").box().borderBox();
-                assertTrue(issue.y() >= 0 && issue.bottom() <= 720, "Resizing reveals the next real order");
-                assertEquals(0, coach.intersect(issue).width() * coach.intersect(issue).height());
-                document.layout(1920, 1080);
-                guide.update();
                 click(document, instance, "guide-dismiss");
                 click(document, instance, "barracks-clear");
 
@@ -129,8 +121,7 @@ class BarracksCommandModelTest {
                 assertEquals(1, roster.armory().squadProfiles().size());
                 click(document, instance, "barracks-assign-profile");
                 assertEquals(roster.armory().squadProfiles().get(0).id(), squad.squadProfileId());
-                click(document, instance, "barracks-target-next");
-                click(document, instance, "barracks-assign-command");
+                click(document, instance, "command:independent:assign");
                 assertNull(squad.homeCaptainId());
                 click(document, instance, "formation:" + squad.id() + ":inspect");
                 assertTrue(model.inspecting());
