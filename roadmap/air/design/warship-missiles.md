@@ -478,8 +478,11 @@ Reuse the game's art; author none. Per body:
 1. Shipped: data-driven flight for every missile mount, the true MIRV payload and
    the damage radius (see **Shipped (slice 1)** above).
 2. Shipped: volleys and bodies (see **Shipped (slice 2)** above).
-3. Later, not yet stories: honouring `canSplitEarly`; homing at moving ground units
-   and `GUIDED_POOR`; anti-fighter preference for `ANTI_FTR` weapons once aircraft
+3. Shipped: a homing missile aims ahead of the unit it was fired at (`HomingLead`), by
+   its seeker's turn rate; unguided and `GUIDED_POOR` rounds go where the unit was.
+   Still approximate: the aim is fixed at fire, not steered in flight, so a unit that
+   changes course after launch still escapes.
+4. Later, not yet stories: honouring `canSplitEarly`; anti-fighter preference for `ANTI_FTR` weapons once aircraft
    are hittable; Dragonfire standoff and non-interceptable beam payload; Hydra
    flanking; threat-weighted point-defence target choice; a `renderEvidence` figure
    for the `SHUTTLES` layer with a full swarm in view; a measured hardened-target
