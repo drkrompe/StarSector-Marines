@@ -232,7 +232,12 @@ secure the marked dispatch office and recover records proving pirate ownership.
 The opening map marks that ground objective only. Pickup and bombardment markers
 replace it after the evidence brings Resolute into the operation; the map does
 not disclose the strike boundary in advance.
-Its finite High-quality garrison protects the records and installation. The
+The dispatch capture floor sits well inside the office with enough clear room
+for the service element; a reachable corner tile is not a formation-sized objective.
+Its finite High-quality garrison protects the records and installation, including
+two staggered roadside pickets along the landing-to-compound approach. Their
+east-facing sandbag positions leave the road and both flanks open. These draw
+from the same committed force rather than adding replacement waves. The
 Hegemony Onslaught arrives nose-first from the east and stations its entire hull
 outside the installation's eastern footprint. It fires inward as soon as every
 surviving ground unit clears the marked bombardment exclusion area and its

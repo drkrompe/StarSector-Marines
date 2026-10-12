@@ -54,13 +54,7 @@ public final class ReservedBoatBayStage implements GenStage {
         RoomFloor floor = new RoomFloor(ctx, second, RoomFit.STANDARD);
         for (int x = 3; x < second.width() - 2; x += 3)
             floor.pave(x, second.depth() / 2, "doodad.industrial-scrap-pile");
-        for (var door : second.doors()) {
-            ctx.grid.setDoorway(door.x(), door.y(), false);
-            ctx.grid.setWalkable(door.x(), door.y(), false);
-            ctx.grid.setSeeThrough(door.x(), door.y(), false);
-            ctx.topology.setWall(door.x(), door.y(), true);
-            ctx.topology.setSurface(door.x(), door.y(), 0);
-        }
+        SealedShipHatches.seal(ctx, second);
         // The original launch opening remains a solid bulkhead until repaired.
         ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(graph.compartments(), graph.unplaced(),
                 graph.apertures().stream().filter(a -> a.compartmentId() != second.id()).toList(),

@@ -87,3 +87,4 @@ com.dillon.starsectormarines.battle.warship.WarshipPilotSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.BerthingBedDamageSnapshotSuite
 com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.SecondhandWingsSnapshotSuite
+com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite

@@ -1,0 +1,21 @@
+{
+  "sheetName": "ship-sealed-hatches",
+  "sheet": "art-source/tilesets/ship-sealed-hatches.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-sealed-hatches",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-sealed-hatches.png",
+  "note": "Measured frame centers the generated thin hatch (opaque rows 533..817) at the tile center. Only empty top margin is excluded; generated alpha and full horizontal span are preserved. Runtime quarter-turns for vertical walls. Room condition owns blocking.",
+  "entries": [
+    {
+      "id": "ship-sealed-hatches.pressure-hatch",
+      "rect": [0, 96, 1254, 1158],
+      "footprintCells": [1, 1],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}

@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 - heavy workshop damage, pressure exclusion and a persistent repair scar.
+Updated: 2026-10-12 - sealed pressure hatches identify damaged-compartment entrances.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1504,6 +1504,17 @@ that condition after placement; it does not resize the hull, move either worksho
 change compartment positions or award a boat. The physical working berths and the
 campaign lift count agree in both states, with the original bay first in berth
 order. The same layout seed always identifies the same damaged compartment.
+
+Sealed personnel entrances show closed steel pressure hatches, locking bars and
+hazard markings aligned with their bulkheads. Their narrow overhead profile spans
+the opening but occupies only about a quarter-cell thickness. Deck remains visible
+on either side of that thin seal within the doorway cell; no full-cell bulkhead
+fill or cross-rib is drawn beneath it. Physical blocking and opacity remain in
+force independently of this appearance. The workshop and reserved second
+bay share this treatment, retaining the original doorway location rather than
+disguising it as an uninterrupted wall. They block passage and sight until their
+restoration stage reopens the ordinary doorway. The launch-aperture closure is
+separate; these hatches are not interactive doors or an atmosphere simulation.
 
 A damaged facility can have several useful stages within its permanent footprint.
 Second Wind's main machine shop begins buried, becomes accessible after clearance,
