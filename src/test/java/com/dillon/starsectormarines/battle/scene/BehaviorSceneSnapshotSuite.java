@@ -64,6 +64,14 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
     }
 
     /**
+     * Opt-in: draw the sun's body shadows into the frames. Off by default for the
+     * same reason as impacts; a scene about a hovering hull asks for it.
+     */
+    protected boolean showUnitShadows() {
+        return false;
+    }
+
+    /**
      * Optional second, closer recording of a loop as {@code <loop>-close} at two thirds of the frame size (the suite holds every frame in memory until the runner writes them), as
      * {@code {centreX, centreY, cellsAcross}}; null records only the whole map.
      * Asked per loop so a control that shows nothing new is not stored twice.
@@ -94,7 +102,9 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), width, height);
         Map<String, BattleReviewFrameRenderer> closeRenderers = new LinkedHashMap<>();
+        boolean shadows = showUnitShadows();
         if (impacts) renderer.withImpactEffects();
+        if (shadows) renderer.withUnitShadows();
         Map<String, ReviewImpactFx> fxByLoop = new LinkedHashMap<>();
         Map<String, List<BufferedImage>> byLoop = new LinkedHashMap<>();
         List<SceneReport> reports = scene.play(new FrameSink() {
@@ -106,8 +116,10 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                             .add(compact(renderer.render(sim, caption, annotations(sim), fx)));
                     BattleReviewFrameRenderer closeRenderer = closeRenderers.computeIfAbsent(loopId, id -> {
                         float[] close = closeView(id);
-                        return close == null ? null : new BattleReviewFrameRenderer(context.modRoot(),
+                        if (close == null) return null;
+                        BattleReviewFrameRenderer closer = new BattleReviewFrameRenderer(context.modRoot(),
                                 width * 2 / 3, height * 2 / 3, close[0], close[1], close[2]);
+                        return shadows ? closer.withUnitShadows() : closer;
                     });
                     if (closeRenderer != null) {
                         byLoop.computeIfAbsent(loopId + "-close", id -> new ArrayList<>())

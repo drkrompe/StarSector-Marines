@@ -1,16 +1,21 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.engine.EngineStylePalette;
 import com.dillon.starsectormarines.battle.warship.VanillaBeamLook;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
 import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipEngine;
 import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipShell;
+import com.dillon.starsectormarines.battle.warship.WarshipThrust;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.List;
 
 /**
  * Draws a warship hanging over the battle: the game's own hull art at the scale
@@ -46,7 +51,22 @@ public final class WarshipRenderSystem implements RenderSystem {
     private static final Color MISSILE_FLAME = new Color(255, 140, 40);
     private static final Color MISSILE_SMOKE = new Color(150, 150, 150);
 
+    /**
+     * Flame length at nozzle level 0 and the extra it grows to by level 1, as shares of the slot's
+     * own length. Wider than an aircraft's range (0.4 to 1.0) because a capital's authored plume is
+     * small against its hull at ground scale and the difference between hovering and flying has to read.
+     */
+    private static final float ENGINE_LEN_FLOOR = 0.35f;
+    private static final float ENGINE_LEN_RANGE = 1.45f;
+    private static final float ENGINE_WIDTH_FLOOR = 0.7f;
+    private static final float ENGINE_WIDTH_RANGE = 0.5f;
+    private static final float ENGINE_ALPHA_FLOOR = 0.45f;
+    /** The glow is a bloom a little wider than the column. */
+    private static final float ENGINE_GLOW_WIDTH_MULT = 2.2f;
+
     private final BattleSprites sprites;
+    /** Seconds the flicker has run, fed from the host clock or accumulated frame time. */
+    private float engineClockSeconds;
 
     public WarshipRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -61,7 +81,13 @@ public final class WarshipRenderSystem implements RenderSystem {
     public void collect(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
+        engineClockSeconds = Float.isFinite(ctx.animationTimeSeconds)
+                ? ctx.animationTimeSeconds
+                : engineClockSeconds + Math.max(0f, ctx.realDt);
+        sprites.ensureEngineFxSprites();
         for (Warship ship : ctx.sim.warships().ships()) {
+            // Under the hull: the nozzles sit inside its outline and the flame trails out of it.
+            drawEngines(out, cam, cellPx, ctx.alphaMult, ship);
             drawHull(out, cam, cellPx, ctx.alphaMult, ship);
             for (Warship.Mount m : ship.mounts()) {
                 drawMount(out, cam, cellPx, ctx.alphaMult, ship, m);
@@ -74,6 +100,74 @@ public final class WarshipRenderSystem implements RenderSystem {
         for (WarshipPointDefence.Mark mark : ctx.sim.warships().pointDefence().marks()) {
             drawEngagement(out, cam, cellPx, ctx.alphaMult, mark);
         }
+    }
+
+    /**
+     * Every nozzle the hull's data lists, burning in the game's engine colour for
+     * its style: a soft glow at the nozzle and a flame column streaming out along
+     * the slot's angle on the turned hull. How hard it burns is the ship's actual
+     * motion ({@link WarshipThrust}) — a low glow hovering, long and bright
+     * accelerating, dimmed braking — with a little flicker so it is not a decal.
+     * Additive, so it brightens the hull and ground beneath rather than covering them.
+     */
+    private void drawEngines(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship) {
+        List<WarshipEngine> engines = WarshipEngine.forHull(ship.hullId);
+        if (engines.isEmpty()) return;
+        SpriteAPI flame = sprites.engineFlameSprite();
+        SpriteAPI glow = sprites.engineGlowSprite();
+        if (flame == null && glow == null) return;
+        ShuttleSpriteCache soft = sprites.spriteByPath(GLOW);
+        WarshipThrust.Demand demand = WarshipThrust.of(ship);
+        double rad = Math.toRadians(ship.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float s = (float) Math.sin(rad);
+        for (int i = 0; i < engines.size(); i++) {
+            WarshipEngine e = engines.get(i);
+            float heading = ship.facingDegrees + e.angleDegrees();
+            float level = demand.level() * WarshipThrust.slotShare(demand.pushX(), demand.pushY(), heading);
+            level = Math.max(0f, Math.min(1f, level * flicker(i)));
+            Color col = EngineStylePalette.flameColor(e.style());
+            float r = col.getRed() / 255f;
+            float g = col.getGreen() / 255f;
+            float b = col.getBlue() / 255f;
+
+            float wx = ship.x + e.localX() * c - e.localY() * s;
+            float wy = ship.y + e.localX() * s + e.localY() * c;
+            float sx = cam.cellToScreenX(wx);
+            float sy = cam.cellToScreenY(wy);
+            double hr = Math.toRadians(heading);
+            float dirX = (float) -Math.sin(hr);
+            float dirY = (float) Math.cos(hr);
+
+            float lenPx = e.lengthCells() * cellPx * (ENGINE_LEN_FLOOR + ENGINE_LEN_RANGE * level);
+            float widthPx = e.widthCells() * cellPx * (ENGINE_WIDTH_FLOOR + ENGINE_WIDTH_RANGE * level);
+            float lit = alpha * (ENGINE_ALPHA_FLOOR + (1f - ENGINE_ALPHA_FLOOR) * level);
+            float glowPx = Math.max(widthPx * ENGINE_GLOW_WIDTH_MULT, cellPx * 0.4f);
+
+            // The glow first, so the column reads as coming out of it.
+            if (glow != null) {
+                out.addAdditiveSprite(RenderLayer.SHUTTLES, glow, sx, sy, glowPx, glowPx, 0f, r, g, b, lit);
+            } else if (soft != null) {
+                out.addAdditiveSprite(RenderLayer.SHUTTLES, soft.sprite, sx, sy, glowPx, glowPx, 0f, r, g, b, lit);
+            }
+            if (flame != null) {
+                // The sprite is centred and bright at its base, so it is laid half a length down the flame.
+                out.addAdditiveSprite(RenderLayer.SHUTTLES, flame,
+                        sx + dirX * lenPx * 0.5f, sy + dirY * lenPx * 0.5f, widthPx, lenPx,
+                        heading, r, g, b, lit);
+            } else if (soft != null) {
+                out.addAdditiveSprite(RenderLayer.SHUTTLES, soft.sprite,
+                        sx + dirX * lenPx * 0.3f, sy + dirY * lenPx * 0.3f, widthPx, lenPx * 0.8f,
+                        heading, r, g, b, lit);
+            }
+        }
+    }
+
+    /** A little life in each nozzle: two incommensurate sines, a different phase for every slot. */
+    private float flicker(int slot) {
+        float t = engineClockSeconds;
+        return 1f + 0.07f * (float) Math.sin(t * 31f + slot * 1.7f)
+                + 0.05f * (float) Math.sin(t * 53f + slot * 2.9f);
     }
 
     private void drawHull(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship) {

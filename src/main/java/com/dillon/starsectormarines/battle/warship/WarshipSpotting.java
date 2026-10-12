@@ -46,7 +46,7 @@ public final class WarshipSpotting {
         for (Warship ship : sim.warships().ships()) {
             if (ship.destroyed() || !vision.isContributor(ship.faction)) continue;
             out.add(new Source((int) Math.floor(ship.x), (int) Math.floor(ship.y), HULL_RANGE, HULL_WALL_CLEARANCE));
-            if (ship.order() instanceof WarshipOrder.FireOnArea area) {
+            for (WarshipOrder.FireOnArea area : ship.areas()) {
                 out.add(new Source((int) Math.floor(area.x()), (int) Math.floor(area.y()),
                         (int) Math.ceil(area.radius()) + BLAST_MARGIN, GROUND_WALL_CLEARANCE));
             }

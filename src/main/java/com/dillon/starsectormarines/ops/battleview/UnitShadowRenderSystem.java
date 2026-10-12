@@ -11,8 +11,11 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+
+import java.util.List;
 
 /**
  * What the sun casts from bodies, as opposed to from terrain.
@@ -147,6 +150,24 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      */
     private static final float AIR_SHADOW_ALTITUDE_CELLS = 11f;
 
+    /**
+     * The height, in cells, a hovering capital ship casts from.
+     *
+     * <p>Its own, higher than {@link #AIR_SHADOW_ALTITUDE_CELLS}, because a capital
+     * hangs well above the atmospheric craft and the shadow is what says so. The
+     * hull is a sprite lifted by nothing and drawn at its true ground position, so
+     * the separation is the whole altitude cue, and it has to be comparable to the
+     * hull for the eye to read a gap: an Onslaught is about seventeen cells long and
+     * at the default sun (38 degrees) sixteen cells of height lays its shadow
+     * about twenty-one cells down-sun, a little over a hull length clear. Too much
+     * more and the shadow stops reading as the ship's and throws off the screen
+     * in a tight framing.
+     */
+    static final float WARSHIP_SHADOW_ALTITUDE_CELLS = 16f;
+
+    /** A capital's silhouette: a little denser than a shuttle's, because it is a great deal more hull. */
+    private static final float WARSHIP_SHADOW_ALPHA = 0.5f;
+
     private final BattleSprites sprites;
     private final SunLight sun;
 
@@ -176,6 +197,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (!sun.casts()) return;
+        collectWarships(ctx, out);
         // A shadow is decoration on a body that is drawn either way, so at a
         // framing where it is three pixels of smudge it is withheld entirely
         // rather than collected and drawn too small to see. See ZoomDetail.
@@ -184,6 +206,42 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         SpriteAPI blob = sprites.shadowBlobSprite();
         if (blob != null) collectGroundBodies(ctx, out, blob);
         collectAircraft(ctx, out);
+    }
+
+    /**
+     * Hovering warships. A capital is a plain object in the warship service rather
+     * than a body in the entity world, so it has no row in the archetype the ground
+     * bodies walk and no kinematics for the aircraft pass: it is adapted here, from
+     * the hull sprite it is drawn with, laid down-sun by the sun's reach at
+     * {@link #WARSHIP_SHADOW_ALTITUDE_CELLS}. Same silhouette, tint and layer as an
+     * aircraft's, and the same pivot correction so the shadow sits on the hull's
+     * own centre of gravity rather than off it.
+     *
+     * <p>Not withheld at far zoom the way a marine's is: a shadow seventeen cells
+     * long is still a shape at the whole-map framing.
+     */
+    private void collectWarships(RenderContext ctx, DrawList out) {
+        if (!sun.casts()) return;
+        List<Warship> ships = ctx.sim.warships().ships();
+        if (ships.isEmpty()) return;
+        BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
+        float cellPx = cam.cellPxSize();
+        float reach = sun.reachCells(WARSHIP_SHADOW_ALTITUDE_CELLS);
+        float alpha = ctx.alphaMult * WARSHIP_SHADOW_ALPHA * sun.shadowStrength();
+        for (Warship ship : ships) {
+            ShuttleSpriteCache hull = sprites.spriteByPath(ship.spritePath);
+            if (hull == null) continue;
+            float rad = (float) Math.toRadians(ship.facingDegrees);
+            float c = (float) Math.cos(rad);
+            float s = (float) Math.sin(rad);
+            float shadowX = ship.x + (ship.pivotX * c - ship.pivotY * s) - sun.dirX() * reach;
+            float shadowY = ship.y + (ship.pivotX * s + ship.pivotY * c) - sun.dirY() * reach;
+            if (!view.visible(shadowX, shadowY, ship.lengthCells * Math.max(1f, hull.aspect))) continue;
+            float pxH = ship.lengthCells * cellPx;
+            emit(out, hull.sprite, cam, shadowX, shadowY, pxH * hull.aspect, pxH,
+                    ship.facingDegrees, alpha);
+        }
     }
 
     /**
