@@ -1,0 +1,24 @@
+{
+  "modelId": "eleven_v4",
+  "voiceSettings": {},
+  "characters": {
+    "Mara Venn": {
+      "voiceId": "YHcCpa6SBWnKDaCPZJQR",
+      "name": "Mora - Gritty and Enigmatic",
+      "direction": "Businesslike confidence; the archive is a favor she expects to count."
+    },
+    "Castle": {
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "name": "Company Officer B - British Matriarch",
+      "direction": "Established company officer; clipped commands with fear breaking through her attempted composure."
+    },
+    "Captain Irena Kord": {
+      "voiceId": "Qbw4VpyUrHEG7NigKzty",
+      "name": "Kristen – Cold Evil Queen Villain",
+      "source": "Existing ElevenLabs professional library voice; no reference recordings cloned.",
+      "direction": "Low, level, precise, procedural. No gloating or theatrical malice; routine enforcement."
+    }
+  },
+  "takes": "Per-line MP3 masters and JSON receipts; synthesis directions in wayline_narration.json; selected take 1 for all seven lines.",
+  "qa": "Decoded and duration-checked. Performance requires listening review; automated checks do not establish acting quality."
+}

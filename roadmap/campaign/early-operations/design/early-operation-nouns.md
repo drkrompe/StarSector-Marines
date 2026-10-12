@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account contrasts Castle's urgent extraction with Hegemony indifference to unaffiliated contractors.
+Updated: 2026-10-12 — Cold Account voices its exchange and closes on Resolute's patrol departure and the ruins.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -233,16 +233,24 @@ weapon damage and friendly fire. It carries finite ordnance and station time;
 arrival or a timer alone never wins. Success requires the records, safe survivors,
 at least three quarters of the original target wall cells destroyed, and the
 last shells and released warheads landed, and every surviving unit recovered by
-its pickup craft. Remaining pirates need not be hunted down. Losing the ship
+its pickup craft. Resolute then ceases fire and resumes patrol nose-first on its
+existing bearing, passing over the ruins through ordinary propulsion. Completion
+waits for the capital to leave the map and a five-second aftermath hold; the
+neutralization report begins at departure. This closure follows confirmed
+destruction and extraction, and never substitutes for either. Remaining pirates
+need not be hunted down. Losing the ship
 or exhausting its intervention without destroying the target fails the operation.
 This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
 
 Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
-The public, text-only exchange starts with Mara presenting the archive as a favor.
+The voiced exchange starts with Mara presenting the archive as a favor.
 Kord accepts the intelligence and turns to gunnery without thanking the company
 or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
-and urgent extraction orders; Kord continues the demolition as routine enforcement.
+and urgent extraction orders. Her established voice strains to keep control as
+fear breaks through; Kord stays level, clipped and procedural, treating demolition
+as routine enforcement. Stable per-speaker recordings retain clean source takes,
+voice provenance, synthesis direction and exact durations.
 Neither Kord nor the briefing promises friendly clearance. The underlying release
 gate remains a mission safety rule, not evidence of the captain's concern.
 The dark science-fiction premise is institutional indifference: an unaffiliated

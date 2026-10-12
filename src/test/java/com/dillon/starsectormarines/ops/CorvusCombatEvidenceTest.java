@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -103,10 +104,12 @@ class CorvusCombatEvidenceTest {
             fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
             try (var sim = fixture.build()) {
                 var dialogue = new JSONArray();
+                double[] playbackSeconds = {0d};
                 narration = new StoryNarrationPlayer(WaylineNarration.parse(new JSONObject(
                         Files.readString(Path.of("mod", WaylineNarration.PATH)))),
                         WaylineNarration.storyMissionId(mission), new NarrationPlayer(line -> null), line -> {
                             try { dialogue.put(new JSONObject().put("tick", sim.getSimTickIndex())
+                                    .put("playbackSeconds", playbackSeconds[0]).put("id", line.id())
                                     .put("event", line.event()).put("speaker", line.speaker()).put("text", line.text())); }
                             catch (Exception e) { throw new IllegalStateException(e); }
                         });
@@ -129,6 +132,7 @@ class CorvusCombatEvidenceTest {
                 boolean houndAlive = false;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
+                Warship departingCapital = null;
                 var frameTicks = new JSONArray().put(0);
                 var samples = new JSONArray();
                 writeFrame(renderer, sim, chapter, dir);
@@ -146,6 +150,7 @@ class CorvusCombatEvidenceTest {
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
                     sim.advance(BattleSimulation.TICK_DT);
+                    playbackSeconds[0] += BattleSimulation.TICK_DT / replaySpeed(sim);
                     narration.advance(BattleSimulation.TICK_DT / replaySpeed(sim),
                             sim.getPlayerStoryBeatsAfter(narration.cursor()), false, sim.isComplete());
                     if (sim.getColdAccount() != null && sim.getColdAccount().shotsFired() > beforeShipShots) {
@@ -167,6 +172,15 @@ class CorvusCombatEvidenceTest {
                     if (sim.getColdAccount() != null) {
                         var layout = sim.getColdAccount().layout();
                         for (var capital : sim.warships().ships()) {
+                            if (sim.getColdAccount().patrolTick() >= 0) {
+                                departingCapital = capital;
+                                assertTrue(capital.departing());
+                                assertEquals(beforeShipShots, sim.getColdAccount().shotsFired(), "Patrol fires no new rounds");
+                                assertEquals(sim.getColdAccount().firingHeading(), capital.facingDegrees, .02f,
+                                        "Departure continues nose-first on the firing bearing");
+                                assertFalse(sim.isComplete(), "Let the ship leave before mission completion");
+                                continue;
+                            }
                             assertTrue(capital.x - Math.hypot(capital.lengthCells, capital.widthCells) / 2f
                                     > sim.getColdAccount().installationRight(), "The full hull must stay east of the compound");
                             assertEquals(layout.strikeY(), capital.y, .01f, "Arrival follows a straight east-west line");
@@ -260,6 +274,7 @@ class CorvusCombatEvidenceTest {
                             .put("phase", intervention.phase().name()).put("evidenceTick", intervention.evidenceTick())
                             .put("warningTick", intervention.warningTick()).put("bombardTick", intervention.bombardTick())
                             .put("preparedTick", intervention.preparedTick()).put("groundClearTick", intervention.groundClearTick())
+                            .put("patrolTick", intervention.patrolTick()).put("departedTick", intervention.departedTick())
                             .put("firstCapitalShotAt", firstCapitalShotAt).put("firstSalvoMounts", firstSalvoMounts)
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
                             .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
@@ -275,8 +290,17 @@ class CorvusCombatEvidenceTest {
                         assertEquals(infantryDeathsBeforeBombardment, fallen.size(), "No withdrawn infantry lost during bombardment");
                         assertTrue(intervention.remainingWalls() <= intervention.initialWalls() / 4);
                         assertTrue(sim.warships().shells().isEmpty());
-                        assertEquals("corvus.cold_account.stronghold_destroyed",
-                                narration.current().event(), "The confirmed terminal line is presented at victory");
+                        assertTrue(intervention.departedTick() > intervention.patrolTick());
+                        assertTrue(sim.getSimTickIndex() - intervention.departedTick() >= ColdAccountIntervention.AFTERMATH_TICKS);
+                        assertTrue(sim.warships().ships().isEmpty(), "Resolute has physically left the scene");
+                        assertNotNull(departingCapital);
+                        float margin = departingCapital.lengthCells / 2f;
+                        assertTrue(departingCapital.x < -margin || departingCapital.y < -margin
+                                || departingCapital.x > sim.getGrid().getWidth() + margin
+                                || departingCapital.y > sim.getGrid().getHeight() + margin,
+                                "The full hull clears the map, rather than timing out");
+                        assertTrue(dialogue.toString().contains("corvus.cold_account.stronghold_destroyed"),
+                                "The patrol report plays before completion");
                     }
                 }
                 Files.writeString(dir.resolve("summary.json"),report.toString(2));
@@ -330,7 +354,7 @@ class CorvusCombatEvidenceTest {
 
     private static float replaySpeed(BattleSimulation sim) {
         if (sim.getColdAccount() == null || sim.getColdAccount().evidenceTick() < 0) return 8f;
-        return sim.getColdAccount().bombardTick() < 0 ? 2f : 1f;
+        return 1f;
     }
 
     private void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {

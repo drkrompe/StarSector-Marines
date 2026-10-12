@@ -4,8 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — faction relations govern targeting, remembered threats,
-interception, and final friendly-target rejection.
+Updated: 2026-10-12 — required watches retain claimed work while ordinary shifts continue their rotations.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -725,6 +724,15 @@ been reading all game turns up in the berthing and goes to the mess like anybody
 else. When named people fill a posting they fill it: the roster is the
 population, and a complement pass must not top the room up with hands who are on
 no muster roll.
+
+A **required watch** is a host-selected part of that complement whose assignment
+remains at work. A continuously attended console uses a one-stop claimed route;
+support work can retain a local rotation among the workplace's duty jobs. Both
+use the ordinary task claims, arrival, facing, interruption and resumption laws.
+They do not join the leisure rotation merely because a dwell expires. The host
+owns which postings require this coverage and how many of its existing people
+can supply it; this is not a new population source or a change to ordinary
+surface-map shifts. `ship-interiors-nouns.md` owns the home ship's allocation.
 
 Because none of this knows what map family it is on, it is equally the mechanism
 for scripted mission flavour: civilians going about a town's business, a garrison
