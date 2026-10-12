@@ -147,6 +147,9 @@ public final class MapEditor {
             }
             if (result != CoverPropDamage.Result.NOT_COVER_PROP) return false;
         }
+        // A non-structural fixture belongs to its prop or entity damage owner.
+        // Missing wall HP must not make its footprint a free structural breach.
+        if (topology.isFixture(x, y)) return false;
         if (!grid.damageCell(x, y, amount)) return false;
         if (topology.isWall(x, y)) rememberWall(x, y);
         topology.setWall(x, y, false);
@@ -360,6 +363,9 @@ public final class MapEditor {
 
     public void flipCellToRubble(int cellX, int cellY) {
         grid.setWalkable(cellX, cellY, true);
+        grid.setWallHp(cellX, cellY, 0);
+        topology.setWall(cellX, cellY, false);
+        topology.setFixture(cellX, cellY, false);
         grid.openAllEdges(cellX, cellY);
         topology.setGroundKind(cellX, cellY, CellTopology.GroundKind.RUBBLE);
         topology.setSurface(cellX, cellY, 0);

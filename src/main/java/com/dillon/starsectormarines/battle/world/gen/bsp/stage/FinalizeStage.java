@@ -63,12 +63,12 @@ public final class FinalizeStage implements GenStage {
         verifyVehicleCorridorDrivable(grid, ctx.get(BspKeys.VEHICLE_CORRIDOR));
     }
 
-    /** Structural non-walkable cells get starting HP; water and non-structural fixtures are not destructible walls. */
-    private static void seedWallHp(NavigationGrid grid, CellTopology topology) {
+    /** Fill missing structural HP while preserving authored strength; water and fixtures are not walls. */
+    static void seedWallHp(NavigationGrid grid, CellTopology topology) {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y) && !topology.isWater(x, y)
-                        && !topology.isFixture(x, y)) {
+                        && !topology.isFixture(x, y) && grid.getWallHp(x, y) == 0) {
                     grid.setWallHp(x, y, WALL_HP_DEFAULT);
                 }
             }

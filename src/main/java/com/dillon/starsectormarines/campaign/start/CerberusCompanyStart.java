@@ -61,6 +61,12 @@ public final class CerberusCompanyStart implements Script {
         return script == null || (script.roster().companyShipId() == null
                 && script.roster().officerInductionRequired());
     }
+    /** Founding conversion is mandatory; completed companies never regain this gate. */
+    public static boolean conversionRequired() {
+        return startingShipId() != null
+                && !Global.getSector().getPersistentData().containsKey(DEPOT_ISSUED)
+                && !MercenaryCompanyConversion.installed(startingShip());
+    }
     public static FleetMemberAPI startingShip() {
         String id = startingShipId();
         if (id == null || Global.getSector().getPlayerFleet() == null) return null;
@@ -107,9 +113,10 @@ public final class CerberusCompanyStart implements Script {
         PlanetAPI planet = destination();
         String destination = planet == null ? "an accessible planetary spaceport" : planet.getName();
         if (!MercenaryCompanyConversion.installed(startingShip()))
-            return "Commander, the Cerberus is yours, but she is still a freighter. Take us to " + destination
-                    + " and choose Mercenary conversion in the planet menu. The yard will install our barracks and workshop for 5,000 credits. "
-                    + "Our prepaid shuttle and squad stores will stay in their depot, where we can draw them as we work.";
+            return "First we need Mercenary Company Conversion: our permanent barracks and workshop, costing 5,000 credits. "
+                    + "Choose Return, dock at " + destination + ", then choose Marine operations in the planet menu. "
+                    + "I will bring up the yard order for you. This is not Additional Berthing or an item in the standard Refit picker. "
+                    + "We must finish the conversion before designating our command vessel; our prepaid preparation stores will wait in the planetary depot.";
         return "The conversion is installed. Stay docked at " + destination
                 + " and open Marine operations, then choose our Cerberus as the company command vessel. "
                 + "The preparation bill includes our finite depot stock while we are docked here. Then we will commission the shuttle, meet Mira and muster her squad.";
