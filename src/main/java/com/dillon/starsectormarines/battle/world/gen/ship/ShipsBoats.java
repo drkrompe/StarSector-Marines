@@ -76,12 +76,11 @@ public final class ShipsBoats {
         if (ship == null) return List.of();
         ShuttleType boat = carriedBy(ship.role());
         int berths = 0;
-        for (RoomRecipe recipe : DeckSizing.programFor(ship.hullClass(), ship.role(),
-                ship.minCrew(), ship.maxCrew(), ship.cargo(), ship.mercenaryConversion())) {
+        for (RoomRecipe recipe : ship.deckPlan().rooms()) {
             if (recipe.purpose() != RoomPurpose.HANGAR) continue;
             berths += BoatBayFitting.boatsIn(recipe.shape().width(), recipe.shape().height());
         }
-        return Collections.nCopies(berths, boat);
+        return Collections.nCopies(Math.max(0, berths - (ship.boatBay() == CompanyShip.BoatBayState.DAMAGED ? 1 : 0)), boat);
     }
 
     public static ShuttleType carriedBy(HullRole role) {

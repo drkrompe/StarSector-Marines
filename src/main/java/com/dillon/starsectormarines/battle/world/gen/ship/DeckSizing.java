@@ -57,7 +57,11 @@ public final class DeckSizing {
      *     rooms that hold them rather than looked up against a roster
      */
     public record DeckPlan(int frames, int height, List<RoomRecipe> rooms,
-                           ShuttleType boats) {
+                           ShuttleType boats, CompanyShip.BoatBayState boatBay) {
+
+        public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats) {
+            this(frames, height, rooms, boats, CompanyShip.BoatBayState.NONE);
+        }
 
         public DeckPlan {
             rooms = List.copyOf(rooms);
@@ -101,12 +105,22 @@ public final class DeckSizing {
 
     public static DeckPlan planFor(HullClass hullClass, HullRole role, int minCrew,
                                    int maxCrew, int cargo, float aspect, boolean conversion) {
+        return planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, conversion, CompanyShip.BoatBayState.NONE);
+    }
+
+    public static DeckPlan planFor(HullClass hullClass, HullRole role, int minCrew,
+                                   int maxCrew, int cargo, float aspect, boolean conversion,
+                                   CompanyShip.BoatBayState boatBay) {
         if (!hullClass.boardable()) {
             return new DeckPlan(0, 0, List.of(), ShipsBoats.carriedBy(role));
         }
 
         List<RoomRecipe> rooms = programFor(hullClass, role, minCrew, maxCrew, cargo, conversion);
 
+        if (boatBay != CompanyShip.BoatBayState.NONE) {
+            rooms.removeIf(room -> room.purpose() == RoomPurpose.HANGAR);
+            add(rooms, RoomRecipe.BOAT_BAY, 2);
+        }
         int roomArea = 0;
         for (RoomRecipe room : rooms) roomArea += room.area();
         float needed = roomArea * CIRCULATION * DENSITY * DENSITY;
@@ -119,7 +133,7 @@ public final class DeckSizing {
 
         return new DeckPlan(Math.max(frames, minimumFrames(rooms)),
                 Math.max(height, minimumHeight(rooms)), rooms,
-                ShipsBoats.carriedBy(role));
+                ShipsBoats.carriedBy(role), boatBay);
     }
 
     /**

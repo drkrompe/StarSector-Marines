@@ -111,6 +111,9 @@ public record ShipInterior(CompanyShip ship, Map<RoomPurpose, Facility> faciliti
             capacity.merge(room.purpose(), room.provides(), Integer::sum);
         }
 
+        if (ship.boatBay() == CompanyShip.BoatBayState.DAMAGED)
+            capacity.computeIfPresent(RoomPurpose.HANGAR,
+                    (purpose, amount) -> Math.max(0, amount - RoomRecipe.BOAT_BAY.provides()));
         Set<RoomPurpose> owed = new HashSet<>();
         for (RoomRecipe room : programmed) owed.add(room.purpose());
 

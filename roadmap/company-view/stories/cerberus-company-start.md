@@ -20,7 +20,8 @@ API own start selection. Existing starts and saves remain unchanged.
 
 The conversion trades 25 cargo capacity for 18 additional personnel places,
 expanded barracks, company command eligibility and a compact single-gantry Mech Lab.
-The Cerberus retains one reusable Hermes boat berth; extra beds do not mint boats.
+The Cerberus begins with one working Hermes berth and a reserved damaged second bay;
+`cerberus-bay-restoration.md` owns its later paid repair. Extra beds do not mint boats.
 It remains a frigate and combat freighter. Installation is a reviewed planetary
 yard order costing 5,000 credits, not automatic designation or a free space refit.
 It installs a permanent hullmod on the actual owned variant; duplicate orders are

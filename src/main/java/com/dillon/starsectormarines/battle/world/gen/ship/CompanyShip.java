@@ -32,7 +32,18 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
                           int minCrew, int maxCrew, int cargo, float aspect,
-                          HullSilhouette outline, String art, boolean mercenaryConversion) {
+                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay) {
+
+    public enum BoatBayState { NONE, DAMAGED, RESTORED }
+
+    public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
+                       int cargo, float aspect, HullSilhouette outline, String art, boolean conversion) {
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, BoatBayState.NONE);
+    }
+
+    public CompanyShip withBoatBay(BoatBayState state) {
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state);
+    }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
                        int cargo, float aspect, HullSilhouette outline, String art) {
@@ -40,7 +51,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip converted() {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay);
     }
 
     public boolean quarters() { return mercenaryConversion || hullClass.quarters(); }
@@ -51,6 +62,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         // the deck is actually laid out inside.
         if (outline != null) aspect = outline.aspect();
         if (hullClass == null) throw new IllegalArgumentException("a hull class is required");
+        if (boatBay == null) throw new IllegalArgumentException("boat bay condition is required");
         if (role == null) throw new IllegalArgumentException("a hull role is required");
         if (minCrew < 0 || maxCrew < minCrew) {
             throw new IllegalArgumentException(
@@ -81,7 +93,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
 
     /** What this hull owes in rooms, and how much deck to lay them out on. */
     public DeckSizing.DeckPlan deckPlan() {
-        return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, mercenaryConversion);
+        return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, mercenaryConversion, boatBay);
     }
 
     /**
