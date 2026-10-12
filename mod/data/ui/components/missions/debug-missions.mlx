@@ -1,4 +1,4 @@
-<template props="cards,tab0,tab1,tab2,tabClass0,tabClass1,tabClass2,pageLabel,previous,next,previousDisabled,nextDisabled,launch,back,launchDisabled,title,description,preset,image">
+<template props="places,sequence,cards,tab0,tab1,tab2,tabClass0,tabClass1,tabClass2,pageLabel,previous,next,previousDisabled,nextDisabled,launch,back,launchDisabled,title,description,preset,image">
   <div id="debug-missions-root" class="debug-root">
     <div id="debug-node-1" class="debug-header console-header">
       <img id="debug-node-2" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -12,6 +12,9 @@
           <button id="debug-node-10" class="{tabClass1}" onclick="{tab1}">STANDARD OPERATIONS</button>
           <button id="debug-node-11" class="{tabClass2}" onclick="{tab2}">DIAGNOSTICS</button>
         </div>
+        <div id="debug-places" class="debug-places">
+          <button each="place in places" key="{place.id}" id="{place.id}" class="{place.classes}" onclick="{place.action}">{place.label}</button>
+        </div>
         <div id="debug-cards" class="debug-cards">
           <button each="card in cards" key="{card.id}" id="{card.id}" class="{card.classes}" onclick="{card.action}">
             <div id="{card.groupId}" class="label tone-muted">{card.group}</div>
@@ -24,6 +27,7 @@
       <div id="debug-node-19" class="debug-detail panel">
         <img id="debug-node-20" class="debug-scene" src="{image}" />
         <div id="debug-node-21" class="label title debug-title">{title}</div>
+        <div id="debug-sequence" class="label tone-accent debug-sequence">{sequence}</div>
         <div id="debug-node-22" class="debug-description"><div id="debug-node-23" class="label debug-copy">{description}</div></div>
         <div id="debug-node-24" class="debug-preset console-well"><div id="debug-node-25" class="label heading tone-accent">DEFAULT FIELD FORCE</div><div id="debug-node-26" class="label debug-copy">{preset}</div><div id="debug-node-27" class="label tone-muted debug-copy">Fresh personnel and boats on every launch. Story missions use field security rifles and fatigues. Support Hounds carry the recovered chaingun fit.</div></div>
         <button id="debug-launch" class="debug-launch" disabled="{launchDisabled}" onclick="{launch}">BRIEF WITH DEFAULT LOADOUT</button>
@@ -41,6 +45,9 @@
 .debug-catalog { width: 58%; flex-direction: column; gap: 10px; padding: 10px; border-width: 1px; }
 .debug-tabs { flex-direction: row; height: 42px; gap: 6px; padding: 3px; }
 .debug-tab { width: 0px; flex-grow: 1; font-family: heading; text-align: center; border-width: 2px; }
+.debug-places { flex-direction: row; height: 34px; gap: 4px; }
+.debug-place { width: 0px; flex-grow: 1; text-align: center; border-width: 1px; }
+.debug-sequence { height: 42px; white-space: normal; }
 .debug-cards { display: grid; flex-grow: 1; gap: 10px; overflow: scroll; }
 .debug-card { flex-direction: column; width: 43%; height: 130px; padding: 14px; gap: 12px; border-width: 2px; text-align: left; }
 .debug-card .label { height: 22px; }
