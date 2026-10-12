@@ -1,0 +1,26 @@
+<template props="tabMark,tabLabel,tabClasses,panelClasses,title,rows">
+  <div id="direct-help" class="help" style="background-color: #00000000;">
+    <div id="direct-help-tab" class="{tabClasses}"><div id="direct-help-mark" class="help-mark">{tabMark}</div><div id="direct-help-label" class="help-label">{tabLabel}</div></div>
+    <div id="direct-help-panel" class="{panelClasses}">
+      <div id="direct-help-title" class="help-title">{title}</div>
+      <div id="direct-help-rows" class="help-rows">
+        <div each="row in rows" key="{row.id}" id="{row.id}" class="help-row"><div id="{row.keysId}" class="help-keys">{row.keys}</div><div id="{row.textId}" class="help-text">{row.text}</div></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .help { width: 100%; height: 100%; align-items: flex-end; overflow: hidden; }
+  .help-tab { width: 64px; height: 20px; flex-direction: row; gap: 4px; align-items: center; padding: 0px 0px 0px 13px; border-width: 1px; border-color: #7d6a3f; background-color: #252721ed; }
+  .help-tab-open { border-color: #e8c68d; background-color: #393a2f; }
+  .help-mark { font-family: heading; color: #ffd464; }
+  .help-label { font-family: compact; color: #c9c8b9; }
+  .help-panel { width: 340px; flex-grow: 1; padding: 6px; gap: 0px; border-width: 1px; border-color: #7d6a3f; background-color: #1d1f1af2; }
+  .help-panel-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
+  .help-title { height: 20px; font-family: compact; color: #e8c68d; }
+  .help-rows { width: 100%; gap: 0px; }
+  .help-row { height: 14px; flex-direction: row; gap: 6px; }
+  .help-keys { width: 70px; font-family: compact; color: #ffd464; white-space: nowrap; overflow: hidden; }
+  .help-text { width: 0px; flex-grow: 1; font-family: compact; color: #d7dad1; white-space: nowrap; overflow: hidden; }
+</style>
