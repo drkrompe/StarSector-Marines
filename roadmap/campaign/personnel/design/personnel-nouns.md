@@ -100,6 +100,13 @@ than falling back to the whole company. Employer personnel stay scenario-owned,
 and debug fixtures are non-persistent: neither can gain player identity or
 write campaign personnel outcomes.
 
+Company lift is sized to that named commitment, not to the seats on one trip
+or the mission's authored drop count. Smaller boats repeat trips until every
+selected ACTIVE member has a seat; a partial final load carries only those
+members still waiting. Authored minimum-force gates remain separate from this
+transport schedule. Stationed response forces and Conquest's arrival plan retain
+their own commitment boundaries.
+
 ## Outcome and recovery
 
 A mission outcome is the only battle-to-personnel report. It records the
