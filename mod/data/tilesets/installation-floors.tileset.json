@@ -24,14 +24,14 @@
     },
     {
       "damageBlock": "colony.concrete-damage",
-      "doorBlock": "colony.masonry-door",
+      "doorBlock": "installation.light-concrete-door",
       "id": "installation.accommodation-floor",
       "layout": "single",
       "origin": [
         2,
         0
       ],
-      "windowBlock": "colony.masonry-window"
+      "windowBlock": "installation.light-concrete-window"
     }
   ],
   "cellPx": 64,
