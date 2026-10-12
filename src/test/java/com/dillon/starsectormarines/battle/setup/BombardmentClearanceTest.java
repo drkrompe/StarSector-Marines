@@ -4,6 +4,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BombardmentClearanceTest {
+    @Test void noGracePeriodOpensFireOnTheFirstClearTick() {
+        var gate = new BombardmentClearance(0);
+        assertFalse(gate.authorize(50, true, 24, 1, false, true));
+        assertTrue(gate.authorize(51, true, 24, 0, false, true));
+        assertFalse(gate.authorize(52, true, 24, 1, false, true));
+        assertTrue(gate.authorize(53, true, 24, 0, false, true));
+    }
+
     @Test void proofAndWholeSurvivingCompanyAreRequired() {
         var gate = new BombardmentClearance(300);
         assertFalse(gate.authorize(100, false, 20, 0, false, true));
