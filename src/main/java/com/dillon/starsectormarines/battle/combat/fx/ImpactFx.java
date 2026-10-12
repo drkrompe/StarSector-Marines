@@ -242,6 +242,48 @@ public final class ImpactFx {
                        0.5f, 1.0f);
     }
 
+    /**
+     * A heavy blast in the colour of the ordnance that made it, sized to the
+     * blast's own radius rather than capped at the orbital recipe's: a Devastator's
+     * 2.5-cell burst and a capital's heavier shell read at their own scale. The
+     * fire sheet is tinted toward the colour (never darker than half-way, so a
+     * blue blast is not a black one), and a wide soft bloom in the colour itself
+     * carries what the sheet's orange would otherwise hide.
+     */
+    public void spawnHeavyImpact(float x, float y, float radiusCells, Color tint) {
+        if (tint == null) {
+            spawnHeavyImpact(x, y, radiusCells);
+            return;
+        }
+        float peak = Math.max(1, Math.max(tint.getRed(), Math.max(tint.getGreen(), tint.getBlue())));
+        Color bright = new Color(tint.getRed() * 255 / (int) peak,
+                tint.getGreen() * 255 / (int) peak, tint.getBlue() * 255 / (int) peak);
+        Color fire = mix(Color.WHITE, bright, 0.55f);
+        Color spark = mix(Color.WHITE, bright, 0.35f);
+        float core = Math.max(1.2f, Math.min(4.5f, radiusCells * 0.85f));
+        spawnSparkFlash(x, y, core, 0.24f, spark);
+        spawnSparkFlash(x, y, core * 1.9f, 0.45f, bright);
+        Particle before = particles.isEmpty() ? null : particles.get(particles.size() - 1);
+        spawnFireBurst(x, y, core * 0.85f, 0.8f);
+        if (!particles.isEmpty() && particles.get(particles.size() - 1) != before) {
+            particles.get(particles.size() - 1).color = fire;
+        }
+        for (int i = 0; i < 10; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2.0;
+            float distance = rng.nextFloat() * radiusCells * 0.65f;
+            spawnSmokePuff(x + (float) Math.cos(angle) * distance, y + (float) Math.sin(angle) * distance,
+                    0.7f + rng.nextFloat() * 0.7f, 1.4f + rng.nextFloat() * 0.8f);
+        }
+        spawnDust(x, y, false, core, 0.6f);
+    }
+
+    private static Color mix(Color a, Color b, float t) {
+        return new Color(
+                Math.round(a.getRed() + (b.getRed() - a.getRed()) * t),
+                Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t));
+    }
+
     /** Large external-impact recipe for orbital fire and future heavy support weapons. */
     public void spawnHeavyImpact(float x, float y, float radiusCells) {
         float core = Math.max(1.2f, Math.min(2.4f, radiusCells * 0.55f));

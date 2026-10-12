@@ -1,0 +1,123 @@
+{
+  "sheetName": "firing-range",
+  "sheet": "art-source/tilesets/firing-range.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "firing-range",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/firing-range.png",
+  "note": "Geometry-first range kit. Backstop faces canonical left; dividers sit beside rather than across live lanes. Floor swatches use opaque interior crops.",
+  "entries": [
+    {
+      "id": "firing-range.backstop",
+      "rect": [
+        106,
+        103,
+        183,
+        378
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.3,
+      "included": true
+    },
+    {
+      "id": "firing-range.divider",
+      "rect": [
+        421,
+        207,
+        376,
+        172
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "firing-range.prep-bench",
+      "rect": [
+        840,
+        207,
+        375,
+        201
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "included": true
+    },
+    {
+      "id": "firing-range.control",
+      "rect": [
+        37,
+        789,
+        358,
+        176
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "firing-range.deck",
+      "rect": [
+        485,
+        715,
+        286,
+        286
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "firing-range.deck",
+      "slot": "v1"
+    },
+    {
+      "id": "firing-range.lane",
+      "rect": [
+        890,
+        717,
+        296,
+        286
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "firing-range.lane",
+      "slot": "v1"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "firing-range.deck",
+      "layout": "variants"
+    },
+    {
+      "id": "firing-range.lane",
+      "layout": "variants"
+    }
+  ]
+}
