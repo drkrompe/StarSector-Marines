@@ -1460,6 +1460,13 @@ landing carries the round's explosion colour to the presentation, which tints th
 fire, the flash and the ground light with it and sizes the burst to the blast's
 radius, so a capital's heavier shell reads larger than a cannon's.
 
+**A scripted flyby is a route the ship passes through without stopping.** Given
+waypoints (and optionally told to loop), the hull flies each leg at speed,
+counting a waypoint as passed within a few cells and braking only onto a last
+one that does not loop. With no instruction to bring guns to bear it points
+along its travel; whatever ground it is ordered or directed to fire on, it keeps
+firing while it moves, so a cinematic can be authored as a path.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount
