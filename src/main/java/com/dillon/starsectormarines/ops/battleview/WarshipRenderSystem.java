@@ -55,6 +55,17 @@ public final class WarshipRenderSystem implements RenderSystem {
     private static final Color PD_FRINGE = new Color(255, 200, 90);
     private static final Color MISSILE_FLAME = new Color(255, 140, 40);
     private static final Color MISSILE_SMOKE = new Color(150, 150, 150);
+    /**
+     * The shield's pale cyan: the game's default shield tint. The stock hulls name no colour of
+     * their own in their spec, so this is the one every hull gets.
+     */
+    private static final Color SHIELD_TINT = new Color(140, 215, 255);
+    private static final Color SHIELD_HIT = new Color(235, 250, 255);
+    private static final Color SHIELD_COLLAPSE = new Color(255, 190, 120);
+    private static final String SHIELD_FILL = "graphics/fx/shields256.png";
+    private static final String SHIELD_RING = "graphics/fx/shields256ring.png";
+    /** Longest an arc segment of the rim is, in degrees. */
+    private static final float SHIELD_SEGMENT_DEGREES = 6f;
 
     /**
      * Flame length at nozzle level 0 and the extra it grows to by level 1, as shares of the slot's
@@ -98,6 +109,7 @@ public final class WarshipRenderSystem implements RenderSystem {
                 drawMount(out, cam, cellPx, ctx.alphaMult, ship, m);
                 drawMuzzleFlash(out, cam, cellPx, ctx.alphaMult, ship, m);
             }
+            drawShield(out, cam, cellPx, ctx.alphaMult, ship);
         }
         for (WarshipShell shell : ctx.sim.warships().shells()) {
             drawShell(out, cam, cellPx, ctx.alphaMult, shell);
@@ -207,6 +219,71 @@ public final class WarshipRenderSystem implements RenderSystem {
         out.addSprite(RenderLayer.SHUTTLES, art.sprite,
                 cam.cellToScreenX(ship.mountX(m)), cam.cellToScreenY(ship.mountY(m)),
                 w, h, heading(ship, m), 1f, 1f, 1f, alpha);
+    }
+
+    /**
+     * The shield bubble: the arc of a circle of the hull's own shield radius about
+     * its shield centre, a rim and a soft fill, rising with the shield, brighter
+     * on an absorbed hit and flaring orange when it collapses. A full bubble
+     * (an omni shield) uses the game's own shield art; an arc is drawn as a rim of
+     * lines, since a texture cannot be clipped to a part of a circle here.
+     * Nothing is drawn for a hull with no shield or a ship not on flux.
+     */
+    private void drawShield(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship) {
+        if (!ship.hasShield()) return;
+        float level = ship.shieldLevel();
+        float hit = ship.shieldHitFlash();
+        float drop = ship.shieldDropFlash();
+        if (level <= 0f && drop <= 0f) return;
+        float radius = ship.shieldRadiusCells() * (0.8f + 0.2f * level);
+        float arc = Math.min(360f, ship.shieldArcDegrees());
+        float cx = ship.shieldCentreX();
+        float cy = ship.shieldCentreY();
+        float strength = Math.max(level, drop);
+        Color base = drop > 0.01f && level < 1f ? SHIELD_COLLAPSE : SHIELD_TINT;
+        float mix = Math.min(1f, hit);
+        float r = lerp(base.getRed(), SHIELD_HIT.getRed(), mix) / 255f;
+        float g = lerp(base.getGreen(), SHIELD_HIT.getGreen(), mix) / 255f;
+        float b = lerp(base.getBlue(), SHIELD_HIT.getBlue(), mix) / 255f;
+        float a = alpha * strength;
+        float diameterPx = radius * 2f * cellPx;
+        float sx = cam.cellToScreenX(cx);
+        float sy = cam.cellToScreenY(cy);
+        ShuttleSpriteCache fill = arc >= 359.5f ? sprites.spriteByPath(SHIELD_FILL) : null;
+        ShuttleSpriteCache ring = arc >= 359.5f ? sprites.spriteByPath(SHIELD_RING) : null;
+        if (fill != null) {
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, fill.sprite, sx, sy, diameterPx, diameterPx, 0f,
+                    r, g, b, (0.18f + 0.4f * hit) * a);
+        }
+        if (ring != null) {
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, ring.sprite, sx, sy, diameterPx, diameterPx, 0f,
+                    r, g, b, (0.5f + 0.5f * hit) * a);
+        }
+        float lineWidth = Math.max(2f, 0.22f * cellPx);
+        int segments = Math.max(8, (int) Math.ceil(arc / SHIELD_SEGMENT_DEGREES));
+        float start = ship.shieldFacingDegrees() - arc * 0.5f;
+        float step = arc / segments;
+        float lastX = 0f;
+        float lastY = 0f;
+        for (int i = 0; i <= segments; i++) {
+            double rad = Math.toRadians(start + step * i);
+            float px = cam.cellToScreenX(cx - (float) Math.sin(rad) * radius);
+            float py = cam.cellToScreenY(cy + (float) Math.cos(rad) * radius);
+            if (i > 0 && ring == null) {
+                out.addLine(RenderLayer.SHUTTLES, lastX, lastY, px, py, lineWidth * 3.5f,
+                        r, g, b, (0.07f + 0.2f * hit) * a);
+                out.addLine(RenderLayer.SHUTTLES, lastX, lastY, px, py, lineWidth * 1.8f,
+                        r, g, b, (0.14f + 0.25f * hit) * a);
+                out.addLine(RenderLayer.SHUTTLES, lastX, lastY, px, py, lineWidth,
+                        r, g, b, (0.45f + 0.5f * hit) * a);
+            }
+            lastX = px;
+            lastY = py;
+        }
+    }
+
+    private static float lerp(float from, float to, float t) {
+        return from + (to - from) * t;
     }
 
     /** A hardpoint is fixed to the hull; a turret points where its barrel does. */
