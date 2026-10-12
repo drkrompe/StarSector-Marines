@@ -985,6 +985,23 @@ public final class BattleSetup {
                                                      PrecinctPlan.Sprawl sprawl,
                                                      String alliedGarrisonFactionId,
                                                      float alliedGarrisonStrengthMult) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
+                marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
+                alliedGarrisonStrengthMult, false);
+    }
+
+    public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
+            boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
+            FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
+        return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
+                marineAir, enemyAir, sprawl, null, 1f, true);
+    }
+
+    private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
+            TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
+            PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
+            float alliedGarrisonStrengthMult, boolean coldAccount) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1018,7 +1035,9 @@ public final class BattleSetup {
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
-        if (raidLayout != null) {
+        if (coldAccount) {
+            sim.installColdAccount(ColdAccountLayout.select(map, lzCells));
+        } else if (raidLayout != null) {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());
             sim.addObjective(new RaidObjective(raidLayout.targetId(),
@@ -1125,10 +1144,12 @@ public final class BattleSetup {
                 alliedGarrisonStrengthMult, risk, seed);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-        installReinforcementLayer(sim, map, type, null, groundRoster, risk,
+        if (!coldAccount) installReinforcementLayer(sim, map, type, null, groundRoster, risk,
                 null);
         if (type == MissionType.ASSAULT) {
-            sim.setAutonomousCommander(Faction.MARINE, new AssaultCommand(),
+            if (coldAccount) sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(),
+                    RaidCommandDisclosure.INSTANCE);
+            else sim.setAutonomousCommander(Faction.MARINE, new AssaultCommand(),
                     AssaultCommandDisclosure.INSTANCE);
             sim.setAutonomousCommander(Faction.DEFENDER,
                     new AssaultDefenderCommand(assaultMobileSquads),

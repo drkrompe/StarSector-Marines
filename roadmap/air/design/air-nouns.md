@@ -1606,6 +1606,20 @@ them is optional. Modules, cumulative ship damage beyond the hull pool and groun
 rules remain future decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
 
+### Authored structural bombardment
+
+A mission may explicitly order a capital to demolish standing structures in a
+bounded area, even when there are no living enemies inside. The ordinary area
+engagement order still targets hostile units. Structural bombardment chooses
+actual standing wall cells within the stated circle and uses the same mounting,
+range, traversal, ammunition, projectile flight, blast and terrain damage rules.
+Clearing occupants does not erase a structure, and ordering bombardment does not
+turn unspent ammunition into damage. Hold fire cancels unlaunched burst rounds;
+rounds already in flight retain their ordinary impact and friendly-fire behavior.
+The mission owns evidence, withdrawal, warning and completion; the ship owns its
+weapons and the damage they actually cause.
+
+
 ## Standing laws
 
 - There is one entity world and one id authority. Air versus ground is expressed

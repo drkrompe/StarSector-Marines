@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
+
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -922,6 +924,28 @@ public class BattleRenderer {
             emitObjectiveTicks(out, cx, cy,
                     BattlefieldMarkerPresentation.objectiveRadius(cellPx),
                     marker.tone(), marker.opacity() * alphaMult);
+        }
+
+        if (sim.getColdAccount() != null) {
+            var layout = sim.getColdAccount().layout();
+            float ex = rc.camera.cellToScreenX(layout.evidenceX() + .5f);
+            float ey = rc.camera.cellToScreenY(layout.evidenceY() + .5f);
+            float wx = rc.camera.cellToScreenX(layout.withdrawalX() + .5f);
+            float wy = rc.camera.cellToScreenY(layout.withdrawalY() + .5f);
+            float sx = rc.camera.cellToScreenX(layout.strikeX());
+            float sy = rc.camera.cellToScreenY(layout.strikeY());
+            appendObjectiveAnnulus(ex, ey, cellPx * 1.8f, cellPx * 2f, BattlefieldMarkerPresentation.PROGRESS, alphaMult);
+            appendObjectiveAnnulus(wx, wy, cellPx * ColdAccountLayout.WITHDRAWAL_RADIUS - 2f,
+                    cellPx * ColdAccountLayout.WITHDRAWAL_RADIUS,
+                    BattlefieldMarkerPresentation.PROGRESS, .8f * alphaMult);
+            float exclusion = cellPx * (layout.strikeRadius() + ColdAccountLayout.BLAST_MARGIN);
+            appendObjectiveAnnulus(sx, sy, exclusion - 2f, exclusion, ORBITAL_WARNING, .65f * alphaMult);
+            out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                objectiveMarkerFont.ensureLoaded();
+                drawObjectiveText("PIRATE RECORDS", ex, ey, BattlefieldMarkerPresentation.LABEL, .8f, alphaMult);
+                drawObjectiveText("WITHDRAW / HOLD HERE", wx, wy, BattlefieldMarkerPresentation.PROGRESS, .8f, alphaMult);
+                drawObjectiveText("BOMBARDMENT / KEEP CLEAR", sx, sy, ORBITAL_WARNING, .8f, alphaMult);
+            });
         }
 
         for (EquipmentDrop drop : sim.getEquipmentDrops()) {

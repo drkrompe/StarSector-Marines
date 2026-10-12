@@ -185,9 +185,9 @@ sailing schedules. It has three ordered, single-payment chapters:
 |---|---|---|---|---|
 | The Dust Ledger | Asharu | Raid the dispatch archive and return to egress | 2 squads | 22,000 cr |
 | Blind Watch | Warion | Plant charges at three interception installations | 3 squads | 30,000 cr |
-| A Cold Account | Garnir | Clear the dispatch compound's defending force | 4 squads | 42,000 cr |
+| A Cold Account | Garnir | Confirm pirate evidence, withdraw, and authorize bombardment | 4 squads | 42,000 cr |
 
-These jobs use Established-scale Raid, Sabotage and Assault objectives with
+These jobs use Established-scale Raid, Sabotage and a fortified intervention with
 Low, Low and High opposition quality respectively. Difficulty grows through
 objective distribution and opposition composition as well as the final force
 increase. A defeat retries the same chapter and battlefield; victory advances
@@ -206,6 +206,24 @@ Watch uses an explicitly remote installation map and a finite light garrison:
 there is no off-map replacement force or continuing vehicle/air production.
 Map density and reinforcement eligibility are independent authored choices;
 being on a barren moon alone does not imply that other missions lack reserves.
+
+A Cold Account gives the company a ground task the capital cannot perform:
+secure the marked dispatch records and transmit proof of pirate ownership.
+Its finite High-quality garrison protects the records and installation. The
+Hegemony Onslaught arrives under hold fire after confirmation. The whole
+surviving company, including deployed mechs, must withdraw to the marked landing
+area, with all committed lift delivered or resolved. An uninterrupted ten-second
+warning follows. A survivor leaving the safe area cancels further fire and resets
+the warning; already launched rounds remain dangerous.
+
+The capital bombards the installation's standing structures through ordinary
+weapon damage and friendly fire. It carries finite ordnance and station time;
+arrival or a timer alone never wins. Success requires the records, safe survivors,
+at least three quarters of the original target wall cells destroyed, and the
+last shells landed. Remaining pirates need not be hunted down. Losing the ship
+or exhausting its intervention without destroying the target fails the operation.
+This local support does not transfer a campaign capital to the company or alter
+Garnir's market, orbital depot or ownership.
 
 All three support exact selected named personnel with at least two squads of
 four ready marines each and up to four fitted boats making repeated trips.

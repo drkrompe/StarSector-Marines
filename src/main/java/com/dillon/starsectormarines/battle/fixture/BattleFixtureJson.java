@@ -106,6 +106,11 @@ public final class BattleFixtureJson {
             root.put("defenderReinforcements", sabotage.defenderReinforcements());
             return root;
         }
+        if (fixture instanceof ColdAccountBattleFixture cold) {
+            root.put("kind", cold.kind());
+            root.put("base", toJson(cold.base()));
+            return root;
+        }
         if (fixture instanceof AssaultBattleFixture assault) {
             encodeCommon(root, assault.kind(), assault.seed(),
                     assault.manifest(), assault.enemyHasHeavyArmor(),
@@ -207,6 +212,7 @@ public final class BattleFixtureJson {
             case CivilianRescueBattleFixture.KIND -> decodeCivilianRescue(root);
             case ConquestBattleFixture.KIND -> decodeConquestV2(root);
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
+            case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);
