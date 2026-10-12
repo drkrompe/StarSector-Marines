@@ -1700,7 +1700,12 @@ A mission may explicitly order a capital to demolish standing structures in a
 bounded area, even when there are no living enemies inside. The ordinary area
 engagement order still targets hostile units. Structural bombardment chooses
 actual standing wall cells within the stated circle and uses the same mounting,
-range, traversal, ammunition, projectile flight, blast and terrain damage rules.
+traversal, ammunition, projectile flight, blast and terrain damage rules.
+Its explicit stationary-structure envelope is three times the ordinary
+weapon range in ground cells, allowing a capital to stand off outside a base.
+This is a gameplay range policy, not a damage multiplier or a claim about
+literal Starsector metres. Acquisition, retained aim and hull-facing selection
+all read that envelope; normal unit engagement keeps its ordinary range.
 Clearing occupants does not erase a structure, and ordering bombardment does not
 turn unspent ammunition into damage. Hold fire cancels unlaunched burst rounds;
 rounds already in flight retain their ordinary impact and friendly-fire behavior.
@@ -1781,3 +1786,24 @@ view-projection work that gives altitude its shared presentation space.
 Ship collision, wing composition, air-to-air, modules, and air persistence stay
 as extension paths until each has a bounded story and an identified gameplay
 need. `fighter-air-entities.md` carries what is left of the fold.
+
+### Survivor pickup
+
+`SurvivorPickupSystem` can be configured with a faction and pickup cell before
+deployment, then requested independently of any mission objective. It retains
+the actual deployment craft's fitted frame and lift role, waits for delivery to
+finish, and returns surviving boats one at a time. Infantry lifts honor physical
+seat capacity; mech lifts carry one chassis. No extra company boats are minted.
+Units with withdrawal orders walk to the landed ramp and board individually at
+0.8-second intervals, with non-leaders at the ramp boarding first. A lift departs
+when full, when nobody eligible remains, or after 90 seconds on the pad; later
+trips collect those left behind.
+
+A `PickupManifest` distinguishes aboard, recovered and lost passengers. Boarding
+removes the ground entity without producing a corpse, preserving campaign ID
+and combat telemetry. Ordinary aircraft return and destruction resolve the
+manifest; destruction records passenger losses in the boat ledger where owned,
+without counting those losses twice. Mission settlement includes off-field
+survivors and their career evidence. Extracted survivors prevent a false wipe,
+but only physical return resolves a mission's extraction requirement. The
+mission, not this transport service, decides when bombardment is authorized.

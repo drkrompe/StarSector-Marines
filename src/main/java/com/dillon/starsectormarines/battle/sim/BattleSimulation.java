@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -447,6 +448,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public WaylineHoundRecovery getWaylineHound() { return waylineHound; }
     private JunctionStoryObserver junctionStory;
     private RelayNineStoryObserver relayNineStory;
+    private final SurvivorPickupSystem survivorPickup = new SurvivorPickupSystem();
+    @Override public SurvivorPickupSystem survivorPickup() { return survivorPickup; }
     private ColdAccountIntervention coldAccount;
     public ColdAccountIntervention getColdAccount() { return coldAccount; }
     public void installColdAccount(ColdAccountLayout layout) {
@@ -2265,6 +2268,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // expires. Pairs with the visual ShotEvent flight; the visual and the
         // damage are queued together and arrive together.
         lanceSweeps.tick(TICK_DT, detonations::detonateNow);
+        survivorPickup.tick(this);
         if (coldAccount != null) coldAccount.advance(this);
         warships.tick(TICK_DT, this);
         detonations.tick();

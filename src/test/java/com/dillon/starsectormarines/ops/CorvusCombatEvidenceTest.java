@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
@@ -128,11 +129,14 @@ class CorvusCombatEvidenceTest {
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     sim.advance(BattleSimulation.TICK_DT);
                     if (sim.getColdAccount() != null && sim.getColdAccount().shotsFired() > beforeShipShots) {
-                        if (beforeShipShots == 0) infantryDeathsBeforeBombardment = fallen.size();
+                        if (beforeShipShots == 0) {
+                            infantryDeathsBeforeBombardment = fallen.size();
+                            assertFalse(sim.survivorPickup().complete(sim), "Bombardment begins before the last lift returns");
+                        }
                         assertTrue(sim.getColdAccount().evidenceTick() > 0);
                         assertEquals(0, sim.getColdAccount().outsideWithdrawal());
                         assertFalse(sim.getColdAccount().pendingArrivals());
-                        assertTrue(sim.getSimTickIndex() - sim.getColdAccount().warningTick() >= 300);
+                        assertTrue(sim.getSimTickIndex() - sim.getColdAccount().warningTick() >= ColdAccountIntervention.WARNING_TICKS);
                     }
                     int tick = sim.getSimTickIndex();
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -153,9 +157,9 @@ class CorvusCombatEvidenceTest {
                         if (firstShotAt < 0) firstShotAt = tick;
                         if (shot.shooterId == hound) houndShots++;
                     }
-                    houndAlive = hound >= 0 && sim.world().isAlive(hound);
+                    houndAlive = hound >= 0 && (sim.world().isAlive(hound) || sim.survivorPickup().surviving(hound));
                     if (hound >= 0 && !houndAlive && houndLostAt < 0) houndLostAt = tick;
-                    if (houndAlive) {
+                    if (houndAlive && sim.world().isAlive(hound)) {
                         houndHp = sim.world().hp(hound); houndArmor = sim.world().armor(hound);
                         houndKills = sim.telemetry().kills(hound); houndDamage = sim.telemetry().damageDealt(hound);
                     }
@@ -176,7 +180,7 @@ class CorvusCombatEvidenceTest {
                     }
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
-                if (hound >= 0) {
+                if (hound >= 0 && !sim.survivorPickup().surviving(hound)) {
                     houndKills = sim.telemetry().kills(hound);
                     houndDamage = sim.telemetry().damageDealt(hound);
                 }
@@ -207,8 +211,13 @@ class CorvusCombatEvidenceTest {
                             .put("initialWalls", intervention.initialWalls()).put("remainingWalls", intervention.remainingWalls())
                             .put("shots", intervention.shotsFired()).put("outsideWithdrawal", intervention.outsideWithdrawal())
                             .put("pendingArrivals", intervention.pendingArrivals())
+                            .put("pickedUp", sim.survivorPickup().recoveredCount())
+                            .put("pickupSorties", sim.survivorPickup().manifests().size())
                             .put("infantryDeathsBeforeBombardment", infantryDeathsBeforeBombardment));
                     if (intervention.isComplete()) {
+                        assertTrue(sim.survivorPickup().complete(sim));
+                        assertEquals(deployment.size() - fallen.size(), sim.survivorPickup().manifests().stream()
+                                .flatMap(m -> m.passengers().stream()).filter(p -> p.soldierId() != null).count());
                         assertEquals(infantryDeathsBeforeBombardment, fallen.size(), "No withdrawn infantry lost during bombardment");
                         assertTrue(intervention.remainingWalls() <= intervention.initialWalls() / 4);
                         assertTrue(sim.warships().shells().isEmpty());

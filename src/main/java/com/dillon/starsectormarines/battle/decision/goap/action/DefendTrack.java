@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -78,7 +79,8 @@ public final class DefendTrack implements Action {
             return ActionStatus.FAILURE;
         }
         boolean serviceOrWithdrawal = assignmentKind == AssignmentKind.RUSH_OBJECTIVE
-                || assignmentKind == AssignmentKind.WITHDRAW;
+                || assignmentKind == AssignmentKind.WITHDRAW
+                || (assignmentKind == AssignmentKind.DEFEND_SITE && DefendAssignedSiteGoal.travelling(squad));
         if (!serviceOrWithdrawal && WorldStateBuilder.hasActionableContact(squad, sim)) {
             if (async != null) async.cancel(member);
             sim.clearPath(member);
@@ -193,6 +195,11 @@ public final class DefendTrack implements Action {
     private static int[] formationCell(long member, Squad squad,
                                        int anchorX, int anchorY,
                                        BattleView sim) {
+        if (sim.survivorPickup() != null && squad.assignmentForExecution() != null
+                && squad.assignmentForExecution().kind() == AssignmentKind.WITHDRAW) {
+            int[] ramp = sim.survivorPickup().rampFor(member, sim);
+            if (ramp != null) return ramp;
+        }
         int count = squad.autonomousMemberCount(sim);
         int ordinal = 0;
         for (int i = 0, size = sim.squadMemberCount(squad.id); i < size; i++) {

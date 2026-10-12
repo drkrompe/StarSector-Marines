@@ -9,7 +9,7 @@ import java.util.List;
 
 /** Records at the near dispatch office; the installation footprint is the strike target. */
 public record ColdAccountLayout(int evidenceX, int evidenceY, int withdrawalX, int withdrawalY,
-                                float strikeX, float strikeY, float strikeRadius) {
+                                float strikeX, float strikeY, float strikeRadius, int installationRight) {
     public static final float WITHDRAWAL_RADIUS = 12f;
     public static final float BLAST_MARGIN = 18f;
     public static ColdAccountLayout select(MapResult map, List<LandingPad> pads) {
@@ -32,7 +32,7 @@ public record ColdAccountLayout(int evidenceX, int evidenceY, int withdrawalX, i
                 <= radius + BLAST_MARGIN + WITHDRAWAL_RADIUS)
             throw new IllegalStateException("Cold Account withdrawal must lie outside the bombardment exclusion area");
         return new ColdAccountLayout(records.interiorAnchorX, records.interiorAnchorY,
-                exit.centerX, exit.centerY, x, y, radius);
+                exit.centerX, exit.centerY, x, y, radius, right);
     }
     private static double distance(PointOfInterest p, LandingPad exit) {
         return Math.hypot(p.interiorAnchorX - exit.centerX, p.interiorAnchorY - exit.centerY);
