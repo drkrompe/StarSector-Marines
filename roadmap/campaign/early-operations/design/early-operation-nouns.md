@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Castle introduces the recovered Hound; Wayline continues across three Corvus destinations.
+Updated: 2026-10-12 — Cold Account contrasts Castle's urgent extraction with Hegemony indifference to unaffiliated contractors.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -239,11 +239,18 @@ This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
 
 Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
-Her public, text-only dialogue follows authenticated evidence, battery preparation,
-friendly clearance, the demolition sweep and confirmed neutralization. The cold
-procedural delivery treats the destruction as routine enforcement. There is no
-dialogue countdown or gameplay wait for a sentence. Only the confirmed terminal
-line survives completion; obsolete withdrawal and firing instructions do not.
+The public, text-only exchange starts with Mara presenting the archive as a favor.
+Kord accepts the intelligence and turns to gunnery without thanking the company
+or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
+and urgent extraction orders; Kord continues the demolition as routine enforcement.
+Neither Kord nor the briefing promises friendly clearance. The underlying release
+gate remains a mission safety rule, not evidence of the captain's concern.
+The dark science-fiction premise is institutional indifference: an unaffiliated
+mercenary outfit may be useful today and serve someone else tomorrow. A Wayline
+contract confers no military alliance or protection. This is not personal malice,
+a threat speech or a promise to attack the company. There is no dialogue countdown
+or gameplay wait for a sentence. Only the confirmed terminal line survives
+completion; obsolete withdrawal and firing instructions do not.
 
 All three support exact selected named personnel with at least two squads of
 four ready marines each and up to four fitted boats making repeated trips.

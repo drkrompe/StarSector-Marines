@@ -60,7 +60,7 @@ class WaylineNarrationTest {
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
         assertEquals(76, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
-        assertEquals(81, ids.size());
+        assertEquals(83, ids.size());
     }
 
     @Test void coldAccountRetriesShareKordsPublicDialogue() throws Exception {
