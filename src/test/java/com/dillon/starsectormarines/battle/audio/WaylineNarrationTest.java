@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.audio;
 
+import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -101,6 +102,25 @@ class WaylineNarrationTest {
                     Mission.builder().id(kind.missionId).source(MissionSource.RECURRING).build()));
         }
         assertNull(WaylineNarration.storyMissionId(null));
+    }
+
+    @Test
+    void debugScenariosHearTheirChapterButRepeatablesStaySilent() throws Exception {
+        WaylineNarration catalog = catalog();
+        for (DebugMissionCatalog.Scenario scenario : DebugMissionCatalog.Scenario.values()) {
+            String id = WaylineNarration.storyMissionId(scenario.mission());
+            boolean silent = switch (scenario) {
+                case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY, VETERANS_JOB,
+                     SILENT_COLONY, DUST_LEDGER, BLIND_WATCH -> true;
+                default -> false;
+            };
+            if (silent) {
+                assertNull(id, scenario.name());
+            } else {
+                assertNotNull(id, scenario.name());
+                assertTrue(catalog.lines().stream().anyMatch(l -> l.missionId().equals(id)), scenario.name());
+            }
+        }
     }
 
     @Test
