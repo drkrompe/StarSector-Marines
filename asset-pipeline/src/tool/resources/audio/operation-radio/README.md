@@ -6,6 +6,13 @@ owns the runtime transcripts, voice IDs, durations and selection mappings. The
 manifest applies the same offline comms recipe to every turn. Clean sources and
 receipts stay here; only processed Ogg files ship.
 
+Combat report mappings are pools of line IDs: three takes per actor for each of
+the seven existing cues, giving nine recordings per event. Existing single-ID
+mappings remain readable. Runtime exhausts each event's pool before repeating;
+mission preemption preserves that history and a new battle resets it. New takes
+keep the established cast and comms treatment. Their wording does not assert
+unobserved directions, remaining enemy counts, successful maneuvers or support.
+
 The older five-scene catalog and `ensemble/` retain authoring auditions. Their
 bespoke destinations, covering maneuvers and transport reports are not enabled
 by the runtime bank. They do not issue AI orders or establish mission events.
