@@ -87,7 +87,7 @@ public final class WarshipPilot {
         if (!ship.hasBattery(group)) return;
         WarshipOrder.FireOnArea before = ship.laidArea(group);
         if (before != null && before.x() == x && before.y() == y) return;
-        ship.layArea(group, new WarshipOrder.FireOnArea(x, y, AREA_RADIUS_CELLS, true));
+        ship.layArea(group, WarshipOrder.FireOnArea.saturating(x, y, AREA_RADIUS_CELLS, true));
     }
 
     /** Carries out a one-shot command; false when the ship cannot do it (no shield, no missiles). */

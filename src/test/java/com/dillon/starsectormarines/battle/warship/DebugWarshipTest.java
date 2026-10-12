@@ -167,4 +167,19 @@ class DebugWarshipTest {
         int fired = ship.mounts().stream().mapToInt(m -> m.shotsFired).sum();
         assertTrue(fired > 0, "it fires without reading a velocity the turret does not have");
     }
+
+    @Test
+    void aSaturatingAreaIsFiredIntoEvenWithNobodyInIt() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        SceneWorld world = SceneBuilder.openGround(160, 90).missionCompletion(false)
+                .unit("d1", Faction.DEFENDER, UnitType.MARINE, 150, 80)
+                .build();
+        Warship ship = DebugWarship.install(world.sim(),
+                new DebugWarship.Spec(DebugWarship.Hull.ONSLAUGHT, Faction.MARINE, DebugWarship.Mode.MANUAL));
+        DebugWarship.fireAt(ship, 70f, 40f);
+        SceneRun.of(world).run(600);
+        int fired = ship.mounts().stream().filter(m -> !m.pointDefence()).mapToInt(m -> m.shotsFired).sum();
+        assertTrue(fired > 0, "an empty circle laid by hand is worked over: " + DebugWarship.statusLine(ship));
+    }
 }

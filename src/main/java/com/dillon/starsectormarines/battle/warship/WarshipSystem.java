@@ -1045,7 +1045,27 @@ public final class WarshipSystem {
                 m.aimVy = mover ? sim.movement().velY(u) : 0f;
             }
         }
+        if (seen == 0 && area.saturate() && !m.weapon.beam()) return aimAtOpenGround(m, ship, area, mx, my, opportunity);
         return seen > 0;
+    }
+
+    /** With nobody in a saturating area, the mount works over a random bearable point of the ground itself. */
+    private boolean aimAtOpenGround(Warship.Mount m, Warship ship, WarshipOrder.FireOnArea area,
+                                    float mx, float my, float opportunity) {
+        for (int attempt = 0; attempt < DENIAL_AIM_ATTEMPTS; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            float r = area.radius() * (float) Math.sqrt(random.nextDouble());
+            float px = area.x() + (float) Math.cos(angle) * r;
+            float py = area.y() + (float) Math.sin(angle) * r;
+            if (!area.contains(px, py) || Math.hypot(px - mx, py - my) > opportunity
+                    || !Warship.bears(m, ship.facingDegrees, mx, my, px, py)) continue;
+            m.aimX = px;
+            m.aimY = py;
+            m.aimVx = 0f;
+            m.aimVy = 0f;
+            return true;
+        }
+        return false;
     }
 
     /** The seconds between two rounds of a burst: the weapon's own, held to the preset's rolling-barrage window for a rack. */
