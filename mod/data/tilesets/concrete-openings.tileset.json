@@ -1,0 +1,137 @@
+{
+  "blocks": [
+    {
+      "id": "installation.dark-concrete-window",
+      "layout": "cardinal-2x2",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-door",
+      "layout": "cardinal-2x2",
+      "origin": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": "installation.light-concrete-window",
+      "layout": "cardinal-2x2",
+      "origin": [
+        4,
+        0
+      ]
+    },
+    {
+      "id": "installation.light-concrete-door",
+      "layout": "cardinal-2x2",
+      "origin": [
+        6,
+        0
+      ]
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "opening facing n",
+      "name": "installation.dark-concrete-window facing-n",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "opening facing e",
+      "name": "installation.dark-concrete-window facing-e",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "opening facing s",
+      "name": "installation.dark-concrete-window facing-s",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "opening facing w",
+      "name": "installation.dark-concrete-window facing-w",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "opening facing n",
+      "name": "installation.dark-concrete-door facing-n",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "opening facing e",
+      "name": "installation.dark-concrete-door facing-e",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "opening facing s",
+      "name": "installation.dark-concrete-door facing-s",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "opening facing w",
+      "name": "installation.dark-concrete-door facing-w",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "opening facing n",
+      "name": "installation.light-concrete-window facing-n",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "opening facing e",
+      "name": "installation.light-concrete-window facing-e",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "opening facing s",
+      "name": "installation.light-concrete-window facing-s",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "opening facing w",
+      "name": "installation.light-concrete-window facing-w",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "opening facing n",
+      "name": "installation.light-concrete-door facing-n",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "opening facing e",
+      "name": "installation.light-concrete-door facing-e",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "opening facing s",
+      "name": "installation.light-concrete-door facing-s",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "opening facing w",
+      "name": "installation.light-concrete-door facing-w",
+      "row": 1
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/concrete-openings.png"
+}

@@ -163,6 +163,7 @@ public final class FortressInterior {
         stampWalls(ctx, placed);
         furnish(ctx, placed);
         stampWindows(ctx, placed);
+        InstallationFloors.dress(ctx, placed);
         InstallationWalls.dress(ctx, placed);
         // The airbase is not packed here. It is a lot reserved out of the ward
         // before any of this ran (see FortressWardStage), because an airfield

@@ -558,16 +558,19 @@ public final class VehicleBayFitting implements RoomFitting {
                 Gantry.Facing.of(out[0], out[1]));
     }
 
-    /** Paint the bay's deck, edged and then checkered, before anything stands on it. */
+    /** Paint shipboard deck panels or ground-side bay corners before placing equipment. */
     private void paveBay(RoomFloor floor,
                          int origin, int band, int depth) {
-        // The whole bay is paved and its perimeter is striped, all four sides:
-        // a bay is a marked-out rectangle of deck, and marking three sides of it
-        // is not marking it.
+        // Ship decks retain their full paved perimeter. Outdoor bays identify
+        // all four corners while leaving the installation floor visible.
         for (int step = 0; step < depth; step++) {
             for (int side = 0; side < BAY_WIDTH; side++) {
                 boolean perimeter = side == 0 || side == BAY_WIDTH - 1
                         || step == 0 || step == depth - 1;
+                // Outdoor installations have poured floors, with localized bay-corner markings.
+                // Full-cell checker grates and a continuous hazard carpet belong to the legacy deck.
+                if (!shipboard && !((side == 0 || side == BAY_WIDTH - 1)
+                        && (step == 0 || step == depth - 1))) continue;
                 String paving = perimeter ? FLOOR_EDGE : FLOOR_FIELD[((side + step) & 1)];
                 int[] cell = floor.toLocal(origin + side, band + step);
                 floor.pave(cell[0], cell[1], paving);

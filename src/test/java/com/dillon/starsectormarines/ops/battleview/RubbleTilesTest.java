@@ -13,13 +13,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class RubbleTilesTest {
     @Test void everyMaterialRetainsAllSixteenExposedFaceCombinations() throws Exception {
         TileRegistry registry = TileRegistry.installed();
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/colony-rubble.png").toFile());
-        for (String family : new String[]{"masonry", "ceramic", "olive"}) {
+        for (String family : new String[]{"colony.masonry", "colony.ceramic", "colony.olive",
+                "installation.dark-concrete", "installation.light-concrete"}) {
+            var block = registry.block(family + "-rubble");
+            var image = ImageIO.read(Path.of("mod", block.sheetPath).toFile());
             for (int mask = 0; mask < 16; mask++) {
-                var remnant = new CellTopology.WallRemnant("colony." + family + "-wall",
+                var remnant = new CellTopology.WallRemnant(family + "-wall",
                         CellTopology.GroundKind.INDOOR, null, mask);
                 var skin = RubbleTiles.skin(registry, remnant, "urban.wall");
-                assertEquals("colony." + family + "-rubble", skin.id);
+                assertEquals(family + "-rubble", skin.id);
                 int[] cell = RubbleTiles.cell(skin, remnant);
                 int slot = (mask & 1) | ((mask & 4) >> 1) | ((mask & 2) << 1) | (mask & 8);
                 assertArrayEquals(new int[]{skin.originCol + slot % 4, skin.originRow + slot / 4}, cell);
