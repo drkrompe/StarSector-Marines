@@ -20,6 +20,9 @@ public interface FabricationResources extends CommodityPresentation {
 
     int available(String commodityId);
 
+    /** Current installed-workshop price; both previews and commits ask here. */
+    default FabricationCost quote(FabricationCost base) { return base; }
+
     /** Rechecks and consumes the whole cost, or consumes nothing. */
     boolean spend(FabricationCost cost);
 

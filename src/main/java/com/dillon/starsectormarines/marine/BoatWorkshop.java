@@ -45,7 +45,7 @@ public final class BoatWorkshop {
         if (fitting.id().equals(boat.fittingIn(fitting.slot()).id())) {
             return new Result(Status.ALREADY_FITTED, boat);
         }
-        FabricationCost bill = fitting.bill();
+        FabricationCost bill = resources.quote(fitting.bill());
         if (bill != null && !resources.spend(bill)) {
             return new Result(Status.CANNOT_AFFORD, boat);
         }
@@ -73,7 +73,7 @@ public final class BoatWorkshop {
         CampaignBoat standing = deck.boats().get(berthIndex);
         if (standing != null) return new Result(Status.BERTH_OCCUPIED, standing);
         BoatFabricationCatalog.Recipe recipe = BoatFabricationCatalog.recipe(pattern);
-        if (recipe == null || !resources.spend(recipe.bill())) {
+        if (recipe == null || !resources.spend(resources.quote(recipe.bill()))) {
             return Result.of(Status.CANNOT_AFFORD);
         }
         CampaignBoat built = deck.fabricate(berthIndex);

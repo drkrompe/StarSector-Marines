@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.ops.UiSnapshotSuite;
+import com.dillon.starsectormarines.ops.WorkshopRestorationModel;
+import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration.Offer;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
@@ -27,6 +30,8 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -90,7 +95,10 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                             throw new AssertionError("Damaged bay hatch remains open");
                     }
                     if (conversion && seed == 42) {
-                        if (state == BoatBayState.DAMAGED) frames.addAll(commissionedHermes(context, ship));
+                        if (state == BoatBayState.DAMAGED) {
+                            frames.addAll(commissionedHermes(context, ship));
+                            frames.addAll(workshop(context, ship));
+                        }
                         CompanyDeck deck = CompanyDeck.home(ship, seed, null, List::of, List::of,
                                 () -> new boolean[]{true, false});
                         try {
@@ -116,6 +124,67 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
         }
         return List.copyOf(frames);
     }
+    private List<SnapshotArtifact> workshop(SnapshotContext context, CompanyShip hull) throws Exception {
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        for (long seed : new long[]{42, 81, 2026}) {
+            List<String> baseline = null;
+            for (WorkshopState state : List.of(WorkshopState.BURIED, WorkshopState.CLEARED,
+                    WorkshopState.REPAIRED, WorkshopState.EQUIPPED)) {
+                CompanyShip ship = hull.withWorkshop(state);
+                CompanyDeck deck = CompanyDeck.home(ship, seed, null, List::of, List::of, () -> new boolean[]{true});
+                try {
+                    while (!deck.ready()) Thread.onSpinWait();
+                    deck.advance(1f / 30f);
+                    var graph = deck.rooms();
+                    assertPreparationAccess(deck.map(), graph);
+                    if (baseline == null) baseline = layout(graph);
+                    else if (!baseline.equals(layout(graph))) throw new AssertionError("Workshop stage moved rooms");
+                    var room = deck.room(RoomPurpose.PARTS_CAGE);
+                    var tasks = deck.map().fixtureTasks.stream().filter(t -> room.contains(t.cellX(), t.cellY())).toList();
+                    if (!state.operational() && !tasks.isEmpty()) throw new AssertionError("Broken shop still offers work");
+                    if (state.operational() && tasks.isEmpty()) throw new AssertionError("Restored shop has no work");
+                    if (state == WorkshopState.REPAIRED && tasks.stream().anyMatch(t -> t.affordance() == Affordance.FABRICATE))
+                        throw new AssertionError("Unequipped machines offer precision fabrication");
+                    boolean debris = deck.map().doodads.stream().anyMatch(d -> room.contains(d.cellX, d.cellY)
+                            && "doodad.industrial-scrap-pile".equals(d.definitionId()));
+                    if (debris != (state == WorkshopState.BURIED)) throw new AssertionError("Cached room has wrong debris state");
+                    if (seed == 42) {
+                        var row = new WorkshopRestorationModel.Row(new Offer(state, 12000,
+                                state == WorkshopState.EQUIPPED ? "Workshop fully equipped." : null,
+                                state.operational() ? null : "Repair the workshop first.", 2, 10), true, false, "", () -> {}, () -> {}, () -> {});
+                        for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact(
+                                "workshop-" + state.name().toLowerCase() + "-" + scale + ".png",
+                                UiSnapshotSuite.renderWorkshopRestoration(context, deck, row, scale)));
+                    }
+                } finally { deck.dismiss(); }
+            }
+        }
+        return frames;
+    }
+
+    private static void assertPreparationAccess(MapResult map, DeckGraph graph) {
+        int width = map.grid.getWidth(), height = map.grid.getHeight();
+        boolean[][] reached = new boolean[width][height];
+        var start = graph.largest(RoomPurpose.BRIDGE).doors().stream()
+                .filter(d -> map.grid.isWalkable(d.x(), d.y())).findFirst().orElseThrow();
+        var queue = new ArrayDeque<int[]>(); queue.add(new int[]{start.x(), start.y()});
+        reached[start.x()][start.y()] = true;
+        while (!queue.isEmpty()) {
+            int[] cell = queue.removeFirst();
+            for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int x = cell[0] + step[0], y = cell[1] + step[1];
+                if (x < 0 || y < 0 || x >= width || y >= height || reached[x][y] || !map.grid.isWalkable(x, y)) continue;
+                reached[x][y] = true; queue.addLast(new int[]{x, y});
+            }
+        }
+        for (var room : graph.compartments()) {
+            if (graph.damaged(room.id()) || !List.of(RoomPurpose.BARRACKS, RoomPurpose.ARMORY,
+                    RoomPurpose.HANGAR, RoomPurpose.VEHICLE_BAY).contains(room.purpose())) continue;
+            if (room.doors().stream().noneMatch(d -> reached[d.x()][d.y()]))
+                throw new AssertionError("Restoration isolated preparation room " + room.id() + " " + room.purpose());
+        }
+    }
+
     private static List<String> layout(DeckGraph graph) {
         return graph.compartments().stream().map(r -> r.id() + ":" + r.originX() + ":" + r.originY()
                 + ":" + r.width() + ":" + r.depth() + ":" + r.purpose() + ":" + r.pose() + ":" + r.doors()).toList();

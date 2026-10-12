@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — reserve the starting hull's second bay and apply its condition without relocating rooms.
+Updated: 2026-10-12 - fixed workshop restoration stages and their visible working fixtures.
 
 Earlier 2026-10-11 â€” briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1504,6 +1504,25 @@ that condition after placement; it does not resize the hull, move either worksho
 change compartment positions or award a boat. The physical working berths and the
 campaign lift count agree in both states, with the original bay first in berth
 order. The same layout seed always identifies the same damaged compartment.
+
+A damaged facility can have several useful stages within its permanent footprint.
+Second Wind's main machine shop begins buried, becomes accessible after clearance,
+regains working machinery after repair, and gains installed tools afterward.
+The main shop is the largest parts-work compartment, distinct from small utility
+parts closets. Debris, damaged machinery, empty picking racks and the restored
+assembly tools express those stages in the ordinary generated deck. The closed
+shop provides no work postings; restored stations offer appropriate reachable
+jobs, with fabrication postings returning when tooling is installed.
+
+Condition is applied after the whole room is furnished, preserving placement and
+other rooms' random sequence. Every view and cached deck includes the same saved
+condition. Restoring the shop leaves the Mech Lab, both boat bays, passage plan
+and all compartment footprints in place. Installed machinery and tools stay with
+the hull. Ship interiors publishes these physical facts; campaign restoration
+owns orders and rewards, and workshop transactions consume their enabled benefits.
+Future bunkroom, infirmary, galley and stores chains use this same distinction
+between the reserved space, its condition and its installed equipment. Their
+benefits need concrete consumers before purchases can be offered.
 
 This saved interior condition is independent of vanilla D-mods. Company yard owns
 its paid repair after the opening Relief story; `company-view-nouns.md` owns that

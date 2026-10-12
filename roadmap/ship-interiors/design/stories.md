@@ -22,4 +22,8 @@ The first two stories are sequenced and the second depends on the first.
 `cerberus-company-start.md` implements the optional permanent frigate conversion and
 compact single-gantry room program; its company-view story owns live acceptance.
 
+`machine-shop-restoration.md` owns the first staged facility restoration in the
+company-view board: clearance, machinery repair and installed tooling. Its spaces
+remain fixed; wider capacity reallocation stays with `deck-capacity-upgrades.md`.
+
 Historical implementation slices belong in `shipped.md`.

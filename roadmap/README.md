@@ -154,11 +154,11 @@ then routes each core faction to a dedicated guide. Start with
 armor, special-equipment, and loadout provenance; the owning feature nouns remain
 the authority for mechanics.
 
-Shipboard space is a new model rather than shipped work. The flagship rooms the
-player sees today are hand-authored constant layouts; `ship-interiors-nouns.md`
-proposes one longitudinal deck family that generates them from parameters, makes
-facility capacity spatial and upgradeable, and yields hostile decks for boarding
-from the same pipeline. Nothing in it has been implemented.
+Shipboard room views share one generated company deck. `ship-interiors-nouns.md`
+owns its hull program, working fixtures and saved condition. Second Wind's
+restoration begins with the reserved second bay and the staged machine shop in
+`machine-shop-restoration.md`: clearing, machinery repairs and installed tooling.
+Wider capacity upgrades and hostile boarding decks remain separate open work.
 
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's

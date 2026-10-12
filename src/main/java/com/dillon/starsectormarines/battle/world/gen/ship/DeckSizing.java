@@ -57,7 +57,14 @@ public final class DeckSizing {
      *     rooms that hold them rather than looked up against a roster
      */
     public record DeckPlan(int frames, int height, List<RoomRecipe> rooms,
-                           ShuttleType boats, CompanyShip.BoatBayState boatBay) {
+                           ShuttleType boats, CompanyShip.BoatBayState boatBay, WorkshopState workshop) {
+
+        public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats, CompanyShip.BoatBayState boatBay) {
+            this(frames, height, rooms, boats, boatBay, WorkshopState.NONE);
+        }
+        public DeckPlan withWorkshop(WorkshopState state) {
+            return new DeckPlan(frames, height, rooms, boats, boatBay, state);
+        }
 
         public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats) {
             this(frames, height, rooms, boats, CompanyShip.BoatBayState.NONE);

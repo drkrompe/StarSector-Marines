@@ -1,6 +1,6 @@
 # Deck capacity and upgrades
 
-Status: PROPOSED — gated on a named economic owner.
+Status: PROPOSED - wider capacity transactions remain unimplemented.
 
 Written: 2026-08-26
 
@@ -12,9 +12,14 @@ room. This is the story the whole model exists for: buying bay space adds a
 gantry the player can watch a technician work at, and berthing is the number of
 beds actually on the deck.
 
+Updated: 2026-10-12 - campaign restoration owns bounded fixed-room orders; wider capacity changes remain.
+
 ## The gate
 
-Ship interiors is not an economic authority. This story cannot start until an
+The bounded bay and machine-shop chains now name company campaign restoration as
+their economic owner; see `company-view-nouns.md`. Their fixed-room repairs do not
+implement roster limits or room reallocation. Ship interiors is not an economic
+authority. This wider story needs an
 owner is named for what an upgrade costs, where the money comes from, and how a
 purchase is transacted — progression and campaign are the candidates. The
 `backlog.md` entry *Personnel scale* anticipates exactly this: it defers a
@@ -43,8 +48,8 @@ doc rather than here.
   the number of berths.
 - A failed or invalid upgrade leaves the previous deck intact. Regenerate and
   validate before replacing.
-- Nothing shipped has saves to preserve, so the persisted shape may change
-  outright rather than migrate.
+- Preserve existing hull restoration state, company identities and owned assets
+  when evolving the persisted shape.
 
 ## Acceptance
 

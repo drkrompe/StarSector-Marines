@@ -4,7 +4,7 @@ Status: ACTIVE â€” organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — reserved damaged starting bay and optional paid restoration after Relief.
+Updated: 2026-10-12 - machine-shop restoration and installed-tool fabrication benefits.
 
 ## Purpose
 
@@ -1118,6 +1118,30 @@ Castle with her portrait, the repair's Cost / Available / Short by, and an inspe
 followed by explicit payment. The yard price includes labor and structural materials.
 Repair opens an empty berth; the second Hermes still requires its ordinary fabrication
 bill. This spending is optional and does not gate subsequent missions.
+
+The same hull's machine shop has a three-step restoration chain after Relief.
+Clearance costs 750 credits and recovers 10 metals once; machinery repair costs
+3,000 and enables reclamation of one fleet-cargo heavy machinery into four
+metals; installed tooling costs 4,500 and reduces supplies inputs for Boat Deck
+and Mech Lab fabrication/fitting by 20%, rounded up with a minimum of one per
+supplies line. Other commodities, equipment capabilities, known patterns, squad
+issue and yard credit bills do not receive this benefit. Existing preparation
+services remain available before restoring the workshop.
+
+Paid stages require the original hull to be the active company home and an
+accessible planetary spaceport. Reclamation works underway once machinery is
+restored, uses actual cargo rather than prepaid depot stores, and requires room
+for its output. Installed tools belong to the hull; portable tools are a separate
+future inventory concern. Each order rechecks its reviewed stage, current home,
+funds and prerequisites. Inspection and changing screens spend nothing.
+
+The company ship view lets the player inspect the actual workshop while Castle
+explains its condition and next benefit beside her portrait. Compact SVG progress
+marks the stages; each new stage needs its own purchase review. The room and its
+working stations change immediately after a committed order. Fabrication previews
+and commits use the same current installed-tool quote. A company that changes
+ships receives the new home's benefits, never a discount left over from an old
+screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and
