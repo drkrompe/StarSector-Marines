@@ -428,6 +428,15 @@
     { "id": "marines_voice_dead_18", "source": "voice-dead-lines/18.mp3", "kind": "positional", "out": "battle/voice-dead" },
     { "id": "marines_voice_dead_19", "source": "voice-dead-lines/19.mp3", "kind": "positional", "out": "battle/voice-dead" },
 
+    // Cold Account / Castle, Mara, and Captain Kord
+    {"id": "marines_mara_cold_account_pirate_evidence_confirmed", "source": "wayline/marines_mara_cold_account_pirate_evidence_confirmed.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_kord_cold_account_hegemony_arriving_hold_fire", "source": "wayline/marines_kord_cold_account_hegemony_arriving_hold_fire.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_cold_account_batteries_preparing", "source": "wayline/marines_castle_cold_account_batteries_preparing.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_kord_cold_account_company_clear_open_fire", "source": "wayline/marines_kord_cold_account_company_clear_open_fire.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_cold_account_bombardment_authorized", "source": "wayline/marines_castle_cold_account_bombardment_authorized.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_kord_cold_account_demolition_sweep", "source": "wayline/marines_kord_cold_account_demolition_sweep.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_kord_cold_account_stronghold_destroyed", "source": "wayline/marines_kord_cold_account_stronghold_destroyed.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+
     // ----- misc -----
     // Vehicle engine loops are NOT encoded here — they reference the base game's sounds/sfx_engines/
     // clips directly (see the VEHICLE ENGINE LOOPS block in mod/data/config/sounds.json).
