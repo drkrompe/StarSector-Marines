@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -183,7 +184,7 @@ public class MarineOpsContext {
     public CompanyDeck companyDeck() {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         String hull = aboard == null ? null : aboard.getId();
-        String held = boatsHeldSignature();
+        String held = boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard);
         if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
                 && held.equals(companyDeckBoatsHeld)) {
             return companyDeck;

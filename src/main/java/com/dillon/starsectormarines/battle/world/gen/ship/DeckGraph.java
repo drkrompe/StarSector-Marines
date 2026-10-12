@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The ship deck's published structure: the rooms that were placed, and the ones
@@ -128,6 +129,9 @@ public final class DeckGraph {
     private final List<RoomRecipe> unplaced;
     private final List<BayAperture> apertures;
     private final ShuttleType boats;
+    private final Set<Integer> damagedRooms;
+
+    public boolean damaged(int compartmentId) { return damagedRooms.contains(compartmentId); }
 
     /**
      * @param compartments placed rooms, in deterministic placement order
@@ -156,6 +160,12 @@ public final class DeckGraph {
      */
     public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
                      List<BayAperture> apertures, ShuttleType boats) {
+        this(compartments, unplaced, apertures, boats, Set.of());
+    }
+
+    public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
+                     List<BayAperture> apertures, ShuttleType boats, Set<Integer> damagedRooms) {
+        this.damagedRooms = Set.copyOf(damagedRooms);
         this.compartments = List.copyOf(compartments);
         this.unplaced = List.copyOf(unplaced);
         this.apertures = List.copyOf(apertures);

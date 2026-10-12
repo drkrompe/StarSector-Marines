@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
@@ -62,6 +63,7 @@ public final class BoatDeckScreen implements Screen {
     private MarineRoster roster;
     private CompanyDeck deck;
     private BoatDeckViewModel viewModel;
+    private BoatBayRestorationModel restoration;
     private UiViewport viewport;
     private UiDocument document;
     private PreparationGuide preparationGuide;
@@ -102,6 +104,14 @@ public final class BoatDeckScreen implements Screen {
         } else {
             viewModel.refresh();
         }
+        var reviewedShip = CompanyShipDesignation.aboard();
+        restoration = new BoatBayRestorationModel(reactor,
+                () -> CompanyBayRestoration.offer(reviewedShip, roster),
+                () -> CompanyBayRestoration.repair(reviewedShip, roster),
+                () -> { selectedBayIndex.set(1); viewModel.backToDeckAction().run(); refreshBayPresentation(); invalidateBay(); },
+                () -> { ShipsBoatsAboard.reconcile(roster.boatDeck()); viewModel.refresh(); viewModel.selectBoatAction(1).run(); deckChanged(); });
+        // Rebinding uses a new model when the shell re-enters this screen.
+        if (document != null) closeDocument();
         refreshBayPresentation();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -144,6 +154,7 @@ public final class BoatDeckScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", bayContextLabel);
+        props.put("restoration", restoration.row());
         props.put("activeBayLabel", activeBayLabel);
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
@@ -251,7 +262,6 @@ public final class BoatDeckScreen implements Screen {
         CompanyDeck liveDeck = context.companyDeck();
         if (liveDeck == null || liveDeck == deck) return;
         deck = liveDeck;
-        selectedBayIndex.set(0);
         bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
                 viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld);
         document.canvases().set(bayElement, bayCanvas);
@@ -325,6 +335,7 @@ public final class BoatDeckScreen implements Screen {
     private void cycleBay(int delta) {
         List<DeckGraph.Compartment> bays = hangars();
         if (bays.size() < 2) return;
+        viewModel.backToDeckAction().run();
         selectedBayIndex.set(Math.floorMod(selectedBayIndex.get() + delta, bays.size()));
         refreshBayPresentation();
         invalidateBay();
@@ -341,7 +352,8 @@ public final class BoatDeckScreen implements Screen {
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
         selectedBayIndex.set(index);
         activeBayLabel.set(String.format(Locale.ROOT,
-                "BAY %02d / %02d", index + 1, bays.size()));
+                "%02d/%02d%s", index + 1, bays.size(),
+                deck.rooms().damaged(bays.get(index).id()) ? " SEALED" : ""));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
     }
@@ -349,6 +361,18 @@ public final class BoatDeckScreen implements Screen {
     @Override
     public void advance(float dt) {
         if (deckMayHaveChanged) adoptChangedDeck();
+        if (restoration != null) restoration.refresh();
+        if (deck != null && deck.ready()) {
+            int selected = viewModel.selectedBerthIndex();
+            int offset = 0;
+            List<DeckGraph.Compartment> bays = hangars();
+            for (int index = 0; selected >= 0 && index < bays.size(); index++) {
+                int count = BoatDeckCanvas.boatBerthsIn(deck.scene(), bays.get(index)).size();
+                if (selected < offset + count) { selectedBayIndex.set(index); break; }
+                offset += count;
+            }
+            refreshBayPresentation();
+        }
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard);
         if (document != null) document.advance(dt);

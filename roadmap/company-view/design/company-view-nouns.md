@@ -4,7 +4,7 @@ Status: ACTIVE â€” organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - cohesive first-mission preparation and paid initial lift.
+Updated: 2026-10-12 — reserved damaged starting bay and optional paid restoration after Relief.
 
 ## Purpose
 
@@ -1109,6 +1109,23 @@ on reload or on another conversion; unused stock remains at its planet. Ordinary
 starts and saves receive none. Equipment issue and enlistment retain their existing
 cargo authorities. Castle explains the local stores; workshop labels use available
 stores rather than claiming every counted item is in the hold.
+
+Second Wind's original starting hull reserves a second shuttle bay from the start.
+It is sealed and damaged, supplies no usable berth, and stays visibly distinct
+from an empty working berth. Completing **Hold Until Relieved** unlocks an optional
+8,000-credit restoration at an accessible planetary spaceport. Boat Deck presents
+Castle with her portrait, the repair's Cost / Available / Short by, and an inspection
+followed by explicit payment. The yard price includes labor and structural materials.
+Repair opens an empty berth; the second Hermes still requires its ordinary fabrication
+bill. This spending is optional and does not gate subsequent missions.
+
+Interior restoration is saved by the original hull's identity, independently of
+company designation and vanilla hull damage. Moving company, reopening screens and
+loading saves cannot reset it or replenish the starting depot. The original boat
+and its fittings survive; ordinary hull repairs do not restore this bay. Existing
+custom-start saves acquire the reserved damaged bay while retaining their first boat.
+Other hulls retain their ordinary facilities. `cerberus-bay-restoration.md` owns
+live acceptance of this bounded restoration path.
 
 The variant owns conversion state; `ship-interiors-nouns.md` owns its room program.
 `cerberus-company-start.md` retains the uncompleted live start/save acceptance.

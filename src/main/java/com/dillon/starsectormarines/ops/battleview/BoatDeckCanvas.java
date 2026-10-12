@@ -175,7 +175,8 @@ public final class BoatDeckCanvas implements CanvasProducer {
         for (int y = bottom; y < top; y++) {
             for (int x = left; x < right; x++) {
                 if (topology.inBounds(x, y)
-                        && topology.getGroundKind(x, y) != CellTopology.GroundKind.VOID) continue;
+                        && (topology.isWall(x, y)
+                        || topology.getGroundKind(x, y) != CellTopology.GroundKind.VOID)) continue;
                 float px = (float) Math.floor(p.x(x));
                 float py = (float) Math.floor(p.y(y + 1f));
                 context.fillRect(px, py, (float) Math.ceil(p.x(x + 1f)) - px,

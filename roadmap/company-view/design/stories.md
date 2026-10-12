@@ -1,13 +1,14 @@
 # Company view open work
 
-Status: ACTIVE — 16 open stories
+Status: ACTIVE — 17 open stories
 Written: 2026-08-23
-Updated: 2026-10-11 - cohesive ship-to-mission preparation; boat repairs tracked separately.
+Updated: 2026-10-12 � second-bay restoration implemented; live campaign acceptance remains.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
+| `cerberus-bay-restoration.md` | Implemented; live acceptance open | Reserved damaged second bay; optional paid restoration after Hold Until Relieved. |
 | `cerberus-company-start.md` | Implemented; live acceptance open | Single Cerberus, planetary conversion, finite prepaid depot and existing Castle preparation. |
 | `first-mission-preparation.md` | Implemented; live acceptance open | Ship and combined stores preflight, paid lift, Mira, full squad and first Jangala story handoff. |
 | `boat-condition-and-repairs.md` | Planned | Persist surviving damage, price explicit repairs and teach the first damaged return. |
