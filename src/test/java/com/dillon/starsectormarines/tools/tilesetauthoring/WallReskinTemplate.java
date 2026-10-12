@@ -11,11 +11,14 @@ public final class WallReskinTemplate {
     private WallReskinTemplate() {}
 
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(PANEL * 3, PANEL, BufferedImage.TYPE_INT_RGB);
+        return render(new int[]{0x755139, 0x777569, 0x454C31});
+    }
+
+    public static BufferedImage render(int[] colors) {
+        BufferedImage image = new BufferedImage(PANEL * colors.length, PANEL, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setColor(new Color(0x17191C));
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
-        int[] colors = {0x755139, 0x777569, 0x454C31};
         for (int family = 0; family < colors.length; family++) {
             Color cap = new Color(colors[family]);
             for (int mask = 0; mask < 16; mask++) {

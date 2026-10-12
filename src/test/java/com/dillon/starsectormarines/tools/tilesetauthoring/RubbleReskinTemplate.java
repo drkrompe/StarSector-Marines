@@ -12,9 +12,12 @@ public final class RubbleReskinTemplate {
     private RubbleReskinTemplate() {}
 
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(PANEL * 3, PANEL, BufferedImage.TYPE_INT_ARGB);
-        int[] colors = {0x986347, 0xB9B3A0, 0x70754D};
-        for (int family = 0; family < 3; family++) for (int mask = 0; mask < 16; mask++) {
+        return render(new int[]{0x986347, 0xB9B3A0, 0x70754D});
+    }
+
+    public static BufferedImage render(int[] colors) {
+        BufferedImage image = new BufferedImage(PANEL * colors.length, PANEL, BufferedImage.TYPE_INT_ARGB);
+        for (int family = 0; family < colors.length; family++) for (int mask = 0; mask < 16; mask++) {
             Graphics2D g = image.createGraphics();
             g.translate(family * PANEL + (mask % 4) * PITCH + MARGIN, (mask / 4) * PITCH + MARGIN);
             g.clipRect(0, 0, CELL, CELL);
