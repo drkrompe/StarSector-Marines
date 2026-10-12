@@ -57,7 +57,7 @@ public final class WarshipSpotting {
             int cy = (int) Math.floor(shell.toY);
             // Rounds that land within two cells of one already lit share it.
             if (!roundCells.add(((long) (cx / 2) << 32) | ((cy / 2) & 0xffffffffL))) continue;
-            out.add(new Source(cx, cy, (int) Math.ceil(shell.blastCells) + BLAST_MARGIN, GROUND_WALL_CLEARANCE));
+            out.add(new Source(cx, cy, (int) Math.ceil(shell.blastCells()) + BLAST_MARGIN, GROUND_WALL_CLEARANCE));
         }
         for (LanceSweepSystem.Active a : sim.lanceSweeps().active()) {
             LanceSweep s = a.sweep;

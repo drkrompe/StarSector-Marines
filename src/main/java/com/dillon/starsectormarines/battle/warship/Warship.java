@@ -159,6 +159,7 @@ public final class Warship {
     private final WarshipFlux flux;
     private final WarshipShield shield;
     private boolean fluxConfigured;
+    private MissilePreset missilePreset = MissilePreset.FLAVOURED;
 
     /**
      * Share of the hull table's flux a directed ship runs on. Capacity and
@@ -204,6 +205,16 @@ public final class Warship {
         this.desiredHeading = facingDegrees;
         this.mounts = mounts;
         this.mountsView = Collections.unmodifiableList(mounts);
+    }
+
+    /** How literal this ship's missiles are; {@link MissilePreset#FLAVOURED} unless set. */
+    public MissilePreset missilePreset() {
+        return missilePreset;
+    }
+
+    /** Sets how literal this ship's missiles are. */
+    public void setMissilePreset(MissilePreset preset) {
+        this.missilePreset = preset == null ? MissilePreset.FLAVOURED : preset;
     }
 
     public List<Mount> mounts() {

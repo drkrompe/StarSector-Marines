@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
@@ -144,9 +145,24 @@ public final class WarshipPointDefence {
         return weapon.fluxPerShot() * Math.max(1, weapon.burstSize());
     }
 
-    /** The chance one engagement (the weapon's whole burst) destroys the ordnance. */
+    /** The chance one engagement (the weapon's whole burst) destroys the ordnance, whatever its toughness. */
     public static float engagementKillChance(VanillaWeapon weapon, float distanceCells, float ordnanceSpeedCells) {
-        float miss = 1f - roundHitChance(weapon, distanceCells, ordnanceSpeedCells);
+        return engagementKillChance(weapon, distanceCells, ordnanceSpeedCells, 0f);
+    }
+
+    /**
+     * How much a body's hit points blunt a round: none up to {@link #SOFT_HITPOINTS}, then falling as
+     * {@code 1 / (1 + excess / TOUGHNESS_SCALE)}, so a swarm of weak missiles is the case flak was
+     * designed for and a torpedo is not. Zero or unknown hit points are soft.
+     */
+    public static float toughnessFactor(float hitpoints) {
+        return Interceptable.toughnessFactor(hitpoints);
+    }
+
+    /** As {@link #engagementKillChance(VanillaWeapon, float, float)}, for a body with {@code hitpoints}. */
+    public static float engagementKillChance(VanillaWeapon weapon, float distanceCells, float ordnanceSpeedCells,
+                                             float hitpoints) {
+        float miss = 1f - roundHitChance(weapon, distanceCells, ordnanceSpeedCells) * toughnessFactor(hitpoints);
         int rounds = weapon.beam() ? 1 : Math.max(1, weapon.burstSize());
         return 1f - (float) Math.pow(miss, rounds);
     }
@@ -154,7 +170,8 @@ public final class WarshipPointDefence {
     /** The ordnance a mount has picked, and where it is now. */
     private static final class Target {
         Projectile projectile;
-        WarshipShell shell;
+        Interceptable body;
+        float hitpoints;
         float x;
         float y;
         float speed;
@@ -176,7 +193,8 @@ public final class WarshipPointDefence {
     }
 
     /** One tick of one point-defence mount. */
-    void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m, List<WarshipShell> shells) {
+    void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m, List<WarshipShell> shells,
+                   List<WarheadStrike> strikes) {
         m.secondsSinceFired += dt;
         m.cooldown -= dt;
         float mx = ship.mountX(m);
@@ -187,7 +205,7 @@ public final class WarshipPointDefence {
             WarshipSystem.traverse(dt, ship, m, rest);
             return;
         }
-        Target target = nearest(sim, ship, m, mx, my, shells);
+        Target target = nearest(sim, ship, m, mx, my, shells, strikes);
         if (target == null) {
             WarshipSystem.traverse(dt, ship, m, rest);
             return;
@@ -208,42 +226,47 @@ public final class WarshipPointDefence {
         float dx = target.x - mx;
         float dy = target.y - my;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        boolean stopped = random.nextFloat() < engagementKillChance(w, distance, target.speed);
+        boolean stopped = random.nextFloat() < engagementKillChance(w, distance, target.speed, target.hitpoints);
         engagements++;
         if (stopped) {
             intercepts++;
             m.intercepts++;
             if (target.projectile != null) target.projectile.intercepted = true;
-            if (target.shell != null) target.shell.intercepted = true;
+            if (target.body != null) target.body.intercept();
         }
         marks.add(new LiveMark(ship.faction, w, mx, my, target.x, target.y, stopped));
     }
 
     /** The nearest hostile round in flight that the mount can reach and bear on. */
     private static Target nearest(BattleSimulation sim, Warship ship, Warship.Mount m,
-                                  float mx, float my, List<WarshipShell> shells) {
+                                  float mx, float my, List<WarshipShell> shells, List<WarheadStrike> strikes) {
         Target best = new Target();
         for (Projectile p : sim.getActiveProjectiles()) {
             if (!p.pointDefenseTarget || p.intercepted || p.remainingTime <= 0f) continue;
             if (!ship.faction.hostileTo(p.shooterFaction)) continue;
-            consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), p, null);
+            consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), 0f, p, null);
         }
         for (WarshipShell s : shells) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
-            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), null, s);
+            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s);
         }
-        return best.projectile == null && best.shell == null ? null : best;
+        for (WarheadStrike s : strikes) {
+            if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
+            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s);
+        }
+        return best.projectile == null && best.body == null ? null : best;
     }
 
     private static void consider(Target best, Warship ship, Warship.Mount m, float mx, float my,
-                                 float x, float y, float speed, Projectile p, WarshipShell s) {
+                                 float x, float y, float speed, float hitpoints, Projectile p, Interceptable s) {
         float dx = x - mx;
         float dy = y - my;
         float d2 = dx * dx + dy * dy;
         if (d2 >= best.distanceSq) return;
         if (!Warship.bears(m, ship.facingDegrees, mx, my, x, y)) return;
         best.projectile = p;
-        best.shell = s;
+        best.body = s;
+        best.hitpoints = hitpoints;
         best.x = x;
         best.y = y;
         best.speed = speed;

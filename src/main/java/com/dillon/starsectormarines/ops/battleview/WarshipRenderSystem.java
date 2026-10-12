@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.engine.EngineStylePalette;
+import com.dillon.starsectormarines.battle.warship.BloomPath;
 import com.dillon.starsectormarines.battle.warship.MissileFlightSpec;
 import com.dillon.starsectormarines.battle.warship.MissilePath;
 import com.dillon.starsectormarines.battle.warship.VanillaBeamLook;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
+import com.dillon.starsectormarines.battle.warship.SplitEvent;
 import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
 import com.dillon.starsectormarines.battle.warship.WarheadStrike;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -17,6 +19,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,8 +51,15 @@ public final class WarshipRenderSystem implements RenderSystem {
     private static final int TAIL_PUFFS = 10;
     /** The longest a missile's smoke is drawn behind it, in seconds, however long its spec lets a contrail hang. */
     private static final float TRAIL_MAX_SECONDS = 1.2f;
-    private static final float SPLIT_FLASH_SECONDS = 0.35f;
-    private static final float STRIKE_STREAK_CELLS = 3f;
+    private static final int TAIL_PUFFS_DENSE = 4;
+    /** More bodies than this in the air and each draws a shorter tail, so a full swarm stays affordable. */
+    private static final int DENSE_BODIES = 96;
+    private static final int STRIKE_TRAIL_SAMPLES = 6;
+    private static final float STRIKE_TRAIL_SECONDS = 0.4f;
+    private static final int SPLIT_SMOKE_PUFFS = 7;
+    private static final int FOOTPRINT_SEGMENTS = 56;
+    /** The furthest a body's drawn trail reaches from it, in cells, for culling. */
+    private static final float BODY_CULL_EXTENT_CELLS = 14f;
     private static final String GLOW = "graphics/fx/particlealpha64linear.png";
     private static final Color DEFAULT_FLASH = new Color(255, 225, 165);
     private static final Color PD_FRINGE = new Color(255, 200, 90);
@@ -83,6 +93,10 @@ public final class WarshipRenderSystem implements RenderSystem {
     private final BattleSprites sprites;
     /** Seconds the flicker has run, fed from the host clock or accumulated frame time. */
     private float engineClockSeconds;
+    /** Whether this frame's framing is close enough for a swarm body's flame and contrail to read. */
+    private boolean swarmDetail = true;
+    /** How many puffs of smoke a missile draws behind it this frame. */
+    private int tailPuffs = TAIL_PUFFS;
 
     public WarshipRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -111,11 +125,27 @@ public final class WarshipRenderSystem implements RenderSystem {
             }
             drawShield(out, cam, cellPx, ctx.alphaMult, ship);
         }
-        for (WarshipShell shell : ctx.sim.warships().shells()) {
+        ViewCull cull = ViewCull.of(cam);
+        List<WarshipShell> shells = ctx.sim.warships().shells();
+        List<WarheadStrike> strikes = ctx.sim.warships().strikes();
+        swarmDetail = ZoomDetail.swarmDetailVisible(cam);
+        tailPuffs = !swarmDetail ? 2 : shells.size() + strikes.size() > DENSE_BODIES ? TAIL_PUFFS_DENSE : TAIL_PUFFS;
+        List<WarshipShell.Footprint> ringed = new ArrayList<>(4);
+        for (WarshipShell shell : shells) {
+            WarshipShell.Footprint footprint = shell.footprint();
+            if (footprint != null && !ringed.contains(footprint)) {
+                ringed.add(footprint);
+                drawFootprint(out, cam, cellPx, ctx.alphaMult, shell);
+            }
+            if (!cull.visible(shell.x(), shell.y(), BODY_CULL_EXTENT_CELLS)) continue;
             drawShell(out, cam, cellPx, ctx.alphaMult, shell);
         }
-        for (WarheadStrike strike : ctx.sim.warships().strikes()) {
+        for (WarheadStrike strike : strikes) {
+            if (!cull.visible(strike.x(), strike.y(), BODY_CULL_EXTENT_CELLS)) continue;
             drawStrike(out, cam, cellPx, ctx.alphaMult, strike);
+        }
+        for (SplitEvent split : ctx.sim.warships().splits()) {
+            drawSplit(out, cam, cellPx, ctx.alphaMult, split);
         }
         for (WarshipPointDefence.Mark mark : ctx.sim.warships().pointDefence().marks()) {
             drawEngagement(out, cam, cellPx, ctx.alphaMult, mark);
@@ -410,9 +440,9 @@ public final class WarshipRenderSystem implements RenderSystem {
         MissilePath path = shell.path();
         float now = shell.elapsed();
         float span = Math.min(now, lifetime);
-        for (int i = 0; i < TAIL_PUFFS; i++) {
-            float back = span * i / TAIL_PUFFS;
-            float fade = 1f - (float) i / TAIL_PUFFS;
+        for (int i = 0; i < tailPuffs; i++) {
+            float back = span * i / tailPuffs;
+            float fade = 1f - (float) i / tailPuffs;
             float size = (0.6f + 0.1f * i) * (float) Math.sqrt(widthMult) * cellPx * ROUND_VISUAL_SCALE * 2f;
             Color c = i < 2 ? flame : smoke;
             float a = i < 2 ? 0.6f : 0.4f * Math.max(0.35f, smokeAlpha);
@@ -422,7 +452,7 @@ public final class WarshipRenderSystem implements RenderSystem {
                     c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, a * fade * alpha);
         }
         SpriteAPI flameSprite = sprites.engineFlameSprite();
-        if (flameSprite == null || flight == null) return;
+        if (flameSprite == null || flight == null || !swarmDetail) return;
         // The nozzle burns while the motor does; the flame points back down the path.
         if (now > flight.burnSeconds() && flight.burnSeconds() > 0f) return;
         float heading = path.headingDegrees(now) + 180f;
@@ -439,40 +469,118 @@ public final class WarshipRenderSystem implements RenderSystem {
     }
 
     /**
-     * A warhead a carrier has let go, crossing from the split point to where it will
-     * burst: a bright dart with a short streak behind it, and, for the first instants, the
-     * flash and smoke of the split itself. Presentation of a landing already decided.
+     * A warhead a carrier has let go, crossing from the split point to where it will burst: its
+     * own sprite nose-first along the curve it flies, an engine glow, and a trail that is the same
+     * curve sampled a little earlier, so it hangs along the weave and costs no state. At far zoom
+     * only the glow is drawn. Presentation of a landing already decided.
      */
     private void drawStrike(DrawList out, BattleCamera cam, float cellPx, float alpha, WarheadStrike strike) {
         ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
         if (glow == null) return;
-        Color c = strike.weapon.explosionColor() != null ? strike.weapon.explosionColor() : DEFAULT_FLASH;
+        VanillaWeapon w = strike.weapon;
+        Color c = w.explosionColor() != null ? w.explosionColor() : DEFAULT_FLASH;
+        MissileFlightSpec flight = w.flight();
+        Color flame = flight != null && flight.engineColor() != null ? flight.engineColor() : MISSILE_FLAME;
         float r = c.getRed() / 255f;
         float g = c.getGreen() / 255f;
         float b = c.getBlue() / 255f;
-        if (strike.age() < SPLIT_FLASH_SECONDS) {
-            float fade = 1f - strike.age() / SPLIT_FLASH_SECONDS;
-            float size = (2f + 6f * (1f - fade)) * cellPx;
-            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
-                    cam.cellToScreenX(strike.releaseX), cam.cellToScreenY(strike.releaseY), size, size, 0f,
-                    1f, 0.9f, 0.7f, 0.8f * fade * alpha);
-        }
         float x = strike.x();
         float y = strike.y();
-        float dx = strike.aimX - strike.releaseX;
-        float dy = strike.aimY - strike.releaseY;
-        float len = (float) Math.sqrt(dx * dx + dy * dy);
-        float ux = len > 0.001f ? dx / len : 0f;
-        float uy = len > 0.001f ? dy / len : 0f;
-        float tail = Math.min(STRIKE_STREAK_CELLS, strike.progress() * len);
-        float width = Math.max(2f, 0.2f * cellPx);
         float hx = cam.cellToScreenX(x);
         float hy = cam.cellToScreenY(y);
-        float tx = cam.cellToScreenX(x - ux * tail);
-        float ty = cam.cellToScreenY(y - uy * tail);
-        out.addLine(RenderLayer.SHUTTLES, hx, hy, tx, ty, width, r, g, b, 0.75f * alpha);
-        out.addLine(RenderLayer.SHUTTLES, hx, hy, tx, ty, width * 0.4f, 1f, 1f, 1f, alpha);
-        float head = 1.3f * cellPx;
+        float age = strike.age();
+        if (swarmDetail) {
+            BloomPath path = strike.path();
+            for (int i = STRIKE_TRAIL_SAMPLES - 1; i >= 1; i--) {
+                float back = i * STRIKE_TRAIL_SECONDS / STRIKE_TRAIL_SAMPLES;
+                if (age - back < 0f) continue;
+                float fade = 1f - (float) i / STRIKE_TRAIL_SAMPLES;
+                float size = (0.5f + 0.7f * fade) * cellPx;
+                Color tint = i < 2 ? flame : c;
+                out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
+                        cam.cellToScreenX(path.x(age - back)), cam.cellToScreenY(path.y(age - back)),
+                        size, size, 0f, tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f,
+                        0.55f * fade * alpha);
+            }
+            String spritePath = strike.spriteId() != null ? strike.spriteId() : w.projectileSprite();
+            ShuttleSpriteCache art = sprites.spriteByPath(spritePath);
+            if (art != null) {
+                float wPx = WarshipScale.cells(art.pxW) * cellPx * ROUND_VISUAL_SCALE;
+                float hPx = WarshipScale.cells(art.pxH) * cellPx * ROUND_VISUAL_SCALE;
+                out.addSprite(RenderLayer.SHUTTLES, art.sprite, hx, hy, wPx, hPx, strike.headingDegrees(),
+                        1f, 1f, 1f, alpha);
+            }
+        }
+        float head = (swarmDetail ? 1.5f : 1.1f) * cellPx;
         out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, hx, hy, head, head, 0f, r, g, b, 0.85f * alpha);
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, hx, hy, head * 0.4f, head * 0.4f, 0f,
+                1f, 1f, 1f, 0.9f * alpha);
+    }
+
+    /**
+     * The split: one hot flash, a shockwave ring and a puff of smoke at the point the carrier let
+     * its warheads go, drawn once for the whole sheaf and fading over {@link SplitEvent#SECONDS}.
+     */
+    private void drawSplit(DrawList out, BattleCamera cam, float cellPx, float alpha, SplitEvent split) {
+        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
+        if (glow == null) return;
+        float fresh = split.freshness();
+        float grown = 1f - fresh;
+        float sx = cam.cellToScreenX(split.x);
+        float sy = cam.cellToScreenY(split.y);
+        float flash = (3f + 9f * grown) * split.scale * cellPx;
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, sx, sy, flash, flash, 0f, 1f, 0.9f, 0.7f,
+                0.9f * fresh * fresh * alpha);
+        float core = (1.5f + 3f * grown) * split.scale * cellPx;
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, sx, sy, core, core, 0f, 1f, 1f, 1f,
+                fresh * alpha);
+        ShuttleSpriteCache ring = sprites.spriteByPath(SHIELD_RING);
+        if (ring != null) {
+            float d = (2f + 16f * (float) Math.sqrt(grown)) * split.scale * cellPx;
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, ring.sprite, sx, sy, d, d, 0f, 1f, 0.8f, 0.5f,
+                    0.7f * fresh * alpha);
+        }
+        // Smoke: the spec's own colour (else grey), puffs thrown outward and slowed as they go.
+        Color smoke = split.smoke != null ? split.smoke : MISSILE_SMOKE;
+        float smokeAlpha = Math.max(0.25f, smoke.getAlpha() / 255f);
+        for (int i = 0; i < SPLIT_SMOKE_PUFFS; i++) {
+            double a = i * 2.399963 + split.x * 1.7;
+            float reach = (1f + 4f * (float) Math.sqrt(grown)) * split.scale * (0.6f + 0.4f * ((i * 37) % 10) / 10f);
+            float size = (1.6f + 2.4f * grown) * split.scale * cellPx;
+            out.addSprite(RenderLayer.SHUTTLES, glow.sprite,
+                    sx + (float) Math.cos(a) * reach * cellPx, sy + (float) Math.sin(a) * reach * cellPx,
+                    size, size, 0f, smoke.getRed() / 255f, smoke.getGreen() / 255f, smoke.getBlue() / 255f,
+                    0.5f * smokeAlpha * fresh * alpha);
+        }
+    }
+
+    /**
+     * The ground a volley or a sheaf will come down on, while it is still in the air: a faint dashed
+     * ring that turns slowly and pulses faster as the carrier or the head of the volley nears it.
+     * In the style of a lance's telegraph, and much quieter, because there are many bodies and the
+     * ring is a warning rather than a line of fire.
+     */
+    private void drawFootprint(DrawList out, BattleCamera cam, float cellPx, float alpha,
+                               WarshipShell shell) {
+        WarshipShell.Footprint f = shell.footprint();
+        float rate = 2f + 6f * shell.progress();
+        float pulse = 0.5f + 0.5f * (float) Math.sin(engineClockSeconds * rate * Math.PI);
+        float a = (0.2f + 0.3f * pulse) * alpha;
+        float widthPx = Math.max(1.5f, 0.16f * cellPx);
+        Color c = shell.weapon.explosionColor() != null ? shell.weapon.explosionColor() : DEFAULT_FLASH;
+        float r = Math.min(1f, 0.5f + c.getRed() / 510f);
+        float g = Math.min(1f, 0.25f + c.getGreen() / 600f);
+        float b = Math.min(1f, 0.15f + c.getBlue() / 700f);
+        float spin = engineClockSeconds * 0.25f;
+        float px = 0f;
+        float py = 0f;
+        for (int i = 0; i <= FOOTPRINT_SEGMENTS; i++) {
+            double ang = spin + 2.0 * Math.PI * i / FOOTPRINT_SEGMENTS;
+            float x = cam.cellToScreenX(f.x() + (float) Math.cos(ang) * f.radius());
+            float y = cam.cellToScreenY(f.y() + (float) Math.sin(ang) * f.radius());
+            if (i > 0 && (i & 1) == 0) out.addLine(RenderLayer.SHUTTLES, px, py, x, y, widthPx, r, g, b, a);
+            px = x;
+            py = y;
+        }
     }
 }

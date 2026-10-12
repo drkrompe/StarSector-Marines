@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -18,6 +19,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.squad.Squad;
+
+import java.util.List;
 
 /**
  * Read + mutate window onto the battle, for code that runs during the
@@ -38,6 +41,12 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Optional battle-owned async routing service; null for the synchronous control. */
     default AsyncDefendTrackRoutes asyncDefendTrackRoutes() { return null; }
+
+    /**
+     * Ordnance in flight that is not a {@code Projectile} but that point defence may still shoot down,
+     * such as a warship's missiles and their warheads; empty where the battle has none.
+     */
+    default List<Interceptable> interceptableOrdnance() { return List.of(); }
 
     /** Resolve an externally delivered blast through the shared AoE/structure pipeline. */
     void detonateNow(PendingDetonation detonation);

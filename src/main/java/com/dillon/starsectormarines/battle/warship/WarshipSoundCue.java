@@ -23,6 +23,8 @@ public record WarshipSoundCue(Kind kind, String soundId, float x, float y, float
          */
         BEAM_BURNING,
         /** A round landed. */
-        IMPACT
+        IMPACT,
+        /** A carrier let its warheads go (the game's own split sound), once for the whole sheaf. */
+        SPLIT
     }
 }
