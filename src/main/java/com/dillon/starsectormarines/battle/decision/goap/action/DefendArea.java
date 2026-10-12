@@ -31,6 +31,13 @@ public final class DefendArea implements Action {
     private static final int PREPARED_POSITION_SEARCH_RADIUS = 5;
     private static final float PREPARED_LINE_REARWARD_OFFSET = 3f;
     private static final float PREPARED_LINE_SPACING = 2.5f;
+    /** Target gap, in cells, between neighbours standing in a quiet circle. */
+    private static final float QUIET_SPACING = 4f;
+    /** A sunflower of N points spaced S apart has radius about S*sqrt(N)/this. */
+    private static final float QUIET_DENSITY_DIVISOR = 1.77f;
+    /** Quiet members stay well inside the edge so a flank is not the first thing outside the circle. */
+    private static final float QUIET_MAX_RADIUS_SHARE = 0.7f;
+    private static final double GOLDEN_ANGLE = Math.PI * (3d - Math.sqrt(5d));
 
     private final int centerX;
     private final int centerY;
@@ -150,10 +157,24 @@ public final class DefendArea implements Action {
     private int[] quietPosition(long member, Squad squad, BattleView sim) {
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
-        int columns = Math.min(4, count);
-        int x = centerX + ordinal % columns - (columns - 1) / 2;
-        int y = centerY + ordinal / columns;
-        return nearestWalkableInside(x, y, sim);
+        float[] offset = quietOffset(ordinal, count, radius);
+        return nearestWalkableInside(Math.round(centerX + offset[0]),
+                Math.round(centerY + offset[1]), sim);
+    }
+
+    /**
+     * Offset from the circle's centre for member {@code ordinal} of {@code count}
+     * while no enemy is known: a sunflower spiral whose members sit about
+     * {@link #QUIET_SPACING} cells apart, kept inside the ordered circle. A lone
+     * member holds the centre; a larger squad fans out rather than packing a block.
+     */
+    static float[] quietOffset(int ordinal, int count, int radius) {
+        if (count <= 1) return new float[]{0f, 0f};
+        float reach = Math.min(radius * QUIET_MAX_RADIUS_SHARE,
+                QUIET_SPACING * (float) Math.sqrt(Math.max(1, count)) / QUIET_DENSITY_DIVISOR);
+        float distance = reach * (float) Math.sqrt((ordinal + 0.5f) / count);
+        double angle = ordinal * GOLDEN_ANGLE;
+        return new float[]{(float) (Math.cos(angle) * distance), (float) (Math.sin(angle) * distance)};
     }
 
     private int[] nearestWalkableInside(int wantedX, int wantedY, BattleView sim) {
