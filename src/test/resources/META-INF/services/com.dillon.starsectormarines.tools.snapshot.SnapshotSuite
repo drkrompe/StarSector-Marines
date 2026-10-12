@@ -63,3 +63,4 @@ com.dillon.starsectormarines.battle.warship.OnslaughtDirectorSceneSnapshotSuite
 com.dillon.starsectormarines.ops.CorvusWaylineSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipBudgetSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtFlybySceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.OnslaughtDistrictSceneSnapshotSuite
