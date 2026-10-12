@@ -947,8 +947,7 @@ public final class SeparationSystem {
                     // Mechs and manual movers share body clearance with their
                     // route/drive step; relaxation cannot undo terrain contact.
                     ManualTerrainMotion.Result result = ManualTerrainMotion.move(
-                            grid, ax, ay, ix, iy, collisionRadius[i],
-                            isMech(table.entityAt(row)));
+                            grid, ax, ay, ix, iy, collisionRadius[i]);
                     posX[row] = result.x();
                     posY[row] = result.y();
                     appliedX = result.dx();
