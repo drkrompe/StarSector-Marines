@@ -82,7 +82,7 @@ final class MaintenanceOutpostLandscape {
         var roads = c.get(BspKeys.ROAD_RESERVATION);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
             if (claim[x][y] != GrownTrunkPlan.UNOWNED || roads[x][y] || c.isMadeGround(x, y)
-                    || berthApproach(c, x, y) || !c.grid.isWalkable(x, y) || c.grid.isDoorway(x, y)
+                    || !c.grid.isWalkable(x, y) || c.grid.isDoorway(x, y)
                     || c.topology.isWall(x, y) || c.topology.isFixture(x, y)
                     || c.topology.hasBuildingKindHint(x, y) || c.topology.getSurface(x, y) != 0
                     || c.topology.roadSurface().underlay(x, y) != null) continue;
@@ -92,6 +92,8 @@ final class MaintenanceOutpostLandscape {
                     if (c.topology.terrainSurface().patch(x, y, layer) != null) terrain = true;
             open[y * c.width + x] = !terrain;
         }
+        // Air approaches exclude tall obstructions, not native ground patches or passable stones.
+        // The explicit hardstands above are protected by made-ground ownership instead.
         NatureZoneFiller.dressOpenGround(c, open);
     }
 
