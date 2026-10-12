@@ -44,6 +44,7 @@ public final class WarshipSystem {
     private final List<WarheadStrike> strikesView = Collections.unmodifiableList(strikes);
     private final Random random = new Random(20261011L);
     private final WarshipPointDefence pointDefence = new WarshipPointDefence();
+    private final WarshipAirFire airFire = new WarshipAirFire(shells, pointDefence);
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -136,6 +137,11 @@ public final class WarshipSystem {
         return pointDefence;
     }
 
+    /** The ships' fire at aircraft, for evidence. */
+    public WarshipAirFire airFire() {
+        return airFire;
+    }
+
     /** Rounds in flight, for presentation and evidence. */
     public List<WarshipShell> shells() {
         return shellsView;
@@ -162,6 +168,7 @@ public final class WarshipSystem {
         clock += dt;
         landShells(dt, sim);
         landStrikes(dt, sim);
+        airFire.advance(sim, ships);
         ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
             doctrine(dt, sim, ship);
@@ -173,8 +180,12 @@ public final class WarshipSystem {
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.pointDefence()) {
-                    pointDefence.tickMount(dt, sim, ship, mount, shells);
-                } else {
+                    boolean ordnance = WarshipAirFire.scope(ship) != WarshipAirFire.Scope.NONE
+                            && pointDefence.hasTarget(sim, ship, mount, shells);
+                    if (!airFire.tickMount(dt, sim, ship, mount, ordnance)) {
+                        pointDefence.tickMount(dt, sim, ship, mount, shells);
+                    }
+                } else if (!airFire.tickMount(dt, sim, ship, mount, false)) {
                     tickMount(dt, sim, ship, mount);
                 }
             }
@@ -598,6 +609,7 @@ public final class WarshipSystem {
         for (WarshipShell s : shells) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
             PendingDetonation d = s.landing();
+            if (d == null) continue;
             if (nearHull(ship, s.toX, s.toY, s.blastCells)
                     && threatens(ship, d.damage, d.penetration, s.toX, s.toY)) return true;
         }
@@ -1045,7 +1057,7 @@ public final class WarshipSystem {
                 /*authoredAftermath*/ heavy);
     }
 
-    private static float penetration(String damageType) {
+    static float penetration(String damageType) {
         return switch (damageType) {
             case "KINETIC" -> PENETRATION_KINETIC;
             case "HIGH_EXPLOSIVE" -> PENETRATION_EXPLOSIVE;

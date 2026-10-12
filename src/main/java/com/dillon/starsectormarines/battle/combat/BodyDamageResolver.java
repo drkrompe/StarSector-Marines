@@ -36,6 +36,23 @@ public final class BodyDamageResolver {
     public void resolve(BodyCarrier carrier, long targetId, long attackerId,
                         float damage, float penetration) {
         if (!carrier.isTargetable(targetId)) return;
+        apply(carrier, targetId, attackerId, damage, penetration);
+    }
+
+    /**
+     * A hit aimed at the body by a shooter that can reach where it is, so an airborne body is a legal
+     * target. The ordinary route refuses one, because a blast or a bullet fired at the ground must never
+     * reach a machine in the air; an aimed shot has already answered that question (the shooter's weapon
+     * may engage this class of craft) and is owed the same armour and structure law as any other hit.
+     */
+    public void resolveAimed(BodyCarrier carrier, long targetId, long attackerId,
+                             float damage, float penetration) {
+        if (!carrier.isPresent(targetId)) return;
+        apply(carrier, targetId, attackerId, damage, penetration);
+    }
+
+    private void apply(BodyCarrier carrier, long targetId, long attackerId,
+                       float damage, float penetration) {
         World world = roster.world();
         float hpBefore = world.hp(targetId);
         float armorBefore = world.armor(targetId);

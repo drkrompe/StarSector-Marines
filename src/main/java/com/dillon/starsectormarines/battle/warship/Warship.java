@@ -876,6 +876,18 @@ public final class Warship {
         return dangerClose;
     }
 
+    private AirFireOrder airFire = AirFireOrder.AUTO;
+
+    /** What the ship's weapons may fire at in the air; see {@link AirFireOrder}. */
+    public void airFire(AirFireOrder order) {
+        if (order == null) throw new IllegalArgumentException("an air-fire order is needed");
+        this.airFire = order;
+    }
+
+    public AirFireOrder airFire() {
+        return airFire;
+    }
+
     /**
      * Declares a threat to this ship (the fleet is busy with hostile fleets, a
      * scripted ambush) of {@code strength} that lasts {@code seconds}; the

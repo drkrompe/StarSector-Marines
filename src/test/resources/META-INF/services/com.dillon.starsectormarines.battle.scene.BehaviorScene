@@ -25,3 +25,4 @@ com.dillon.starsectormarines.battle.warship.WarshipShieldScene
 com.dillon.starsectormarines.battle.warship.WarshipPostureScene
 com.dillon.starsectormarines.battle.warship.WarshipSupportFireScene
 com.dillon.starsectormarines.battle.warship.WarshipInterceptScene
+com.dillon.starsectormarines.battle.warship.WarshipVsAirScene
