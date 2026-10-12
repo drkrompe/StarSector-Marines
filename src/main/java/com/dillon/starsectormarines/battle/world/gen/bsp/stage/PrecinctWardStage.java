@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
@@ -460,6 +461,7 @@ public final class PrecinctWardStage implements GenStage {
                 topology.setWallDirMask(x, y, mask);
             }
         }
+        InstallationWalls.perimeter(ctx, wall);
     }
 
     /** Off the map counts as outside, so an edge-hugging wall still gets a face. */

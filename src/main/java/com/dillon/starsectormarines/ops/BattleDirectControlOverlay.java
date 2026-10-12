@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.ops.BattleDirectControlHelp.Layout;
+import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -50,6 +52,15 @@ final class BattleDirectControlOverlay {
     private StarsectorUiInputAdapter actionsInput;
     private UiViewport viewport;
     private StarsectorUiInputAdapter input;
+    private final BattleDirectControlHelpPlate helpPlate = new BattleDirectControlHelpPlate(reactor);
+    private final BattleDirectControlHelp.Hover helpHover = new BattleDirectControlHelp.Hover();
+    private MarkupInstance helpMarkup;
+    private UiDocument helpDocument;
+    private UiViewport helpViewport;
+    private Layout helpLayout;
+    private Carrier helpCarrier = Carrier.NONE;
+    private boolean helpPointerKnown;
+    private float helpPointerX, helpPointerY;
     private boolean visible;
 
     private boolean activeMode;
@@ -82,6 +93,11 @@ final class BattleDirectControlOverlay {
                     List.of(ACTIONS_COMPONENT_PATH));
             actionsMarkup = actionsLoader.reloadAndBuild(reactor, ACTIONS_COMPONENT, actionModel.actionsProps());
             actionsDocument = document(actionsMarkup);
+            MarkupLoader helpLoader = new MarkupLoader(path -> Global.getSettings().loadText(path),
+                    List.of(BattleDirectControlHelpPlate.COMPONENT_PATH));
+            helpMarkup = helpLoader.reloadAndBuild(reactor, BattleDirectControlHelpPlate.COMPONENT,
+                    helpPlate.props());
+            helpDocument = document(helpMarkup);
         }
         update(0f, sim, speedMultiplier);
     }
@@ -134,6 +150,8 @@ final class BattleDirectControlOverlay {
             deactivateDocuments();
             input = null;
             actionsInput = null;
+            helpViewport = null;
+            helpHover.collapse();
         }
         activeMode = active;
         if (!active) dockTop = false;
@@ -148,12 +166,15 @@ final class BattleDirectControlOverlay {
         disabled.set(!active && !eligible);
         label.set(Strings.get("battleDirectEnter"));
         if (active) {
-            actionModel.update(BattleDirectControlStatus.snapshot(sim),
-                    sim.directControl().selectedWeapon(), speedMultiplier == 0f);
+            var status = BattleDirectControlStatus.snapshot(sim);
+            helpCarrier = status.carrier();
+            actionModel.update(status, sim.directControl().selectedWeapon(), speedMultiplier == 0f);
         }
+        updateHelp(dt, active);
         if (markup != null) markup.flush();
         if (actionMarkup != null) actionMarkup.flush();
         if (actionsMarkup != null) actionsMarkup.flush();
+        if (helpMarkup != null) helpMarkup.flush();
         UiDocument current = currentDocument();
         if (position != null && current != null) {
             UiViewport next = active ? viewport(position, true, dockTop)
@@ -178,7 +199,44 @@ final class BattleDirectControlOverlay {
         }
     }
 
+    /** The help tab is hover-only: pointer events are observed here, never consumed or acted on. */
+    private void trackPointer(List<InputEventAPI> events) {
+        for (InputEventAPI event : events) {
+            if (event.isMouseMoveEvent() || event.isLMBDownEvent() || event.isLMBUpEvent()
+                    || event.isRMBDownEvent() || event.isRMBUpEvent()) {
+                helpPointerKnown = true;
+                helpPointerX = event.getX();
+                helpPointerY = event.getY();
+            }
+        }
+    }
+
+    private void updateHelp(float dt, boolean active) {
+        if (helpDocument == null || position == null || !active) {
+            helpLayout = null;
+            helpHover.collapse();
+            return;
+        }
+        UiViewport strip = actionsViewport(position);
+        float top = strip.screenY() + strip.height();
+        Layout layout = BattleDirectControlHelp.layout(strip.screenX(), top, strip.documentScale(),
+                BattleDirectControlHelpPlate.rowCount(helpCarrier));
+        helpLayout = layout;
+        boolean expanded = helpHover.update(true, helpPointerKnown, helpPointerX, helpPointerY, layout);
+        helpPlate.update(expanded, helpCarrier);
+        helpMarkup.flush();
+        var bounds = expanded ? layout.union() : layout.tab();
+        float scale = strip.documentScale();
+        UiViewport next = new UiViewport(bounds.x(), bounds.y(), bounds.width(), bounds.height(), scale);
+        if (!next.equals(helpViewport)) {
+            helpViewport = next;
+            helpDocument.layout(next.documentWidth(), next.documentHeight());
+        }
+        helpDocument.advance(dt);
+    }
+
     void processInput(List<InputEventAPI> events) {
+        if (events != null) trackPointer(events);
         if (visible && activeMode && actionsInput != null && events != null) actionsInput.process(events);
         if (visible && input != null && events != null) input.process(events);
     }
@@ -187,10 +245,12 @@ final class BattleDirectControlOverlay {
         UiDocument current = currentDocument();
         if (visible && current != null) current.render(viewport, alpha);
         if (visible && activeMode && actionsDocument != null) actionsDocument.render(actionsViewport, alpha);
+        if (visible && activeMode && helpDocument != null && helpViewport != null) helpDocument.render(helpViewport, alpha);
     }
 
     boolean blocksWorldPointer(float x, float y) {
-        return visible && (contains(viewport, x, y) || activeMode && contains(actionsViewport, x, y));
+        return visible && (contains(viewport, x, y) || activeMode && contains(actionsViewport, x, y)
+                || activeMode && helpLayout != null && helpHover.blocks(true, x, y, helpLayout));
     }
 
     private static boolean contains(UiViewport bounds, float x, float y) {
@@ -202,6 +262,8 @@ final class BattleDirectControlOverlay {
         deactivateDocuments();
         input = null;
         actionsInput = null;
+        helpViewport = null;
+        helpHover.collapse();
     }
 
     /** Map clamping can put the body at the bottom edge; move chrome instead of revealing off-map ground. */

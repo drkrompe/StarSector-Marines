@@ -693,6 +693,9 @@ public final class DefensePostStamper implements GenStage {
         grid.setWalkable(cellX, cellY, false);
         grid.setSeeThrough(cellX, cellY, false);
         topology.setGroundKind(cellX, cellY, GroundKind.STONE);
+        // The turret entity owns durability; its sealed mount is not a wall.
+        topology.setWall(cellX, cellY, false);
+        topology.setFixture(cellX, cellY, true);
         grid.setCoverAtFacing(cellX, cellY, NavigationGrid.FACING_N, coverFromNeighbor(grid, cellX,     cellY - 1));
         grid.setCoverAtFacing(cellX, cellY, NavigationGrid.FACING_E, coverFromNeighbor(grid, cellX + 1, cellY    ));
         grid.setCoverAtFacing(cellX, cellY, NavigationGrid.FACING_S, coverFromNeighbor(grid, cellX,     cellY + 1));
