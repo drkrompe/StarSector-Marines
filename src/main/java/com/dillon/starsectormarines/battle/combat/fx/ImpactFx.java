@@ -213,7 +213,8 @@ public final class ImpactFx {
      * with the puff radius — bigger smoke takes longer to dissipate.
      */
     public void spawnAmbientSmoke(float x, float y, float radiusCells) {
-        spawnSmokePuff(x, y, radiusCells, 0.9f + radiusCells * 0.8f);
+        Particle p = spawnSmokePuff(x, y, radiusCells, 0.9f + radiusCells * 0.8f);
+        scaleAmbientMotion(p, radiusCells / .5f);
     }
 
     /**
@@ -222,7 +223,8 @@ public final class ImpactFx {
      * dynamic, flickering presence than smoke.
      */
     public void spawnAmbientFire(float x, float y, float radiusCells) {
-        spawnFireBurst(x, y, radiusCells, 0.5f + radiusCells * 0.4f);
+        Particle p = spawnFireBurst(x, y, radiusCells, 0.5f + radiusCells * 0.4f);
+        scaleAmbientMotion(p, radiusCells / .35f);
     }
 
     /**
@@ -236,10 +238,16 @@ public final class ImpactFx {
      * anything.
      */
     public void spawnWallCollapse(float x, float y) {
-        spawnDust(x, y, true, 1.2f, 0.45f);
-        spawnSmokePuff(x + (rng.nextFloat() * 2f - 1f) * 0.2f,
-                       y + (rng.nextFloat() * 2f - 1f) * 0.2f,
-                       0.5f, 1.0f);
+        spawnWallCollapse(x, y, 1f);
+    }
+
+    /** Scale below one for small equipment collapsing within its own footprint. */
+    public void spawnWallCollapse(float x, float y, float scale) {
+        spawnDust(x, y, true, 1.2f * scale, 0.45f);
+        Particle p = spawnSmokePuff(x + (rng.nextFloat() * 2f - 1f) * 0.2f * scale,
+                       y + (rng.nextFloat() * 2f - 1f) * 0.2f * scale,
+                       0.5f * scale, 1.0f);
+        scaleAmbientMotion(p, scale);
     }
 
     /**
@@ -301,8 +309,8 @@ public final class ImpactFx {
     }
 
     /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Deliberately small: a ground impact is a point event, not an aerial burst. */
-    private void spawnSmokePuff(float x, float y, float radiusCells, float lifetime) {
-        if (particleSheetSprite == null) return;
+    private Particle spawnSmokePuff(float x, float y, float radiusCells, float lifetime) {
+        if (particleSheetSprite == null) return null;
         Particle p = new Particle();
         p.x = x; p.y = y;
         p.vx = (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -318,11 +326,12 @@ public final class ImpactFx {
         p.additive = false;
         p.angleDeg = rng.nextFloat() * 360f;
         particles.add(p);
+        return p;
     }
 
     /** Fire burst from the flipbook sheet. Small upward kick, additive blend so it reads as hot incandescence. */
-    private void spawnFireBurst(float x, float y, float radiusCells, float lifetime) {
-        if (particleSheetSprite == null) return;
+    private Particle spawnFireBurst(float x, float y, float radiusCells, float lifetime) {
+        if (particleSheetSprite == null) return null;
         Particle p = new Particle();
         p.x = x; p.y = y;
         p.vx = (rng.nextFloat() * 2f - 1f) * 0.3f;
@@ -338,6 +347,16 @@ public final class ImpactFx {
         p.additive = true;
         p.angleDeg = rng.nextFloat() * 360f;
         particles.add(p);
+        return p;
+    }
+
+    /** Small ambient cues must not grow or drift at the speed of a full-size impact. */
+    private static void scaleAmbientMotion(Particle p, float scale) {
+        if (p == null) return;
+        scale = Math.min(1f, scale);
+        p.radiusGrowthPerSec *= scale;
+        p.vx *= scale;
+        p.vy *= scale;
     }
 
     // ---- Rendering ------------------------------------------------------------

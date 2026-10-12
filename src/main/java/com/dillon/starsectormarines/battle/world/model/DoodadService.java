@@ -22,7 +22,7 @@ import java.util.List;
  * publish directional edge cover onto adjacent standable cells. This keeps a
  * fixture from rolling both crossing and edge interception for the same shot.
  * Physical-cover storage is allocated lazily on the first covered addition.
- * Static prop cover arrays are append-only; nature, walkable crate and barrel cover are
+ * Static prop cover arrays are append-only; nature, walkable crate and registered equipment cover are
  * separately removable. Destructible cell-blocking props instead publish
  * into grid facings; a breach rebakes those facings and restores surviving neighbors.
  */
@@ -33,12 +33,12 @@ public final class DoodadService {
     private final CoverPropDamage destructibleCover;
     private final NaturalPropDamage naturalProps;
     private final RockDamage rocks;
-    private final BarrelDamage barrels;
+    private final PropDamage destructibleProps;
     /** Mutable overlay cover stays separate from append-only props so shattered rocks can release it. */
     private TileCover[] natureCoverOnCell;
 
     /**
-     * Per-cell, per-facing cover for static props. Mutable nature, crate and barrel cover
+     * Per-cell, per-facing cover for static props. Mutable nature, crate and registered equipment cover
      * are merged at query time.
      * Indexed as
      * {@code (y * gridWidth + x) * FACING_COUNT + facing}. Updated on
@@ -86,10 +86,12 @@ public final class DoodadService {
         this.destructibleCover = new CoverPropDamage(grid, doodads);
         this.naturalProps = new NaturalPropDamage(grid, doodads);
         this.rocks = new RockDamage(grid, doodads);
-        this.barrels = new BarrelDamage(grid, doodads);
+        this.destructibleProps = new PropDamage(grid, doodads);
     }
 
     public List<Doodad> getDoodads() { return doodads; }
+
+    public void setPropEffectSink(PropDamage.EffectSink sink) { destructibleProps.setEffectSink(sink); }
 
     /**
      * Adds a render doodad and publishes its authored cover through exactly
@@ -99,7 +101,7 @@ public final class DoodadService {
      */
     public void addDoodad(Doodad d) {
         boolean removablePhysicalCover = destructibleCover.register(doodads.size(), d, TileRegistry.installed());
-        boolean barrel = barrels.register(doodads.size(), d, TileRegistry.installed());
+        boolean removableProp = destructibleProps.register(doodads.size(), d, TileRegistry.installed());
         naturalProps.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
         if (d.cover <= 0 || removablePhysicalCover) return;
@@ -109,7 +111,7 @@ public final class DoodadService {
                 int cellX = d.cellX + dx;
                 int cellY = d.cellY + dy;
                 if (grid.isWalkable(cellX, cellY)) {
-                    if (!barrel) addCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                    if (!removableProp) addCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
                 } else {
                     addDirectionalEdgeCover(cellX, cellY,
                             d.cover, d.ballisticHalfHeight);
@@ -122,8 +124,8 @@ public final class DoodadService {
         return destructibleCover.damage(x, y, amount);
     }
 
-    public CoverPropDamage.Result damageBarrel(int x, int y, int amount, long attack, BarrelDamage.ClearedCell cleared) {
-        return barrels.damage(x, y, amount, attack, cleared);
+    public CoverPropDamage.Result damageProp(int x, int y, int amount, long attack, PropDamage.ClearedCell cleared) {
+        return destructibleProps.damage(x, y, amount, attack, cleared);
     }
 
     public NaturalPropDamage.Result damageNaturalProp(int x, int y, int amount, long attack, NaturalPropDamage.ClearedCell cleared) {
@@ -284,7 +286,7 @@ public final class DoodadService {
         }
         int removable = Math.max(destructibleCover.physicalCoverAt(x, y, 0),
                 destructibleCover.physicalCoverAt(nx, ny, 0));
-        removable = Math.max(removable, Math.max(barrels.physicalCoverAt(x, y, 0), barrels.physicalCoverAt(nx, ny, 0)));
+        removable = Math.max(removable, Math.max(destructibleProps.physicalCoverAt(x, y, 0), destructibleProps.physicalCoverAt(nx, ny, 0)));
         return Math.max(Math.max(fixed, removable), Math.max(natureCover(x, y).level(), natureCover(nx, ny).level()));
     }
 
@@ -319,7 +321,7 @@ public final class DoodadService {
         TileCover nature = natureCover(x, y);
         int natureLevel = nature.defaultBallisticHalfHeight() > 0 && absZ <= nature.defaultBallisticHalfHeight() ? nature.level() : 0;
         natureLevel = Math.max(natureLevel, destructibleCover.physicalCoverAt(x, y, roundZ));
-        natureLevel = Math.max(natureLevel, barrels.physicalCoverAt(x, y, roundZ));
+        natureLevel = Math.max(natureLevel, destructibleProps.physicalCoverAt(x, y, roundZ));
         if (doodadHalfHeightByLevelOnCell == null) return natureLevel;
         for (int level = NavigationGrid.MAX_COVER; level > natureLevel; level--) {
             float halfHeight = doodadHalfHeightByLevelOnCell[base + level];

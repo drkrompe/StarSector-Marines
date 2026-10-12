@@ -66,7 +66,7 @@ public final class ReviewImpactFx {
 
     /** Takes in the tick the simulation just played and advances the particles by it. */
     public void feed(BattleSimulation sim) {
-        for (float[] dust : sim.getWallDustsThisFrame()) fx.spawnWallCollapse(dust[0], dust[1]);
+        for (float[] dust : sim.getWallDustsThisFrame()) fx.spawnWallCollapse(dust[0], dust[1], dust.length > 2 ? dust[2] : 1f);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             fx.spawnHeavyImpact(impact[0], impact[1], impact[2],
                     impact.length >= 6 ? new Color(impact[3], impact[4], impact[5]) : null);
@@ -119,7 +119,8 @@ public final class ReviewImpactFx {
         int sheetW = sheet.getWidth();
         int sheetH = sheet.getHeight();
         int sx = Math.max(0, Math.min(sheetW - 1, Math.round(draw.texX * sheetW)));
-        int sy = Math.max(0, Math.min(sheetH - 1, Math.round(draw.texY * sheetH)));
+        // SpriteAPI UVs start at the bottom; ImageIO source rows start at the top.
+        int sy = Math.max(0, Math.min(sheetH - 1, Math.round((1f - draw.texY - draw.texH) * sheetH)));
         int sw = Math.max(1, Math.min(sheetW - sx, Math.round(draw.texW * sheetW)));
         int sh = Math.max(1, Math.min(sheetH - sy, Math.round(draw.texH * sheetH)));
         BufferedImage cell = sheet.getSubimage(sx, sy, sw, sh);
