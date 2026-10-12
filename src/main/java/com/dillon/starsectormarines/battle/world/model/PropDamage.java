@@ -16,15 +16,25 @@ public final class PropDamage {
     public enum Effect { NONE, DUST, SMOKE, FIRE }
     public record Profile(Effect damaged, Effect destroyed) {}
     /** Adding a family requires matching full-footprint damaged/destroyed catalog entries. */
-    public static final Map<String, Profile> EQUIPMENT = Map.of(
-            "doodad.industrial-generator", new Profile(Effect.SMOKE, Effect.FIRE),
-            "doodad.military-radar-dish", new Profile(Effect.NONE, Effect.DUST),
-            "doodad.industrial-machine-tool", new Profile(Effect.SMOKE, Effect.DUST),
-            "doodad.industrial-fluid-tank", new Profile(Effect.SMOKE, Effect.SMOKE),
-            "doodad.industrial-control-console", new Profile(Effect.SMOKE, Effect.FIRE),
-            "doodad.military-command-console", new Profile(Effect.SMOKE, Effect.FIRE),
-            "doodad.military-tactical-table", new Profile(Effect.SMOKE, Effect.DUST),
-            "doodad.office-workstation-bank", new Profile(Effect.SMOKE, Effect.FIRE));
+    public static final Map<String, Profile> EQUIPMENT = Map.ofEntries(
+            Map.entry("doodad.industrial-generator", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("doodad.military-radar-dish", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.industrial-machine-tool", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("doodad.industrial-fluid-tank", new Profile(Effect.SMOKE, Effect.SMOKE)),
+            Map.entry("doodad.industrial-control-console", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("doodad.military-command-console", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("doodad.military-tactical-table", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("doodad.office-workstation-bank", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("doodad.industrial-cable-reel", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.industrial-pallet-stack", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.industrial-pipe-bundle", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.military-bunk", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.desk-2", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.desk-1", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.shelf-empty", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.shelf-1", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.shelf-2", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("doodad.shelf-3", new Profile(Effect.NONE, Effect.DUST)));
     private static final Profile SILENT = new Profile(Effect.NONE, Effect.NONE);
     @FunctionalInterface public interface EffectSink { void accept(float x, float y, Effect effect, float footprintSize); }
     public static final int STARTING_HP = 100;

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
-import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 import javax.imageio.ImageIO;
@@ -11,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompoundPropDamageArtTest {
     @Test void pairedFramesKeepTheOriginalFootprintAndDestroyedPiecesExposeGround() throws Exception {
         var registry = TileRegistry.installed();
-        for (String id : PropDamage.EQUIPMENT.keySet()) for (String state : new String[]{"damaged", "destroyed"}) {
+        for (String id : CompoundPropDamageTemplate.IDS) for (String state : new String[]{"damaged", "destroyed"}) {
             var original = registry.doodad(id);
             var def = registry.doodad(id + "-" + state);
             assertNotNull(def, id);

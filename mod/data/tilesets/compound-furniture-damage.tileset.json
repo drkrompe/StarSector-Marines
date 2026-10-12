@@ -1,0 +1,128 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.desk-1-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "doodad.shelf-empty-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "doodad.shelf-1-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "doodad.shelf-2-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "doodad.shelf-3-damaged",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "doodad.desk-1-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "doodad.shelf-empty-destroyed",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "doodad.shelf-1-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "doodad.shelf-2-destroyed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "doodad.shelf-3-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.desk-1-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.shelf-empty-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.shelf-1-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.shelf-2-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.shelf-3-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.desk-1-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.shelf-empty-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.shelf-1-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "doodad.shelf-2-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "doodad.shelf-3-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/compound-furniture-damage.png"
+}

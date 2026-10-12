@@ -4,7 +4,7 @@ Status: ACTIVE â€” additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — compound equipment retains matched damage states and bounded, footprint-sized destruction cues.
+Updated: 2026-10-12 - compound equipment, yard stock and furniture retain matched damage states and compact material-specific effects.
 
 Read `stories.md` for open work.
 
@@ -241,6 +241,12 @@ and their destruction leaves underlying rack and pallet bases intact.
 Registered compound equipment shares that whole-prop damage model: generators,
 radar dishes, machine tools, fluid tanks, control/command consoles, tactical
 tables and workstation banks retain matching damaged shells and low wreckage.
+Cable reels, pallet stacks, pipe bundles, military bunks, both ordinary desks
+and the four shelf variants follow the same lifecycle. Their remnants retain
+metal, wood, bedding and stock differences, with ground visible between pieces;
+loaded shelves scatter their own contents while empty shelves remain empty.
+These inert furnishings emit compact collapse dust only. The `furnishing-damage`
+suite includes adjoining shelf bays as well as isolated rotated and mirrored states.
 Every state preserves the full placement frame, rotation and mirror. A single
 blast spends the group's structure once, even when it visits several footprint
 cells. Destroyed equipment releases its own physical or directional cover and

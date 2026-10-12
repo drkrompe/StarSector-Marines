@@ -1,0 +1,128 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.industrial-cable-reel-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "doodad.industrial-pallet-stack-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "doodad.industrial-pipe-bundle-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "doodad.military-bunk-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "doodad.desk-2-damaged",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "doodad.industrial-cable-reel-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "doodad.industrial-pallet-stack-destroyed",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "doodad.industrial-pipe-bundle-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "doodad.military-bunk-destroyed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "doodad.desk-2-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.industrial-cable-reel-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 1,
+      "cover": "med",
+      "id": "doodad.industrial-pallet-stack-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.32,
+      "col": 2,
+      "cover": "med",
+      "id": "doodad.industrial-pipe-bundle-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.25,
+      "col": 3,
+      "cover": "light",
+      "id": "doodad.military-bunk-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 4,
+      "cover": "med",
+      "id": "doodad.desk-2-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.industrial-cable-reel-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.industrial-pallet-stack-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.industrial-pipe-bundle-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "doodad.military-bunk-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "doodad.desk-2-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/compound-yard-damage.png"
+}
