@@ -57,12 +57,12 @@ class OfficerInductionTest {
         assertEquals(Step.COMPLETE, induction.step(roster), "Later losses never re-lock a veteran company");
     }
 
-    @Test void pausedLessonCannotUnlockAnyOrdinaryLaunchAndOldCompaniesStayExempt() {
+    @Test void requiredLessonCannotBeDismissedOrUnlockAnyOrdinaryLaunchAndOldCompaniesStayExempt() {
         assertFalse(MissionLaunch.requiresOfficerInduction(roster, MissionSource.STORY));
         begin();
         var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
         model.dismissGuide();
-        assertFalse(model.guideVisible());
+        assertTrue(model.guideVisible(), "Required induction cannot be dismissed");
         for (MissionSource source : MissionSource.values()) {
             assertEquals(!source.isDebug(), MissionLaunch.requiresOfficerInduction(roster, source));
             if (!source.isDebug()) assertThrows(IllegalStateException.class,

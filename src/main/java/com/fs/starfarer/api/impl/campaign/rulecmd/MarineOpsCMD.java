@@ -44,6 +44,7 @@ public class MarineOpsCMD extends BaseCommandPlugin {
                     && CorvusWaylineCampaign.atSite(planet);
         }
         if ("open".equals(sub)) {
+            if (CompanyYardCMD.openRequired(dialog, memoryMap)) return true;
             float w = MarineOpsDialogSize.requestedWidth();
             float h = MarineOpsDialogSize.requestedHeight();
             LOG.info(String.format("MarineOpsCMD: opening custom dialog at %.0fx%.0f", w, h));
