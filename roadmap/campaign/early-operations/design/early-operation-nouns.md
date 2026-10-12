@@ -188,7 +188,7 @@ sailing schedules. It has three ordered, single-payment chapters:
 | A Cold Account | Garnir | Clear the dispatch compound's defending force | 4 squads | 42,000 cr |
 
 These jobs use Established-scale Raid, Sabotage and Assault objectives with
-Low, Medium and High opposition quality respectively. Difficulty grows through
+Low, Low and High opposition quality respectively. Difficulty grows through
 objective distribution and opposition composition as well as the final force
 increase. A defeat retries the same chapter and battlefield; victory advances
 to the next actual planet. An accepted attempt settles once before any payment,
@@ -201,7 +201,11 @@ than moving it elsewhere. HQ plots a course; the local Marine operations board
 offers the job through Mara's Independent contact. No chapter changes vanilla
 market ownership, industry disruption, diplomatic standing or orbital assets.
 Its target profile describes the isolated crew compound, with the actual
-planet's ground palette captured at launch rather than the colony's full defences.
+planet's ground palette captured at launch rather than the colony's full defences. Blind
+Watch uses an explicitly remote installation map and a finite light garrison:
+there is no off-map replacement force or continuing vehicle/air production.
+Map density and reinforcement eligibility are independent authored choices;
+being on a barren moon alone does not imply that other missions lack reserves.
 
 All three support exact selected named personnel with at least two squads of
 four ready marines each and up to four fitted boats making repeated trips.

@@ -75,7 +75,7 @@ class PrecinctPlanForMissionTest {
     }
 
     @Test
-    void onlyAssaultAndRaidAreMadeOfPlaces() {
+    void onlyAssaultAndRaidDerivePlacesWithoutExplicitSprawl() {
         for (MissionType type : MissionType.values()) {
             PrecinctPlan plan = BattleSetup.precinctPlanFor(type,
                     OperationTier.ESTABLISHED, RiskLevel.HIGH,
@@ -86,6 +86,15 @@ class PrecinctPlanForMissionTest {
                 assertNull(plan, type + " keeps the recipe it has; only Assault and Raid are wired");
             }
         }
+    }
+
+    @Test
+    void sabotageCanExplicitlyRequestARemoteInstallation() {
+        PrecinctPlan remote = BattleSetup.precinctPlanFor(MissionType.SABOTAGE,
+                OperationTier.ESTABLISHED, RiskLevel.LOW, MARKET,
+                MapScale.MEDIUM, SEED, PrecinctPlan.Sprawl.REMOTE);
+        assertNotNull(remote);
+        assertNotNull(remote.objective());
     }
 
     /**

@@ -415,10 +415,37 @@ public final class BattleSetup {
                                                   TargetProfile profile,
                                                   FlybyRoster marineFighterSupport,
                                                   FlybyRoster enemyFighterSupport) {
+        return createSabotage(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, null);
+    }
+
+    /** Explicit sprawl opts into an installation map; absent sprawl preserves old fixtures. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  PrecinctPlan.Sprawl sprawl) {
+        return createSabotage(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, sprawl, true);
+    }
+
+    /** Authored reinforcement eligibility, independent of the map's sprawl. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  PrecinctPlan.Sprawl sprawl,
+                                                  boolean defenderReinforcements) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
+        PrecinctPlan precinct = sprawl == null ? null : precinctPlanFor(
+                MissionType.SABOTAGE, tier, risk, profile, scale, seed, sprawl);
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precinct);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         // Vehicles stamp before sim construction so the BattleSimulation's
@@ -510,8 +537,10 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER,
                 new SabotageDefenderCommand(sabotageMobileSquads),
                 SabotageDefenderCommandDisclosure.INSTANCE);
-        installReinforcementLayer(sim, map, MissionType.SABOTAGE, null,
-                groundRoster, risk, null);
+        if (defenderReinforcements) {
+            installReinforcementLayer(sim, map, MissionType.SABOTAGE, null,
+                    groundRoster, risk, null);
+        }
         return sim;
     }
 
@@ -680,12 +709,9 @@ public final class BattleSetup {
      * The places this battle's map is made of, or {@code null} to take the map
      * the generator already builds.
      *
-     * <p><b>Assault and Raid only.</b> Both are search-and-strike missions whose
-     * balance is not yet pinned, so a map that is a set of places rather than
-     * one grown settlement changes something nobody has committed to a number
-     * for. Conquest stays on the stock crossroad by the standing rule in
-     * {@code precincts.md} — its biome-band recipe is the one with a judged
-     * shape — and every other mission keeps the recipe it has.
+     * <p>Assault and Raid derive installation geometry by default. Sabotage
+     * opts in only when its construction explicitly states sprawl; old
+     * fixtures keep their settlement recipe. Conquest has its own derivation.
      *
      * <p><b>A market is what there is to derive from.</b> The gate mirrors
      * {@code BspCityGenerator.recipeFor}: a battle with no market behind it —
@@ -713,7 +739,9 @@ public final class BattleSetup {
     static PrecinctPlan precinctPlanFor(MissionType type, OperationTier tier, RiskLevel risk,
                                         TargetProfile profile, MapScale scale, long seed,
                                         PrecinctPlan.Sprawl sprawl) {
-        if (type != MissionType.ASSAULT && type != MissionType.RAID) return null;
+        if (type != MissionType.ASSAULT && type != MissionType.RAID
+                && type != MissionType.SABOTAGE) return null;
+        if (type == MissionType.SABOTAGE && sprawl == null) return null;
         if (profile == null || profile.marketSize() <= 0) return null;
         PrecinctPlan.Sprawl resolved = sprawl != null
                 ? sprawl : SettlementZoning.sprawlFor(profile.marketSize());
