@@ -46,6 +46,10 @@ public final class WaylineHoundRecovery {
     public long frameId() { return frame; }
     public long mechId() { return mech; }
     public boolean found() { return found; }
+    public float startupFraction() { return Math.min(1f, startup / STARTUP_SECONDS); }
+    public boolean objectiveVisible(BattleSimulation sim) {
+        return found && mech == 0L && !report(sim).disabled() && !sim.isComplete();
+    }
     public float x() { return x; }
     public float y() { return y; }
     public Report report(BattleSimulation sim) {

@@ -27,8 +27,8 @@
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD / ARMORY</button>
       <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">OFFICER DOSSIER</button>
-      <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">COMPANY GUIDE</button>
-      <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">MISSIONS</button>
+      <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
+      <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">{command.missionLabel}</button>
     </div>
     <div id="barracks-command-board" class="{command.overviewClasses}">
       <div id="barracks-command-rail" class="command-rail panel console-section">
@@ -57,15 +57,24 @@
           <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">VIEW FORMATIONS</button>
         </div>
         <div id="officer-dossier-scroll" class="officer-scroll">
+          <div id="officer-biography" class="label wrap officer-copy">{command.officerBiography}</div>
           <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
           <div id="officer-scope" class="label muted wrap officer-copy">Specialties follow the squads this officer leads into the operation, including borrowed squads. Independent NCO squads receive no officer specialty. Unavailable officers grant no new field effects.</div>
           <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
           <div id="officer-specialty-list" class="officer-list">
           <div each="specialty in command.officerSpecialties" key="{specialty.id}" id="{specialty.id}" class="officer-specialty console-readout">
-            <div id="{specialty.titleId}" class="label heading warm officer-line">{specialty.title}</div>
+            <div id="{specialty.headerId}" class="officer-specialty-header">
+              <img id="{specialty.iconId}" class="officer-specialty-icon" src="{specialty.icon}" />
+              <div id="{specialty.titleId}" class="label heading warm officer-specialty-title">{specialty.title}</div>
+            </div>
             <div id="{specialty.effectId}" class="label wrap officer-copy">{specialty.effect}</div>
             <div id="{specialty.nextId}" class="label muted wrap officer-copy">{specialty.next}</div>
-            <button id="{specialty.trainId}" class="officer-train console-action" disabled="{specialty.disabled}" onclick="{specialty.train}">{specialty.button}</button>
+            <div id="{specialty.footerId}" class="officer-specialty-footer">
+              <img id="{specialty.progressId}" class="officer-rank-track" src="{specialty.progress}" />
+              <div id="{specialty.levelId}" class="label muted officer-rank-label">{specialty.level}</div>
+              <button id="{specialty.trainId}" class="officer-train console-action" disabled="{specialty.disabled}" onclick="{specialty.train}">{specialty.button}</button>
+              <div id="{specialty.costId}" class="label warm officer-point-cost">{specialty.cost}</div>
+            </div>
           </div>
           </div>
           <div id="officer-traits" class="label muted wrap officer-copy">{command.officerTraits}</div>
@@ -128,8 +137,12 @@
         <div id="barracks-preparation-body" class="{command.preparationClasses}">
           <div id="transfer-heading" class="label heading warm order-caption">1 / CONSOLIDATE SURVIVORS</div>
           <div id="transfer-summary" class="label wrap preparation-copy">{command.transferSummary}</div>
-          <button id="barracks-choose-donors" class="order-button console-action" onclick="{command.chooseDonors}">{command.donorLabel}</button>
-          <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">REVIEW TRANSFERS</button>
+          <div id="barracks-choose-donors-action" class="order-action-row">
+            <button id="barracks-choose-donors" class="order-button console-action" onclick="{command.chooseDonors}">{command.donorLabel}</button>
+          </div>
+          <div id="barracks-review-transfers-action" class="order-action-row">
+            <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">REVIEW TRANSFERS</button>
+          </div>
           <div id="barracks-transfer-rows" class="{command.transferRowsClasses}">
             <div each="row in command.transferRows" key="{row.id}" id="{row.id}" class="label wrap transfer-row">{row.text}</div>
           </div>
@@ -145,12 +158,16 @@
             <div id="barracks-recruit-draw-count" class="label warm recruit-count">{command.recruitDraw}</div>
             <div id="barracks-recruit-draw-label" class="label muted recruit-label">TO ENLIST</div>
           </div>
-          <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
+          <div id="barracks-reinforce-action" class="order-action-row">
+            <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
+          </div>
           <div id="barracks-order-caption-85" class="label heading warm order-caption">3 / RESTORE EQUIPMENT</div>
           <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
           <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
           <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
-          <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">ISSUE ASSIGNED EQUIPMENT</button>
+          <div id="barracks-issue-action" class="order-action-row">
+            <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">ISSUE ASSIGNED EQUIPMENT</button>
+          </div>
         </div>
         <div id="barracks-orders-body" class="{command.ordersClasses}">
           <div id="barracks-order-caption" class="label heading warm order-caption">HOME COMMAND</div>
@@ -160,7 +177,9 @@
             <button id="barracks-target-next" class="step console-action" onclick="{command.targetNext}">&gt;</button>
           </div>
           <div id="barracks-assignment-reason" class="label muted wrap assignment-reason">{command.assignmentReason}</div>
-          <button id="barracks-assign-command" class="order-button console-action" disabled="{command.assignmentDisabled}" onclick="{command.assignCommand}">ASSIGN COMMAND</button>
+          <div id="barracks-assign-command-action" class="order-action-row">
+            <button id="barracks-assign-command" class="order-button console-action" disabled="{command.assignmentDisabled}" onclick="{command.assignCommand}">ASSIGN COMMAND</button>
+          </div>
           <div id="barracks-profile-heading" class="profile-heading">
             <div id="barracks-order-caption-71" class="label heading warm order-caption">SQUAD PROFILES</div>
             <button id="barracks-new-profile" class="new-profile console-action" onclick="{command.newProfile}">NEW</button>
@@ -172,7 +191,9 @@
             </button>
           </div>
           <div id="barracks-profiles-empty" class="label muted wrap empty-message">{command.profilesEmpty}</div>
-          <button id="barracks-assign-profile" class="order-button console-action" disabled="{command.profileDisabled}" onclick="{command.assignProfile}">ASSIGN PROFILE</button>
+          <div id="barracks-assign-profile-action" class="order-action-row">
+            <button id="barracks-assign-profile" class="order-button console-action" disabled="{command.profileDisabled}" onclick="{command.assignProfile}">ASSIGN PROFILE</button>
+          </div>
           <div id="barracks-profile-note" class="label muted wrap profile-note">Profiles name the intended loadout and tactic sheet. Assignment spends no cargo.</div>
 
         </div>
@@ -194,8 +215,12 @@
             <button id="barracks-armor-next" class="step console-action" onclick="{command.armorNext}">&gt;</button>
           </div>
           <div id="barracks-editor-copy-108" class="label muted wrap editor-copy">Saving creates a reusable profile. Existing profiles and issued equipment stay as they are.</div>
-          <button id="barracks-save-profile" class="order-button console-action" disabled="{command.saveDisabled}" onclick="{command.saveProfile}">SAVE PROFILE</button>
-          <button id="barracks-cancel-profile" class="order-button console-action" onclick="{command.cancelProfile}">BACK TO ORDERS</button>
+          <div id="barracks-save-profile-action" class="order-action-row">
+            <button id="barracks-save-profile" class="order-button console-action" disabled="{command.saveDisabled}" onclick="{command.saveProfile}">SAVE PROFILE</button>
+          </div>
+          <div id="barracks-cancel-profile-action" class="order-action-row">
+            <button id="barracks-cancel-profile" class="order-button console-action" onclick="{command.cancelProfile}">BACK TO ORDERS</button>
+          </div>
         </div>
       </div>
     </div>
@@ -258,9 +283,10 @@
       </div>
       <div id="guide-status" class="label wrap warm">{command.guideStatus}</div>
       <div id="guide-controls" class="board-tools">
-        <button id="guide-previous" class="tool-button console-action" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
-        <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">NEXT</button>
-        <button id="guide-dismiss" class="guide-dismiss console-action" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">DISMISS</button>
+        <img id="guide-progress" class="{command.guideProgressClasses}" src="{command.guideProgressImage}" />
+        <button id="guide-previous" class="{command.guidePreviousClasses}" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
+        <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">{command.guideNextLabel}</button>
+        <button id="guide-dismiss" class="guide-dismiss console-action" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">{command.guideDismissLabel}</button>
         <div id="guide-close-hint" class="label muted guide-close-hint">USE THE HIGHLIGHTED CONTROL / ESC TO DISMISS</div>
       </div>
   </div>
@@ -398,7 +424,8 @@
   .step { width: 26px; height: 26px; padding: 0px; text-align: center; }
   .selector-value { width: 0px; flex-grow: 1; height: 44px; text-align: center; }
   .assignment-reason { height: 35px; }
-  .order-button { width: 100%; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .order-action-row { flex-direction: row; height: 28px; }
+  .order-button { width: 220px; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
   .profile-heading { flex-direction: row; align-items: center; height: 27px; gap: 8px; }
   .profile-heading .order-caption { width: 0px; flex-grow: 1; }
   .new-profile { width: 60px; height: 25px; padding: 0px 4px; text-align: center; }
@@ -418,16 +445,24 @@
   .back-command { width: 210px; height: 28px; padding: 0px 4px; font-family: heading; text-align: center; }
   .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
   .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
-  .officer-header { flex-direction: row; height: 112px; gap: 16px; }
+  .officer-header { flex-direction: row; align-items: start; height: 112px; gap: 16px; }
   .officer-portrait { width: 100px; height: 100px; }
   .officer-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
   .officer-line { height: 23px; }
   .officer-scroll { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }
   .officer-list { flex-direction: column; height: auto; gap: 12px; }
-  #officer-specialty-list { height: 474px; }
+  #officer-specialty-list { height: 546px; }
   .officer-history-note { height: 40px; }
   .officer-copy { height: auto; }
-  .officer-specialty { flex-direction: column; height: 128px; padding: 10px; gap: 6px; border-width: 1px; }
-  .officer-train { width: 220px; height: 28px; text-align: center; font-family: heading; }
+  .officer-specialty { flex-direction: column; height: 152px; padding: 10px; gap: 6px; border-width: 1px; }
+  .officer-specialty-header { flex-direction: row; align-items: center; height: 36px; gap: 12px; }
+  .officer-specialty-icon { width: 36px; height: 36px; }
+  .officer-specialty-title { width: 0px; flex-grow: 1; height: 24px; }
+  .officer-specialty-footer { flex-direction: row; align-items: center; height: 30px; gap: 12px; }
+  .officer-rank-track { width: 92px; height: 28px; }
+  .officer-rank-label { width: 98px; height: 20px; }
+  .officer-point-cost { width: 80px; height: 20px; }
+  .guide-progress { width: 98px; height: 24px; }
+  .officer-train { width: 112px; height: 28px; text-align: center; font-family: heading; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
 </style>

@@ -1409,7 +1409,9 @@ do not check colours. The cost of calling one in over your own marines is the
 point.
 
 **Its guns are the game's, placed by the hull's own data.** A warship is fitted
-from a vanilla variant: the hull spec says where each slot is, which way it
+from a vanilla variant, or from a campaign fleet member's own fitted variant
+(both reach the same fitting through one loadout seam: a hull and a weapon per
+slot): the hull spec says where each slot is, which way it
 faces and how far it traverses; the variant says what sits in it; the weapon,
 projectile and weapon-table data say what a round does, how far and fast it
 goes and what it looks like. The mod authors none of those numbers or sprites.
@@ -1459,6 +1461,13 @@ again once that ground holds nobody. Ground beyond every gun is never chosen.
 landing carries the round's explosion colour to the presentation, which tints the
 fire, the flash and the ground light with it and sizes the burst to the blast's
 radius, so a capital's heavier shell reads larger than a cannon's.
+
+**A scripted flyby is a route the ship passes through without stopping.** Given
+waypoints (and optionally told to loop), the hull flies each leg at speed,
+counting a waypoint as passed within a few cells and braking only onto a last
+one that does not loop. With no instruction to bring guns to bear it points
+along its travel; whatever ground it is ordered or directed to fire on, it keeps
+firing while it moves, so a cinematic can be authored as a path.
 
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
