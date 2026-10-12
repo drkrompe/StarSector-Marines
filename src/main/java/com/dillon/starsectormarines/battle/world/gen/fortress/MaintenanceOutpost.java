@@ -76,7 +76,7 @@ public final class MaintenanceOutpost {
                 new Cluster("Utilities", List.of(
                         building(RoomPurpose.ENGINE_ROOM, 25, 10, 8, 8, new Doorway(3, 8), new Doorway(4, 8)))),
                 new Cluster("Dispatch and gate", List.of(
-                        building(RoomPurpose.CIVIC_OFFICE, 53, 41, 12, 6, new Doorway(5, -1), new Doorway(6, -1), new Doorway(-1, 3)),
+                        building(RoomPurpose.CIVIC_OFFICE, 53, 41, 12, 10, new Doorway(5, -1), new Doorway(6, -1), new Doorway(-1, 3)),
                         building(RoomPurpose.KEEP_THRONE, 10, 10, 12, 6, new Doorway(5, 6), new Doorway(6, 6), new Doorway(-1, 3)),
                         building(RoomPurpose.CONTROL_ROOM, 68, 27, 3, 5, new Doorway(-1, 3)),
                         building(RoomPurpose.CONTROL_ROOM, 68, 39, 3, 5, new Doorway(-1, 2))))),
@@ -105,7 +105,7 @@ public final class MaintenanceOutpost {
         int[] gate = placement.cell(78, 35);
         new GenRecipe("Maintenance outpost", List.of(
                 ctx -> grounds(ctx, placement, fortification),
-                OutpostSupplyYard::stamp,
+                OutpostSupplyYard::stamp, OutpostApproach::stamp,
                 ctx -> PrecinctWardStage.finishAuthored(ctx,
                         FortressInterior.author(ctx, placement.buildings()), 0),
                 new PrecinctDefenceStage(), MaintenanceOutpostLandscape::mountains,
