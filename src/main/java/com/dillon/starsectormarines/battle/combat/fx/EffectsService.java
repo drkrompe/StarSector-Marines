@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.world.model.PropDamage;
 
 import java.awt.Color;
 import java.util.ArrayDeque;
@@ -113,6 +114,21 @@ public final class EffectsService {
 
     public void spawnSmokePlume(float x, float y) {
         smokePlumes.add(new SmokePlume(x, y, PLUME_LIFETIME));
+    }
+
+    /** Compact, finite equipment cues sized from the prop's smaller footprint dimension. */
+    public void spawnPropDamage(float x, float y, PropDamage.Effect effect, float footprintSize) {
+        if (effect == PropDamage.Effect.NONE) return;
+        if (effect == PropDamage.Effect.DUST) {
+            wallDustsThisFrame.add(new float[]{x, y, .25f * footprintSize});
+            return;
+        }
+        SmokePlume plume = new SmokePlume(x, y, 3f, .18f * footprintSize);
+        smokePlumes.add(plume);
+        if (effect == PropDamage.Effect.FIRE) {
+            fireBurstsThisFrame.add(new float[]{x, y, .22f * footprintSize});
+            cannonPlumes.add(plume);
+        }
     }
 
     /**
@@ -266,11 +282,11 @@ public final class EffectsService {
                 // Bigger puffs early (impact bloom), tightening as the column
                 // rises. Floor keeps the tail-end column readable rather than
                 // shrinking to invisible.
-                float radius = 0.45f + Math.max(0.20f, lifeFrac) * 0.55f;
+                float radius = (0.45f + Math.max(0.20f, lifeFrac) * 0.55f) * p.radiusScale;
                 smokePuffsThisFrame.add(new float[]{p.x, p.y, radius});
                 float age = p.totalLifetime - p.remainingLifetime;
                 if (cannonPlumes.contains(p) && age < CANNON_PLUME_FIRE_DURATION) {
-                    float fireRadius = 0.35f + lifeFrac * 0.35f;
+                    float fireRadius = (0.35f + lifeFrac * 0.35f) * p.radiusScale;
                     fireBurstsThisFrame.add(new float[]{p.x, p.y, fireRadius});
                 }
                 p.nextPuffTimer = PLUME_PUFF_MIN_GAP

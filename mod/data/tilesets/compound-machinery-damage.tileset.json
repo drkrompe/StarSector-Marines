@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.industrial-generator-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "doodad.military-radar-dish-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "doodad.industrial-machine-tool-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "doodad.industrial-fluid-tank-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "doodad.industrial-generator-destroyed",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "doodad.military-radar-dish-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "doodad.industrial-machine-tool-destroyed",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "doodad.industrial-fluid-tank-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.55,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.industrial-generator-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.military-radar-dish-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.68,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.industrial-machine-tool-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.82,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.industrial-fluid-tank-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.industrial-generator-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.military-radar-dish-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.industrial-machine-tool-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.industrial-fluid-tank-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/compound-machinery-damage.png"
+}

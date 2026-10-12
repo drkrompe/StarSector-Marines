@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Castle introduces the recovered Hound; Wayline continues across three Corvus destinations.
+Updated: 2026-10-12 — Cold Account voices its exchange and closes on Resolute's patrol departure and the ruins.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -233,17 +233,32 @@ weapon damage and friendly fire. It carries finite ordnance and station time;
 arrival or a timer alone never wins. Success requires the records, safe survivors,
 at least three quarters of the original target wall cells destroyed, and the
 last shells and released warheads landed, and every surviving unit recovered by
-its pickup craft. Remaining pirates need not be hunted down. Losing the ship
+its pickup craft. Resolute then ceases fire and resumes patrol nose-first on its
+existing bearing, passing over the ruins through ordinary propulsion. Completion
+waits for the capital to leave the map and a five-second aftermath hold; the
+neutralization report begins at departure. This closure follows confirmed
+destruction and extraction, and never substitutes for either. Remaining pirates
+need not be hunted down. Losing the ship
 or exhausting its intervention without destroying the target fails the operation.
 This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
 
 Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
-Her public, text-only dialogue follows authenticated evidence, battery preparation,
-friendly clearance, the demolition sweep and confirmed neutralization. The cold
-procedural delivery treats the destruction as routine enforcement. There is no
-dialogue countdown or gameplay wait for a sentence. Only the confirmed terminal
-line survives completion; obsolete withdrawal and firing instructions do not.
+The voiced exchange starts with Mara presenting the archive as a favor.
+Kord accepts the intelligence and turns to gunnery without thanking the company
+or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
+and urgent extraction orders. Her established voice strains to keep control as
+fear breaks through; Kord stays level, clipped and procedural, treating demolition
+as routine enforcement. Stable per-speaker recordings retain clean source takes,
+voice provenance, synthesis direction and exact durations.
+Neither Kord nor the briefing promises friendly clearance. The underlying release
+gate remains a mission safety rule, not evidence of the captain's concern.
+The dark science-fiction premise is institutional indifference: an unaffiliated
+mercenary outfit may be useful today and serve someone else tomorrow. A Wayline
+contract confers no military alliance or protection. This is not personal malice,
+a threat speech or a promise to attack the company. There is no dialogue countdown
+or gameplay wait for a sentence. Only the confirmed terminal line survives
+completion; obsolete withdrawal and firing instructions do not.
 
 All three support exact selected named personnel with at least two squads of
 four ready marines each and up to four fitted boats making repeated trips.

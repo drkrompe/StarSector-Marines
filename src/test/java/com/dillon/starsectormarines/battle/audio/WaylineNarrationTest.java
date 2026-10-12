@@ -59,8 +59,8 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(76, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
-        assertEquals(81, ids.size());
+        assertEquals(83, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(83, ids.size());
     }
 
     @Test void coldAccountRetriesShareKordsPublicDialogue() throws Exception {
@@ -72,7 +72,7 @@ class WaylineNarrationTest {
         }
         var line = catalog().find("story_corvus_cold_account", "corvus.cold_account.stronghold_destroyed");
         assertTrue(line.terminal());
-        assertFalse(line.voiced());
+        assertTrue(line.voiced());
         assertTrue(line.speaker().contains("KORD"));
     }
 
