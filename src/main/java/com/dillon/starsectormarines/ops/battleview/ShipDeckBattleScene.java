@@ -173,6 +173,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * campaign deck it came off goes on changing afterwards.
      */
     private final boolean[] boatsHeld;
+    private final boolean[] boatWrecks;
     /**
      * Range targets already spawned, by the cell of butts they stand in. One
      * per set of butts rather than one per shooter: a lane is shot at by
@@ -231,9 +232,15 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed,
                                BattleSprites sprites, boolean[] boatsHeld) {
+        this(deck, rooms, seed, sprites, boatsHeld, null);
+    }
+
+    public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed,
+                               BattleSprites sprites, boolean[] boatsHeld, boolean[] boatWrecks) {
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
         this.boatsHeld = boatsHeld == null ? null : boatsHeld.clone();
+        this.boatWrecks = boatWrecks == null ? null : boatWrecks.clone();
         gantries = deck.gantries;
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
@@ -457,7 +464,14 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             if (berth.holds != Gantry.Holds.BOAT) continue;
             boolean held = boatsHeld == null || boatBerth >= boatsHeld.length
                     || boatsHeld[boatBerth];
+            boolean wreck = !held && boatWrecks != null && boatBerth < boatWrecks.length && boatWrecks[boatBerth];
             boatBerth++;
+            if (wreck) {
+                // Dismantled starting hull, not an active aircraft or ambient servicing job.
+                // No terrain stamp: home layouts are cached and repair must leave clear deck.
+                bays.burnedOnPad(bays.addBayBerth(berth, boats, null));
+                continue;
+            }
             if (!held) continue;
             fieldBerth[index] = bays.berths().size();
             ShipBayRoute route = routeFrom(berth);

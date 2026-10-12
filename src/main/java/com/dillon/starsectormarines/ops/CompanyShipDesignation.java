@@ -196,7 +196,7 @@ public final class CompanyShipDesignation {
         if (!candidates().contains(member) || !quarters(member)) return false;
         if (CompanyPreparation.required(roster)) {
             CompanyShip ship = CompanyShipResolver.read(member);
-            if (!CompanyPreparation.canPrepare(roster, ShipsBoats.carriedBy(ship.role()),
+            if (!CompanyPreparation.canPrepare(roster, ShipsBoats.carriedBy(ship),
                     ShipsBoats.aboard(ship).size(), new CampaignFabricationResources())) return false;
         }
         roster.setCompanyShip(member.getId(), shipName(member),

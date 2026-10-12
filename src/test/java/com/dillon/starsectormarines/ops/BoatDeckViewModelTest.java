@@ -408,7 +408,7 @@ class BoatDeckViewModelTest {
                 .findFirst().orElseThrow();
     }
 
-    private static Map<String, Object> props(BoatDeckViewModel viewModel) {
+    static Map<String, Object> props(BoatDeckViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         // Layout evidence, so the heading only has to be a string of about the
         // right length; where the room actually is belongs to the ship.
@@ -437,7 +437,9 @@ class BoatDeckViewModelTest {
         props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("restoration", BoatBayRestorationModel.Row.hidden());
+        props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());

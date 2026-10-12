@@ -1532,7 +1532,17 @@ benefits need concrete consumers before purchases can be offered.
 
 This saved interior condition is independent of vanilla D-mods. Company yard owns
 its paid repair after the opening Relief story; `company-view-nouns.md` owns that
-campaign gate, review and empty-berth commissioning flow.
+campaign gate, review and original-wreck repair flow.
+
+Secondhand Wings can refit the original hull's bays for Aeroshuttles after the
+second bay is restored separately. This saved hull-specific compatibility replaces
+the role's default Hermes pattern without changing berth counts, room shapes,
+apertures or circulation. The deck plan, campaign lift, transfer comparison and
+both deck caches include it. Original Hermes wrecks appear as dismantled, inactive
+hulls in working berths until paid repair or exchange; a sealed bay remains debris
+and inaccessible. Wreck presentation does not spawn an aircraft, service job or
+sortie, nor alter the cached walkable deck. Rebuilding the home scene after repair
+removes that presentation and stands up the paid airframe.
 
 `CompanyShip` carries conversion state read from the actual variant; both deck
 programs and cached layouts include it. Ordinary frigates retain their existing

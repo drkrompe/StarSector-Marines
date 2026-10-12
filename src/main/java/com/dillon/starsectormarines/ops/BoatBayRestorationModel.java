@@ -49,11 +49,11 @@ public final class BoatBayRestorationModel {
             return switch (key) {
                 case "classes" -> visible ? "bay-restoration" : "bay-restoration hidden";
                 case "portrait" -> CompanyManagementGuide.portrait();
-                case "copy" -> "She carried two boats once. The second bay is sealed, but the space is still ours. We can put it right without moving the workshop.";
+                case "copy" -> "There is another wrecked Hermes behind that sealed hatch. Restore the bay first, then repair its boat separately. Those are two different jobs.";
                 case "bill" -> String.format(Locale.ROOT, "CREDITS   COST %,d / AVAILABLE %,d / SHORT BY %,d",
                         CompanyBayRestoration.CREDIT_COST, credits, Math.max(0, CompanyBayRestoration.CREDIT_COST - credits));
                 case "reason" -> refusal == null
-                        ? "Yard labor and materials included. Restores an empty berth; commission its boat separately." : refusal;
+                        ? "Yard labor and materials included. Opens the second berth; repairing its original Hermes costs materials separately." : refusal;
                 case "actionLabel" -> reviewed ? String.format(Locale.ROOT, "REPAIR BAY - %,d", CompanyBayRestoration.CREDIT_COST) : "INSPECT SECOND BAY";
                 case "disabled" -> reviewed && refusal != null;
                 case "action" -> action;
