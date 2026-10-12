@@ -16,6 +16,7 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -50,11 +51,17 @@ public final class WarshipDebugPanel implements HudPanel {
     /** Step the ship's missiles through faithful, flavoured and cinematic. */
     public static final int MISSILE_PRESET_KEY = Keyboard.KEY_F9;
 
+    /** Fly to the cell under the cursor and hover there; starts a fresh route. */
+    public static final int GO_KEY = Keyboard.KEY_F10;
+    /** Add the cell under the cursor to the route and patrol it in a loop. */
+    public static final int ROUTE_KEY = Keyboard.KEY_F11;
+
     private static final float PAD = 6f;
     private static final Color TEXT = new Color(0xFF, 0xE0, 0x90);
     private static final Color HINT = new Color(0xA8, 0xB8, 0xC8);
 
     private final BattleUiContext ctx;
+    private final List<float[]> route = new ArrayList<>();
     private final BitmapFont font = Fonts.INSIGNIA_15_AA;
 
     public WarshipDebugPanel(BattleUiContext ctx) {
@@ -89,11 +96,24 @@ public final class WarshipDebugPanel implements HudPanel {
             } else if (e.getEventValue() == FLUX_KEY) {
                 DebugWarship.toggleFlux(ship);
                 e.consume();
+            } else if (e.getEventValue() == GO_KEY || e.getEventValue() == ROUTE_KEY) {
+                routeToCursor(ship, e.getEventValue() == ROUTE_KEY);
+                e.consume();
             } else if (e.getEventValue() == MISSILE_PRESET_KEY) {
                 DebugWarship.cycleMissilePreset(ship);
                 e.consume();
             }
         }
+    }
+
+    private void routeToCursor(Warship ship, boolean append) {
+        BattleCamera camera = ctx.getCamera();
+        float mouseX = Global.getSettings().getMouseX();
+        float mouseY = Global.getSettings().getMouseY();
+        if (camera == null || !camera.containsScreen(mouseX, mouseY)) return;
+        if (!append) route.clear();
+        route.add(new float[] {camera.screenToCellX(mouseX), camera.screenToCellY(mouseY)});
+        DebugWarship.patrol(ship, route);
     }
 
     private void fireAtCursor(Warship ship) {
@@ -114,7 +134,7 @@ public final class WarshipDebugPanel implements HudPanel {
         if (ship == null || layout == null) return;
         font.ensureLoaded();
         String line = DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
-        String hint = "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset";
+        String hint = "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
         float w = Math.max(font.measureWidth(line), font.measureWidth(hint)) + 2f * PAD;
         float lineH = font.getLineHeight();
         float h = 2f * lineH + 2f * PAD;

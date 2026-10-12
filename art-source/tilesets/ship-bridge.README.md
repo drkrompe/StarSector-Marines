@@ -1,10 +1,12 @@
 # Ship bridge
 
-The 13x11 diamond command compartment has a 3x3 central tactical plot,
+The 17x13 chamfered CIC has a 3x3 central tactical plot,
 three-cell helm and systems banks, two inward-facing side banks, and enclosed
-data cabinets in the side pockets. Eight console watch positions stand
+data cabinets in four equipment pockets. Eight console watch positions stand
 outboard of their controls; the ninth stands at the plot's control edge.
 The inner walkway, chamfered perimeter and hatch approaches remain clear.
+An entrance sentry stands beside a real hatch. The central operations inset
+and surrounding passage deck reuse the geometry-first `ship-floor-trim` kit.
 
 ## Geometry and art
 
@@ -27,8 +29,8 @@ is used; this sheet has no height/normal companions.
 
 `ShipBridgeFitting` uses complete posed assemblies, including their visual
 control edges. Furniture blocks only after circulation acceptance. The room
-publishes WATCH activity, with no extra work assigned to cabinets. Authored
-layouts retain priority; ground bridges and smaller footprints retain the
+publishes nine WATCH positions and one GUARD post, with no extra work assigned
+to cabinets. Authored layouts retain priority; ground bridges and smaller footprints retain the
 existing generic bridge fitting.
 
 With JAVA_HOME set as documented in CLAUDE.md:
@@ -42,6 +44,9 @@ With JAVA_HOME set as documented in CLAUDE.md:
 The suite shows the actual generated Valkyrie bridge at 24 and 64px/cell,
 its adjoining passage, and four turned fitting views. These use production
 render collectors with the headless Java2D drain, not a live OpenGL capture.
-Direct tests restrict navigation to the diamond itself and cover all eight
+Direct tests restrict navigation to the CIC itself and cover all eight
 poses, every legal hatch, simultaneous hatches on four sides, all four command
-banks, nine exclusive reachable WATCH positions, and the clear plot walkway.
+banks, nine exclusive reachable WATCH positions, the side-of-hatch guard post, and
+the clear plot walkway. `createSnapshots -Psnapshot=ship-duty` additionally
+checks Wolf and Conquest construction and advances an occupied generated
+Valkyrie for 120 seconds, including the crew-budgeted sentry.

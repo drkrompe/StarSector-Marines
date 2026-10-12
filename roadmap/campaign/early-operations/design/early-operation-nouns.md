@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account voices its exchange and closes on Resolute's patrol departure and the ruins.
+Updated: 2026-10-12 — Cold Account uses a closer clearance boundary and an older, naturally authoritative Kord voice.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -213,7 +213,9 @@ Its finite High-quality garrison protects the records and installation. The
 Hegemony Onslaught arrives nose-first from the east and stations its entire hull
 outside the installation's eastern footprint. It fires inward as soon as every
 surviving ground unit clears the marked bombardment exclusion area and inbound
-deployments resolve. There is no grace period and it does not wait for boarding.
+deployments resolve. The boundary adds six cells beyond the installation's
+enclosing strike circle, and the displayed ring is the same boundary used to
+release the guns. There is no grace period and it does not wait for boarding.
 Re-entry cancels further launches; already launched rounds remain dangerous.
 Its short eastern entry leaves time to settle and train the batteries during
 withdrawal. Once firing begins the hull keeps that bearing. Heavy batteries open
@@ -248,9 +250,11 @@ The voiced exchange starts with Mara presenting the archive as a favor.
 Kord accepts the intelligence and turns to gunnery without thanking the company
 or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
 and urgent extraction orders. Her established voice strains to keep control as
-fear breaks through; Kord stays level, clipped and procedural, treating demolition
-as routine enforcement. Stable per-speaker recordings retain clean source takes,
-voice provenance, synthesis direction and exact durations.
+fear breaks through; Kord sounds like an older, experienced naval commander,
+with natural cadence, vocal weight and firm authority. Her procedural treatment
+of demolition conveys indifference without a robotic monotone. Stable per-speaker
+recordings retain clean source takes, voice provenance, synthesis direction and
+exact durations.
 Neither Kord nor the briefing promises friendly clearance. The underlying release
 gate remains a mission safety rule, not evidence of the captain's concern.
 The dark science-fiction premise is institutional indifference: an unaffiliated
