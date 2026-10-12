@@ -60,6 +60,11 @@ public class MarineRoster implements Serializable {
     private boolean initialComplementIssued;
     /** Optional company-management introduction; absent legacy values mean not yet dismissed. */
     private boolean managementGuideDismissed;
+    private FirstRefit firstRefit;
+    public FirstRefit firstRefit() {
+        if (firstRefit == null) firstRefit = new FirstRefit();
+        return firstRefit;
+    }
     /** Only new companies opt in; absent legacy state must not lock deployment. */
     private OfficerInduction officerInduction;
 

@@ -4,9 +4,11 @@ import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
 import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ops.battleview.OfficerCapacityCanvas;
 import com.dillon.starsectormarines.ops.battleview.OfficerRankCanvas;
@@ -45,7 +47,8 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
-            "data/ui/components/armory/armory-armor-comparison.mlx");
+            "data/ui/components/armory/armory-armor-comparison.mlx",
+            "data/ui/components/armory/first-refit.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
@@ -56,6 +59,7 @@ public final class FleetArmoryScreen implements Screen {
     private Runnable dismissDialog;
     private MarineRoster roster;
     private FleetArmoryViewModel viewModel;
+    private FirstRefitModel firstRefit;
     private EquipmentDoctrineDesignerViewModel designerViewModel;
     private UiViewport viewport;
     private UiDocument document;
@@ -98,9 +102,14 @@ public final class FleetArmoryScreen implements Screen {
         } else {
             viewModel.refresh();
         }
+        firstRefit = new FirstRefitModel(reactor, roster, new CampaignEquipmentIssueResources(), id -> {
+            viewModel.selectSquad(id);
+            viewModel.refresh();
+            showSelectedSquad();
+        });
         viewModel.cancelOrganization();
         projectedCampaignHour = campaignHour();
-        view = View.SQUADS;
+        view = FirstRefit.available(roster) ? View.FIRST_REFIT : View.SQUADS;
         String requestedSquad = context.takeRequestedArmorySquadId();
         if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
             viewModel.selectSquad(requestedSquad);
@@ -118,6 +127,7 @@ public final class FleetArmoryScreen implements Screen {
             case FIRETEAMS -> FIRETEAM_COMPONENT;
             case DESIGNER -> DESIGNER_COMPONENT;
             case ARMOR_COMPARISON -> ARMOR_COMPARISON_COMPONENT;
+            case FIRST_REFIT -> "first-refit";
         };
         PreparedReload prepared = reloadSource
                 ? markup.prepareReload(reactor, componentName, props()) : null;
@@ -138,7 +148,9 @@ public final class FleetArmoryScreen implements Screen {
                 case FIRETEAMS -> this::showSquadOverview;
                 case DESIGNER -> this::showFireTeams;
                 case ARMOR_COMPARISON -> this::showFireTeams;
+                case FIRST_REFIT -> this::showSquadOverview;
             });
+            if (view == View.FIRST_REFIT) bindFirstRefitPreviews(built, candidate, previewAssets);
             if (view == View.SQUADS) {
                 bindGalleryCanvases(built, candidate, viewModel);
             } else if (view == View.FIRETEAMS) {
@@ -250,6 +262,9 @@ public final class FleetArmoryScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("firstRefitClasses", FirstRefit.available(roster) ? "console-action" : "hidden");
+        props.put("openFirstRefit", (Runnable) this::showFirstRefit);
+        props.put("lesson", firstRefit.row());
         props.put("companySummary", viewModel.companySummary());
         props.put("organization", viewModel.organization());
         props.put("selectedSquadName", viewModel.selectedSquadName());
@@ -329,7 +344,9 @@ public final class FleetArmoryScreen implements Screen {
     }
 
     private void requireWiredElements(MarkupInstance component) {
-        List<String> required = view == View.FIRETEAMS
+        List<String> required = view == View.FIRST_REFIT
+                ? List.of("first-refit-root", "refit-claim", "refit-issue", "refit-billets", "refit-later")
+                : view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
@@ -370,6 +387,19 @@ public final class FleetArmoryScreen implements Screen {
         for (String id : required) {
             component.requireElement(id);
         }
+    }
+
+    static void bindFirstRefitPreviews(UiDocument document, MarkupInstance markup, ArmoryLoadoutPreviewComposer.Assets assets) {
+        document.canvases().set(markup.requireElement("refit-line-preview"),
+                new ArmoryMarinePreviewCanvas(() -> FirstRefitModel.example(false), assets));
+        document.canvases().set(markup.requireElement("refit-scout-preview"),
+                new ArmoryMarinePreviewCanvas(() -> FirstRefitModel.example(true), assets));
+    }
+
+    private void showFirstRefit() {
+        firstRefit.refresh();
+        view = View.FIRST_REFIT;
+        if (viewport != null) installDocument(false);
     }
 
     private void showSelectedSquad() {
@@ -425,6 +455,7 @@ public final class FleetArmoryScreen implements Screen {
         if (currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
             viewModel.refresh();
+            if (firstRefit != null) firstRefit.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard);
@@ -478,5 +509,5 @@ public final class FleetArmoryScreen implements Screen {
         input = null;
     }
 
-    private enum View { SQUADS, FIRETEAMS, DESIGNER, ARMOR_COMPARISON }
+    private enum View { SQUADS, FIRETEAMS, DESIGNER, ARMOR_COMPARISON, FIRST_REFIT }
 }

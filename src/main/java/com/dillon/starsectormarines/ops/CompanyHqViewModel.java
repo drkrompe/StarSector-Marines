@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -142,6 +143,8 @@ final class CompanyHqViewModel {
             props.put("openingGuide", new SupplyRouteWorkGuide(SupplyRouteCampaign.current(), SupplyRouteCampaign.destination(), openingCourse));
         if (CorvusWaylineCampaign.current() != null)
             props.put("openingGuide", new CorvusWaylineWorkGuide(CorvusWaylineCampaign.current(), CorvusWaylineCampaign.destination(), openingCourse));
+        props.put("firstRefitClasses", FirstRefit.available(rosterScript == null ? null : rosterScript.roster())
+                ? "hq-wings console-action" : "hidden");
         props.put("wingsClasses", SecondhandWingsCampaign.available(rosterScript == null ? null : rosterScript.roster())
                 ? "hq-wings console-action" : "hidden");
         props.put("shipAction", openShipTransfer);
@@ -300,6 +303,7 @@ final class CompanyHqViewModel {
         props.put("debugAction", (Runnable) () -> { });
         props.put("debugClasses", "hq-debug-hidden");
         props.put("openingGuide", OpeningWorkGuide.from(null));
+        props.put("firstRefitClasses", "hidden");
         props.put("wingsClasses", "hidden");
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
         props.put("shipAction", (Runnable) () -> { });

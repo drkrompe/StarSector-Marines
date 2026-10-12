@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CompanyClocks;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -145,7 +146,10 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void onArmory() {
-        if (context != null) context.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
+        if (context == null) return;
+        if (FirstRefit.available(CompanyPreparationGuide.roster()))
+            context.openFleetArmoryWorkspaceFrom(ScreenId.COMPANY_HQ);
+        else context.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
     }
 
     private void onBarracks() {

@@ -3026,6 +3026,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("firstRefitClasses", "hidden");
+        props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());

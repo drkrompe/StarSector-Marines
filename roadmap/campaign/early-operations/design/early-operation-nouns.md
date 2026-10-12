@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Wayline recovery builds to Blind Watch; Cold Account preserves earned success while revealing its limits.
+Updated: 2026-10-12 — Wayline relief introduces Castle's optional two-path squad equipment lesson.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -101,6 +101,15 @@ Faction-client access and deployment checks still apply; this exception does not
 refill ordinary patron contracts or add invented news events.
 
 ## Recovery, confidence and scale
+
+The pause after the first Relief victory includes **A Proper Issue**: Mara makes
+weapon and scout-suit patterns available, and Castle teaches one actual squad
+refit in the Armory. Exactly two equipment paths give the player a manageable
+choice and equipment to use on the depot job. The reward supports the company's
+recovery without claiming casualties or resource bills have vanished. The
+lesson is optional and resumes later; it does not gate Counterattack. Collection
+and issue semantics remain in `progression-nouns.md` and `company-view-nouns.md`.
+
 
 Wayline begins close to dissolution: losing the depot threatens the drivers'
 work and the cooperative's ability to stay together. Relief buys breathing

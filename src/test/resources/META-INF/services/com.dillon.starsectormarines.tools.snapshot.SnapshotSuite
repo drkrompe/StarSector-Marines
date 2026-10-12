@@ -88,3 +88,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.BerthingBedDamageSnapshotSui
 com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.SecondhandWingsSnapshotSuite
 com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite
+com.dillon.starsectormarines.ops.FirstRefitSnapshotSuite
