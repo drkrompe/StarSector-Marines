@@ -62,7 +62,8 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
    `warship-point-defence` scene. Standing rule lives in `air-nouns.md`.
 9. **Answerability.** The hull pool is shipped (hit points and armour from the
    hull table, one armour rule, destruction removes the ship); a bounded station
-   time and an ordnance budget are open. Whether stock ground weapons should be
+   time (`stayFor`) and an ordnance budget (`limitOrdnance`, per-weapon ammo) are shipped;
+   acceptance is the `warship-budget` scene. Whether stock ground weapons should be
    able to reach a hull at all, rather than only scripted or heavy ordnance, is a
    balance question for the mission that fields a counter.
 
