@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +34,27 @@ class ShipDeckLightingTest {
         }
         assertTrue(before.cells[5 * 20 + 5].emergency());
         assertFalse(after.cells[5 * 20 + 5].emergency());
+    }
+
+    @Test void emergencyPowerLeavesDistinctDarkGapsAndRepairRestoresCoverage() {
+        var topology = new CellTopology(20, 16);
+        for (int y = 0; y < 16; y++) for (int x = 0; x < 20; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
+        var room = new DeckGraph.Compartment(1, RoomShape.rectangle(14, 10), 3, 3,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.PARTS_CAGE, List.of());
+        var intact = new DeckGraph(List.of(room), List.of());
+        var damaged = new DeckGraph(List.of(room), List.of(), List.of(), intact.boats(), Set.of(1));
+        var before = new ShipDeckLighting(topology, damaged, 42);
+        var after = new ShipDeckLighting(topology, intact, 42);
+        float[] steadyGains = new float[before.lamps.size()];
+        Arrays.fill(steadyGains, 1f);
+        float near = ShipDeckLighting.illumination(before.cells[3 * 20 + 4], 5, steadyGains);
+        float gap = ShipDeckLighting.illumination(before.cells[7 * 20 + 7], 5, steadyGains);
+        float repairedGap = ShipDeckLighting.illumination(after.cells[7 * 20 + 7], 5, steadyGains);
+        assertTrue(ShipDeckLighting.shade(true, gap) - ShipDeckLighting.shade(true, near) > .5f,
+                "Emergency pools must separate visibly from the dark room interior");
+        assertTrue(ShipDeckLighting.shade(false, repairedGap) < ShipDeckLighting.shade(true, gap) - .2f,
+                "Repair restores usable light between fixtures");
+        assertTrue(ShipDeckLighting.shade(true, gap) < .95f, "Keep some texture in the darkest gaps");
     }
 
     @Test void faultIsLocalizedBoundedAndDrivenBySceneTime() {

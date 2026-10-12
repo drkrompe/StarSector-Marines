@@ -1531,8 +1531,9 @@ actual floor beneath furnishings and own no navigation, cover or capacity.
 
 **Deck lighting** belongs to the company interior presentation. Compartments and
 passages have visible fixtures and readable pools of light. Damaged facilities
-use amber emergency lighting with staggered local faults; intact/repaired rooms
-have steady fixtures in the same locations. Clearing workshop rubble alone does
+use short, warm pools of emergency light with staggered local faults and deep,
+readable shadow between fixtures. Intact/repaired rooms have broader, steady
+illumination from fixtures in the same locations. Clearing workshop rubble alone does
 not restore its faulty lights; machinery repair does. Bay restoration restores
 its lights with its other facilities. Room masks confine the shading; space and
 management controls retain their own appearance. Lighting follows the shared

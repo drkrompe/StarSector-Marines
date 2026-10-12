@@ -11,7 +11,7 @@ import java.util.Map;
 
 /** Baked, compartment-local light pools. No simulation RNG, navigation or combat lighting ownership. */
 final class ShipDeckLighting {
-    static final int SAMPLES = 4;
+    static final int SAMPLES = 8;
     record Lamp(float x, float y, boolean vertical, boolean emergency, boolean faulty, float phase) {}
     record Cell(int x, int y, boolean emergency, int[] lamps, float[] pools) {}
     final List<Lamp> lamps = new ArrayList<>();
@@ -63,7 +63,9 @@ final class ShipDeckLighting {
                         nearest = d2; selected[index] = id;
                     } else if (d2 < second) { second = d2; selected[index + 1] = id; }
                 }
-                float a = (float) Math.exp(-nearest / 22f), b = (float) Math.exp(-second / 22f);
+                // Emergency lamps throw short pools; healthy circuits spread usable light farther.
+                float spread = graph != null && owner >= 0 && graph.damaged(owner) ? 9f : 18f;
+                float a = (float) Math.exp(-nearest / spread), b = (float) Math.exp(-second / spread);
                 // Overlapping fixtures soften local faults instead of exposing a nearest-lamp boundary.
                 if (a + b > 0f) { pool[index] = a * a / (a + b); pool[index + 1] = a * b / (a + b); }
             }
@@ -94,11 +96,16 @@ final class ShipDeckLighting {
         return 1f;
     }
 
-    static float shade(Cell cell, int sample, float[] gains) {
+    static float illumination(Cell cell, int sample, float[] gains) {
         int i = sample * 2;
         float pool = 0f;
         for (int j = i; j <= i + 1; j++)
             if (cell.lamps()[j] >= 0) pool += cell.pools()[j] * gains[cell.lamps()[j]];
-        return (cell.emergency() ? .66f : .46f) - .40f * pool;
+        return pool;
+    }
+
+    static float shade(boolean emergency, float pool) {
+        // Dark gaps retain a little shape; a live fixture can still illuminate near full brightness.
+        return emergency ? .92f - .86f * pool : .62f - .57f * pool;
     }
 }

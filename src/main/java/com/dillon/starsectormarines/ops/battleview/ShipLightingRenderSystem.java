@@ -17,18 +17,31 @@ final class ShipLightingRenderSystem implements RenderSystem {
         if (gains.length < lights.lamps.size()) gains = new float[lights.lamps.size()];
         for (int i = 0; i < lights.lamps.size(); i++) gains[i] = ShipDeckLighting.gain(lights.lamps.get(i), time);
         shade.reset();
-        int steps = camera.cellPxSize() >= 24f ? ShipDeckLighting.SAMPLES : 1;
+        int steps = camera.cellPxSize() >= 32f ? ShipDeckLighting.SAMPLES : camera.cellPxSize() >= 16f ? 4 : 2;
         float step = 1f / steps;
         for (int y = visible.minY(); y <= visible.maxY(); y++) for (int x = visible.minX(); x <= visible.maxX(); x++) {
             var cell = lights.cells[y * lights.width + x];
             if (cell == null) continue;
             for (int sy = 0; sy < steps; sy++) for (int sx = 0; sx < steps; sx++) {
-                int sample = steps == 1 ? 5 : sy * steps + sx;
-                float alpha = ShipDeckLighting.shade(cell, sample, gains) * ctx.alphaMult;
-                float x0 = camera.cellToScreenX(x + sx * step), x1 = camera.cellToScreenX(x + (sx + 1) * step);
-                float y0 = camera.cellToScreenY(y + sy * step), y1 = camera.cellToScreenY(y + (sy + 1) * step);
+                int sampleX = (2 * sx + 1) * ShipDeckLighting.SAMPLES / (2 * steps);
+                int sampleY = (2 * sy + 1) * ShipDeckLighting.SAMPLES / (2 * steps);
+                float pool = ShipDeckLighting.illumination(cell, sampleY * ShipDeckLighting.SAMPLES + sampleX, gains);
+                float darkness = ShipDeckLighting.shade(cell.emergency(), pool);
+                float warmth = cell.emergency() ? .22f * pool : .025f * pool;
+                // Compose the dark mask and warm spill into one quad, retaining the deck's texture.
+                float alpha = darkness + warmth * (1f - darkness);
+                float darkWeight = darkness * (1f - warmth);
+                float r = (.008f * darkWeight + warmth) / alpha;
+                float g = (.012f * darkWeight + warmth * (cell.emergency() ? .42f : .91f)) / alpha;
+                float b = (.022f * darkWeight + warmth * (cell.emergency() ? .09f : .78f)) / alpha;
+                // Share exact pixel edges: fractional alpha coverage otherwise leaves a bright lattice
+                // between adjacent translucent tiles in the headless rasterizer.
+                float x0 = Math.round(camera.cellToScreenX(x + sx * step));
+                float x1 = Math.round(camera.cellToScreenX(x + (sx + 1) * step));
+                float y0 = Math.round(camera.cellToScreenY(y + sy * step));
+                float y1 = Math.round(camera.cellToScreenY(y + (sy + 1) * step));
                 shade.appendQuad(x0, y0, x1, y0, x1, y1, x0, y1,
-                        cell.emergency() ? .09f : .015f, .035f, cell.emergency() ? .015f : .055f, alpha);
+                        r, g, b, alpha * ctx.alphaMult);
             }
         }
         out.addPoly(layer(), shade);
