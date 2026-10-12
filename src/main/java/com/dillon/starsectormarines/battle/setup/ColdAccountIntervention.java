@@ -178,9 +178,9 @@ public final class ColdAccountIntervention implements Objective {
     @Override public String displayName() {
         return switch (phase) {
             case EVIDENCE -> "Secure pirate dispatch records to authorize Hegemony intervention";
-            case WITHDRAW -> "Withdraw to the shuttle pickup; Onslaught holding fire (" + outsideWithdrawal
+            case WITHDRAW -> "Get clear and reach the shuttle pickup (" + outsideWithdrawal
                     + " in firing area" + (pendingArrivals ? "; lift inbound" : "") + ")";
-            case WARNING -> "Company clear of firing line: batteries engaging";
+            case WARNING -> "Hegemony batteries engaging";
             case BOMBARD -> "Demolition sector " + demolition.sectorNumber() + "/" + demolition.sectorCount()
                     + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
             case COMPLETE -> "Pirate evidence secured; company withdrawn; stronghold destroyed";

@@ -954,11 +954,25 @@
       "portrait": "graphics/portraits/mara-venn.png"
     },
     {
-      "id": "marines_kord_cold_account_pirate_evidence_confirmed",
+      "id": "marines_mara_cold_account_pirate_evidence_confirmed",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.pirate_evidence_confirmed",
-      "text": "Captain Kord, HSS Resolute. Authentication accepted. This installation is designated a pirate military asset. Withdraw your personnel.",
-      "durationSeconds": 9,
+      "text": "Resolute, this is Wayline. Sable Wake's dispatch archive, intact. The company secured it for you. That should settle the question of who owns this place.",
+      "durationSeconds": 7,
+      "priority": 60,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "MARA VENN / WAYLINE",
+      "portrait": "graphics/portraits/mara-venn.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "marines_kord_cold_account_hegemony_arriving_hold_fire",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.hegemony_arriving_hold_fire",
+      "text": "Captain Kord, HSS Resolute. Authentication accepted. Pirate installation confirmed. Gunnery, prepare a demolition pattern.",
+      "durationSeconds": 6,
       "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -968,16 +982,16 @@
       "terminal": false
     },
     {
-      "id": "marines_kord_cold_account_batteries_preparing",
+      "id": "marines_castle_cold_account_batteries_preparing",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.batteries_preparing",
-      "text": "Gunnery, lay batteries on the installation. Maintain bearing. Weapons release on friendly clearance.",
-      "durationSeconds": 6,
-      "priority": 40,
+      "text": "Resolute, acknowledge our withdrawal. Resolute? ... Damn it. Captain, those guns are training on the compound. Get our people out. Now.",
+      "durationSeconds": 7,
+      "priority": 70,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
-      "portrait": "",
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
       "voiced": false,
       "terminal": false
     },
@@ -985,16 +999,31 @@
       "id": "marines_kord_cold_account_company_clear_open_fire",
       "missionId": "story_corvus_cold_account",
       "event": "corvus.cold_account.company_clear_open_fire",
-      "text": "Friendly elements clear. Execute.",
-      "durationSeconds": 3,
+      "text": "Gunnery. Commence bombardment.",
+      "durationSeconds": 2,
       "priority": 100,
       "expiresSeconds": 30,
       "supersedes": [
         "corvus.cold_account.pirate_evidence_confirmed",
+        "corvus.cold_account.hegemony_arriving_hold_fire",
         "corvus.cold_account.batteries_preparing"
       ],
       "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
       "portrait": "",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "marines_castle_cold_account_bombardment_authorized",
+      "missionId": "story_corvus_cold_account",
+      "event": "corvus.cold_account.bombardment_authorized",
+      "text": "Incoming! Keep moving. Get to the shuttles! We are not losing anyone to this.",
+      "durationSeconds": 5,
+      "priority": 90,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
       "voiced": false,
       "terminal": false
     },
@@ -1021,7 +1050,8 @@
       "priority": 100,
       "expiresSeconds": 30,
       "supersedes": [
-        "corvus.cold_account.demolition_sweep"
+        "corvus.cold_account.demolition_sweep",
+        "corvus.cold_account.bombardment_authorized"
       ],
       "speaker": "CAPTAIN IRENA KORD / HSS RESOLUTE",
       "portrait": "",
