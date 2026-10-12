@@ -11,7 +11,7 @@ import java.util.List;
 public record ColdAccountLayout(int evidenceX, int evidenceY, int withdrawalX, int withdrawalY,
                                 float strikeX, float strikeY, float strikeRadius) {
     public static final float WITHDRAWAL_RADIUS = 12f;
-    public static final float BLAST_MARGIN = 18f;
+    public static final float BLAST_MARGIN = 6f;
     public static ColdAccountLayout select(MapResult map, List<LandingPad> pads) {
         LandingPad exit = pads.get(0);
         var places = map.pointsOfInterest.stream()
