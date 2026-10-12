@@ -1,0 +1,136 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.residential-bed-h-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "doodad.residential-bed-head-e-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "doodad.residential-bed-v-damaged",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "doodad.residential-bed-head-n-damaged",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "doodad.residential-bed-h-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "doodad.residential-bed-head-e-destroyed",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "doodad.residential-bed-v-destroyed",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "doodad.residential-bed-head-n-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 0,
+      "cover": "light",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.residential-bed-h-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 2,
+      "cover": "light",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.residential-bed-head-e-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 4,
+      "cover": "light",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "doodad.residential-bed-v-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 5,
+      "cover": "light",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "doodad.residential-bed-head-n-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.residential-bed-h-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.residential-bed-head-e-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "doodad.residential-bed-v-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "doodad.residential-bed-head-n-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/berthing-bed-damage.png"
+}

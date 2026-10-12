@@ -27,16 +27,20 @@ class PropDamageTest {
             navigation = new NavigationService(grid, topology, false);
             editor = new MapEditor(navigation); editor.setDoodads(props);
             props.setPropEffectSink((x, y, effect, size) -> {
-                assertEquals(1f, size);
-                assertEquals(3.5f, x); assertEquals(3.5f, y); cues.add(effect);
+                Doodad prop = props.getDoodads().get(0);
+                assertEquals(Math.min(prop.footprintCellsX, prop.footprintCellsY), size);
+                assertEquals(3f + prop.footprintCellsX / 2f, x);
+                assertEquals(3f + prop.footprintCellsY / 2f, y); cues.add(effect);
             });
         }
         void prop(String id, boolean blocking, int turn, boolean mirror) {
-            if (blocking) {
-                grid.setWalkable(3, 3, false); grid.setSeeThrough(3, 3, true);
-                topology.setFixture(3, 3, true);
+            Doodad prop = new Doodad(3, 3, TileRegistry.installed().doodad(id), turn, mirror);
+            if (blocking) for (int y = 3; y < 3 + prop.footprintCellsY; y++)
+                for (int x = 3; x < 3 + prop.footprintCellsX; x++) {
+                grid.setWalkable(x, y, false); grid.setSeeThrough(x, y, true);
+                topology.setFixture(x, y, true);
             }
-            props.addDoodad(new Doodad(3, 3, TileRegistry.installed().doodad(id), turn, mirror));
+            props.addDoodad(prop);
         }
         public void close() { navigation.close(); }
     }
@@ -74,6 +78,27 @@ class PropDamageTest {
             g.editor.damageWallsInRadius(3.5f, 3.5f, 2, 500, null);
             assertEquals(List.of(PropDamage.Effect.FIRE), g.cues);
         }
+    }
+
+    @Test void blastHitsTheWholeRotatedBedOnceAndDebrisReleasesBothCells() {
+        for (String id : List.of("doodad.residential-bed-h", "doodad.residential-bed-head-e",
+                "doodad.residential-bed-v", "doodad.residential-bed-head-n"))
+            for (int turn = 0; turn < 4; turn++) try (Ground g = new Ground()) {
+                g.prop(id, true, turn, false);
+                Doodad bed = g.props.getDoodads().get(0);
+                g.editor.damageWallsInRadius(4, 4, 3, 60, null);
+                assertEquals(id + "-damaged", g.props.getDoodads().get(0).definitionId(),
+                        "A single blast cannot hit the shared damage pool twice");
+                g.editor.damageWallsInRadius(4, 4, 3, 40, null);
+                assertEquals(id + "-destroyed", g.props.getDoodads().get(0).definitionId());
+                for (int y = 3; y < 3 + bed.footprintCellsY; y++)
+                    for (int x = 3; x < 3 + bed.footprintCellsX; x++) {
+                        assertTrue(g.grid.isWalkable(x, y));
+                        assertFalse(g.topology.isFixture(x, y));
+                        assertEquals(0, g.props.getDoodadLevelOnCell(x, y));
+                        assertEquals(CellTopology.GroundKind.GRASS, g.topology.getGroundKind(x, y));
+                    }
+            }
     }
 
     @Test void overlappingStaticFixtureAndWalkableCoverKeepTheirOwnProfiles() {
