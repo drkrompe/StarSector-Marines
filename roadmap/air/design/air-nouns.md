@@ -1570,6 +1570,56 @@ flight when the pool empties still land; nothing new is fired, even mid-burst.
 Both budgets are unlimited unless a mission sets them, and both are readable
 (remaining seconds, remaining rounds, per-mount magazine) for a HUD.
 
+**A warship has a posture: its current job, chosen from the battle and never
+from a damage dial** (`warship-behaviours.md` owns the model). A doctrine reads
+a snapshot once a second and picks one of five postures: bombard (the shipped
+density director, and the default for a ship with no doctrine), support
+(attacking), intercept (defending), air superiority, and withdraw. A posture
+sets the parameters of machinery that already exists (how many areas the
+director holds and how wide, how near a target may be, which mounts may start a
+burst, where the flux stops-and-resumes thresholds sit, whether the station
+keeps clear of a declared hazard); it fires nothing itself and no posture
+scales a gun's damage. Air superiority is entered when the weighted threat to
+the ship (a mission-declared threat, hostile warships, hostile strike craft)
+reaches an entry level and left only after it has stayed under half of it for
+a dwell, so a pause between sorties is not the end of the fight; while it lasts
+the ship spends flux on shots of opportunity from its secondary battery only,
+and keeps clear of any declared capital hazard. Withdraw is for the rest of the
+battle and leaves through the ordinary departure. What the ship is trying to do
+about the objective is a **mission stance** (attack, defend, hold), a value a
+mission sets and changes at any time, never derived from the ship's side; a
+hostile loaded shuttle is never a threat to a ship but an inbound drop. A
+mission may pin a posture, which stops the doctrine, and the debug readout
+states the posture and why.
+
+**Support fire weighs the objective and its own side, and never refuses a
+manual order.** Under the support and intercept postures the director scores
+each candidate area as its hostiles times one plus twice its closeness to the
+mission's objective ground, less a heavy weight per friendly body in its blast.
+Objective ground is read from what the battle already says: the assignments its
+own side's squads hold (an attacking ship looks where the assault was sent, a
+defending one where its squads hold), the tactical map's objective nodes, and
+ground a mission declares on the ship; a hostile commander's orders are never
+read. A friendly counts when a round aimed at any hostile in the area would land
+within the weapon's blast and a safety margin of it, and declared protected
+ground counts heavily with its own radius. An area with any friendly exposure
+is refused, an area already held is dropped when friendlies walk into it, and
+when every candidate is refused the ship holds fire and says so (the readout
+counts the refusals, so a starved ship is visible and not mistaken for broken).
+A mission may set **danger-close**: the ship then fires, still preferring fewer
+friendlies. The weapons are not weakened by any of this.
+
+**A defending ship denies a landing before anybody is standing in it.** Under
+the intercept posture an inbound hostile loaded boat is ranked by the people
+and machines it carries per second to touchdown, and its landing zone becomes
+a held area aimed at open ground, not at a unit. Each barrel waits on the zone
+until a round fired now would land as the boat touches down, so the first rounds
+fall with the boat and keep falling until everyone is out of it; a zone with a
+friendly in the blast and margin is skipped unless danger-close. The ship does
+not shoot the boat: whether a detonation on a boat's pad hurts it is not
+modelled (the boat is untouched in the scene), and shooting a boat in flight
+waits on the weapon-by-weapon rule for ship fire against aircraft.
+
 **A warship is overpowered on purpose, and flux governs its rhythm, not its
 balance.** Owner direction: these ships are not balanced inside the battle. In the
 world they are gated by role-play context (diplomacy with the local government, a
