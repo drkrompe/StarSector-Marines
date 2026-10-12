@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
+import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
@@ -163,24 +164,34 @@ public final class MissionLaunch {
                                         Collection<String> selectedPowerIds,
                                         List<FleetMemberAPI> committedPowerSources,
                                         DebugMechRoster debugMechs, long seed) {
+        if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles))
+            throw new IllegalStateException("Company boats are required to cover this operation's lift.");
+        DebugMissionCatalog.Scenario debugScenario = DebugMissionCatalog.scenario(m);
+        if (debugScenario != null) {
+            var manifest = DebugMissionCatalog.manifest(m, committedShuttles, ctx.getDebugCompanyRoster().lineReadySoldiers().size());
+            Detachment det = new Detachment(manifest, FlybyRoster.EMPTY, List.of());
+            if (debugMechs != null) det = debugMechs.applyTo(det);
+            det = CommandDeck.apply(det, selectedPowerIds);
+            Detachment frozen = det;
+            return new ScenarioPlan(Arrays.asList(m.id, seed, manifest), det,
+                    debugScenario.opening() ? 1 : 0, null,
+                    () -> DebugMissionCatalog.build(debugScenario, seed, frozen.shuttleManifest), "pirates");
+        }
         if (SupplyRouteCampaign.owns(m.id)) {
             SupplyRouteCampaign.requireCurrent(m);
             if (!SupplyRouteCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to the accepted supply-route site before deployment.");
         }
-        if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles)) {
-            throw new IllegalStateException("Company boats are required to cover this operation's lift.");
-        }
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
-                : committedPowerSources == null
+                : committedPowerSources == null && !m.source.isDebug()
                         ? DetachmentResolver.resolve(m, committedShuttles, committedWings)
-                        : DetachmentResolver.resolve(m, committedShuttles, committedWings,
-                                committedPowerSources);
+                        : DetachmentResolver.resolve(m, committedShuttles, m.source.isDebug() ? FlybyRoster.EMPTY : committedWings,
+                                m.source.isDebug() ? List.of() : committedPowerSources);
         if (debugMechs != null) det = debugMechs.applyTo(det);
         det = CommandDeck.apply(det, selectedPowerIds);
-        if (MissionForceEnvelope.allowsUnderstrength(m)) {
-            int selectedPersonnel = selectedMarineSeats(ctx);
+        if (MissionForceEnvelope.allowsUnderstrength(m) || m.source.isDebug() && m.type != MissionType.CONQUEST) {
+            int selectedPersonnel = m.source.isDebug() ? (ctx == null ? DebugMissionCatalog.preset(m).squads() * 12 : ctx.getDebugCompanyRoster().lineReadySoldiers().size()) : selectedMarineSeats(ctx);
             det = new Detachment(
                     DetachmentResolver.buildShuttleManifestForPersonnel(
                             m, committedShuttles, selectedPersonnel),
@@ -194,7 +205,8 @@ public final class MissionLaunch {
             if (!CorvusWaylineCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to the Corvus chapter's destination before deploying.");
         }
-        boolean enemyHasHeavyArmor = !CorvusWaylineCampaign.isBattle(m)
+        boolean detachedDebugWorld = m.source.isDebug() && (ctx == null || ctx.planet == null);
+        boolean enemyHasHeavyArmor = !detachedDebugWorld && !CorvusWaylineCampaign.isBattle(m)
                 && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
 
         // Campaign → battle bridge: the target world's planetary defenses /
@@ -204,7 +216,7 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile profile = (CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+        TargetProfile profile = (detachedDebugWorld ? TargetProfile.NEUTRAL : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
@@ -366,7 +378,7 @@ public final class MissionLaunch {
         int firstPlayerShuttle = plan.firstPlayerShuttle();
         BattleFixture fixture = plan.fixture();
         try {
-            MarineRosterScript personnel = MarineRosterScript.getInstance();
+            MarineRosterScript personnel = m.source.isDebug() ? null : MarineRosterScript.getInstance();
             requireOfficerInductionComplete(personnel == null ? null : personnel.roster(), m.source);
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.
@@ -391,8 +403,8 @@ public final class MissionLaunch {
             // (committed bays + employer), then any force-spawned debug wings (both
             // sides — each FighterWing carries its own side, so the overlay spawns
             // it right); then install the active command-power roster.
-            CampaignCommandPowerResources liveResources =
-                    new CampaignCommandPowerResources();
+            CommandPowerResources liveResources = m.source.isDebug() ? CommandPowerResources.FREE
+                    : new CampaignCommandPowerResources();
             boolean supplyRoute = SupplyRouteCampaign.isBattle(m);
             if (CorvusWaylineCampaign.isBattle(m)
                     && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
@@ -403,13 +415,18 @@ public final class MissionLaunch {
                     throw new IllegalStateException("Select at least two squads with four ready marines each.");
                 deployment.applyToAuthoredPlayerLift(sim);
             }
+            var debugScenario = DebugMissionCatalog.scenario(m);
+            boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
+                    && debugScenario.corvus() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
+                    && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
+            if (authoredDebugLift) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, supplyRoute ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, supplyRoute || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     det.powers, Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
             installDebugWarship(m, debugWarship, sim);
-            sim.setOperationOfficer(OfficerCommandProfile.capture(ctx.getSelectedCaptain()));
+            sim.setOperationOfficer(OfficerCommandProfile.capture(m.source.isDebug() ? null : ctx.getSelectedCaptain()));
             if (fixture != null) {
                 fixture = new BattleLaunchFixture(fixture, launch);
             }

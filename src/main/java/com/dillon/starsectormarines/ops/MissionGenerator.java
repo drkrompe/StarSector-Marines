@@ -100,12 +100,12 @@ public final class MissionGenerator {
      * — disruption writeback no-ops in that case). Payouts + drop counts use
      * the production curves so the debug missions feel like real missions.
      */
-    private static List<Mission> generateDebugGrid(PlanetAPI planet, Client client) {
-        if (planet.getMarket() == null) return Collections.emptyList();
-        MarketAPI market = planet.getMarket();
-        String industryId = pickFirstNonDisruptedIndustry(market);
+    static List<Mission> generateDebugGrid(PlanetAPI planet, Client client) {
+        MarketAPI market = planet == null ? null : planet.getMarket();
+        String planetName = planet == null ? "Debug proving ground" : planet.getName();
+        String industryId = market == null ? null : pickFirstNonDisruptedIndustry(market);
 
-        long seed = ("debug:" + planet.getName()).hashCode();
+        long seed = ("debug:" + planetName).hashCode();
         Random r = new Random(seed);
 
         List<Mission> out = new ArrayList<>();
@@ -118,7 +118,7 @@ public final class MissionGenerator {
             for (OperationTier tier : OperationTier.values()) {
                 if (!tier.atLeast(type.tierFloor)) continue;
                 RiskLevel risk = RiskLevel.MEDIUM;
-                int payout = computePayout(market.getSize(), risk, type, r);
+                int payout = computePayout((market == null ? 3 : market.getSize()), risk, type, r);
 
                 float x = 0.08f + r.nextFloat() * 0.84f;
                 float y = 0.08f + r.nextFloat() * 0.84f;
@@ -153,17 +153,17 @@ public final class MissionGenerator {
                         .enemyFighterSupport(enemySupport)
                         .requiredDrops(requiredDrops)
                         .employerShuttles(employerShuttles)
-                        .targetPlanetName(planet.getName())
+                        .targetPlanetName(planetName)
                         .targetIndustryId(industryId)
                         .build());
             }
         }
-        List<Mission> rescues = debugCivilianRescueMissions(planet.getName(), r, index);
+        List<Mission> rescues = debugCivilianRescueMissions(planetName, r, index);
         out.addAll(rescues);
         // Appended last, and drawing from r only after every entry above has
         // taken its rolls, so adding this group cannot shift the board it joins.
         out.addAll(debugFactionComparisonMissions(
-                planet.getName(), r, index + rescues.size()));
+                planetName, r, index + rescues.size()));
         return out;
     }
 

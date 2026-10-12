@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CompanyClocks;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -83,6 +84,8 @@ public final class CompanyHqScreen implements Screen {
                 this::onClose,
                 this::responseAction, this::onOpeningCourse);
         Map<String, Object> props = viewModel.props();
+        props.put("debugAction", (Runnable) () -> { if (DevConfig.DEBUG_CLIENT) context.goTo(ScreenId.DEBUG_MISSIONS); });
+        props.put("debugClasses", DevConfig.DEBUG_CLIENT ? "hq-debug console-action" : "hq-debug-hidden");
         newsDesk.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
                 reactor, ROOT_COMPONENT, props);

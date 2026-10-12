@@ -82,7 +82,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
         putStoryDebrief(props, outcome);
-        boolean preparation = outcome != null && outcome.missionSource != MissionSource.DEBUG;
+        boolean preparation = outcome != null && !outcome.missionSource.isDebug();
         props.put("preparationClasses", preparation ? "console-action" : "hidden");
         props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
         props.put("preparationAction", (Runnable) this::prepareCompany);

@@ -20,7 +20,7 @@ final class DebugMissionDifficulty {
      * move together.
      */
     static Mission atTier(Mission mission, OperationTier requestedTier) {
-        if (mission == null || !mission.source.isDebug()) return mission;
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
 
         OperationTier tier = OperationTier.clampTo(requestedTier,
                 mission.type != null ? mission.type.tierFloor : null);
@@ -48,7 +48,7 @@ final class DebugMissionDifficulty {
      *                        answer back to the target market's size.
      */
     static Mission atSprawl(Mission mission, PrecinctPlan.Sprawl requestedSprawl) {
-        if (mission == null || !mission.source.isDebug()) return mission;
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
         return Mission.builder(mission).sprawl(requestedSprawl).build();
     }
 
@@ -61,7 +61,7 @@ final class DebugMissionDifficulty {
      *                          the answer back to the mission type's default.
      */
     static Mission atStandoff(Mission mission, Standoff requestedStandoff) {
-        if (mission == null || !mission.source.isDebug()) return mission;
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
         return Mission.builder(mission).standoff(requestedStandoff).build();
     }
 
@@ -74,7 +74,7 @@ final class DebugMissionDifficulty {
      *                       the answer back to the mission type's default.
      */
     static Mission atLanes(Mission mission, Integer requestedLanes) {
-        if (mission == null || !mission.source.isDebug()) return mission;
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
         return Mission.builder(mission).lanes(requestedLanes).build();
     }
 
@@ -87,7 +87,7 @@ final class DebugMissionDifficulty {
      *                         hand the answer back to the target world.
      */
     static Mission atLanding(Mission mission, LandingKind requestedLanding) {
-        if (mission == null || !mission.source.isDebug()) return mission;
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
         return Mission.builder(mission).landing(requestedLanding).build();
     }
 

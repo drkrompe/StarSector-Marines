@@ -294,6 +294,8 @@ final class CompanyHqViewModel {
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("debugAction", (Runnable) () -> { });
+        props.put("debugClasses", "hq-debug-hidden");
         props.put("openingGuide", OpeningWorkGuide.from(null));
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
         props.put("shipAction", (Runnable) () -> { });
@@ -344,6 +346,8 @@ final class CompanyHqViewModel {
 
     private static Map<String, Object> baseLabels() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("debugAction", (Runnable) () -> { });
+        props.put("debugClasses", "hq-debug-hidden");
         props.put("purpose", Strings.get("companyHqPurpose"));
         props.put("assessmentHeader", Strings.get("companyHqAssessmentHeader"));
         props.put("ratingHeader", Strings.get("companyHqRatingHeader"));

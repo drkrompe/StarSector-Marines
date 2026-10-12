@@ -55,7 +55,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private static final Set<ScreenId> INTEL_MUSIC_SCREENS =
             EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.BARRACKS,
                     ScreenId.SHIP_TRANSFER, ScreenId.UI_WORKBENCH,
-                    ScreenId.MISSION_SELECT,
+                    ScreenId.MISSION_SELECT, ScreenId.DEBUG_MISSIONS,
                     ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
                     ScreenId.MECH_LAB, ScreenId.BOAT_DECK,
                     ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING,
@@ -89,6 +89,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.SHIP_TRANSFER,  new ShipTransferScreen());
         screens.put(ScreenId.UI_WORKBENCH,   new UiWorkbenchScreen());
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
+        screens.put(ScreenId.DEBUG_MISSIONS, new DebugMissionScreen());
         screens.put(ScreenId.FLEET_ARMORY_OVERVIEW, new FleetArmoryOverviewScreen());
         screens.put(ScreenId.FLEET_ARMORY,  new FleetArmoryScreen());
         screens.put(ScreenId.MECH_LAB,      new MechLabScreen());

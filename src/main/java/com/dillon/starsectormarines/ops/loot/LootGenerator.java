@@ -12,7 +12,7 @@ public final class LootGenerator {
     private LootGenerator() {}
 
     public static LootManifest generate(MissionOutcome outcome) {
-        if (outcome == null || !outcome.victory || outcome.salvageEntitlement <= 0) {
+        if (outcome == null || outcome.missionSource.isDebug() || !outcome.victory || outcome.salvageEntitlement <= 0) {
             return LootManifest.EMPTY;
         }
         try {

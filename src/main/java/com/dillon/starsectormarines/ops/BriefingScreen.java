@@ -218,6 +218,7 @@ public class BriefingScreen implements Screen {
     private StarsectorUiInputAdapter input;
 
     private String lastSelectedMissionId;
+    private int lastDebugPresetRevision = -1;
     /**
      * Snapshot of the ship's boats taken at the start of
      * each {@link #rebuild()}. Indices are stable within a single briefing layout,
@@ -298,7 +299,7 @@ public class BriefingScreen implements Screen {
     private void rebuild() {
         if (ctx == null) return;
         MarineRosterScript personnel = MarineRosterScript.getInstance();
-        if (personnel != null) personnel.ensureStartingCompany();
+        if (personnel != null && (ctx.getSelectedMission() == null || !ctx.getSelectedMission().source.isDebug())) personnel.ensureStartingCompany();
 
         // Default to the first ACTIVE captain if nothing's selected yet — saves
         // a click for the common case. User's pick survives across re-attaches.
@@ -315,7 +316,7 @@ public class BriefingScreen implements Screen {
 
         // Selection scope is per-mission — clear the deselection set when the
         // player switches missions so they don't carry over hidden state.
-        if (m != null && !m.id.equals(lastSelectedMissionId)) {
+        if (m != null && (!m.id.equals(lastSelectedMissionId) || m.source.isDebug() && lastDebugPresetRevision != ctx.debugPresetRevision())) {
             survey.close();
             surveySeed = m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
             lastSelectedMissionId = m.id;
@@ -325,6 +326,16 @@ public class BriefingScreen implements Screen {
             selectedPowerIds.clear();
             commandDeckInitialized = false;
             debugConquestArrivalConfig = m.conquestArrivalConfig();
+            if (m.source.isDebug()) {
+                var preset = DebugMissionCatalog.preset(m);
+                debugTransportType = preset.boat();
+                debugTransportCount = preset.boats();
+                debugMechCount = preset.mechs();
+                debugMechRoll = 0;
+                debugAirSelections.clear();
+                debugWarship = DebugWarship.Spec.OFF;
+                lastDebugPresetRevision = ctx.debugPresetRevision();
+            }
         }
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
         // Debug missions use an exact synthetic roster controlled by the picker;
@@ -336,8 +347,8 @@ public class BriefingScreen implements Screen {
         cachedAvailable = m != null && m.source.isDebug()
                 ? debugTransportRoster(m)
                 : ShipsBoatsAboard.lift();
-        cachedCarriers = PlayerFleetWings.committableCarriers();
-        cachedPowerSources = PlayerFleetPowerSources.committableShips();
+        cachedCarriers = m != null && m.source.isDebug() ? List.of() : PlayerFleetWings.committableCarriers();
+        cachedPowerSources = m != null && m.source.isDebug() ? List.of() : PlayerFleetPowerSources.committableShips();
         cachedAvailablePowers = availablePowers(m);
         java.util.Set<String> availableIds = new java.util.HashSet<>();
         for (CommandPower power : cachedAvailablePowers) availableIds.add(power.id);
@@ -428,7 +439,7 @@ public class BriefingScreen implements Screen {
                         + MissionForceEnvelope.recommendedSquads(mission) + " squads  ·  "
                         + mission.requiredDrops + " sorties"
                 : "");
-        props.put("tierSteps", debug ? retainedTierSteps(mission) : List.of());
+        props.put("tierSteps", debug && DebugMissionCatalog.scenario(mission) == null ? retainedTierSteps(mission) : List.of());
         props.put("debugControls", debug ? retainedDebugControls(mission) : List.of());
         props.put("airRows", debug && DevConfig.DEBUG_AIRCRAFT_PICKER
                 ? retainedAirRows() : List.of());
@@ -614,7 +625,7 @@ public class BriefingScreen implements Screen {
         }
         // Only the two missions whose maps are made of places read a sprawl, so
         // the dial is offered where it does something and nowhere else.
-        if (mission.type == MissionType.ASSAULT || mission.type == MissionType.RAID) {
+        if (DebugMissionCatalog.scenario(mission) == null && (mission.type == MissionType.ASSAULT || mission.type == MissionType.RAID)) {
             controls.add(conquestControl("debug-map-sprawl", "Map sprawl",
                     mission.sprawl != null ? mission.sprawl.name() : "derived",
                     false, false,
@@ -1464,7 +1475,7 @@ public class BriefingScreen implements Screen {
 
     private List<CommandPower> availablePowers(Mission mission) {
         if (mission == null) return Collections.emptyList();
-        List<CommandPower> powers = mission.source == MissionSource.STATIONING
+        List<CommandPower> powers = mission.source.isDebug() ? List.of() : mission.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(mission).powers
                 : DetachmentResolver.resolve(mission, lift(), committedWings(),
                         committedPowerSourceMembers()).powers;
@@ -1680,6 +1691,7 @@ public class BriefingScreen implements Screen {
 
     /** Marine-side fighter cover from the committed carriers (player side only). */
     private FlybyRoster committedWings() {
+        if (ctx.getSelectedMission() != null && ctx.getSelectedMission().source.isDebug()) return FlybyRoster.EMPTY;
         return PlayerFleetWings.rosterFrom(committedCarriers());
     }
 
@@ -1840,8 +1852,10 @@ public class BriefingScreen implements Screen {
     }
 
     private DebugMechRoster debugMechRoster(Mission mission) {
-        if (!DevConfig.DEBUG_MECH_SUPPORT_PICKER || mission == null
-                || !mission.source.isDebug()) return null;
+        if (mission == null || !mission.source.isDebug()) return null;
+        var scenario = DebugMissionCatalog.scenario(mission);
+        if (scenario != null && scenario.hound && debugMechCount == 1 && debugMechRoll == 0)
+            return DebugMechRoster.recoveredHound();
         long seed = 31L * mission.id.hashCode() + debugMechRoll;
         return DebugMechRoster.randomized(debugMechCount, seed);
     }
@@ -2289,7 +2303,8 @@ public class BriefingScreen implements Screen {
     }
 
     private void onBack() {
-        ctx.goTo(ScreenId.MISSION_SELECT);
+        ctx.goTo(ctx.getSelectedMission() != null && ctx.getSelectedMission().source.isDebug()
+                ? ScreenId.DEBUG_MISSIONS : ScreenId.MISSION_SELECT);
     }
 
     /**

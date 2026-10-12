@@ -185,7 +185,7 @@ public final class DetachmentResolver {
      */
     public static List<ShuttleAssignment> buildShuttleManifestForPersonnel(
             Mission m, List<FittedBoat> playerShuttles, int playerPersonnel) {
-        if (!MissionForceEnvelope.allowsUnderstrength(m)) {
+        if (!m.source.isDebug() && !MissionForceEnvelope.allowsUnderstrength(m)) {
             return buildShuttleManifest(m, playerShuttles);
         }
         if ((SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m)) && playerShuttles != null && playerShuttles.size() > 4)
