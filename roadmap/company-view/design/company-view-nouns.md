@@ -23,6 +23,16 @@ does not own personnel persistence, equipment progression, contract resolution,
 financial accounting, or battle command. Those systems remain authoritative;
 company view composes their stable outputs.
 
+Mission location artwork is a shared presentation record. `StoryScene` resolves
+the mission identity and source for the campaign picker, DEBUG catalog and
+after-action archive, including branch previews, retries and recurring work.
+The archive depicts the location, never proof of victory, casualties or damage.
+Unknown and generated operations retain their existing planet/scope fallback.
+Shipped location JPEGs are 1200×400; full-resolution PNG masters and generation
+prompts stay in `art-source/story-scenes`. Its `pack.ps1` downsamples the complete
+3:1 composition without cropping or replacing masters. Add artwork to this
+shared mapping instead of assigning paths independently in each screen.
+
 ## Vocabulary
 
 - **Company** — the player's aggregate force. There is no separate persisted
@@ -621,9 +631,11 @@ The accessible-office policy remains the mission domain's authority.
 The portrait popover moves beside the real controls. Its dimmed background has
 live click-through openings, and four SVG milestones identify ship, lift, officer
 and squad preparation. Ship selection, commissioning, specialty training, squad
-founding and assignment remain real orders. Pausing or advancing dialogue cannot
-substitute for them. If Mira has been lost or dismissed, a surviving officer can
-carry the unfinished lesson without resurrecting her.
+founding and assignment remain real orders. The opening lesson has no Later
+control and Escape does not dismiss it. Return to campaign remains available for
+travel or resupply; the required lesson returns on re-entry. Advancing dialogue
+cannot substitute for real orders. If Mira has been lost or dismissed, a surviving
+officer can carry the unfinished lesson without resurrecting her.
 
 Legacy companies without induction stay exempt; existing officer-only lessons
 retain their scope and progress. All ordinary deployment routes enforce the same
@@ -1073,6 +1085,12 @@ Castle directs the player to an accessible planetary spaceport, preferring Janga
 A reviewed 5,000-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
 preparation preflight and resumes lift, Mira, squad founding and assignment.
+
+The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
+the player to Marine operations in the planet menu, not the vanilla Refit picker.
+At an accessible planetary port that entry opens the actual 5,000-credit conversion
+review first. It spends nothing until Install conversion is confirmed. Until the
+founding conversion is installed, no alternative hull can bypass company designation.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted
 this start's Cerberus. Its contents derive from one Hermes recipe and one standard

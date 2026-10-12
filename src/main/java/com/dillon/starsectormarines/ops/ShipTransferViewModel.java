@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
@@ -468,6 +469,7 @@ public final class ShipTransferViewModel {
         revision.get();
         Candidate ship = selected();
         if (ship == null || isHome(ship)) return "";
+        if (CerberusCompanyStart.conversionRequired()) return "Install Mercenary Company Conversion at a planetary port first (5,000 credits).";
         if (preparationBlocked()) return "First-mission stores or boat berth missing. Castle's lesson shows the complete bill.";
         TransferCost price = costOf(ship);
         if (price.free()) {
@@ -506,6 +508,7 @@ public final class ShipTransferViewModel {
     }
 
     public boolean preparationBlocked() {
+        if (CerberusCompanyStart.conversionRequired()) return true;
         if (!CompanyPreparation.required(preparationRoster)) return false;
         Candidate ship = selected();
         return ship == null || !ship.quarters() || !CompanyPreparation.canPrepare(preparationRoster,
@@ -513,6 +516,7 @@ public final class ShipTransferViewModel {
     }
 
     public String preparationBill() {
+        if (CerberusCompanyStart.conversionRequired()) return CerberusCompanyStart.instructions();
         Candidate ship = selected();
         if (ship == null || !ship.quarters()) return "Select a ship with company quarters and a boat bay.";
         if (ShipsBoats.aboard(ship.ship()).isEmpty()) return "This hull has no boat berth. Choose a ship with a hangar.";

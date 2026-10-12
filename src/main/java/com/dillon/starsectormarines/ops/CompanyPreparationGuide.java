@@ -33,9 +33,9 @@ final class CompanyPreparationGuide {
                 List.of("transfer-commit", "transfer-fleet-list"), null, null);
     }
 
-    private static PreparationGuide.Lesson foundingLesson(MarineOpsContext context, String bill) {
+    static PreparationGuide.Lesson foundingLesson(MarineOpsContext context, String bill) {
         boolean installed = MercenaryCompanyConversion.installed(CerberusCompanyStart.startingShip());
-        return new PreparationGuide.Lesson(0, installed ? "OUR COMPANY COMMAND VESSEL" : "TAKE US TO THE YARD",
+        return new PreparationGuide.Lesson(0, installed ? "OUR COMPANY COMMAND VESSEL" : "MERCENARY COMPANY CONVERSION",
                 CerberusCompanyStart.instructions() + (installed && bill != null ? "\n\n" + bill : ""),
                 installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit")
                         : List.of("page-nav-return"),

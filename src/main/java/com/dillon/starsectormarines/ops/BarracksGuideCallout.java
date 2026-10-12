@@ -78,8 +78,10 @@ final class BarracksGuideCallout {
     }
 
     private List<Region> regions() {
-        return command.guideRegions().stream()
-                .map(ids -> new Region(ids.stream().map(markup::requireElement).toList())).toList();
+        List<Region> regions = new ArrayList<>(command.guideRegions().stream()
+                .map(ids -> new Region(ids.stream().map(markup::requireElement).toList())).toList());
+        if (command.inductionRequired()) regions.add(new Region(List.of(markup.requireElement("page-nav-return"))));
+        return regions;
     }
 
     private void highlight(String style, UiElement highlight) {

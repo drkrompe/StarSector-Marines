@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
@@ -191,7 +192,7 @@ public final class CompanyShipDesignation {
      */
     public static boolean designate(FleetMemberAPI member) {
         MarineRoster roster = roster();
-        if (roster == null || member == null) return false;
+        if (roster == null || member == null || CerberusCompanyStart.conversionRequired()) return false;
         if (!candidates().contains(member) || !quarters(member)) return false;
         if (CompanyPreparation.required(roster)) {
             CompanyShip ship = CompanyShipResolver.read(member);
