@@ -17,7 +17,7 @@
     </div>
 
     <div id="armory-cargo-stock" class="cargo-stock-strip panel">
-      <div id="armory-cargo-stock-title" class="label heading tone-muted">FLEET CARGO</div>
+      <div id="armory-cargo-stock-title" class="label heading tone-muted">AVAILABLE STORES</div>
       <div id="armory-cargo-stock-rows" class="cargo-stock-rows">
         <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
           <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />

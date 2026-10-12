@@ -32,7 +32,18 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
                           int minCrew, int maxCrew, int cargo, float aspect,
-                          HullSilhouette outline, String art) {
+                          HullSilhouette outline, String art, boolean mercenaryConversion) {
+
+    public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
+                       int cargo, float aspect, HullSilhouette outline, String art) {
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, false);
+    }
+
+    public CompanyShip converted() {
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true);
+    }
+
+    public boolean quarters() { return mercenaryConversion || hullClass.quarters(); }
 
     public CompanyShip {
         // A hull has one set of proportions. Carrying both an outline and a
@@ -70,7 +81,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
 
     /** What this hull owes in rooms, and how much deck to lay them out on. */
     public DeckSizing.DeckPlan deckPlan() {
-        return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect);
+        return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, mercenaryConversion);
     }
 
     /**

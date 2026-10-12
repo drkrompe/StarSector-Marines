@@ -31,7 +31,7 @@
       <button id="{card.founderId}" class="{card.founderClasses}" disabled="{card.foundingDisabled}" onclick="{card.foundSquad}">
         <img id="{card.plusId}" class="found-squad-cta-icon" src="graphics/ui/armory/found-squad.png" />
         <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">FOUND LINE SQUAD</div>
-        <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">Create the next full formation from fleet cargo.</div>
+        <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">Create the next full formation from available stores.</div>
         <div id="{card.founderCostsId}" class="squad-founder-costs">
           <div each="cost in card.foundingCargoRows" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
             <img id="{cost.iconId}" class="cargo-cost-icon" src="{cost.icon}" />
