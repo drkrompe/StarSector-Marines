@@ -698,6 +698,12 @@
 	"marines_officer_enemy_down_02":[{"file":"sounds/battle/company-officer/marines_officer_enemy_down_02.ogg","pitch":1,"volume":0.8}],
 
 	# Cold Account / voiced intervention
+	"marines_castle_cold_account_debrief_orders":[{"file": "sounds/story/wayline/marines_castle_cold_account_debrief_orders.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_mara_cold_account_debrief_consideration":[{"file": "sounds/story/wayline/marines_mara_cold_account_debrief_consideration.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_castle_cold_account_debrief_one_ship":[{"file": "sounds/story/wayline/marines_castle_cold_account_debrief_one_ship.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_mara_cold_account_debrief_payroll":[{"file": "sounds/story/wayline/marines_mara_cold_account_debrief_payroll.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_castle_cold_account_debrief_way_out":[{"file": "sounds/story/wayline/marines_castle_cold_account_debrief_way_out.ogg", "pitch": 1, "volume": 1.0}],
+	"marines_mara_cold_account_debrief_debt":[{"file": "sounds/story/wayline/marines_mara_cold_account_debrief_debt.ogg", "pitch": 1, "volume": 1.0}],
 	"marines_mara_cold_account_patrol_hail":[{"file": "sounds/story/wayline/marines_mara_cold_account_patrol_hail.ogg", "pitch": 1, "volume": 1.0}],
 	"marines_kord_cold_account_patrol_requires_proof":[{"file": "sounds/story/wayline/marines_kord_cold_account_patrol_requires_proof.ogg", "pitch": 1, "volume": 1.0}],
 	"marines_mara_cold_account_archive_offer":[{"file": "sounds/story/wayline/marines_mara_cold_account_archive_offer.ogg", "pitch": 1, "volume": 1.0}],

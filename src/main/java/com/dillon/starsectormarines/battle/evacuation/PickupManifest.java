@@ -28,6 +28,7 @@ public final class PickupManifest {
     public boolean full() { return passengers.size() >= capacity; }
     public List<Passenger> passengers() { return List.copyOf(passengers); }
     public State state() { return state; }
+    public boolean hasPassengersAboard() { return state == State.ABOARD && !passengers.isEmpty(); }
     public void recover() { if (state == State.ABOARD) state = State.RECOVERED; }
     public void lose() { if (state == State.ABOARD) state = State.LOST; }
 }

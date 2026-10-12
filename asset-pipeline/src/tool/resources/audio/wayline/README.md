@@ -21,6 +21,10 @@ the patrol's requirement for authenticated proof. Actual company landing and
 dispatch proximity provide two Castle cues. Archive capture cancels unspoken
 approach content and begins the seven intervention beats. Kord's selected
 veteran naval voice and portrait are shared throughout.
+Six additional `debrief.cold_account.*` recordings alternate Castle and Mara
+on successful results. They use the same cast and dialogue processing, but are
+selected from the settled outcome rather than battle story events. Replay and
+Stop remain presentation controls.
 
 The opening chapters use their story mission IDs. Broken Supply Route job-zero
 attempt IDs resolve to stable `story_supply_route_*` catalog keys. Recurring
