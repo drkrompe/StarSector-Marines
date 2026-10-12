@@ -1868,8 +1868,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(preparationFrame("03-commission", renderer, document, guide, scale));
             clickBarracksFlow(document, instance, "boat-fabricate"); guide.update();
             if (deck.airworthy().size() != 1) throw new IllegalStateException("Click-through commissioning failed");
-            // The production host rebuilds its deck scene after the berth changes. This frame checks the order and handoff.
+            // Mirror the production host's occupancy-driven scene adoption, including the new boat.
+            CompanyDeck commissioned = new CompanyDeck(candidate.ship(), SHIP_SEED, null,
+                    List::of, List::of, () -> heldBerths(deck));
+            readied(commissioned);
+            commissioned.advance(1f / 30f);
+            var commissionedBay = commissioned.rooms(RoomPurpose.HANGAR).get(0);
+            document.canvases().set(instance.requireElement("boat-deck-canvas"), new BoatDeckCanvas(commissioned,
+                    () -> commissionedBay, boats::selectedBerthIndex, () -> 0, berth -> deck.boats().get(berth) != null));
             frames.add(preparationFrame("04-lift-ready", renderer, document, guide, scale));
+            commissioned.dismiss();
         }
         return frames;
     }

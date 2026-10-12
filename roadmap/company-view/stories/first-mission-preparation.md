@@ -35,6 +35,9 @@ Armory includes the real founding action and a return to assignment. Completion 
 
 ## Acceptance
 
+- A commissioned shuttle appears in its berth during the same open Boat Deck
+  session. Shipboard asset loading includes aircraft hulls before renderer setup;
+  empty berths stay empty. Evidence includes a converted Cerberus with a Hermes.
 - Selecting the company hull unlocks its available room routes in the already-open
   UI once preparation finishes. No close, refresh or second designation is needed;
   missing rooms remain unavailable and changing hulls updates the same controls.
@@ -61,6 +64,12 @@ buttons each frame, replacing the ineffective one-time screen reattachment. Five
 focused tests cover the retained no-ship/preparing/ready transition, all four room
 routes, keyboard activation, a later missing bay, and existing preparation guards.
 The mod package boundary check passes. Live campaign acceptance remains open.
+
+Aircraft visibility validation covers the production company-deck asset loader,
+including Hermes and repeated room reads without texture reloads. The corrected
+preparation fixtures adopt the commissioned scene. Eight Cerberus frames (including
+empty/commissioned Hermes berths) and 77 preparation/Barracks frames render; the mod
+package boundary passes. This does not replace live game acceptance.
 
 ## Follow-on
 
