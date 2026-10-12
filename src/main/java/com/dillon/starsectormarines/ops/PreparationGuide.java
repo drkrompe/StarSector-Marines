@@ -19,7 +19,12 @@ import java.util.function.Supplier;
 /** The same portrait and real-control spotlight across the preparation rooms. */
 final class PreparationGuide {
     record Lesson(int milestone, String title, String copy, List<String> targets,
-                  String actionLabel, Runnable action) { }
+                  String actionLabel, Runnable action, int height) {
+        Lesson(int milestone, String title, String copy, List<String> targets, String actionLabel, Runnable action) {
+            this(milestone, title, copy, targets, actionLabel, action,
+                    milestone == 0 && copy.contains("Cost / Available") ? 392 : 280);
+        }
+    }
 
     private final UiDocument document;
     private final MarkupInstance markup;
@@ -50,13 +55,16 @@ final class PreparationGuide {
                     if (live != null && live.action() != null) live.action().run();
                 }));
         for (var style : markup.styles()) document.addStyleSheet(style);
-        document.root().child(markup.root());
+        // Mount as siblings: pointer-events:none on a fullscreen wrapper also
+        // suppresses its dialogue children in the retained hit tester.
+        document.root().child(markup.requireElement("preparation-shade"));
+        document.root().child(markup.requireElement("preparation-callout"));
         spotlight = new UiSpotlight(document, markup.requireElement("preparation-shade"),
                 markup.requireElement("preparation-callout"), this::visible, this::regions);
         document.onCancel(() -> { if (!visible()) close.run(); });
     }
 
-    private boolean visible() { return current != null; }
+    boolean visible() { return current != null; }
 
     void update() {
         current = lesson.get();
@@ -86,7 +94,7 @@ final class PreparationGuide {
         Rect view = document.viewport();
         List<Rect> holes = regions().stream().map(r -> UiSpotlight.regionBounds(document, r)).toList();
         Rect anchor = target == null ? Rect.EMPTY : UiSpotlight.visibleBounds(document, target);
-        float height = current.milestone() == 0 && current.copy().contains("Cost / Available") ? 392 : 280;
+        float height = current.height();
         Rect place = BarracksGuideCallout.place(anchor, holes, view,
                 Math.min(528, view.width() - 16), Math.min(height, view.height() - 16));
         callout.style(String.format(Locale.ROOT, "left: %.1fpx; top: %.1fpx; width: %.1fpx; height: %.1fpx;",

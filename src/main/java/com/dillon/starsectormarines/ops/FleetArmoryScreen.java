@@ -110,6 +110,7 @@ public final class FleetArmoryScreen implements Screen {
         viewModel.cancelOrganization();
         projectedCampaignHour = campaignHour();
         view = FirstRefit.available(roster) ? View.FIRST_REFIT : View.SQUADS;
+        if (context.takeRequestedSquadFounding()) view = View.SQUADS;
         String requestedSquad = context.takeRequestedArmorySquadId();
         if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
             viewModel.selectSquad(requestedSquad);

@@ -19,7 +19,7 @@ final class OfficerInductionGuide {
             case FORMATION -> new CompanyManagementGuide.Line("officer-formation", "PEOPLE BEFORE ORDERS",
                     "Now she needs a formation. Raise a squad in Armory, then return here. Twelve Marines, thirty-six supplies and twenty-four food give them their first field kit and stores. Check the bill, then give our people a place on the roll.");
             case ASSIGNMENT -> new CompanyManagementGuide.Line("officer-assignment", "GIVE HER A COMMAND",
-                    "Select the squad, open Organization, and choose " + name + " as its home command. Check the capacity, then Assign Command. This is her standing formation; you can reorganize it as the company grows.");
+                    "Select the squad, then click Assign Selected on " + name + "'s commander card on the left. Her portrait will appear on the squad. This is her standing formation; you can reorganize it as the company grows.");
             case READY -> new CompanyManagementGuide.Line("officer-ready", "A COMPANY TAKING SHAPE",
                     "Good. She has a specialty and people to lead. At briefing, assign her squad to the mission. Every officer who participates earns their own service credit. Bring them home, and we will build on what they learn.");
             case COMPLETE -> new CompanyManagementGuide.Line("officer-complete", "READY", "");
