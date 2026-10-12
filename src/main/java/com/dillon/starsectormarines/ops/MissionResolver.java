@@ -286,6 +286,7 @@ public final class MissionResolver {
         int payoutEarned = SupplyRouteCampaign.isBattle(mission)
                 ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome(),
                         sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
+                : CorvusWaylineCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
                 : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
@@ -447,6 +448,11 @@ public final class MissionResolver {
             return;
         }
 
+        if (CorvusWaylineCampaign.owns(outcome.missionId)
+                && (cargo == null || CorvusWaylineCampaign.settle(outcome) < 0)) {
+            LOG.info("MarineOps: refused stale or invalid Corvus outcome " + outcome.missionId);
+            return;
+        }
         if (cargo != null) {
             if (outcome.payoutEarned > 0) {
                 cargo.getCredits().add(outcome.payoutEarned);

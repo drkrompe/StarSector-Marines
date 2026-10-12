@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.battle.audio.NarrationSequence;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -163,6 +165,16 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 : chapter == OpeningOperationKind.RELIEF ? "CHAPTER 1 COMPLETE / DEPOT JOB AVAILABLE" : "AN OPEN ROAD / ARC COMPLETE");
         props.put("storyMessage", WaylineArc.debrief(outcome));
         putSalvageConversation(props, HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins()));
+        CorvusChapter corvus = outcome == null || outcome.missionSource != MissionSource.STORY
+                ? null : CorvusWaylineProgress.forMission(outcome.missionId);
+        if (corvus != null) {
+            props.put("storyClasses", "story-dispatch console-readout");
+            props.put("storyPortrait", OpeningBroker.PORTRAIT);
+            props.put("storySender", OpeningBroker.NAME + " / WAYLINE");
+            props.put("storyProgress", CorvusWaylineCampaign.TITLE + (outcome.victory ? " / CHAPTER COMPLETE" : " / RETRY AVAILABLE"));
+            props.put("storyMessage", outcome.victory ? corvus.debrief
+                    : "The objective remains unresolved. Bring the company home and refit before trying again. No contract payment; confirmed losses remain on record.");
+        }
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", outcome.lastLiftOutcome != null ? SupplyRouteCampaign.IONA_PORTRAIT : OpeningBroker.PORTRAIT);

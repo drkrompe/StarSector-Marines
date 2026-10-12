@@ -131,7 +131,8 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void onOpeningCourse() {
-        OpeningBroker.Destination destination = SupplyRouteCampaign.destination();
+        OpeningBroker.Destination destination = CorvusWaylineCampaign.current() != null
+                ? CorvusWaylineCampaign.destination() : SupplyRouteCampaign.destination();
         if (destination == null || destination.planet() == null) return;
         Global.getSector().getCampaignUI().layInCourseForNextStep(destination.planet());
         onClose();

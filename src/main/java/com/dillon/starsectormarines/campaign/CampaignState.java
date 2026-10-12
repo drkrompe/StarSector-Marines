@@ -32,6 +32,8 @@ public final class CampaignState implements Serializable {
     public LastLiftProgress lastLift;
     /** Null in pre-arc saves; introduced explicitly at the broker. */
     public BrokenSupplyRouteProgress brokenSupplyRoute;
+    /** Null in older saves and until the first Corvus launch. */
+    public CorvusWaylineProgress corvusWayline;
 
     // ---------- Id registries (interned vanilla strings) ----------
 

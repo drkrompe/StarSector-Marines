@@ -780,7 +780,7 @@ public class MarineOpsContext {
         boolean referral = client.patronHouseId == -1L && Factions.INDEPENDENT.equals(client.factionId)
                 && OpeningBroker.introductionPending() && OpeningBroker.current() != null;
         if (referral || !MissionGenerator.generate(planet, client).isEmpty()) {
-            out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet) || SupplyRouteCampaign.atSite(planet)));
+            out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet) || SupplyRouteCampaign.atSite(planet) || CorvusWaylineCampaign.atSite(planet)));
         }
     }
 

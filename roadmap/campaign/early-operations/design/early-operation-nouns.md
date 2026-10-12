@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Castle voices the walker introduction and negotiates its recovery agreement in the debrief.
+Updated: 2026-10-11 — Castle introduces the recovered Hound; Wayline continues across three Corvus destinations.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -161,6 +161,46 @@ ordinary credits, personnel and lost-boat writeback. Duplicate or foreign result
 cannot repeat any of those writes. Outcome presentation is not reward authority.
 This is local commercial fiction: no vanilla market ownership, population,
 stability, industry or trade simulation is changed.
+
+## Wayline across Corvus
+
+**The Corvus Account** follows either closed Broken Supply Route branch,
+including a recovery or freight run whose finite ledger ended in failure.
+Mara's correspondence preserves that account; it never claims the unchosen
+operation succeeded or invents casualties. Existing recurring arrangements
+remain at their original site.
+
+The arc concerns **Sable Wake**, a mod-authored pirate crew selling Wayline's
+sailing schedules. It has three ordered, single-payment chapters:
+
+| Chapter | Destination | Objective | Recommended company | Award |
+|---|---|---|---|---|
+| The Dust Ledger | Asharu | Raid the dispatch archive and return to egress | 2 squads | 22,000 cr |
+| Blind Watch | Warion | Plant charges at three interception installations | 3 squads | 30,000 cr |
+| A Cold Account | Garnir | Clear the dispatch compound's defending force | 4 squads | 42,000 cr |
+
+These jobs use Established-scale Raid, Sabotage and Assault objectives with
+Low, Medium and High opposition quality respectively. Difficulty grows through
+objective distribution and opposition composition as well as the final force
+increase. A defeat retries the same chapter and battlefield; victory advances
+to the next actual planet. An accepted attempt settles once before any payment,
+personnel or boat writeback. Viewing offers introduces no persistent state.
+Older saves with a closed supply-route record start at Asharu.
+
+Destinations are fixed planet identities in Corvus. Warion's temporary listening
+post needs no populated market. A missing destination pauses the arc rather
+than moving it elsewhere. HQ plots a course; the local Marine operations board
+offers the job through Mara's Independent contact. No chapter changes vanilla
+market ownership, industry disruption, diplomatic standing or orbital assets.
+Its target profile describes the isolated crew compound, with the actual
+planet's ground palette captured at launch rather than the colony's full defences.
+
+All three support exact selected named personnel with at least two squads of
+four ready marines each and up to four fitted boats making repeated trips.
+All selected squads may be active, including on Sabotage. Wayline supplies
+heavy transport for the company's active owned mech lance, with no free
+chassis, employer infantry, fighter cover or additional strategic powers.
+The dossier, HQ lead and results carry the story in readable text.
 
 ## Illustrated location records
 

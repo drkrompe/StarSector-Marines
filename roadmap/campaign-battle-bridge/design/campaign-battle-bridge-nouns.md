@@ -4,7 +4,7 @@ Status: ACTIVE — target-profile transport is campaign-free, while ground consu
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — lift validation precedes asynchronous scenario construction.
+Updated: 2026-10-11 — Authored remote compounds capture their actual planetary surface at launch.
 
 Read `stories.md` for open work.
 
@@ -87,6 +87,13 @@ scenario facts, rather than the current market, own that map.
 
 Non-BSP generators may ignore the profile. That is a valid no-op consumer,
 not permission to reach back into the campaign.
+
+An authored remote site may supply its own settlement scale and economic role
+instead of borrowing the host colony's defences. Corvus story compounds use
+that boundary: campaign capture resolves their exact planet identity and reads
+its surface, while the authored site supplies the local compound signals.
+An unpopulated moon therefore keeps its real ground palette without acquiring
+a fictional populated market. Workers still receive only the plain profile.
 
 ## Standing behavior
 

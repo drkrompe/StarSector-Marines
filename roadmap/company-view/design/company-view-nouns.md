@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - Barracks preparation separates consolidation, refill and issue, with an optional company-officer guide.
+Updated: 2026-10-11 — Barracks preparation and officer guidance; HQ follows the current Corvus chapter.
 
 ## Purpose
 
@@ -991,6 +991,12 @@ notice keeps the accepted planet fixed, distinguishes pending commitment from
 success, and shows the selected recurring arrangement after closure. Full
 historical rescue counts and story/recurring awards remain in the broker dossier;
 HQ uses a compact status and navigation lead, never a second progression record.
+
+After the supply-route account closes, the Corvus Account lead follows Mara's
+current chapter to Asharu, Warion and Garnir. Its course target and local offer
+share the chapter's exact destination. Unavailable worlds disable navigation
+with an explanation; completion retains the finite arc's paid record and
+reminds the player that prior local work stays at the original site.
 
 The clock owns obligations; the future contract board owns offers. Ignoring an
 obligation can cause failure or end a retainer, while ignoring an offer merely

@@ -2,6 +2,7 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
 import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
+import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -38,6 +39,10 @@ public class MarineOpsCMD extends BaseCommandPlugin {
         if (dialog == null || params == null || params.isEmpty()) return false;
 
         String sub = params.get(0).getString(memoryMap);
+        if ("storySite".equals(sub)) {
+            return dialog.getInteractionTarget() instanceof PlanetAPI planet
+                    && CorvusWaylineCampaign.atSite(planet);
+        }
         if ("open".equals(sub)) {
             float w = MarineOpsDialogSize.requestedWidth();
             float h = MarineOpsDialogSize.requestedHeight();

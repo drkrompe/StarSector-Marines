@@ -112,10 +112,21 @@ public final class MissionSelectScreen implements Screen {
         if (!referral.isEmpty()) putReferral(props, office, referral);
         BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
         if (OpeningBroker.isContact(selectedClient) && script != null && WaylineArc.stage(script.roster()) == WaylineArc.Stage.COMPLETE) {
-            putSupplyRoute(props, route, selectedMission, SupplyRouteCampaign.destination() != null);
-
+            if (CorvusWaylineCampaign.atSite(context.planet))
+                putCorvus(props, route, selectedMission);
+            else putSupplyRoute(props, route, selectedMission, SupplyRouteCampaign.destination() != null);
         }
         return props;
+    }
+
+    static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {
+        props.put("missionSummary", CorvusWaylineCampaign.TITLE);
+        props.put("brokerPortrait", OpeningBroker.PORTRAIT);
+        props.put("brokerName", OpeningBroker.NAME);
+        props.put("brokerRole", "WAYLINE / CORVUS OPERATIONS");
+        props.put("brokerIntroduction", CorvusWaylineCampaign.introduction(route));
+        props.put("brokerProgress", CorvusWaylineCampaign.isBattle(selectedMission)
+                ? selectedMission.name + " / " + selectedMission.targetPlanetName : "SABLE WAKE / ROUTE INTERDICTION");
     }
 
     static void putSupplyRoute(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission, boolean accessible) {
@@ -319,6 +330,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (CorvusWaylineCampaign.isBattle(mission)) return List.of(
+                detailRow("force", "Company commitment", MissionForceEnvelope.recommendedSquads(mission)
+                        + " squads recommended / minimum two squads with four ready each"),
+                detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
+                detailRow("opposition", "Sable Wake crew", MissionForceEnvelope.oppositionExpectation(mission.risk)),
+                detailRow("payout", "Payment on victory", NumberFormat.getIntegerInstance().format(mission.payout) + " credits"));
         if (SupplyRouteCampaign.owns(mission.id)) return List.of(
                 detailRow("force", "Company commitment", "2 squads recommended / at least 4 ready in each of two squads"),
                 detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
