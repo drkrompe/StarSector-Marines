@@ -24,6 +24,14 @@ public final class DebugWarship {
     /** Area radius used by the director and by manual fire orders, in cells. */
     public static final float AREA_RADIUS_CELLS = 10f;
 
+    /**
+     * Flux scale the debug toggle applies. A stock capital's flux, at the cadence
+     * its guns keep against ground, never nears capacity (an Onslaught peaks under
+     * half), so at the hull table's own figures the readout would show a pool that
+     * never matters; a quarter makes the surge-and-rest rhythm visible.
+     */
+    public static final float FLUX_SCALE = 0.25f;
+
     private DebugWarship() {}
 
     /** Which hull the briefing picked; {@link #OFF} adds nothing. */
@@ -61,9 +69,13 @@ public final class DebugWarship {
         }
     }
 
-    /** The briefing's whole choice. */
-    public record Spec(Hull hull, Faction side, Mode mode) {
-        public static final Spec OFF = new Spec(Hull.OFF, Faction.MARINE, Mode.DIRECTOR);
+    /** The briefing's whole choice; {@code flux} puts the ship's guns on its hull's flux. */
+    public record Spec(Hull hull, Faction side, Mode mode, boolean flux) {
+        public static final Spec OFF = new Spec(Hull.OFF, Faction.MARINE, Mode.DIRECTOR, false);
+
+        public Spec(Hull hull, Faction side, Mode mode) {
+            this(hull, side, mode, false);
+        }
 
         public Spec {
             if (hull == null) hull = Hull.OFF;
@@ -76,16 +88,20 @@ public final class DebugWarship {
         }
 
         public Spec withHull(Hull next) {
-            return new Spec(next, side, mode);
+            return new Spec(next, side, mode, flux);
         }
 
         /** Marine (friendly to the player) and Defender (hostile) swap. */
         public Spec withOtherSide() {
-            return new Spec(hull, side == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE, mode);
+            return new Spec(hull, side == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE, mode, flux);
         }
 
         public Spec withOtherMode() {
-            return new Spec(hull, side, mode == Mode.DIRECTOR ? Mode.MANUAL : Mode.DIRECTOR);
+            return new Spec(hull, side, mode == Mode.DIRECTOR ? Mode.MANUAL : Mode.DIRECTOR, flux);
+        }
+
+        public Spec withOtherFlux() {
+            return new Spec(hull, side, mode, !flux);
         }
     }
 
@@ -146,6 +162,10 @@ public final class DebugWarship {
         } else {
             ship.order(WarshipOrder.HoldFire.INSTANCE);
         }
+        if (spec.flux()) {
+            ship.fluxScale(FLUX_SCALE);
+            ship.limitFlux();
+        }
         sim.addWarship(ship);
         return ship;
     }
@@ -154,6 +174,16 @@ public final class DebugWarship {
     public static void fireAt(Warship ship, float cellX, float cellY) {
         ship.stopDirecting();
         ship.order(new WarshipOrder.FireOnArea(cellX, cellY, AREA_RADIUS_CELLS, true));
+    }
+
+    /** Puts the ship on, or takes it off, its hull's flux; the pool starts empty either way. */
+    public static void toggleFlux(Warship ship) {
+        if (ship.fluxLimited()) {
+            ship.unlimitedFlux();
+        } else {
+            ship.fluxScale(FLUX_SCALE);
+            ship.limitFlux();
+        }
     }
 
     /** Takes targeting from any director and holds fire. */
@@ -174,10 +204,19 @@ public final class DebugWarship {
             else rounds += m.shotsFired;
         }
         return String.format(Locale.ROOT,
-                "WARSHIP %s [%s]  hull %d%%  order %s  heading %d  rounds %d  lances %d  PD kills %d",
+                "WARSHIP %s [%s]  hull %d%%  order %s  heading %d  rounds %d  lances %d  PD kills %d  %s",
                 ship.hullId, ship.faction == Faction.MARINE ? "friendly" : "hostile",
                 Math.round(ship.hullFraction() * 100f), describe(ship), Math.round(headingOf(ship)),
-                rounds, lances, intercepts);
+                rounds, lances, intercepts, fluxReadout(ship));
+    }
+
+    /** {@code flux off}, or flux over capacity with the state, and the seconds left when overloaded. */
+    static String fluxReadout(Warship ship) {
+        if (!ship.fluxLimited()) return "flux off";
+        String base = String.format(Locale.ROOT, "flux %d/%d %s", Math.round(ship.flux()),
+                Math.round(ship.fluxCapacity()), ship.fluxState().toUpperCase(Locale.ROOT));
+        if (!ship.overloaded()) return base;
+        return base + String.format(Locale.ROOT, " %.1fs", ship.overloadSecondsRemaining());
     }
 
     /** The hull's facing wrapped to [0, 360), zero being north. */

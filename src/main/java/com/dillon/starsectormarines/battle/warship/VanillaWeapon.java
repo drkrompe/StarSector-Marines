@@ -55,7 +55,27 @@ public record VanillaWeapon(
         String hardpointGunSprite,
         String fireSoundOne,
         String fireSoundTwo,
-        String impactSoundId) {
+        String impactSoundId,
+        float fluxPerShot,
+        float fluxPerSecond) {
+
+    /** A weapon with no flux cost: every figure but the two that read the table's {@code energy} columns. */
+    public VanillaWeapon(String id, float damagePerShot, String damageType, float rangePx, int burstSize,
+                         float burstDelaySeconds, float cooldownSeconds, float projectileSpeedPx,
+                         float spreadDegrees, float turnRateDegPerSec, boolean beam, float damagePerSecond,
+                         float beamWidthPx, boolean missile, boolean pointDefenceOnly, float explosionRadiusPx,
+                         float hitGlowRadiusPx, Color explosionColor, Color fringe, Color core,
+                         String projectileSprite, float projectileLengthPx, float projectileWidthPx,
+                         Color muzzleColor, float muzzleLengthPx, String turretSprite, String turretGunSprite,
+                         String hardpointSprite, String hardpointGunSprite, String fireSoundOne,
+                         String fireSoundTwo, String impactSoundId) {
+        this(id, damagePerShot, damageType, rangePx, burstSize, burstDelaySeconds, cooldownSeconds,
+                projectileSpeedPx, spreadDegrees, turnRateDegPerSec, beam, damagePerSecond, beamWidthPx,
+                missile, pointDefenceOnly, explosionRadiusPx, hitGlowRadiusPx, explosionColor, fringe, core,
+                projectileSprite, projectileLengthPx, projectileWidthPx, muzzleColor, muzzleLengthPx,
+                turretSprite, turretGunSprite, hardpointSprite, hardpointGunSprite, fireSoundOne,
+                fireSoundTwo, impactSoundId, 0f, 0f);
+    }
 
     /**
      * The sound this weapon is heard by: its {@code fireSoundOne}, else its
@@ -118,7 +138,9 @@ public record VanillaWeapon(
                 wpn == null ? null : wpn.optString("hardpointGunSprite", null),
                 wpn == null ? null : wpn.optString("fireSoundOne", null),
                 wpn == null ? null : wpn.optString("fireSoundTwo", null),
-                impactSound(proj));
+                impactSound(proj),
+                number(row, "energy/shot", 0f),
+                number(row, "energy/second", 0f));
     }
 
     /** The sound the round's blast names, on the projectile or inside its proximity-fuse explosion; else null. */

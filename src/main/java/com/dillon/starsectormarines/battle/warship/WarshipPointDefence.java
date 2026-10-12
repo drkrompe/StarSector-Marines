@@ -130,6 +130,16 @@ public final class WarshipPointDefence {
         return SHOT_ACCURACY * reachFactor * lead * spread;
     }
 
+    /**
+     * What one engagement costs the ship's flux: a projectile weapon's whole
+     * burst at its per-shot cost, a beam its per-second cost over the shortest
+     * engagement.
+     */
+    static float engagementFlux(VanillaWeapon weapon) {
+        if (weapon.beam()) return weapon.fluxPerSecond() * MIN_ENGAGEMENT_SECONDS;
+        return weapon.fluxPerShot() * Math.max(1, weapon.burstSize());
+    }
+
     /** The chance one engagement (the weapon's whole burst) destroys the ordnance. */
     public static float engagementKillChance(VanillaWeapon weapon, float distanceCells, float ordnanceSpeedCells) {
         float miss = 1f - roundHitChance(weapon, distanceCells, ordnanceSpeedCells);
@@ -167,8 +177,13 @@ public final class WarshipPointDefence {
         m.cooldown -= dt;
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
-        Target target = nearest(sim, ship, m, mx, my, shells);
         float rest = ship.facingDegrees + m.slot.angleDegrees();
+        if (!ship.fluxPool().canDefend()) {
+            // Overloaded: point defence is silent with everything else.
+            WarshipSystem.traverse(dt, ship, m, rest);
+            return;
+        }
+        Target target = nearest(sim, ship, m, mx, my, shells);
         if (target == null) {
             WarshipSystem.traverse(dt, ship, m, rest);
             return;
@@ -185,6 +200,7 @@ public final class WarshipPointDefence {
         m.shotsFired++;
         m.secondsSinceFired = 0f;
         m.cooldown = Math.max(w.cooldownSeconds(), MIN_ENGAGEMENT_SECONDS);
+        ship.fluxPool().spend(engagementFlux(w));
         float dx = target.x - mx;
         float dy = target.y - my;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
