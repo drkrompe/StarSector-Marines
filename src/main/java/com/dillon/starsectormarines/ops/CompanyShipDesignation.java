@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignUIAPI;
@@ -279,7 +280,8 @@ public final class CompanyShipDesignation {
     public static boolean quarters(FleetMemberAPI member) {
         if (member == null || member.getHullSpec() == null) return false;
         ShipAPI.HullSize size = member.getHullSpec().getHullSize();
-        return HullClass.fromHullSize(size == null ? null : size.name()).quarters();
+        return MercenaryCompanyConversion.installed(member)
+                || HullClass.fromHullSize(size == null ? null : size.name()).quarters();
     }
 
     /** What to call her, falling back to her hull when she is unnamed. */

@@ -9,3 +9,27 @@ captainDiscoveryLater,DialogOptionSelected,$option == starsectorMarinesCaptainLa
 captainDiscoveryDone,DialogOptionSelected,$option == starsectorMarinesCaptainDone,CaptainDiscoveryCMD done,,,Closes the retained salvage interaction after resolution
 marineOpsStorySite,PopulateOptions,"$market.isPlanetConditionMarketOnly
 MarineOpsCMD storySite",,,30:marineOpsOpen:Marine operations,Current Wayline story site on an unpopulated world
+smCerberusChoice,AddNewGameChoices,,"SetTooltip smCerberusStart ""Begin aboard one Cerberus. Visit a planetary spaceport for a mercenary conversion, then build your company with Castle. Includes prepaid preparation stores at the conversion port.""",,"6:smCerberusStart:A company commander, taking command of a Cerberus (Marines story start)",
+smCerberusSelected,NewGameOptionSelected,$option == smCerberusStart,NGCAddShip cerberus_Standard,"You take command of a Cerberus combat freighter. Castle has arranged a planetary yard conversion and prepaid stores for your first shuttle and squad. Fly to the port, install the conversion, then designate your company vessel. This start replaces the Galatia tutorial with company preparation.","0:smCerberusNormal:Normal
+1:smCerberusEasy:Easy",
+smCerberusNormal,NewGameOptionSelected,$option == smCerberusNormal,"NGCSetDifficulty normal
+$ngcSkipTutorial = true
+NGCAddCharacterPoints 1
+NGCSetStartingLocation Corvus -2500 3000
+NGCAddStandardStartingScript
+CerberusStartCMD
+NGCDone",,,
+smCerberusEasy,NewGameOptionSelected,$option == smCerberusEasy,"NGCSetDifficulty easy
+$ngcSkipTutorial = true
+NGCAddCharacterPoints 1
+NGCSetStartingLocation Corvus -2500 3000
+NGCAddStandardStartingScript
+CerberusStartCMD
+NGCDone",,,
+smYardOption,PopulateOptions,"$hasMarket
+$menuState == main
+CompanyYardCMD available",,,29:smYardOpen:Mercenary conversion,
+smYardOpen,DialogOptionSelected,$option == smYardOpen,CompanyYardCMD show,,,
+smYardReview,DialogOptionSelected,CompanyYardCMD selected,CompanyYardCMD review,,,
+smYardInstall,DialogOptionSelected,$option == smYardInstall,CompanyYardCMD install,,,
+smYardReturn,DialogOptionSelected,$option == smYardReturn,FireBest OpenInteractionDialog,,,

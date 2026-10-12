@@ -395,6 +395,15 @@ The spline is spatial intent, not a vehicle steering path. Its raster footprint
 can be reserved before structure placement; stamping refuses occupied ground
 rather than carving through a building or fixture.
 
+Generated installation roads use the same spline sweep and subcell pavement
+boundary over their final kept circulation. Straight service runs gain round
+ends; junction turns curve through available concrete shoulders. The final
+network includes guaranteed gate links and excludes pruned streets. This finish
+runs after placement, retaining the road reservation, ground semantics, vehicle
+clearance and layout randomness. It cannot repave a structure, threshold, pad
+or natural obstacle. The generated bands remain the routing authority; their
+visual curves do not replace the vehicle graph or imply new drivable ground.
+
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.
 Widths and map edges still obey grid quantization. A smooth centerline does not

@@ -55,6 +55,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctRoadSurfaceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
@@ -289,6 +290,7 @@ public final class BspCityGenerator implements MapGenerator {
                 frontStage,                                 // precinct-only; null omits it
                 laneRouteStage,                             // precinct-only; the road each lane runs on
                 new OutdoorLandscapeStage(),                // retain those finished lane routes
+                new PrecinctRoadSurfaceStage(),             // finish kept roads over the placed installation
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 

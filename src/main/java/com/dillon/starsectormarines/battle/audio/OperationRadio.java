@@ -17,8 +17,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +45,9 @@ public final class OperationRadio {
     private SoundAPI sound;
     private float remaining, gap, cooldown, sequenceAge;
     private int lastActor = -1;
+    private final Map<Cue, List<Report>> remainingReports = new EnumMap<>(Cue.class);
+    private final Map<Cue, String> lastReports = new EnumMap<>(Cue.class);
+    private record Report(int actorIndex, String lineId) { }
 
     public record Line(String id, String speaker, String text, float durationSeconds) {
         public Line {
@@ -53,8 +58,12 @@ public final class OperationRadio {
     }
 
     public record Actor(String id, String label, String call, String ack, String readback,
-                        Map<Cue, String> reports) {
-        public Actor { reports = Map.copyOf(reports); }
+                        Map<Cue, List<String>> reports) {
+        public Actor {
+            Map<Cue, List<String>> copy = new EnumMap<>(Cue.class);
+            reports.forEach((cue, ids) -> copy.put(cue, List.copyOf(ids)));
+            reports = Map.copyOf(copy);
+        }
     }
 
     public record Catalog(List<Actor> actors, Map<AssignmentKind, String> instructions, Map<String, Line> lines) {
@@ -67,8 +76,16 @@ public final class OperationRadio {
                     if (!lines.containsKey(id)) throw new IllegalArgumentException("Missing radio turn " + id);
                 }
                 for (Cue cue : Cue.values()) {
-                    if (actor.reports().get(cue) == null || !lines.containsKey(actor.reports().get(cue)))
+                    List<String> reports = actor.reports().get(cue);
+                    if (reports == null || reports.isEmpty())
                         throw new IllegalArgumentException("Missing report " + actor.id() + "/" + cue);
+                    if (new HashSet<>(reports).size() != reports.size())
+                        throw new IllegalArgumentException("Duplicate report " + actor.id() + "/" + cue);
+                    for (String id : reports) {
+                        Line line = lines.get(id);
+                        if (line == null || !line.speaker().equals(actor.id()))
+                            throw new IllegalArgumentException("Invalid report " + actor.id() + "/" + id);
+                    }
                 }
             }
             for (String id : instructions.values())
@@ -151,8 +168,15 @@ public final class OperationRadio {
         JSONArray cast = root.getJSONArray("actors");
         for (int i = 0; i < cast.length(); i++) {
             JSONObject actor = cast.getJSONObject(i);
-            Map<Cue, String> reports = new EnumMap<>(Cue.class);
-            for (Cue cue : Cue.values()) reports.put(cue, actor.getJSONObject("reports").getString(cue.name()));
+            Map<Cue, List<String>> reports = new EnumMap<>(Cue.class);
+            for (Cue cue : Cue.values()) {
+                JSONObject pools = actor.getJSONObject("reports");
+                JSONArray variants = pools.optJSONArray(cue.name());
+                List<String> ids = new ArrayList<>();
+                if (variants == null) ids.add(pools.getString(cue.name()));
+                else for (int j = 0; j < variants.length(); j++) ids.add(variants.getString(j));
+                reports.put(cue, ids);
+            }
             actors.add(new Actor(actor.getString("id"), actor.getString("label"), actor.getString("call"),
                     actor.getString("ack"), actor.getString("readback"), reports));
         }
@@ -244,8 +268,26 @@ public final class OperationRadio {
     /** The shared combat policy has already admitted and prioritized this confirmed report. */
     public Transmission report(Cue cue) {
         if (!available() || busy()) return null;
-        Actor actor = actor();
-        return start(transmission(actor.reports().get(cue), actor));
+        List<Report> pool = remainingReports.computeIfAbsent(cue, ignored -> new ArrayList<>());
+        if (pool.isEmpty()) {
+            for (int i = 0; i < catalog.actors().size(); i++) {
+                for (String id : catalog.actors().get(i).reports().get(cue)) pool.add(new Report(i, id));
+            }
+            Collections.shuffle(pool, random);
+        }
+        // Exhaust the cue's recordings before refilling. Prefer a different actor,
+        // but never strand that actor's unused lines at the end of a cycle.
+        int selected = -1;
+        for (int i = 0; i < pool.size(); i++) {
+            Report candidate = pool.get(i);
+            if (candidate.lineId().equals(lastReports.get(cue))) continue;
+            if (selected < 0) selected = i;
+            if (candidate.actorIndex() != lastActor) { selected = i; break; }
+        }
+        Report report = pool.remove(selected < 0 ? 0 : selected);
+        lastActor = report.actorIndex();
+        lastReports.put(cue, report.lineId());
+        return start(transmission(report.lineId(), catalog.actors().get(lastActor)));
     }
 
     private Actor actor() {
@@ -292,5 +334,7 @@ public final class OperationRadio {
         observed.clear();
         cooldown = 0;
         lastActor = -1;
+        remainingReports.clear();
+        lastReports.clear();
     }
 }

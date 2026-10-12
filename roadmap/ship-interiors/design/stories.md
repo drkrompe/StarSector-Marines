@@ -19,4 +19,7 @@ The first two stories are sequenced and the second depends on the first.
 | `deck-capacity-upgrades.md` | PROPOSED | Make facility capacity spatial and let a bounded upgrade transaction change the room. Needs a named economic owner first. |
 | `boarding-deck-missions.md` | PARKED | Generate hostile prize decks for boarding once a mission model owns objectives and extraction. |
 
+`cerberus-company-start.md` implements the optional permanent frigate conversion and
+compact single-gantry room program; its company-view story owns live acceptance.
+
 Historical implementation slices belong in `shipped.md`.

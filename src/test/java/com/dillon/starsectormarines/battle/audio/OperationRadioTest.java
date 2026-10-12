@@ -20,6 +20,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,10 @@ class OperationRadioTest {
     });
 
     private static Catalog catalog() {
+        return catalog(1);
+    }
+
+    private static Catalog catalog(int variants) {
         Map<String, Line> lines = new HashMap<>();
         List<Actor> actors = new ArrayList<>();
         lines.put("order", new Line("order", "command", "Move to your assigned position.", 1));
@@ -43,11 +48,15 @@ class OperationRadioTest {
                 String id = name + "_" + turn;
                 lines.put(id, new Line(id, turn.equals("call") ? "command" : name, id, 1));
             }
-            Map<Cue, String> reports = new EnumMap<>(Cue.class);
+            Map<Cue, List<String>> reports = new EnumMap<>(Cue.class);
             for (Cue cue : Cue.values()) {
-                String id = name + "_" + cue.name();
-                lines.put(id, new Line(id, name, id, 1));
-                reports.put(cue, id);
+                List<String> ids = new ArrayList<>();
+                for (int i = 0; i < variants; i++) {
+                    String id = name + "_" + i + "_" + cue.name();
+                    lines.put(id, new Line(id, name, id, 1));
+                    ids.add(id);
+                }
+                reports.put(cue, ids);
             }
             actors.add(new Actor(name, name, name + "_call", name + "_ack", name + "_readback", reports));
         }
@@ -187,6 +196,80 @@ class OperationRadioTest {
     }
 
     @Test
+    void eachCueUsesEveryRecordingBeforeRepeatingEvenAcrossPreemption() {
+        OperationRadio varied = new OperationRadio(catalog(3), new Random(9), turn -> null);
+        Map<Cue, String> previous = new EnumMap<>(Cue.class);
+        for (int cycle = 0; cycle < 4; cycle++) {
+            Map<Cue, HashSet<String>> heard = new EnumMap<>(Cue.class);
+            for (int i = 0; i < 9; i++) {
+                for (Cue cue : Cue.values()) {
+                    var report = varied.report(cue);
+                    assertNotNull(report);
+                    assertTrue(heard.computeIfAbsent(cue, ignored -> new HashSet<>()).add(report.line().id()),
+                            "A cue must exhaust its pool before replaying a line");
+                    assertNotEquals(previous.put(cue, report.line().id()), report.line().id(),
+                            "Refilling a pool must not repeat its previous line");
+                    assertEquals(report.line().speaker(), report.speaker());
+                    assertNull(varied.report(cue), "A busy channel must not consume another variant");
+                    varied.stop(); // Story preemption preserves per-battle variety history.
+                }
+            }
+        }
+    }
+
+    @Test
+    void singleActorPoolsWorkAndResetStartsAFreshBattle() {
+        Catalog full = catalog(3);
+        Actor actor = full.actors().get(0);
+        Catalog single = new Catalog(List.of(actor), full.instructions(), full.lines());
+        Random fixed = new Random(0) {
+            @Override public int nextInt(int bound) { return 0; }
+        };
+        OperationRadio varied = new OperationRadio(single, fixed, turn -> null);
+        String first = varied.report(Cue.CONTACT).line().id();
+        varied.stop();
+        assertNotEquals(first, varied.report(Cue.CONTACT).line().id());
+        varied.reset();
+        assertEquals(first, varied.report(Cue.CONTACT).line().id());
+        varied.stop();
+        String previous = first;
+        for (int i = 0; i < 10; i++) {
+            String next = varied.report(Cue.CONTACT).line().id();
+            assertNotEquals(previous, next);
+            previous = next;
+            varied.stop();
+        }
+    }
+
+    @Test
+    void reportPoolsRejectEmptyDuplicateMissingAndWrongSpeakerLines() {
+        Catalog full = catalog(3);
+        Actor actor = full.actors().get(0);
+        for (List<String> invalid : List.of(List.<String>of(), List.of("missing"),
+                List.of(actor.call()), List.of(actor.reports().get(Cue.CONTACT).get(0),
+                        actor.reports().get(Cue.CONTACT).get(0)))) {
+            Map<Cue, List<String>> reports = new EnumMap<>(actor.reports());
+            reports.put(Cue.CONTACT, invalid);
+            Actor broken = new Actor(actor.id(), actor.label(), actor.call(), actor.ack(), actor.readback(), reports);
+            assertThrows(IllegalArgumentException.class,
+                    () -> new Catalog(List.of(broken), full.instructions(), full.lines()));
+        }
+    }
+
+    @Test
+    void aSingleRecordingRemainsPlayableAfterItsPoolIsExhausted() {
+        Catalog full = catalog();
+        OperationRadio single = new OperationRadio(
+                new Catalog(List.of(full.actors().get(0)), full.instructions(), full.lines()),
+                new Random(2), turn -> null);
+        String first = single.report(Cue.CONTACT).line().id();
+        for (int i = 0; i < 3; i++) {
+            single.stop();
+            assertEquals(first, single.report(Cue.CONTACT).line().id());
+        }
+    }
+
+    @Test
     void copiedNodesAndMovingEscortRalliesDoNotCreateNewAssignments() {
         TacticalNode first = new TacticalNode(TacticalNode.Kind.BARRACKS, 10, 10, 8, 8, 12, 12, Faction.DEFENDER, 50, 6);
         TacticalNode copy = new TacticalNode(TacticalNode.Kind.BARRACKS, 10, 10, 8, 8, 12, 12, Faction.DEFENDER, 50, 6);
@@ -203,7 +286,10 @@ class OperationRadioTest {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", OperationRadio.PATH)));
         Catalog catalog = OperationRadio.parse(root);
         assertEquals(3, catalog.actors().size());
-        assertEquals(37, catalog.lines().size());
+        assertEquals(79, catalog.lines().size());
+        for (Cue cue : Cue.values()) {
+            assertEquals(9, catalog.actors().stream().mapToInt(actor -> actor.reports().get(cue).size()).sum());
+        }
         assertEquals("cuwCdnt9CKAB9XrTA1j0", root.getJSONObject("voices").getJSONObject("command").getString("voiceId"));
         JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json"))
                 .replaceAll("(?m)#.*$", ""));
@@ -231,6 +317,16 @@ class OperationRadioTest {
                 assertEquals("operation-radio/live/" + line.id() + ".mp3", clip.getString("source"));
             }
             assertEquals(1, matches);
+        }
+        // Catalogs using the original one-ID-per-event schema remain usable.
+        var actors = root.getJSONArray("actors");
+        for (int i = 0; i < actors.length(); i++) {
+            JSONObject reports = actors.getJSONObject(i).getJSONObject("reports");
+            for (Cue cue : Cue.values()) reports.put(cue.name(), reports.getJSONArray(cue.name()).getString(0));
+        }
+        Catalog legacy = OperationRadio.parse(root);
+        for (Actor actor : legacy.actors()) {
+            for (Cue cue : Cue.values()) assertEquals(1, actor.reports().get(cue).size());
         }
     }
 
