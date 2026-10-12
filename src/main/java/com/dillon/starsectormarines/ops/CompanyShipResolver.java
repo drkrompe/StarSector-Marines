@@ -173,8 +173,10 @@ public final class CompanyShipResolver {
     }
 
     private static HullSilhouette scrapeOutline(String baseHullId) {
-        String path = Global.getSettings().getHullSpec(baseHullId).getShipFilePath();
+        String path = "data/hulls/" + baseHullId + ".ship";
         try {
+            String declared = Global.getSettings().getHullSpec(baseHullId).getShipFilePath();
+            if (declared != null && !declared.isBlank()) path = declared;
             JSONObject spec = Global.getSettings().loadJSON(path);
             JSONArray bounds = spec.optJSONArray("bounds");
             if (bounds == null || bounds.length() < 6) {
