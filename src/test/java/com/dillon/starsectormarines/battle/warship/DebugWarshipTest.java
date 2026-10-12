@@ -55,11 +55,12 @@ class DebugWarshipTest {
     }
 
     @Test
-    void theSelectorCyclesOffOnslaughtParagonAndBack() {
+    void theSelectorCyclesOffOnslaughtParagonShepherdAndBack() {
         DebugWarship.Hull h = DebugWarship.Hull.OFF;
         assertEquals(DebugWarship.Hull.ONSLAUGHT, h.cycle(1));
-        assertEquals(DebugWarship.Hull.PARAGON, h.cycle(-1));
-        assertEquals(DebugWarship.Hull.OFF, DebugWarship.Hull.PARAGON.cycle(1));
+        assertEquals(DebugWarship.Hull.SHEPHERD, h.cycle(-1));
+        assertEquals(DebugWarship.Hull.SHEPHERD, DebugWarship.Hull.PARAGON.cycle(1));
+        assertEquals(DebugWarship.Hull.OFF, DebugWarship.Hull.SHEPHERD.cycle(1));
         assertFalse(DebugWarship.Spec.OFF.active());
     }
 

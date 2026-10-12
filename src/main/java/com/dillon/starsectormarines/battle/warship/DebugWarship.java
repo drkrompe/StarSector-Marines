@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.tender.DebugTender;
+import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
@@ -37,7 +39,9 @@ public final class DebugWarship {
     public enum Hull {
         OFF("Off", null, null),
         ONSLAUGHT("Onslaught", "onslaught", "onslaught_Standard"),
-        PARAGON("Paragon", "paragon", "paragon_Elite");
+        PARAGON("Paragon", "paragon", "paragon_Elite"),
+        /** The drone tender: a builder, not a gunship; {@link #install} hands it to {@link DebugTender}. */
+        SHEPHERD("Shepherd (tender)", Tender.HULL_ID, null);
 
         public final String label;
         final String hullId;
@@ -148,6 +152,7 @@ public final class DebugWarship {
      */
     public static Warship install(BattleSimulation sim, Spec spec) throws Exception {
         if (spec == null || !spec.active()) return null;
+        if (spec.hull() == Hull.SHEPHERD) return DebugTender.install(sim, spec);
         Warship ship = Warship.fit(spec.hull().hullId, spec.hull().variantId, spec.side(), 0f, 0f, 0f);
         Placement p = place(spec.side(), axisOf(sim), sim.getGrid().getWidth(), sim.getGrid().getHeight(),
                 ship.lengthCells);
