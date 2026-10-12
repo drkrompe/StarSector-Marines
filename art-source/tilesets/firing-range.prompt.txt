@@ -1,0 +1,11 @@
+Use case: sketch-to-render.
+Asset type: transparent modular top-down game sprite atlas for a spacecraft firing range.
+Input image 1 is the exact code-created geometry guide to reskin. Input image 2 is ONLY a material reference (the existing ship armory); do not copy its layout.
+Preserve the first image's six isolated slots, positions, silhouettes, aspect ratios and transparent gutters exactly. Strict orthographic overhead camera, zero isometric distortion, no perspective. Return one transparent-background square atlas.
+Top-left: 1x2 heavy enclosed bullet-trap backstop, facing LEFT, charcoal enclosure with recessed angled steel deflectors. Its right edge is the solid rear plate. No paper target: the game adds a separate target in front.
+Top-middle: 2x1 solid ballistic shooting-lane divider, long axis left-right, broad dark acoustic panel with a narrow elbow-height bench along its lower edge. Keep it rectangular and substantial.
+Top-right: 2x1 preparation bench with two rubber cleaning mats and a contained tray, pale worn grey working surface, muted dark enamel drawers. No weapons or scattered objects added.
+Bottom-left: 2x1 range control console, subdued grey-green screen inset into the surface, modest buttons, no bright glow.
+Bottom-middle square: seamless quiet warm grey sealed concrete floor material, edge-to-edge opaque inside the square, no border or panel seams.
+Bottom-right square: seamless quiet darker grey-green rubber lane floor material, edge-to-edge opaque inside the square, no border, seams or markings.
+Materials match reference: charcoal bulkhead steel, desaturated olive-grey enamel, worn warm-grey surfaces. Fine restrained wear only; at game scale silhouettes must dominate. No bright blue/orange/yellow, hazard stripes, labels, text, logos, loose junk, tiny noisy grating, added shadows outside silhouettes, platforms, backing floor or rearranged slots. Texture only, preserve geometry.

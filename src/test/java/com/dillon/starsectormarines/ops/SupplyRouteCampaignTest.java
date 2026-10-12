@@ -13,6 +13,23 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SupplyRouteCampaignTest {
+    @Test void branchCommitmentNamesFinalChapterRecurringWorkAndTheForgonePath() {
+        var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        String id = p.missionId(); p.begin(id); p.settle(id, true, null);
+        var choices = SupplyRouteCampaign.offers(p);
+        String rill = SupplyRouteCampaign.choiceSummary(choices.get(0));
+        String freight = SupplyRouteCampaign.choiceSummary(choices.get(1));
+        assertTrue(rill.contains("Last Lift ends"));
+        assertTrue(rill.contains("recurring Crew Recovery"));
+        assertTrue(rill.contains("Relay Nine and Thunder Run are forgone"));
+        assertTrue(freight.contains("Relay Nine leads to Thunder Run"));
+        assertTrue(freight.contains("Last Lift is forgone"));
+        var props = MissionSelectScreen.previewProps();
+        MissionSelectScreen.putDetail(props, choices.get(0), () -> {}, () -> {});
+        assertEquals(rill, props.get("choiceSummary"));
+        assertFalse(props.get("choiceClasses").toString().contains("hidden"));
+        assertTrue(p.choicePending(), "inspecting consequences must not commit the branch");
+    }
     @Test void viewingOffersDoesNotIntroduceOrCommitAndStoryDisappearsAfterSuccess() {
         var p = new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");
         Mission junction=SupplyRouteCampaign.offers(p).get(0); assertEquals("Open the Junction",junction.name);

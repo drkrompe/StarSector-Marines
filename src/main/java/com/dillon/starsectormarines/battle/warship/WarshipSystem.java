@@ -263,7 +263,7 @@ public final class WarshipSystem {
                 cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
             }
             if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
-                sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells);
+                sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells, shell.weapon.explosionColor());
             }
         }
     }
