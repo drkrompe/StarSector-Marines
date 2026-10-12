@@ -545,6 +545,7 @@ public final class MechLabScreen implements Screen {
         }
         if (markupInstance != null) {
             markupInstance.flush();
+            if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.MECH_LAB, context::roomAboard);
             if (document != null) {
                 wireEquipmentPreviews(markupInstance, document, specSheets);
             }
