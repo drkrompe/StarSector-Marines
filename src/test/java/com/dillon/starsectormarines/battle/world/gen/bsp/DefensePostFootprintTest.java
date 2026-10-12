@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DefensePostFootprintTest {
 
     private static final int W = 24, H = 24, CX = 12, CY = 12;
+
+    @Test
+    public void snowAcceptsTheSameEmplacementWithoutRerollingTheLayout() {
+        Long nextDraw = null;
+        for (GroundKind ground : List.of(GroundKind.GRASS, GroundKind.SNOW)) {
+            NavigationGrid grid = openGrid();
+            CellTopology topology = new CellTopology(W, H);
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
+                topology.setGroundKind(x, y, ground);
+            List<DefensePost> posts = new ArrayList<>();
+            Random rng = new Random(42);
+            assertEquals(1, DefensePostStamper.stampInto(grid, topology, (x, y) -> true,
+                    null, new ArrayList<>(), new ArrayList<>(), posts, rng,
+                    DefensePostKind.MEDIUM, 1, List.of(new int[]{CX, CY}), 2, 2, W - 3, H - 3));
+            assertEquals(CX, posts.get(0).anchorX);
+            assertEquals(CY, posts.get(0).anchorY);
+            if (nextDraw == null) nextDraw = rng.nextLong();
+            else assertEquals(nextDraw.longValue(), rng.nextLong(), "surface must not reroll later spawns");
+        }
+    }
 
     private static NavigationGrid openGrid() {
         NavigationGrid g = new NavigationGrid(W, H);
