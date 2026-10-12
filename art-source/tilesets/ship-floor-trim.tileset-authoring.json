@@ -1,0 +1,831 @@
+{
+  "sheetName": "ship-floor-trim",
+  "sheet": "art-source/tilesets/ship-floor-trim.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 3,
+  "idPrefix": "ship-floor-trim",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-floor-trim.png",
+  "note": "Geometry-first muted floor families. Four interior crops per material; full logical canvases retained for edge/rib/access/binding. Canonical edge is image top (world +Y), rotations are exact placement turns.",
+  "blocks": [
+    {
+      "id": "ship-floor-trim.passage",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.lounge",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.clinical",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.engineering",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.lounge-inset",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.clinical-aisle",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.service-pad",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-floor-trim.service-aisle",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    }
+  ],
+  "entries": [
+    {
+      "id": "ship-floor-trim.passage-1",
+      "block": "ship-floor-trim.passage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        32,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.passage-2",
+      "block": "ship-floor-trim.passage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        180,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.passage-3",
+      "block": "ship-floor-trim.passage",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        32,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.passage-4",
+      "block": "ship-floor-trim.passage",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        180,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-1",
+      "block": "ship-floor-trim.lounge",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        392,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-2",
+      "block": "ship-floor-trim.lounge",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        540,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-3",
+      "block": "ship-floor-trim.lounge",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        392,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-4",
+      "block": "ship-floor-trim.lounge",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        540,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-1",
+      "block": "ship-floor-trim.clinical",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        752,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-2",
+      "block": "ship-floor-trim.clinical",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        900,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-3",
+      "block": "ship-floor-trim.clinical",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        752,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-4",
+      "block": "ship-floor-trim.clinical",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        900,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.engineering-1",
+      "block": "ship-floor-trim.engineering",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1112,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.engineering-2",
+      "block": "ship-floor-trim.engineering",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1260,
+        32,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.engineering-3",
+      "block": "ship-floor-trim.engineering",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1112,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.engineering-4",
+      "block": "ship-floor-trim.engineering",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1260,
+        180,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-inset-1",
+      "block": "ship-floor-trim.lounge-inset",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        32,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-inset-2",
+      "block": "ship-floor-trim.lounge-inset",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        180,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-inset-3",
+      "block": "ship-floor-trim.lounge-inset",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        32,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.lounge-inset-4",
+      "block": "ship-floor-trim.lounge-inset",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        180,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-aisle-1",
+      "block": "ship-floor-trim.clinical-aisle",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        392,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-aisle-2",
+      "block": "ship-floor-trim.clinical-aisle",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        540,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-aisle-3",
+      "block": "ship-floor-trim.clinical-aisle",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        392,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.clinical-aisle-4",
+      "block": "ship-floor-trim.clinical-aisle",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        540,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-pad-1",
+      "block": "ship-floor-trim.service-pad",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        752,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-pad-2",
+      "block": "ship-floor-trim.service-pad",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        900,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-pad-3",
+      "block": "ship-floor-trim.service-pad",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        752,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-pad-4",
+      "block": "ship-floor-trim.service-pad",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        900,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-aisle-1",
+      "block": "ship-floor-trim.service-aisle",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1112,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-aisle-2",
+      "block": "ship-floor-trim.service-aisle",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1260,
+        390,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-aisle-3",
+      "block": "ship-floor-trim.service-aisle",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1112,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.service-aisle-4",
+      "block": "ship-floor-trim.service-aisle",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1260,
+        538,
+        148,
+        148
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-floor-trim.edge",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        17,
+        730,
+        334,
+        332
+      ]
+    },
+    {
+      "id": "ship-floor-trim.rib",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        377,
+        730,
+        334,
+        332
+      ]
+    },
+    {
+      "id": "ship-floor-trim.access",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        737,
+        730,
+        334,
+        332
+      ]
+    },
+    {
+      "id": "ship-floor-trim.binding",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        730,
+        334,
+        332
+      ]
+    }
+  ]
+}

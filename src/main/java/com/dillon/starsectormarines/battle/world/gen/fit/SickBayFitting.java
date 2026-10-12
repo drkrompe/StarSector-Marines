@@ -74,6 +74,11 @@ public final class SickBayFitting implements RoomFitting {
         Art art = shipboard ? null : Art.resolve();
         int aisleFrom = BAND;
 
+        if (shipboard) {
+            paint(floor, 0, 0, along, across, "clinical");
+            paint(floor, 0, aisleFrom, along, AISLE_WIDTH, "clinical-aisle");
+        }
+
         // Circulation before anything else stands on it: the spine the whole
         // room hangs off, then a stub from every hatch the deck actually cut,
         // wherever on the bulkhead ring that turned out to be.
@@ -217,6 +222,11 @@ public final class SickBayFitting implements RoomFitting {
         if (!floor.placeAssembly(x, y, SHIP_KIT + piece, List.of())) return false;
         if (work != null) task(floor, standX, standY, work, x, y);
         return true;
+    }
+
+    private void paint(RoomFloor floor, int x, int y, int w, int h, String material) {
+        int[] r = floor.toLocalRect(x, y, w, h);
+        floor.markFloorSurface(r[0], r[1], r[2], r[3], "ship-floor-trim." + material);
     }
 
     private void task(RoomFloor floor, int x, int y, Affordance work, int fixtureX, int fixtureY) {
