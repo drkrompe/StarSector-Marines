@@ -4,7 +4,7 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — both authored Wayline chapters have headless fitted-boat evidence; the linked campaign and live pacing remain.
+Updated: 2026-10-11 — Counterattack now captures and defends dispatch; linked campaign and live pacing remain.
 
 Read `early-operation-nouns.md` before accepting this story.
 
@@ -30,7 +30,13 @@ delayed and absent player arrival, plus two fitted boats arriving together.
 Ordinary and delayed cases carry twelve marines in two sorties on one six-seat
 boat; the paired control carries the same force on two boats. It records gate,
 yard and warehouse vicinity, defensive orders, losses and terminal outcome.
-Vicinity is not occupancy or capture; the mission still ends by elimination.
+Those older factory controls cover the repeatable elimination setup, not the
+unique story defense. `commanderEvidence -Pmission=counterattack --tests
+'*DepotHoldEvidenceTest'` exercises the story setup with twelve named company
+marines, six employer militia, actual boat arrivals, and a Hound detour versus
+ordinary advance. It records physical capture, both road attacks, casualties,
+Hound fire, and terminal outcome. Whole-map images are neutral observer views;
+they do not validate live fog or GL HUD rendering.
 The 300s absent-player observation does not establish a new failure rule.
 
 ## Acceptance
@@ -56,9 +62,15 @@ The 300s absent-player observation does not establish a new failure rule.
   reserve; contact and own casualties drive commitment and fallback. Confirm
   these beats with actual campaign fittings and mixed equipment, including a
   slow boat and two boats sharing the apron.
-- The briefing states the current elimination victory rule;
-  the preserve/secure command picture does not imply that holding the depot
-  itself wins the battle.
+- The story briefing explains eight seconds inside dispatch, two finite road
+  attacks, and a final secured warehouse. A persistent recovery beacon stays
+  after Castle's notice expires and points toward the berth when off camera.
+  Recovery remains optional. Confirm the Hound is useful during the defense
+  without requiring direct control or imposing a guaranteed casualty quota.
+- The initial eight-person road attack and final eight-person road attack put
+  pressure on a twelve-person company without late-game weapons. Losing and
+  retaking dispatch never grants another wave; surviving mech-only forces can
+  complete the hold after the infantry are lost.
 - The two missions introduce preserve/secure command language consistent with
   `faction-ground-contract-policy.md` without adding objective mandates before
   that contract seam exists.

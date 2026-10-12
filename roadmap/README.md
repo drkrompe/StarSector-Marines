@@ -167,7 +167,10 @@ and stages bulk home-officer organization from its company squad gallery,
 and Barracks owns bulk personnel command, saved profiles and replenishment between
 operations. The active Alpha pickup, `barracks-turnaround.md`, adds survivor
 consolidation and a guided preparation handoff; `company-resource-bills.md` follows
-with consistent upgrade bills across rooms. Its practice range now fires issued primaries through a disposable bounded
+with consistent upgrade bills across rooms. `castle-officer-induction.md` adds
+Castle's portrait-led first specialty and squad assignment for founding commander
+Mira Hale, required before a new company deploys; live acceptance remains open.
+Its practice range now fires issued primaries through a disposable bounded
 battle simulation while campaign personnel and inventory remain untouched. The UI
 toolkit remains presentation infrastructure rather than company or inventory authority.
 Barracks and Mech Lab headless evidence collect the same bounded battle-simulation

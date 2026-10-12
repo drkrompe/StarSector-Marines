@@ -2,9 +2,12 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+import java.awt.Color;
 import java.util.UUID;
 
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
+import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
@@ -425,6 +428,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final StoryBeatLog storyBeats = new StoryBeatLog();
     private OpeningOperationStoryObserver openingStory;
     private WaylineHoundRecovery waylineHound;
+    private DepotHoldSequence depotHold;
+    public DepotHoldSequence getDepotHold() { return depotHold; }
+    public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
+        if (simTickIndex != 0 || depotHold != null) throw new IllegalStateException("Install depot hold once at setup");
+        depotHold = new DepotHoldSequence(warehouse, reserves, storyBeats);
+        addObjective(depotHold);
+    }
     private SquadCommandClaim playerSupportCommandClaim;
 
     public void installWaylineHound(int x, int y) {
@@ -487,7 +497,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return faction != Faction.DEFENDER ? 0 : (reliefAssault == null ? 0 : reliefAssault.pendingMembers())
                 + (lastLiftSequence == null ? 0 : lastLiftSequence.pendingMembers())
                 + (relayNineSequence == null ? 0 : relayNineSequence.pendingMembers())
-                + (thunderRun == null ? 0 : thunderRun.pendingMembers());
+                + (thunderRun == null ? 0 : thunderRun.pendingMembers())
+                + (depotHold == null ? 0 : depotHold.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -1585,6 +1596,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         detonations.detonateNow(det);
     }
 
+    public void spawnHeavyImpact(float x, float y, float radius, Color tint) {
+        effects.spawnHeavyImpact(x, y, radius, tint);
+    }
+
     @Override
     public void spawnHeavyImpact(float x, float y, float radius) {
         effects.spawnHeavyImpact(x, y, radius);
@@ -2386,6 +2401,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (relayNineSequence != null) relayNineSequence.tick(this);
         if (thunderRun != null) thunderRun.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
+        if (depotHold != null) depotHold.advance(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall

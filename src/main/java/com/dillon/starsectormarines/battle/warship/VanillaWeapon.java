@@ -69,6 +69,16 @@ public record VanillaWeapon(
     }
 
     /**
+     * The sound held while a beam burns: its {@code fireSoundTwo}, but only when
+     * {@code fireSoundOne} is also named. A weapon naming only the second has no
+     * separate start sound, so that one is its single report and not a loop.
+     */
+    public String loopSoundId() {
+        if (fireSoundOne == null || fireSoundOne.isBlank()) return null;
+        return fireSoundTwo == null || fireSoundTwo.isBlank() ? null : fireSoundTwo;
+    }
+
+    /**
      * Builds a weapon from its table row, its {@code .wpn} spec and its projectile
      * spec. Any of the specs may be {@code null}: the table row alone says what a
      * round does, and a missing sprite only costs the look.

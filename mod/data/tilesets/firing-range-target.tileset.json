@@ -1,0 +1,16 @@
+{
+  "cellPx": 64,
+  "cells": [{
+    "col": 0,
+    "name": "firing-range-target.plate",
+    "row": 0
+  }],
+  "doodads": [{
+    "ballisticHalfHeight": 0,
+    "col": 0,
+    "cover": "none",
+    "id": "firing-range-target.plate",
+    "row": 0
+  }],
+  "sheet": "graphics/tilesets/firing-range-target.png"
+}

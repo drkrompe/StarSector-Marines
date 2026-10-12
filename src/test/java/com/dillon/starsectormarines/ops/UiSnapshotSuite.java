@@ -45,6 +45,8 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
+import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
+import com.dillon.starsectormarines.marine.OfficerInduction.Step;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -1731,8 +1733,87 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 hints.clear();
             }
         }
+        images.addAll(renderOfficerInduction(context, renderer));
         images.addAll(renderBarracksFlow(context, renderer));
         return images;
+    }
+
+    /** New-company clicks through the production spotlight, including scrolling to the third choice. */
+    private static List<SnapshotArtifact> renderOfficerInduction(
+            SnapshotContext context, HeadlessUiRenderer renderer) throws Exception {
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        for (float scale : new float[]{1f, 1.5f}) {
+            Reactor reactor = new Reactor();
+            MarineRoster roster = new MarineRoster();
+            MarineCaptain mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
+            roster.add(mira);
+            roster.beginOfficerInduction(mira);
+            BarracksViewModel model = new BarracksViewModel(reactor, roster, () -> 1d, snapshotEquipmentResources(),
+                    () -> 12, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+            var command = model.command();
+            boolean[] armoryRequested = {false};
+            command.navigation(() -> armoryRequested[0] = true, id -> { }, () -> { }, true);
+            command.returnToBriefing(true);
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("command", command.props());
+            properties.put("contextLabel", "FLAGSHIP / FIRST COMMAND");
+            properties.put("squadRows", model.squadRows());
+            properties.put("musterRows", model.musterRows());
+            properties.put("recordCells", model.recordCells());
+            properties.put("selectedSquadName", model.selectedSquadName());
+            properties.put("selectedSquadSummary", model.selectedSquadSummary());
+            properties.put("quartersStatus", model.quartersStatus());
+            MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
+                    () -> { }, () -> { }, command::showOverview, () -> { }, () -> { }, () -> { });
+            MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
+            loader.reload();
+            try (MarkupInstance instance = loader.build(reactor, "shipboard-barracks", properties)) {
+                UiDocument document = new UiDocument(instance.root());
+                instance.styles().forEach(document::addStyleSheet);
+                document.theme(MarineOpsThemes.standard());
+                var guide = BarracksGuideCallout.bind(document, instance, command, command::showOverview);
+                Consumer<String> capture = name -> frames.add(new SnapshotArtifact("induction-" + name + "-" + (int)(scale * 100) + "pct.png",
+                        renderGuidedBarracks(renderer, document, guide, 1920, 1080, scale)));
+                Consumer<String> click = id -> {
+                    clickBarracksFlow(document, instance, id);
+                    guide.update();
+                };
+                capture.accept("01-introduction");
+                click.accept("command:" + mira.id());
+                capture.accept("02-specialties");
+                Rect first = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
+                document.pointerScrolled(first.x() + 12, first.y() + 12, 420);
+                guide.update();
+                capture.accept("03-scroll-choice");
+                click.accept("officer-specialty-SALVAGE_STEWARDSHIP-train");
+                if (mira.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
+                    throw new IllegalStateException("Click-through specialty choice did not train Mira at scale " + scale);
+                }
+                capture.accept("04-formation");
+                click.accept("officer-formations");
+                click.accept("barracks-raise-squad");
+                if (!armoryRequested[0]) throw new IllegalStateException("Raise Squad did not route to Armory");
+                // Armory owns its screen and founding transaction; return its authoritative result.
+                if (!new SquadFoundingWorkshop(roster, snapshotSquadFoundingResources()).foundSquad().succeeded())
+                    throw new IllegalStateException("Founding failed");
+                model.refresh(); instance.flush(); document.advance(0f); guide.update();
+                int clicks = 0;
+                while (roster.officerInduction().step(roster) != Step.READY && clicks < 10) {
+                    capture.accept("05-assignment-" + clicks);
+
+                    click.accept(command.guideTargetId());
+                    clicks++;
+                }
+                if (roster.officerInduction().step(roster) != Step.READY)
+                    throw new IllegalStateException("Real assignment controls did not advance induction");
+                capture.accept("06-ready");
+                click.accept("guide-next");
+                if (roster.officerInductionRequired() || command.guideVisible())
+                    throw new IllegalStateException("Ready acknowledgement failed to unlock deployment");
+                capture.accept("07-complete");
+            }
+        }
+        return frames;
     }
 
     /** One company, real pointer actions and personnel/cargo transactions at every frame. */

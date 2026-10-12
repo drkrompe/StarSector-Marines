@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
-import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -50,6 +50,12 @@ import java.util.List;
  * wherever a room happens to have a front and a back.
  */
 public final class FiringRangeFitting implements RoomFitting {
+    private final boolean shipboard;
+
+    public FiringRangeFitting() { this(false); }
+    private FiringRangeFitting(boolean shipboard) { this.shipboard = shipboard; }
+    public static FiringRangeFitting shipboard() { return new FiringRangeFitting(true); }
+
 
     /** Cells between one firing point and the next. A shooter needs elbow room. */
     private static final int LANE_PITCH = 2;
@@ -125,6 +131,10 @@ public final class FiringRangeFitting implements RoomFitting {
         Plan plan = plan(along, across, floor::contains);
         if (plan == null) return;
 
+        if (shipboard && plan.firingLine() >= 2 && plan.laneSpan() % LANE_PITCH == 0) {
+            fitShipRange(floor, plan, along, across);
+            return;
+        }
         int butts = along - BUTTS;
         // The lane run is marked before anything is placed, so nothing the ready
         // end does later can reach into it.
@@ -146,6 +156,45 @@ public final class FiringRangeFitting implements RoomFitting {
         reserve(floor, 0, plan.laneFrom(), plan.firingLine(), plan.laneSpan());
         clearApproaches(floor, plan, along, across);
         layReadyEnd(floor, plan, across);
+    }
+
+    /** Real targets stand in front of the trap; no solid fixture crosses a live shot line. */
+    private void fitShipRange(RoomFloor floor, Plan plan, int along, int across) {
+        surface(floor, 0, 0, along, across, "firing-range.deck");
+        int trap = along - 1;
+        int target = trap - 1;
+        for (int lane = plan.laneFrom(); lane < plan.laneFrom() + plan.laneSpan(); lane += LANE_PITCH) {
+            surface(floor, plan.firingLine() - 1, lane,
+                    target - plan.firingLine() + 2, 1, "firing-range.lane");
+            if (lane + 1 < plan.laneFrom() + plan.laneSpan()) {
+                floor.placeAssembly(plan.firingLine() - 1, lane + 1, "firing-range.divider", List.of());
+                floor.placeAssembly(trap, lane, "firing-range.backstop", List.of());
+            }
+            int[] stand = floor.toLocal(plan.firingLine() - 1, lane);
+            int[] focus = floor.toLocal(target, lane);
+            floor.pave(focus[0], focus[1], "firing-range-target.plate");
+            floor.fixtureTask(stand[0], stand[1], Affordance.PRACTICE, focus[0], focus[1]);
+        }
+        closeOff(floor, plan.firingLine(), plan.laneFrom(),
+                along - plan.firingLine(), plan.laneSpan());
+        reserve(floor, 0, plan.laneFrom(), plan.firingLine(), plan.laneSpan());
+        clearApproaches(floor, plan, along, across);
+        int readyFrom = plan.laneFrom() + plan.laneSpan();
+        if (plan.back() - readyFrom < 3) return;
+        reserve(floor, 0, readyFrom + 1, plan.firingLine(), plan.back() - readyFrom - 1);
+        for (int x = 1; x + 2 < plan.firingLine(); x += 3)
+            floor.placeAssembly(x, readyFrom, "firing-range."
+                    + (x + 5 >= plan.firingLine() ? "control" : "prep-bench"), List.of());
+        // Separate rack bed, stock and frame, shared with the adjoining armory.
+        for (int x = 1; x + 3 <= plan.firingLine(); x += 5)
+            floor.placeAssembly(x, plan.back(), "armory-workshop.rack", List.of(
+                    new LayoutOp.Layer(0, 0, "armory-workshop.rifles"),
+                    new LayoutOp.Layer(0, 0, "armory-workshop.rack-frame")));
+    }
+
+    private void surface(RoomFloor floor, int x, int y, int w, int h, String id) {
+        int[] rect = floor.toLocalRect(x, y, w, h);
+        floor.markFloorSurface(rect[0], rect[1], rect[2], rect[3], id);
     }
 
     /**
