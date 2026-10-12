@@ -1057,19 +1057,9 @@ public class MarineRoster implements Serializable {
         }
 
         List<String> memberIds = manningMemberIds(squad);
-        if (memberIds.size() != MarineSquad.CAPACITY) {
-            return new SquadEquipmentPreview(
-                    SquadEquipmentResult.SQUAD_NOT_READY, billets);
-        }
-        List<MarineSoldier> members = new ArrayList<>();
-        for (String memberId : memberIds) {
-            MarineSoldier soldier = soldierById(memberId);
-            if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) {
-                return new SquadEquipmentPreview(
-                        SquadEquipmentResult.SQUAD_NOT_READY, billets);
-            }
-            members.add(soldier);
-        }
+        // WIA personnel still occupy billets and can receive equipment aboard.
+        // Vacancies retain the assigned plan without manufacturing or charging for kit.
+        List<MarineSoldier> members = memberIds.stream().map(this::soldierById).toList();
 
         boolean ownsTemplates = true;
         for (SquadEquipmentBillet billet : billets) {
@@ -1112,7 +1102,7 @@ public class MarineRoster implements Serializable {
     }
 
     /**
-     * Issues one doctrine to all twelve billets with an exact primary-grade
+     * Assigns one twelve-billet doctrine and equips its current occupants with an exact primary-grade
      * variant. This remains one atomic squad transaction; fire-team order,
      * special equipment, armor, and the assigned doctrine all come from the
      * authored definitions.

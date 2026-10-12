@@ -78,7 +78,7 @@ class BarracksEquipmentIssueTest {
         assertEquals(1, cargo.payments, "conforming equipment incurs no further charge");
     }
 
-    @Test void recoveringAndStationedSquadsAreSkippedAndStaleIdsBlockTheBatch() {
+    @Test void recoveringSquadsReceiveKitWhileStationedAndStaleSelectionsRemainBlocked() {
         var squads = squads(3);
         var ids = Set.of(squads.get(0).id(), squads.get(1).id(), squads.get(2).id());
         roster.assignSquadProfile(ids, profile().id());
@@ -87,7 +87,7 @@ class BarracksEquipmentIssueTest {
         station(squads.get(2));
         var issue = new BarracksEquipmentIssue(roster, EquipmentIssueResources.UNLIMITED);
         assertFalse(issue.apply(Set.of(squads.get(0).id(), "missing")).succeeded());
-        assertEquals(new BarracksEquipmentIssue.Result(1, 2, true), issue.apply(ids));
+        assertEquals(new BarracksEquipmentIssue.Result(2, 1, true), issue.apply(ids));
         assertEquals(MarineSoldierStatus.WIA, roster.soldierById(wounded).status());
         assertTrue(squads.get(1).memberIds().contains(wounded));
     }

@@ -33,8 +33,8 @@
     {
       "id": "marines_management_equipment",
       "title": "Check their equipment",
-      "text": "A full roll is only half the job. Issue Assigned Equipment restores the selected squads' intended kit after you review the bill. Recovering or incomplete squads are held back and named in the explanation. Assign selected squads on a commander card. Profiles holds saved equipment choices; assigning a profile costs nothing until you issue it.",
-      "synthesisText": "[clear, patient voice] A full roll is only half the job. Issue Assigned Equipment restores the selected squads' intended kit after you review the bill. Recovering or incomplete squads are held back and named in the explanation. Assign selected squads on a commander card. Profiles holds saved equipment choices; assigning a profile costs nothing until you issue it."
+      "text": "We can issue better kit while our people recover. Issue Assigned Equipment restores the selected squads' intended kit after you review the bill. Wounded marines can receive kit while recovering. Empty billets cost nothing; review replacement equipment after recruits join. Assign selected squads on a commander card. Profiles holds saved equipment choices; assigning a profile costs nothing until you issue it.",
+      "synthesisText": "[clear, patient voice] We can issue better kit while our people recover. Issue Assigned Equipment restores the selected squads' intended kit after you review the bill. Wounded marines can receive kit while recovering. Empty billets cost nothing; review replacement equipment after recruits join. Assign selected squads on a commander card. Profiles holds saved equipment choices; assigning a profile costs nothing until you issue it."
     },
     {
       "id": "marines_management_ready",

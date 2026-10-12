@@ -27,8 +27,6 @@ public final class BarracksEquipmentIssue {
             String reason = squad.reserve() ? "Reserve pool"
                     : squad.stationed() ? "On station"
                     : weapons == null || armor == null ? "Assign a profile first"
-                    : preview.result() == SquadEquipmentResult.SQUAD_NOT_READY
-                    ? roster.vacancies(squad) + " vacant / " + (roster.manningCount(squad) - roster.readyCount(squad)) + " recovering"
                     : !preview.canApply() ? "Required equipment not unlocked" : "";
             boolean eligible = reason.isEmpty();
             if (eligible) total = total.plus(preview.issueCost());

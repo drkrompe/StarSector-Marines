@@ -1885,10 +1885,10 @@ public final class FleetArmoryViewModel {
     private static String squadEquipmentMessage(SquadEquipmentPreview preview) {
         return switch (preview.result()) {
             case APPLIED -> preview.issueCost().isZero()
-                    ? "Ready  ·  The squad already matches this equipment issue."
-                    : "Ready  ·  Available stores bill shown below.";
+                    ? "No material charge  ·  Current kit matches; vacant billets store the plan only."
+                    : "Ready to issue  ·  Wounded included; vacant billets cost nothing.";
             case INVALID_SQUAD -> "Select a line squad.";
-            case SQUAD_NOT_READY -> "Not ready  ·  This squad needs twelve RTD marines.";
+            case SQUAD_NOT_READY -> "The squad changed. Review its current roll.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
             case UNKNOWN_WEAPON_DOCTRINE -> "Choose weapon equipment.";
             case UNKNOWN_ARMOR_DOCTRINE -> "Choose armor equipment.";

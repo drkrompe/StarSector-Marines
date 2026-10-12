@@ -347,17 +347,17 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
-    void degradedSquadCannotPartiallyIssueAValidDefinitionPair() {
+    void understrengthSquadCanIssueAValidDefinitionPair() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY - 1);
         MarineSquad squad = roster.squads().get(0);
 
-        assertEquals(SquadEquipmentResult.SQUAD_NOT_READY,
+        assertEquals(SquadEquipmentResult.APPLIED,
                 roster.applySquadEquipment(squad.id(),
                         SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
                         SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
-        assertNull(squad.weaponDoctrineId());
-        assertNull(squad.armorDoctrineId());
+        assertEquals(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, squad.weaponDoctrineId());
+        assertEquals(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, squad.armorDoctrineId());
     }
 
     @Test

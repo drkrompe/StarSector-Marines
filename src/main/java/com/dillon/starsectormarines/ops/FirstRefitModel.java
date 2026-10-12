@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/** Two curated choices over the ordinary twelve-person equipment transaction. */
+/** Two curated choices over the ordinary squad equipment transaction. */
 final class FirstRefitModel {
     private final MarineRoster roster;
     private final EquipmentIssueResources resources;
@@ -59,7 +59,7 @@ final class FirstRefitModel {
             feedback = "The squad or its equipment changed. Review the updated order before issuing.";
         } else {
             SquadEquipmentResult result = roster.firstRefit().issue(roster, squadId, path, resources);
-            feedback = result == SquadEquipmentResult.APPLIED ? "Issue complete. All twelve soldiers now carry the reviewed kit." : blocker(result);
+            feedback = result == SquadEquipmentResult.APPLIED ? "Equipment plan saved. The squad's current marines, including wounded personnel, now carry the reviewed kit." : blocker(result);
         }
         refresh();
     }
@@ -77,9 +77,9 @@ final class FirstRefitModel {
         props.put("copy", complete
                 ? "That is what the last job bought us: a better-equipped squad. Their names and command stay the same; the weapons and suits on the roll are what they will take into the next fight. Inspect Alpha, Bravo and Charlie in the Armory. You can use either plan again; future changes pay their own material bill."
                 : !claimed ? "Mara sent over the patterns her quartermaster could spare: Milspec Stalwart automatics, Milspec Lancer pulse rifles and Janus scout suits. We held their checkpoint. Now Wayline can help us put better kit on our people. Accept the patterns, then we will refit one squad together."
-                : squad == null ? "First, choose the squad that will receive the issue. We need twelve ready marines aboard. If people are wounded or billets are empty, use Barracks to prepare the formation, then come back. The consignment will wait."
-                : path == null ? "Two plans, Captain. Steady Line puts more weight behind holding ground. Forward Screen puts more scouts ahead of us. Each includes weapons and armor for all twelve; select one to review the actual changes."
-                : "Read across the roll: current kit on the left, proposed kit on the right. Nothing changes until Issue to squad. Patterns are ours to keep; the supplies, armaments and machinery below pay for the changed equipment. Wounds and empty billets must be dealt with first.");
+                : squad == null ? "Choose a squad to equip. Wounded marines can receive gear while recovering; a squad does not need to be full. We only charge for changed equipment issued to people on its current roll."
+                : path == null ? "Two plans, Captain. Steady Line puts more weight behind holding ground. Forward Screen puts more scouts ahead of us. Each plans weapons and armor for twelve billets; select one to review the issue to your current marines."
+                : "Read across the roll: current kit on the left, proposed kit on the right. Nothing changes until Issue to squad. Patterns are ours to keep; the supplies, armaments and machinery below pay for the changed equipment. Wounded marines receive kit without changing recovery. Vacant slots keep the plan and cost nothing; review and issue replacement equipment when recruits join.");
         props.put("showcaseClasses", !claimed ? "refit-showcase" : "refit-hidden");
         props.put("claimClasses", !claimed ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", claimed && !complete ? "refit-work" : "refit-hidden");
@@ -93,7 +93,7 @@ final class FirstRefitModel {
                 "classes", "refit-squad" + (s.id().equals(squadId) ? " refit-selected" : ""),
                 "select", (Runnable) () -> selectSquad(s.id()))).toList());
         props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
-                ? "No line squad. Return to the Armory gallery to found one." : "SELECT ONE FORMATION / Preparation and recovery remain in Barracks.");
+                ? "No line squad. Return to the Armory gallery to found one." : "SELECT ONE FORMATION / Wounded and understrength squads can receive equipment.");
         props.put("paths", List.of(Path.values()).stream().map(p -> Map.<String, Object>of(
                 "id", "refit-path:" + p.name(), "headingId", "refit-path-heading:" + p.name(),
                 "copyId", "refit-path-copy:" + p.name(), "label", (p == path ? "SELECTED / " : "") + p.label, "copy", p.description,
@@ -103,7 +103,7 @@ final class FirstRefitModel {
         if (reviewed != null) for (int i = 0; i < reviewed.billets().size(); i++) {
             MarineSoldier soldier = i < reviewedMembers.size() ? roster.soldierById(reviewedMembers.get(i)) : null;
             SquadEquipmentBillet kit = reviewed.billet(i);
-            String current = soldier == null ? "Vacant" : soldier.primaryGrade().displayName + " "
+            String current = soldier == null ? "Vacant / no charge" : soldier.primaryGrade().displayName + " "
                     + soldier.primaryDef().modelName + " / " + soldier.armorDef().displayName()
                     + (soldier.specialEquipmentDef() == null ? "" : " / " + soldier.specialEquipmentDef().displayName());
             billets.add(Map.of("id", "refit-billet:" + i, "nameId", "refit-name:" + i,
@@ -125,11 +125,11 @@ final class FirstRefitModel {
         }
         props.put("costs", costs);
         props.put("billHeading", reviewed == null ? "Choose a squad and a path to review costs."
-                : reviewed.issueCost().isZero() && reviewed.canApply() ? "This squad already matches. No material charge."
+                : reviewed.issueCost().isZero() && reviewed.canApply() ? "No material charge. Vacant slots receive no gear."
                 : "MATERIAL BILL / Cost | Available | Short by");
         props.put("shortfall", reviewed == null ? "" : shortage(reviewed.issueCost(), resources.available()));
         props.put("status", !feedback.isEmpty() ? feedback : reviewed == null ? "Selection spends nothing. Both paths remain available."
-                : reviewed.canApply() ? "Ready to issue to " + squad.name() + ". This replaces the whole squad's weapons, armor and special slots."
+                : reviewed.canApply() ? "Ready to issue to " + reviewedMembers.size() + " current marines in " + squad.name() + ". Wounded personnel included; vacant slots cost nothing."
                 : blocker(reviewed.result()));
         props.put("disabled", complete || reviewed == null || !reviewed.canApply());
         row.set(props);
@@ -151,7 +151,7 @@ final class FirstRefitModel {
     }
     private static String blocker(SquadEquipmentResult result) {
         return switch (result) {
-            case SQUAD_NOT_READY -> "Squad is not ready: fill vacancies in Barracks and let wounded marines recover. Nothing has been spent.";
+            case SQUAD_NOT_READY -> "The squad changed. Select it again to review the current roll.";
             case STATIONED -> "This squad is stationed away from the ship. Recall it before issuing equipment.";
             case INSUFFICIENT_CARGO -> "Not enough materials. Resupply, then return to this order. Nothing has been spent.";
             default -> "This order is unavailable. Select a current squad and an available equipment path.";

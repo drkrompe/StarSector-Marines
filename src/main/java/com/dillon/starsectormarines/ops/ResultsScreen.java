@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -82,6 +83,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
         putStoryDebrief(props, outcome);
+        putFirstRefit(props, outcome, CompanyPreparationGuide.roster(),
+                () -> context.openFleetArmoryWorkspaceFrom(ScreenId.RESULTS));
         boolean preparation = outcome != null && !outcome.missionSource.isDebug();
         props.put("preparationClasses", preparation ? "console-action" : "hidden");
         props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
@@ -149,7 +152,16 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("preparationLabel", "PREPARE COMPANY");
         props.put("preparationAction", (Runnable) () -> { });
         putStoryDebrief(props, null);
+        putFirstRefit(props, null, null, () -> { });
         return props;
+    }
+
+    /** Opens the lesson with Results as the return target; pending salvage stays untouched. */
+    static void putFirstRefit(Map<String, Object> props, MissionOutcome outcome, MarineRoster roster, Runnable open) {
+        boolean available = outcome != null && !outcome.missionSource.isDebug() && FirstRefit.available(roster);
+        props.put("refitClasses", available ? "results-refit console-readout" : "hidden");
+        props.put("refitCopy", "Castle has Wayline's new weapon and armor patterns ready in Armory. Choose Steady Line or Forward Screen and review the material bill. Wounded and understrength squads can equip now. You can return here for any unclaimed salvage.");
+        props.put("refitAction", open);
     }
 
     static void putStoryDebrief(Map<String, Object> props, MissionOutcome outcome) {

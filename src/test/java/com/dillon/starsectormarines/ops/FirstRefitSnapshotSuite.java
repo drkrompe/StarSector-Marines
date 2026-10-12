@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import java.util.Map;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
@@ -55,6 +57,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         String[] inspected = {null};
         var model = new FirstRefitModel(reactor, roster, resources, id -> inspected[0] = id);
         List<SnapshotArtifact> frames = new ArrayList<>();
+        frames.add(resultsFrame(context, roster));
         frames.add(frame(context, reactor, model, "01-wayline-consignment.png", "refit-claim"));
         if (!roster.firstRefit().claimed()) throw new AssertionError("Accept control did not claim reward");
         frames.add(frame(context, reactor, model, "02-choose-squad.png", "refit-squad:" + squad.id()));
@@ -64,11 +67,41 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         stock[0] = new EquipmentTemplateCost(200, 100, 100, 0);
         model.refresh();
         frames.add(frame(context, reactor, model, "04-steady-line-review.png", "refit-path:FORWARD_SCREEN"));
-        frames.add(frame(context, reactor, model, "05-forward-screen-review.png", "refit-issue"));
+        frames.add(frame(context, reactor, model, "05-forward-screen-review.png", null));
+        var members = roster.manningMemberIds(squad);
+        roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
+                members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
+        model.refresh();
+        frames.add(frame(context, reactor, model, "05b-wounded-understrength-issue.png", "refit-issue"));
+        if (roster.soldierById(members.get(0)).status() != MarineSoldierStatus.WIA || roster.manningCount(squad) != 10)
+            throw new AssertionError("Equipment issue changed personnel readiness");
         if (!roster.firstRefit().complete()) throw new AssertionError("Issue did not complete");
         frames.add(frame(context, reactor, model, "06-issued.png", "refit-inspect"));
         if (!squad.id().equals(inspected[0])) throw new AssertionError("Inspect did not route to the issued squad");
         return frames;
+    }
+    private SnapshotArtifact resultsFrame(SnapshotContext context, MarineRoster roster) throws Exception {
+        var props = ResultsScreen.previewProps(true, true);
+        var outcome = MissionOutcome.builder().victory(true).missionSource(MissionSource.STORY)
+                .missionId(OpeningOperationKind.RELIEF.missionId).build();
+        props.put("missionName", "Hold Until Relieved");
+        ResultsScreen.putStoryDebrief(props, outcome);
+        boolean[] opened = {false};
+        ResultsScreen.putFirstRefit(props, outcome, roster, () -> opened[0] = true);
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), ResultsScreen.COMPONENT_PATHS);
+        try (var markup = loader.reloadAndBuild(new Reactor(), ResultsScreen.ROOT_COMPONENT, props)) {
+            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+            markup.styles().forEach(document::addStyleSheet);
+            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            var image = renderer.renderRelative(document, 1920, 1080, 1f,
+                    MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+            var box = markup.requireElement("results-refit-open").box().borderBox();
+            document.pointerDown(box.x() + box.width()/2, box.y() + box.height()/2);
+            document.pointerUp(box.x() + box.width()/2, box.y() + box.height()/2);
+            if (!opened[0]) throw new AssertionError("Debrief upgrade button did not open the lesson");
+            return new SnapshotArtifact("00-debrief-upgrade-available.png", image);
+        }
     }
     private SnapshotArtifact frame(SnapshotContext context, Reactor reactor, FirstRefitModel model, String file, String clickAfter) throws Exception {
         var props = new LinkedHashMap<String, Object>();
