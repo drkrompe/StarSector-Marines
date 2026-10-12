@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -29,11 +30,31 @@ public record RaidBattleFixture(
         TargetProfile targetProfile,
         List<FighterWingCommitment> marineFighterSupport,
         List<FighterWingCommitment> enemyFighterSupport,
-        PrecinctPlan.Sprawl sprawl) implements BattleFixture {
+        PrecinctPlan.Sprawl sprawl,
+        String targetName,
+        PointOfInterest.Kind targetKind) implements BattleFixture {
 
     public static final String KIND = "RAID";
 
+    /** Null keeps the generic site's name; authored chapters name the thing being seized. */
+    public RaidBattleFixture(
+            long seed, List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
+            OperationTier tier, RiskLevel risk, TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, sprawl, null, null);
+    }
+
+    public RaidBattleFixture withTarget(String name, PointOfInterest.Kind kind) {
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("target name required");
+        return new RaidBattleFixture(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport, sprawl, name,
+                Objects.requireNonNull(kind, "target kind"));
+    }
+
     public RaidBattleFixture {
+        if (targetName != null && targetName.isBlank()) throw new IllegalArgumentException("blank target name");
         manifest = List.copyOf(Objects.requireNonNull(manifest, "manifest"));
         tier = Objects.requireNonNull(tier, "tier");
         risk = Objects.requireNonNull(risk, "risk");
@@ -84,6 +105,6 @@ public record RaidBattleFixture(
         return BattleSetup.createRaid(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport), sprawl);
+                FighterWingCommitment.toRoster(enemyFighterSupport), sprawl, targetName, targetKind);
     }
 }
