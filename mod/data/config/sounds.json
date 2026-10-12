@@ -155,6 +155,7 @@
   "marines_mara_relay_nine_freight_gate_restored": [{"file": "sounds/story/wayline/marines_mara_relay_nine_freight_gate_restored.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_relay_nine_relay_hall_retaken": [{"file": "sounds/story/wayline/marines_mara_relay_nine_relay_hall_retaken.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_relay_nine_relay_hall_restored": [{"file": "sounds/story/wayline/marines_mara_relay_nine_relay_hall_restored.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_thunder_run_briefing": [{"file": "sounds/story/wayline/marines_mara_thunder_run_briefing.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_thunder_run_started": [{"file": "sounds/story/wayline/marines_mara_thunder_run_started.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_thunder_run_player_landed": [{"file": "sounds/story/wayline/marines_mara_thunder_run_player_landed.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_thunder_run_column_released": [{"file": "sounds/story/wayline/marines_mara_thunder_run_column_released.ogg", "pitch": 1.0, "volume": 1.0}],
