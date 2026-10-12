@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.fs.starfarer.api.Global;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,7 +25,6 @@ final class PreparationGuide {
     private final MarkupInstance markup;
     private final Supplier<Lesson> lesson;
     private final UiSpotlight spotlight;
-    private boolean paused;
     private Lesson current;
     private String previousTarget;
     private Rect previousViewport;
@@ -45,8 +45,6 @@ final class PreparationGuide {
         this.document = document;
         this.lesson = lesson;
         markup = loader.reloadAndBuild(new Reactor(), "preparation-guide", Map.of(
-                "later", (Runnable) () -> paused = true,
-                "resume", (Runnable) () -> paused = false,
                 "continueAction", (Runnable) () -> {
                     Lesson live = lesson.get();
                     if (live != null && live.action() != null) live.action().run();
@@ -55,18 +53,15 @@ final class PreparationGuide {
         document.root().child(markup.root());
         spotlight = new UiSpotlight(document, markup.requireElement("preparation-shade"),
                 markup.requireElement("preparation-callout"), this::visible, this::regions);
-        document.onCancel(() -> { if (visible()) paused = true; else close.run(); });
+        document.onCancel(() -> { if (!visible()) close.run(); });
     }
 
-    private boolean visible() { return current != null && !paused; }
+    private boolean visible() { return current != null; }
 
     void update() {
         current = lesson.get();
         UiElement callout = markup.requireElement("preparation-callout");
         callout.classed("preparation-hidden", !visible());
-        markup.requireElement("preparation-resume").classed("preparation-hidden", current == null || !paused)
-                .style(String.format(Locale.ROOT, "left: %.1fpx; top: %.1fpx;",
-                        Math.max(8, document.viewport().width() - 202), Math.max(8, document.viewport().height() - 56)));
         if (!visible()) { spotlight.update(); document.advance(0f); return; }
         markup.requireElement("preparation-title").text(current.title());
         markup.requireElement("preparation-copy").text(current.copy());
@@ -107,7 +102,10 @@ final class PreparationGuide {
     }
 
     private List<UiSpotlight.Region> regions() {
-        return targets().stream().map(e -> new UiSpotlight.Region(List.of(e))).toList();
+        var controls = new ArrayList<>(targets());
+        UiElement exit = find(document.root(), "page-nav-return");
+        if (exit != null && !controls.contains(exit)) controls.add(exit);
+        return controls.stream().map(e -> new UiSpotlight.Region(List.of(e))).toList();
     }
 
     private static UiElement find(UiElement root, String id) {

@@ -28,9 +28,10 @@ Selection spends nothing; each real workshop order consumes its own bill.
 Mira retains her ordinary appointment point and needs no invented recruitment fee.
 
 Castle uses a portrait, compact controls, SVG milestones and live click-through
-highlights. Actual state advances the lesson. Pausing, changing rooms and reloading
-cannot complete it. Armory includes the real founding action and a return to
-assignment. Completion routes to the existing briefing or HQ's actual story lead.
+highlights. Actual state advances the lesson. There is no Later control, and Escape
+cannot dismiss the required lesson. Return permits travel/resupply; re-entering
+restores the unfinished lesson. Changing rooms and reloading cannot complete it.
+Armory includes the real founding action and a return to assignment. Completion routes to the existing briefing or HQ's actual story lead.
 
 ## Acceptance
 

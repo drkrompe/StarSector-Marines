@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -145,7 +147,7 @@ public class DefensePostFootprintTest {
     }
 
     @Test
-    public void sandbagRingRemainsNonStructuralAfterFinalize() {
+    public void sandbagRingAndTurretMountRemainNonStructuralAfterFinalize() {
         NavigationGrid grid = openGrid();
         CellTopology topology = new CellTopology(W, H);
         GenContext ctx = new GenContext(grid, topology, new Random(1L), W, H, 1L);
@@ -154,6 +156,16 @@ public class DefensePostFootprintTest {
 
         new FinalizeStage().run(ctx);
 
+        assertTrue(topology.isFixture(CX, CY));
+        assertFalse(topology.isWall(CX, CY));
+        assertEquals(0, grid.getWallHp(CX, CY));
+        var editor = new MapEditor(new NavigationService(grid, topology));
+        assertFalse(editor.damageWall(CX, CY, 1000), "wall damage cannot destroy a living turret's mount");
+        assertFalse(grid.isWalkable(CX, CY));
+        editor.flipCellToRubble(CX, CY);
+        assertTrue(grid.isWalkable(CX, CY));
+        assertFalse(topology.isFixture(CX, CY));
+        assertFalse(topology.isWall(CX, CY));
         assertEquals(8, ctx.doodads.size());
         for (Doodad sandbag : ctx.doodads) {
             assertFalse(grid.isWalkable(sandbag.cellX, sandbag.cellY));

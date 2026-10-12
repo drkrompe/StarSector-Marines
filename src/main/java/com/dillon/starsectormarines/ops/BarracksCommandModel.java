@@ -159,7 +159,8 @@ public final class BarracksCommandModel {
         bind(reactor, "guidePortrait", CompanyManagementGuide::portrait);
         bind(reactor, "guideText", () -> guideLine().text());
         bind(reactor, "guideStatus", this::guideHint);
-        bind(reactor, "guideDismissDisabled", () -> !guideVisible());
+        bind(reactor, "guideDismissDisabled", () -> inductionRequired() || !guideVisible());
+        bind(reactor, "guideDismissClasses", () -> inductionRequired() ? "hidden" : "guide-dismiss console-action");
         bind(reactor, "guideHelpDisabled", () -> !inductionRequired() && CompanyManagementGuide.lines().isEmpty());
         bind(reactor, "guidePreviousDisabled", () -> !guideVisible() || inductionRequired() || guideStep == 0);
         bind(reactor, "guideNextDisabled", () -> !guideVisible() || (inductionRequired() ? inductionStep() != Step.READY : guideStep + 1 >= CompanyManagementGuide.lines().size()));
@@ -168,7 +169,9 @@ public final class BarracksCommandModel {
         bind(reactor, "guideProgressClasses", () -> inductionRequired() ? "guide-progress" : "hidden");
         bind(reactor, "guideProgressImage", this::guideProgressImage);
         bind(reactor, "guideNextLabel", () -> inductionRequired() ? "READY" : "NEXT");
-        bind(reactor, "guideDismissLabel", () -> inductionRequired() ? "LATER" : "DISMISS");
+        bind(reactor, "guideDismissLabel", () -> "DISMISS");
+        bind(reactor, "guideCloseHint", () -> inductionRequired() ? "USE THE HIGHLIGHTED CONTROL"
+                : "USE THE HIGHLIGHTED CONTROL / ESC TO DISMISS");
         props.put("guideHelp", (Runnable) this::resumeGuide);
         props.put("guidePrevious", (Runnable) () -> { if (inductionRequired()) return; guideStep = Math.max(0, guideStep - 1); refresh(); });
         props.put("guideNext", (Runnable) () -> {
@@ -589,6 +592,7 @@ public final class BarracksCommandModel {
         return guideOpen && (inductionRequired() || !dossier && !CompanyManagementGuide.lines().isEmpty());
     }
     public void dismissGuide() {
+        if (inductionRequired()) return;
         guideOpen = false;
         if (!inductionRequired()) roster.dismissManagementGuide();
         refresh();
@@ -664,15 +668,15 @@ public final class BarracksCommandModel {
             case "page-nav-boats" -> "Commission our first shuttle on the Boat Deck, then return to meet Mira.";
             case "barracks-back-command" -> "Return to the command board to continue.";
             case "officer-formations" -> "Choose View Formations to return to the squad board.";
-            case "barracks-raise-squad" -> "Raise Squad opens Armory. Found a squad there, then return to Barracks. Later lets you resupply.";
+            case "barracks-raise-squad" -> "Raise Squad opens Armory. Found a squad there, then return to Barracks.";
             case "command:all" -> "Choose All Formations so the unassigned squad is visible.";
             case "barracks-select-all" -> "Mark the squad you want her to lead. You can deselect extra squads if they exceed her capacity.";
             case "barracks-organization" -> "Open Organization beside Preparation.";
             case "barracks-target-next" -> "Use the command arrows to choose " + (inductionOfficer() == null ? "an officer" : inductionOfficer().name()) + ".";
             case "barracks-assign-command" -> "Check the capacity preview, then Assign Command. An unsuccessful order does not advance this lesson.";
-            case "barracks-command-list" -> "Recruit an available officer to continue. Later leaves the lesson pending.";
+            case "barracks-command-list" -> "Recruit an available officer to continue.";
             case "officer-specialty-TACTICAL_COVER-train" -> "Scroll to compare all three specialties. Use any Train button; this spends the appointment point.";
-            default -> "Open the highlighted officer portrait. Later pauses the lesson; it does not unlock deployment.";
+            default -> "Open the highlighted officer portrait.";
         };
     }
     public String guideTargetId() {
