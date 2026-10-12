@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
@@ -41,6 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -130,6 +133,9 @@ class ThunderRunEvidenceTest {
                 assertEquals(3,sites.subList(1,4).stream().map(r -> sim.getCompoundService().captureZoneId(r,sim)).distinct().count());
                 int previousPhase = -1, landedTick = -1, finalTick = -1;
                 int orderedHold = 0;
+                int[] quietTicks = new int[4], longestQuiet = new int[4], combatTicks = new int[4];
+                int[] longestQuietEnd = new int[4];
+                int sharedDefenseTargets = 0;
                 boolean orderReplaced = true;
                 JSONArray samples = new JSONArray();
                 if (name.equals("ordinary-9301")) {
@@ -173,9 +179,31 @@ class ThunderRunEvidenceTest {
                         }
                     }
                     sim.advance(BattleSimulation.TICK_DT);
+                    int combatPhase = column.phase();
+                    if (sim.getShotsThisFrame().isEmpty()) {
+                        quietTicks[combatPhase]++;
+                        if (quietTicks[combatPhase] > longestQuiet[combatPhase]) {
+                            longestQuiet[combatPhase] = quietTicks[combatPhase];
+                            longestQuietEnd[combatPhase] = sim.getSimTickIndex();
+                        }
+                    } else {
+                        combatTicks[combatPhase]++;
+                        quietTicks[combatPhase] = 0;
+                    }
                     if (column.phase() == 3) for (var shot : sim.getShotsThisFrame())
                         if (escorts.contains(shot.shooterId) && firstFinalShot < 0) firstFinalShot = sim.getSimTickIndex();
                     int tick = sim.getSimTickIndex();
+                    if (tick % 75 == 0) {
+                        Set<String> assignedPosts = new HashSet<>();
+                        for (var squad : sim.getSquads()) {
+                            var duty = squad.assignedObjective;
+                            if (squad.aliveMembers <= 0 || squad.faction == Faction.DEFENDER
+                                    || squad.assignedAuthority != CommandAuthority.MISSION_COMMAND
+                                    || duty == null || duty.kind() != AssignmentKind.DEFEND_AREA) continue;
+                            String post = duty.targetCellX() + "," + duty.targetCellY();
+                            if (!assignedPosts.add(post)) sharedDefenseTargets++;
+                        }
+                    }
                     for (long gun : roadGuns) if (!sim.world().isAlive(gun)) gunDown.putIfAbsent(gun, tick);
                     if(fixture.optBoolean("retreat") && column.deliveredCount()>0 && !sim.isComplete()) assertTrue(sim.retreat());
                     if (landedTick < 0 && count(sim,Faction.MARINE)>0) landedTick=tick;
@@ -249,6 +277,8 @@ class ThunderRunEvidenceTest {
                     assertEquals(2, orderedHold, "Exercise both placements and later replacement orders");
                 }
                 JSONArray fieldGuns = new JSONArray();
+                if (companySize <= 48) assertEquals(0, sharedDefenseTargets,
+                        "Automatic company screens and militia crew must not share their exact defense center");
                 for (long gun : measuredGuns) fieldGuns.put(new JSONObject().put("id",gun)
                         .put("rounds",sim.telemetry().roundsFired(gun)).put("kills",sim.telemetry().kills(gun))
                         .put("alive",sim.world().isAlive(gun)));
@@ -258,7 +288,14 @@ class ThunderRunEvidenceTest {
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("supportGunsBuilt", column.supportGuns().size()).put("fieldGuns",fieldGuns)
+                        .put("sharedAutomaticDefenseTargets", sharedDefenseTargets)
                         .put("pendingRaiders", column.pendingMembers())
+                        .put("longestQuietSecondsByPhase", new JSONArray(List.of(
+                                longestQuiet[0]/30f,longestQuiet[1]/30f,longestQuiet[2]/30f,longestQuiet[3]/30f)))
+                        .put("combatTicksByPhase", new JSONArray(List.of(
+                                combatTicks[0],combatTicks[1],combatTicks[2],combatTicks[3])))
+                        .put("longestQuietEndSecondsByPhase", new JSONArray(List.of(
+                                longestQuietEnd[0]/30f,longestQuietEnd[1]/30f,longestQuietEnd[2]/30f,longestQuietEnd[3]/30f)))
                         .put("advanceHaulerSurvives", sim.convoy().isTargetable(column.advanceHauler()))
                         .put("marinesAlive",count(sim,Faction.MARINE)).put("militiaAlive",militiaCount(sim)).put("raidersAlive",count(sim,Faction.DEFENDER))
                         .put("roadGunsDestroyedAt", new JSONObject(gunDown.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue))))
