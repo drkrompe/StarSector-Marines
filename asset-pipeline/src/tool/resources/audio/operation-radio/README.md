@@ -18,8 +18,8 @@ bespoke destinations, covering maneuvers and transport reports are not enabled
 by the runtime bank. They do not issue AI orders or establish mission events.
 
 `personality-auditions/` retains the selected Jackal A, Ox B and Rivet B auditions,
-with scripts, requests and selection records in `ensemble/cast.json`. Jackal and
-Ox have saved voice IDs; Rivet awaits a free provider voice slot. Warden, Relay
+with scripts, requests and selection records in `ensemble/cast.json`. All three
+have saved provider voice IDs. Warden, Relay
 and all unselected alternatives are rejected. The selected newcomers still need
 production-model acceptance before runtime use; see that directory's README for
 the offline clean/radio comparison workflow.
