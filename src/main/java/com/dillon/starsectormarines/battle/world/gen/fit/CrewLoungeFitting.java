@@ -23,8 +23,11 @@ public final class CrewLoungeFitting implements RoomFitting {
         for (Doorway door : floor.localDoors())
             floor.reserveLane(door.x()-1,door.y()-1,3,3);
 
+        paint(floor, 0, 0, w, h, "lounge");
+
         // Screen-watching group: sofa faces past a low table toward its own console.
         if (free(floor,2,1,3,4)) {
+            paint(floor, 1, 1, 5, 4, "lounge-inset");
             put(floor,2,1,"sofa-low");
             table(floor,2,3,"coffee","magazines");
             put(floor,2,4,"media");
@@ -33,6 +36,7 @@ public final class CrewLoungeFitting implements RoomFitting {
         // Conversation nook: opposing sofas, with the low table at the open end.
         int back = h-5;
         if (free(floor,2,back,3,4)) {
+            paint(floor, 1, back, 6, 4, "lounge-inset");
             put(floor,2,back,"sofa-low"); put(floor,2,back+3,"sofa-high");
             table(floor,5,back+1,"coffee","magazines");
             for (int x=2;x<5;x++) {
@@ -56,6 +60,11 @@ public final class CrewLoungeFitting implements RoomFitting {
         if (put(floor,w-2,1,"refreshments")) task(floor,w-3,1,w-2,1);
         put(floor,w-2,h-4,"books");
         put(floor,6,1,"planter"); put(floor,6,h-2,"planter");
+    }
+
+    private void paint(RoomFloor floor, int x, int y, int w, int h, String material) {
+        int[] r = floor.toLocalRect(x, y, w, h);
+        floor.markFloorSurface(r[0], r[1], r[2], r[3], "ship-floor-trim." + material);
     }
 
     private boolean put(RoomFloor floor,int x,int y,String id) {

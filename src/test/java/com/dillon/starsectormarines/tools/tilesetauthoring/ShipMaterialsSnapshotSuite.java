@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSizing;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckTrim;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -259,7 +260,9 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         else ArmoryFitting.shipboard().fit(floor);
         if (!floor.circulationSurvives() || floor.dropUnreachableWork() != 0)
             throw new IllegalStateException(purpose + " pose loses circulation or work: " + turn);
-        floor.seal(); WallMasks.stampUnclaimed(topology);
+        floor.seal();
+        ShipDeckTrim.apply(ctx);
+        WallMasks.stampUnclaimed(topology);
         if (hangar) for (var berth : ctx.gantries)
             if (!"shuttle-bay.landing-deck".equals(topology.getSurfaceId(berth.centerX, berth.centerY)))
                 throw new IllegalStateException("Hangar preview lost landing surface");

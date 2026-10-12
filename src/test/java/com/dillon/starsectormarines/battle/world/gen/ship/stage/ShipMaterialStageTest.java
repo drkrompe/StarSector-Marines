@@ -49,7 +49,7 @@ class ShipMaterialStageTest {
         topology.setSurface(5, 0, topology.surfaceIndex("urban.wall"));
         topology.setFixture(2, 0, true);
         new ShipMaterialStage().run(new GenContext(grid, topology, new Random(1), 6, 2, 1));
-        assertEquals("ship.passage-deck", topology.getSurfaceId(0, 0));
+        assertEquals("ship-floor-trim.passage", topology.getSurfaceId(0, 0));
         assertEquals("ship.crew-deck", topology.getSurfaceId(1, 0));
         assertEquals("auto-shop.concrete", topology.getSurfaceId(2, 0));
         assertEquals("authored.floor", topology.getSurfaceId(3, 0));
