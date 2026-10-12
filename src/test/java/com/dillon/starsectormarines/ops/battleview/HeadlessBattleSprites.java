@@ -376,6 +376,18 @@ final class HeadlessBattleSprites extends BattleSprites {
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.FOUNDRY_BREAKER, INFANTRY_ROOT + "armor/foundry-breaker/",
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.SHIP_COMMAND,
+                "graphics/battle/ship-crew-modular-topdown/command/", layer("graphics/battle/ship-crew-modular-topdown/command/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.SHIP_ENGINEERING,
+                "graphics/battle/ship-crew-modular-topdown/engineering/", layer("graphics/battle/ship-crew-modular-topdown/engineering/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.SHIP_MEDICAL,
+                "graphics/battle/ship-crew-modular-topdown/medical/", layer("graphics/battle/ship-crew-modular-topdown/medical/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.SHIP_SERVICE,
+                "graphics/battle/ship-crew-modular-topdown/service/", layer("graphics/battle/ship-crew-modular-topdown/service/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.ENGINEER,
                 "graphics/battle/colonist-modular-topdown/engineer/",
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);

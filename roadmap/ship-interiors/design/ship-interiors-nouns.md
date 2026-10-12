@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — compact server rooms, parts cages and utility closets use coordinated ship fixtures around clear service aisles.
+Updated: 2026-10-12 — a required watch keeps essential stations occupied within the crew complement, with overhead layered uniforms by posting.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -734,6 +734,26 @@ and the job site, because none of that model is shipboard — a compartment is
 simply this map family's job site, and a building interior on a surface map
 answers the same three questions. What is shipboard is which purposes a deck
 programs and what its fittings publish.
+
+The home ship keeps a **required watch** within her existing crew complement.
+Her minimum operating crew bounds this duty allocation, and the actual crew
+racks remain the population ceiling. Command and engineering take precedence:
+a short crew covers both before adding more conn and plant positions, then
+servicing, medical, galley, armoury, fabrication and stores receive support as
+hands permit. Only live authored work earns a posting; missing machinery or a
+wrecked fixture cannot conjure a station. Unfilled posts remain a visible
+shortfall. This presentation allocation does not withdraw or create campaign
+cargo crew and is not a live fleet-crew census.
+
+Essential consoles and plant stations stay claimed for the watch. Support hands
+work local duty rotations, including every occupied machine in a servicing bay.
+The remaining complement keeps its ordinary movements through work and leisure;
+named company marines retain their roster and issued kit. Duty and roaming hands
+share the same billet and bunk bounds, so manning the watch adds no second crew.
+Watch clothing follows the posting rather than current location: command,
+engineering, medical and service uniforms use independent overhead body, head
+and foot layers through the ordinary infantry compositor. Clothing changes no
+combat statistics or marine equipment.
 
 **The ship runs; a screen is a camera.** A deck is manned everywhere it has work
 and advanced as a whole, and the screens that look at parts of it choose a
