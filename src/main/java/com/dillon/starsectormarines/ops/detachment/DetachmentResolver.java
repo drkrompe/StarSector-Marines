@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.MissionSource;
+import com.dillon.starsectormarines.ops.MissionType;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
@@ -179,13 +180,21 @@ public final class DetachmentResolver {
         return out;
     }
 
+    /** Company-selected personnel own lift demand; authored minimums remain launch gates. */
+    public static boolean usesSelectedPersonnel(Mission mission) {
+        return mission.source != MissionSource.STATIONING
+                && mission.type != MissionType.CONQUEST;
+    }
+
     /**
      * Keeps employer personnel unchanged while sizing the player's real craft to
-     * the exact named force selected for an understrength ordinary operation.
+     * the exact named force selected for the operation, including fixed story
+     * and event missions. A required drop count is not a cap on squad membership.
+     * Stationing and the Conquest arrival plan own their separate commitments.
      */
     public static List<ShuttleAssignment> buildShuttleManifestForPersonnel(
             Mission m, List<FittedBoat> playerShuttles, int playerPersonnel) {
-        if (!m.source.isDebug() && !MissionForceEnvelope.allowsUnderstrength(m)) {
+        if (!usesSelectedPersonnel(m)) {
             return buildShuttleManifest(m, playerShuttles);
         }
         if ((SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m)) && playerShuttles != null && playerShuttles.size() > 4)
