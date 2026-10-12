@@ -104,7 +104,14 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
             if (objective.owningFaction() != Faction.MARINE) continue;
             int x = -1, y = -1;
             if (objective instanceof ChargeSiteObjective site) { x = site.cellX(); y = site.cellY(); }
-            else if (objective instanceof RaidObjective raid) { x = raid.targetCellX(); y = raid.targetCellY(); }
+            else if (objective instanceof RaidObjective raid) {
+                markers.add(new Marker("1 / SEIZE", raid.targetCellX(), raid.targetCellY(), false));
+                markers.add(new Marker("2 / RETURN", raid.egressCellX(), raid.egressCellY(), false));
+                objectives.add("1 / Seize " + raid.targetName() + "; hold uncontested for "
+                        + Math.round(raid.serviceDuration()) + " seconds");
+                objectives.add("2 / Return to the landing zone to extract");
+                continue;
+            }
             else if (objective instanceof ExtractionPayloadObjective payload) {
                 x = payload.sourceCellX(); y = payload.sourceCellY();
                 if (payload.egressCellX() >= 0 && payload.egressCellY() >= 0

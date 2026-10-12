@@ -114,10 +114,43 @@ class RaidTargetLayoutTest {
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) grid.setWalkableFloor(x, y);
         }
-        return new MapResult(grid, new CellTopology(WIDTH, HEIGHT),
+        CellTopology topology = new CellTopology(WIDTH, HEIGHT);
+        for (PointOfInterest poi : pointsOfInterest) {
+            for (int y = poi.top; y <= poi.bottom; y++) {
+                for (int x = poi.left; x <= poi.right; x++) topology.setBuildingId(x, y, 1);
+            }
+        }
+        return new MapResult(grid, topology,
                 MARINE_SPAWN_X, MARINE_SPAWN_Y,
                 DEFENDER_SPAWN_X, DEFENDER_SPAWN_Y,
                 pointsOfInterest, List.<Doodad>of());
+    }
+
+    @Test
+    void exteriorFallbackCannotBecomePrizeJustBecauseItIsFarthestFromLanding() {
+        var fallback = new PointOfInterest(PointOfInterest.Kind.DEPOT,
+                18, 2, 22, 5, 23, 1, 23, 1);
+        var map = map(List.of(fallback, DEFENDER_SIDE_COMMS));
+        assertEquals(PointOfInterest.Kind.COMMS, RaidTargetLayout.select(map, List.of(EGRESS)).kind());
+    }
+
+    @Test
+    void authoredArchiveRequiresAnAdministrativeInterior() {
+        var archive = poi(PointOfInterest.Kind.ADMINISTRATIVE, 21, 8);
+        var map = map(List.of(archive, DEFENDER_SIDE_COMMS));
+        var target = RaidTargetLayout.select(map, List.of(EGRESS), PointOfInterest.Kind.ADMINISTRATIVE);
+        assertEquals(archive.interiorAnchorX, target.targetCellX());
+        assertEquals(archive.interiorAnchorY, target.targetCellY());
+        assertThrows(IllegalStateException.class, () -> RaidTargetLayout.select(
+                map(List.of(DEFENDER_SIDE_COMMS)), List.of(EGRESS), PointOfInterest.Kind.ADMINISTRATIVE));
+    }
+
+    @Test
+    void walkableCourtyardInsideFootprintIsNotAnIndoorTarget() {
+        var outdoor = poi(PointOfInterest.Kind.DEPOT, 21, 2);
+        var map = map(List.of(outdoor, DEFENDER_SIDE_COMMS));
+        map.topology.setBuildingId(outdoor.interiorAnchorX, outdoor.interiorAnchorY, 0);
+        assertEquals(PointOfInterest.Kind.COMMS, RaidTargetLayout.select(map, List.of(EGRESS)).kind());
     }
 
     private static int distanceSquaredFromEgress(PointOfInterest poi) {

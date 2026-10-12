@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account uses a closer clearance boundary and an older, naturally authoritative Kord voice.
+Updated: 2026-10-12 — Dust Ledger identifies its indoor archive and return objectives; Cold Account retains its clearance and Kord voice rules.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -201,7 +201,17 @@ than moving it elsewhere. HQ plots a course; the local Marine operations board
 offers the job through Mara's Independent contact. No chapter changes vanilla
 market ownership, industry disruption, diplomatic standing or orbital assets.
 Its target profile describes the isolated crew compound, with the actual
-planet's ground palette captured at launch rather than the colony's full defences. Blind
+planet's ground palette captured at launch rather than the colony's full defences.
+The Dust Ledger requires a reachable administrative interior for its
+**Dispatch archive**; an outdoor fallback or unrelated depot cannot become the
+counting-house prize. The briefing
+survey and battlefield use the same numbered objectives: **1 / Seize**, at the
+archive, and **2 / Return**, at the landing zone. The persistent mission checklist
+explains the six-second uncontested seizure, shows its current progress, and
+promotes return only after the archive is secured. Locate centers the camera on
+the current objective without issuing squad orders. The records remain an
+abstract recovered package under the Raid objective's survivor-egress law.
+Blind
 Watch uses an explicitly remote installation map and a finite light garrison:
 there is no off-map replacement force or continuing vehicle/air production.
 Map density and reinforcement eligibility are independent authored choices;

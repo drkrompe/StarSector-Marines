@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - Tutorial spotlights dim the screen around declared interactive regions and portrait guidance.
+Updated: 2026-10-12 — Raid objectives expose seizure, return and camera location through the persistent battle rail.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -506,7 +506,12 @@ Player-facing Conquest command intent occupies the top-left opposite the top-rig
 time/objective rail. When organizational groups are published, this bounded
 readout shows named leaders, deployed squad strength, task and regrouping state;
 additional groups are explicitly summarized rather than extending over the
-battlefield. Semantic target labels keep internal zone IDs out of the player HUD.
+battlefield. Raid's right rail instead projects its two objective steps,
+seizure progress and return instruction. Numbered world markers and the briefing
+survey identify the same target and landing zone. Its Locate control centers
+the current objective without issuing a tactical order; completion and progress
+remain mission-owned. Essential mission meaning never requires debug visibility.
+The Conquest command readout uses semantic target labels to keep internal zone IDs out of the player HUD.
 Legacy scenes without group identities retain the approach view. Tick Profile
 and DEBUG share one centred developer cluster.
 The selected player squad replaces the force plate with a 3-column by 4-slot

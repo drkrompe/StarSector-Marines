@@ -593,6 +593,18 @@ public final class BattleSetup {
                 enemyFighterSupport, sprawl);
     }
 
+    /** Authored Raid target meaning, retained alongside the generated service geometry. */
+    public static BattleSimulation createRaid(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl, String targetName,
+            PointOfInterest.Kind targetKind) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
+                sprawl, null, 1f, false, targetName, targetKind);
+    }
+
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
     public static BattleSimulation createExtraction(
             long seed, List<ShuttleAssignment> manifest,
@@ -990,21 +1002,22 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false);
+                alliedGarrisonStrengthMult, false, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null);
     }
 
     private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
-            float alliedGarrisonStrengthMult, boolean coldAccount) {
+            float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
+            PointOfInterest.Kind raidTargetKind) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1031,7 +1044,7 @@ public final class BattleSetup {
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidTargetLayout raidLayout = type == MissionType.RAID
-                ? RaidTargetLayout.select(map, lzCells) : null;
+                ? RaidTargetLayout.select(map, lzCells, raidTargetKind) : null;
         ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
@@ -1046,7 +1059,7 @@ public final class BattleSetup {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());
             sim.addObjective(new RaidObjective(raidLayout.targetId(),
-                    raidLayout.targetName(), raidLayout.targetCellX(),
+                    raidTargetName == null ? raidLayout.targetName() : raidTargetName, raidLayout.targetCellX(),
                     raidLayout.targetCellY(), targetZone,
                     raidLayout.egressCellX(), raidLayout.egressCellY()));
         } else if (extractionLayout != null) {
