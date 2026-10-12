@@ -279,7 +279,11 @@ public final class MechLoadoutComponent {
 
     public int appearanceSelector(MechMountSlot slot) {
         MechWeaponMount mount = mount(slot);
-        return mount != null ? mount.component.appearanceSelector : 0;
+        if (mount != null) return mount.component.appearanceSelector;
+        // Zero is a real arms drawing (twin chainguns), so an empty arms mount
+        // must say "nothing" explicitly; for the shoulders zero already is POD_NONE.
+        return slot == MechMountSlot.ARMS
+                ? LayeredMechAppearance.ARMS_NONE : LayeredMechAppearance.POD_NONE;
     }
 
     public MechWeaponMount[] mounts() {

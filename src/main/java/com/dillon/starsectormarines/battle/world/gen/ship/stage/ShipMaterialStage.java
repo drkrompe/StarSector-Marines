@@ -15,8 +15,11 @@ public final class ShipMaterialStage implements GenStage {
         CellTopology topology = ctx.topology;
         for (int y = 0; y < ctx.height; y++) {
             for (int x = 0; x < ctx.width; x++) {
-                // Hull boundary walls can retain VOID ground beneath their structural shell.
-                if (topology.getGroundKind(x, y) == GroundKind.VOID && !topology.isWall(x, y)) continue;
+                // Hull boundary walls can retain VOID ground beneath their structural
+                // shell, but solid cells out in space are VOID walls too and must stay
+                // unpainted, or they cover the hull art drawn behind the deck.
+                if (topology.getGroundKind(x, y) == GroundKind.VOID
+                        && !(topology.isWall(x, y) && touchesDeck(topology, x, y, ctx))) continue;
                 String existing = topology.getSurfaceId(x, y);
                 if (existing != null && !existing.equals("urban.wall")) continue;
                 String material = topology.isWall(x, y) ? "ship.neutral-bulkhead"
@@ -27,6 +30,18 @@ public final class ShipMaterialStage implements GenStage {
         }
         ShipBayDecking.apply(ctx);
         ShipDeckTrim.apply(ctx);
+    }
+
+    private static boolean touchesDeck(CellTopology topology, int x, int y, GenContext ctx) {
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                int nx = x + dx;
+                int ny = y + dy;
+                if ((dx == 0 && dy == 0) || nx < 0 || ny < 0 || nx >= ctx.width || ny >= ctx.height) continue;
+                if (topology.getGroundKind(nx, ny) != GroundKind.VOID) return true;
+            }
+        }
+        return false;
     }
 
     private static String floor(RoomPurpose purpose) {

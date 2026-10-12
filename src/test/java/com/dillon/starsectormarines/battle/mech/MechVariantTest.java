@@ -243,4 +243,16 @@ class MechVariantTest {
         assertEquals(sim.squad().squadId(ids[0]), sim.squad().squadId(ids[1]));
         assertEquals(sim.squad().squadId(ids[1]), sim.squad().squadId(ids[2]));
     }
+
+    @Test
+    void emptyMountsDrawNothingRatherThanTheDefaultChaingun() {
+        MechLoadoutComponent bare = new MechLoadoutComponent(MechVariant.HOUND,
+                null, null, null, MechRole.LR_SUPPORT);
+        assertEquals(LayeredMechAppearance.ARMS_NONE,
+                bare.appearanceSelector(MechMountSlot.ARMS));
+        assertEquals(LayeredMechAppearance.POD_NONE,
+                bare.appearanceSelector(MechMountSlot.LEFT_SHOULDER));
+        assertEquals(LayeredMechAppearance.POD_NONE,
+                bare.appearanceSelector(MechMountSlot.RIGHT_SHOULDER));
+    }
 }
