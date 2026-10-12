@@ -20,6 +20,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DefendAreaTest {
 
     @Test
+    void quietSquadFansOutInsteadOfPackingABlock() {
+        int count = 12;
+        float nearest = Float.MAX_VALUE;
+        for (int i = 0; i < count; i++) {
+            float[] a = DefendArea.quietOffset(i, count, 20);
+            assertTrue(Math.hypot(a[0], a[1]) <= 20 * 0.7f + 0.001f, "stays inside the circle");
+            for (int j = i + 1; j < count; j++) {
+                float[] b = DefendArea.quietOffset(j, count, 20);
+                nearest = Math.min(nearest, (float) Math.hypot(a[0] - b[0], a[1] - b[1]));
+            }
+        }
+        assertTrue(nearest >= 2.5f, "neighbours stand apart, was " + nearest);
+        float[] alone = DefendArea.quietOffset(0, 1, 20);
+        assertEquals(0f, alone[0]);
+        assertEquals(0f, alone[1]);
+    }
+
+    @Test
     void believedThreatMovementRotatesThePreparedCoverLine() {
         BattleSimulation sim = openSimulation(64, 48);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);

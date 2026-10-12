@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 - workshop clearance seals the breach before reopening the compartment.
+Updated: 2026-10-12 - Hermes repairs retain a fixed fit; Aeroshuttles own the upgrade progression.
 
 ## Purpose
 
@@ -99,7 +99,7 @@ shared mapping instead of assigning paths independently in each screen.
   frozen frame.
 - **Fitting** — installed work in one of a boat's **slots**: plating, which is
   hull, and drive, which is speed and acceleration. Each slot has a standard
-  fitting every boat is built with and upgrade tiers above it.
+  fitting every boat is built with and upgrade tiers for compatible airframes.
 - **Boat workshop** — the atomic cargo-backed authority that installs a fitting
   and builds a boat into an empty berth. It shares the fleet's hold with the
   Mech Lab rather than owning a second one.
@@ -543,6 +543,12 @@ because there is nothing to count. The room header keeps a compact live stock
 strip for the shared fabrication materials, separate from the selected fitting's
 or boat's cost rows. Material badges resolve through the same shared commodity
 presentation the Fleet Armory and the Mech Lab use.
+
+**The Hermes is a dead-end courier design.** Repair and replacement retain its
+standard fit, but the workshop refuses plating and drive upgrades before charging.
+Its slots are inspection-only in Boat Deck; better lift comes from replacing the
+airframe. Aeroshuttles retain their fitting progression. Already-installed fittings
+in older saves remain intact, without allowing further Hermes upgrades.
 
 A failed fit changes nothing but the room's feedback line — neither the boat nor
 the hold — because the workshop rechecks affordability at the commit and spends

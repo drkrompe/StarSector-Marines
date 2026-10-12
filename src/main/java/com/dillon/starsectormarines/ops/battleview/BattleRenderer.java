@@ -954,7 +954,7 @@ public class BattleRenderer {
 
         if (sim.getColdAccount() != null) {
             var intervention = sim.getColdAccount();
-            for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout())) {
+            for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout(), intervention.companyRecovered())) {
                 float cx = rc.camera.cellToScreenX(marker.x());
                 float cy = rc.camera.cellToScreenY(marker.y());
                 float radius = cellPx * marker.radius();
