@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.IntConsumer;
+import java.util.function.UnaryOperator;
 
 /** MLX-authored budget-aware picker for the frozen recovery manifest. */
 public final class LootScreen extends MissionFlowMlxScreen {
@@ -53,8 +55,10 @@ public final class LootScreen extends MissionFlowMlxScreen {
                 ? "tone-accent" : "tone-good"));
         props.put("poolLabel", MessageFormat.format(Strings.get("lootPoolFmt"),
                 manifest.stacks.size(), number(manifest.totalValue)));
-        props.put("instructions", Strings.get("lootInstructions"));
-        props.put("lootRows", lootRows(manifest));
+        props.put("instructions", Strings.get("lootInstructions")
+                + (manifest.stacks.stream().anyMatch(s -> s.fieldRecovered)
+                ? " Field finds are preselected and do not spend your contract claim budget." : ""));
+        props.put("lootRows", lootRows(selection, this::toggle, Strings::get));
         putSettlement(props, preview);
         props.put("backAction", (Runnable) () -> context.goTo(ScreenId.RESULTS));
         props.put("confirmDisabled", preview == null);
@@ -98,7 +102,8 @@ public final class LootScreen extends MissionFlowMlxScreen {
         return props;
     }
 
-    private List<LootRow> lootRows(LootManifest manifest) {
+    static List<LootRow> lootRows(LootSelection selection, IntConsumer toggle, UnaryOperator<String> copy) {
+        LootManifest manifest = selection.manifest();
         List<LootRow> rows = new ArrayList<>();
         for (int i = 0; i < manifest.stacks.size(); i++) {
             LootStack stack = manifest.stacks.get(i);
@@ -108,13 +113,14 @@ public final class LootScreen extends MissionFlowMlxScreen {
             rows.add(new LootRow("loot-stack-" + i,
                     "loot-card console-toggle" + (selected ? " selected" : !canSelect ? " blocked" : ""),
                     stack.iconPath, stack.displayName,
-                    MessageFormat.format(Strings.get("lootQuantityFmt"), stack.quantity),
-                    MessageFormat.format(Strings.get("lootValueFmt"), number(stack.totalValue())),
-                    selected ? Strings.get("lootSelected")
-                            : !canSelect ? Strings.get("lootOverBudget") : "Available",
+                    MessageFormat.format(copy.apply("lootQuantityFmt"), stack.quantity)
+                            + (stack.fieldRecovered ? " · FIELD FIND" : ""),
+                    MessageFormat.format(copy.apply("lootValueFmt"), number(stack.totalValue())),
+                    selected ? (stack.fieldRecovered ? "Secured / selected" : copy.apply("lootSelected"))
+                            : !canSelect ? copy.apply("lootOverBudget") : "Available",
                     "label heading "
                             + (selected ? "tone-good" : !canSelect ? "tone-danger" : "tone-edge"),
-                    !canSelect, () -> toggle(index)));
+                    !canSelect, () -> toggle.accept(index)));
         }
         return List.copyOf(rows);
     }

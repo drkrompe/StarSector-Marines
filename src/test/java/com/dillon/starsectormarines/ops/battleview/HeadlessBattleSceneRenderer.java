@@ -223,13 +223,34 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     surfaceHeight - command.height(), tint, command.angleDegrees());
             case POLY -> drawPolygon(context, surfaceHeight,
                     command.polygon());
-            case RIBBON, CUSTOM -> {
+            case CUSTOM -> {
+                if (command.customDraw() instanceof WorldLabel label) drawWorldLabel(context, surfaceHeight, label);
+                else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
+            }
+            case RIBBON -> {
                 if (!skipUnsupportedCommands) {
                     throw new IllegalStateException(
                             "Embedded headless scene emitted unsupported command "
                                     + command.kind());
                 }
             }
+        }
+    }
+
+    private static void drawWorldLabel(CanvasContext context, float height, WorldLabel label) {
+        var font = label.font();
+        float x = label.centerX() - font.measureWidth(label.text()) / 2;
+        Color tint = new Color(label.color().getRed(), label.color().getGreen(), label.color().getBlue(),
+                Math.round(label.alpha() * 255));
+        for (int code : label.text().codePoints().toArray()) {
+            var glyph = font.glyph(code);
+            if (glyph == null) continue;
+            if (glyph.w > 0 && glyph.h > 0) context.sprite(font.pagePath(), null,
+                    x + glyph.xoffset + glyph.w / 2f, height - label.topY() + glyph.yoffset + glyph.h / 2f,
+                    glyph.w, glyph.h, 0, tint,
+                    new CanvasSpriteRegion(glyph.x / (float) font.atlasWidth(), glyph.y / (float) font.atlasHeight(),
+                            glyph.w / (float) font.atlasWidth(), glyph.h / (float) font.atlasHeight()), CanvasBlend.NORMAL);
+            x += glyph.xadvance;
         }
     }
 
