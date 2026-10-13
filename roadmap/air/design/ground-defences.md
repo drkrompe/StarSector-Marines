@@ -4,12 +4,10 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 5 built (defence nests: a mission-declared count, `DefenceNestStage`); placement authority moved from map generation to the mission (a mission declares batteries and a shield generator, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
-
+Updated: 2026-10-14 — slices 1 to 5 built (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
-G5, the declared capital hazard and standoff), `ship-support.md`, and the two
-command-power stories `shielded-fire-support-zones.md` and
-`orbital-battery-fire-support-lock.md` first. This doc says what a world's ground
+G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
+story `orbital-battery-fire-support-lock.md` first. This doc says what a world's ground
 defences are in a battle. The fortress battery and the shield generator are built; the
 defence nests are built too: all five slices are in, with art, AI awareness and tuning outstanding.
 
@@ -72,7 +70,8 @@ once.
   ground. Infantry fight under it normally.
 - **How it is beaten.** Two ways, and both are the point: concentrate enough ship fire
   to overload it and land rounds in the gap, or send marines to take or wreck the
-  generator (the relay of `shielded-fire-support-zones.md` is this structure).
+  generator. Orbital Barrage is ordinary ship-grade ordnance to a dome: it fires and an up dome
+  absorbs it (decided by the owner); it is not refused at targeting.
 - **Vanilla figures.** Vanilla gives the planetary shield no combat numbers, so the
   dome's capacity and dissipation are authored starting figures, tuned in play. This is
   the one place the law's "numbers from vanilla" has nothing to read.
@@ -190,12 +189,13 @@ capital that is not another ship.
    garrison (`ShieldGeneratorPlacement.nearKeep`); which missions declare one is
    `MissionDefencePolicy`'s call. All figures are first-pass and **untuned** (1500 flux, 60 per second, 9 s
    overload, 16 cells). Evidence: `ShieldDomeServiceTest` and the `shield-dome` scene (control,
-   dome, destroyed). Still to do: generator art (a placeholder pad and the dome's core glow stand
-   in), AI awareness (no squad is sent to take or wreck a generator and nothing orders a
-   defender to retake one; a taken generator is still shot by its original side's enemies because
-   its entity faction is fixed), a campaign mission that places one for a market-held
-   shield, and the barrage-targeting preview showing a dome (barrage is absorbed, not denied, so
-   `shielded-fire-support-zones.md`'s denial contract needs reconciling with the owner's decision).
+   dome, destroyed). Barrage is not denied by a dome: it fires and an up dome absorbs it. The barrage
+   targeting preview outlines each hostile dome the player has seen (reach, up or down, pool share) and
+   marks an aim point under one "absorbed by dome" while leaving it legal. Still to do: generator art
+   (a placeholder pad and the dome's core glow stand in), AI awareness (no squad is sent to take or wreck a
+   generator and nothing orders a defender to retake one; a taken generator is still shot by its original
+   side's enemies because its entity faction is fixed), and a campaign mission that places one for a
+   market-held shield.
 5. **Defence nests** (built): the dispersed posts, sized by the mission's declaration. As built:
    - *Declaration.* `GroundDefences.nests` is the count; zero is none, and a fixture that predates it reads as none
      (`declaredNests` in fixture JSON). `MissionDefencePolicy` is still the one place it is decided: Conquest reads the

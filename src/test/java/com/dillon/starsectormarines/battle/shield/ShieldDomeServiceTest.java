@@ -101,6 +101,22 @@ class ShieldDomeServiceTest {
     }
 
     @Test
+    void coverageForAPreviewFindsAnUpDomeOverThePointAndNoneForItsOwnSideOrOutside() {
+        BattleSimulation sim = arena();
+        sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        run(sim, 0.1f);
+        ShieldDomeService domes = sim.shieldDomes();
+        assertNotNull(domes.coverageAt(GEN_X + 5f, GEN_Y, Faction.MARINE));
+        assertNull(domes.coverageAt(GEN_X + 5f, GEN_Y, Faction.DEFENDER), "its holder is not stopped");
+        assertNull(domes.coverageAt(GEN_X + spec().radiusCells() + 2f, GEN_Y, Faction.MARINE));
+        domes.absorbs(ship(Faction.MARINE, GEN_X, GEN_Y, spec().fluxCapacity() + 1f));
+        run(sim, 0.1f);
+        ShieldDomeService.DomeView down = domes.coverageAt(GEN_X, GEN_Y, Faction.MARINE);
+        assertNotNull(down, "a dome that is down still covers the point");
+        assertTrue(down.overloaded());
+    }
+
+    @Test
     void anAlliedShipsRoundIsNotStoppedByTheMarinesDomeEither() {
         BattleSimulation sim = arena();
         sim.spawn(ShieldGenerator.create("g", Faction.MARINE, GEN_X, GEN_Y));

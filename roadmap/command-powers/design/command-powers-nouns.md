@@ -118,12 +118,18 @@ reach geography may add named landing zones, air-defense contesting, and
 craft-specific delivery risk on the shared insertion/delivery seam.
 
 Map-authored orbital-defense state may constrain a power at target-validation
-time without removing its frozen source or deck identity. A local shield may
-deny only covered barrage targets, while a surface-to-orbit battery may hold
-new barrage commitments at standoff until ground forces neutralize its
-fire-control site. `shielded-fire-support-zones.md` and
-`orbital-battery-fire-support-lock.md` own those distinct extensions; neither
-may spend resources on a denied request or invent campaign fleet damage.
+time without removing its frozen source or deck identity. A surface-to-orbit
+battery holds new barrage commitments at standoff until ground forces
+neutralize its fire-control site (`orbital-battery-fire-support-lock.md`; built,
+see `ground-defences.md`); that lock may not spend resources on a denied request
+or invent campaign fleet damage. A planetary shield does **not** deny barrage
+targeting: a barrage is ship-grade ordnance, so it fires normally and an up
+dome over the aim point absorbs it as flux like any other ship round, while a
+dome that is down lets it land. The targeting preview draws each hostile dome the
+player has seen with its reach and whether it is up or down, and marks an aim
+point under one as absorbed, so the player chooses knowingly; concentrated fire
+(or ground forces taking the generator) is what opens the sky. The dome's rules
+are in `ground-defences.md` and `air-nouns.md`.
 
 A forward operating base, if introduced, is a territory- and spoils-gated
 reach object. It may anchor delivery but is neither a command power nor a
