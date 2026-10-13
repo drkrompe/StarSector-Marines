@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.shield.DomeSpec;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,12 +23,15 @@ public final class StructureDef {
     public final float forceScore;
     public final String mountId;
     public final TurretMountDef mount;
+    /** The dome this structure projects, or null for one that is not a shield generator. */
+    public final DomeSpec dome;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
                          float radius, float hitHalfHeight,
                          int footprintCellsX, int footprintCellsY, float forceScore,
-                         String mountId, TurretMountDef mount) {
+                         String mountId, TurretMountDef mount, DomeSpec dome) {
+        this.dome = dome;
         this.id = id;
         this.displayName = displayName;
         this.maxStructure = maxStructure;
@@ -40,6 +44,11 @@ public final class StructureDef {
         this.forceScore = forceScore;
         this.mountId = mountId;
         this.mount = mount;
+    }
+
+    /** Whether this structure projects a planetary shield dome. */
+    public boolean isShieldGenerator() {
+        return dome != null;
     }
 
     /** Whether this structure stands on more than its anchor cell. */
@@ -83,9 +92,11 @@ public final class StructureDef {
                     + "' footprintCells must be odd positive cell counts, got ["
                     + footprintCellsX + ", " + footprintCellsY + "]");
         }
+        JSONObject domeJson = json.optJSONObject("dome");
+        DomeSpec dome = domeJson != null ? DomeSpec.parse(domeJson) : null;
         return new StructureDef(
                 id, TurretMountDef.requireText(catalog, "displayName"),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
-                footprintCellsX, footprintCellsY, forceScore, mountId, mount);
+                footprintCellsX, footprintCellsY, forceScore, mountId, mount, dome);
     }
 }

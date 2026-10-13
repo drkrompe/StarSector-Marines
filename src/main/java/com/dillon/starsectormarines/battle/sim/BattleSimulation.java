@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -294,6 +295,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SatchelChargeService satchelCharges;
     /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
     private final PointDefenseService pointDefense;
+    /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
+    private final ShieldDomeService shieldDomes;
     /** Owner of carrier-placed cover screens: placement queue, live screens, and their remaining lifetime. Holds no entities — a screen is a property of a cell boundary, published through {@link MapEditor}. */
     private final DeployedCoverService deployedCover;
     private final CloseContactService closeContact;
@@ -741,6 +744,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.smokeFields = new SmokeFieldService(this.grid);
         this.satchelCharges = new SatchelChargeService();
         this.pointDefense = new PointDefenseService(rng);
+        this.shieldDomes = new ShieldDomeService();
         this.deployedCover = new DeployedCoverService(mapEditor, this.grid);
         this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
@@ -874,6 +878,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
         detonations.observe(det -> warships.onDetonation(det, this));
+        detonations.screen(shieldDomes::absorbs);
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
         // is the line it comes into existence on.
@@ -978,6 +983,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     @Override public PointDefenseService pointDefense() { return pointDefense; }
+    /** Planetary shield domes, for the renderer, the audio tier and evidence. */
+    public ShieldDomeService shieldDomes() { return shieldDomes; }
     @Override public DeployedCoverService deployedCover() { return deployedCover; }
     @Override public CloseContactService closeContact() { return closeContact; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
@@ -1490,10 +1497,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long spawn(EntitySpec spec) {
         long id = rosterService.spawn(spec);
         sealMultiCellStructure(id, spec);
+        registerShieldDome(id, spec);
         if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
             fogOfWar.addContributor(id, rosterService);
         }
         return id;
+    }
+
+    /** A shield generator's dome comes into being with it, for whichever side spawned it. */
+    private void registerShieldDome(long id, EntitySpec spec) {
+        if (spec.turretStructureId == null) return;
+        StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
+        if (!structure.isShieldGenerator()) return;
+        shieldDomes.register(id, spec.faction, spec.cellX + 0.5f, spec.cellY + 0.5f, structure.dome);
     }
 
     /**
@@ -2073,6 +2089,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
         warships.beginFrame();
+        shieldDomes.beginFrame();
         tenders.cues().beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
@@ -2366,6 +2383,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // ahead of shots.tickProjectiles below, so a round marked intercepted
         // this tick is dropped on the same beat it would have detonated.
         pointDefense.tick(TICK_DT, this);
+        // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
+        shieldDomes.tick(TICK_DT, rosterService);
         // Cover screens build, age, and retire here. Nothing downstream of
         // this pass depends on the ordering: a screen changes only cover,
         // which every reader samples live at the moment a round resolves.

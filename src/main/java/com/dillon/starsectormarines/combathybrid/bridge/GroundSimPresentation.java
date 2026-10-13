@@ -143,6 +143,7 @@ public final class GroundSimPresentation {
         }
         ordnanceAudio.update(releases, arrivals, dt);
         WarshipAudio.play(sim.warships().cuesThisFrame());
+        WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
     }
 

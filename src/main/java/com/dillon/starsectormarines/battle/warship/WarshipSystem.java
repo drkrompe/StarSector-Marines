@@ -906,10 +906,10 @@ public final class WarshipSystem {
             PendingDetonation beam = shell.takeBeamRelease();
             if (beam != null) {
                 sim.detonateNow(beam);
-                if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                if (!beam.wasAbsorbed() && cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                     cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
                 }
-                if (beam.damage >= HEAVY_IMPACT_DAMAGE) {
+                if (!beam.wasAbsorbed() && beam.damage >= HEAVY_IMPACT_DAMAGE) {
                     sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
                 }
             }
@@ -922,10 +922,10 @@ public final class WarshipSystem {
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
             sim.detonateNow(landing);
-            if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+            if (!landing.wasAbsorbed() && cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
             }
-            if (landing.damage >= HEAVY_IMPACT_DAMAGE) {
+            if (!landing.wasAbsorbed() && landing.damage >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
             }
         }
@@ -960,10 +960,10 @@ public final class WarshipSystem {
             strikes.remove(i);
             PendingDetonation det = strike.detonation();
             sim.detonateNow(det);
-            if (cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
+            if (!det.wasAbsorbed() && cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), strike.aimX, strike.aimY);
             }
-            if (det.damage >= HEAVY_IMPACT_DAMAGE) {
+            if (!det.wasAbsorbed() && det.damage >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(strike.aimX, strike.aimY, strike.visualCells, strike.weapon.explosionColor());
             }
         }
@@ -1584,7 +1584,7 @@ public final class WarshipSystem {
                 /*wallDamageRadius*/ blastCells,
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
-                /*authoredAftermath*/ heavy);
+                /*authoredAftermath*/ heavy).asShipGrade();
     }
 
     static float penetration(String damageType) {
