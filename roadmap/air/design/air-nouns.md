@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — employer gunship stations, aimed ground AA and damaging crashes with lasting wrecks.
+Updated: 2026-10-13 — employer gunship stations, aimed ground AA and momentum-preserving crashes with lasting wrecks.
 
 Earlier 2026-09-01 â€” an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -526,14 +526,17 @@ happened. The berth that sortie flew from is still written off â€” a field
 does not get an airframe back because the wreck is somewhere else â€” it simply
 has no hulk sitting on its own pad to show for it.
 
-An aircraft lost at altitude falls with its remaining momentum, trailing fire
-and smoke. Its passengers and sortie are lost immediately; its guns stop firing.
+An aircraft lost at altitude keeps its actual horizontal velocity while falling,
+trailing fire and smoke. It does not brake in the air or turn its travel to follow
+a spinning nose. Ground contact dissipates that velocity in a skid before the
+wreck settles; a stationary craft receives no invented forward motion. Its
+passengers and sortie are lost immediately; its guns stop firing.
 Ground impact is a separate physical event: a hull-sized explosion damages
 nearby units of either side and structures, then leaves the same charred,
-broken hull at the impact position for the rest of the battle. The impact fire
+broken hull where its skid ends for the rest of the battle. The impact fire
 burns down and the smoke eventually clears; the wreck never fades with them.
 A hull falling beyond the battlefield does not leave an invented wreck at its
-edge. Battle resolution waits for an ongoing fall to reach impact.
+edge. Battle resolution waits for an ongoing crash to settle.
 
 A crashing hull can damage other parked aircraft. This differs from the
 hardstand cook-off's deliberate exclusion of neighboring berthed hulls: falling
