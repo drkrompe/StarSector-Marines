@@ -166,7 +166,8 @@ public final class BoatDeckScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         document = built;
-        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.boats(roster, viewModel, context), this::close);
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
+                CompanyPreparationGuide.boats(roster, viewModel, context), this::close), this::close);
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
