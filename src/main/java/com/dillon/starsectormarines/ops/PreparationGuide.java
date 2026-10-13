@@ -18,8 +18,13 @@ import java.util.function.Supplier;
 
 /** The same portrait and real-control spotlight across the preparation rooms. */
 final class PreparationGuide {
+    /** {@code later} is an optional set-aside for guidance that must not hold the player behind work they cannot yet afford. */
     record Lesson(int milestone, String title, String copy, List<String> targets,
-                  String actionLabel, Runnable action, int height) {
+                  String actionLabel, Runnable action, int height, Runnable later) {
+        Lesson(int milestone, String title, String copy, List<String> targets, String actionLabel, Runnable action,
+               int height) {
+            this(milestone, title, copy, targets, actionLabel, action, height, null);
+        }
         Lesson(int milestone, String title, String copy, List<String> targets, String actionLabel, Runnable action) {
             this(milestone, title, copy, targets, actionLabel, action,
                     310);
@@ -53,6 +58,10 @@ final class PreparationGuide {
                 "continueAction", (Runnable) () -> {
                     Lesson live = lesson.get();
                     if (live != null && live.action() != null) live.action().run();
+                },
+                "laterAction", (Runnable) () -> {
+                    Lesson live = lesson.get();
+                    if (live != null && live.later() != null) live.later().run();
                 }));
         for (var style : markup.styles()) document.addStyleSheet(style);
         // Mount as siblings: pointer-events:none on a fullscreen wrapper also
@@ -90,6 +99,9 @@ final class PreparationGuide {
         UiElement action = markup.requireElement("preparation-continue");
         action.text(current.actionLabel() == null ? LessonCopy.text("lessonContinue") : current.actionLabel());
         action.classed("preparation-hidden", current.action() == null);
+        UiElement later = markup.requireElement("preparation-later");
+        later.text(LessonCopy.text("lessonLater"));
+        later.classed("preparation-hidden", current.later() == null);
         List<UiElement> targets = targets();
         UiElement target = targets.isEmpty() ? null : targets.get(0);
         if (target != null && (!target.id().equals(previousTarget) || !document.viewport().equals(previousViewport))) {
