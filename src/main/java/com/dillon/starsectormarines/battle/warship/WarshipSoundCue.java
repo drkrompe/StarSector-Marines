@@ -33,6 +33,10 @@ public record WarshipSoundCue(Kind kind, String soundId, float x, float y, float
         /** A ship began to climb away: the lift-off roar. */
         DEPARTURE_ROAR,
         /** A ship climbing into the deck: the roar again, higher, as it goes. */
-        DEPARTURE_CLIMB
+        DEPARTURE_CLIMB,
+        /** A ship was sent on a low pass: the burn, once. */
+        LOW_PASS_ROAR,
+        /** A ship came onto its low-pass line at speed: the report that rolls across the ground, once. */
+        LOW_PASS_REPORT
     }
 }

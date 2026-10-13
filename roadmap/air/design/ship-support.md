@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-13
-Updated: 2026-10-13 — slice 2 (writeback) is built; a called ship descends a short glide from its station; slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
+Updated: 2026-10-14 — slice 5 (low pass) is built; slices 1-5 are all in. Needs a live look at pace, wake and audio.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -109,7 +109,7 @@ In the order they are worth building:
    audio levels.
 4. **Hostile ship support** (built): the defender's ship on the same mechanism, offered by
    the target profile, with a warning beat and a ground marker. See *Slice 4 as built*.
-5. **Low pass.**
+5. **Low pass** (built): the order, its flight, fire, cost, bindings and presentation; see *Slice 5 as built*.
 
 ## Open questions for the owner
 
@@ -218,3 +218,67 @@ flak (G3).
 3. Should a lost hostile ship count for the battle (a morale or score beat)? Not built.
 4. Mission types whose defender is not the market owner (relief, counterattack) take the same
    profile-based ship; whether some missions should opt out is undecided.
+
+## Slice 5 as built
+
+A low pass is an order a ship takes through one seam, `WarshipSystem.orderLowPass` (a script,
+a scene, the debug panel; the pilot has `WarshipPilot.lowPass`): a straight line from A to B. A hull
+not at A runs in to it first. Nothing about the ship changes, so the balance law stands: no damage
+multiplier, no bonus, only different ground and a different clock.
+
+**Flight.** The pass speed is the hull's own table speed times 6 (a burn: an Onslaught's 1.1 cells/s
+hover becomes 6.8, a Paragon's 1.4 becomes 8.1), accelerating and braking at 6 times its own
+handling so the burn is reached within the run (about 2.5 s). It flies the line without braking
+and steers to a point 12 cells ahead on it, so it recovers from a crooked run-in. The line is at
+least 24 and at most 140 cells (a longer request is cut from A), with both ends kept on the map. At B
+the pass ends and the ordinary movement (station, route, or the pilot's hands) resumes from the speed the
+hull has, shedding it at the burn's handling and then flying home at its hover speed. A hull that
+finishes 140 cells out therefore takes about two minutes to be back on its station. The station
+clock does not run while it is away, so that costs presence and not seconds; a pilot flies it
+back sooner by hand.
+
+**Fire.** A circle of 14 cells radius (the corridor's half-width) is laid on every battery the ship has,
+centred on the line 8 cells ahead of the hull and sliding down it, so the guns work whatever is in the
+corridor and nothing outside it. It is the pilot's laid-area machinery, so it is a hand order: no posture
+range or friendly check refuses it, every mount still picks hostile units in the circle that it can
+bear on from the pass's heading (along the line, so a broadside answers what lies abeam), and flux,
+ordnance, arcs, spread and friendly fire stay the ship's. It does not saturate: it fires on units, not on
+empty ground. Whatever a pilot had laid before is given back when the pass ends; the ship's director,
+doctrine and hold-fire policy are untouched and resume. The pilot's hold-fire key (1) silences the pass's
+guns for the rest of the run and leaves it flying.
+
+**Cost.** Every second flown, the run-in included, is charged 2 seconds of station time
+(`LowPass.STATION_COST_FACTOR`), and station time is otherwise counted only while stationary, so a pass is
+what it costs and no more. A ship is not sent on a pass unless it has the whole estimated cost left (an
+unbounded stay always can), and an exhausted stay never sends it away mid-run: it departs after the pass.
+An Onslaught's 140-cell pass is about 22 s of flight and 44 s of its 90 s stay. Friendly fire stays on and the
+pass does not refuse friendly-dirty ground: a show of force fires over friendlies and the blasts hurt whoever
+they land on.
+
+**Who orders it.** The pilot: **F** at the helm flies a pass from the hull to the cursor, on ground the player
+has observed (the fog rule of a laid area); the strip shows a `[F] LOW PASS` card (ready, running in, passing,
+or no time, with the station seconds left) and the help panel two rows. The tender's hands do not have it. A
+script or mission: `WarshipSystem.orderLowPass(sim, ship, ax, ay, bx, by)`. The debug panel: **F5** flies a pass
+from the ship to the cursor.
+
+**Presentation** (read from the pass's own clocks and the line, nothing stored). A blend rises over 1.5 s and
+fades over 4 s after the end. The shadow lies close and sharp under the skimming hull (its altitude falls to 45%
+of the hover figure and its density rises 40%), the exhaust streak and two beam-edge vapour streams lengthen, and
+dust is kicked along the line, fixed in the world and settling over 7 s, so the trail lingers behind the ship.
+Sounds are the game's own: `engine_accelerate` low when it is sent and the deep `gate_explosion` report when it
+comes onto the line, each once.
+
+**Evidence.** `LowPassTest` and `WarshipLowPassTest` (line, speed, time-cost arithmetic, clocks and the order's
+lifecycle), and the `ship-low-pass` scene and snapshot suite: a pass down a line beyond the director's reach
+(12 of 12 down, 0 abeam, 21.8 s flown, 43.7 s charged), the director-only control (none), the pass over
+friendlies (fires over them) and its control. The line sits beyond the longest gun's reach so the director
+cannot be credited.
+
+### Open questions (slice 5)
+
+1. The numbers are drafts: speed x6, corridor 14 cells, cost x2, length 24 to 140. A live look should say whether
+   a 140-cell pass is worth 44 s and whether the two-minute hover home wants a faster return.
+2. A scripted or director-chosen pass (a ship that decides to pass on its own) is not built; only an order
+   starts one.
+3. Aircraft and ground fire against a passing ship are unchanged; whether a burn should make it harder to hit
+   is open.

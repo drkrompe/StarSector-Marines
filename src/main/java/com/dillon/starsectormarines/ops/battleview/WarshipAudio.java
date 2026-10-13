@@ -33,6 +33,8 @@ public final class WarshipAudio {
             case ARRIVAL_SETTLE -> 0.55f;
             case DEPARTURE_ROAR -> 0.6f;
             case DEPARTURE_CLIMB -> 0.95f;
+            case LOW_PASS_ROAR -> 0.8f;
+            case LOW_PASS_REPORT -> 0.7f;
             default -> 1f;
         };
     }

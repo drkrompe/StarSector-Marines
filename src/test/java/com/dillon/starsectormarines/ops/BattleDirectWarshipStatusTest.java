@@ -46,7 +46,7 @@ class BattleDirectWarshipStatusTest {
 
     @Test
     void theStripHasAGroupForEveryBatteryTheHullCarriesAndNoneForWhatItLacks() {
-        assertEquals(List.of("HELM", "GUNS", "MISSILES", "PD", "DIRECTOR"),
+        assertEquals(List.of("HELM", "GUNS", "MISSILES", "PD", "PASS", "DIRECTOR"),
                 BattleDirectWarshipStatus.status(ship, false, false).cards().stream().map(ShipCard::key).toList());
         assertNull(card("SHIELD", false), "no shield, no card");
         assertNull(card("LANCES", false), "no lance, no card");

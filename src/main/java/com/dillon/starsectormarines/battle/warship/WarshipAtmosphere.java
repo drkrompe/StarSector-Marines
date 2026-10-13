@@ -146,6 +146,44 @@ public final class WarshipAtmosphere {
         return f * f;
     }
 
+    /** How much of its hover altitude a hull keeps at the peak of a low pass: it is skimming, so its shadow lies close under it. */
+    public static final float PASS_SHADOW_ALTITUDE_KEEP = 0.45f;
+    /** How much darker a low pass's shadow is at the peak, as a multiple of a hover's: sharp and dense. */
+    public static final float PASS_SHADOW_DENSITY_GAIN = 0.4f;
+    /** The longest stretch of line behind a low pass's hull that shows its dust, in cells. */
+    public static final float PASS_TRAIL_CELLS = 64f;
+    /** Seconds a puff of the pass's dust takes to settle. */
+    public static final float PASS_DUST_SECONDS = 7f;
+
+    /** The multiple of the hover altitude a shadow is cast from at low-pass {@code blend} (1 at none, down to the keep share). */
+    public static float passShadowAltitudeFactor(float blend) {
+        return 1f - (1f - PASS_SHADOW_ALTITUDE_KEEP) * clamp01(blend);
+    }
+
+    /** The multiple of the shadow's density at low-pass {@code blend}: 1 at none, denser at the peak. */
+    public static float passShadowDensityFactor(float blend) {
+        return 1f + PASS_SHADOW_DENSITY_GAIN * clamp01(blend);
+    }
+
+    /** The shadow's softness at low-pass {@code blend}: whatever the lift gave it, taken to sharp as the pass builds. */
+    public static float passShadowSoftness(float softness, float blend) {
+        return softness * (1f - clamp01(blend));
+    }
+
+    /**
+     * How loud the wake is, 0 to 1: the length of the exhaust and vapour streaks and the strength of the
+     * pressure wash under the hull. It is the pass's own blend, so it builds with the run and fades after it.
+     */
+    public static float passWake(float blend) {
+        return clamp01(blend);
+    }
+
+    /** How faded a puff of the pass's dust is after {@code ageSeconds}: 1 fresh, 0 settled; thins fast then lingers. */
+    public static float passDust(float ageSeconds) {
+        float u = clamp01(ageSeconds / PASS_DUST_SECONDS);
+        return (1f - u) * (1f - u);
+    }
+
     /** The colours the atmosphere takes from the world it is over: glow, cloud/vapour and kicked-up dust. */
     public record Tint(float[] glow, float[] vapour, float[] dust) {
 

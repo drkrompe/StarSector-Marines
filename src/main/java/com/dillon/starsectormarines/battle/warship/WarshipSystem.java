@@ -118,6 +118,10 @@ public final class WarshipSystem {
     static final String ARRIVAL_SETTLE_SOUND = "hit_heavy";
     /** The game's engine boost, used for a ship climbing away: low at lift-off, higher as it goes. */
     static final String DEPARTURE_SOUND = "engine_accelerate";
+    /** The pass's own roar when a ship is sent on a low pass: the engine boost, low. */
+    static final String LOW_PASS_ROAR_SOUND = "engine_accelerate";
+    /** The report of a ship coming onto its line at speed: the same deep boom as a breaking of the deck. */
+    static final String LOW_PASS_REPORT_SOUND = "gate_explosion";
     /** Seconds after lift-off at which the climbing roar is given a second, higher voice. */
     static final float DEPARTURE_CLIMB_CUE_SECONDS = 2.5f;
     /** At most one of each atmosphere sound per this many seconds, however many ships enter together. */
@@ -289,7 +293,7 @@ public final class WarshipSystem {
             direct(dt, sim, ship);
             tickShield(dt, sim, ship);
             ship.fluxPool().update(dt);
-            moveHull(dt, sim, ship);
+            if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.pointDefence()) {
@@ -600,6 +604,75 @@ public final class WarshipSystem {
     }
 
     /**
+     * Orders {@code ship} on a low pass from {@code (ax, ay)} to {@code (bx, by)}: the public seam for a
+     * mission script, a scene or the debug panel (the pilot has {@link WarshipPilot#lowPass}). The ship runs
+     * in to A at the pass speed first when it is not there, flies the line firing on whatever is near it,
+     * and returns to its station or route. Returns false when the line is too short or the ship cannot
+     * (see {@link Warship#canLowPass}); a refusal changes nothing.
+     */
+    public boolean orderLowPass(BattleSimulation sim, Warship ship, float ax, float ay, float bx, float by) {
+        LowPass plan = LowPass.plan(ship.x, ship.y, ax, ay, bx, by, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        return plan != null && ship.beginLowPass(plan);
+    }
+
+    /**
+     * Flies a ship's low pass one step, when it has one. The hull runs in to A at the pass speed, flies the
+     * line without braking, and fires through a circle laid ahead of it on the line (a hand order, so no
+     * posture or friendly check refuses it); at B the pass ends, the guns' ground is given back, and the
+     * ordinary movement (the station, the route or the pilot) resumes from the speed the hull has. Returns
+     * whether the pass moved the hull this tick.
+     */
+    private boolean lowPass(float dt, BattleSimulation sim, Warship ship) {
+        LowPass pass = ship.lowPass();
+        if (pass == null) return false;
+        if (!pass.active()) {
+            pass.advance(dt, ship.x, ship.y);
+            if (pass.spent()) ship.clearLowPass();
+            return false;
+        }
+        if (pass.seconds() == 0f) {
+            atmosphereCue(WarshipSoundCue.Kind.LOW_PASS_ROAR, LOW_PASS_ROAR_SOUND, ship);
+        }
+        if (pass.onLine() && !ship.lowPassSilenced()) {
+            float[] centre = pass.fireCentre(ship.x, ship.y);
+            ship.layPassFire(centre[0], centre[1]);
+        }
+        float[] to = pass.steerPoint(ship.x, ship.y);
+        float dx = to[0] - ship.x;
+        float dy = to[1] - ship.y;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float speed = LowPass.passSpeed(ship.maxSpeed);
+        float wantX = dist > 0f ? dx / dist * speed : 0f;
+        float wantY = dist > 0f ? dy / dist * speed : 0f;
+        float ax = wantX - ship.velocityX;
+        float ay = wantY - ship.velocityY;
+        float change = (float) Math.sqrt(ax * ax + ay * ay);
+        float allowed = LowPass.passAcceleration(ship.acceleration) * dt;
+        if (change > allowed && change > 0f) {
+            ax *= allowed / change;
+            ay *= allowed / change;
+        }
+        ship.velocityX += ax;
+        ship.velocityY += ay;
+        float width = sim.getGrid().getWidth();
+        float height = sim.getGrid().getHeight();
+        ship.x = Math.max(0f, Math.min(width, ship.x + ship.velocityX * dt));
+        ship.y = Math.max(0f, Math.min(height, ship.y + ship.velocityY * dt));
+        pass.advance(dt, ship.x, ship.y);
+        if (pass.onLine() && pass.takeStartSound()) {
+            atmosphereCue(WarshipSoundCue.Kind.LOW_PASS_REPORT, LOW_PASS_REPORT_SOUND, ship);
+        }
+        if (!pass.active()) ship.finishLowPass();
+        return true;
+    }
+
+    /** The heading a ship holds on a pass: along the line once on it, toward A while running in. */
+    private static float passHeading(LowPass pass, Warship ship) {
+        if (pass.onLine()) return pass.headingDegrees();
+        return AirBody.facingToward(pass.startX() - ship.x, pass.startY() - ship.y);
+    }
+
+    /**
      * Hovers the hull toward its station at its own speed: it accelerates, cruises
      * and brakes in time to stop on the spot rather than drifting through it.
      */
@@ -620,7 +693,9 @@ public final class WarshipSystem {
         float ax = wantX - ship.velocityX;
         float ay = wantY - ship.velocityY;
         float change = (float) Math.sqrt(ax * ax + ay * ay);
-        float allowed = ship.acceleration * dt;
+        // A hull still carrying a low pass's speed sheds it at the pass's own handling, not at a hover's.
+        boolean burning = ship.lowPass() != null && ship.speed() > ship.maxSpeed * 1.05f;
+        float allowed = (burning ? LowPass.passAcceleration(ship.acceleration) : ship.acceleration) * dt;
         if (change > allowed && change > 0f) {
             ax *= allowed / change;
             ay *= allowed / change;
@@ -651,6 +726,8 @@ public final class WarshipSystem {
         } else {
             chooseHeading(ship);
         }
+        LowPass pass = ship.lowPass();
+        if (pass != null && pass.active()) ship.desiredHeading = passHeading(pass, ship);
         float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
         float wanted = Math.signum(error)
                 * Math.min(ship.maxTurnDegPerSec, (float) Math.sqrt(2f * ship.turnAccelDegPerSec2 * Math.abs(error)));

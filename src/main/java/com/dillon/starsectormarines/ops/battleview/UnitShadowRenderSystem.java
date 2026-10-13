@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -235,9 +236,14 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             // A ship dropping through the deck, or climbing back into it, casts from higher up: the
             // shadow lies further down-sun, softer and thinner, and closes on the hull as it settles.
             float lift = WarshipAtmosphere.lift(ship.entrySeconds(), ship.departingSeconds(), ship.departing());
-            float reach = sun.reachCells(WarshipAtmosphere.altitudeCells(WARSHIP_SHADOW_ALTITUDE_CELLS, lift));
-            float alpha = baseAlpha * WarshipAtmosphere.shadowDensity(lift);
-            float soft = WarshipAtmosphere.shadowSoftness(lift);
+            // On a low pass it skims: the shadow lies close under the hull, sharp and dense.
+            LowPass pass = ship.lowPass();
+            float skim = pass == null ? 0f : pass.blend();
+            float reach = sun.reachCells(WarshipAtmosphere.altitudeCells(
+                    WARSHIP_SHADOW_ALTITUDE_CELLS * WarshipAtmosphere.passShadowAltitudeFactor(skim), lift));
+            float alpha = baseAlpha * WarshipAtmosphere.shadowDensity(lift)
+                    * WarshipAtmosphere.passShadowDensityFactor(skim);
+            float soft = WarshipAtmosphere.passShadowSoftness(WarshipAtmosphere.shadowSoftness(lift), skim);
             float rad = (float) Math.toRadians(ship.facingDegrees);
             float c = (float) Math.cos(rad);
             float s = (float) Math.sin(rad);

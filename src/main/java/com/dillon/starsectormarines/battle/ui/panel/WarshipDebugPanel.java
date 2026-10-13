@@ -58,6 +58,8 @@ public final class WarshipDebugPanel implements HudPanel {
     public static final int GO_KEY = Keyboard.KEY_F10;
     /** Add the cell under the cursor to the route and patrol it in a loop. */
     public static final int ROUTE_KEY = Keyboard.KEY_F11;
+    /** A low pass: fly from the ship to the cell under the cursor, guns on what the line crosses. */
+    public static final int PASS_KEY = Keyboard.KEY_F5;
     /** A tender: select the next build option. */
     public static final int OPTION_KEY = Keyboard.KEY_F12;
 
@@ -117,6 +119,9 @@ public final class WarshipDebugPanel implements HudPanel {
             } else if (e.getEventValue() == MISSILE_PRESET_KEY) {
                 DebugWarship.cycleMissilePreset(ship);
                 e.consume();
+            } else if (e.getEventValue() == PASS_KEY) {
+                passToCursor(ship);
+                e.consume();
             }
         }
     }
@@ -161,6 +166,14 @@ public final class WarshipDebugPanel implements HudPanel {
         DebugWarship.patrol(ship, route);
     }
 
+    private void passToCursor(Warship ship) {
+        BattleCamera camera = ctx.getCamera();
+        float mouseX = Global.getSettings().getMouseX();
+        float mouseY = Global.getSettings().getMouseY();
+        if (camera == null || !camera.containsScreen(mouseX, mouseY)) return;
+        DebugWarship.passTo(ctx.getSim(), ship, camera.screenToCellX(mouseX), camera.screenToCellY(mouseY));
+    }
+
     private void fireAtCursor(Warship ship) {
         BattleCamera camera = ctx.getCamera();
         // The position is asked for when the key goes down, not remembered from mouse
@@ -182,7 +195,7 @@ public final class WarshipDebugPanel implements HudPanel {
         String line = tender != null ? tender.statusLine() + "  option " + BuildOption.ALL.get(tenderOption).label()
                 : DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
         String hint = tender != null ? DebugTender.HINT
-                : "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
+                : "F5 low pass to cursor   F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
         float w = Math.max(font.measureWidth(line), font.measureWidth(hint)) + 2f * PAD;
         float lineH = font.getLineHeight();
         float h = 2f * lineH + 2f * PAD;

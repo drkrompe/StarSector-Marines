@@ -101,3 +101,4 @@ com.dillon.starsectormarines.ops.BarracksEquipmentSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipSupportCallSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HostileShipSupportSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipArrivalSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.ShipLowPassSceneSnapshotSuite

@@ -177,7 +177,9 @@ public final class DirectControlSession {
     public boolean canUseAbility(DirectControlAbility ability) {
         if (ship != null) {
             return ability == DirectControlAbility.SHIELD && ship.hasShield()
-                    || ability == DirectControlAbility.CANCEL_BUILDS && tender != null;
+                    || ability == DirectControlAbility.CANCEL_BUILDS && tender != null
+                    || ability == DirectControlAbility.LOW_PASS && tender == null && !ship.lowPassing()
+                            && !ship.departing();
         }
         if (ability == null || !unitActive() || !eligible(unitId) || vehicleControl
                 || roster.identity().type(unitId) != UnitType.MARINE
@@ -190,7 +192,7 @@ public final class DirectControlSession {
                 yield spec != null && spec.grantsMitigation() && roster.integralSystems().canActivate(unitId);
             }
             case SMOKE -> SmokeTactics.canThrow(unitId, battle);
-            case CANCEL_BUILDS -> false;
+            case CANCEL_BUILDS, LOW_PASS -> false;
         };
     }
 
@@ -199,6 +201,11 @@ public final class DirectControlSession {
         // The ship's shield key is a toggle the pilot owns, not a charge: it takes effect at once.
         if (ship != null) {
             if (!canUseAbility(ability)) return false;
+            if (ability == DirectControlAbility.LOW_PASS) {
+                return aim != null && WarshipPilot.lowPass(ship,
+                        new WarshipPilot.Hands(0f, 0f, aim.x(), aim.y(), false, false),
+                        battle.getGrid().getWidth(), battle.getGrid().getHeight(), revealed);
+            }
             return ability == DirectControlAbility.CANCEL_BUILDS ? TenderPilot.cancelBuilds(tender)
                     : WarshipPilot.command(ship, WarshipPilot.Command.TOGGLE_SHIELD);
         }

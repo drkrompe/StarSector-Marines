@@ -366,6 +366,8 @@
 		"battleDirectHelpShipPreset": "Step the missile preset",
 		"battleDirectHelpShipPolicy": "Ground fire: all / heavy only / none",
 		"battleDirectHelpShipShield": "Shield up or down",
+		"battleDirectHelpShipPass": "Low pass: fly to the cursor, guns on the line",
+		"battleDirectHelpShipPassCost": "A pass costs twice its time in station time",
 		"battleDirectHelpShipLaid": "Letting go leaves the area laid",
 		"battleDirectHelpShipSeen": "Only ground you have seen can be laid",
 		"battleDirectHelpShipDanger": "DANGER: a friendly is inside the blast",
