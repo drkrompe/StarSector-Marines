@@ -311,6 +311,7 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new DroneRenderSystem(sprites),
+                new SalvageCacheRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
