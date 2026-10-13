@@ -347,8 +347,9 @@ Hovering either item opens its shared spec sheet; changing billets preserves tho
 bindings. A vacancy shows the planned issue without inventing an equipped soldier.
 
 Weapon Loadouts and Tactic Sheets share the right-hand browser. A new company's
-only choice in each is **First Loadout**: twelve Service Rooks and twelve Ward
-security kits over field fatigues. Starting specifications remain Rook, field
+only weapon choice is **Dockside Issue**, twelve Service Rooks; its only tactic
+sheet is **Watchman's Kit**, twelve Ward security kits over field fatigues.
+Starting specifications remain Rook, field
 fatigues, and Ward; no specialist weapon or suit is granted. Armor plans that resolve
 to the same ordered twelve issued patterns appear as one choice. As learned suits
 make their issues differ, those choices appear. Deduplication is presentation only:
@@ -1514,8 +1515,10 @@ its complete variable messages to `Strings.format`. The marineOps catalog owns
 copy, including markup labels through `{i18n.key}`. Formatting uses MessageFormat
 numbered arguments (and choice patterns for quantities); plain `get` preserves
 literal apostrophes. Existing printf-based cost displays retain printf patterns.
-Rank/specialty labels and `@key` boat catalog display fields resolve when read,
-not during static initialization. The management guide stores titleKey/textKey
+Rank/specialty labels and `@key` equipment catalog display fields resolve when read,
+not during static initialization. This includes weapons, armor, special items,
+integral systems, mech hardware and their derived template and recipe names.
+Add-on literal copy remains supported. The management guide stores titleKey/textKey
 beside stable narration IDs; synthesis text is recording direction, not UI copy.
 Saved identifiers, authored/player names and resource transactions are independent
 of translated display text. `alpha-localization.md` owns the remaining

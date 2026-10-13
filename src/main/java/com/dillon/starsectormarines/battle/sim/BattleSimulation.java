@@ -33,7 +33,9 @@ import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.battery.FortressBatteryService;
+import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -566,6 +568,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
     public ReliefAssault getReliefAssault() { return reliefAssault; }
+    /** The battle's ground-defence structures as they truly are; a command sees only what its disclosure lets it. */
+    @Override public List<DefenceStructureFact> defenceStructures() {
+        List<DefenceStructureFact> out = new ArrayList<>();
+        for (FortressBattery battery : fortressBatteries.batteries()) {
+            if (battery.destroyed()) continue;
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
+                    (int) Math.floor(battery.x()), (int) Math.floor(battery.y()),
+                    battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
+                    Math.round(battery.structure().fireControlRadius)));
+        }
+        for (ShieldDomeService.DomeView dome : shieldDomes.domes()) {
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
+                    (int) Math.floor(dome.x()), (int) Math.floor(dome.y()),
+                    dome.holder(), dome.originalHolder(),
+                    dome.raider() != null && dome.captureProgress() > 0f,
+                    Math.round(dome.captureRadius())));
+        }
+        return out;
+    }
+
     @Override public boolean isCapturedStructure(long id) { return rosterService.isCapturedStructure(id); }
 
     /**

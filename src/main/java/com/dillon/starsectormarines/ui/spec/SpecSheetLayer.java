@@ -87,13 +87,13 @@ public final class SpecSheetLayer {
             .spec-sheet-crest { width: 32px; height: 32px; }
             .spec-sheet-crest.spec-sheet-crest-absent { width: 0px; height: 0px; }
             .spec-sheet-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 3px; }
-            .spec-sheet-title { height: 17px; font-family: heading; color: #eaf3ff; }
-            .spec-sheet-subtitle { height: 14px; color: #8b9aaf; }
+            .spec-sheet-title { height: 17px; white-space: normal; font-family: heading; color: #eaf3ff; }
+            .spec-sheet-subtitle { height: 14px; white-space: normal; color: #8b9aaf; }
             .spec-sheet-stat { flex-direction: column; height: 16px; gap: 3px; }
             .spec-sheet-stat.spec-sheet-stat-metered { height: 23px; }
             .spec-sheet-stat-line { flex-direction: row; height: 16px; gap: 6px; }
-            .spec-sheet-stat-label { width: 0px; flex-grow: 1; color: #8b9aaf; }
-            .spec-sheet-stat-value { width: 120px; text-align: right; }
+            .spec-sheet-stat-label { width: 0px; flex-grow: 1; white-space: normal; color: #8b9aaf; }
+            .spec-sheet-stat-value { width: 120px; white-space: normal; text-align: right; }
             .spec-sheet-stat-track { flex-direction: row; height: 4px; background-color: #1a2836; }
             .spec-sheet-stat-fill { height: 4px; background-color: #53c6e8; }
             .spec-sheet-armor .spec-sheet-stat-fill { background-color: #dfb84d; }
@@ -187,6 +187,8 @@ public final class SpecSheetLayer {
         root.removeClass(HIDDEN_CLASS);
         root.style("left: 0px; top: 0px");
         relayout();
+        fitWrappedRows();
+        relayout();
         place(anchor.box().borderBox(), measuredHeight());
         relayout();
     }
@@ -251,6 +253,32 @@ public final class SpecSheetLayer {
         return bottom - root.box().borderBox().y() + frame();
     }
 
+    /** Row containers need explicit heights; derive them from the resolved font and allocated width. */
+    private void fitWrappedRows() {
+        float titleHeight = textHeight(title, 17f);
+        float subtitleHeight = textHeight(subtitle, 14f);
+        height(title, titleHeight);
+        height(subtitle, subtitleHeight);
+        height(heading, Math.max(34f, titleHeight + 3f + subtitleHeight));
+        for (int index = 0; index < usedStats; index++) {
+            StatRow stat = statRows.get(index);
+            float lineHeight = Math.max(textHeight(stat.label, 16f), textHeight(stat.value, 16f));
+            height(stat.line, lineHeight);
+            height(stat.row, lineHeight + (stat.track.parent() == stat.row ? 7f : 0f));
+        }
+    }
+
+    private float textHeight(UiElement element, float minimum) {
+        var font = document.styles().fontFor(element);
+        if (font == null || element.text() == null) return minimum;
+        return Math.max(minimum, font.getLineHeight()
+                * font.wrapLines(element.text(), element.box().contentBox().width()).size());
+    }
+
+    private static void height(UiElement element, float height) {
+        element.style(String.format(Locale.ROOT, "height: %.2fpx", height));
+    }
+
     /** Padding and border between the overlay's border box and its content box. */
     private float frame() {
         return root.padding().bottom() + root.borderWidth();
@@ -305,6 +333,7 @@ public final class SpecSheetLayer {
     private static final class StatRow {
 
         private final UiElement row;
+        private final UiElement line;
         private final UiElement label;
         private final UiElement value;
         private final UiElement track;
@@ -318,12 +347,11 @@ public final class SpecSheetLayer {
             track = new UiElement(id + "-track")
                     .addClass("spec-sheet-stat-track")
                     .child(fill);
-            row = new UiElement(id)
-                    .addClass("spec-sheet-stat")
-                    .child(new UiElement(id + "-line")
+            line = new UiElement(id + "-line")
                             .addClass("spec-sheet-stat-line")
                             .child(label)
-                            .child(value));
+                            .child(value);
+            row = new UiElement(id).addClass("spec-sheet-stat").child(line);
         }
 
         private void apply(SpecSheet.Stat stat) {

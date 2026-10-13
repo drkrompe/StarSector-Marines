@@ -402,7 +402,11 @@ final class HeadlessBattleSprites extends BattleSprites {
                             LayeredSpriteCache masterwork) throws IOException {
         LayeredUnitAssets loaded = new LayeredUnitAssets(layer(root + "body.png"),
                 layer(root + "head.png"), foot, claw, rifle, laser, smg, dmr,
-                rocket, amr, flash, surplus, masterwork);
+                rocket, amr, flash, surplus, masterwork,
+                family == LayeredArmorFamily.SPECTER_HEAVY
+                        ? optionalLayer(root + "shoulder-left.png") : null,
+                family == LayeredArmorFamily.SPECTER_HEAVY
+                        ? optionalLayer(root + "shoulder-right.png") : null);
         SpecialEquipmentRegistry equipment = SpecialEquipmentRegistry.installed();
         if (equipment != null) {
             for (SpecialEquipmentDef def : equipment.all()) {
@@ -434,6 +438,10 @@ final class HeadlessBattleSprites extends BattleSprites {
                   layer(MECH_ROOT + "quarry-breaker-cannon.png"),
                   layer(MECH_ROOT + "pioneer-rocket-cradle.png"),
                   layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"));
+    }
+
+    private LayeredSpriteCache optionalLayer(String path) throws IOException {
+        return Files.exists(modRoot.resolve(path)) ? layer(path) : null;
     }
 
     private LayeredSpriteCache layer(String path) throws IOException {

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.battery;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -46,7 +47,28 @@ public final class FortressBatterySystem {
                 warships.clearBatteryHazard(battery);
             }
             for (FortressBattery.Gun gun : battery.guns()) tickGun(dt, sim, battery, gun);
+            slewGunHouse(dt, sim, battery);
         }
+    }
+
+    /**
+     * Turns the structure's painted gun house toward the hull its guns are settling on or firing at, at the mount's
+     * own traverse rate. Presentation only: no gun reads this facing, so the house follows the aim rather than
+     * deciding it. With no hull in reach the mount's ordinary ground-target logic keeps the facing.
+     */
+    private static void slewGunHouse(float dt, BattleSimulation sim, FortressBattery battery) {
+        Warship aim = null;
+        for (FortressBattery.Gun gun : battery.guns()) {
+            if (gun.target() != null) {
+                aim = gun.target();
+                break;
+            }
+        }
+        if (aim == null) return;
+        long id = battery.structureId();
+        float bearing = TurretAim.bearingTo(battery.x(), battery.y(), aim.x, aim.y);
+        float rate = battery.structure().mount.turnRateDegPerSec * dt;
+        sim.turretState().setFacingDegrees(id, TurretAim.slewToward(sim.turretState().facingDegrees(id), bearing, rate));
     }
 
     private static void tickFireControl(float dt, BattleSimulation sim, FortressBattery battery) {
@@ -102,6 +124,7 @@ public final class FortressBatterySystem {
             if (gun.burstTimer > 0f) return;
             if (sim.warships().fireFromGround(gun.weapon, battery.owner(), battery.x(), battery.y(), target) >= 0f) {
                 gun.shotsFired++;
+                sim.turretState().setRecoilTimer(battery.structureId(), 0f);
             }
             gun.burstRemaining--;
             gun.burstTimer = Math.max(gun.weapon.burstDelaySeconds(), 0.05f);

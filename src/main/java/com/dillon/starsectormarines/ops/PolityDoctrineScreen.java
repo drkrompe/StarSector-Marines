@@ -290,9 +290,9 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
             if (grade.tier < lowest.tier) lowest = grade;
             if (grade.tier > highest.tier) highest = grade;
         }
-        if (lowest == highest) return lowest.displayName;
+        if (lowest == highest) return lowest.displayName();
         return MessageFormat.format(copy.apply("polityGradeRangeFmt"),
-                lowest.displayName, highest.displayName);
+                lowest.displayName(), highest.displayName());
     }
 
     /** Pattern names, never pattern ids: this is a sentence about the militia. */
@@ -323,7 +323,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         List<FieldSpan> spans = new ArrayList<>();
         for (MechVariant variant : lance) {
             spans.add(new FieldSpan("polity-field-lance-span-" + spans.size(),
-                    variant.displayName, SpecSheets.mech(variant)));
+                    variant.displayName(), SpecSheets.mech(variant)));
         }
         return List.copyOf(spans);
     }
@@ -333,7 +333,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         StringBuilder text = new StringBuilder();
         for (MechVariant variant : lance) {
             if (text.length() > 0) text.append("  ·  ");
-            text.append(variant.displayName);
+            text.append(variant.displayName());
         }
         return text.toString();
     }

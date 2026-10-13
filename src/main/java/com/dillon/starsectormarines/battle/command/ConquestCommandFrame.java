@@ -18,7 +18,7 @@ public final class ConquestCommandFrame extends CommandFrame {
                                          CommandTopology topology,
                                          CommandAssignmentSnapshot assignments) {
         return new ConquestCommandFrame(CommandFrame.freeze(sim, perspective,
-                topology, assignments), ConquestCommandFacts.freeze(sim));
+                topology, assignments), ConquestCommandFacts.freeze(sim, perspective));
     }
 
     public ConquestCommandFacts facts() {

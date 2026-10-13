@@ -72,12 +72,14 @@ public final class TurretSnapshotSuite implements SnapshotSuite {
                     "structure.fortress-battery-placeholder", 12, 8));
             sim.spawn(MapTurret.create("vulcan", Faction.DEFENDER,
                     TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 5, 8));
+            sim.spawn(MapTurret.create("generator", Faction.DEFENDER,
+                    "structure.shield-generator", 19, 12));
             long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 2, 8));
             sim.setPath(marine, GridPathfinder.findPath(grid, 2, 8, 21, 8));
             for (int i = 0; i < 70; i++) sim.advance(BattleSimulation.TICK_DT);
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
-                    context.modRoot(), 720, 480);
-            return renderer.render(sim, "3x3 structure beside a 1x1: the footprint pad is drawn at its full extent");
+                    context.modRoot(), 1920, 1080);
+            return renderer.render(sim, "Fortress battery (3x3, gun house + base), shield generator (ring + core), Vulcan (1x1)");
         } finally {
             TurretCatalogRegistry.install(previous);
         }

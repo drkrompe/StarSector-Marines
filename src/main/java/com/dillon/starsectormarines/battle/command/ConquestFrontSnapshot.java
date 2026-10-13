@@ -97,7 +97,13 @@ public record ConquestFrontSnapshot(
         DEFENDER_ADJACENT_TRACK_RESPONSE,
         DEFENDER_RELIEF_OBJECTIVE,
         DEFENDER_RESERVE_HOLD,
-        DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED
+        DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
+        /** A squad detached to take or wreck a known enemy-held ground-defence structure (fire control, shield generator). */
+        DEFENCE_STRUCTURE_TAKE,
+        /** A squad detached to win back a ground-defence structure built for this side and now held by the enemy. */
+        DEFENCE_STRUCTURE_RETAKE,
+        /** A squad detached to stand to at this side's own ground-defence structure while it is being pressed. */
+        DEFENCE_STRUCTURE_DEFEND
     }
 
     public record TrackState(
