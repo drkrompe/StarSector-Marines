@@ -30,6 +30,7 @@
   "actors": [
     {
       "id": "kestrel",
+      "portrait": "graphics/portraits/radio-kestrel.png",
       "label": "Kestrel Two",
       "call": "marines_op_kestrel_call",
       "ack": "marines_op_kestrel_ack",
@@ -74,6 +75,7 @@
     },
     {
       "id": "hammer",
+      "portrait": "graphics/portraits/radio-hammer.png",
       "label": "Hammer Three",
       "call": "marines_op_hammer_call",
       "ack": "marines_op_hammer_ack",
@@ -118,6 +120,7 @@
     },
     {
       "id": "viper",
+      "portrait": "graphics/portraits/radio-viper.png",
       "label": "Viper One",
       "call": "marines_op_viper_call",
       "ack": "marines_op_viper_ack",
@@ -162,6 +165,7 @@
     },
     {
       "id": "jackal",
+      "portrait": "graphics/portraits/radio-jackal.png",
       "label": "Jackal",
       "call": "marines_op_jackal_call",
       "ack": "marines_op_jackal_ack",
@@ -206,6 +210,7 @@
     },
     {
       "id": "ox",
+      "portrait": "graphics/portraits/radio-ox.png",
       "label": "Ox",
       "call": "marines_op_ox_call",
       "ack": "marines_op_ox_ack",
@@ -250,6 +255,7 @@
     },
     {
       "id": "rivet",
+      "portrait": "graphics/portraits/radio-rivet.png",
       "label": "Rivet",
       "call": "marines_op_rivet_call",
       "ack": "marines_op_rivet_ack",
