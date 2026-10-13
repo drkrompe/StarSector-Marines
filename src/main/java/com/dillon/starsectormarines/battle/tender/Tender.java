@@ -57,6 +57,21 @@ public final class Tender implements DroneAnchor {
 
     private final Warship ship;
     private boolean grounded;
+    /** Authored static-host footprint, independent of the metadata airframe's scale. */
+    public record GroundDisplay(float centerX, float centerY, float width, float height) {
+        public GroundDisplay {
+            if (!Float.isFinite(centerX) || !Float.isFinite(centerY)
+                    || !Float.isFinite(width) || !Float.isFinite(height) || width <= 0 || height <= 0)
+                throw new IllegalArgumentException("Ground display needs a finite positive footprint");
+        }
+        public float enclosingRadius() { return (float) Math.hypot(width, height) * 0.5f; }
+    }
+    private GroundDisplay groundDisplay;
+    public GroundDisplay groundDisplay() { return groundDisplay; }
+    public void groundDisplay(GroundDisplay display) {
+        if (!grounded) throw new IllegalStateException("Only a grounded host has a static display footprint");
+        groundDisplay = display;
+    }
     private float groundBayX;
     private float groundBayY;
     private float groundMouthDegrees;
@@ -130,6 +145,7 @@ public final class Tender implements DroneAnchor {
     private int buildersLostSeen;
     final TenderFlight flight = new TenderFlight();
     private boolean helmed;
+    private List<ConstructionOrder> ordersBeforeHelm = List.of();
     private boolean defenceOutBeforeHelm = true;
 
     private Tender(Warship ship, List<WarshipSlot> bays, int complement) {
@@ -375,6 +391,7 @@ public final class Tender implements DroneAnchor {
     public void takeHelm() {
         if (grounded || helmed) return;
         helmed = true;
+        ordersBeforeHelm = new ArrayList<>(orders);
         defenceOutBeforeHelm = defenceOut;
         ship.takeHelm();
     }
@@ -387,7 +404,8 @@ public final class Tender implements DroneAnchor {
     public void releaseHelm() {
         if (!helmed) return;
         helmed = false;
-        cancelAll();
+        for (ConstructionOrder order : orders) if (!ordersBeforeHelm.contains(order)) cancel(order);
+        ordersBeforeHelm = List.of();
         defenceOut = defenceOutBeforeHelm;
         ship.releaseHelm();
     }

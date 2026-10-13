@@ -1,0 +1,35 @@
+<template props="ships,actions,title,hint,heroStyle,actionStyle">
+  <div id="ship-hero-shell" class="ship-shell hero-shell" style="{heroStyle}">
+    <div id="ship-hero-heading" class="ship-heading">{i18n.battleShipCommandHeading}</div>
+    <div id="ship-heroes" class="ship-row">
+      <button each="ship in ships" key="{ship.id}" id="{ship.id}" class="{ship.classes}" onclick="{ship.action}">
+        <img id="{ship.imageId}" class="hero-image" src="{ship.icon}" />
+        <div id="{ship.nameId}" class="ship-name">{ship.name}</div>
+        <div id="{ship.statusId}" class="ship-status">{ship.status}</div>
+        <div id="{ship.trackId}" class="ship-track"><div id="{ship.fillId}" class="ship-fill" style="{ship.fillStyle}" /></div>
+      </button>
+    </div>
+  </div>
+</template>
+<style>
+.ship-shell { width: 100%; flex-direction: column; padding: 5px; gap: 3px; border-width: 1px; border-color: #727b79; background-color: #141e19f2; overflow: hidden; }
+.hero-shell { height: 84px; }
+.action-shell { height: 106px; }
+#ship-heroes { height: 68px; }
+#ship-actions { height: 60px; }
+.ship-heading { height: 12px; width: 100%; font-family: heading; color: #baa976; overflow: hidden; white-space: nowrap; }
+.ship-row { width: 100%; flex-direction: row; gap: 4px; overflow: hidden; }
+.ship-hero { width: 96px; height: 60px; padding: 3px 5px; flex-direction: column; gap: 1px; border-width: 1px; border-color: #56675c; background-color: #303a32f2; overflow: hidden; }
+.ship-action { width: 70px; height: 52px; padding: 3px 5px; flex-direction: column; gap: 2px; border-width: 1px; border-color: #56675c; background-color: #303a32f2; overflow: hidden; }
+.ship-hero:hover, .ship-action:hover { background-color: #46524a; border-color: #baa976; }
+.ship-hero:active, .ship-action:active { background-color: #222b24; }
+.ship-disabled { opacity: 0.45; }
+.ship-selected { background-color: #3a3018; border-color: #d5bc76; }
+.hero-image { width: 100%; height: 20px; pointer-events: none; }
+.action-image { width: 100%; height: 26px; pointer-events: none; }
+.ship-name { width: 100%; height: 12px; font-family: compact; text-align: center; color: #c1cbc3; overflow: hidden; white-space: nowrap; }
+.ship-status { width: 100%; height: 10px; font-family: compact; text-align: center; color: #a0ada8; overflow: hidden; white-space: nowrap; }
+.ship-track { width: 100%; height: 2px; background-color: #101713; }
+.ship-fill { height: 100%; background-color: #a7ccc4; }
+.ship-hint { width: 100%; height: 24px; color: #bcae82; font-family: compact; overflow: hidden; white-space: normal; }
+</style>

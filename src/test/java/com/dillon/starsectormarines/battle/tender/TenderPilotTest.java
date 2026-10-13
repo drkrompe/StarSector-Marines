@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.tender;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.tender.TenderPilot.Hands;
 import com.dillon.starsectormarines.battle.tender.TenderPilot.Notice;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.BiPredicate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,6 +25,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The pilot's hands on a tender: intent to order, eligibility, handback. */
 class TenderPilotTest {
+    @Test
+    void groundedHullOutsideAirRosterKeepsItsGroundedRefusal() throws Exception {
+        Tender grounded = Tender.grounded(Faction.MARINE, 20, 20, 22, 20, 0);
+        ShipCommandService service = new ShipCommandService();
+        service.requestMove(grounded.ship(), 30, 30);
+        service.drain(List.of(), List.of(grounded), Faction.MARINE, grid, SEEN);
+        assertEquals(ShipCommandService.Notice.GROUNDED, service.notice(grounded.ship()));
+        assertEquals(20f, grounded.ship().x);
+        service.drain(List.of(), List.of(grounded), Faction.MARINE, grid, SEEN);
+        assertEquals(ShipCommandService.Notice.GROUNDED, service.notice(grounded.ship()));
+        service.requestBuild(grounded, BuildOption.ALL.get(0), 30, 30);
+        service.drain(List.of(), List.of(grounded), Faction.MARINE, grid, SEEN);
+        assertEquals(ShipCommandService.Notice.GROUNDED, service.notice(grounded.ship()));
+        assertTrue(grounded.orders().isEmpty());
+        grounded.loseGroundHost();
+        service.requestMove(grounded.ship(), 30, 30);
+        service.drain(List.of(), List.of(grounded), Faction.MARINE, grid, SEEN);
+        assertEquals(ShipCommandService.Notice.UNAVAILABLE, service.notice(grounded.ship()));
+    }
+
+    @Test
+    void handbackKeepsSitesAcceptedBeforeThePilotTookOver() {
+        tender.releaseHelm();
+        ConstructionOrder remote = tender.lay(BuildOption.ALL.get(0), 25, 25, grid);
+        assertNotNull(remote);
+        tender.takeHelm();
+        ConstructionOrder pilot = tender.lay(BuildOption.ALL.get(0), 30, 30, grid);
+        assertNotNull(pilot);
+        tender.releaseHelm();
+        assertFalse(remote.phase().terminal());
+        assertTrue(pilot.phase().terminal());
+    }
+
     private static final BiPredicate<Integer, Integer> SEEN = (x, y) -> true;
     private static final BiPredicate<Integer, Integer> DARK = (x, y) -> false;
 

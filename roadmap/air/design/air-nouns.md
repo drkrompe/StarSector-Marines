@@ -39,6 +39,21 @@ mission.
 
 ## Core vocabulary
 
+**Remote ship command** selects a player-owned overhead hull without taking its helm.
+Move replaces its travel with a station on observed ground; Hold brakes onto its
+current point. Weapons and survival remain the hull's, and a bounded support visit
+continues spending time while following remote travel. Autonomous hands the original
+station or route back. A piloted, grounded, destroyed or withdrawing hull cannot
+accept remote movement. Direct control temporarily masks the accepted remote station
+and returns to it on handback.
+
+A remote tender build lays the ordinary construction option and lets the tender fly
+to its normal standoff: costs, crew, threat stand-down, spacing and work time stay the
+same. Explicit remote work suspends independent site choosing. Move or Hold withdraws
+unfinished sites through the ordinary refund path; Autonomous resumes choosing.
+Mission-owned grounded construction keeps its own authority and option gate.
+
+
 **Air craft** is the broad category. It has a continuous **body**: position,
 facing, velocity, and motion state. A body is a kinematic fact, not a behavior
 or a visual approximation. Steering systems supply goals and modes; the body's
