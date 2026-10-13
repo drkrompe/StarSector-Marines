@@ -740,7 +740,8 @@ public final class BarracksCommandModel {
     private CompanyManagementGuide.Line guideLine() {
         if (inductionRequired() && roster.officerInduction().companyPreparation() && inductionStep() == Step.READY)
             return new CompanyManagementGuide.Line("preparation-ready", "READY FOR OUR FIRST CONTRACT",
-                    "A ship, our own lift, and a full squad under Mira. Good work, Commander. Mara Venn has our first job: Hold Until Relieved. Choose Ready for your briefing, or follow her office directions from HQ. At briefing, select Mira's squad for deployment.");
+                    "Mara Venn answered. Wayline needs its checkpoint relieved; six thousand if we break the assault. I've put our name forward. Our first job, Captain. "
+                            + "Choose Ready for the briefing or follow Mara's directions from HQ. Select Mira's squad. Let's give her a reason to call again.");
         if (inductionRequired()) return OfficerInductionGuide.line(inductionStep(),
                 inductionOfficer() == null ? "your field commander" : inductionOfficer().name());
         var lines = CompanyManagementGuide.lines();
