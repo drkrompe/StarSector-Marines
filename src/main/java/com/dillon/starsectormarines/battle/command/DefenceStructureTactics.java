@@ -53,9 +53,14 @@ public final class DefenceStructureTactics {
      *                   A wreck is only ever given to such a squad
      */
     public record Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent,
-                            boolean demolition) {
+                            boolean demolition, boolean machine) {
+        public Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent,
+                         boolean demolition) {
+            this(squadId, anchorCellX, anchorCellY, incumbent, demolition, false);
+        }
+
         public Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent) {
-            this(squadId, anchorCellX, anchorCellY, incumbent, false);
+            this(squadId, anchorCellX, anchorCellY, incumbent, false, false);
         }
     }
 
@@ -129,7 +134,86 @@ public final class DefenceStructureTactics {
         return tasks;
     }
 
-    private record Wanted(Role role, DefenceStructureFact structure, int rank, int squads, boolean wreck,
+    /**
+     * An assault company's orders: every candidate goes at the one aspect of the one fort that
+     * {@link FortTactics} ranks first, rather than the one or two squads {@link #plan} detaches. This is the commit
+     * of a massed assault, so the cap on detachments does not apply; the choice of aspect and the order it is
+     * given in are unchanged.
+     *
+     * <p>A squad carrying demolition is authorised to wreck where the pick is a wreck, and everyone else goes at
+     * the same aspect to take it. A machine squad (a mech lance cannot enter a bunker) is sent to a standoff cell
+     * outside the structure's reach, with sight of it, as base of fire.
+     *
+     * @param fort one fort's facts, all sharing a fort id
+     * @return one task per reachable candidate, or empty when the fort offers no work to this side
+     */
+    public static List<Task> planMassed(Faction perspective, List<DefenceStructureFact> fort,
+                                        List<Candidate> candidates, CommandTopology topology) {
+        List<Task> tasks = new ArrayList<>();
+        if (fort.isEmpty() || candidates.isEmpty()) return tasks;
+        List<FortTactics.Pick> picks = new ArrayList<>(FortTactics.choose(perspective, fort, candidates));
+        picks.removeIf(pick -> pick.role() == Role.DEFEND);
+        if (picks.isEmpty()) return tasks;
+        picks.sort(Comparator.<FortTactics.Pick>comparingInt(p -> p.role().ordinal()).thenComparingInt(FortTactics.Pick::rank));
+        FortTactics.Pick pick = picks.get(0);
+        String reason = "company vs fort " + pick.structure().fortId() + " "
+                + pick.structure().family().name().toLowerCase(Locale.ROOT) + ": " + pick.reason();
+        for (Candidate candidate : candidates) {
+            boolean wreck = pick.wreck() && candidate.demolition();
+            ObjectiveAssignment held = candidate.incumbent();
+            int[] cell;
+            if (held != null && held.kind() == AssignmentKind.ATTACK_MOVE && near(held.targetCellX(), held.targetCellY(), pick.structure())
+                    && !candidate.machine()
+                    && topology.reachable(candidate.anchorCellX(), candidate.anchorCellY(), held.targetCellX(), held.targetCellY())) {
+                cell = new int[] {held.targetCellX(), held.targetCellY()};
+            } else {
+                cell = candidate.machine() ? standoffCell(candidate, pick.structure(), topology)
+                        : approachCell(candidate, pick.structure(), topology);
+            }
+            if (cell == null) continue;
+            tasks.add(new Task(candidate.squadId(),
+                    ObjectiveAssignment.attackMove(candidate.squadId(), cell[0], cell[1]).withWreckAuthorised(wreck),
+                    pick.role(), pick.structure(), reason, wreck));
+        }
+        return tasks;
+    }
+
+    /** How far outside a structure's reach a machine squad stands as base of fire, at the nearest. UNTUNED. */
+    static final int BASE_OF_FIRE_EXTRA_CELLS = 4;
+
+    /** The nearest reachable cell on the smallest ring outside the structure's reach plus the base-of-fire margin. */
+    private static int[] standoffCell(Candidate squad, DefenceStructureFact structure, CommandTopology topology) {
+        int reach = Math.max(2, structure.reachCells());
+        for (int ring = reach + BASE_OF_FIRE_EXTRA_CELLS; ring <= reach + BASE_OF_FIRE_EXTRA_CELLS + 10; ring++) {
+            int[] best = ringCell(squad, structure, ring, topology);
+            if (best != null) return best;
+        }
+        return approachCell(squad, structure, topology);
+    }
+
+    private static int[] ringCell(Candidate squad, DefenceStructureFact structure, int ring, CommandTopology topology) {
+        int[] best = null;
+        long bestGap = Long.MAX_VALUE;
+        for (int dy = -ring; dy <= ring; dy++) {
+            for (int dx = -ring; dx <= ring; dx++) {
+                if (Math.max(Math.abs(dx), Math.abs(dy)) != ring) continue;
+                int x = structure.cellX() + dx;
+                int y = structure.cellY() + dy;
+                if (!topology.inBounds(x, y) || !topology.isWalkable(x, y)
+                        || !topology.reachable(squad.anchorCellX(), squad.anchorCellY(), x, y)) continue;
+                long gx = x - squad.anchorCellX();
+                long gy = y - squad.anchorCellY();
+                long gap = gx * gx + gy * gy;
+                if (gap < bestGap) {
+                    bestGap = gap;
+                    best = new int[] {x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    private record Wanted(Role role,DefenceStructureFact structure, int rank, int squads, boolean wreck,
                           String reason) {}
 
     private static Role roleFor(Faction perspective, DefenceStructureFact structure) {
