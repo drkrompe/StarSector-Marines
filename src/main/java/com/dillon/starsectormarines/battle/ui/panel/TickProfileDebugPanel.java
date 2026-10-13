@@ -130,7 +130,7 @@ public final class TickProfileDebugPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        if (!com.dillon.starsectormarines.DevConfig.PROFILE_TICK_PHASES) return false;
+        if (!com.dillon.starsectormarines.DevConfig.PROFILE_TICK_PHASES || !ctx.debugHudVisible()) return false;
         return ctx.getSim() != null && ctx.getLayout() != null && DebugHudLayout.fits(ctx, HEADER_H + LINE_H + PAD_INNER);
     }
 

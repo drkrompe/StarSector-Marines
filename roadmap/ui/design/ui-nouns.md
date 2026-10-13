@@ -600,12 +600,14 @@ new clicks, camera drags and wheel input within their bounds; a camera drag begu
 in the world can finish across chrome. The turret authoring workspace is modal:
 ordinary battle controls yield until it closes.
 
-A compact bottom contextual bar above fleet support exposes **Attack Move [A]**
-and **Defend Area [F]** for commandable infantry and Mech selections. Clicking a
-button or pressing its shortcut arms the next world click; pressing the same
-shortcut again cancels. Attack Move uses the existing move/context order path,
-including capture and transport assignments. Right-click retains that existing
-movement behavior. The bar displays order scope and placement/cancellation hints.
+A compact bottom contextual bar above fleet support exposes **Defend Area [F]**
+for commandable infantry and Mech selections. Clicking the button or pressing its
+shortcut arms the next world click; pressing the same shortcut again cancels.
+Moving is right-click only, through the existing move/context order path
+(including capture and transport assignments); there is no armed attack-move
+order, because it was only a slower spelling of that click. The bar displays
+order scope and placement/cancellation hints, and the WASD keys belong to the
+camera and are never claimed by an order shortcut.
 Defend Area is a deliberate two-step command. It issues one order for each selected squad or battle lance. A single
 Mech selection issues one shared order for its whole battle lance.
 The infantry summary row is reserved for squad identity, strength, and morale;

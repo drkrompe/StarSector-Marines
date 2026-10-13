@@ -162,7 +162,7 @@ public final class DebugTogglesPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return ctx.getLayout() != null && DebugHudLayout.fits(ctx, HEADER_H);
+        return ctx.debugHudVisible() && ctx.getLayout() != null && DebugHudLayout.fits(ctx, HEADER_H);
     }
 
     @Override

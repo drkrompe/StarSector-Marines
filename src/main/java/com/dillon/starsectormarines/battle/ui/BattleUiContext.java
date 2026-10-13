@@ -35,6 +35,12 @@ public interface BattleUiContext {
     default float topCenterContentBottom() { return getLayout().gridY + getLayout().gridH - BattleLayout.PAD; }
     /** Bottom of subtitles and the current comms notice together. */
     default float topCenterStackBottom() { return topCenterContentBottom(); }
+    /**
+     * Whether the developer HUD (tick profile, DEBUG tools, squad plan and ship diagnostics) may draw.
+     * Contexts that never hide it keep the default; the battle screen starts with it hidden.
+     */
+    default boolean debugHudVisible() { return true; }
+    default void setDebugHudVisible(boolean visible) {}
     /** Bottom of the visible centered developer cluster. */
     default float developerHudBottom() { return topCenterStackBottom(); }
     /** Bottom of the actual visible right-hand mission/time rail. */

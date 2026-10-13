@@ -1,4 +1,4 @@
-<template props="continueAction">
+<template props="continueAction,laterAction">
   <div id="preparation-overlay" class="preparation-overlay">
     <div id="preparation-shade" class="preparation-shade"></div>
     <div id="preparation-callout" class="preparation-callout">
@@ -13,6 +13,7 @@
       <div id="preparation-copy" class="preparation-copy"></div>
       <div id="preparation-actions" class="preparation-actions">
         <button id="preparation-continue" class="preparation-button" onclick="{continueAction}"></button>
+        <button id="preparation-later" class="preparation-button" onclick="{laterAction}"></button>
       </div>
     </div>
   </div>
