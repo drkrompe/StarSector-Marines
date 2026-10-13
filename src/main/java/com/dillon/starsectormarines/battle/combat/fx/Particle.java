@@ -15,6 +15,8 @@ public final class Particle {
     public float x, y;
     /** Velocity in cells/sec. Smoke rises, sparks stay parked. */
     public float vx, vy;
+    /** Ground friction for rolling crash effects; ordinary particles retain constant velocity. */
+    public float dragPerSecond;
     /** Authored spawn delay; delayed particles neither age nor render until it reaches zero. */
     public float delayRemaining;
     public float lifetimeRemaining;

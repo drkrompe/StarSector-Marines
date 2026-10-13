@@ -103,8 +103,12 @@ public final class ImpactFx {
         }
         particle.lifetimeRemaining -= activeDt;
         if (particle.lifetimeRemaining <= 0f) return false;
-        particle.x += particle.vx * activeDt;
-        particle.y += particle.vy * activeDt;
+        float decay = particle.dragPerSecond > 0f ? (float) Math.exp(-particle.dragPerSecond * activeDt) : 1f;
+        float travelTime = particle.dragPerSecond > 0f ? (1f - decay) / particle.dragPerSecond : activeDt;
+        particle.x += particle.vx * travelTime;
+        particle.y += particle.vy * travelTime;
+        particle.vx *= decay;
+        particle.vy *= decay;
         particle.radiusCells += particle.radiusGrowthPerSec * activeDt;
         return true;
     }
@@ -306,6 +310,39 @@ public final class ImpactFx {
                     1.4f + rng.nextFloat() * 0.8f);
         }
         spawnDust(x, y, false, core, 0.6f);
+    }
+
+    /** Every layer of a crash blast rolls across the surface, then slows and expands. */
+    public void spawnRollingBlast(RollingBlast blast) {
+        int first = particles.size();
+        spawnSparkFlash(blast.x(), blast.y(), blast.radius() * .8f, .18f, SPARK_COLOR);
+        spawnFireBurst(blast.x(), blast.y(), blast.radius() * .9f, 1f);
+        for (int puff = 0; puff < 3; puff++) {
+            Particle smoke = spawnSmokePuff(
+                    blast.x() + (rng.nextFloat() - .5f) * blast.radius(),
+                    blast.y() + (rng.nextFloat() - .5f) * blast.radius(),
+                    blast.radius() * .5f, 1.4f);
+            if (smoke != null) smoke.color = new Color(150, 130, 110, 145);
+        }
+        SpriteAPI sprite = explosionSprites[rng.nextInt(explosionSprites.length)];
+        if (sprite != null) {
+            Particle core = new Particle();
+            core.x = blast.x(); core.y = blast.y();
+            core.radiusCells = blast.radius();
+            core.radiusGrowthPerSec = blast.radius() * .8f;
+            core.lifetimeRemaining = core.lifetimeMax = 1.15f;
+            core.sprite = sprite;
+            core.color = new Color(255, 145, 45);
+            core.additive = true;
+            core.angleDeg = rng.nextFloat() * 360f;
+            particles.add(core);
+        }
+        for (int i = first; i < particles.size(); i++) {
+            Particle p = particles.get(i);
+            p.vx = blast.vx() + (rng.nextFloat() - .5f) * .8f;
+            p.vy = blast.vy() + (rng.nextFloat() - .5f) * .8f;
+            p.dragPerSecond = .8f;
+        }
     }
 
     /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Deliberately small: a ground impact is a point event, not an aerial burst. */

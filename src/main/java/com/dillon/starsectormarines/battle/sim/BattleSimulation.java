@@ -106,6 +106,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSyst
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -1362,6 +1363,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getFireBurstsThisFrame() { return effects.getFireBurstsThisFrame(); }
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
+    public List<RollingBlast> getRollingBlastsThisFrame() { return effects.getRollingBlastsThisFrame(); }
     /** Rounds an aircraft (or any other carrier) put on the ground during the last advance. Presentation only — the delivery itself already resolved. */
     public List<OrdnanceRelease> getOrdnanceReleasesThisFrame() { return effects.getOrdnanceReleasesThisFrame(); }
     /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center, with an optional third size multiplier for small props. Drained once per frame by the host into {@code ImpactFx.spawnWallCollapse}, so a collapse looks the same however it happened. */
