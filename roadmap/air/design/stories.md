@@ -4,11 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — ship escort built (lead-ship relation, lead-weighted threat picture and anti-air pick); the board row now names only the deferred support-hull no-bombardment rule.
+Updated: 2026-10-14 — fortress battery and shield generator built (ground defences slices 3 and 4); ship escort built earlier today.
 
 | Story | State | Outcome |
 | --- | --- | --- |
-| `ground-defences.md` (direction) | ACTIVE — direction settled; slices 1-2 (profile signals, multi-cell structures) next | Ground defences as three things from the market: defence nests, fortress batteries with ship-grade guns whose envelope a ship must respect, and a shield generator whose dome soaks ship fire until overloaded; marines open the sky by taking fire control and generators. Gap G5. |
+| `ground-defences.md` (direction) | ACTIVE — slices 1-4 built (signals, multi-cell structures, fortress battery, shield generator); defence nests next | Ground defences as three things from the market: defence nests, fortress batteries with ship-grade guns whose envelope a ship must respect, and a shield generator whose dome soaks ship fire until overloaded; marines open the sky by taking fire control and generators. Gap G5. |
 | `fighter-air-entities.md` | ACTIVE — the overlay class and the profile's dead tuning are gone; the package rename remains | Fighters are ordinary air entities flying ordinary sorties. Committed wings arrive on an `AirCorridor` from off the map and are dispatched by `AirCoverSystem`. |
 | `air-manual-acceptance.md` | PLANNED | Verify centre-of-gravity rotation, hardpoint placement and per-mount sight, and thrust-weighted engine effects together in a live battle. |
 | `warship-on-station.md` | PLANNED | A Paragon hovers over the battle and sweeps its laser lance across compounds, razing walls, roofs and units, friendly fire included. |

@@ -391,13 +391,7 @@ public class BriefingScreen implements Screen {
         MarkupInstance previousInstance = markupInstance;
         if (hints != null) hints.clear();
         document = built;
-        secondSquadGuide = PreparationGuide.install(built,
-                () -> SecondSquadPreparation.lesson(ctx.getSelectedMission(), liveRoster(),
-                        new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
-                            MarineRoster roster = liveRoster();
-                            if (roster != null) roster.acknowledgeSecondSquadPreparation();
-                            replaySecondSquadGuide = false;
-                        }), this::onBack);
+        secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
         hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
@@ -407,6 +401,23 @@ public class BriefingScreen implements Screen {
             secondSquadGuide.update();
             input = new StarsectorUiInputAdapter(document, viewport);
         }
+    }
+
+    private PreparationGuide.Lesson campaignLesson() {
+        MarineRoster roster = liveRoster();
+        if (roster == null) return null;
+        if (CampaignLessons.next(roster) != CampaignLessons.Step.FORMATIONS) {
+            PreparationGuide.Lesson handoff = CampaignLessons.handoff(roster, ctx, ScreenId.BRIEFING);
+            if (handoff != null) return handoff;
+        }
+        PreparationGuide.Lesson preparation = CampaignLessons.briefing(ctx.getSelectedMission(), roster,
+                ctx.getSelectedMarineSquadIds(), cachedAvailablePowers.stream().anyMatch(p -> MechSupport.ID.equals(p.id)),
+                selectedPowerIds.contains(MechSupport.ID));
+        if (preparation != null) return preparation;
+        return SecondSquadPreparation.lesson(ctx.getSelectedMission(), roster,
+                new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
+                    roster.acknowledgeSecondSquadPreparation(); replaySecondSquadGuide = false;
+                });
     }
 
     private Map<String, Object> retainedProps() {

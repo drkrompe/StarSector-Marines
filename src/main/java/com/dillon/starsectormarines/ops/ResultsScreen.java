@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.fs.starfarer.api.Global;
 
+import java.util.stream.Collectors;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -284,6 +285,14 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         if (outcome.salvageEntitlement > 0) {
             rows.add(row("result-salvage", trimLabel(copy.apply("resultsSalvageLabel")),
                     salvageSummary(outcome, manifest), "tone-accent"));
+        }
+        if (!outcome.fieldSalvage.isEmpty()) {
+            String finds = outcome.fieldSalvage.stream()
+                    .map(f -> f.quantity() + " " + f.resource().displayName)
+                    .collect(Collectors.joining(" · "));
+            rows.add(row("result-field-salvage", "Field finds",
+                    outcome.victory ? finds : "Left behind · " + finds,
+                    outcome.victory ? "tone-good" : "tone-muted"));
         }
         rows.add(row("result-casualties", trimLabel(copy.apply("resultsCasualtiesLabel")),
                 MessageFormat.format(copy.apply("resultsCasualtiesFmt"),

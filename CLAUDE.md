@@ -1104,6 +1104,7 @@ The discovered suite ids and default output directories are:
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, outdoor daylight, enlarged grounded Shepherd, cargo/infantry access and clear construction plots across palettes and seeds; no battle or campaign simulation | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `squad-selection` | Selected and hovered infantry circles, unmarked enemy bodies, and the group command plate at 1920x1080, 100% scale | `build/snapshots/squad-selection/` |
+| `field-salvage` | Optional material caches: production placement checks, controlled discovery/collection/contest/secured frames and cargo claim rows at 1920x1080, 100% scale; not a full mission replay | `build/snapshots/field-salvage/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
@@ -1128,6 +1129,7 @@ The discovered suite ids and default output directories are:
 | `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 | `ship-arrival` | A capital dropping through the cloud deck at the map edge and climbing back out, 1920x1080, whole map and close: the shadow sweeping in from a great height and sharpening as it closes on the hull, the re-entry glow and cloud streaming off it, the downwash dust and the touchdown shock ring, then the climb with its exhaust wake. Full-colour palette plus PNG stills of the key moments. Presentation only: the verdicts are the clocks and the once-only sounds | `build/snapshots/ship-arrival/` |
+| `shield-dome` | An Onslaught shelling defenders under a planetary shield dome, 1920x1080 with a close view: the rounds absorbed as flux with a pool gauge filling, the overload and the gap in which they land, the recovery, against a no-dome control and a loop with the generator destroyed. Verdicts are the scene's | `build/snapshots/shield-dome/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

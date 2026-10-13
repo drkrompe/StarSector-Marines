@@ -1295,7 +1295,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderMissionFlow(
+    static BufferedImage renderMissionFlow(
             SnapshotContext context, HeadlessUiRenderer renderer,
             List<String> components, String rootComponent,
             Map<String, Object> props) throws Exception {
@@ -2579,6 +2579,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 selectHound, selectVacant, specSheet, null);
     }
 
+    static List<SnapshotArtifact> renderCampaignGantries(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        var frames = new ArrayList<SnapshotArtifact>();
+        for (int step = 1; step <= 4; step++) frames.add(new SnapshotArtifact("gantry-" + step + ".png",
+                renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-" + step)));
+        return frames;
+    }
+
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
@@ -2719,9 +2730,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
         try (MarkupInstance instance = loader.build(
                 reactor, "mech-lab", props(viewModel, ship))) {
-            UiDocument document = new UiDocument(instance.root());
-            TutorialModal.bind(document, instance, viewModel::labGuideVisible,
-                    "castle-lab-lesson", "mech-lab-root", viewModel::dismissLabPrompt, () -> { });
+            UiDocument document = PreparationGuide.document(instance.root());
+            var guide = new PreparationGuide(document, viewModel::campaignLesson, () -> {},
+                    new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                            List.of("data/ui/components/company/preparation-guide.mlx")));
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             MechLabDollCanvas fittingCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
@@ -2801,6 +2813,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 return motionFrames.get(Math.min(5, motionFrames.size() - 1));
             }
+            renderRelative(renderer, document, width, height, uiScale);
+            guide.update();
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
