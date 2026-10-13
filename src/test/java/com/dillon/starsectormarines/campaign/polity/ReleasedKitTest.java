@@ -148,7 +148,7 @@ class ReleasedKitTest {
     void anAdvancedPrimaryIsReleasedLikeAnyOtherCard() {
         CampaignState state = new CampaignState();
         EquipmentTemplateCard milspec =
-                EquipmentTemplateCatalog.primary("weapon.pulse-rifle", EquipmentGrade.MILSPEC);
+                EquipmentTemplateCatalog.primary("weapon.dmr", EquipmentGrade.MILSPEC);
 
         assertEquals(EquipmentAccessTier.ADVANCED, milspec.accessTier());
         assertTrue(ReleasedKit.release(state, milspec.id()));

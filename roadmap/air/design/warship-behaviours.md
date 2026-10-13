@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-12 — carrier flux and standoff biases built (owner: carriers hang back and save flux); support-ship no-bombardment decided but deferred; ship class threat weights built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
+Updated: 2026-10-13 — aircraft against ships built (G3) with the shield-type threat weighting; carrier flux and standoff biases built (owner: carriers hang back and save flux); support-ship no-bombardment decided but deferred; ship class threat weights built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -26,10 +26,10 @@ Read from `src/main` on 2026-10-11. This is the ground the proposal stands on, a
 - Point defence shoots hostile in-flight `Projectile`s that opt in and hostile `WarshipShell`s; ordnance always outranks aircraft for a point-defence mount.
 - `WarshipSystem` and `Warship` still do not appear anywhere under `air/`, `flyby/`, `turret/`, `weapon/` or `grenade/`; the one seam into the air layer is the aimed-damage entry point on the shared body damage route.
 
-**Aircraft against ships: nothing aimed, one incidental route.**
+**Aircraft against ships: built (G3).**
 
-- No air craft, fighter or shuttle ever chooses a warship as a target. Fighters and strikes deliver `AirOrdnance` as ordinary detonations on the densest ground concentration.
-- A hull is hurt only through `WarshipSystem.onDetonation`: any detonation by a hostile faction whose blast reaches the hull footprint, through the armour rule. So a bomb that happens to land near a hostile hull would chip it, and nothing ever aims a bomb there.
+- A hostile strike sortie may choose a hull as its target (`HullStrike`, asked by both `AirStrikeSystem` and `AirCoverSystem`). A hull is a candidate beside the densest ground concentration and takes precedence when eligible: hostile, not destroyed or departing, hurtable by the craft that would fly (`Warship.effectiveDamage > 0` for its `AirOrdnance`, so a beam that glances off the plate is never sent), and fewer than two of the side's craft already working it (the rest go to the ground). Shuttles and boats never attack a hull. The target is the hull's centre when the sortie is dispatched; a moving hull is not tracked.
+- A hull is hurt only through `WarshipSystem.onDetonation`, as it always was: any detonation by a hostile faction whose blast reaches the hull footprint, shield first (as flux on the pool) then the armour rule. The attack run is the ordinary one, so aircraft weapons are unchanged and there is no second route.
 - A warship is not a body. It is not in the unit roster, not an air entity, not in `EngagementService`, not in `getAirEntityIds`. Nothing can *target* it; it can only be *splashed*.
 
 **Ship against ship: incidental only.**
@@ -84,7 +84,7 @@ What counts, and what exists to read today:
 | Candidate threat | Counts for a ship when | Readable today? |
 | --- | --- | --- |
 | Hostile warship | always, scaled by class and hull fraction | yes: `WarshipSystem.ships()` filtered by faction |
-| Hostile armed fighter / strike craft airborne | the craft carries ordnance the model can land near the hull, or (later) fire at it | craft yes (`getAirEntityIds`, `FighterProfile` armament); the *ability to hurt a ship* is not modelled |
+| Hostile armed fighter / strike craft airborne | the craft carries ordnance that gets through this hull's armour (built) | yes: `getAirEntityIds`, the craft's `AirOrdnance` against `Warship.effectiveDamage` |
 | Hostile shuttle in flight | never a threat to the ship; it is an *objective of interception* (INTERCEPT) not an air-superiority one | yes |
 | Hostile anti-air emplacement (defence post) | it can hurt the ship | **no**: posts drain aircraft only; see gap G5 |
 | Own side's air (fighters, shuttles) | never a threat; counts as **cover to protect**, which raises the stakes of leaving the air fight | yes |
@@ -148,7 +148,7 @@ Exactly the current director with no objective bias and no friendly weighting. I
 
 - **Size:** FRIGATE, DESTROYER, CRUISER, CAPITAL (a fighter-size hull reads as a frigate; an unknown size reads as a capital).
 - **Role:** SUPPORT if the hints say `CIVILIAN` or the designation names a tender (the Shepherd carries `CARRIER` and one bay but is a builder, so tender wins); else CARRIER if the hints say `CARRIER` or the hull has three or more bays; else COMBAT. One or two bays without the hint (Venture, Odyssey) is a gun ship with a wing; a `COMBAT` hint beside `CARRIER` (Legion, Mora, Drover) does not change the role.
-- **Shield type** (NONE, FRONT, OMNI, PHASE) is carried on the class for readouts and later weighting; it is not weighted yet (question 2 below).
+- **Shield type** (NONE, FRONT, OMNI, PHASE) scales the armed-craft weight (see below).
 
 The weight table scales the base weights in `AirThreatPicture` (hostile ship 1.0 at full hull, armed craft 0.5 each capped at 2.0 before the multiplier, declared strength as stated). Declared threats and hostile ships count the same for every class; only armed craft differ:
 
@@ -160,6 +160,8 @@ The weight table scales the base weights in `AirThreatPicture` (hostile ship 1.0
 | Combat frigate | 1.0 | 1.0 | 2.0 |
 | Carrier, any size | 1.0 | 1.0 | 2.0 |
 | Support, any size | 1.0 | 1.0 | 1.5 |
+
+**Shield type scales the armed-craft column again (built, owner decision):** no shield 1.0 (the identity), front 0.85, omni 0.7, phase judged as front (a cloak shrugs a strike off while it holds, but it is a flux and firepower sacrifice, not a standing screen). Declared threats and hostile ships are not scaled. The numbers are a first table.
 
 So one armed craft (0.5) reaches the air-superiority entry level (1.0) for a frigate or any carrier, and does not for a capital. The score has no ground-clutter term, so a carrier's near-zero weight on ground is already true of every class. A class changes the threat score, and a carrier additionally biases its flux pair and standoff margin (Decided below); no damage parameter reads it.
 
@@ -186,7 +188,7 @@ The rest of the original class intent (support ships, escort) is **not built** a
 | G0 | No posture state, readout, or snapshot of threats | Nothing here is observable | Slice 1 |
 | G1 | Director ignores objectives and friendlies | Owner's attack/defend and friendly-fire asks | Slice 2; reads existing roster, objectives, tactical map |
 | G2 | ~~Ship weapons cannot target aircraft~~ | **Built (slice 3).** | `WarshipAirFire` and `WarshipAirRules`, damage through the shared body damage route's aimed entry; no second air registry |
-| G3 | Aircraft cannot hurt a ship | "A threat for the ship class" is empty | Strike craft choosing a hull as a target through a narrow ship-damage route; not by making ships entities yet |
+| G3 | ~~Aircraft cannot hurt a ship~~ | **Built.** | `HullStrike` in both dispatchers; damage rides the existing detonation route, `Warship` still not an entity |
 | G4 | Ships are not targets | Escorts, ship-vs-ship, counter-battery, air superiority between capitals | Make a hull a target class for ship mounts (circle, then the authored polygon the nouns already require) |
 | G5 | Ground defences cannot hurt a ship, so there is no hazard to stand off from | "Stay out of range of ground defences" is fiction until it has a cause | Model it as the same kind of area drain `tickAirThreat` uses, from anti-air/anti-armour emplacements, so the posture's standoff has something to read; owner decision first |
 | G6 | ~~Hull class, bays, hints, shield type unread~~ | **Built (weights).** Parameter biases and escort remain, see Classes and its open questions | `ShipClass` read in `Warship.fit`; `AirThreatWeights` |
@@ -201,6 +203,7 @@ Each lands as a `BehaviorScene` next to the existing warship scenes (`onslaught-
 - `warship-posture` (built): the same Onslaught over the same block of defenders with (a) no doctrine, (b) a declared threat raised and later cleared, (c) a hostile warship present then destroyed, (d) a declared capital hazard over the station, (e) the hull knocked under the limit. Verdicts: posture changes within a pass of the cause, returns after the quiet dwell, two transitions and no more, flux held below the control, flux of area fire clearly lower, every round inside the opportunity range, the rate recovered, standoff kept and the station regained, withdraw departs and stops firing, and a second play changes posture on the same ticks.
 - `warship-support-fire` (built): an objective knot, a denser decoy and a densest knot with the company's own people in it. Verdicts: the control takes the densest and kills its own; the attacker takes the objective first, kills no friendly, leaves the dirty knot alone, holds fire and says why; danger-close fires into the dirty knot (the flag the only difference); a stance flip from ATTACK to DEFEND moves the fire from the objective to the defended ground.
 - `warship-intercept` (built): a defender ship against a marine drop, no ship / density director / landing denial, plus the defenders' own boat landing within reach. Verdicts: the boat lands, the first zone round lands with it (fired before touchdown), far fewer marines survive five seconds after touchdown, the touchdown estimate holds within a second, no round near the defenders' own boat. Whether a detonation hurts a boat on its pad was observed, not asserted: the boat's hit points were untouched.
+- `warship-air-strike` (built): a defenders' bomber wing against an Enforcer (omni shield, armour 900): no wing; shield held down with air fire off; shield on automatic; the doctrine hull; and beam fighters against an Onslaught. Verdicts: craft are sent at the hull with at most two on it at once; the bare hull loses hit points and the shield none; the shielded hull absorbs the landings as flux and loses less; the doctrine hull takes air superiority with armed craft as the reason and its flak downs the wing; beam fighters fly at the ground, are not sent at the hull, are not counted as a threat and leave the hull untouched.
 - `warship-vs-air` (built): an Onslaught against a lone hostile transport, a fighter wing and a doctrine-driven air fight; and a defending ship against an inbound marine boat. Controls: the same ship under no air order. Verdicts: the boat is shot down in flight and its passengers lost where the control lands them; point-defence weapons stay silent against a transport; the large assault guns (measured by rounds per weapon id) stay silent against fighters while flak, anti-fighter and medium guns fire and kill some; air-superiority is entered, fires no assault round at aircraft, and over the ticks it held the posture fires fewer ground rounds, peaks lower in flux and leaves a hostile ground block untouched where the same ship pinned to bombard destroys it; intercept shoots the boat while the control with air fire off lands it.
 - Open: a withdraw that returns is ruled out by decision 10; ships as targets remain unbuilt. Ship class weights are pinned by unit tests (`ShipClassTest`, `AirThreatWeightsTest`), not by a scene: the only question is arithmetic over a snapshot.
 - Each is also a `sceneEvidence` row, so a regression fails the run; the snapshot suite plays the same run for the picture.
@@ -252,7 +255,7 @@ Slice 1 (posture and readout), slice 2 (objective-aware, friendly-aware fire, st
 - **Not built:** a fighter that survives a strike with a damaged hull is simply dead or alive (one hit usually kills: ship rounds carry hundreds of damage against tens of structure), warheads and carriers are straight shells and not missile flights, and area-weapon blasts do not splash a second craft.
 
 - **Stance changes bypass the dwell.** A stance is an order, not sensing noise, so a flip ATTACK to DEFEND takes effect at the next pass. The dwell and 2:1 thresholds guard only the air fight, which is the sensed input.
-- **Air score.** Declared strength, plus each hostile warship at 1.0 scaled from half to full by its hull, plus 0.5 per hostile armed strike craft in the air (capped at 2). Enter at 1.0, leave under 0.5 held for 8 s. Armed craft are the air layer's strike sorties; flyby wings are not entities and are not seen.
+- **Air score.** Declared strength, plus each hostile warship at 1.0 scaled from half to full by its hull, plus 0.5 per hostile armed strike craft in the air (capped at 2). Enter at 1.0, leave under 0.5 held for 8 s. Armed craft are the air layer's strike sorties (committed wings included, since they fly as sorties) whose ordnance can hurt this ship's armour.
 - **Withdraw entry.** Hull under 35% (25% while the ship's own aircraft are in the air), or hull under 60% while threatened and overloaded or shield-down. The narrower overload rule is a judgement call: an overload lasts seconds, so it alone must not end a capital's battle.
 - **AIR_SUPERIORITY conserves by choosing, not by weakening.** The flux soft pair drops to 50/30, the director holds one half-size area, never swings the heading, fires only inside 40% of the longest reach, and only from mounts whose burst costs under 8% of the pool (the secondary battery; lances are silent). A mount whose aim has drifted past that range because the hull moved abandons its burst.
 - **Standoff** holds for the air-superiority posture only: the station moves to just outside any declared hazard hostile to the ship and returns to the mission's station when the posture ends.
@@ -278,10 +281,11 @@ Standoff is the existing machinery (`WarshipSystem.standoffStation`, declared ca
 
 **Support hulls do not hunt ground (decided, deferred).** A `SUPPORT` hull (CIVILIAN hint or tender designation) does not run the BOMBARD density director: it keeps point defence and returns fire on what threatens it, but does not seek ground targets. Not built: no mission puts a gunned support hull over a battle yet (the Shepherd tender carries no guns), so there is nothing to observe. Build it with the first such hull, as `maxAreas` 0 outside point defence for the SUPPORT role.
 
-**Shield type will count in the threat weights (decided, deferred).** An unshielded hull fears aircraft more, a front shield leaves it exposed to a flank attack, an omni shield fears less. Not built: until aircraft can hurt ships (G3), ground defences can (G5) and ships are targets (G4), the threat channel the weights scale is inert, so a shield column would weight nothing observable. The shield type is already carried on `ShipClass`.
+**Shield type counts in the threat weights (built).** An unshielded hull fears aircraft more than a front-shielded one, which fears them more than an omni-shielded one. Built once aircraft could hurt ships (G3). A front shield's exposed flank is not modelled; it only weighs more than an omni.
 
-**Escort is wanted (decided, deferred).** A role with a lead-ship relation that follows the lead at an offset and intercepts threats aimed at it. Not built, on the same dependency: it needs ships as targets (G4) and something that aims at a lead (G3, G5). Until then a frigate or destroyer is a small combat ship.
+**Escort is wanted (decided, deferred).** A role with a lead-ship relation that follows the lead at an offset and intercepts threats aimed at it. Not built: it needs ships as targets (G4); G3 now supplies something that aims at a lead. Until then a frigate or destroyer is a small combat ship.
 
 ## Open questions: ship class
 
 1. **The multipliers and carrier numbers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
+2. **Aircraft against ships: three calls made building G3, open for the owner.** (a) A hull always outranks the ground for an eligible sortie, with no mission or posture input; a side with a hostile capital overhead sends its first two craft at it. (b) A sortie is aimed at the hull\'s centre at dispatch and does not follow a moving hull. (c) Shield factors (0.85 front, 0.7 omni) are a first table; phase is treated as front.

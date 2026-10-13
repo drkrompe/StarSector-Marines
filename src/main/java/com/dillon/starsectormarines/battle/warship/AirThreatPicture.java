@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirLocomotion;
+import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
@@ -25,9 +26,9 @@ import java.util.Locale;
  * entity ids the battle already tracks, in a stable order (ships as added,
  * aircraft by id), and writes nothing. A hostile shuttle is never a threat to a
  * ship; it is an inbound drop, listed apart, which is what interception is for.
- * "Armed craft" is a strike sortie the air layer flies, because that is the
- * only armed craft the entity layer has; wings the flyby layer draws are not
- * entities and are not seen here.
+ * "Armed craft" is a strike sortie the air layer flies (a committed wing flies as
+ * one) whose ordnance gets through this ship's armour: a craft that cannot hurt the
+ * hull is no threat to it.
  */
 public final class AirThreatPicture {
 
@@ -102,13 +103,27 @@ public final class AirThreatPicture {
             }
             if (!ship.faction.hostileTo(faction)) continue;
             if (mission.strikeSortie) {
-                if (airborne) armed++;
+                if (airborne && canHurt(world, id, mission, ship)) armed++;
                 continue;
             }
             InboundDrop drop = dropOf(world, id, mission, faction);
             if (drop != null) drops.add(drop);
         }
         return new AirThreatPicture(ship.declaredAirThreat(), hostile, weight, armed, own, drops, ship.shipClass());
+    }
+
+    /**
+     * Whether a strike craft carries ordnance that gets through this ship's armour at all. A craft that cannot
+     * hurt the hull is no threat to it, however armed it is against the ground; a craft with nothing to drop
+     * never is.
+     */
+    static boolean canHurt(World world, long id, ShuttleMission mission, Warship ship) {
+        AirOrdnance load = mission.ordnance;
+        if (load == null) {
+            Airframe frame = world.airframe(id);
+            load = frame == null ? null : frame.ordnance();
+        }
+        return load != null && Warship.effectiveDamage(load.damage, load.penetration, ship.armour) > 0f;
     }
 
     private static InboundDrop dropOf(World world, long id, ShuttleMission mission, Faction faction) {

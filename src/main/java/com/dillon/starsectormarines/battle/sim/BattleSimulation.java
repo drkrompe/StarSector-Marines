@@ -62,6 +62,8 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.AirOrdnance;
+import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
@@ -1624,6 +1626,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Warships over the battle, for presentation and evidence. */
     public WarshipSystem warships() {
         return warships;
+    }
+
+    /**
+     * Hostile hulls over the battle as a strike craft sees them, in the order the ships were added: a hull that
+     * is destroyed or leaving is not a target. A snapshot of positions, not handles.
+     */
+    public List<HullTarget> hostileHulls(Faction side) {
+        List<HullTarget> out = new ArrayList<>();
+        for (Warship ship : warships.ships()) {
+            if (ship.destroyed() || ship.departing() || !side.hostileTo(ship.faction)) continue;
+            out.add(new HullTarget(ship.centerX(), ship.centerY(),
+                    0.5f * Math.max(ship.lengthCells, ship.widthCells), ship.armour));
+        }
+        return out;
+    }
+
+    /** Whether one round of {@code load} gets through {@code hull}'s armour at all, by the hull's own armour rule. */
+    public boolean ordnanceHurtsHull(AirOrdnance load, HullTarget hull) {
+        return Warship.effectiveDamage(load.damage, load.penetration, hull.armour()) > 0f;
     }
 
     /** Drone tenders over the battle; their hulls are also among {@link #warships()}. */

@@ -686,6 +686,18 @@ public final class Warship {
         return taken;
     }
 
+    /** Where the hull's footprint is centred: the ship's position offset by the sprite's pivot, turned with the heading. */
+    public float centerX() {
+        double r = Math.toRadians(facingDegrees);
+        return x + pivotX * (float) Math.cos(r) - pivotY * (float) Math.sin(r);
+    }
+
+    /** See {@link #centerX()}. */
+    public float centerY() {
+        double r = Math.toRadians(facingDegrees);
+        return y + pivotX * (float) Math.sin(r) + pivotY * (float) Math.cos(r);
+    }
+
     /**
      * The gap, in cells, between {@code (px, py)} and the hull's footprint (its
      * sprite rectangle about the sprite's centre); zero inside it.
@@ -694,8 +706,8 @@ public final class Warship {
         double r = Math.toRadians(facingDegrees);
         float c = (float) Math.cos(r);
         float s = (float) Math.sin(r);
-        float cx = x + pivotX * c - pivotY * s;
-        float cy = y + pivotX * s + pivotY * c;
+        float cx = centerX();
+        float cy = centerY();
         float dx = px - cx;
         float dy = py - cy;
         float lx = dx * c + dy * s;
