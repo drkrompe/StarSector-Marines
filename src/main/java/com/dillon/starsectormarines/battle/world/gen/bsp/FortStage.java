@@ -19,6 +19,8 @@ import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
+import com.dillon.starsectormarines.battle.world.gen.fortress.ShieldFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
@@ -44,11 +46,12 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
- * Stands exactly the battery forts the mission declared ({@link GroundDefences#fortCount(FortKind)}) and finds ground
- * for them. Like {@link FortressBatteryStage} it never reads the market and never derives a count from the map: with no
+ * Stands exactly the forts the mission declared ({@link GroundDefences#fortCount(FortKind)}), of every kind, and finds
+ * ground for them. Each kind is an authored {@link FortPlan} ({@link BatteryFort}, {@link ShieldFort}); the placement,
+ * stamping and gate-linking here are common to all of them and the plan supplies the geometry. Like {@link FortressBatteryStage} it never reads the market and never derives a count from the map: with no
  * declaration it places nothing and draws nothing, and the map is byte-identical to one generated without it.
  *
- * <p>A fort is the authored {@link BatteryFort} layout placed on open ground at one of four turns. The city is
+ * <p>A fort is an authored plan's layout placed on open ground at one of four turns. The city is
  * prior: a site must be open outdoor ground, off every road, doorway, authored infantry place, landing berth and
  * existing structure, with a margin of clear ground all round so the fort can never cut the walkable map in two.
  * Within that, sites are taken deep band first, then nearest the map centre, and the turn is the one that points the
@@ -63,7 +66,7 @@ import java.util.function.BiPredicate;
  * structures, the battery platform and the nests are emitted as {@link DefensePost}s carrying a {@link FortTag}, so the
  * ordinary spawn path stands them up and the simulation assembles the fort from what was stamped.
  */
-public final class BatteryFortStage implements GenStage {
+public final class FortStage implements GenStage {
 
     /** Hit points of a wall cell of the fort's outer wall: breachable by demolition, not by small arms. */
     public static final int FORT_WALL_HP = 400;
@@ -86,12 +89,15 @@ public final class BatteryFortStage implements GenStage {
     /** A candidate centre with the order it is taken in. */
     private record Site(int x, int y, int band, long centreDistSq) {}
 
+    /** The kinds this stage places, in the order they are placed (and so numbered). */
+    private static final List<FortPlan> PLANS = List.of(BatteryFort.PLAN, ShieldFort.PLAN);
+
     /** Where a fort stands, for evidence. */
-    public record Placed(CompoundLayout.Placement placement, int fortId) {}
+    public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan) {}
 
     private final List<Placed> placed = new ArrayList<>();
 
-    public BatteryFortStage() {}
+    public FortStage() {}
 
     /** The forts this stage stood on its last run, in the order they were placed. */
     public List<Placed> placed() {
@@ -102,28 +108,36 @@ public final class BatteryFortStage implements GenStage {
     public void run(GenContext ctx) {
         placed.clear();
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        int budget = profile == null ? 0 : profile.declaredDefences().fortCount(FortKind.BATTERY_FORT);
-        if (budget <= 0) return;
+        if (profile == null) return;
+        boolean any = false;
+        for (FortPlan plan : PLANS) any |= profile.declaredDefences().fortCount(plan.kind()) > 0;
+        if (!any) return;
         TacticalRegionMap regions = ctx.get(BspKeys.TACTICAL_REGIONS);
         if (regions == null) {
             throw new IllegalStateException(
-                    "BatteryFortStage requires TACTICAL_REGIONS - must run after TacticalRegionStage");
+                    "FortStage requires TACTICAL_REGIONS - must run after TacticalRegionStage");
         }
-        CompoundLayout layout = BatteryFort.layout();
         Ground ground = new Ground(ctx);
         List<Site> sites = candidates(ctx, regions);
         sites.sort(Comparator.comparingInt(Site::band).thenComparingLong(Site::centreDistSq)
                 .thenComparingInt(Site::y).thenComparingInt(Site::x));
 
-        for (Site site : sites) {
-            if (placed.size() >= budget) break;
-            if (tooClose(site)) continue;
-            CompoundLayout.Placement at = fit(layout, ground, site, ctx);
-            if (at == null) continue;
-            int fortId = placed.size();
-            stamp(ctx, at, fortId, ground);
-            ground.exclude(at);
-            placed.add(new Placed(at, fortId));
+        for (FortPlan plan : PLANS) {
+            int budget = profile.declaredDefences().fortCount(plan.kind());
+            if (budget <= 0) continue;
+            CompoundLayout layout = plan.layout();
+            int standing = 0;
+            for (Site site : sites) {
+                if (standing >= budget) break;
+                if (tooClose(site)) continue;
+                CompoundLayout.Placement at = fit(plan, layout, ground, site, ctx);
+                if (at == null) continue;
+                int fortId = placed.size();
+                stamp(ctx, plan, at, fortId, ground);
+                ground.exclude(plan, at);
+                placed.add(new Placed(at, fortId, plan));
+                standing++;
+            }
         }
         if (placed.isEmpty()) return;
         finish(ctx);
@@ -135,7 +149,7 @@ public final class BatteryFortStage implements GenStage {
     private boolean tooClose(Site site) {
         long sq = (long) FORT_SEPARATION * FORT_SEPARATION;
         for (Placed p : placed) {
-            int[] c = p.placement().cell(BatteryFort.WIDTH / 2, BatteryFort.HEIGHT / 2);
+            int[] c = p.placement().cell(p.plan().width() / 2, p.plan().height() / 2);
             long dx = c[0] - site.x();
             long dy = c[1] - site.y();
             if (dx * dx + dy * dy < sq) return true;
@@ -164,24 +178,25 @@ public final class BatteryFortStage implements GenStage {
      * The placement of the layout centred on {@code site} at the first turn, ordered by how nearly the main gate faces
      * the map centre, whose whole box and margin is open ground; {@code null} when no turn fits.
      */
-    private static CompoundLayout.Placement fit(CompoundLayout layout, Ground ground, Site site, GenContext ctx) {
-        int[][] order = turnsByGateFacing(layout, ctx, site);
+    private static CompoundLayout.Placement fit(FortPlan plan, CompoundLayout layout, Ground ground, Site site,
+                                                GenContext ctx) {
+        int[][] order = turnsByGateFacing(plan, layout, ctx, site);
         for (int[] turn : order) {
             int q = turn[0];
-            int w = q % 2 == 0 ? BatteryFort.WIDTH : BatteryFort.HEIGHT;
-            int h = q % 2 == 0 ? BatteryFort.HEIGHT : BatteryFort.WIDTH;
+            int w = q % 2 == 0 ? plan.width() : plan.height();
+            int h = q % 2 == 0 ? plan.height() : plan.width();
             int x = site.x() - w / 2;
             int y = site.y() - h / 2;
             if (x < 0 || y < 0 || x + w > ctx.width || y + h > ctx.height) continue;
             CompoundLayout.Placement at = layout.at(x, y, q);
             // The works and the glacis round them need clear ground; the belt beyond follows whatever is open.
-            if (ground.clear(at)) return at;
+            if (ground.clear(plan, at)) return at;
         }
         return null;
     }
 
     /** Turns ordered by the main gate's outward direction against the direction to the map centre, best first. */
-    private static int[][] turnsByGateFacing(CompoundLayout layout, GenContext ctx, Site site) {
+    private static int[][] turnsByGateFacing(FortPlan plan, CompoundLayout layout, GenContext ctx, Site site) {
         double toCentreX = ctx.width * 0.5 - site.x();
         double toCentreY = ctx.height * 0.5 - site.y();
         double length = Math.hypot(toCentreX, toCentreY);
@@ -192,8 +207,9 @@ public final class BatteryFortStage implements GenStage {
         int[][] order = new int[4][2];
         for (int q = 0; q < 4; q++) {
             var at = layout.at(0, 0, q);
-            int[] inside = at.cell(BatteryFort.OX + 2, BatteryFort.OY + 17);
-            int[] outside = at.cell(BatteryFort.OX - 3, BatteryFort.OY + 17);
+            FortPlan.Gate main = plan.gates().get(0);
+            int[] inside = at.cell(main.mouthX(), main.mouthY());
+            int[] outside = at.cell(main.mouthX() + main.outX(), main.mouthY() + main.outY());
             double dot = (outside[0] - inside[0]) * toCentreX + (outside[1] - inside[1]) * toCentreY;
             order[q][0] = q;
             order[q][1] = (int) Math.round(-dot * 1000);
@@ -300,9 +316,9 @@ public final class BatteryFortStage implements GenStage {
         }
 
         /** Takes a placed fort's whole footprint, belt included, and a margin: forts never stand flush. */
-        void exclude(CompoundLayout.Placement at) {
+        void exclude(FortPlan plan, CompoundLayout.Placement at) {
             int[] a = at.cell(0, 0);
-            int[] b = at.cell(BatteryFort.WIDTH - 1, BatteryFort.HEIGHT - 1);
+            int[] b = at.cell(plan.width() - 1, plan.height() - 1);
             markBox(Math.min(a[0], b[0]) - MARGIN, Math.min(a[1], b[1]) - MARGIN,
                     Math.max(a[0], b[0]) + MARGIN, Math.max(a[1], b[1]) + MARGIN);
         }
@@ -326,8 +342,8 @@ public final class BatteryFortStage implements GenStage {
         }
 
         /** Whether every cell of the works and their glacis is open ground when the layout is placed as given. */
-        boolean clear(CompoundLayout.Placement at) {
-            for (int[] local : BatteryFort.clearCells()) {
+        boolean clear(FortPlan plan, CompoundLayout.Placement at) {
+            for (int[] local : plan.clearCells()) {
                 int[] cell = at.cell(local[0], local[1]);
                 if (!ok(cell[0], cell[1])) return false;
             }
@@ -354,8 +370,8 @@ public final class BatteryFortStage implements GenStage {
 
     // ----------------------------------------------------------------------------------------- stamp
 
-    static void stamp(GenContext ctx, CompoundLayout.Placement at, int fortId) {
-        stamp(ctx, at, fortId, null);
+    static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
+        stamp(ctx, plan, at, fortId, null);
     }
 
     /**
@@ -363,13 +379,13 @@ public final class BatteryFortStage implements GenStage {
      * the ground and interior dressing, and last the belt, which takes only the cells the ground will give it. A null
      * {@code ground} means open country everywhere, which is what a bare test field is.
      */
-    private static void stamp(GenContext ctx, CompoundLayout.Placement at, int fortId, Ground ground) {
+    private static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground) {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
-        int w = BatteryFort.WIDTH;
-        int h = BatteryFort.HEIGHT;
+        int w = plan.width();
+        int h = plan.height();
         boolean[][] cleared = new boolean[ctx.width][ctx.height];
-        for (int[] local : BatteryFort.clearCells()) {
+        for (int[] local : plan.clearCells()) {
             int[] cell = at.cell(local[0], local[1]);
             if (ctx.grid.inBounds(cell[0], cell[1])) cleared[cell[0]][cell[1]] = true;
         }
@@ -380,7 +396,7 @@ public final class BatteryFortStage implements GenStage {
         // The ground: every cell of the works starts as bare earth; aprons and lanes are paved over it below.
         for (int lx = 0; lx < w; lx++) {
             for (int ly = 0; ly < h; ly++) {
-                if (!BatteryFort.isWorks(lx, ly)) continue;
+                if (!plan.isWorks(lx, ly)) continue;
                 int[] cell = at.cell(lx, ly);
                 grid.setWalkableFloor(cell[0], cell[1]);
                 topology.setNatureOverlayIndex(cell[0], cell[1], -1);
@@ -406,24 +422,20 @@ public final class BatteryFortStage implements GenStage {
             }
         }
 
-        // The structures: one core in each aspect building, the platform, and a nest in each bastion.
-        for (FortAspect aspect : FortAspect.values()) {
-            String id = switch (aspect) {
-                case FIRE_CONTROL -> TurretCatalogRegistry.FORT_FIRE_CONTROL_STRUCTURE_ID;
-                case MAGAZINE -> TurretCatalogRegistry.FORT_MAGAZINE_STRUCTURE_ID;
-                case POWER -> TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID;
-            };
-            int[] centre = BatteryFort.coreCentre(aspect);
-            emitStructure(ctx, id, at.cell(centre[0], centre[1]), new FortTag(fortId, aspect));
+        // The structures: one core in each aspect building, the fort's centrepiece, and a nest in each bastion.
+        for (FortAspect aspect : plan.aspects()) {
+            int[] centre = plan.coreCentre(aspect);
+            emitStructure(ctx, plan.coreStructureId(aspect), at.cell(centre[0], centre[1]), new FortTag(fortId, aspect));
         }
-        emitStructure(ctx, TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID,
-                at.cell(BatteryFort.PLATFORM[0], BatteryFort.PLATFORM[1]), new FortTag(fortId, null));
+        int[] centrepiece = plan.centrepiece();
+        emitStructure(ctx, plan.centrepieceStructureId(), at.cell(centrepiece[0], centrepiece[1]),
+                new FortTag(fortId, plan.centrepieceAspect()));
         int nestNumber = 0;
-        for (int[] local : BatteryFort.NESTS) {
+        for (int[] local : plan.nests()) {
             emitNest(ctx, at.cell(local[0], local[1]), fortId, nestNumber++);
         }
 
-        stampWall(ctx, at);
+        stampWall(ctx, plan, at);
 
         // The ground: compacted yard inside the wall with concrete aprons round every building, and paving only on
         // the lanes vehicles actually drive. Marked as made ground once dressed so the landscape stages leave it alone.
@@ -431,13 +443,13 @@ public final class BatteryFortStage implements GenStage {
         boolean[][] lane = new boolean[ctx.width][ctx.height];
         for (int lx = 0; lx < w; lx++) {
             for (int ly = 0; ly < h; ly++) {
-                if (!BatteryFort.isWorks(lx, ly) || BatteryFort.isWall(lx, ly)) continue;
+                if (!plan.isWorks(lx, ly) || plan.isWall(lx, ly)) continue;
                 int[] cell = at.cell(lx, ly);
                 yard[cell[0]][cell[1]] = true;
             }
         }
         InstallationGround.dress(ctx, yard, new boolean[ctx.width][ctx.height], rooms);
-        for (int[] rect : BatteryFort.LANES) {
+        for (int[] rect : plan.lanes()) {
             for (int dx = 0; dx < rect[2]; dx++) {
                 for (int dy = 0; dy < rect[3]; dy++) {
                     int[] cell = at.cell(rect[0] + dx, rect[1] + dy);
@@ -450,16 +462,16 @@ public final class BatteryFortStage implements GenStage {
         }
         for (int lx = 0; lx < w; lx++) {
             for (int ly = 0; ly < h; ly++) {
-                if (!BatteryFort.isWorks(lx, ly)) continue;
+                if (!plan.isWorks(lx, ly)) continue;
                 int[] cell = at.cell(lx, ly);
                 ctx.markMadeGround(cell[0], cell[1]);
                 // The gate cells are on the wall, outside the dressed yard: they take the paving.
                 if (!yard[cell[0]][cell[1]] && grid.isWalkable(cell[0], cell[1])) pave(ctx, cell[0], cell[1]);
             }
         }
-        paveGates(ctx, at);
-        dressInterior(ctx, at, lane);
-        stampBelt(ctx, at, fortId, ground);
+        paveGates(ctx, plan, at);
+        dressInterior(ctx, plan, at, lane);
+        stampBelt(ctx, plan, at, fortId, ground);
     }
 
     private static void emitNest(GenContext ctx, int[] cell, int fortId, int number) {
@@ -473,12 +485,12 @@ public final class BatteryFortStage implements GenStage {
      * The outer belt: trench, sandbag line, wire and nests, drawn only on cells the ground gives up. A cell the city
      * holds is skipped, so the belt follows the land rather than overriding it.
      */
-    private static void stampBelt(GenContext ctx, CompoundLayout.Placement at, int fortId, Ground ground) {
+    private static void stampBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground) {
         FortDressing draw = new FortDressing(ctx, at);
         Set<Long> taken = new HashSet<>();
-        int nestNumber = BatteryFort.NESTS.size();
-        for (FortBelt.Cell c : FortBelt.cells()) {
-            if (BatteryFort.isWorks(c.x(), c.y())) continue;
+        int nestNumber = plan.nests().size();
+        for (FortBelt.Cell c : plan.belt()) {
+            if (plan.isWorks(c.x(), c.y())) continue;
             int[] cell = at.cell(c.x(), c.y());
             if (!ctx.grid.inBounds(cell[0], cell[1]) || (ground != null && !ground.ok(cell[0], cell[1]))) continue;
             boolean levelled = ground != null && ground.isRock(cell[0], cell[1]);
@@ -489,13 +501,13 @@ public final class BatteryFortStage implements GenStage {
         levelRocks(ctx, (x, y) -> taken.contains(FortDressing.key(x, y)));
         ctx.doodads.removeIf(d -> taken.contains(FortDressing.key(d.cellX, d.cellY)));
         Set<Long> trench = new HashSet<>();
-        for (FortBelt.Cell c : FortBelt.cells()) {
+        for (FortBelt.Cell c : plan.belt()) {
             int[] cell = at.cell(c.x(), c.y());
             if (c.role() == FortBelt.Role.TRENCH && taken.contains(FortDressing.key(cell[0], cell[1]))) {
                 trench.add(FortDressing.key(cell[0], cell[1]));
             }
         }
-        for (FortBelt.Cell c : FortBelt.cells()) {
+        for (FortBelt.Cell c : plan.belt()) {
             int[] cell = at.cell(c.x(), c.y());
             if (!taken.contains(FortDressing.key(cell[0], cell[1]))) continue;
             switch (c.role()) {
@@ -518,8 +530,15 @@ public final class BatteryFortStage implements GenStage {
     }
 
     /** The interior: gun pit, berms and yard furniture, kept off the paved lanes. */
-    private static void dressInterior(GenContext ctx, CompoundLayout.Placement at, boolean[][] lane) {
+    private static void dressInterior(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, boolean[][] lane) {
         FortDressing d = new FortDressing(ctx, at);
+        switch (plan.kind()) {
+            case BATTERY_FORT -> dressBatteryInterior(d, lane);
+            case SHIELD_FORT -> dressShieldInterior(d, lane);
+        }
+    }
+
+    private static void dressBatteryInterior(FortDressing d, boolean[][] lane) {
         int ox = BatteryFort.OX, oy = BatteryFort.OY;
         // The battery sits in a revetted pit: a gravel floor inside two sandbag rings whose gaps do not line up, so the
         // way in turns once and the guns are never open to a straight shot from the gate.
@@ -572,6 +591,50 @@ public final class BatteryFortStage implements GenStage {
         d.prop(ox + 18, oy + 12, "military-radar-dish", lane);
     }
 
+    /**
+     * The shield fort's interior: a gravel bed under the generator inside its keep, firing lines inside each gate
+     * covering the baffle, the control room low inside its own berm, and the power plant standing in a fenced yard.
+     */
+    private static void dressShieldInterior(FortDressing d, boolean[][] lane) {
+        int ox = ShieldFort.OX, oy = ShieldFort.OY;
+        int gx = ShieldFort.GENERATOR[0], gy = ShieldFort.GENERATOR[1];
+        for (int dx = -6; dx <= 6; dx++) {
+            for (int dy = -6; dy <= 6; dy++) if (dx * dx + dy * dy <= 30) d.gravel(gx + dx, gy + dy);
+        }
+        // Firing lines a step inside each gate, so a breach still has to cross open ground under the baffle's guns.
+        d.line(ox + 19, oy + 35, ox + 27, oy + 35, 0, 1);
+        d.line(ox + 10, oy + 19, ox + 10, oy + 27, -1, 0);
+        d.line(ox + 35, oy + 19, ox + 35, oy + 27, 1, 0);
+
+        // The control room is low and hardened: one ring of bags a step off its walls, open at its door.
+        int[] room = ShieldFort.floor(FortAspect.CONTROL_ROOM);
+        int[] roomDoor = ShieldFort.door(FortAspect.CONTROL_ROOM);
+        d.ring(room[0] - 1, room[1] - 1, room[2] + 2, room[3] + 2, 2, 0, 1, roomDoor[0], 3);
+
+        // The power plant's fenced yard, with its plant standing in it.
+        int[] plant = ShieldFort.floor(FortAspect.POWER);
+        for (int x = plant[0] - 2; x <= plant[0] + plant[2] + 1; x++) {
+            if (x < plant[0] + 4 || x > plant[0] + 6) d.wire(x, oy + 15, true);
+        }
+        d.prop(ox + 20, oy + 10, "industrial-turbine-set", lane);
+        d.prop(ox + 23, oy + 11, "industrial-reactor-housing", lane);
+        d.prop(ox + 20, oy + 13, "industrial-generator", lane);
+        d.prop(ox + 21, oy + 13, "industrial-generator", lane);
+        d.prop(ox + 14, oy + 12, "industrial-fluid-tank", lane);
+        d.prop(ox + 14, oy + 13, "industrial-fluid-tank", lane);
+        d.prop(ox + 24, oy + 13, "industrial-switchboard", lane);
+
+        // Inside the keep and about the yard: the field projector's own clutter, which is cover as well.
+        d.prop(gx + 4, gy - 4, "military-radar-dish", lane);
+        d.prop(gx - 5, gy + 2, "industrial-switchboard", lane);
+        d.prop(ox + 38, oy + 10, "industrial-crate-stack", lane);
+        d.prop(ox + 39, oy + 10, "industrial-crate-stack", lane);
+        d.prop(ox + 38, oy + 12, "industrial-pallet-stack", lane);
+        d.prop(ox + 14, oy + 33, "parked-armored-apc", lane);
+        d.prop(ox + 30, oy + 33, "industrial-drum-cluster", lane);
+        d.prop(ox + 31, oy + 35, "industrial-cable-reel", lane);
+    }
+
     private static void emitStructure(GenContext ctx, String structureId, int[] centre, FortTag tag) {
         StructureDef def = TurretCatalogRegistry.requireStructure(structureId);
         StructureFootprint.seal(ctx.grid, def, centre[0], centre[1]);
@@ -580,11 +643,11 @@ public final class BatteryFortStage implements GenStage {
     }
 
     /** The outer wall: the footprint ring less the gates, with a face on every open side so it draws. */
-    private static void stampWall(GenContext ctx, CompoundLayout.Placement at) {
+    private static void stampWall(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
         boolean[][] wall = new boolean[ctx.width][ctx.height];
-        for (int lx = 0; lx < BatteryFort.WIDTH; lx++) {
-            for (int ly = 0; ly < BatteryFort.HEIGHT; ly++) {
-                if (!BatteryFort.isWall(lx, ly)) continue;
+        for (int lx = 0; lx < plan.width(); lx++) {
+            for (int ly = 0; ly < plan.height(); ly++) {
+                if (!plan.isWall(lx, ly)) continue;
                 int[] cell = at.cell(lx, ly);
                 wall[cell[0]][cell[1]] = true;
                 ctx.grid.setWalkable(cell[0], cell[1], false);
@@ -593,9 +656,9 @@ public final class BatteryFortStage implements GenStage {
                 ctx.topology.setGroundKind(cell[0], cell[1], GroundKind.STRIPED);
             }
         }
-        for (int lx = 0; lx < BatteryFort.WIDTH; lx++) {
-            for (int ly = 0; ly < BatteryFort.HEIGHT; ly++) {
-                if (!BatteryFort.isWall(lx, ly)) continue;
+        for (int lx = 0; lx < plan.width(); lx++) {
+            for (int ly = 0; ly < plan.height(); ly++) {
+                if (!plan.isWall(lx, ly)) continue;
                 int[] cell = at.cell(lx, ly);
                 int x = cell[0], y = cell[1];
                 int mask = 0;
@@ -610,13 +673,12 @@ public final class BatteryFortStage implements GenStage {
     }
 
     /** Paves a short apron outside each gate, and a lane from it to the nearest road when open ground allows. */
-    private static void paveGates(GenContext ctx, CompoundLayout.Placement at) {
+    private static void paveGates(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
         boolean[][] road = ctx.get(BspKeys.ROAD_RESERVATION);
-        int[][] outward = {{-1, 0}, {0, -1}};
-        for (int gate = 0; gate < BatteryFort.GATE_MOUTHS.size(); gate++) {
-            int[] mouth = BatteryFort.GATE_MOUTHS.get(gate);
-            int nx = outward[gate][0];
-            int ny = outward[gate][1];
+        for (FortPlan.Gate gate : plan.gates()) {
+            int[] mouth = {gate.mouthX(), gate.mouthY()};
+            int nx = gate.outX();
+            int ny = gate.outY();
             int px = ny != 0 ? 1 : 0;
             int py = nx != 0 ? 1 : 0;
             for (int d = 0; d < 4; d++) {
@@ -698,7 +760,7 @@ public final class BatteryFortStage implements GenStage {
         CellTopology topology = ctx.topology;
         for (Placed fort : placed) {
             int[] a = fort.placement().cell(0, 0);
-            int[] b = fort.placement().cell(BatteryFort.WIDTH - 1, BatteryFort.HEIGHT - 1);
+            int[] b = fort.placement().cell(fort.plan().width() - 1, fort.plan().height() - 1);
             for (int y = Math.max(0, Math.min(a[1], b[1]) - 2); y <= Math.min(ctx.height - 1, Math.max(a[1], b[1]) + 2); y++) {
                 for (int x = Math.max(0, Math.min(a[0], b[0]) - 2); x <= Math.min(ctx.width - 1, Math.max(a[0], b[0]) + 2); x++) {
                     grid.recomputeCoverAt(x, y);
