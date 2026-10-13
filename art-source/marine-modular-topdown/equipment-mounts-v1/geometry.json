@@ -1,0 +1,54 @@
+{
+  "missile-pod": {
+    "guide_canvas": [
+      1024,
+      1024
+    ],
+    "guide_bounds": [
+      332,
+      227,
+      692,
+      797
+    ],
+    "export_canvas": [
+      128,
+      192
+    ],
+    "content_size": [
+      96,
+      152
+    ],
+    "runtime_content_size_sw": [
+      0.24,
+      0.38
+    ],
+    "forward": "north",
+    "mount": "left-pauldron"
+  },
+  "screen-emitter": {
+    "guide_canvas": [
+      1024,
+      1024
+    ],
+    "guide_bounds": [
+      332,
+      272,
+      692,
+      752
+    ],
+    "export_canvas": [
+      128,
+      160
+    ],
+    "content_size": [
+      72,
+      96
+    ],
+    "runtime_content_size_sw": [
+      0.18,
+      0.24
+    ],
+    "forward": "north",
+    "mount": "left-pauldron"
+  }
+}

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-13 — planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -186,9 +186,19 @@ capital that is not another ship.
    within the capture radius and none of the holder's friends take it after the capture time, the
    holder's friends alone wind it back, and a taken dome reboots for 4 s; the structure
    changes sides with its holder (see *Captured structures* below). Destroying the generator drops the dome.
-   Look: `ShieldDomeRenderSystem` (HAZARDS) in the warship shield's cyan for the player's side and
-   red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
-   an enemy dome draws only where the map has been seen. Sounds are the game's own
+   Look: `ShieldDomeRenderSystem` (HAZARDS) draws the dome as a shader (`ShieldDomeShader`), an
+   energy bubble seen from above in the warship shield's cyan for the player's side and red for the
+   enemy's: a bright fresnel-like rim over a faint interior, a drifting hex field with a slow shimmer
+   and wobble, a share of cells alight and a warming toward amber that track the pool, a collapse
+   that goes out cell by cell, and a rim that re-forms round the circle as it recovers. Each absorbed
+   round is an **impact** (the service keeps up to 24 per dome for 1.8 s with their flux cost): a flash
+   where it landed, a ripple ring crossing the dome and the hex cells it passes lighting, scaled by
+   the share of the pool the round cost. A thin pool gauge arc, the generator core glow and the
+   capture arc stay as poly. Where the shader is off (`-Dbattle.render.domeShader=false`) or fails to
+   build, the flat fill, rim and hit marks draw instead. An enemy dome draws only where the map has
+   been seen. `ShieldDomeShading` is the CPU model of the fragment shader (the pattern the sun-shadow
+   suite uses): `shield-dome-look` renders it at 1920x1080 and `gradlew.bat shaderEvidence` compares
+   the driver against it pixel for pixel. Sounds are the game's own
    `hit_shield_heavy_gun`, `shield_burnout` and `shield_raise` through the warship cue path.
    A mission that declares a shield generator gets one beside the keep, held by the
    garrison (`ShieldGeneratorPlacement.nearKeep`); which missions declare one is
@@ -236,6 +246,8 @@ a side is told of a structure it built, one it holds, and, for the company, one 
 side is never told of an enemy structure it has not built or held, so a commander cannot be sent to ground it has no
 reason to know exists. Pressure on an own structure is own-side knowledge.
 
+*Timing.* A commander acts on a structure only once it knows of it, so the company's first order trails the first sighting by at most one command pulse (2.5 s); how late the sighting itself comes is the walk across the map, not the commander. Squads that cannot yet reach the contact walk on toward the doorstep (see the prosecution refusal rule in `ai-nouns.md`).
+
 *Budget.* Modest and untuned: at most two squads (`DefenceStructureTactics.MAX_TASKS`) are detached at once, one per
 structure, nearest first, and a squad that already carries the order keeps it. The attacker offers only lane work (not
 squads committed to a compound capture or in a command group) and only while the lane phases are running, never during
@@ -259,6 +271,11 @@ for a static structure outside any squad. A structure that has ever changed hand
 the personnel ledgers in `MissionResolver` and the "forces in play" test behind elimination objectives skip it
 (`UnitRosterService.isCapturedStructure`), so a captured generator is neither a marine casualty nor a reason a
 wiped company is still fighting. A structure that never changes hands is counted exactly as before.
+
+## Next: forts
+
+The bare structures are the parts; `forts.md` is the direction for building them into
+walled forts whose aspects are taken or wrecked one at a time.
 
 ## Decided
 

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UnitRenderHostProfileTest {
 
@@ -34,10 +35,14 @@ class UnitRenderHostProfileTest {
                     BattleRenderHostProfile.STANDALONE_BATTLE);
             DrawList embedded = collect(service, simulation, camera,
                     BattleRenderHostProfile.EMBEDDED_SCENE);
+            DrawList headless = collect(service, simulation, camera,
+                    BattleRenderHostProfile.HEADLESS_BATTLE);
 
             assertTrue(battle.count(RenderLayer.UNITS)
                             > embedded.count(RenderLayer.UNITS),
                     "standalone battle decorators should add HP-bar commands");
+            assertEquals(battle.count(RenderLayer.UNITS), headless.count(RenderLayer.UNITS),
+                    "player-view headless evidence retains the battle's unit decorations");
         }
     }
 
