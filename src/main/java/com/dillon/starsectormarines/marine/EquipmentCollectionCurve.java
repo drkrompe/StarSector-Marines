@@ -39,7 +39,7 @@ final class EquipmentCollectionCurve {
             EquipmentTemplateCatalog.primaryId(
                     WeaponRegistry.SMG_ID, EquipmentGrade.SURPLUS),
             EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS));
+                    WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE));
 
     private EquipmentCollectionCurve() {}
 

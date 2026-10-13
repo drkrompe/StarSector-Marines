@@ -56,7 +56,7 @@ public final class MarineSoldier implements Serializable {
         this.enlistedRank = EnlistedRank.MARINE;
         this.status = MarineSoldierStatus.ACTIVE;
         this.primaryId = WeaponRegistry.STARTER_PRIMARY_ID;
-        this.primaryGrade = EquipmentGrade.SERVICE;
+        this.primaryGrade = EquipmentGrade.SURPLUS;
         this.armorId = MarineArmorPattern.ARMORLESS.id;
         this.career = new SoldierCareer();
     }

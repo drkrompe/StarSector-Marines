@@ -138,13 +138,14 @@ class MarineArmoryTest {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(24);
         Set<String> baseline = Set.of(
-                EquipmentTemplateCatalog.primaryId(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE),
+                EquipmentTemplateCatalog.primaryId(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS),
                 EquipmentTemplateCatalog.armorId(MarineArmorPattern.ARMORLESS),
-                EquipmentTemplateCatalog.armorId(MarineArmorPattern.MILITIA));
+                EquipmentTemplateCatalog.armorId("armor.cordon-shell"));
         assertEquals(baseline, roster.armory().ownedEquipmentTemplateIds());
         for (MarineSoldier soldier : roster.soldiers()) {
             assertEquals(WeaponRegistry.STARTER_PRIMARY_ID, soldier.primaryId());
-            assertEquals(MarineArmorPattern.MILITIA.id, soldier.armorId());
+            assertEquals("armor.cordon-shell", soldier.armorId());
+            assertEquals(EquipmentGrade.SURPLUS, soldier.primaryGrade());
             assertNull(soldier.specialEquipmentId());
         }
         MarineArmory loaded = roundTrip(roster).armory();
@@ -156,13 +157,45 @@ class MarineArmoryTest {
     }
 
     @Test
+    void starterRefittingAndDeploymentKeepTierOneKitWhileOlderAcquisitionsSurviveLoad() throws Exception {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(12);
+        MarineSquad squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(),
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
+        MarineRoster loaded = roundTrip(roster);
+        var deployment = CampaignMarineDeployment.freezeSelection(loaded, Set.of(squad.id()), 12);
+        assertEquals(12, deployment.size());
+        for (var seat : deployment.commitments()) {
+            assertEquals(EquipmentGrade.SURPLUS, seat.equipmentGrade());
+            assertEquals(3f, seat.armorCapacity());
+            assertEquals(2f, seat.armorRating());
+            assertNull(seat.integralSystem());
+        }
+
+        roster.armory().unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
+        roster.armory().unlockArmor(MarineArmorPattern.MILITIA);
+        for (MarineSoldier soldier : roster.soldiers()) {
+            soldier.setPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
+            soldier.setArmor(MarineArmorPattern.MILITIA);
+        }
+        MarineRoster veteranSave = roundTrip(roster);
+        assertTrue(veteranSave.armory().ownsPrimaryTemplate(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE));
+        assertTrue(veteranSave.armory().ownsArmorTemplate(MarineArmorPattern.MILITIA));
+        for (MarineSoldier soldier : veteranSave.soldiers()) {
+            assertEquals(EquipmentGrade.SERVICE, soldier.primaryGrade());
+            assertEquals(MarineArmorPattern.MILITIA.id, soldier.armorId());
+        }
+    }
+
+    @Test
     void newRecruitStartsWithBasicFieldRifle() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(1);
 
         MarineSoldier recruit = roster.activeSoldiers().get(0);
         assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), recruit.primaryDef());
-        assertEquals(EquipmentGrade.SERVICE, recruit.primaryGrade());
+        assertEquals(EquipmentGrade.SURPLUS, recruit.primaryGrade());
     }
 
     @Test
@@ -251,7 +284,7 @@ class MarineArmoryTest {
         assertTrue(armory.equipmentTemplateCards().size()
                         >= EquipmentCollectionCurve.minimumCollectedAtVictories(0),
                 "starter issue should already satisfy the zero-victory floor");
-        assertFalse(armory.ownsArmorTemplate("armor.cordon-shell"));
+        assertTrue(armory.ownsArmorTemplate("armor.cordon-shell"));
         assertFalse(armory.ownsArmorTemplate("armor.lashplate-harness"));
 
         for (int victory = 1; victory <= 40; victory++) {

@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — impassable excavations retain open sight and recessed banks; the Shepherd basin includes its Colossus cargo wreck.
+Updated: 2026-10-13 — Opening militia kit and staged checkpoint engagement.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -626,7 +626,11 @@ it cannot recover them from unrelated spawn points after generation. A fixed
 story layout may vary interiors and the world's wild surfaces without moving
 its core tactical relationships.
 
-Relief's compact landscape uses edge ridges around its road mouths and rear
+Relief's 144 by 64 landscape reserves 32 extra western cells between the boat
+apron and checkpoint. A four-person exterior inspection post and a separate
+four-person gate post give the initial attack two defensive positions. The
+forward revetment leaves the center of the road and its rear open.
+The landscape uses edge ridges around its road mouths and rear
 compound, leaving the inspection frontage open. Three freight berths occupy
 two concrete banks beside the through-road: the employer uses the southern
 stand, while both company stands share the northern apron. Offset supply
