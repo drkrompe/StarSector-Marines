@@ -157,6 +157,41 @@ class ArmorIssueResolverTest {
         });
     }
 
+    @Test
+    void mixedPlanKeepsEightRegularSeatsAndRequiresBothSuitRoles() throws JSONException {
+        JSONObject assault = pattern("t.assault", ArmorRole.ASSAULT, 3, 40f, 12f);
+        assault.getJSONObject("catalog").put("armorClass", "power-suit");
+        JSONObject support = pattern("t.support", ArmorRole.SUPPORT, 3, 38f, 11f);
+        support.getJSONObject("catalog").put("armorClass", "power-suit");
+        withCatalog(List.of(pattern("t.standard", ArmorRole.LINE, 4, 22f, 13f), assault, support), () -> {
+            SquadArmorPlan mixed = SquadEquipmentDoctrines.armorPlanById(
+                    SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
+            SquadArmorDoctrine issued = ArmorIssueResolver.resolveUnrestricted(mixed);
+            assertEquals(8, issued.issueIds().stream().filter("t.standard"::equals).count());
+            assertEquals(2, issued.issueIds().stream().filter("t.assault"::equals).count());
+            assertEquals(2, issued.issueIds().stream().filter("t.support"::equals).count());
+            assertThrows(IllegalStateException.class,
+                    () -> ArmorIssueResolver.resolve(mixed, pattern -> !pattern.id().equals("t.support")));
+            assertThrows(IllegalStateException.class,
+                    () -> ArmorIssueResolver.resolve(mixed, pattern -> !pattern.id().equals("t.assault")));
+        });
+    }
+
+    @Test
+    void oldPlanDefaultsPreserveUniformStandardAndPowerSuitIntent() {
+        SquadArmorPlan old = new SquadArmorPlan("old", "Old", "",
+                ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, null, null);
+        SquadArmorPlan heavy = new SquadArmorPlan("heavy", "Heavy", "",
+                ArmorTradition.HEGEMONY, SquadRoleMix.BREACH, ArmorClass.POWER_SUIT, null);
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            assertEquals(ArmorClass.STANDARD, old.armorClassAt(billet));
+            assertEquals(ArmorClass.POWER_SUIT, heavy.armorClassAt(billet));
+        }
+        assertThrows(IllegalArgumentException.class, () -> new SquadArmorPlan("bad", "Bad", "",
+                ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
+                List.of(ArmorClass.STANDARD)));
+    }
+
     private static List<String> wornBy(ArmorRole role, SquadRoleMix mix,
                                        SquadArmorDoctrine issued) {
         List<String> worn = new ArrayList<>();

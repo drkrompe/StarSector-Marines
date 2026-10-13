@@ -29,6 +29,10 @@ public final class EquipmentTemplateCatalog {
 
     private final Map<String, EquipmentTemplateCard> byId = new LinkedHashMap<>();
     private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
+    private final Map<String, String> storySources = new LinkedHashMap<>();
+
+    /** Authored acquisition owner; a declaration does not certify that its reward is implemented. */
+    public String storySource(String templateId) { return storySources.get(templateId); }
     private final Map<EquipmentIdentity, String> nonPlayerReasons = new LinkedHashMap<>();
     private final Map<EquipmentIdentity, CatalogSource> nonPlayerSources = new LinkedHashMap<>();
 
@@ -227,6 +231,12 @@ public final class EquipmentTemplateCatalog {
                     parseAccessTier(entry),
                     parseCost(entry.getJSONObject("issueCost"))),
                     source);
+            if (entry.has("storySource")) {
+                String storySource = requireText(entry, "storySource");
+                if (!storySource.matches("[a-z][a-z0-9-]*"))
+                    throw new JSONException("Story source must be a stable slug: " + storySource);
+                storySources.put(armorId(armorId), storySource);
+            }
         }
     }
 
