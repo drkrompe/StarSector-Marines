@@ -347,8 +347,9 @@ Hovering either item opens its shared spec sheet; changing billets preserves tho
 bindings. A vacancy shows the planned issue without inventing an equipped soldier.
 
 Weapon Loadouts and Tactic Sheets share the right-hand browser. A new company's
-only choice in each is **First Loadout**: twelve Service Rooks and twelve Ward
-security kits over field fatigues. Starting specifications remain Rook, field
+only weapon choice is **Dockside Issue**, twelve Service Rooks; its only tactic
+sheet is **Watchman's Kit**, twelve Ward security kits over field fatigues.
+Starting specifications remain Rook, field
 fatigues, and Ward; no specialist weapon or suit is granted. Armor plans that resolve
 to the same ordered twelve issued patterns appear as one choice. As learned suits
 make their issues differ, those choices appear. Deduplication is presentation only:

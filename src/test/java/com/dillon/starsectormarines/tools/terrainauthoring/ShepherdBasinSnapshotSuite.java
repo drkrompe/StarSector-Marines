@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneHostPass;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneFrame;
@@ -63,9 +64,15 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                         frames.add(new SnapshotArtifact("cold-start-hull.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(104,101,48,27,1920,1080))),1920,1080)));
                     if (visit == ShepherdBasin.Visit.COLD_START) {
+                        frames.add(new SnapshotArtifact("cold-start-power-outage.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(92,92,112,63,1920,1080))),1920,1080)));
+                        frames.add(new SnapshotArtifact("cold-start-floodlights-outage.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(110,97,48,27,1920,1080))),1920,1080)));
                         map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
                         frames.add(new SnapshotArtifact("cold-start-power-restored.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(92,92,112,63,1920,1080))),1920,1080)));
+                        frames.add(new SnapshotArtifact("cold-start-floodlights-restored.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(110,97,48,27,1920,1080))),1920,1080)));
                     }
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("working-passage-narrows.png", renderer.renderHostPass(daylight(scene.pass(
@@ -131,6 +138,11 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
             throw new IllegalStateException("Basin lost its impact or landing history");
         if (map.landingPads.size()!=4 || map.topology.terrainSurface()==null || map.topology.roadSurface()==null)
             throw new IllegalStateException("Basin lost authored landing or landscape");
+        if (map.topology.nightLighting()!=null) for (var lamp:map.topology.nightLighting().lamps()) {
+            if (map.topology.getBuildingId((int)lamp.x(),(int)lamp.y())==0
+                    && lamp.fixture()!=NightLighting.Fixture.TRIPOD_FLOODLIGHT)
+                throw new IllegalStateException("Outdoor light lacks grounded fixture");
+        }
     }
 
     /** Outdoor evidence retains the map's lighting, never the unrelated ship compartment lamps. */

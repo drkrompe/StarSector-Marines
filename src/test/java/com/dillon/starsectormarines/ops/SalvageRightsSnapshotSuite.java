@@ -96,7 +96,14 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                         frames.add(new SnapshotArtifact(key+"-"+phase.name().toLowerCase()+".png",renderer.render(sim,sim.getSalvageRights().displayName(),marks)));
                         stage=phase;
                     }
-                    if(sim.getSimTickIndex()%1800==0)System.out.println("[salvage-rights] "+key+" tick="+sim.getSimTickIndex()+" phase="+phase+" landed="+landed.size()+" inspection="+sim.getSalvageRights().progress().inspection());
+                    if(sim.getSimTickIndex()%1800==0) {
+                        var progress=sim.getSalvageRights().progress();
+                        String gates=" tick="+sim.getSimTickIndex()+" phase="+phase+" landed="+landed.size()
+                                +" companyAtTarget="+progress.companyAtTarget()+" contested="+progress.contested()
+                                +" capture="+progress.capture()+" inspection="+progress.inspection();
+                        System.out.println("[salvage-rights] "+key+gates);
+                        report.append(key).append(gates).append('\n');
+                    }
                 }
                 if(absent){assertEquals(0,landed.size());assertEquals("RECEIVING",stage.name());assertFalse(sim.isComplete());}
                 else assertEquals(24,landed.size(),"Every committed named marine must land through the actual boat cycles");

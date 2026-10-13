@@ -80,6 +80,8 @@ public final class CompoundCaptureSystem {
             boolean attackersPresent = CompoundService.occupiedBy(
                     r, zoneId, Faction.MARINE, sim);
 
+            r.attackersPresent = attackersPresent;
+            r.defendersPresent = defendersPresent;
             switch (r.state) {
                 case DEFENDER_HELD -> {
                     // First marine inside the zone flips to CONTESTED. Empty or

@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -1085,6 +1086,39 @@ public final class UnitRosterService {
             removeFromSquadSlice(id, previousSquadId);
         }
         addToSquadSlice(id, squadId);
+    }
+
+    /** Structures that have changed hands at least once, which are held ground rather than people; see {@link #reassignFaction}. */
+    private final LongOpenHashSet capturedStructures = new LongOpenHashSet();
+
+    /**
+     * Hands a standing structure to another side: its identity faction, the
+     * faction slice and the spatial snapshot all follow, so targeting, fog,
+     * bars and markers read the new holder on the next look. The one exception
+     * to an identity faction being immutable, and only for a static structure
+     * outside any squad: a captured shield generator or fortress battery. The
+     * structure is remembered as {@linkplain #isCapturedStructure captured} so
+     * personnel ledgers and "forces in play" checks do not count held ground as
+     * people. A no-op when the side is unchanged.
+     */
+    public void reassignFaction(long id, Faction faction) {
+        if (indexById.get(id) == INVALID_INDEX) return;
+        Faction previous = identityService.faction(id);
+        if (previous == faction) return;
+        if (!identityService.type(id).isStatic() || squadService.hasSquad(id)) {
+            throw new IllegalArgumentException("only a static structure outside any squad changes sides: " + id);
+        }
+        unitIndex.remove(id);
+        removeFromFactionSlice(id, previous);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, faction);
+        addToFactionSlice(id, faction);
+        unitIndex.add(this, id);
+        capturedStructures.add(id);
+    }
+
+    /** Whether this structure has ever changed hands; held ground, not a person, whichever side holds it. */
+    public boolean isCapturedStructure(long id) {
+        return capturedStructures.contains(id);
     }
 
     private void addToFactionSlice(long id, Faction faction) {

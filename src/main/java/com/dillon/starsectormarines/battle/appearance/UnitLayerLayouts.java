@@ -78,7 +78,14 @@ public final class UnitLayerLayouts {
         LayerTransform body = armorMaster(bodyFamily, "body");
         LayerTransform head = armorMaster(headFamily, "head");
         if (body == null && head == null) return pose;
-        return pose.withArmorMastering(body, head);
+        return pose.withArmorMastering(body, head,
+                armorMaster(bodyFamily, "left-shoulder"),
+                armorMaster(bodyFamily, "right-shoulder"), neutralMarinePose());
+    }
+
+    private LayerPose neutralMarinePose() {
+        AnimationClip idle = clip("marine-line", "rifle", "idle");
+        return idle != null ? idle.frames().get(0).pose() : null;
     }
 
     private LayerTransform armorMaster(LayeredArmorFamily family, String layerId) {
@@ -248,13 +255,69 @@ public final class UnitLayerLayouts {
         }
 
         private LayerPose withArmorMastering(LayerTransform bodyMaster,
-                                             LayerTransform headMaster) {
+                                             LayerTransform headMaster,
+                                             LayerTransform leftShoulderMaster,
+                                             LayerTransform rightShoulderMaster,
+                                             LayerPose neutralPose) {
             Map<String, LayerTransform> combined = new LinkedHashMap<>(layers);
+            LayerTransform originalBody = layer("body");
             applyMaster(combined, "body", bodyMaster,
                     MASTER_BODY_OFFSET_X, MASTER_BODY_OFFSET_Y);
             applyMaster(combined, "head", headMaster,
                     MASTER_HEAD_OFFSET_X, MASTER_HEAD_OFFSET_Y);
+            applyShoulderMaster(combined, "left-shoulder", leftShoulderMaster,
+                    bodyMaster, originalBody, combined.get("body"), neutralPose);
+            applyShoulderMaster(combined, "right-shoulder", rightShoulderMaster,
+                    bodyMaster, originalBody, combined.get("body"), neutralPose);
             return new LayerPose(Collections.unmodifiableMap(combined));
+        }
+
+        /** Shoulder motion follows torso registration, independently of helmet selection. */
+        private static void applyShoulderMaster(Map<String, LayerTransform> target,
+                                                String layerId, LayerTransform master,
+                                                LayerTransform bodyMaster,
+                                                LayerTransform originalBody,
+                                                LayerTransform masteredBody,
+                                                LayerPose neutralPose) {
+            if (master == null || bodyMaster == null || originalBody == null
+                    || masteredBody == null || neutralPose == null) return;
+            LayerTransform animated = target.get(layerId);
+            LayerTransform neutral = neutralPose.layer(layerId);
+            LayerTransform neutralBody = neutralPose.layer("body");
+            if (animated == null || neutral == null || neutralBody == null) return;
+            // Each master is an absolute assembled pose. Convert its hinge to
+            // torso space before adding the source clip's independent joint motion.
+            double animatedX = animated.offsetX - originalBody.offsetX;
+            double animatedY = animated.offsetY - originalBody.offsetY;
+            double neutralX = neutral.offsetX - neutralBody.offsetX;
+            double neutralY = neutral.offsetY - neutralBody.offsetY;
+            double masterX = master.offsetX - bodyMaster.offsetX;
+            double masterY = master.offsetY - bodyMaster.offsetY;
+            double x = rotatedX(masterX, masterY, -bodyMaster.angleDegrees)
+                    + rotatedX(animatedX, animatedY, -originalBody.angleDegrees)
+                    - rotatedX(neutralX, neutralY, -neutralBody.angleDegrees);
+            double y = rotatedY(masterX, masterY, -bodyMaster.angleDegrees)
+                    + rotatedY(animatedX, animatedY, -originalBody.angleDegrees)
+                    - rotatedY(neutralX, neutralY, -neutralBody.angleDegrees);
+            target.put(layerId, new LayerTransform(layerId, master.spritePath,
+                    masteredBody.offsetX + (float) rotatedX(x, y, masteredBody.angleDegrees),
+                    masteredBody.offsetY + (float) rotatedY(x, y, masteredBody.angleDegrees),
+                    master.scaleX, master.scaleY,
+                    masteredBody.angleDegrees + animated.angleDegrees - originalBody.angleDegrees
+                            - (neutral.angleDegrees - neutralBody.angleDegrees)
+                            + master.angleDegrees - bodyMaster.angleDegrees,
+                    master.pivotX, master.pivotY, master.z,
+                    animated.visible && master.visible));
+        }
+
+        private static double rotatedX(double x, double y, double angleDegrees) {
+            double radians = Math.toRadians(angleDegrees);
+            return x * Math.cos(radians) - y * Math.sin(radians);
+        }
+
+        private static double rotatedY(double x, double y, double angleDegrees) {
+            double radians = Math.toRadians(angleDegrees);
+            return x * Math.sin(radians) + y * Math.cos(radians);
         }
 
         private static void applyMaster(Map<String, LayerTransform> target,

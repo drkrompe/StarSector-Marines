@@ -6,11 +6,18 @@ import java.util.Set;
 
 /** Authored environmental lighting. Power changes presentation, never sight or navigation. */
 public record NightLighting(float darkness, List<Lamp> lamps, Set<String> poweredCircuits) {
+    public enum Fixture { STRIP, TRIPOD_FLOODLIGHT }
+
     public record Lamp(float x, float y, float radius, float red, float green, float blue,
-                       String circuit) {
+                       String circuit, Fixture fixture, float bearingDegrees) {
+        /** Existing ceiling/wall strips retain their appearance and symmetric pool. */
+        public Lamp(float x, float y, float radius, float red, float green, float blue, String circuit) {
+            this(x, y, radius, red, green, blue, circuit, Fixture.STRIP, 0);
+        }
         public Lamp {
             if (!Float.isFinite(x) || !Float.isFinite(y) || !Float.isFinite(radius) || radius <= 0
-                    || circuit == null || circuit.isBlank()) throw new IllegalArgumentException("Invalid yard light");
+                    || circuit == null || circuit.isBlank() || fixture == null
+                    || !Float.isFinite(bearingDegrees)) throw new IllegalArgumentException("Invalid yard light");
         }
         public float pool(float px, float py) {
             float dx = px - x, dy = py - y;

@@ -52,7 +52,7 @@ public final class BattleReviewFrameRenderer {
     private static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DECALS, RenderLayer.VEHICLES, RenderLayer.DOODADS,
             RenderLayer.UNITS, RenderLayer.HAZARDS, RenderLayer.SMOKE,
-            RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
+            RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.MISSION_MARKERS, RenderLayer.COMPOUND,
             RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING);
 
     private final HeadlessUiRenderer renderer;

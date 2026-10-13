@@ -193,6 +193,24 @@ class ShieldDomeServiceTest {
     }
 
     @Test
+    void aTakenGeneratorChangesSidesSoItsOldSidesEnemiesStopShootingItAndItIsNotAPerson() {
+        BattleSimulation sim = arena();
+        long gen = sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        sim.spawn(new EntitySpec("raider", Faction.MARINE, UnitType.MARINE, GEN_X + 3, GEN_Y).moveSpeed(0f));
+        assertEquals(Faction.DEFENDER, sim.identity().faction(gen));
+        assertFalse(sim.isCapturedStructure(gen));
+        int marinesBefore = sim.getRoster().factionLiveCount(Faction.MARINE);
+
+        run(sim, spec().captureSeconds() * 1.5f);
+
+        assertEquals(Faction.MARINE, sim.identity().faction(gen), "the entity follows its holder");
+        assertEquals(Faction.MARINE, only(sim).holder());
+        assertTrue(sim.isCapturedStructure(gen));
+        assertEquals(marinesBefore + 1, sim.getRoster().factionLiveCount(Faction.MARINE));
+        assertEquals(1, sim.getRoster().factionLiveCount(Faction.DEFENDER), "only the far defender is left");
+    }
+
+    @Test
     void theHoldersOwnPeoplePresentStopACaptureAndWindItBack() {
         BattleSimulation sim = arena();
         sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));

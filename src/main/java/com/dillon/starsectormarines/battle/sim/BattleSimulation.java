@@ -33,7 +33,9 @@ import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.battery.FortressBatteryService;
+import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -566,6 +568,46 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
     public ReliefAssault getReliefAssault() { return reliefAssault; }
+    /** The battle's ground-defence structures as they truly are; a command sees only what its disclosure lets it. */
+    @Override public List<DefenceStructureFact> defenceStructures() {
+        List<DefenceStructureFact> out = new ArrayList<>();
+        for (FortressBattery battery : fortressBatteries.batteries()) {
+            if (battery.destroyed()) continue;
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
+                    (int) Math.floor(battery.x()), (int) Math.floor(battery.y()),
+                    battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
+                    Math.round(battery.structure().fireControlRadius)));
+        }
+        for (ShieldDomeService.DomeView dome : shieldDomes.domes()) {
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
+                    (int) Math.floor(dome.x()), (int) Math.floor(dome.y()),
+                    dome.holder(), dome.originalHolder(),
+                    dome.raider() != null && dome.captureProgress() > 0f,
+                    Math.round(dome.captureRadius())));
+        }
+        return out;
+    }
+
+    @Override public boolean isCapturedStructure(long id) { return rosterService.isCapturedStructure(id); }
+
+    /**
+     * A captured structure's allegiance follows its holder: the entity changes
+     * sides, so its own side's enemies stop shooting it and the new holder's
+     * enemies start, and it joins or leaves the fog contributors with its side.
+     * Called by whatever decides a structure changed hands (a dome's capture, a
+     * battery's fire control).
+     */
+    public void followStructureHolder(long id, Faction holder) {
+        if (!rosterService.isAliveById(id)) return;
+        Faction before = rosterService.identity().faction(id);
+        if (before == holder) return;
+        boolean wasContributor = fogOfWar.getVisionState().isContributor(before);
+        rosterService.reassignFaction(id, holder);
+        boolean isContributor = fogOfWar.getVisionState().isContributor(holder);
+        if (wasContributor && !isContributor) fogOfWar.removeContributor(id);
+        else if (!wasContributor && isContributor) fogOfWar.addContributor(id, rosterService);
+    }
+
     @Override public int pendingGroundArrivals(Faction faction) {
         return faction != Faction.DEFENDER ? 0 : (reliefAssault == null ? 0 : reliefAssault.pendingMembers())
                 + (lastLiftSequence == null ? 0 : lastLiftSequence.pendingMembers())
@@ -792,6 +834,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.satchelCharges = new SatchelChargeService();
         this.pointDefense = new PointDefenseService(rng);
         this.shieldDomes = new ShieldDomeService();
+        this.shieldDomes.setHolderListener(this::followStructureHolder);
         this.deployedCover = new DeployedCoverService(mapEditor, this.grid);
         this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();

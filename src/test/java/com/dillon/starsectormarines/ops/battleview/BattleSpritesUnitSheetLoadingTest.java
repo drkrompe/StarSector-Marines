@@ -10,6 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class BattleSpritesUnitSheetLoadingTest {
 
@@ -27,8 +28,28 @@ class BattleSpritesUnitSheetLoadingTest {
         assertEquals("graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/foot.png",
                 specter.foot.sourcePath);
         assertEquals("graphics/battle/marine-modular-topdown/marine-foot.png", regular.foot.sourcePath);
+        assertEquals("graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png",
+                specter.shoulderLeft.sourcePath);
+        assertEquals("graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png",
+                specter.shoulderRight.sourcePath);
+        assertNull(regular.shoulderLeft);
+        assertNull(regular.shoulderRight);
         assertSame(regular.rifle, specter.rifle);
         assertSame(regular.rocketLauncher, specter.rocketLauncher);
+    }
+
+    @Test
+    void absentOptionalShouldersKeepModularFamilyAvailable() {
+        BattleSprites sprites = new BattleSprites() {
+            @Override
+            public LayeredSpriteCache loadLayeredSprite(String path) {
+                return path.contains("shoulder-") ? null : LayeredSpriteCache.headless(path, 150, 95);
+            }
+        };
+        sprites.ensureLayeredUnitSprites();
+        LayeredUnitAssets specter = sprites.layeredUnitSprites().get(LayeredArmorFamily.SPECTER_HEAVY);
+        assertNull(specter.shoulderLeft);
+        assertNull(specter.shoulderRight);
     }
 
     @Test
