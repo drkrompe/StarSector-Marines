@@ -1101,7 +1101,7 @@ The discovered suite ids and default output directories are:
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
-| `shepherd-basin` | Three recovery-map visits at 1920×1080, outdoor daylight, enlarged grounded Shepherd, cargo/infantry access and clear construction plots across palettes and seeds; no battle or campaign simulation | `build/snapshots/shepherd-basin/` |
+| `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `equipment-mounts` | Catalog-equipped Aegis and Arbalest missile pods, Specter emitter, Legionary control, articulation and weapon clearance; enlarged and normal world-scale samples with twelve lossless frames at 1920x1080, 100% scale | `build/snapshots/equipment-mounts/` |
 | `squad-selection` | Selected and hovered infantry circles, unmarked enemy bodies, and the group command plate at 1920x1080, 100% scale | `build/snapshots/squad-selection/` |
