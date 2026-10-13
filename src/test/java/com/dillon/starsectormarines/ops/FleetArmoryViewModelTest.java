@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
@@ -58,9 +59,22 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/fleet-armory.mlx",
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
+            "mod/data/ui/components/armory/armory-weapon-tech-card.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx",
             "mod/data/ui/components/armory/armory-armor-comparison.mlx");
+
+    @Test
+    void weaponRoleCountsCombineGradesAndKeepNamedQuantitiesVisible() {
+        List<SquadWeaponIssue> issues = new ArrayList<>();
+        for (int i = 0; i < 12; i++) issues.add(new SquadWeaponIssue("Marine",
+                i < 3 ? WeaponRegistry.DMR_ID : WeaponRegistry.STARTER_PRIMARY_ID,
+                i % 2 == 0 ? EquipmentGrade.SERVICE : EquipmentGrade.MILSPEC, null));
+        var doctrine = new SquadWeaponDoctrine("test:mixed-grades", "Mixed marksmen", "", issues);
+        var tile = FleetArmoryViewModel.weaponTile("test:card", doctrine, false, () -> {});
+        assertEquals("3 MARKSMAN  ·  9 LINE", tile.composition());
+        assertTrue(tile.distribution().contains("3 Longbow"));
+        assertTrue(tile.distribution().contains("9 Rook"));
+    }
 
     @Test
     void transactionProjectionAndApplyUseTheRosterAuthority() {
@@ -438,7 +452,7 @@ class FleetArmoryViewModelTest {
     private static WeaponDef primaryNamedBy(String text) {
         for (WeaponDef weapon : WeaponRegistry.installed().all()) {
             if (weapon.mount == MountClass.MARINE_PRIMARY
-                    && text.endsWith(" " + weapon.displayName)) {
+                    && text.endsWith(" " + weapon.modelName)) {
                 return weapon;
             }
         }
@@ -768,6 +782,7 @@ class FleetArmoryViewModelTest {
 
     private static MarineRoster fullSquad() {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         return roster;
     }

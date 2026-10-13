@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
@@ -49,6 +50,7 @@ class EquipmentDoctrineDesignerViewModelTest {
     @Test
     void billetPrimaryAndSpecialtyAreAskableAndFollowThePicker() throws Exception {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         Reactor reactor = new Reactor();
         EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
@@ -127,6 +129,7 @@ class EquipmentDoctrineDesignerViewModelTest {
     @Test
     void specialPickerCyclesOnlyCollectedTemplateCards() {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         EquipmentDoctrineDesignerViewModel designer = designer(roster);
 
@@ -141,6 +144,7 @@ class EquipmentDoctrineDesignerViewModelTest {
     @Test
     void primaryAndGradePickersSkipUncollectedCards() {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         EquipmentDoctrineDesignerViewModel designer = designer(roster);
 
@@ -156,6 +160,7 @@ class EquipmentDoctrineDesignerViewModelTest {
     @Test
     void billetCardsExposeStableComparativeMetersThatReactToDraftChanges() {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         EquipmentDoctrineDesignerViewModel viewModel = designer(roster);
 
@@ -186,6 +191,7 @@ class EquipmentDoctrineDesignerViewModelTest {
     @Test
     void theDesignerDrawsTheArmourTheAssignedSheetIssuesAndCannotChangeIt() {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         MarineSquad squad = roster.squads().get(0);
         EquipmentDoctrineDesignerViewModel designer = designer(roster);

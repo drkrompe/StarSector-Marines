@@ -57,6 +57,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -814,14 +815,30 @@ public final class FleetArmoryViewModel {
                     maximumWeaponTier(doctrine), doctrine.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
-            List<DoctrineSpan> issue = weaponDistributionSpans(id, doctrine);
-            tiles.add(doctrineTile(id, doctrine.id().equals(selected),
-                    doctrine.displayName(), LoadoutEffectiveness.weaponRating(doctrine),
-                    presentation, doctrineMetadata(presentation),
-                    "", joinSpans(issue), issue, "", List.of(),
+            tiles.add(weaponTile(id, doctrine, doctrine.id().equals(selected),
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
         return rankedByRating(tiles);
+    }
+
+    /** Shared card presentation for the technology offer and the learned Armory kit. */
+    static DoctrineTile weaponTile(String id, SquadWeaponDoctrine doctrine, boolean selected, Runnable select) {
+        SquadLoadoutPresentationDef presentation = loadoutPresentation(doctrine.id(),
+                SquadLoadoutPresentationDef.Kind.WEAPON, maximumWeaponTier(doctrine), doctrine.description());
+        List<DoctrineSpan> issue = weaponDistributionSpans(id, doctrine);
+        return doctrineTile(id, selected, doctrine.displayName(), LoadoutEffectiveness.weaponRating(doctrine),
+                presentation, doctrineMetadata(presentation), weaponComposition(doctrine),
+                joinSpans(issue), issue, "", List.of(), select);
+    }
+
+    static String weaponComposition(SquadWeaponDoctrine doctrine) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (SquadWeaponIssue issue : doctrine.issues()) {
+            String role = WeaponRegistry.require(issue.primaryId()).catalogRole;
+            counts.merge(role, 1, Integer::sum);
+        }
+        return counts.entrySet().stream().map(entry -> entry.getValue() + " " + entry.getKey())
+                .collect(Collectors.joining("  ·  "));
     }
 
     private List<DoctrineTile> buildArmorDoctrineTiles() {
@@ -1044,7 +1061,7 @@ public final class FleetArmoryViewModel {
         SquadLoadoutPresentationDef authored = SquadLoadoutPresentationRegistry.get(id);
         return authored != null ? authored : new SquadLoadoutPresentationDef(
                 id, kind, tier, SquadLoadoutRarity.COMMON,
-                "Company-authored", null, fallbackLore != null ? fallbackLore : "");
+                id.startsWith("wayline:") ? "Wayline technology transfer" : "Company-authored", null, fallbackLore != null ? fallbackLore : "");
     }
 
     private static int maximumWeaponTier(SquadWeaponDoctrine doctrine) {
@@ -1373,7 +1390,7 @@ public final class FleetArmoryViewModel {
             }
             if (count == 0) continue;
             spans.add(span(tileId, "distribution", spans.size(),
-                    count + " " + weapon.displayName, weaponSheet(weapon, grades)));
+                    count + " " + weapon.modelName, weaponSheet(weapon, grades)));
         }
         int specials = 0;
         String only = null;
@@ -1864,7 +1881,8 @@ public final class FleetArmoryViewModel {
      * The second is which patterns the company's own stock currently puts in
      * those billets. The third is what those patterns <em>do</em>, which is the
      * half a player cannot work out from the other two without knowing the
-     * catalog by heart. A weapon sheet has none of them and leaves them blank.
+     * catalog by heart. A weapon sheet uses composition for grade-independent
+     * battlefield-role counts and distribution for named weapon quantities.
      */
     public record DoctrineTile(
             String id, String headerId, String nameId, String rarityId,
@@ -1900,6 +1918,7 @@ public final class FleetArmoryViewModel {
                 case "carriesGridId" -> carriesId + "-grid";
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
+                case "weaponClasses" -> "weapon-tech-card " + classes;
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
                 case "factionLogoClasses" -> factionLogoClasses;

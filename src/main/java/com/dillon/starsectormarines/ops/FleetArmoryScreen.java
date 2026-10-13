@@ -45,7 +45,7 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
-            "data/ui/components/armory/armory-squad-doctrine.mlx",
+            "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx",
             "data/ui/components/armory/first-refit.mlx");
@@ -344,7 +344,7 @@ public final class FleetArmoryScreen implements Screen {
 
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRST_REFIT
-                ? List.of("first-refit-root", "refit-claim", "refit-issue", "refit-billets", "refit-later")
+                ? List.of("first-refit-root", "refit-claim", "refit-issue", "refit-billets")
                 : view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
@@ -389,6 +389,9 @@ public final class FleetArmoryScreen implements Screen {
     }
 
     static void bindFirstRefitSheets(SpecSheetBinder binder, MarkupInstance markup, FirstRefitModel model) {
+        for (var tile : model.pathCards()) for (var span : tile.distributionSpans()) {
+            binder.bind(markup.requireElement(span.id()), span::sheet);
+        }
         for (boolean proposed : new boolean[]{false, true}) {
             String prefix = "refit-" + (proposed ? "proposed" : "current") + "-item:";
             for (int i = 0; i < 3; i++) {
