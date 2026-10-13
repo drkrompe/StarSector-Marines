@@ -62,6 +62,7 @@ class TenderPilotTest {
         for (int slot = BuildOption.ALL.size(); slot < TenderPilot.OPTION_SLOTS; slot++) {
             assertNull(TenderPilot.option(slot), "slot " + (slot + 1) + " has no option and says so");
         }
+        assertSame(BuildOption.POINT_DEFENCE_POD, TenderPilot.option(4), "key 5");
         assertNull(TenderPilot.option(-1));
         assertNull(TenderPilot.option(TenderPilot.OPTION_SLOTS));
     }

@@ -102,10 +102,13 @@ class TenderDirectControlSessionTest {
         session.enterWarship(tender.ship());
         assertTrue(session.canSelectWeapon(0));
         assertEquals(BuildOption.VULCAN_TURRET, session.selectedBuildOption());
-        for (int slot = BuildOption.ALL.size(); slot < 4; slot++) {
+        for (int slot = BuildOption.ALL.size(); slot < TenderPilot.OPTION_SLOTS; slot++) {
             assertFalse(session.canSelectWeapon(slot), "slot " + (slot + 1));
             assertFalse(session.selectWeapon(slot));
         }
+        assertTrue(session.selectWeapon(4), "key 5 is the interceptor pod");
+        assertEquals(BuildOption.POINT_DEFENCE_POD, session.selectedBuildOption());
+        assertFalse(session.canSelectWeapon(TenderPilot.OPTION_SLOTS));
         assertTrue(session.selectWeapon(0));
         assertEquals(0, session.selectedWeapon());
         assertTrue(session.active(), "choosing is not a handback");
