@@ -1135,6 +1135,12 @@ public final class Warship {
         return profile;
     }
 
+    /** Re-derives the current profile once the class is known (fit time), so a carrier's bias holds from the start. */
+    private void applyClassToProfile() {
+        profile = PostureProfile.of(posture, shipClass);
+        flux.thresholds(profile.softLimit(), profile.resumeLevel());
+    }
+
     /**
      * Whether the posture lets {@code m} start a burst at directed ground: under
      * a posture that limits bursts to the secondary battery, a mount whose burst
@@ -1166,7 +1172,7 @@ public final class Warship {
         postureReason = reason;
         if (next == posture) return;
         posture = next;
-        profile = PostureProfile.of(next);
+        profile = PostureProfile.of(next, shipClass);
         postureSeconds = 0f;
         postureTransitions++;
         flux.thresholds(profile.softLimit(), profile.resumeLevel());
@@ -1431,6 +1437,7 @@ public final class Warship {
         if (row != null) {
             ship.shipClass = ShipClass.classify(hull.optString("hullSize", null), row.get("designation"),
                     row.get("hints"), row.get("fighter bays"), row.get("shield type"));
+            ship.applyClassToProfile();
         }
         return ship;
     }
