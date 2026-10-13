@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Recovered Specter gains its Limited Warrant cargo-card source.
+Updated: 2026-10-13 — Both Agreus recovered-suit rewards lead to explicit mixed-squad fitting.
 
 ## Purpose
 
@@ -543,9 +543,10 @@ acquisition owner, and the catalog audit preserves that coverage as content is
 added. Recovered Specter is a guaranteed cargo-card reward for Limited Warrant
 on Agreus after the Shepherd actually joins the fleet and North Weir is restored.
 Learning it exposes its matching heavy fitting sheet; reward settlement never
-changes issued equipment. Recovered Arbalest reserves its acquisition for the
-next, still-planned Agreus chapter and remains available through explicit
-developer test controls. Neither A Cold Account completion nor the grounded
+changes issued equipment. Recovered Arbalest is the guaranteed cargo-card reward for The Yard's Owners.
+Learning both recovered roles exposes Salvage-assisted Section, with eight regular,
+two powered assault and two powered support billets. Explicit fitting preserves
+the named squad and ordinary lift seats. Development test controls remain available. Neither A Cold Account completion nor the grounded
 Shepherd's repair automatically learns either pattern.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and

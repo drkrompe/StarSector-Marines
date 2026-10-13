@@ -163,13 +163,17 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
         props.put("brokerRole", "HOUSE RUSK / KO COMBINE CONCESSION");
-        props.put("brokerIntroduction", p != null && p.warrantCompleted()
-                ? "Rusk: The service archive and calibration load are accounted for. Your fee and the refurbishment pattern settle the Low Quay contract."
+        props.put("brokerIntroduction", p != null && p.yardCompleted()
+                ? "Rusk: Latchkey's inspection is settled. Read the custody documents before agreeing to further work. No handover agreement has been signed."
+                : p != null && p.warrantCompleted()
+                ? "Rusk: The Low Quay recovery is settled. Now secure Latchkey for inspection. Its tools can validate the Recovered Arbalest pattern; the yard's custody needs a separate agreement."
                 : p != null && p.completed()
                 ? "Rusk: North Weir is working. Recover the Low Quay service archive and calibration kit under my supplier guarantee, and your company may retain the Recovered Specter pattern. Read the warrant before deploying."
                 : AgreusArcCampaign.REFERRAL);
-        props.put("brokerProgress", p != null && p.warrantCompleted()
-                ? "NORTH WEIR RESTORED / LIMITED WARRANT COMPLETE / 56,000 CR SETTLED / Recovered Specter entitlement fulfilled. Learn the cargo card, then choose an Armory fitting. Further yard work is not yet commissioned."
+        props.put("brokerProgress", p != null && p.yardCompleted()
+                ? "LATCHKEY INSPECTED / 92,000 CR SETTLED / Both recovered-suit entitlements fulfilled. Learn both cards to fit Salvage-assisted Section. Custody remains unsigned."
+                : p != null && p.warrantCompleted()
+                ? "LIMITED WARRANT COMPLETE / THE YARD'S OWNERS AVAILABLE / 36,000 CR + Recovered Arbalest card / inspection only; no custody agreement."
                 : p != null && p.completed() ? "NORTH WEIR RESTORED / LIMITED WARRANT AVAILABLE / Review the procurement terms below; no yard agreement is selected."
                 : "NORTH WEIR / WATER UNDER SEAL" + (accessReason == null || accessReason.isBlank() ? "" : " / " + accessReason));
     }
@@ -392,6 +396,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
+                detailRow("force","Company","3 full squads recommended / minimum 2 with 4 ready each / fitted boats"),
+                detailRow("support","Inspection party","Owned tender; 8 constables, 2 technicians; optional owned mech with employer heavy lift"),
+                detailRow("claim","Latchkey","Hold dispatch, tooling hall and operator entrance together; protect inspection"),
+                detailRow("terms","Preservation","Marked tooling must survive / no bombardment or fighter strikes / custody unsigned"),
+                detailRow("payout","Victory award","36,000 credits + Recovered Arbalest card / learn both recovered cards for Salvage-assisted Section"));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
                 detailRow("force", "Company", "2 full regular squads recommended / minimum 4 ready each / fitted boats"),
                 detailRow("support", "Recovery party", "Owned tender; 4 constables and 1 supplier technician"),

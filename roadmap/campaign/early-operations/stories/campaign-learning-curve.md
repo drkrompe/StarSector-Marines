@@ -2,7 +2,7 @@
 
 Status: PLANNED
 Written: 2026-10-12
-Updated: 2026-10-13 — direct freight progression replaces the rescue/freight choice; post-Shepherd suit arc remains on Agreus.
+Updated: 2026-10-13 — Both Agreus recovered rewards enable the live mixed-squad acceptance pass.
 
 Read `early-operation-nouns.md`, `meta-progression.md` and
 `company-view-nouns.md`. `castle-campaign-lessons.md` owns the first tutorial slice.
@@ -20,7 +20,7 @@ Read `early-operation-nouns.md`, `meta-progression.md` and
 | Blind Watch | Three squads; 30,000 credits | Divide objective duties; revisit leadership and specialty training |
 | Cold Account | Four squads; 42,000 credits | Restore billets, prepare leadership, extract under intervention |
 | A Working Ship | Planned Shepherd and construction | Protect builders, establish positions, hand off ground |
-| A Small War | Limited Warrant awards Recovered Specter; recovered Arbalest and pirate Boarding Jack remain planned; two-to-three-squad recommendation | Mix individual equipment within existing squads; use builders and allied holders to sustain a district commitment |
+| A Small War | Limited Warrant awards Recovered Specter and The Yard's Owners awards Recovered Arbalest; pirate Boarding Jack remains planned; two-to-three-squad recommendation | Mix individual equipment within existing squads; use builders and allied holders to sustain a district commitment |
 
 Record availability, explanation, actual configuration and actual field use
 separately. Also record total campaign victories and side jobs: story position
