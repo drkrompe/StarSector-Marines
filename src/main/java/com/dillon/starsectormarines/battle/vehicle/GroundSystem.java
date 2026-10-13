@@ -244,6 +244,10 @@ public class GroundSystem {
                 case DEPLOYED:
                     // Story columns retain ordinary steering, footprint collision and weapons.
                     if (convoy.faction(id) == Faction.ALLY && m.authoredRouteX != null) {
+                        if (m.authoredRoutePaused) {
+                            controlSystem.tickManual(id, dt, 0f, 0f);
+                            break;
+                        }
                         controlSystem.tick(id, dt, m.authoredRouteX, m.authoredRouteY, m.authoredLeg);
                         if (controlSystem.consumeArrived(id)) {
                             m.authoredRouteX = null; m.authoredRouteY = null;

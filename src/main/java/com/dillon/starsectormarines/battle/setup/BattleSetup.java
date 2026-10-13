@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
+import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -1435,6 +1436,66 @@ public final class BattleSetup {
                     workshop.interiorAnchorX,workshop.interiorAnchorY,engineers),
                     SalvageRightsCommand.disclosure(sim.getSalvageRights().progress()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(SalvageRightsCommand.issuer(Faction.MARINE),"Company support joins recovery"));
+        return sim;
+    }
+
+    /** Repair mobilization at the recovered basin, with committed lift and one physical cargo carrier. */
+    public static BattleSimulation createColdStart(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean cargoDelivered, boolean shorePower) {
+        if(manifest==null || manifest.isEmpty() || manifest.size()>4)
+            throw new IllegalArgumentException("Cold Start requires one to four company boats");
+        MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.COLD_START);
+        if (shorePower && map.topology.nightLighting() != null)
+            map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
+        BattleSimulation sim=buildMap(map,List.of(),List.of(),List.of(),seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
+        Random rng=new Random(seed);
+        var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
+        stampLzPads(sim,pads);
+        for(int i=0;i<manifest.size();i++){
+            var assignment=manifest.get(i);var pad=pads.get(i);
+            float x=pad.centerX+.5f,y=pad.centerY+.5f;
+            float[] entry=shuttleEntryFor(x,y,map.grid.getWidth(),map.grid.getHeight(),pad.approach);
+            long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
+                    entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
+            var mission=sim.world().mission(air);
+            mission.totalCycles=assignment.cycles;mission.manifestOrdinal=i;
+            mission.commandClaim=SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company recovery lift");
+            mission.cycleLoadouts=new MarineLoadout[assignment.cycles][];
+            for(int cycle=0;cycle<assignment.cycles;cycle++)
+                mission.cycleLoadouts[cycle]=InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle),rng);
+            mission.marineLoadout=mission.cycleLoadouts[0];
+        }
+        // The earlier workshop gain persists. Scrappers now occupy the pump work site.
+        var pump=openingDefenseNode(171,117,Faction.DEFENDER,map.grid);
+        if (!shorePower)
+            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,171,117,8),Faction.DEFENDER,"pump-scrapper-watch",pump,rng);
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,25,80,8),Faction.ALLY,"basin-militia",null,rng);
+        for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
+            if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
+                    ColdStartCommand.issuer(Faction.ALLY),null,"Vale's militia waits for company gains"))
+                throw new IllegalStateException("Basin militia handoff failed");
+        int engineers=sim.mintSquad(Faction.ALLY,UnitType.TECHNICIAN);
+        for(int[] cell:pickSpawnCluster(map.grid,28,78,2))
+            sim.spawn(new EntitySpec("Cooperative repair technician",Faction.ALLY,UnitType.TECHNICIAN,cell[0],cell[1]).squad(engineers).role(UnitRole.PATROL));
+        sim.getSquad(engineers).originalSize=2;
+        sim.claimSquadCommand(engineers,CommandAuthority.MISSION_COMMAND,ColdStartCommand.issuer(Faction.ALLY),"Replacement party joins repair mobilization");
+        List<EntitySpec> reserve=new ArrayList<>();
+        for(int batch=0;batch<4;batch++) {
+            int roadX=batch==2?301:194,roadY=batch==2?145:2;
+            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,4))
+                reserve.add(makeOpeningMilitia("repair-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
+        }
+        long carrier=0L;
+        if(!cargoDelivered) {
+            carrier=sim.convoy().spawn(VehicleType.CARGO_CARRIER,Faction.ALLY,VehicleMission.deployed(8,68));
+            sim.convoy().body(carrier).teleport(8,68,-90f);
+        }
+        sim.installColdStart(engineers,carrier,reserve,cargoDelivered,shorePower);
+        for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
+            sim.setAutonomousCommander(faction,new ColdStartCommand(faction,engineers),ColdStartCommand.disclosure(sim.getColdStart()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company support joins recovery"));
         return sim;
     }
 

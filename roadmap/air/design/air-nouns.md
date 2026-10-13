@@ -1970,6 +1970,17 @@ The tracer is drawn through the warship point-defence marks.
 
 A tender may be flown by the player through the direct-control carrier seam (`direct-control-nouns.md`, Tender): the same build orders and drone recall, laid by the pilot's buttons instead of an AI or the debug panel.
 
+A mission may instead supply a **grounded construction host**: an existing static
+hull on the map owns the wing and the construction line, without creating an
+overhead ship or granting the company a fleet member. Its exterior bay is fixed;
+builders work only within its finite reach, along clear exterior sortie corridors
+with clear work stations. It has no flight, extraction, helm or autonomous build
+director. The mission enables its construction command card when power is
+available and reports loss of the static host. Drone damage, finite losses,
+known-hostile stand-down, build progress and completed structures follow the
+ordinary tender rules. The mission's static hull retains its own appearance and
+collision; its construction metadata is never an air-layer body.
+
 **Unpiloted, a tender builds from its hull's mission stance.** The stance is the same
 `MissionStance` a warship's doctrine reads, and the ground it cares about is the same
 objective ground. Under ATTACK it raises the quickest position on the most forward

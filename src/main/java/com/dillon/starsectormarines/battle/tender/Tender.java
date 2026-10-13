@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.tender;
 
 import com.dillon.starsectormarines.battle.drone.DroneAnchor;
+import com.dillon.starsectormarines.battle.drone.SortieFlight;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.VanillaData;
@@ -55,10 +56,59 @@ public final class Tender implements DroneAnchor {
     public static final float SITE_SPACING = 2f;
 
     private final Warship ship;
+    private boolean grounded;
+    private float groundBayX;
+    private float groundBayY;
+    private float groundMouthDegrees;
+    private boolean groundHostAlive = true;
+
+    /** A mission-owned grounded host; its metadata hull is never registered in the air layer. */
+    public static Tender grounded(Faction faction, float x, float y, float bayX, float bayY,
+                                  float mouthDegrees) throws Exception {
+        Tender tender = fit(faction, x, y, mouthDegrees);
+        tender.grounded = true;
+        tender.groundBayX = bayX;
+        tender.groundBayY = bayY;
+        tender.groundMouthDegrees = mouthDegrees;
+        tender.defenceOut(false);
+        return tender;
+    }
+
+    public boolean grounded() { return grounded; }
+
+    /** Loss of a static host fails its construction and loses its deployed wing on the next tick. */
+    public void loseGroundHost() {
+        if (grounded) groundHostAlive = false;
+    }
+
+    /** Grounded construction uses a straight, clear sortie corridor from the exterior bay. */
+    public boolean groundSiteReachable(float x, float y, NavigationGrid grid) {
+        if (!grounded) return true;
+        float dx = x - bayX();
+        float dy = y - bayY();
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance > TenderSystem.PILOT_REACH_CELLS) return false;
+        float[] mouth = SortieFlight.direction(bayMouthDegrees());
+        if (dx * mouth[0] + dy * mouth[1] < 3.5f) return false;
+        int steps = Math.max(1, (int) Math.ceil(distance * 4));
+        for (int i = 0; i <= steps; i++) {
+            int cx = (int) Math.floor(bayX() + dx * i / steps);
+            int cy = (int) Math.floor(bayY() + dy * i / steps);
+            if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return false;
+        }
+        // Every builder's work ring must stay clear of the grounded hull as well.
+        for (int cx = (int) Math.floor(x - TenderSystem.WORK_RADIUS); cx <= x + TenderSystem.WORK_RADIUS; cx++) {
+            for (int cy = (int) Math.floor(y - TenderSystem.WORK_RADIUS); cy <= y + TenderSystem.WORK_RADIUS; cy++) {
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return false;
+            }
+        }
+        return true;
+    }
     private final List<WarshipSlot> bays;
     private final int builderComplement;
     private final int defenceComplement;
     private final List<ConstructionOrder> orders = new ArrayList<>();
+    private final List<ConstructionOrder> completedSites = new ArrayList<>();
     final List<Long> builders = new ArrayList<>();
     final List<Long> defenders = new ArrayList<>();
     private int stock = DEFAULT_STOCK;
@@ -155,7 +205,7 @@ public final class Tender implements DroneAnchor {
     }
 
     @Override public boolean anchorAlive() {
-        return !ship.destroyed() && !ship.departed();
+        return grounded ? groundHostAlive : !ship.destroyed() && !ship.departed();
     }
 
     @Override public float anchorHeadingDegrees() {
@@ -192,6 +242,7 @@ public final class Tender implements DroneAnchor {
 
     /** The bearing the launch bay opens on: the hull's heading turned by the bay's own angle. */
     public float bayMouthDegrees() {
+        if (grounded) return groundMouthDegrees;
         return ship.facingDegrees + (bays.isEmpty() ? 0f : bays.get(0).angleDegrees());
     }
 
@@ -214,12 +265,12 @@ public final class Tender implements DroneAnchor {
 
     /** World x of the launch bay drones leave and return through; the hull's centre when it lists none. */
     public float bayX() {
-        return bays.isEmpty() ? ship.x : ship.slotX(bays.get(0));
+        return grounded ? groundBayX : bays.isEmpty() ? ship.x : ship.slotX(bays.get(0));
     }
 
     /** World y of the launch bay. */
     public float bayY() {
-        return bays.isEmpty() ? ship.y : ship.slotY(bays.get(0));
+        return grounded ? groundBayY : bays.isEmpty() ? ship.y : ship.slotY(bays.get(0));
     }
 
     /** Whether building is metered: false while the stock is {@link #UNLIMITED}, which is the default. */
@@ -322,7 +373,7 @@ public final class Tender implements DroneAnchor {
      * told is remembered. The hull's autonomy is given back by {@link #releaseHelm}.
      */
     public void takeHelm() {
-        if (helmed) return;
+        if (grounded || helmed) return;
         helmed = true;
         defenceOutBeforeHelm = defenceOut;
         ship.takeHelm();
@@ -346,6 +397,19 @@ public final class Tender implements DroneAnchor {
         return Collections.unmodifiableList(orders);
     }
 
+    /** Completed grounded structures keep their plot reserved for the mission. */
+    public boolean groundPlotReserved(float x, float y) {
+        if (!grounded) return false;
+        for (ConstructionOrder order : orders) {
+            if (order.phase() == ConstructionOrder.Phase.COMPLETE
+                    && Math.hypot(order.siteX() - x, order.siteY() - y) < SITE_SPACING) return true;
+        }
+        for (ConstructionOrder order : completedSites) {
+            if (Math.hypot(order.siteX() - x, order.siteY() - y) < SITE_SPACING) return true;
+        }
+        return false;
+    }
+
     /** The order being worked, or {@code null} when the line is empty. */
     public ConstructionOrder current() {
         return orders.isEmpty() ? null : orders.get(0);
@@ -357,10 +421,12 @@ public final class Tender implements DroneAnchor {
      * already there. Whether the player may see the ground is the caller's rule.
      */
     public ConstructionOrder lay(BuildOption option, float x, float y, NavigationGrid grid) {
-        if (ship.destroyed() || option == null || (metered() && option.cost() > stock)) return null;
+        if (!anchorAlive() || option == null || (metered() && option.cost() > stock)) return null;
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
+        if (!groundSiteReachable(cx + 0.5f, cy + 0.5f, grid)) return null;
+        if (groundPlotReserved(cx + 0.5f, cy + 0.5f)) return null;
         for (ConstructionOrder other : orders) {
             if (other.phase().terminal()) continue;
             if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < SITE_SPACING) return null;
@@ -394,7 +460,10 @@ public final class Tender implements DroneAnchor {
         for (int i = orders.size() - 1; i >= 0; i--) {
             ConstructionOrder order = orders.get(i);
             if (!order.phase().terminal()) continue;
-            if (order.phase() == ConstructionOrder.Phase.COMPLETE) built++;
+            if (order.phase() == ConstructionOrder.Phase.COMPLETE) {
+                built++;
+                if (grounded) completedSites.add(order);
+            }
             orders.remove(i);
         }
     }
