@@ -4,10 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — added shield and orbital-battery denial of fleet fire support.
+Updated: 2026-10-13 — added the Ship on Station power (owned by the air board).
 
 | Story | Status | Depends on | Scope |
 |---|---|---|---|
+| `ship-on-station-power.md` | PLANNED (air board) | Warship body, tender, detachment | A committed warship or Shepherd becomes a power that calls the ship over the battle; same seam for debug and employer hulls. |
 | `s8-pre-battle-loadout-screen.md` | READY — manual acceptance | Shipped S8 slices | Play a mixed detachment: hold back source ships, verify roster/deck changes, and deploy with the exact committed support. |
 | `s5-command-level-progression.md` | PLANNED | Campaign outcome/persistence seam | Persist capacity-only command progression: deck budget, CP pool/regen, and cooldown curve. |
 | `s6-drop-geography.md` | DEFERRED | Real-air promotion; fog, conquest, and landing-zone state | Make reach a player choice through AA-contested LZs and heavy-versus-light delivery risk. |
