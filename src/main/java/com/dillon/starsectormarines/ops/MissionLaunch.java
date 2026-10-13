@@ -209,6 +209,7 @@ public final class MissionLaunch {
             if (!SupplyRouteCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to the accepted supply-route site before deployment.");
         }
+        requireOwnedPowerSources(m,committedPowerSources);
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
                 : committedPowerSources == null && !m.source.isDebug()
@@ -289,8 +290,8 @@ public final class MissionLaunch {
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
         if (ShepherdRecoveryCampaign.isBattle(m)) {
             var recovery=ShepherdRecoveryCampaign.requireCurrent(m);
-            boolean repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();
-            builder=()->repairChapter?BattleSetup.createColdStart(seed,constructionDetachment.shuttleManifest,profile,delivered,powered)
+            boolean departureChapter=recovery.repaired(), repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();
+            builder=()->departureChapter?BattleSetup.createWorkingPassage(seed,constructionDetachment.shuttleManifest,profile):repairChapter?BattleSetup.createColdStart(seed,constructionDetachment.shuttleManifest,profile,delivered,powered)
                     :BattleSetup.createSalvageRights(seed,constructionDetachment.shuttleManifest,profile);
         } else if (CorvusWaylineCampaign.isBattle(m)) {
             fixture = CorvusWaylineCampaign.requireCurrent(m).chapter().fixture(seed, constructionDetachment.shuttleManifest, profile);
@@ -448,8 +449,9 @@ public final class MissionLaunch {
             requireOfficerInductionComplete(personnel == null ? null : personnel.roster(), m.source);
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.
-            int playerSeats = CampaignMarineDeployment.requiredSeats(
-                    det.shuttleManifest, firstPlayerShuttle);
+            int playerSeats = sim.companyStartsOnGround()
+                    ? selectedConquestMarineSeats(ctx, m)
+                    : CampaignMarineDeployment.requiredSeats(det.shuttleManifest, firstPlayerShuttle);
             ctx.setMarineDeploymentCapacity(playerSeats);
             CampaignMarineDeployment deployment = CampaignMarineDeployment.EMPTY;
             // One deployment shape for both sources: a debug mission fields a
@@ -481,15 +483,15 @@ public final class MissionLaunch {
             if (supplyRoute || shepherd) {
                 if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                     throw new IllegalStateException("Select at least two squads with four ready marines each.");
-                deployment.applyToAuthoredPlayerLift(sim);
+                if (!sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             }
             var debugScenario = DebugMissionCatalog.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
                     && debugScenario.corvus() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
-            if (authoredDebugLift) deployment.applyToAuthoredPlayerLift(sim);
+            if (authoredDebugLift && !sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, supplyRoute || shepherd || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, !sim.companyStartsOnGround() && (supplyRoute || shepherd || authoredDebugLift) ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
@@ -518,6 +520,15 @@ public final class MissionLaunch {
     static List<CommandPower> debugShipPowers(Mission m, DebugWarship.Spec spec, List<CommandPower> powers) {
         if (!debugShipIsSource(m, spec)) return powers;
         return PowerCatalog.withShipSources(powers, List.of(spec.hull().source()));
+    }
+
+    /** A prepared briefing cannot retain a ship sold or lost before launch. */
+    private static void requireOwnedPowerSources(Mission mission, List<FleetMemberAPI> committed) {
+        if(mission.source.isDebug() || committed==null || committed.isEmpty() || Global.getSector()==null)return;
+        var fleet=Global.getSector().getPlayerFleet();
+        var owned=fleet==null || fleet.getFleetData()==null?List.<FleetMemberAPI>of():fleet.getFleetData().getMembersListCopy();
+        for(var source:committed)if(source==null || owned.stream().noneMatch(member->member.getId().equals(source.getId())))
+            throw new IllegalStateException("A committed support ship is no longer in your fleet. Review the support commitment.");
     }
 
     private static boolean debugShipIsSource(Mission m, DebugWarship.Spec spec) {

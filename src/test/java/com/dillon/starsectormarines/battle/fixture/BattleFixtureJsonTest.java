@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -82,6 +84,31 @@ class BattleFixtureJsonTest {
         json.getJSONObject("launch").getJSONArray("marineSeats").getJSONObject(0).remove("armorClass");
         decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(json);
         assertEquals(ArmorClass.STANDARD, decoded.launch().marineSeats().get(0).armorClass());
+    }
+
+    @Test
+    void launchJsonRetainsIntegralSuitCapabilityAndLegacySeatsHaveNone() throws Exception {
+        var armor = MarineArmorCatalogRegistry.require("armor.aegis-composite");
+        var loadout = MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
+                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
+                SoldierProfile.REGULAR, null, "named-suit-wearer", armor.appearanceFamily(),
+                armor.armorCapacity(), armor.armorRating(), armor.moveSpeedMult(),
+                armor.incomingAccuracyMult(), new CampaignSquadTag("section", "Section", true, 1, 0),
+                armor.integralSystem());
+        var construction = new AssaultBattleFixture(42L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), false,
+                OperationTier.ESTABLISHED, RiskLevel.LOW, TargetProfile.NEUTRAL, List.of(), List.of());
+        var fixture = new BattleLaunchFixture(construction,
+                new BattleLaunchOverlay(0, List.of(MarineSeatCommitment.capture(loadout)),
+                        List.of(), List.of(), List.of(), 1));
+        var json = BattleFixtureJson.toJson(fixture);
+        var decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(json);
+        assertEquals(fixture, decoded);
+        assertEquals(armor.integralSystem(), decoded.launch().marineSeats().get(0).toLoadout().integralSystem);
+        json.getJSONObject("launch").getJSONArray("marineSeats").getJSONObject(0).remove("integralSystemArmorId");
+        decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(json);
+        assertNull(decoded.launch().marineSeats().get(0).integralSystem());
+        assertNull(decoded.launch().marineSeats().get(0).toLoadout().integralSystem);
     }
 
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {

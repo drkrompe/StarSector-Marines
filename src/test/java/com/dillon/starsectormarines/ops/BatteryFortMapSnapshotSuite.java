@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
+import com.dillon.starsectormarines.battle.battery.FireControl;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
@@ -124,6 +125,9 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
                 var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
                         sim.world().x(generator), sim.world().y(generator) - 6, 60).withRoofs();
                 out.add(new SnapshotArtifact("shield-fort-roofs.png", frame.render(sim, "Shield fort roofed")));
+                var gate = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
+                        sim.world().x(generator), sim.world().y(generator) + 22, 24).withRoofs();
+                out.add(new SnapshotArtifact("shield-fort-gate.png", gate.render(sim, "Shield fort main gate")));
             }
             return out;
         }
@@ -144,15 +148,16 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
         for (FortAspect aspect : BATTERY_BUILDINGS) {
             out.add(stateFrame(context, sim, ladder, aspect, "intact"));
         }
+        // Take every building first, and stop ticking the moment the holder flips: a tick with nobody present after
+        // the flip would start contesting it again, which is a suite artifact and not a fort law.
         for (FortAspect aspect : BATTERY_BUILDINGS) {
-            Fort.Place place = taken.place(aspect);
-            for (int s = 0; s < 40; s++) {
-                if (aspect == FortAspect.FIRE_CONTROL) {
-                    taken.battery().fireControl().tick(1f, false, Faction.MARINE);
-                } else {
-                    place.control().tick(1f, false, Faction.MARINE);
-                }
+            FireControl control = aspect == FortAspect.FIRE_CONTROL
+                    ? taken.battery().fireControl() : taken.place(aspect).control();
+            for (int s = 0; s < 40 && control.holder() != Faction.MARINE; s++) {
+                control.tick(1f, false, Faction.MARINE);
             }
+        }
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
             out.add(stateFrame(context, sim, taken, aspect, "captured"));
         }
         for (FortAspect aspect : BATTERY_BUILDINGS) {

@@ -97,6 +97,7 @@ public class MarineOpsContext {
      */
     private MarineRoster debugCompanyRoster;
     private boolean debugStarterIssue;
+    private Mission debugPresetMission;
     private long debugLoadoutSeed;
     private int debugPresetRevision;
 
@@ -107,6 +108,7 @@ public class MarineOpsContext {
         debugCompanyStage = preset.stage();
         debugSquadCount = preset.squads();
         debugStarterIssue = preset.starterIssue();
+        debugPresetMission = mission;
         debugLoadoutSeed = mission.id.hashCode();
         debugCompanyRoster = null;
         debugPresetRevision++;
@@ -392,7 +394,7 @@ public class MarineOpsContext {
     /** The debug company at the selected stage. Detached — never the campaign roster. */
     public MarineRoster getDebugCompanyRoster() {
         if (debugCompanyRoster == null) {
-            debugCompanyRoster = debugStarterIssue ? DebugMissionCatalog.starterCompany(getDebugSquadCount())
+            debugCompanyRoster = debugStarterIssue ? DebugMissionCatalog.expectedCompany(debugPresetMission, getDebugSquadCount())
                     : DebugCompany.seeded(debugCompanyStage, getDebugSquadCount(), debugLoadoutSeed);
         }
         return debugCompanyRoster;

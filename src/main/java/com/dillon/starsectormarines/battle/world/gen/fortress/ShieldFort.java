@@ -53,6 +53,21 @@ public final class ShieldFort {
     /** The cells of the wall left open as gates: the main gate on the south face, posterns west and east. */
     public static final List<int[]> GATE_CELLS = gateCells();
 
+    /**
+     * The gatehouse pieces: the two 3x3 towers either side of each gate and the leaves over the passage, the art turned
+     * to face its gate (west as authored; north one quarter, east two, south three).
+     */
+    public static final List<FortPlan.Piece> GATEHOUSE = List.of(
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 18, OY + 41, 3, 3, 3),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 24, OY + 41, 3, 3, 3),
+            new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + 21, OY + WORKS - 2, 3, 2, 3),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 18, 3, 3, 0),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 24, 3, 3, 0),
+            new FortPlan.Piece(FortPlan.PieceKind.GATE, OX, OY + 21, 2, 3, 0),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + WORKS - 5, OY + 18, 3, 3, 2),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + WORKS - 5, OY + 24, 3, 3, 2),
+            new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + WORKS - 2, OY + 21, 2, 3, 2));
+
     /** Gates in order; the first is the main gate. */
     private static final List<FortPlan.Gate> GATES = List.of(
             new FortPlan.Gate(OX + 22, OY + WORKS, 0, 1),
@@ -256,6 +271,7 @@ public final class ShieldFort {
         @Override public List<int[]> clearCells() { return CLEAR_CELLS; }
         @Override public List<Gate> gates() { return GATES; }
         @Override public List<int[]> gateCells() { return GATE_CELLS; }
+        @Override public List<FortPlan.Piece> gatehouse() { return GATEHOUSE; }
         @Override public List<int[]> nests() { return NESTS; }
         @Override public int[][] lanes() { return LANES; }
         @Override public List<FortBelt.Cell> belt() { return BELT; }

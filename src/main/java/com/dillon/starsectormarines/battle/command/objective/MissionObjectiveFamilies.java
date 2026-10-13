@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.State;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
+import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
@@ -83,6 +85,36 @@ public final class MissionObjectiveFamilies {
                 sequence.isComplete() ? "Recovery claim secured" : sequence.isFailed() ? "Recovery failed"
                         : timed(inspecting ? "Inspection" : "Capture", work, duration), work / duration, blocker,
                 sequence.targetX(), sequence.targetY());
+    }
+
+    public static Item workingPassage(WorkingPassageSequence sequence) {
+        var p=sequence.progress();
+        boolean build=p.phase()==WorkingPassageProgress.Phase.BEND_BUILD || p.phase()==WorkingPassageProgress.Phase.NARROWS_BUILD;
+        boolean clearing=p.phase()==WorkingPassageProgress.Phase.BEND || p.phase()==WorkingPassageProgress.Phase.NARROWS
+                || p.phase()==WorkingPassageProgress.Phase.CLIMB_OUT;
+        var order=sequence.tender().current();
+        boolean building=build && order!=null
+                && Math.hypot(order.siteX()-sequence.buildX(),order.siteY()-sequence.buildY())<22;
+        String blocker=p.terminal()?"":p.contested()?"Company position contested; tender travel and work are paused."
+                :!p.companyPresent()?"Company cover must reach and remain near the forward position."
+                :!p.tenderArrived()?"Morrow must physically reach the cleared assembly position."
+                :building&&order.underFire()?"Builders under fire; clear the firing position before work resumes."
+                :building&&order.contested()?"Clear known hostiles within 30 cells of the construction site."
+                :building?"Builders are servicing the selected emplacement."
+                :build&&!p.constructionReady()?"Select Build Vulcan Turret and complete a surviving gun near this position."
+                :!p.responseReached()?"Hold through the announced finite road response.":"";
+        return at("working-passage",switch(p.phase()) {
+            case BEND,BEND_BUILD->"Pump bend build ground";
+            case NARROWS,NARROWS_BUILD->"Narrows build ground";
+            default->"Climb-out yard";
+        },state(sequence),p.phase().name(),"Pump bend > Narrows > Climb-out > Physical departure",
+                sequence.displayName(),p.phase()==WorkingPassageProgress.Phase.SPOOL?timed("Drive spool",p.work(),WorkingPassageProgress.SPOOL_SECONDS)
+                        :clearing?timed("Area secure",p.work(),WorkingPassageProgress.CLEAR_SECONDS)
+                        :building?"Construction / "+Math.round(100*order.fraction())+"%"
+                        :build?p.constructionReady()?"Emplacement ready / hold through the road response":"Awaiting actual surviving construction":sequence.displayName(),
+                p.phase()==WorkingPassageProgress.Phase.SPOOL?p.work()/WorkingPassageProgress.SPOOL_SECONDS
+                        :clearing?p.work()/WorkingPassageProgress.CLEAR_SECONDS:building?order.fraction():-1,
+                blocker,sequence.targetX(),sequence.targetY());
     }
 
     public static Item coldStart(ColdStartSequence sequence) {

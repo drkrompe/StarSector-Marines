@@ -91,6 +91,7 @@
       "art": { "base": "graphics/structures/shield-generator-base.png", "layers": [
         { "sprite": "graphics/structures/shield-generator-ring.png", "cells": 2.8, "spinDegPerSec": 14.0, "tintByHolder": true, "dome": true },
         { "sprite": "graphics/structures/shield-generator-core.png", "cells": 1.6, "pulseHz": 0.6, "pulseDepth": 0.35, "tintByHolder": true, "dome": true }
-      ] } }
+      ] },
+      "gatehouseArt": { "tower": "graphics/fort/gate-tower.png", "towerDamaged": "graphics/fort/gate-tower-damaged.png", "gate": "graphics/fort/gate-leaves.png" } }
   ]
 }

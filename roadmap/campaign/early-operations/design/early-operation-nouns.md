@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Kestrel support and physical crash aftermath; planned post-handover arc on existing Agreus.
+Updated: 2026-10-13 - Working Passage departure, recovery and permanent fleet handover; live campaign acceptance remains open.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -56,7 +56,11 @@ Lighting changes presentation, not perception or navigation. Cold Start's comple
 shore-power connection brings the yard circuit online immediately; a later attempt
 retains that restored circuit. Working Passage departs by day.
 
-Cold Start follows the protected claim. The company escorts cooperative repair
+Cold Start follows the protected claim. The selected company begins assembled
+on the secured receiving apron, with its actual named personnel, issued equipment
+and squad leadership. There is no second insertion flight. This is the current
+mobilization's selected roster, not a saved copy of the previous battle's positions
+or a replacement for its casualties. The company escorts cooperative repair
 cargo to the workshop and covers living technicians at the pump and grounded hull.
 Delivered cargo and restored shore power are persistent field milestones; unfinished
 work needs another mobilization. Confirmed technician losses remain on the account,
@@ -72,10 +76,31 @@ construction retains the large static hull and its collision, has a fixed workin
 reach and grants neither flight nor a fleet member. Completing a real road gun
 allows the repair task to proceed; the gun fires and takes damage ordinarily.
 
-Working Passage and exactly-once fleet transfer remain open in
-`shepherd-recovery.md`. Completed Cold Start repairs do not offer an unimplemented
-departure chapter. A recovery claim grants no fleet member or general construction
-capability by itself.
+Working Passage follows completed repairs. The same hull travels in a low hover
+with its full 24 by 20-cell body, clearing terrain along its actual movement.
+Living company presence and clear ground release its successive assembly positions.
+The pump bend and narrows each require a surviving constructed turret before the
+company advances; two distinct cooperative militia teams inherit the earlier holds.
+Finite scrapper teams approach along the named haul and quarry roads. Player orders
+retain authority over the company and Morrow's helm; completed or cancelled build
+work returns her to mission travel unless another remote order owns it.
+
+The eastern yard requires 55 seconds of safe drive work, paused by absent company
+cover, hostile pressure or an out-of-position hull. Finished work releases physical
+climb-out; a timer or departure timeout cannot authorize transfer. Critical disable
+at or below one fifth hull strength aborts the attempt. Withdrawal and defeat retain
+the recovery claim and completed repairs, record confirmed militia losses, and leave
+another mobilization available. Vale recovers and refits the same hull and assigns
+replacement holders; unfinished departure work and field guns do not carry over.
+
+Accepted physical departure transfers one actual fleet Shepherd named **Morrow**,
+plus willing working crew sufficient for that member's actual minimum complement.
+They enter fleet crew, not marine squads. The accepted attempt settles once and
+retains the awarded member's permanent identity, including after sale or loss.
+Later construction support requires a currently owned eligible hull; a closed reward
+receipt never summons a replacement. There is no departure cash payment. The claim
+alone grants no fleet member or general construction capability. `shepherd-recovery.md`
+retains live campaign, save/reload and subsequent support acceptance.
 
 **A Small War** is the planned next arc after that actual fleet handover. Vale's
 reference leads through Mara to **Baronet Elian Rusk** on **Agreus**, in the
@@ -732,7 +757,14 @@ equipment is part of this objective.
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
 same crew that covered the Junction. Two twin-launcher missile batteries on
-the northern hilltops threaten its circuit over the convoy legs. Their rotating
+the northern hilltops cover its committed opening pass. Kestrel enters from
+the east, flies a right-to-left pass across the cross street in front of the
+ridge, then makes a broad return over the convoy to join its cover orbit if
+it survives. This authored route holds through damage; missile tracking and
+ordinary durability determine the result.
+The pass call follows physical commitment, the launch warning an actual missile,
+and hit/loss/return lines their observed facts. Obsolete queued calls yield to
+the loss acknowledgment. Their rotating
 mounts launch visible tracking missiles through ordinary aircraft damage.
 The hilltops and slopes remain impassable, including beneath a destroyed
 battery. Their placement does not invite a valley assault or add a capture
@@ -971,6 +1003,16 @@ clean subtitles, synthesis text, sound IDs, voice/model settings and duration;
 source takes and generation receipts remain authoring assets. Generation is
 an explicit authoring command, never a build or gameplay network operation.
 Credentials stay in the author's local environment, outside shipped content.
+Unrecorded characters must receive an explicit voice assignment before synthesis;
+they cannot inherit the catalog host's voice. Text-only drafts remain readable
+and silent until recordings have been reviewed and packaged.
+
+Shepherd recovery uses Castle for company guidance and Tamsin Vale for the yard's
+repair and departure work. Vale's retained voice is `cZH6erlGkOyAQheipyno`;
+her working-yard authority is distinct from Mara's broker role. Recorded militia
+handover reports require a confirmed hold, and departure/transfer dialogue requires
+the corresponding physical mission fact. Text-only beats can coexist with recorded
+lines without borrowing another character's voice or promising an uncompleted task.
 
 ## Boundaries and acceptance
 

@@ -1,0 +1,63 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design?output_format=mp3_44100_128",
+  "modelId": "eleven_ttv_v3",
+  "payload": {
+    "voice_description": "A woman in her late forties or fifties, a working shipyard foreman with a low, slightly husky register and an understated northern English accent. Clear natural speech, practical authority, patient warmth and dry restraint. She sounds like someone who has worked beside these crews for years. No theatrical menace, military parade delivery, radio filtering, background ambience or sound effects.",
+    "text": "Captain, that's Morrow in the cradle. Her crew brought her down with half the controls dead. They came back because they knew she was worth saving. Give my technicians safe ground and we'll get her working.",
+    "model_id": "eleven_ttv_v3",
+    "auto_generate_text": false,
+    "stream_previews": false,
+    "should_enhance": false
+  },
+  "completedAt": "2026-10-13T19:18:35.612271+00:00",
+  "headers": {
+    "request-id": null,
+    "character-cost": null,
+    "history-item-id": null
+  },
+  "responseText": "Captain, that's Morrow in the cradle. Her crew brought her down with half the controls dead. They came back because they knew she was worth saving. Give my technicians safe ground and we'll get her working.",
+  "candidates": [
+    {
+      "generated_voice_id": "5kCId4I6QhfHUNgswIHT",
+      "media_type": "audio/mpeg",
+      "duration_secs": 14.8403125,
+      "language": "en",
+      "detected_labels": null,
+      "previews": null,
+      "file": "vale-candidate-1.mp3",
+      "audioSha256": "bcaeffe5a4d430ea45565931bb7388446b32671377369dbc745f756ba9cf5bda",
+      "audioBytes": 237445,
+      "auditionOnly": true,
+      "permanentVoiceCreated": false
+    },
+    {
+      "generated_voice_id": "wcyKON7VjgXjAqihiJfB",
+      "media_type": "audio/mpeg",
+      "duration_secs": 13.403625,
+      "language": "en",
+      "detected_labels": null,
+      "previews": null,
+      "file": "vale-candidate-2.mp3",
+      "audioSha256": "ec06fa561bbf64a4d051dff8f22fbc304bf92176ff45e7829e9a606b25f3bacf",
+      "audioBytes": 214458,
+      "auditionOnly": true,
+      "permanentVoiceCreated": false
+    },
+    {
+      "generated_voice_id": "cZH6erlGkOyAQheipyno",
+      "media_type": "audio/mpeg",
+      "duration_secs": 13.1685,
+      "language": "en",
+      "detected_labels": null,
+      "previews": null,
+      "file": "vale-candidate-3.mp3",
+      "audioSha256": "12a4495433d9e8e173c1e37823f256bd35b2b1c43e70c877b85ded3d7b5aaf45",
+      "audioBytes": 210696,
+      "auditionOnly": true,
+      "permanentVoiceCreated": false
+    }
+  ],
+  "requestCount": 1,
+  "permanentVoiceCreated": false,
+  "listeningVerified": false
+}

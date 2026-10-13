@@ -34,6 +34,7 @@ class StorySceneTest {
             case SILENT_COLONY -> SilentColonyMissionKey.encode(42);
             case SALVAGE_RIGHTS -> "basin_salvage_v1_1";
             case COLD_START -> "basin_cold_start_v1_2";
+            case WORKING_PASSAGE -> "basin_working_passage_v1_3";
         };
         MissionSource source = switch (scenario) {
             case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY -> MissionSource.RECURRING;
