@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 5 built; captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -193,8 +193,7 @@ capital that is not another ship.
    dome, destroyed). Barrage is not denied by a dome: it fires and an up dome absorbs it. The barrage
    targeting preview outlines each hostile dome the player has seen (reach, up or down, pool share) and
    marks an aim point under one "absorbed by dome" while leaving it legal. Still to do: generator art
-   (a placeholder pad and the dome's core glow stand in), AI awareness (no squad is sent to take or wreck a
-   generator and nothing orders a defender to retake one), and a campaign mission that places one for a
+   (a placeholder pad and the dome's core glow stand in) and a campaign mission that places one for a
    market-held shield.
 5. **Defence nests** (built): the dispersed posts, sized by the mission's declaration. As built:
    - *Declaration.* `GroundDefences.nests` is the count; zero is none, and a fixture that predates it reads as none
@@ -219,6 +218,31 @@ capital that is not another ship.
      a capital over the field loses nothing.
    - *Still to do.* Nest art (they use the light post's vent ring), manning, faction-specific gun choice, and tuning of
      count, spacing and guns against play.
+
+## Command awareness
+
+Both Conquest commanders treat a structure they know of as work (`DefenceStructureTactics`, shared by `ConquestCommand`
+and `ConquestDefenderCommand`; nothing in it is special to attacker or defender). Three roles, in priority order:
+**defend** (its own structure is pressed: a contested fire control, a capture under way), **retake** (a structure built
+for this side that an enemy now holds) and **take** (an enemy structure this side has seen). The order is the ordinary
+attack move to the structure's doorstep (area defence for *defend*): an own-force destination naming no hostile identity or
+position, so a squad takes the structure by standing there or wrecks it by shooting it, whichever the fight allows.
+
+*Knowledge.* The structure facts a commander is given are disclosed by perspective (`ConquestCommandFacts.structures`):
+a side is told of a structure it built, one it holds, and, for the company, one the player's fog has revealed. The other
+side is never told of an enemy structure it has not built or held, so a commander cannot be sent to ground it has no
+reason to know exists. Pressure on an own structure is own-side knowledge.
+
+*Budget.* Modest and untuned: at most two squads (`DefenceStructureTactics.MAX_TASKS`) are detached at once, one per
+structure, nearest first, and a squad that already carries the order keeps it. The attacker offers only lane work (not
+squads committed to a compound capture or in a command group) and only while the lane phases are running, never during
+the keep or final-compound convergence; the defender draws on its unselected reserve after the track response has
+chosen. Directive reasons `DEFENCE_STRUCTURE_TAKE/RETAKE/DEFEND` explain the order in selected-squad UI, dumps and traces.
+A battle with no structures plans exactly as before.
+
+*Evidence.* The `defence-structure-command` scene (take, no-commander control, own-structure control, retake) and
+`DefenceStructureTacticsTest`. Not built: coordinating more than one squad per structure, escorting a ship's call on a
+dome, using a taken structure's own effect (a held battery's lock) as a reason to prioritise, and tuning.
 
 ## Captured structures
 

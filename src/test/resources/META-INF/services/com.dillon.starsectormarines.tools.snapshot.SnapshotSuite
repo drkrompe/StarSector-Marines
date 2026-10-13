@@ -122,3 +122,4 @@ com.dillon.starsectormarines.ops.OpeningLocalizationSnapshotSuite
 com.dillon.starsectormarines.ops.EngineeringOverlaySnapshotSuite
 com.dillon.starsectormarines.ops.ColdStartSnapshotSuite
 com.dillon.starsectormarines.battle.air.CloseAirSupportSceneSnapshotSuite
+com.dillon.starsectormarines.battle.command.DefenceStructureCommandSceneSnapshotSuite
