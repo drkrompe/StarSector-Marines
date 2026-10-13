@@ -836,24 +836,23 @@ public class AirSystem {
                 case CRASHING: {
                     float before = mission.crashSeconds;
                     mission.crashSeconds += dt;
-                    body.x += body.vx * dt;
-                    body.y += body.vy * dt;
-                    body.vx *= (float) Math.exp(-.7f * dt);
-                    body.vy *= (float) Math.exp(-.7f * dt);
-                    body.facingDegrees += 65f * dt;
-                    float t = Math.min(1f, mission.crashSeconds / 1.6f);
-                    world.setAltitudeT(id, mission.crashStartAltitude * (1f - t * t));
+                    float airborneSeconds = Math.max(0f, Math.min(dt, AirCrashMotion.FALL_SECONDS - before));
+                    AirCrashMotion.fall(body, airborneSeconds);
+                    world.setAltitudeT(id, AirCrashMotion.altitude(mission.crashSeconds, mission.crashStartAltitude));
                     if ((int) (before * 5) != (int) (mission.crashSeconds * 5))
                         effects.spawnPropDamage(body.x, body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)),
                                 PropDamage.Effect.FIRE, 3f);
-                    if (t >= 1f) {
-                        // A hull that falls off the map does not teleport back onto its edge.
+                    boolean onMap = body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
+                            && body.y < navigation.getGrid().getHeight() - 1;
+                    if (before < AirCrashMotion.FALL_SECONDS && mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
+                            && onMap && airframeCookOff != null) {
+                        airframeCookOff.crash(id, body.x, body.y, world.airFaction(id), frame.targetRadiusCells());
+                    }
+                    if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
+                            && AirCrashMotion.skid(body, dt - airborneSeconds)) {
+                        // A hull that slides off the map does not teleport back onto its edge.
                         if (body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
-                                && body.y < navigation.getGrid().getHeight() - 1) {
-                            if (airframeCookOff != null) airframeCookOff.crash(id, body.x, body.y,
-                                    world.airFaction(id), frame.targetRadiusCells());
-                            settleGroundWreck(id, body);
-                        }
+                                && body.y < navigation.getGrid().getHeight() - 1) settleGroundWreck(id, body);
                         mission.state = ShuttleState.GONE;
                     }
                     break;

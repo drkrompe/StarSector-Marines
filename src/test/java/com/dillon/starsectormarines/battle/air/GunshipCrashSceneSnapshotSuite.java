@@ -7,6 +7,6 @@ public final class GunshipCrashSceneSnapshotSuite extends BehaviorSceneSnapshotS
     @Override protected boolean showUnitShadows() { return true; }
     @Override protected boolean showImpactEffects() { return true; }
     @Override protected float closeViewScale() { return 1f; }
-    @Override protected float[] closeView(String loop) { return loop.equals("impact") ? new float[]{40.5f, 27.5f, 28f} : null; }
-    @Override protected int[] stillFrames(String loop) { return loop.equals("impact-close") ? new int[]{20, 26, 34, 60, 90} : new int[0]; }
+    @Override protected float[] closeView(String loop) { return loop.equals("momentum") ? new float[]{40.5f, 27.5f, 56f} : null; }
+    @Override protected int[] stillFrames(String loop) { return loop.equals("momentum-close") ? new int[]{35, 45, 55, 65, 85} : new int[0]; }
 }
