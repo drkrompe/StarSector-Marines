@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/** Campaign-side allocation snapshot consumed sequentially by battle shuttle seats. */
+/** Launch-frozen named company allocation, realized through physical lift or authored ground arrival. */
 public final class CampaignMarineDeployment {
 
     public static final CampaignMarineDeployment EMPTY =
@@ -222,6 +222,10 @@ public final class CampaignMarineDeployment {
     /** Authored route factories reserve nonnegative ordinals exclusively for company craft. */
     public void applyToAuthoredPlayerLift(BattleSimulation sim) {
         sim.setCommittedMarines(commitments());
+        if (sim.companyStartsOnGround()) {
+            sim.deployCompanyOnGround(commitments());
+            return;
+        }
         List<ShuttleMission> missions = new ArrayList<>();
         for (long air : sim.getAirEntityIds()) {
             if (sim.world().airFaction(air) != Faction.MARINE) continue;
@@ -260,6 +264,10 @@ public final class CampaignMarineDeployment {
                         FieldPresencePolicy fieldPresencePolicy) {
         if (sim == null || seats.isEmpty()) return;
         sim.setCommittedMarines(commitments());
+        if (sim.companyStartsOnGround()) {
+            sim.deployCompanyOnGround(commitments());
+            return;
+        }
         BattleComponents components = sim.getBattleComponents();
         List<ShuttleMission> missions = new ArrayList<>();
         for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {

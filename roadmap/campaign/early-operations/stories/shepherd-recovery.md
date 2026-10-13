@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Working Passage physical departure, recovery policy and once-only Morrow/crew transfer implemented.
+Updated: 2026-10-13 — Cold Start ground mobilization and the first Castle/Vale recording batch; live campaign and audio-mix acceptance remain.
 
 ## Placement and employer
 
@@ -173,7 +173,10 @@ come back in strength.”
 
 Beat order:
 
-1. The yard is visibly serviced and militia hold the earlier gain. Escort one
+1. The selected company is already assembled on the secured receiving apron;
+   there is no repeat shuttle insertion. It retains current campaign personnel,
+   kit and squad identity, including losses settled after the first contract.
+   The yard is visibly serviced and militia hold the earlier gain. Escort one
    repair carrier along the clear service lane, not through the grounded hull.
 2. Clear and hold the pump station while an engineer connects power. Raiders
    approach in small finite detachments from the south road and eastern quarry.
@@ -289,11 +292,18 @@ the duration targets remain tuning goals until measured playback and live review
 ### Remaining acceptance
 
 - Live discovery, launch, return to HQ and save/load acceptance across all three
-  chapters. Each has a campaign offer, text-only narration and a debug fixture;
+  chapters. Each has a campaign offer, readable narration and a debug fixture;
   Working Passage is debug chapter 04 on Asharu and follows completed Cold Start repairs.
   Its detached expected company has 24 service-grade pulse rifles with starting
   Ward armor and no Hound or officer bonuses; it does not change new-company issue.
   Cold Start pays 22,000 credits only on an accepted repair victory.
+- The first twelve recorded Castle/Vale beats cover Cold Start's ground opening,
+  power, completed gun and repair, plus Working Passage's briefing, underway report,
+  build instructions, confirmed militia holds, departure and transfer. Vale's chosen
+  voice is retained for later scripts; remaining beats stay text-only. Check names,
+  delivery and intelligibility against the live mix before release. The construction
+  drones have finite positional machinery cues; live swarm and accelerated-time
+  listening remain acceptance work.
 - Design for a rebuilding company: two squads as the initial test force, allied
   holders and engineers; Hound optional. Use the real launch roster and fitted
   boats. A weakened company can postpone and replenish. Do not assume every
@@ -337,8 +347,10 @@ debrief documents render at 1920×1080 / 100%. This remains detached headless ev
 live Asharu discovery, save/load and return-to-HQ acceptance are still required.
 
 `createSnapshots -Psnapshot=cold-start` exercises the repair chapter with named
-company personnel and their fitted boats, including a mixed Hermes/Aeroshuttle
-manifest. Its ordinary command-card input requests one turret; it does not spawn
+company personnel already ashore at tick zero, including retained mixed
+Hermes/Aeroshuttle reserves and a boatless mobilization. It checks distinct opening
+positions, initial visibility, exact squad/NCO/fire-team identity and an unchanged
+airborne Salvage Rights control. Its ordinary command-card input requests one turret; it does not spawn
 the gun or force victory. Reports record physical carrier movement, shore-light
 state, builder work, actual turret shots, personnel outcomes and phase changes.
 Absent-company and no-construction controls must not complete their missing work.

@@ -1,0 +1,34 @@
+[
+  {
+    "seconds": 0.65,
+    "effect": "launch"
+  },
+  {
+    "seconds": 1.78,
+    "effect": "weld_1"
+  },
+  {
+    "seconds": 2.67,
+    "effect": "weld_2"
+  },
+  {
+    "seconds": 3.56,
+    "effect": "weld_3"
+  },
+  {
+    "seconds": 4.45,
+    "effect": "complete"
+  },
+  {
+    "seconds": 5.62,
+    "effect": "dock"
+  },
+  {
+    "seconds": 6.64,
+    "effect": "hit"
+  },
+  {
+    "seconds": 7.53,
+    "effect": "alert"
+  }
+]

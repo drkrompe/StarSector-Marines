@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -823,6 +824,30 @@ public class AirSystem {
             ThrusterFxSystem.advance(id, slots, world.kinematics(id), frame.flight(),
                     entityWorld, components, dt);
         }
+    }
+
+    /**
+     * Places the frozen company at a secured opening position using the ordinary
+     * infantry realization (issued kit, squad identity, fire teams and NCO).
+     * No aircraft boards, flies, or reports these personnel as passengers.
+     */
+    public void deployCompanyOnGround(GroundMarineArrival arrival, List<MarineSeatCommitment> seats) {
+        ShuttleMission ground = new ShuttleMission(arrival.x, arrival.y, 0, 0, 0, 0, 0, 0);
+        ground.commandClaim = arrival.commandClaim;
+        arrival.deploy(seats, loadout -> {
+            // Setup runs without a simulation tick between bodies. Publish occupancy
+            // before selecting the next cell rather than stacking the whole force.
+            navigation.rebuildOccupancyMap(roster);
+            ground.squadId = Squad.NO_SQUAD;
+            ground.marineLoadout = new MarineLoadout[]{loadout};
+            ground.deboardedThisSortie = 0;
+            AirDeliveryContext context = new AirDeliveryContext(ground, ShuttleType.AEROSHUTTLE,
+                    Faction.MARINE, navigation, roster, addUnitSink, resupply, commandControl,
+                    Math.max(10, (int) Math.ceil(Math.sqrt(seats.size())) * 2));
+            if (!InfantryPayload.INSTANCE.tryDeploy(context))
+                throw new IllegalStateException("Secured ground arrival has no free infantry position");
+        });
+        navigation.rebuildOccupancyMap(roster);
     }
 
     /**
