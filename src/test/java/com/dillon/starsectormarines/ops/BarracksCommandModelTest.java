@@ -93,7 +93,8 @@ class BarracksCommandModelTest {
         var previous = SvgAsset.setSource(path -> Files.readString(Path.of("mod").resolve(path)));
         try {
             var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
-                    List.of("data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/shipboard-barracks.mlx"));
+                    List.of("data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/shipboard-barracks.mlx"));
             loader.reload();
             try (var instance = loader.build(reactor, "shipboard-barracks", props)) {
                 var document = new UiDocument(instance.root());

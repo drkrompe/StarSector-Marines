@@ -1,0 +1,25 @@
+<template props="rows,stockId">
+  <div id="{stockId}" class="company-resource-stock">
+    <div id="company-resource-stock-heading" class="label heading company-resource-stock-heading">{i18n.companyResourceAvailable}</div>
+    <div id="company-resource-stock-rows" class="company-resource-stock-rows">
+    <div each="item in rows" key="{item.id}" id="{item.id}" class="company-resource-stock-item">
+      <img id="{item.iconId}" class="company-resource-icon" src="{item.icon}" />
+      <div id="{item.copyId}" class="company-resource-stock-copy">
+        <div id="{item.nameId}" class="label company-resource-stock-name">{item.name}</div>
+        <div id="{item.labelId}" class="label company-resource-stock-value">{item.stock}</div>
+      </div>
+    </div>
+    </div>
+
+  </div>
+</template>
+<style>
+  .company-resource-stock { flex-direction: row; align-items: center; height: 46px; gap: 12px; padding: 3px 8px; background-color: #121719; border-width: 1px; border-color: #596052; }
+  .company-resource-stock-rows { height: 36px; flex-direction: row; width: 0px; flex-grow: 1; gap: 12px; }
+  .company-resource-stock-heading { width: 108px; height: 32px; white-space: normal; color: #b6c3b9; }
+  .company-resource-stock-item { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 36px; gap: 6px; }
+  .company-resource-icon { width: 20px; height: 20px; }
+  .company-resource-stock-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 34px; gap: 2px; }
+  .company-resource-stock-name { height: 16px; color: #a6b3a9; }
+  .company-resource-stock-value { height: 16px; color: #e4e6d7; }
+</style>

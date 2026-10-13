@@ -48,7 +48,8 @@ public final class ShipViewScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "ship-view";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-view.mlx");
 
     private final Reactor reactor = new Reactor();

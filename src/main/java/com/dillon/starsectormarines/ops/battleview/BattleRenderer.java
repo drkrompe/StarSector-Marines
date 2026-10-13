@@ -117,6 +117,7 @@ public class BattleRenderer {
     // ---- owned state ---------------------------------------------------------
 
     private final BattleSprites sprites;
+    private final NightLightingRenderSystem nightLighting;
     private RenderContext rc;
 
     /**
@@ -266,6 +267,7 @@ public class BattleRenderer {
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
+        this.nightLighting = new NightLightingRenderSystem(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
@@ -329,7 +331,7 @@ public class BattleRenderer {
                         })),
                 new ShuttleRenderSystem(sprites),
                 new ShipLightingRenderSystem(),
-                new NightLightingRenderSystem(),
+                nightLighting,
                 new WarshipRenderSystem(sprites),
                 new LanceSweepRenderSystem(),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its
@@ -518,6 +520,9 @@ public class BattleRenderer {
 
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
+
+    /** Releases the screen-resolution night lighting targets. */
+    public void disposeNightLighting() { nightLighting.dispose(); }
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }

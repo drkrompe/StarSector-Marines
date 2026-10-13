@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import java.util.List;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign.Offer;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -82,8 +83,9 @@ final class SecondhandWingsModel {
                     case 1 -> Strings.get("openingSecondhandWingsYouGaveOurCooperativeAPlaceTo");
                     default -> Strings.get("openingSecondhandWingsThoseAreOursCaptainProperLandingCraft");
                 };
+                case "billRows" -> page == 2 ? List.of() : CompanyResources.credits("wings-cost", credits, SecondhandWings.CREDIT_COST);
                 case "bill" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAeroshuttlesSeatsPerLift")
-                        : String.format(Strings.get("openingSecondhandWingsPairRefitCrAvailableDCr"), credits);
+                        : CompanyResources.creditBill(SecondhandWings.CREDIT_COST, credits);
                 case "trade" -> page == 1 ? Strings.format("openingSecondhandWingsExchangeIncludes", trade) : Strings.get("openingSecondhandWingsHermesSeatsAeroshuttleSeatsTwoRepairedLanders");
                 case "reason" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAtStandardFitPlatingAndDrive")
                         : page == 1 && refusal != null ? refusal : Strings.get("openingSecondhandWingsNoAdditionalMaterialBillBayRestorationIs");
