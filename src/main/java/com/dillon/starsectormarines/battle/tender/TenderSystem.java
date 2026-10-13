@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -155,7 +156,7 @@ public final class TenderSystem {
         float by = t.bayY();
         int[] cell = openCell(sim.getGrid(), bx, by);
         String name = (armed ? "tender-defence-" : "tender-builder-") + nextDrone++;
-        EntitySpec spec = Drone.create(name, t.faction(), cell[0], cell[1], 0L);
+        EntitySpec spec = Drone.create(name, t.faction(), cell[0], cell[1], 0L, DroneLook.TENDER);
         if (armed) spec.squad(squadId);
         else spec.role(UnitRole.STRUCTURE);
         long id = sim.spawn(spec);

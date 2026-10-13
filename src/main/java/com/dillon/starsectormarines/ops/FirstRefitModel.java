@@ -1,28 +1,34 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.marine.EquipmentIssueResources;
-import com.dillon.starsectormarines.marine.FireTeamBillet;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
-import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FirstRefit.Path;
+import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /** Two curated choices over the ordinary squad equipment transaction. */
 final class FirstRefitModel {
@@ -35,6 +41,9 @@ final class FirstRefitModel {
     private SquadEquipmentPreview reviewed;
     private List<String> reviewedMembers = List.of();
     private String feedback = "";
+    private int selectedBillet;
+    private FireTeamBillet currentKit;
+    private FireTeamBillet proposedKit;
 
     FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Consumer<String> inspect) {
         this.roster = roster; this.resources = resources; this.inspect = inspect;
@@ -48,7 +57,25 @@ final class FirstRefitModel {
     }
     Signal<Map<String, Object>> row() { return row; }
     void selectSquad(String id) { squadId = id; feedback = ""; refresh(); }
-    void selectPath(Path value) { path = value; feedback = ""; refresh(); }
+    void selectPath(Path value) {
+        path = value; selectedBillet = value == Path.STEADY_LINE ? 3 : 0;
+        feedback = ""; refresh();
+    }
+    void selectBillet(int index) {
+        if (index < 0 || index >= MarineSquad.CAPACITY) return;
+        selectedBillet = index; refresh();
+    }
+    SpecSheet sheet(boolean proposed, int item) {
+        FireTeamBillet kit = proposed ? proposedKit : currentKit;
+        if (kit == null) return null;
+        return switch (item) {
+            case 0 -> SpecSheets.weapon(kit.primaryDef(), kit.grade());
+            case 1 -> SpecSheets.armor(kit.armorDef());
+            case 2 -> kit.specialDef() == null ? null : SpecSheets.special(kit.specialDef());
+            case 3 -> IntegralSystemCopy.carried(kit.armorDef()) ? SpecSheets.integralSystem(kit.armorDef()) : null;
+            default -> null;
+        };
+    }
     void claim() { roster.firstRefit().claim(roster); refresh(); }
     void issue() {
         if (reviewed == null || path == null || roster.firstRefit().complete()) return;
@@ -79,7 +106,7 @@ final class FirstRefitModel {
                 : !claimed ? "Mara sent over the patterns her quartermaster could spare: Milspec Stalwart automatics, Milspec Lancer pulse rifles and Janus scout suits. We held their checkpoint. Now Wayline can help us put better kit on our people. Accept the patterns, then we will refit one squad together."
                 : squad == null ? "Choose a squad to equip. Wounded marines can receive gear while recovering; a squad does not need to be full. We only charge for changed equipment issued to people on its current roll."
                 : path == null ? "Two plans, Captain. Steady Line puts more weight behind holding ground. Forward Screen puts more scouts ahead of us. Each plans weapons and armor for twelve billets; select one to review the issue to your current marines."
-                : "Read across the roll: current kit on the left, proposed kit on the right. Nothing changes until Issue to squad. Patterns are ours to keep; the supplies, armaments and machinery below pay for the changed equipment. Wounded marines receive kit without changing recovery. Vacant slots keep the plan and cost nothing; review and issue replacement equipment when recruits join.");
+                : "Select a billet to compare its current and proposed equipment. Hover an item for its full spec sheet. Milspec weapons use supplies; the bill below also includes armor materials. Wounded marines can equip now, and vacant slots store the plan for free. Issue to squad applies the whole order.");
         props.put("showcaseClasses", !claimed ? "refit-showcase" : "refit-hidden");
         props.put("claimClasses", !claimed ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", claimed && !complete ? "refit-work" : "refit-hidden");
@@ -90,29 +117,61 @@ final class FirstRefitModel {
         props.put("issue", (Runnable) this::issue);
         props.put("squads", roster.squads().stream().filter(s -> !s.reserve()).map(s -> Map.<String, Object>of(
                 "id", "refit-squad:" + s.id(), "label", (s.id().equals(squadId) ? "SELECTED / " : "") + s.name() + (s.stationed() ? " / STATIONED" : ""),
-                "classes", "refit-squad" + (s.id().equals(squadId) ? " refit-selected" : ""),
+                "classes", "refit-squad" + (s.id().equals(squadId) ? " refit-selected selected" : ""),
                 "select", (Runnable) () -> selectSquad(s.id()))).toList());
         props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
                 ? "No line squad. Return to the Armory gallery to found one." : "SELECT ONE FORMATION / Wounded and understrength squads can receive equipment.");
         props.put("paths", List.of(Path.values()).stream().map(p -> Map.<String, Object>of(
                 "id", "refit-path:" + p.name(), "headingId", "refit-path-heading:" + p.name(),
                 "copyId", "refit-path-copy:" + p.name(), "label", (p == path ? "SELECTED / " : "") + p.label, "copy", p.description,
-                "classes", "refit-path" + (p == path ? " refit-selected" : ""),
+                "classes", "refit-path" + (p == path ? " refit-selected selected" : ""),
                 "select", (Runnable) () -> selectPath(p))).toList());
         List<Map<String, Object>> billets = new ArrayList<>();
+        currentKit = null; proposedKit = null;
+        String selectedName = "Choose a squad and a path to compare equipment.";
         if (reviewed != null) for (int i = 0; i < reviewed.billets().size(); i++) {
+            int index = i;
             MarineSoldier soldier = i < reviewedMembers.size() ? roster.soldierById(reviewedMembers.get(i)) : null;
             SquadEquipmentBillet kit = reviewed.billet(i);
-            String current = soldier == null ? "Vacant / no charge" : soldier.primaryGrade().displayName + " "
-                    + soldier.primaryDef().modelName + " / " + soldier.armorDef().displayName()
-                    + (soldier.specialEquipmentDef() == null ? "" : " / " + soldier.specialEquipmentDef().displayName());
-            billets.add(Map.of("id", "refit-billet:" + i, "nameId", "refit-name:" + i,
-                    "currentId", "refit-current:" + i, "nextId", "refit-next:" + i, "name", new String[]{"Alpha", "Bravo", "Charlie"}[i / 4] + " " + (i % 4 + 1)
-                            + " / " + (soldier == null ? "Vacant" : soldier.name() + " / " + soldier.status()),
-                    "current", current, "next", kit.grade().displayName + " " + kit.primaryDef().modelName
-                            + " / " + kit.armorDef().displayName() + " / No special"));
+            String name = new String[]{"Alpha", "Bravo", "Charlie"}[i / 4] + " " + (i % 4 + 1)
+                    + " / " + (soldier == null ? "Vacant" : soldier.name());
+            FireTeamBillet current = soldier == null ? null : new FireTeamBillet(soldier.name(),
+                    soldier.primaryDef().id, soldier.primaryGrade(),
+                    soldier.specialEquipmentDef() == null ? null : soldier.specialEquipmentDef().id(), soldier.armorDef().id());
+            FireTeamBillet next = new FireTeamBillet(kit.role(), kit.primaryId(), kit.grade(), kit.specialEquipmentId(), kit.armorId());
+            String change = current == null ? "PLAN ONLY / No charge" : changes(current, next);
+            Map<String, Object> billet = new LinkedHashMap<>();
+            billet.put("id", "refit-billet:" + i); billet.put("nameId", "refit-name:" + i);
+            billet.put("detailId", "refit-detail:" + i); billet.put("name", name);
+            billet.put("gridName", (i % MarineSquad.TEAM_SIZE + 1) + " / " + (soldier == null ? "Vacant" : soldier.name()));
+            billet.put("kitId", "refit-kit:" + i);
+            billet.put("armorIconId", "refit-armor-icon:" + i);
+            billet.put("primaryIconId", "refit-primary-icon:" + i);
+            billet.put("armorIcon", soldier == null ? "graphics/ui/formation/marine-cutout-vacant.svg" : soldier.armorDef().iconPath());
+            billet.put("primaryIcon", soldier == null ? "" : EquipmentIcons.primary(soldier.primaryDef(), soldier.primaryGrade()));
+            billet.put("detail", (soldier == null ? "" : soldier.status() + " / ") + change);
+            billet.put("classes", "refit-billet" + (i == selectedBillet ? " refit-selected selected" : ""));
+            billet.put("select", (Runnable) () -> selectBillet(index));
+            billets.add(billet);
+            if (i == selectedBillet) {
+                currentKit = current; proposedKit = next;
+                selectedName = name + " / " + kit.role() + (soldier == null ? " / Vacant: plan only, no charge" : " / " + soldier.status());
+            }
         }
         props.put("billets", billets);
+        List<Map<String, Object>> fireTeams = new ArrayList<>();
+        if (!billets.isEmpty()) for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            String id = "refit-team:" + team;
+            fireTeams.add(Map.of("id", id, "headingId", id + ":heading", "membersId", id + ":members",
+                    "label", new String[]{"ALPHA", "BRAVO", "CHARLIE"}[team],
+                    "billets", List.copyOf(billets.subList(team * MarineSquad.TEAM_SIZE, (team + 1) * MarineSquad.TEAM_SIZE))));
+        }
+        props.put("fireTeams", fireTeams);
+        props.put("selectedName", selectedName);
+        props.put("currentItems", items(false));
+        props.put("proposedItems", items(true));
+        props.put("comparisonClasses", reviewed == null ? "refit-hidden" : "refit-comparison");
+        props.put("emptyClasses", reviewed == null ? "refit-empty panel" : "refit-hidden");
         props.put("bill", reviewed == null ? "Choose a squad and a path to see the bill."
                 : "COST  " + reviewed.issueCost().display() + "\nAVAILABLE  " + resources.available().display());
         List<Map<String, Object>> costs = new ArrayList<>();
@@ -133,6 +192,48 @@ final class FirstRefitModel {
                 : blocker(reviewed.result()));
         props.put("disabled", complete || reviewed == null || !reviewed.canApply());
         row.set(props);
+    }
+
+    private static String changes(FireTeamBillet current, FireTeamBillet next) {
+        List<String> changes = new ArrayList<>();
+        if (!current.primaryId().equals(next.primaryId()) || current.grade() != next.grade()) changes.add("Weapon");
+        if (!current.armorId().equals(next.armorId())) changes.add("Armor");
+        if (!Objects.equals(current.specialEquipmentId(), next.specialEquipmentId())) changes.add("Special");
+        return changes.isEmpty() ? "Keep current kit" : String.join(" + ", changes);
+    }
+
+    private List<Map<String, Object>> items(boolean proposed) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        FireTeamBillet kit = proposed ? proposedKit : currentKit;
+        for (int i = 0; i < 3; i++) {
+            String kind = new String[]{"WEAPON", "ARMOR", "SPECIAL"}[i];
+            String id = "refit-" + (proposed ? "proposed" : "current") + "-item:" + i;
+            SpecSheet sheet = sheet(proposed, i);
+            String icon = kit == null ? "" : switch (i) {
+                case 0 -> EquipmentIcons.primary(kit.primaryDef(), kit.grade());
+                case 1 -> kit.armorDef().iconPath();
+                default -> kit.specialDef() == null ? "" : kit.specialDef().armoryIconPath();
+            };
+            SpecSheet before = sheet(false, i);
+            boolean same = Objects.equals(before, sheet);
+            String change = !proposed ? "" : currentKit == null ? " / PLAN ONLY"
+                    : same ? " / UNCHANGED" : sheet == null ? " / REMOVE" : " / REPLACE";
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", id); item.put("iconId", id + ":icon"); item.put("textId", id + ":text");
+            item.put("kindId", id + ":kind"); item.put("titleId", id + ":title");
+            item.put("subtitleId", id + ":subtitle"); item.put("statsId", id + ":stats");
+            item.put("systemId", id + ":system"); item.put("icon", icon);
+            item.put("kind", kind + change);
+            item.put("title", sheet != null ? sheet.title() : kit == null ? "No current equipment" : "No special equipment");
+            item.put("subtitle", sheet != null ? sheet.subtitle() : proposed && before != null
+                    ? "Current special is removed; no material refund." : kit == null ? "Vacant billet / no charge" : "This slot carries no special item.");
+            item.put("stats", sheet == null ? "" : sheet.stats().stream()
+                    .map(stat -> stat.label() + "  " + stat.value()).collect(Collectors.joining("     ")));
+            item.put("system", i == 1 && kit != null ? IntegralSystemCopy.tile(kit.armorDef()) : "");
+            item.put("classes", "refit-item panel" + (i == 1 ? " refit-armor-item" : i == 2 ? " refit-special-item" : ""));
+            items.add(item);
+        }
+        return items;
     }
 
     private void addCost(List<Map<String, Object>> rows, String commodity, int cost, int have) {

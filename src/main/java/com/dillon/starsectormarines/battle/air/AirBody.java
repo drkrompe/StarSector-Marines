@@ -39,6 +39,14 @@ public class AirBody {
     /** Realized heading change rate over the last tick, deg/sec (shortest-arc Δfacing/dt). Written by {@link AirSteeringSystem}; drives the rotational term of the engine-FX thruster weighting. */
     public float angVelDegPerSec;
 
+    /**
+     * Which of its craft's alternative drawings the body wears; {@code 0} is the
+     * craft's own. Pure presentation, set once where the craft is made. It rides
+     * the body rather than a component because the body outlives the unit: a
+     * drone's fall is drawn from this object after its live state is gone.
+     */
+    public int artVariant;
+
     /** Distance to ({@code gx, gy}), cells. */
     public float distanceTo(float gx, float gy) {
         float dx = gx - x, dy = gy - y;

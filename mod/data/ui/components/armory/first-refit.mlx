@@ -33,16 +33,60 @@
           <div id="{path.copyId}" class="refit-path-copy">{path.copy}</div>
         </button>
       </div>
-      <div id="refit-table-heading" class="refit-table-heading panel">
-        <div id="refit-name-heading" class="refit-name tone-edge">SOLDIER / FIRE TEAM</div>
-        <div id="refit-current-heading" class="refit-kit tone-muted">CURRENT ISSUE</div>
-        <div id="refit-next-heading" class="refit-kit tone-accent">PROPOSED ISSUE</div>
-      </div>
-      <div id="refit-billets" class="refit-billets panel">
-        <div each="billet in lesson.billets" key="{billet.id}" id="{billet.id}" class="refit-billet">
-          <div id="{billet.nameId}" class="refit-name">{billet.name}</div>
-          <div id="{billet.currentId}" class="refit-kit tone-muted">{billet.current}</div>
-          <div id="{billet.nextId}" class="refit-kit tone-edge">{billet.next}</div>
+      <div id="refit-empty" class="{lesson.emptyClasses}">Select a squad and one of the two plans above. Compare equipment before spending any materials.</div>
+      <div id="refit-comparison" class="{lesson.comparisonClasses}">
+        <div id="refit-roll" class="refit-roll panel">
+          <div id="refit-roll-heading" class="refit-roll-heading tone-edge">CURRENT KIT / Select a square</div>
+          <div id="refit-billets" class="refit-billets">
+            <div each="team in lesson.fireTeams" key="{team.id}" id="{team.id}" class="refit-team">
+              <div id="{team.headingId}" class="refit-team-heading tone-edge">{team.label}</div>
+              <div id="{team.membersId}" class="refit-team-members">
+                <button each="billet in team.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
+                  <div id="{billet.nameId}" class="refit-name">{billet.gridName}</div>
+                  <div id="{billet.kitId}" class="refit-billet-kit">
+                    <img id="{billet.armorIconId}" class="refit-billet-icon" src="{billet.armorIcon}" />
+                    <img id="{billet.primaryIconId}" class="refit-billet-icon" src="{billet.primaryIcon}" />
+                  </div>
+                  <div id="{billet.detailId}" class="refit-detail tone-muted">{billet.detail}</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="refit-inspection" class="refit-inspection">
+          <div id="refit-selected-name" class="refit-selected-name tone-accent">{lesson.selectedName}</div>
+          <div id="refit-equipment-columns" class="refit-equipment-columns">
+            <div id="refit-current-equipment" class="refit-equipment-column">
+              <div id="refit-current-heading" class="refit-column-heading panel">CURRENT ISSUE</div>
+            <div id="refit-current-items" class="refit-items">
+            <div each="item in lesson.currentItems" key="{item.id}" id="{item.id}" class="{item.classes}">
+              <img id="{item.iconId}" class="refit-equipment-art" src="{item.icon}" />
+              <div id="{item.textId}" class="refit-equipment-text">
+                <div id="{item.kindId}" class="refit-item-kind tone-edge">{item.kind}</div>
+                <div id="{item.titleId}" class="refit-item-title tone-accent">{item.title}</div>
+                <div id="{item.subtitleId}" class="refit-item-subtitle tone-muted">{item.subtitle}</div>
+                <div id="{item.statsId}" class="refit-item-stats">{item.stats}</div>
+                <div id="{item.systemId}" class="refit-item-system tone-edge">{item.system}</div>
+              </div>
+            </div>
+            </div>
+            </div>
+            <div id="refit-proposed-equipment" class="refit-equipment-column">
+              <div id="refit-proposed-heading" class="refit-column-heading panel tone-accent">PROPOSED ISSUE / Hover equipment for full specs</div>
+            <div id="refit-proposed-items" class="refit-items">
+            <div each="item in lesson.proposedItems" key="{item.id}" id="{item.id}" class="{item.classes}">
+              <img id="{item.iconId}" class="refit-equipment-art" src="{item.icon}" />
+              <div id="{item.textId}" class="refit-equipment-text">
+                <div id="{item.kindId}" class="refit-item-kind tone-edge">{item.kind}</div>
+                <div id="{item.titleId}" class="refit-item-title tone-accent">{item.title}</div>
+                <div id="{item.subtitleId}" class="refit-item-subtitle tone-muted">{item.subtitle}</div>
+                <div id="{item.statsId}" class="refit-item-stats">{item.stats}</div>
+                <div id="{item.systemId}" class="refit-item-system tone-edge">{item.system}</div>
+              </div>
+            </div>
+            </div>
+            </div>
+          </div>
         </div>
       </div>
       <div id="refit-bill" class="refit-bill panel">
@@ -66,12 +110,12 @@
 </template>
 <style>
   .refit-root { flex-direction: column; padding: 12px; gap: 9px; overflow: hidden; }
-  .refit-conversation { flex-direction: row; height: 112px; padding: 12px; gap: 16px; border-width: 1px; }
-  .refit-portrait { width: 104px; height: 104px; }
+  .refit-conversation { flex-direction: row; height: 86px; padding: 10px; gap: 16px; border-width: 1px; }
+  .refit-portrait { width: 82px; height: 82px; }
   .refit-dialogue { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-heading { font-family: heading; height: 22px; }
   .refit-progress { height: 18px; }
-  .refit-copy { height: 60px; white-space: normal; }
+  .refit-copy { height: 42px; white-space: normal; }
   .refit-showcase { flex-direction: row; height: 0px; flex-grow: 1; gap: 16px; }
   .refit-example { flex-direction: column; width: 0px; flex-grow: 1; padding: 24px; gap: 16px; align-items: center; }
   .refit-example-art { width: 250px; height: 250px; }
@@ -79,17 +123,41 @@
   .refit-example-copy { width: 560px; height: 74px; white-space: normal; }
   .refit-work { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; }
   .refit-hint { height: 18px; }
-  .refit-squads { flex-direction: row; height: 36px; gap: 6px; overflow: scroll; }
+  .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
   .refit-squad { width: 180px; height: 24px; padding: 4px; border-width: 1px; }
-  .refit-paths { flex-direction: row; height: 86px; gap: 12px; }
+  .refit-paths { flex-direction: row; height: 68px; gap: 12px; }
   .refit-path { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 5px; border-width: 2px; text-align: left; }
   .refit-path-copy { height: 40px; white-space: normal; font-family: body; }
-  .refit-selected { border-color: #73cfc9; background-color: #163a40; }
-  .refit-table-heading { flex-direction: row; height: 20px; gap: 12px; padding: 4px 8px; }
-  .refit-billets { flex-direction: column; height: 0px; flex-grow: 1; overflow: scroll; padding: 4px 8px; gap: 2px; }
-  .refit-billet { flex-direction: row; height: 33px; gap: 12px; border-width: 1px; border-color: #263d49; }
-  .refit-name { width: 255px; white-space: normal; }
-  .refit-kit { width: 0px; flex-grow: 1; white-space: normal; }
+  .refit-path.refit-selected, .refit-squad.refit-selected, .refit-billet.refit-selected { border-color: #73cfc9; background-color: #163a40; }
+  .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
+  .refit-comparison { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }
+  .refit-roll { flex-direction: column; width: 348px; padding: 6px; gap: 4px; }
+  .refit-roll-heading { height: 22px; }
+  .refit-billets { flex-direction: row; height: 0px; flex-grow: 1; overflow: scroll; gap: 6px; }
+  .refit-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .refit-team-heading { height: 18px; text-align: center; font-family: heading; }
+  .refit-team-members { flex-direction: column; gap: 6px; }
+  .refit-billet { flex-direction: column; height: 96px; padding: 4px; gap: 4px; border-width: 1px; text-align: left; }
+  .refit-name { height: 18px; overflow: hidden; }
+  .refit-billet-kit { flex-direction: row; height: 34px; gap: 6px; align-items: center; }
+  .refit-billet-icon { width: 34px; height: 34px; pointer-events: none; }
+  .refit-detail { height: 36px; white-space: normal; font-family: body; }
+  .refit-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .refit-selected-name { height: 22px; }
+  .refit-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }
+  .refit-equipment-column { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
+  .refit-items { flex-direction: column; gap: 8px; }
+  .refit-column-heading { height: 20px; padding: 6px 10px; }
+  .refit-item { flex-direction: row; height: 102px; padding: 10px; gap: 14px; border-width: 1px; }
+  .refit-armor-item { height: 132px; }
+  .refit-special-item { height: 88px; }
+  .refit-equipment-art { width: 98px; height: 98px;  }
+  .refit-equipment-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
+  .refit-item-kind { height: 16px; font-family: body; }
+  .refit-item-title { height: 20px; font-family: heading; }
+  .refit-item-subtitle { height: 30px; white-space: normal; }
+  .refit-item-stats { height: 20px; }
+  .refit-item-system { height: 38px; white-space: normal; }
   .refit-bill { flex-direction: row; height: 53px; gap: 10px; padding: 6px 8px; }
   .refit-cost { flex-direction: column; gap: 3px; width: 0px; flex-grow: 2; white-space: normal; }
   .refit-bill-heading { height: 18px; }
