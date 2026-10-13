@@ -139,6 +139,8 @@ public final class MechTargeting {
         // surviving until range or line of sight happens to break it.
         if (!sim.canEngage(mech, target)) return false;
         if (!sim.identity().faction(mech).hostileTo(sim.identity().faction(target))) return false;
+        // A fort core is wrecked on a commander's say-so, not because a lance happened to pass it.
+        if (!sim.getTacticalScoring().mayEngage(mech, target)) return false;
         float dx = sim.world().x(target) - sim.world().x(mech);
         float dy = sim.world().y(target) - sim.world().y(mech);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);

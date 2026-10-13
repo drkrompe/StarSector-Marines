@@ -39,6 +39,9 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * @param targetCellY  exact rally/escort cell; {@code -1} when not cell-scoped
  * @param targetRadiusCells radius of a bounded cell area; {@code -1} when the
  *                          assignment is not area-scoped
+ * @param wreckAuthorised   whether the commander has told the squad it may destroy the fort aspect standing at the
+ *                          target cell, which squads otherwise leave alone (see {@code FortRestraint}). A permission
+ *                          carrying no hostile identity: it is the same own-force destination, with fire allowed there
  */
 public record ObjectiveAssignment(
         int squadId,
@@ -48,7 +51,23 @@ public record ObjectiveAssignment(
         int objectiveId,
         int targetCellX,
         int targetCellY,
-        int targetRadiusCells) {
+        int targetRadiusCells,
+        boolean wreckAuthorised) {
+
+    /** The assignment without a wreck permission, which is every assignment but a fort commander's wreck task. */
+    public ObjectiveAssignment(int squadId, AssignmentKind kind,
+                               int targetZoneId, TacticalNode targetNode,
+                               int objectiveId, int targetCellX,
+                               int targetCellY, int targetRadiusCells) {
+        this(squadId, kind, targetZoneId, targetNode, objectiveId,
+                targetCellX, targetCellY, targetRadiusCells, false);
+    }
+
+    /** The same order with the permission to wreck the fort aspect at its target cell given or withdrawn. */
+    public ObjectiveAssignment withWreckAuthorised(boolean authorised) {
+        return wreckAuthorised == authorised ? this : new ObjectiveAssignment(squadId, kind, targetZoneId, targetNode,
+                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised);
+    }
 
     /** Sentinel returned by zone-id / objective-id slots when the assignment isn't scoped to them. */
     public static final int UNSCOPED = -1;

@@ -388,11 +388,30 @@ public final class BatteryFortScene implements BehaviorScene {
             }
         }
 
+        /**
+         * The wall's nests are shot out beforehand in the commander loop: this is about which aspect the commander picks
+         * and the company's way in, and a company that is held at the wall prosecuting a nest thirty cells off it cannot
+         * reach, with its order standing, never gets to the bunker. The guns and every aspect core are left alone.
+         */
+        private void shootOutNests(BattleSimulation sim) {
+            List<Long> nests = new ArrayList<>();
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                long unit = sim.liveUnitAt(i);
+                if (sim.identity().type(unit) != UnitType.TURRET || sim.identity().faction(unit) != Faction.DEFENDER
+                        || unit == fort.battery().structureId()) continue;
+                boolean core = false;
+                for (Fort.Place place : fort.places()) core |= place.coreId() == unit;
+                if (!core) nests.add(unit);
+            }
+            for (long id : nests) sim.applyDamage(id, 1e7f, 100f);
+        }
+
         @Override public void observe(BattleSimulation sim, int tick) {
             if (tick == 0) {
                 // The fort's nests and gun would cut ten riflemen down in seconds; this loop is about the way in,
                 // so the squad is made to outlast them.
                 for (long id : squadMembers) sim.world().setHp(id, 5000f);
+                if (loop.equals("commander-takes-bunker")) shootOutNests(sim);
             }
             if (tick == EVENT_TICK) {
                 switch (loop) {
