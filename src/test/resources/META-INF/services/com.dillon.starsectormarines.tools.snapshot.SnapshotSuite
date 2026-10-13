@@ -126,3 +126,5 @@ com.dillon.starsectormarines.ops.ColdStartSnapshotSuite
 com.dillon.starsectormarines.battle.air.CloseAirSupportSceneSnapshotSuite
 com.dillon.starsectormarines.battle.command.DefenceStructureCommandSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.PodBattleSnapshotSuite
+com.dillon.starsectormarines.battle.air.GunshipCrashSceneSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.ShieldDomeLookSnapshotSuite

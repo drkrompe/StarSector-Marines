@@ -207,7 +207,7 @@ public final class ColdAccountIntervention implements Objective {
         for (long id : sim.getAirEntityIds()) {
             if (sim.world().airFaction(id) != Faction.MARINE) continue;
             var mission = sim.world().mission(id);
-            if (mission == null || mission.pickup != null || mission.state == ShuttleState.GONE) continue;
+            if (mission == null || mission.destroyed || mission.pickup != null || mission.state == ShuttleState.GONE) continue;
             if ((mission.marinesRemaining > 0 && mission.state != ShuttleState.DEPARTING)
                     || mission.currentCycle + 1 < mission.totalCycles) return true;
         }

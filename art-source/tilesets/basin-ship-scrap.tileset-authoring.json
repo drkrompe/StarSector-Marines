@@ -1,7 +1,7 @@
 {
   "alphaMin": 16,
   "blocks": [],
-  "cellPx": 32,
+  "cellPx": 64,
   "entries": [
     {
       "ballisticHalfHeight": 0.8,
@@ -16,8 +16,8 @@
       "rect": [
         0,
         0,
-        32,
-        32
+        314,
+        314
       ]
     },
     {
@@ -31,10 +31,10 @@
       "included": true,
       "note": "Inert salvaged ship hull-shell. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
-        32,
+        314,
         0,
-        32,
-        32
+        313,
+        314
       ]
     },
     {
@@ -48,10 +48,10 @@
       "included": true,
       "note": "Inert salvaged ship drive-section. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
-        64,
+        627,
         0,
-        32,
-        32
+        313,
+        314
       ]
     },
     {
@@ -65,10 +65,10 @@
       "included": true,
       "note": "Inert salvaged ship shattered-hull. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
-        32,
-        32,
-        32,
-        32
+        314,
+        314,
+        313,
+        313
       ]
     },
     {
@@ -82,10 +82,10 @@
       "included": true,
       "note": "Inert salvaged ship engine-break. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
-        64,
-        64,
-        32,
-        32
+        627,
+        627,
+        313,
+        313
       ]
     },
     {
@@ -100,9 +100,9 @@
       "note": "Inert salvaged ship rib-section. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
         0,
-        96,
-        32,
-        32
+        940,
+        314,
+        314
       ]
     },
     {
@@ -116,10 +116,10 @@
       "included": true,
       "note": "Inert salvaged ship intake-section. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
-        32,
-        96,
-        32,
-        32
+        314,
+        940,
+        313,
+        314
       ]
     },
     {
@@ -133,17 +133,17 @@
       "included": true,
       "note": "Inert salvaged ship wreck-frame. Ground placement reserves the full footprint; no ship recovery reward.",
       "rect": [
-        96,
-        96,
-        32,
-        32
+        940,
+        940,
+        314,
+        314
       ]
     }
   ],
   "gridCols": 4,
   "gridRows": 4,
   "idPrefix": "doodad.basin-scrap",
-  "note": "Unmodified vanilla Starsector 0.98a-RC8 graphics/debris/debris_sheet0.png. Measured 128x128 alpha sheet, sixteen separated pieces at thresholds 16 through 160; authored 4x4 cells at 32px pitch. Eight full source cells are retained as torn hull, drive and rib scenery for Asharu shipbreaking bays and fresh impact sites. Original low-resolution art is deliberately reused; footprint defines ground scale, not a recoverable hull. No existing sheet or mappings replaced.",
+  "note": "Built-in ImageGen high-detail reskin of Starsector 0.98a-RC8 graphics/debris/debris_sheet0.png. The original 4x4 geometry guide is retained at art-source/templates/basin-scrap-vanilla-guide.png; the initial detail pass is basin-scrap-detail-guide.png. Accepted 1254x1254 RGBA sheet preserves sixteen cells after a gutter-isolation edit; the same eight stable fragments and gameplay footprints are exported. Full source-cell cuts use rounded quarter boundaries, not alpha trimming. Exact prompts in shipbreaking-reskin.prompts.json. Export 64px/cell, unchanged see-through heavy cover and placement.",
   "outputSheet": "graphics/tilesets/basin-ship-scrap.png",
   "sheet": "art-source/tilesets/basin-ship-scrap.raw.png",
   "sheetName": "basin-ship-scrap"

@@ -66,7 +66,7 @@ public final class AirTargetService implements BodyCarrier {
     @Override
     public boolean isPresent(long id) {
         ShuttleMission mission = roster.world().mission(id);
-        return mission != null && mission.isOnMap()
+        return mission != null && !mission.destroyed && mission.isOnMap()
                 && mission.state != ShuttleState.LOADING
                 && mission.state != ShuttleState.LANDED
                 && roster.isAliveById(id);

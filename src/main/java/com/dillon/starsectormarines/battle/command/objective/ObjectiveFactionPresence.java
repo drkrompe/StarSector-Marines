@@ -50,7 +50,7 @@ public final class ObjectiveFactionPresence {
         for (long id : sim.getAirEntityIds()) {
             if (!factions.contains(world.airFaction(id))) continue;
             ShuttleMission mission = world.mission(id);
-            if (mission == null || mission.state == ShuttleState.GONE) continue;
+            if (mission == null || mission.destroyed || mission.state == ShuttleState.GONE) continue;
             boolean currentPayloadInbound = mission.marinesRemaining > 0
                     && mission.state != ShuttleState.DEPARTING;
             boolean futureSortieCommitted =
