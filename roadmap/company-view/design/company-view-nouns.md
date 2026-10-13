@@ -441,6 +441,23 @@ The browser may give rare known entries stronger borders, color, and provenance 
 to make acquisition feel rewarding, but those effects never change definition contents
 or combat rules.
 
+### Trying a marine's loadout
+
+The selected occupied billet offers **Test Loadout** when its marine is active
+aboard the company ship and that ship has a working fitted firing range. The
+trial uses the marine's aptitude and that billet's proposed Weapon and Armor
+equipment, including special equipment, the armor's integral system, and the
+experience band that armor would issue. Testing does not require fitting the
+squad first.
+
+The player directly controls a disposable marine in a detached copy of the
+ship's actual range. No campaign soldier identity, equipment issue, resource
+bill, wound, experience award, or ship damage comes back from the trial.
+Escape, Tab, losing the controlled body, or closing the operations dialog
+discards the trial. Ordinary return restores the same selected billet and
+equipment proposal. Vacant, wounded, or stationed billets cannot enter; a
+missing or damaged range is explained rather than replaced by an invented room.
+
 ## Mech Lab
 
 The Mech Lab is the focused squad-first surface over `MechBay`; it does not reuse

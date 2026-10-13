@@ -25,6 +25,7 @@ final class BattleDirectControlHudModel {
     private final Map<String, MutableSignal<String>> text = new LinkedHashMap<>();
     private final MutableSignal<List<WeaponCard>> weapons;
     private final MutableSignal<Boolean> allDisabled;
+    private String exitLabelKey = "battleDirectHudExit";
 
     BattleDirectControlHudModel(Reactor reactor, IntConsumer select, Runnable exit, Runnable pause) {
         this(reactor, select, exit, pause, Strings::get);
@@ -53,6 +54,7 @@ final class BattleDirectControlHudModel {
 
     Map<String, Object> props() { return props; }
     Map<String, Object> actionsProps() { return actionsProps; }
+    void setExitLabelKey(String key) { exitLabelKey = key; }
 
     void update(BattleDirectControlStatus.Snapshot snapshot, int selected, boolean paused) {
         boolean mech = snapshot.carrier() == BattleDirectControlStatus.Carrier.MECH;
@@ -82,7 +84,7 @@ final class BattleDirectControlHudModel {
             set("allLabel", label("AllDirect"));
             set("allClasses", !mech ? "all all-hidden" : "all" + (selected == 0 ? " selected" : ""));
             allDisabled.set(!mech);
-            set("exitLabel", label("Exit"));
+            set("exitLabel", copy.apply(exitLabelKey));
             set("pauseLabel", copy.apply(paused ? "battleSpeed1x" : "battleSpeedPause"));
             List<WeaponCard> cards = new ArrayList<>();
             for (var weapon : snapshot.weapons()) {

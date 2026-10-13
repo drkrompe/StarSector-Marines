@@ -6,6 +6,15 @@
 	# Starsector merges later JSONs on top.
 
 	"marineOps": {
+    "armoryRangeTestLoadout": "Test Loadout",
+    "armoryRangeHint": "Try this marine's proposed equipment. Escape returns here; practice changes nothing.",
+    "armoryRangeAway": "Select a marine aboard your company ship.",
+    "armoryRangeVacant": "Select an occupied billet to test its loadout.",
+    "armoryRangeUnfit": "This marine is recovering and cannot use the range.",
+    "armoryRangeChooseKit": "Choose a complete, learned loadout to test.",
+    "armoryRangePreparing": "The ship's firing range is being prepared.",
+    "armoryRangeMissing": "This ship has no working firing range.",
+    "armoryRangeExit": "Armory [Tab / Esc]",
     "battleShipCommandHeading": "SHIPS",
     "battleShipCommandSelectHint": "Select {0} · {1}",
     "battleShipHeading": "Ship",
