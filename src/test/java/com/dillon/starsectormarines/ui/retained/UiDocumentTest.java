@@ -18,6 +18,29 @@ class UiDocumentTest {
     private static final float EPSILON = 0.001f;
 
     @Test
+    void autoColumnsEncloseNestedChildrenAndKeepScrollAndExplicitCollapse() {
+        var name = new UiElement("name").preferredHeight(16);
+        var body = new UiElement("body").preferredHeight(64);
+        var overlay = new UiElement("overlay").style("position: absolute; height: 900px");
+        var turn = new UiElement("turn").gap(2).padding(4).child(name).child(body).child(overlay);
+        var second = new UiElement("second").preferredHeight(40);
+        var conversation = new UiElement("conversation").gap(5).child(turn).child(second);
+        var following = new UiElement("following").preferredHeight(20);
+        var root = new UiElement("root").overflow(Overflow.SCROLL).child(conversation).child(following);
+        var document = new UiDocument(root);
+        document.layout(300, 100);
+        assertEquals(90f, turn.box().borderBox().height(), EPSILON);
+        assertEquals(135f, conversation.box().borderBox().height(), EPSILON);
+        assertEquals(135f, following.box().borderBox().y(), EPSILON);
+        assertEquals(55f, root.box().maxScrollTop(), EPSILON);
+        assertTrue(body.box().borderBox().bottom() <= turn.box().contentBox().bottom());
+        turn.preferredHeight(0).padding(0).overflow(Overflow.HIDDEN);
+        document.layout(300, 100);
+        assertEquals(0f, turn.box().borderBox().height(), EPSILON,
+                "Explicit collapsed branches must not grow to their descendants");
+    }
+
+    @Test
     void columnPaysPreferredSizesAndGapsBeforeFlexibleGrowth() {
         UiElement header = new UiElement("header").preferredHeight(50f);
         UiElement body = new UiElement("body").grow(1f);

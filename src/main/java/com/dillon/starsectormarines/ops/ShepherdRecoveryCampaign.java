@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
@@ -10,20 +11,23 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 /** Basin Reclamation's local contract, introduced by Mara after the Corvus account. */
 public final class ShepherdRecoveryCampaign {
     public static final String NAME="Tamsin Vale", TITLE="A WORKING SHIP / BASIN RECLAMATION";
-    public static final String BRIEF="Vale: We found a shipment in the Colossus. The hold was still sealed. Then the shooting started, and I had to get my people out. There's another crew in there now. They say we abandoned it.\n"
-            +"Castle: There's no manifest in the file.\n"
-            +"Vale: Our handlers have it. You're getting them back to work and keeping the road open.\n"
-            +"Castle: Then add the Shepherd to our terms. The two fees stand. She's our fee for clearing the road out.\n"
-            +"Vale: Morrow is still our ship, Castle. And neither of us knows what it'll take to get her flying.\n"
-            +"Castle: We got Second Wind flying. Supply the parts and fitters; we'll cover them and clear the road. We'll take our chances with whatever comes out of that cradle.\n"
-            +"Vale: The road stays open for my haulers. You don't leave when the fitters do. Agree to that, and you can have her once she's clear of the basin. The Colossus stays with us.\n\n"
-            +"Vale: Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.";
+    public static final List<MissionDialogue.Turn> BRIEF_TURNS = List.of(
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn1"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn2"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn3"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn4"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn5"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn6"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn7"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn8"));
+    public static String brief() { return MissionDialogue.transcript(BRIEF_TURNS); }
     public static final String COLD_BRIEF="Tamsin Vale: I've got the distribution rig waiting at the apron. Get it to the workshop, then clear the pump station for our technicians. Once they've connected shore power, we'll see what Morrow's builders can still do. The yard lights should come back with them. "
             +"There's ground outside her east bay for a road gun. Select Build Vulcan Turret and choose a clear spot the builders can reach. Keep them covered while they work; we'll need that gun while the fitters finish inside. "
             +"I've only a few people on the south haul and quarry roads. Don't leave them out there alone if the scrappers push through. Help them back to the inner line. "
@@ -59,10 +63,17 @@ public final class ShepherdRecoveryCampaign {
         return Mission.builder().id(p.missionId()).name(p.repaired()?"Working Passage":p.claimSecured()?"Cold Start":"Salvage Rights").source(MissionSource.STORY)
                 .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
                 .payout(p.payment()).targetPlanetName(planet).defenderFactionOverride("pirates")
-                .flavor((p.repaired()?PASSAGE_BRIEF:p.claimSecured()?repairBrief(p):BRIEF)+(p.inspectionLosses()>0?" Previous inspection losses: "+p.inspectionLosses()+". Vale has assigned a replacement party; the dead remain on the roll.":""))
+                .dialogue(briefingTurns(p))
                 .requirements((p.repaired()?"Repaired hull ready for departure. Confirmed previous militia losses: "+p.departureLosses()+". Vale supplies new cooperative holders. ":p.claimSecured()?(p.cargoDelivered()?"Distribution rig delivered. ":"Distribution rig awaiting escort. ")+(p.shorePower()?"Yard lights and shore power online. ":"Shore power disconnected. ")+(p.repairLosses()>0?"Confirmed repair crew losses: "+p.repairLosses()+". A replacement party is assigned. ":""):"")+"Two squads recommended; two with at least four ready marines each required. "+(p.claimSecured()&&!p.repaired()?"Your selected squads begin on the secured receiving apron; company boats stay in reserve. ":"Company boats carry your selected squads. ")+"An owned mech is optional. "+(p.claimSecured()&&!p.repaired()?"Fourteen cooperative militia support the operation: eight inner holders and two three-person outer pickets. ":"Eight cooperative militia support the operation. ")+"Inspection and repair chapters also include two technicians.")
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(p.claimSecured()&&!p.repaired()?MarineArrivalPolicy.SECURED_GROUND:MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(14101L).build();
+    }
+    private static List<MissionDialogue.Turn> briefingTurns(ShepherdRecoveryProgress progress) {
+        var turns = new ArrayList<>(progress.repaired() ? MissionDialogue.legacyTurns(PASSAGE_BRIEF)
+                : progress.claimSecured() ? MissionDialogue.legacyTurns(repairBrief(progress)) : BRIEF_TURNS);
+        if (progress.inspectionLosses() > 0) turns.add(MissionDialogue.prose(
+                Strings.format("shepherdInspectionLosses", progress.inspectionLosses())));
+        return List.copyOf(turns);
     }
     private static String repairBrief(ShepherdRecoveryProgress progress) {
         if (!progress.cargoDelivered()) return COLD_BRIEF;
