@@ -143,4 +143,6 @@ com.dillon.starsectormarines.ops.WorkingPassageSnapshotSuite
 com.dillon.starsectormarines.ops.WaterUnderSealSnapshotSuite
 com.dillon.starsectormarines.ops.FortSitingSnapshotSuite
 com.dillon.starsectormarines.ops.LimitedWarrantSnapshotSuite
+com.dillon.starsectormarines.ops.YardOwnersSnapshotSuite
+com.dillon.starsectormarines.battle.power.MechDropSceneSnapshotSuite
 com.dillon.starsectormarines.ops.RadioPortraitSnapshotSuite

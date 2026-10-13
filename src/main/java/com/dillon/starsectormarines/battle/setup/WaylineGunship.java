@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 /** Wayline directs one named aircraft from public progress and friendly positions, never hidden enemies. */
 public final class WaylineGunship {
-    public static final String CALLSIGN = "Kestrel";
+    public static final String CALLSIGN = "Talon Two";
     private final boolean freight;
     private final StoryBeatLog log;
     private long aircraft;

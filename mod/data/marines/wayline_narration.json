@@ -1177,9 +1177,9 @@
       "id": "marines_mara_junction_briefing",
       "missionId": "story_supply_route_junction",
       "event": "briefing",
-      "text": "Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Kestrel, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
-      "synthesisText": "Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Kestrel, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
-      "durationSeconds": 34.8,
+      "text": "Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
+      "synthesisText": "Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
+      "durationSeconds": 34.48,
       "priority": 10,
       "expiresSeconds": 25,
       "supersedes": []
@@ -1784,9 +1784,9 @@
       "id": "marines_mara_thunder_run_briefing",
       "missionId": "story_supply_route_thunder_run",
       "event": "briefing",
-      "text": "The junction is open. Now we put freight through the corridor. Kestrel is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
-      "synthesisText": "The junction is open. Now we put freight through the corridor. Kestrel is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
-      "durationSeconds": 52.48,
+      "text": "The junction is open. Now we put freight through the corridor. Talon Two is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "synthesisText": "The junction is open. Now we put freight through the corridor. Talon Two is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "durationSeconds": 51.44,
       "priority": 10,
       "expiresSeconds": 25,
       "supersedes": []
@@ -2459,37 +2459,37 @@
       "id": "wayline_junction_gunship_inbound",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_inbound",
-      "text": "Kestrel to ground team. Wayline sent us ahead. Keep moving; we will work the next position.",
-      "durationSeconds": 5.28,
+      "text": "Talon Two to ground team. Wayline sent us ahead. Keep moving; we will work the next position.",
+      "durationSeconds": 5.36,
       "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[steady, focused voice] Kestrel to ground team. Wayline sent us ahead. Keep moving; we will work the next position."
+      "synthesisText": "[steady, focused voice] Talon Two to ground team. Wayline sent us ahead. Keep moving; we will work the next position."
     },
     {
       "id": "wayline_junction_gunship_on_station",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_on_station",
-      "text": "Kestrel, on station. We have the road. Your militia can move up behind the company.",
-      "durationSeconds": 4.96,
+      "text": "Talon Two, on station. We have the road. Your militia can move up behind the company.",
+      "durationSeconds": 5.12,
       "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[steady, focused voice] Kestrel, on station. We have the road. Your militia can move up behind the company."
+      "synthesisText": "[steady, focused voice] Talon Two, on station. We have the road. Your militia can move up behind the company."
     },
     {
       "id": "wayline_junction_gunship_covering_militia",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_covering_militia",
-      "text": "Kestrel is staying over the militia while they settle in. Push on when your people are ready.",
+      "text": "Talon Two is staying over the militia while they settle in. Push on when your people are ready.",
       "durationSeconds": 5.36,
       "priority": 10,
       "expiresSeconds": 30,
@@ -2498,7 +2498,7 @@
       "portrait": "graphics/portraits/mara-venn.png",
       "voiced": true,
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "synthesisText": "[steady, conversational voice] Kestrel is staying over the militia while they settle in. Push on when your people are ready."
+      "synthesisText": "[steady, conversational voice] Talon Two is staying over the militia while they settle in. Push on when your people are ready."
     },
     {
       "id": "wayline_junction_gunship_hit",
@@ -2509,7 +2509,7 @@
       "priority": 81,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
@@ -2520,8 +2520,8 @@
       "id": "wayline_junction_gunship_lost",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_lost",
-      "text": "Kestrel is down. Keep clear of the impact. The company will have to open the rest of the junction.",
-      "durationSeconds": 5.6,
+      "text": "Talon Two is down. Keep clear of the impact. The company will have to open the rest of the junction.",
+      "durationSeconds": 5.84,
       "priority": 85,
       "expiresSeconds": 30,
       "supersedes": [
@@ -2534,56 +2534,56 @@
       "portrait": "graphics/portraits/castle.png",
       "voiced": true,
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "synthesisText": "[concerned, firm command voice] Kestrel is down. Keep clear of the impact. The company will have to open the rest of the junction.",
+      "synthesisText": "[concerned, firm command voice] Talon Two is down. Keep clear of the impact. The company will have to open the rest of the junction.",
       "interrupts": true
     },
     {
       "id": "wayline_junction_gunship_returned",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_returned",
-      "text": "Kestrel is heading home. Good work down there.",
-      "durationSeconds": 2.88,
+      "text": "Talon Two is heading home. Good work down there.",
+      "durationSeconds": 2.96,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[steady, focused voice] Kestrel is heading home. Good work down there."
+      "synthesisText": "[steady, focused voice] Talon Two is heading home. Good work down there."
     },
     {
       "id": "wayline_thunder_run_gunship_inbound",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.gunship_inbound",
-      "text": "Kestrel again, Captain. Same crew, longer road. Coming up to cover the convoy.",
-      "durationSeconds": 5.04,
+      "text": "Talon Two again, Captain. Same crew, longer road. Coming up to cover the convoy.",
+      "durationSeconds": 5.28,
       "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[confident, conversational voice] Kestrel again, Captain. Same crew, longer road. Coming up to cover the convoy."
+      "synthesisText": "[confident, conversational voice] Talon Two again, Captain. Same crew, longer road. Coming up to cover the convoy."
     },
     {
       "id": "wayline_thunder_run_gunship_on_station",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.gunship_on_station",
-      "text": "Kestrel, pass complete. Coming around over the column.",
-      "durationSeconds": 3.52,
+      "text": "Talon Two, pass complete. Coming around over the column.",
+      "durationSeconds": 3.6,
       "priority": 12,
       "expiresSeconds": 15,
       "supersedes": [
         "supply_route.thunder_run.gunship_inbound",
         "supply_route.thunder_run.gunship_pass_committed"
       ],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[steady, focused voice] Kestrel, pass complete. Coming around over the column."
+      "synthesisText": "[steady, focused voice] Talon Two, pass complete. Coming around over the column."
     },
     {
       "id": "wayline_thunder_run_gunship_hit",
@@ -2598,7 +2598,7 @@
         "supply_route.thunder_run.gunship_pass_committed",
         "supply_route.thunder_run.gunship_on_station"
       ],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
@@ -2609,8 +2609,8 @@
       "id": "wayline_thunder_run_gunship_lost",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.gunship_lost",
-      "text": "Kestrel is down! Clear the impact area. Company, keep that convoy moving.",
-      "durationSeconds": 5.12,
+      "text": "Talon Two is down! Clear the impact area. Company, keep that convoy moving.",
+      "durationSeconds": 5.28,
       "priority": 85,
       "expiresSeconds": 15,
       "supersedes": [
@@ -2624,23 +2624,23 @@
       "portrait": "graphics/portraits/castle.png",
       "voiced": true,
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "synthesisText": "[startled, then firm command voice] Kestrel is down! Clear the impact area. Company, keep that convoy moving.",
+      "synthesisText": "[startled, then firm command voice] Talon Two is down! Clear the impact area. Company, keep that convoy moving.",
       "interrupts": true
     },
     {
       "id": "wayline_thunder_run_gunship_returned",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.gunship_returned",
-      "text": "Kestrel clear of the corridor. Bringing her home. The road is yours, Captain.",
-      "durationSeconds": 5.28,
+      "text": "Talon Two clear of the corridor. Bringing her home. The road is yours, Captain.",
+      "durationSeconds": 5.36,
       "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[weary, relieved voice] Kestrel clear of the corridor. Bringing her home. The road is yours, Captain."
+      "synthesisText": "[weary, relieved voice] Talon Two clear of the corridor. Bringing her home. The road is yours, Captain."
     },
     {
       "id": "basin_passage_underway",
@@ -2691,18 +2691,18 @@
       "id": "wayline_thunder_run_gunship_pass_committed",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.gunship_pass_committed",
-      "text": "Kestrel. Crossing the road, sweeping the ridge. Keep the column moving.",
-      "durationSeconds": 3.92,
+      "text": "Talon Two. Crossing the road, sweeping the ridge. Keep the column moving.",
+      "durationSeconds": 4.08,
       "priority": 51,
       "expiresSeconds": 10,
       "supersedes": [
         "supply_route.thunder_run.gunship_inbound"
       ],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[focused, brisk voice] Kestrel. Crossing the road, sweeping the ridge. Keep the column moving."
+      "synthesisText": "[focused, brisk voice] Talon Two. Crossing the road, sweeping the ridge. Keep the column moving."
     },
     {
       "id": "wayline_thunder_run_gunship_missile_warning",
@@ -2716,7 +2716,7 @@
         "supply_route.thunder_run.gunship_inbound",
         "supply_route.thunder_run.gunship_pass_committed"
       ],
-      "speaker": "KESTREL / WAYLINE AIR",
+      "speaker": "TALON TWO / WAYLINE AIR",
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
@@ -2736,6 +2736,14 @@
     {"id": "warrant_calibration", "missionId": "story_agreus_limited_warrant", "event": "limited_warrant.calibration", "text": "The archive is authenticated. Escort the supplier into the calibration cage and protect the work.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 35, "supersedes": ["limited_warrant.mobilization", "limited_warrant.egress"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false},
     {"id": "warrant_egress", "missionId": "story_agreus_limited_warrant", "event": "limited_warrant.egress", "text": "The calibration kit is loaded. Bring its carrier back to the western apron with company infantry covering the route.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 35, "supersedes": ["limited_warrant.mobilization", "limited_warrant.calibration"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false},
     {"id": "warrant_complete", "missionId": "story_agreus_limited_warrant", "event": "limited_warrant.complete", "text": "The load is back with our people. The service files and calibration kit are accounted for.", "durationSeconds": 10, "priority": 30, "expiresSeconds": 35, "supersedes": ["limited_warrant.mobilization", "limited_warrant.calibration", "limited_warrant.egress"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": true},
-    {"id": "warrant_failed", "missionId": "story_agreus_limited_warrant", "event": "limited_warrant.failed", "text": "The recovery cannot be completed. Account for the company and withdraw; we will need a new mobilization.", "durationSeconds": 10, "priority": 30, "expiresSeconds": 35, "supersedes": ["limited_warrant.mobilization", "limited_warrant.calibration", "limited_warrant.egress"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": true}
-]
+    {"id": "warrant_failed", "missionId": "story_agreus_limited_warrant", "event": "limited_warrant.failed", "text": "The recovery cannot be completed. Account for the company and withdraw; we will need a new mobilization.", "durationSeconds": 10, "priority": 30, "expiresSeconds": 35, "supersedes": ["limited_warrant.mobilization", "limited_warrant.calibration", "limited_warrant.egress"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": true},
+    {"id": "yard_briefing", "missionId": "story_agreus_yard_owners", "event": "briefing", "text": "Secure Latchkey for inspection. Preserve the marked tooling, and hold dispatch, the hall and operator access together. Custody remains a separate agreement.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.dispatch", "yard_owners.tooling", "yard_owners.entrance", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": false},
+    {"id": "yard_mobilization", "missionId": "story_agreus_yard_owners", "event": "yard_owners.mobilization", "text": "Secure dispatch first. Our constables will occupy the gains. Keep the marked calibration machine intact.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 40, "supersedes": ["yard_owners.dispatch", "yard_owners.tooling", "yard_owners.entrance", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": false},
+    {"id": "yard_dispatch", "missionId": "story_agreus_yard_owners", "event": "yard_owners.dispatch", "text": "Dispatch is contested again. Restore that hold before the inspection can finish.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.tooling", "yard_owners.entrance", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": false},
+    {"id": "yard_tooling", "missionId": "story_agreus_yard_owners", "event": "yard_owners.tooling", "text": "Clear the tooling hall and protect its marked calibration machine.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.dispatch", "yard_owners.entrance", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": false},
+    {"id": "yard_entrance", "missionId": "story_agreus_yard_owners", "event": "yard_owners.entrance", "text": "Secure the operator entrance so the inspection party can work.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.dispatch", "yard_owners.tooling", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": false},
+    {"id": "yard_inspection", "missionId": "story_agreus_yard_owners", "event": "yard_owners.inspection", "text": "Hold all three sites. Keep company infantry and a living technician inside the tooling hall until inspection finishes.", "durationSeconds": 10, "priority": 12, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.dispatch", "yard_owners.tooling", "yard_owners.entrance"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": false},
+    {"id": "yard_complete", "missionId": "story_agreus_yard_owners", "event": "yard_owners.complete", "text": "The tooling inspection is complete. Account for the company and read the custody proposals before any further commitment.", "durationSeconds": 10, "priority": 30, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.dispatch", "yard_owners.tooling", "yard_owners.entrance", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": true},
+    {"id": "yard_failed", "missionId": "story_agreus_yard_owners", "event": "yard_owners.failed", "text": "We cannot complete this inspection. Withdraw and report the losses; replacement work needs a new mobilization.", "durationSeconds": 10, "priority": 30, "expiresSeconds": 40, "supersedes": ["yard_owners.mobilization", "yard_owners.dispatch", "yard_owners.tooling", "yard_owners.entrance", "yard_owners.inspection"], "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": true}
+  ]
 }

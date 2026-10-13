@@ -259,6 +259,23 @@ public final class UiLayoutEngine {
         Insets padding = element.resolvedPadding(widthBasis);
         float textWidth = Math.max(0f, allocatedWidth - padding.horizontal()
                 - element.borderWidth() * 2f);
+        // A content-sized column encloses its in-flow children, including nested
+        // wrapping labels. Measuring only the container's own (usually empty)
+        // text collapses its box while those children still paint at full height.
+        if (!horizontal && element.layout() == UiLayout.COLUMN && !element.children().isEmpty()) {
+            List<UiElement> children = inFlow(element.children());
+            float height = element.resolvedGap(textWidth) * Math.max(0, children.size() - 1);
+            for (UiElement child : children) {
+                UiAlign align = element.alignItems() == null ? child.horizontalAlign() : element.alignItems();
+                float preferredWidth = preferredAxis(child, true, textWidth, 0f);
+                float childWidth = align == UiAlign.STRETCH || Float.isNaN(preferredWidth)
+                        ? textWidth : Math.min(textWidth, Math.max(0f, preferredWidth));
+                // A percentage cannot derive a definite height from an auto-height parent.
+                float childHeight = preferredAxis(child, false, textWidth, 0f, childWidth);
+                height += Float.isNaN(childHeight) ? 0f : Math.max(0f, childHeight);
+            }
+            return height + padding.vertical() + element.borderWidth() * 2f;
+        }
         UiTextMeasurer.Measurement measured = text.measure(element, textWidth);
         if (measured.font() == null) return Float.NaN;
         float frame = (horizontal ? padding.horizontal() : padding.vertical())

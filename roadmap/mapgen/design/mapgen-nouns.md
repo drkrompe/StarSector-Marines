@@ -4,8 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Opening militia kit and staged checkpoint engagement.
-a map result may carry a front depth.
+Updated: 2026-10-13 — Relief rear working courts preserve the expanded landing and assembly apron.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
 its berths, so being a working field is one decision rather than two that can
@@ -637,7 +636,12 @@ stand, while both company stands share the northern apron. Offset supply
 stores and T-shaped workshops replace the peripheral rectangular shells;
 the relay interior and gate remain mission-owned places. Inspection parking,
 receiving freight and relay-service equipment have real blocking footprints,
-with clear thresholds and landing approaches.
+with clear thresholds and landing approaches. The western extension contains a
+cargo-handling court, delivery-vehicle bays and a maintenance strip, connected
+by a narrow service lane. These occupy the apron shoulders: the boat stands,
+westward flight approaches, through-road and central assembly crossing remain
+open. Freight stacks and parked vehicles have real collision footprints;
+markings define working areas without introducing more barriers.
 
 Counterattack likewise owns its layout before staging. Its 160 by 96 freight
 depot separates the western boat apron, gate, loading yard and dispatch
