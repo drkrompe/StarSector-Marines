@@ -66,7 +66,7 @@ final class BattleDirectTenderStatus {
             if (rest.length() > 0) rest.append(' ');
             rest.append('[').append(i + 1).append(']').append(other == null ? "SOON" : "OK");
         }
-        return new ShipCard("OPTION", "[1-4] BUILD", detail, rest.toString(),
+        return new ShipCard("OPTION", "[1-5] BUILD", detail, rest.toString(),
                 chosen == null ? "SOON" : "SELECTED", chosen == null ? Tone.WARN : Tone.READY,
                 chosen == null ? 0f : 1f);
     }
