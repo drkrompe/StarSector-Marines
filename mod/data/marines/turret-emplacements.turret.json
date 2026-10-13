@@ -52,6 +52,7 @@
     { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
   "structures": [
+    { "id": "structure.turret-anti-air-flak", "mount": "mount.turret-dual-flak", "targetRole": "AA", "catalog": { "displayName": "Anti-air Flak Position" }, "durability": { "structure": 60.0, "armorCapacity": 60.0, "armorRating": 6.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
     { "id": "structure.tank-twin-cannon", "mount": "mount.tank-twin-cannon", "catalog": { "displayName": "Twin Breach Cannon" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 20.0 },
     { "id": "structure.turret-vulcan", "mount": "mount.turret-vulcan", "catalog": { "displayName": "Vulcan Emplacement" }, "durability": { "structure": 60.0, "armorCapacity": 80.0, "armorRating": 8.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 8.0 },
     { "id": "structure.turret-arbalest", "mount": "mount.turret-arbalest", "catalog": { "displayName": "Arbalest Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
