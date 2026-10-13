@@ -2796,6 +2796,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
             }
+            // The guide mounts a pointer-active callout before its first update.
+            // Initialize its real lesson state before photographing a catalog hover.
+            guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
