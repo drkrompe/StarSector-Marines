@@ -16,6 +16,14 @@ public final class SalvageCacheRenderSystem implements RenderSystem {
     public SalvageCacheRenderSystem(BattleSprites sprites) { this.sprites = sprites; }
     @Override public RenderLayer layer() { return RenderLayer.OBJECTIVES; }
 
+    private static String spriteId(SalvageCache cache) {
+        return switch (cache.resource) {
+            case METALS -> "doodad.field-salvage-metals";
+            case MACHINERY -> "doodad.field-salvage-machinery";
+            case SUPPLIES -> "doodad.field-salvage-supplies";
+        };
+    }
+
     public static String label(SalvageCache cache) {
         return cache.quantity + " " + cache.resource.displayName;
     }
@@ -31,7 +39,6 @@ public final class SalvageCacheRenderSystem implements RenderSystem {
         var cam = ctx.camera;
         float px = cam.cellPxSize();
         var registry = TileRegistry.installed();
-        var crate = registry == null ? null : registry.doodad("doodad.crate");
         for (var cache : ctx.sim.fieldSalvage().caches()) {
             if (!cache.discovered()) continue;
             float x = cam.cellToScreenX(cache.cellX + .5f), y = cam.cellToScreenY(cache.cellY + .5f);
@@ -41,14 +48,15 @@ public final class SalvageCacheRenderSystem implements RenderSystem {
             float r = cache.secured() ? .45f : 1f, g = cache.contested() ? .3f : .78f, b = .35f;
             float radius = Math.max(12, px * .9f);
             PolyTess.appendAnnulus(mesh, x, y, radius - 2, radius, 4, r, g, b, alpha);
-            if (!cache.secured() && seen && crate != null) {
-                var sheet = crate.sheetPath.equals(TileManifest.SHEET) ? sprites.tileSheet()
-                        : sprites.extraTerrainSheet(crate.sheetPath);
+            var art = registry == null ? null : registry.doodad(spriteId(cache));
+            if (!cache.secured() && seen && art != null) {
+                var sheet = art.sheetPath.equals(TileManifest.SHEET) ? sprites.tileSheet()
+                        : sprites.extraTerrainSheet(art.sheetPath);
                 if (sheet != null) {
-                    int cell = crate.sourceCellPx > 0 ? crate.sourceCellPx : 32;
-                    out.addSheetQuad(layer(), sheet, crate.col * cell, crate.row * cell,
-                            cell * crate.footprintCellsX, cell * crate.footprintCellsY,
-                            x, y, px * 1.2f, px * 1.2f, 1, 1, 1, alpha);
+                    int cell = art.sourceCellPx > 0 ? art.sourceCellPx : 32;
+                    out.addSheetQuad(layer(), sheet, art.col * cell, art.row * cell,
+                            cell * art.footprintCellsX, cell * art.footprintCellsY,
+                            x, y, px * 1.6f, px * 1.6f, 1, 1, 1, alpha);
                 }
             }
             if (!cache.secured() && cache.fraction() > 0)
