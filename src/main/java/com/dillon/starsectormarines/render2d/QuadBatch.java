@@ -123,6 +123,15 @@ public final class QuadBatch {
                               float dstCx, float dstCy, float dstW, float dstH,
                               float rotationDeg,
                               float r, float g, float b, float a) {
+        appendRotated(srcX, srcY, srcW, srcH, dstCx, dstCy, dstW, dstH, rotationDeg,
+                false, r, g, b, a);
+    }
+
+    /** Rotates geometry while independently retaining the authored vertical mirror. */
+    public void appendRotated(int srcX, int srcY, int srcW, int srcH,
+                              float dstCx, float dstCy, float dstW, float dstH,
+                              float rotationDeg, boolean flipV,
+                              float r, float g, float b, float a) {
         ensureCapacity(quadCount + 1);
 
         float texU = sheet.getTextureWidth();
@@ -156,6 +165,7 @@ public final class QuadBatch {
         posData[p++] = tlX; posData[p]   = tlY;
 
         // BL ↔ (u0, v1), BR ↔ (u1, v1), TR ↔ (u1, v0), TL ↔ (u0, v0)
+        if (flipV) { float swap = v0; v0 = v1; v1 = swap; }
         writeQuadUv(u0, v1, u1, v1, u1, v0, u0, v0);
         writeQuadColor(r, g, b, a);
 
