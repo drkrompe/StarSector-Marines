@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,11 @@ class OpeningOperationBattleSetupTest {
         assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
         assertEquals(8, sim.pendingGroundArrivals(Faction.DEFENDER));
         assertEquals(12, combatants(sim, Faction.DEFENDER));
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) == Faction.DEFENDER)
+                assertEquals(WeaponRegistry.STARTER_PRIMARY_ID, sim.combat().primaryWeapon(unit).id);
+        }
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.MARINE_RED));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.HEAVY_MECH));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.TURRET));

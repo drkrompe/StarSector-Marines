@@ -1338,7 +1338,14 @@ ground.
 The **Shepherd recovery basin** is a 304 by 176 authored industrial landscape
 shared across three visits. Its worn road, rear service loop, natural ridges,
 four west-facing freight berths and varied repair buildings stay in the same
-places. `ShepherdBasin` adds servicing equipment on Cold Start and leaves the
+places. Organized shipbreaking beds and sorted hull sections line the service
+roads, while fresh scattered wreckage and diagonal impact scars interrupt the
+yard's older work pattern. Morrow's landing scars, failed shore equipment and
+crew evacuation muster explain the recoverable hull. Scrap sections own ordinary
+solid prop footprints and cover; shallow scars are visual damage only. Dressing
+preserves work aisles, boat approaches, cargo routes and construction plots and
+persists across visits without granting additional salvage rewards.
+`ShepherdBasin` adds servicing equipment on Cold Start and leaves the
 static hull's cradle empty on Working Passage. Its hull is an inert catalog
 doodad with an explicit 24 by 20-cell solid grounded footprint, large enough to
 read as a crewed workshop ship. This authored ground scale is intentionally

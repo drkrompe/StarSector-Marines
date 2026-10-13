@@ -109,7 +109,7 @@ public final class MechLabViewModel {
         this.reactor = reactor;
         this.bay = bay;
         this.resources = resources;
-        workshop = new MechWorkshop(bay, resources);
+        workshop = new MechWorkshop(bay, resources, () -> physicalGantries);
         this.bayChanged = bayChanged;
         CampaignMechSquad initialSquad = bay.activeSquad();
         revision = reactor.signal(0);

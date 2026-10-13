@@ -17,11 +17,13 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 
 /** The same Asharu recovery basin on three visits. Battle progression belongs to its future host. */
 public final class ShepherdBasin {
@@ -47,7 +49,7 @@ public final class ShepherdBasin {
                 new CellTopology(WIDTH, HEIGHT), new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Morrow recovery basin", List.of(ShepherdBasin::grounds,
-                ShepherdBasin::buildings, ShepherdBasin::yards,
+                ShepherdBasin::buildings, ShepherdBasin::yards, ShepherdBasin::shipbreaking,
                 context -> recoveryYard(context, visit),
                 context -> RoadRasterizer.clearReplacedSurfaces(context.topology, WIDTH, HEIGHT),
                 ShepherdBasin::yardSurfaces, ShepherdBasin::terrain, new FinalizeStage(),
@@ -63,7 +65,30 @@ public final class ShepherdBasin {
         for (var poi : map.pointsOfInterest) requireRoute(map, poi.interiorAnchorX, poi.interiorAnchorY);
         requireRoute(map, 194, 2);
         requireRoute(map, 301, 145);
+        if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting());
         return map;
+    }
+
+    /** Emergency and portable lights survive the outage; Cold Start restores the yard circuit. */
+    private static NightLighting nightLighting() {
+        return new NightLighting(.76f, List.of(
+                light(12,79,9,"emergency"), light(12,103,9,"emergency"),
+                light(13,51,8,"emergency"), light(35,94,12,"emergency"),
+                light(52,108,11,"emergency"), light(78,118,13,"emergency"),
+                light(92,104,11,"emergency"), light(113,128,11,"emergency"),
+                light(117,104,10,"emergency"), light(144,105,10,"emergency"),
+                light(144,125,8,"emergency"), light(124,151,10,"emergency"),
+                light(161,111,8,"emergency"), light(220,59,9,"emergency"),
+                light(37,66,16,"yard"), light(81,94,16,"yard"),
+                light(100,121,17,"yard"), light(132,100,18,"yard"),
+                light(132,130,18,"yard"), light(174,118,18,"yard"),
+                light(184,136,16,"yard"), light(204,106,17,"yard")), Set.of("emergency"));
+    }
+
+    private static NightLighting.Lamp light(float x, float y, float radius, String circuit) {
+        return new NightLighting.Lamp(x,y,radius,1f,
+                circuit.equals("yard") ? .91f : .62f,
+                circuit.equals("yard") ? .75f : .26f, circuit);
     }
 
     private static void requireRoute(MapResult map, int x, int y) {
@@ -198,6 +223,77 @@ public final class ShepherdBasin {
         }
         // Working Passage leaves the cradle empty for a live Tender, never a
         // second static hull beneath it. Its moving body belongs to battle setup.
+    }
+
+    /** Older sorted stock reads differently from the recent, diagonally strewn wreckage. */
+    private static void shipbreaking(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // North inventory faces the rear service road. Gaps are working aisles,
+        // including a clear strip before the cliff toe at the top of the map.
+        yard.gravel(98, 150, 153, 159);
+        for (int x : new int[]{99, 113, 127, 141}) yard.bay(x, 150, x + 10, 159);
+        yard.prop(101, 151, "basin-scrap-hull-shell", 0);
+        yard.prop(115, 152, "basin-scrap-drive-section", 0);
+        yard.prop(129, 153, "basin-scrap-rib-section", 0);
+        yard.prop(143, 153, "basin-scrap-wreck-frame", 0);
+        yard.prop(156, 155, "stores-cargo-loader", 1);
+
+        // Southern cutting beds connect to the receiving yard via open ground.
+        // No whole recoverable ships: these are sections already stripped for parts.
+        yard.gravel(46, 36, 83, 45);
+        for (int x : new int[]{47, 60, 73}) yard.bay(x, 37, x + 10, 44);
+        yard.prop(49, 38, "basin-scrap-rib-section", 1);
+        yard.prop(62, 38, "basin-scrap-intake-section", 1);
+        yard.prop(75, 38, "basin-scrap-wreck-frame", 1);
+        yard.prop(69, 50, "industrial-machine-tool", 0);
+        yard.prop(75, 50, "industrial-pipe-bundle", 0);
+        yard.prop(81, 50, "industrial-pallet-stack", 0);
+
+        // The active cutting station sits beside, not inside, Morrow's cradle.
+        yard.bay(101, 105, 111, 115);
+        yard.prop(103, 107, "basin-scrap-drive-section", 1);
+        yard.prop(104, 119, "industrial-drum-cluster", 0);
+        yard.prop(108, 119, "industrial-pipe-bundle", 0);
+
+        // Fresh impacts interrupt the old yard pattern. Scars are shallow damage
+        // overlays; each large wreck section separately owns its solid footprint.
+        scar(c, 219, 147, 236, 128, 3.6);
+        yard.prop(230, 124, "basin-scrap-shattered-hull", 1);
+        yard.prop(220, 145, "basin-scrap-plate-stack", 2);
+        scar(c, 207, 35, 235, 42, 3.4);
+        yard.prop(229, 39, "basin-scrap-engine-break", 3);
+        yard.prop(216, 32, "basin-scrap-plate-stack", 1);
+        scar(c, 242, 63, 257, 72, 2.6);
+        yard.prop(249, 66, "basin-scrap-hull-shell", 2);
+
+        // Emergency landing scars lead into the cradle and remain after ascent.
+        // They do not damage the road topology or place collision in a service lane.
+        scar(c, 94, 100, 118, 108, 1.5);
+        scar(c, 97, 97, 119, 104, 1.1);
+        yard.prop(112, 103, "industrial-generator-damaged", 0);
+        yard.prop(149, 104, "industrial-cable-reel-damaged", 0);
+
+        // Abandoned evacuation muster beside the receiving store: crew, not loot.
+        concrete(c, 47, 107, 63, 113);
+        yard.bay(48, 108, 62, 112);
+        yard.prop(49, 109, "medical-supply-trolley", 0);
+        yard.prop(52, 109, "medical-treatment-table", 0);
+        yard.cargo(57, 109);
+    }
+
+    private static void scar(GenContext c, double ax, double ay, double bx, double by, double radius) {
+        double dx = bx - ax, dy = by - ay, lengthSquared = dx * dx + dy * dy;
+        for (int y = (int) Math.floor(Math.min(ay, by) - radius); y <= Math.ceil(Math.max(ay, by) + radius); y++)
+            for (int x = (int) Math.floor(Math.min(ax, bx) - radius); x <= Math.ceil(Math.max(ax, bx) + radius); x++) {
+                if (!c.grid.inBounds(x, y) || !c.grid.isWalkable(x, y)
+                        || c.topology.hasBuildingKindHint(x, y)) continue;
+                double t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / lengthSquared));
+                double px = x - ax - t * dx, py = y - ay - t * dy;
+                if (px * px + py * py <= radius * radius) {
+                    c.topology.setTag(x, y, CellTopology.Tag.GROUND_DAMAGED, true);
+                    c.markMadeGround(x, y);
+                }
+            }
     }
 
     private static void terrain(GenContext c) {

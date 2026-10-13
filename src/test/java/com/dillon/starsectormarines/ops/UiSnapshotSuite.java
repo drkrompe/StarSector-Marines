@@ -1295,7 +1295,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderMissionFlow(
+    static BufferedImage renderMissionFlow(
             SnapshotContext context, HeadlessUiRenderer renderer,
             List<String> components, String rootComponent,
             Map<String, Object> props) throws Exception {
