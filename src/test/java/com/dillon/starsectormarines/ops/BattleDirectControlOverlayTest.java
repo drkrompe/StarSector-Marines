@@ -76,9 +76,31 @@ class BattleDirectControlOverlayTest {
         }
     }
 
+    @Test
+    void orderBarClearsSupportAndSelectionChromeAcrossScales() {
+        for (int[] size : List.of(new int[]{1920, 1080}, new int[]{1280, 720})) {
+            for (float scale : new float[]{1f, 1.25f, 1.5f}) {
+                withHost(size[0], size[1], scale, position -> {
+                    for (boolean armed : List.of(false, true)) {
+                        var powers = BattlePowerOverlay.viewport(position, 5, armed);
+                        var orders = BattleOrderOverlay.viewport(position, powers.height());
+                        assertDisjoint(orders, powers, "orders clear fleet support");
+                        var squad = BattleSquadOverlay.viewport(position);
+                        assertDisjoint(orders, new UiViewport(squad.screenX(), squad.screenY(),
+                                BattleSquadOverlay.PANEL_WIDTH * squad.documentScale(), squad.height()),
+                                "orders clear squad");
+                        assertTrue(orders.screenX() + orders.width() <= position.getX() + position.getWidth());
+                        assertDisjoint(orders, BattleMechOverlay.viewport(position), "orders clear mech");
+                    }
+                    return null;
+                });
+            }
+        }
+    }
+
     static record OverlayLayout(UiViewport host, UiViewport control, UiViewport squad,
                                 UiViewport mech, UiViewport powers, UiViewport retreat,
-                                UiViewport hud, UiViewport activeControl, UiViewport activeActions) { }
+                                UiViewport hud, UiViewport activeControl, UiViewport activeActions, UiViewport orders) { }
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
@@ -93,7 +115,8 @@ class BattleDirectControlOverlayTest {
                 BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
                 BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
                 BattleDirectControlOverlay.viewport(position, true),
-                BattleDirectControlOverlay.actionsViewport(position)));
+                BattleDirectControlOverlay.actionsViewport(position),
+                BattleOrderOverlay.viewport(position, BattlePowerOverlay.viewport(position, 5, true).height())));
     }
 
     private static <T> T withHost(int physicalWidth, int physicalHeight, float uiScale,

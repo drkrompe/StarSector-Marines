@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
@@ -46,7 +45,7 @@ import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.WarshipDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.OrderIntentCursorPanel;
-import com.dillon.starsectormarines.battle.ui.panel.SquadDefendTargetingPanel;
+import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverlayPublisher;
@@ -222,13 +221,13 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleMechOverlay retainedMechOverlay;
     /** MLX-authored compact command-power deck at bottom-center. */
     private BattlePowerOverlay retainedPowerOverlay;
-    private BattleLessonOverlay campaignLesson;
+    private BattleOrderOverlay retainedOrderOverlay;
     /** MLX-authored, confirmation-gated battle exit at bottom-left. */
     private BattleRetreatOverlay retainedRetreatOverlay;
     /** World click/reticle half of the power flow; card selection lives in MLX. */
     private CommandPowerTargetingPanel commandPowerTargeting;
-    /** World placement half of the selected-infantry Defend Area order. */
-    private SquadDefendTargetingPanel squadDefendTargeting;
+    /** World placement for the contextual tactical-order bar. */
+    private SquadOrderTargetingPanel squadOrderTargeting;
     /** Says what a right-click would do at the cell under the pointer. */
     private OrderIntentCursorPanel orderIntentCursor;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
@@ -428,7 +427,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void advance(float dt) {
         lastAdvanceDt = dt;
-        if (campaignLesson != null) campaignLesson.update(ctx.getBattleSimulation());
         syncDirectControl();
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
         // state still update when the sim is paused. Panels' update() just
@@ -449,6 +447,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedPowerOverlay != null) {
             retainedPowerOverlay.update(dt,
                     ctx != null ? ctx.getBattleSimulation() : null);
+        }
+        if (retainedOrderOverlay != null) {
+            retainedOrderOverlay.update(dt, getSim(),
+                    retainedPowerOverlay == null ? 0f : retainedPowerOverlay.occupiedHeight());
         }
         if (retainedRetreatOverlay != null) {
             BattleSimulation current = ctx != null ? ctx.getBattleSimulation() : null;
@@ -639,7 +641,6 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
-        if (campaignLesson != null) { campaignLesson.detach(); campaignLesson = null; }
         companyOfficer.stop();
         operationRadio.stop();
         if (storyNarration != null) storyNarration.stop();
@@ -673,6 +674,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
         if (retainedMechOverlay != null) retainedMechOverlay.detach();
         if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
+        if (retainedOrderOverlay != null) retainedOrderOverlay.detach();
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.detach();
 
         if (!audioActive) return;
@@ -705,9 +707,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // lances share this Defend Area placement owner. Arming either
         // targeting family cancels the other, so only one world click owner
         // is live.
-        squadDefendTargeting = new SquadDefendTargetingPanel(this);
+        squadOrderTargeting = new SquadOrderTargetingPanel(this);
         orderIntentCursor = new OrderIntentCursorPanel(this);
-        hud.addPanel(squadDefendTargeting);
+        hud.addPanel(squadOrderTargeting);
         hud.addPanel(orderIntentCursor);
         hud.addPanel(new TaskForceStatusPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
@@ -820,19 +822,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
         if (retainedSquadOverlay == null) {
-            retainedSquadOverlay = new BattleSquadOverlay(selection,
-                    this::toggleSquadDefendTargeting,
-                    () -> squadDefendTargeting != null
-                            ? squadDefendTargeting.targetingSquadId()
-                            : Selection.NONE);
+            retainedSquadOverlay = new BattleSquadOverlay(selection);
         }
         retainedSquadOverlay.attach(position, sim);
         if (retainedMechOverlay == null) {
-            retainedMechOverlay = new BattleMechOverlay(selection,
-                    this::toggleSquadDefendTargeting,
-                    () -> squadDefendTargeting != null
-                            ? squadDefendTargeting.targetingSquadId()
-                            : Selection.NONE);
+            retainedMechOverlay = new BattleMechOverlay(selection);
         }
         retainedMechOverlay.attach(position, sim);
         if (retainedPowerOverlay == null) {
@@ -841,13 +835,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                     commandPowerTargeting::targetingPowerId);
         }
         retainedPowerOverlay.attach(position, sim);
-        Mission lessonMission = ctx.getSelectedMission();
-        var rosterScript = MarineRosterScript.getInstance();
-        if (campaignLesson == null && rosterScript != null && (SupplyRouteCampaign.isBattle(lessonMission)
-                || CorvusWaylineCampaign.isBattle(lessonMission))) {
-            campaignLesson = new BattleLessonOverlay(rosterScript.roster());
+        if (retainedOrderOverlay == null) {
+            retainedOrderOverlay = new BattleOrderOverlay(selection,
+                    () -> squadOrderTargeting.mode(), this::toggleSquadOrderTargeting);
         }
-        if (campaignLesson != null) campaignLesson.attach(position);
+        retainedOrderOverlay.attach(position, sim, retainedPowerOverlay.occupiedHeight());
         if (retainedRetreatOverlay == null) {
             retainedRetreatOverlay = new BattleRetreatOverlay(
                     this::retreatFromBattle, this::continueFromBattle);
@@ -860,17 +852,19 @@ public class BattleScreen implements Screen, BattleUiContext {
         directControlOverlay.attach(position, sim, speedMultiplier);
     }
 
-    private void toggleSquadDefendTargeting(int squadId) {
+    private void toggleSquadOrderTargeting(SquadOrderTargetingPanel.Mode mode) {
         exitDirectControl();
-        if (squadDefendTargeting == null) return;
+        if (squadOrderTargeting == null) return;
         if (commandPowerTargeting != null) commandPowerTargeting.cancel();
-        squadDefendTargeting.toggle(squadId);
+        cameraControls.release();
+        if (worldPicker != null) worldPicker.cancel();
+        squadOrderTargeting.toggle(selection.getSelectedSquadId(), mode);
     }
 
     private void toggleCommandPowerTargeting(String powerId) {
         exitDirectControl();
         if (commandPowerTargeting == null) return;
-        if (squadDefendTargeting != null) squadDefendTargeting.cancel();
+        if (squadOrderTargeting != null) squadOrderTargeting.cancel();
         commandPowerTargeting.toggle(powerId);
     }
 
@@ -1313,11 +1307,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
         if (!directControlInput.active()) {
-            if (campaignLesson != null) campaignLesson.processInput(events);
             if (retainedOverlay != null) retainedOverlay.processInput(events);
             if (retainedSquadOverlay != null) retainedSquadOverlay.processInput(events);
             if (retainedMechOverlay != null) retainedMechOverlay.processInput(events);
             if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
+            if (retainedOrderOverlay != null) retainedOrderOverlay.processInput(events);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
         }
         if (directControlOverlay != null) directControlOverlay.processInput(events);
@@ -1369,7 +1363,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
         if (commandPowerTargeting != null) commandPowerTargeting.cancel();
-        if (squadDefendTargeting != null) squadDefendTargeting.cancel();
+        if (squadOrderTargeting != null) squadOrderTargeting.cancel();
         actionCamera.reset();
         followControlledUnit(0f);
         if (turretAuthor != null) turretAuthor.active = false;
@@ -1418,6 +1412,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
             if (retainedMechOverlay != null) retainedMechOverlay.detach();
             if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
+            if (retainedOrderOverlay != null) retainedOrderOverlay.detach();
             if (retainedRetreatOverlay != null) {
                 retainedRetreatOverlay.cancelConfirmation();
                 retainedRetreatOverlay.detach();
@@ -1531,8 +1526,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (directControlOverlay != null
                 && directControlOverlay.blocksWorldPointer(screenX, screenY)) return true;
         if (directControlInput.active()) return false;
-        return !directControlInput.active() && campaignLesson != null && campaignLesson.blocksWorldPointer(screenX, screenY)
-                || hud != null && hud.blocksWorldPointer(screenX, screenY)
+        return hud != null && hud.blocksWorldPointer(screenX, screenY)
                 || retainedOverlay != null
                 && retainedOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedSquadOverlay != null
@@ -1541,6 +1535,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 && retainedMechOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedPowerOverlay != null
                 && retainedPowerOverlay.blocksWorldPointer(screenX, screenY)
+                || retainedOrderOverlay != null
+                && retainedOrderOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedRetreatOverlay != null
                 && retainedRetreatOverlay.blocksWorldPointer(screenX, screenY);
     }
@@ -1656,11 +1652,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // transparent, so only the compact command surfaces touch the canvas.
         if (!directControlInput.active()) {
             if (retainedOverlay != null) retainedOverlay.render(alphaMult);
+            if (retainedOrderOverlay != null) retainedOrderOverlay.render(alphaMult);
             if (retainedSquadOverlay != null) retainedSquadOverlay.render(alphaMult);
             if (retainedMechOverlay != null) retainedMechOverlay.render(alphaMult);
             if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
-            if (campaignLesson != null) campaignLesson.render(alphaMult);
         }
         if (directControlOverlay != null) directControlOverlay.render(alphaMult);
         storySubtitles.render(alphaMult);

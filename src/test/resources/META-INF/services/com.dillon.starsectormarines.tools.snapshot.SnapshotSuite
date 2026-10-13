@@ -118,4 +118,5 @@ com.dillon.starsectormarines.battle.shield.ShieldDomeSceneSnapshotSuite
 com.dillon.starsectormarines.ops.CastleCampaignSnapshotSuite
 com.dillon.starsectormarines.battle.battery.FortressBatterySceneSnapshotSuite
 com.dillon.starsectormarines.battle.salvage.FieldSalvageSnapshotSuite
+com.dillon.starsectormarines.ops.EngineeringOverlaySnapshotSuite
 com.dillon.starsectormarines.ops.ColdStartSnapshotSuite

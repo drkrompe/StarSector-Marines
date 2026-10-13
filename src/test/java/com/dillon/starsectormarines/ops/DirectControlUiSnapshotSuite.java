@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
+
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -207,10 +209,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             }
             if (mech) {
                 var model = new BattleMechOverlayModel(reactor, () -> {}, (id, role) -> {},
-                        (id, order) -> {}, squadId -> {});
+                        (id, order) -> {});
                 model.updateProjected(new BattleMechOverlayModel.MechState(3, 303L,
                         "Bulwark Lead", "Bulwark", MechRole.BALANCED, MechRole.ASSAULT,
-                        MechLanceOrder.FORM_ON_LEAD, false, BattleMechOverlayModel.selectableRoles()));
+                        MechLanceOrder.FORM_ON_LEAD, BattleMechOverlayModel.selectableRoles()));
                 try (MarkupInstance markup = build(modRoot, reactor, BattleMechOverlay.COMPONENT_PATH,
                         BattleMechOverlay.COMPONENT, model.props())) {
                     BattleMechOverlay.wireLayout(markup);
@@ -233,6 +235,12 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     BattleSquadOverlay.wireLayout(markup);
                     draw(graphics, renderer, markup, layout.squad(), layout.host(), uiScale);
                 }
+            }
+            var orders = new BattleOrderOverlayModel(reactor, mode -> {});
+            orders.update(1, mech, Mode.NONE);
+            try (MarkupInstance markup = build(modRoot, reactor, BattleOrderOverlay.COMPONENT_PATH,
+                    BattleOrderOverlay.COMPONENT, orders.props())) {
+                draw(graphics, renderer, markup, layout.orders(), layout.host(), uiScale);
             }
             try (MarkupInstance markup = BattleDirectControlOverlayTest.fixture(
                     modRoot, false, true, mech, () -> {})) {

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -14,16 +15,20 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.List;
 
-/** Owns world-click placement for an infantry squad or Mech lance's defend area. */
-public final class SquadDefendTargetingPanel implements HudPanel {
+/** Owns the next world click for a selected formation's tactical order. */
+public final class SquadOrderTargetingPanel implements HudPanel {
+
+    public enum Mode { NONE, ATTACK_MOVE, DEFEND_AREA }
 
     private final BattleUiContext ctx;
+    private Mode mode = Mode.NONE;
+    private long targetingMember;
     private int targetingSquadId = Selection.NONE;
     private List<Integer> targetingSquads = List.of();
     private int mouseX;
     private int mouseY;
 
-    public SquadDefendTargetingPanel(BattleUiContext ctx) {
+    public SquadOrderTargetingPanel(BattleUiContext ctx) {
         this.ctx = ctx;
     }
 
@@ -31,21 +36,29 @@ public final class SquadDefendTargetingPanel implements HudPanel {
         return targetingSquadId;
     }
 
+    public Mode mode() { return mode; }
+
     /** Arms the selected formation, or cancels when its command is clicked again. */
-    public void toggle(int squadId) {
-        if (squadId == Selection.NONE) return;
-        if (targetingSquadId == squadId) {
+    public void toggle(int squadId) { toggle(squadId, Mode.DEFEND_AREA); }
+
+    public void toggle(int squadId, Mode requested) {
+        if (squadId == Selection.NONE || requested == Mode.NONE) return;
+        if (targetingSquadId == squadId && mode == requested) {
             cancel();
             return;
         }
         BattleSimulation sim = ctx.getSim();
-        if (validPlayerDefendSquad(sim, squadId)) {
+        if (canOrderSquad(sim, squadId)) {
+            mode = requested;
+            targetingMember = ctx.getSelection().getSelectedUnitEntityId();
             targetingSquadId = squadId;
             targetingSquads = ctx.getSelection().getSelectedSquadIds();
         }
     }
 
     public void cancel() {
+        mode = Mode.NONE;
+        targetingMember = 0L;
         targetingSquadId = Selection.NONE;
         targetingSquads = List.of();
     }
@@ -57,7 +70,9 @@ public final class SquadDefendTargetingPanel implements HudPanel {
         if (targetingSquadId == Selection.NONE) return;
         if (!ctx.getSelection().getSelectedSquadIds().equals(targetingSquads)
                 || ctx.getSelection().getSelectedSquadId() != targetingSquadId
-                || !validPlayerDefendSquad(ctx.getSim(), targetingSquadId)) {
+                || mode == Mode.ATTACK_MOVE
+                && targetingMember != ctx.getSelection().getSelectedUnitEntityId()
+                || !canOrderSquad(ctx.getSim(), targetingSquadId)) {
             cancel();
         }
     }
@@ -66,15 +81,15 @@ public final class SquadDefendTargetingPanel implements HudPanel {
     public void render(float alphaMult) {
         BattleSimulation sim = ctx.getSim();
         BattleCamera camera = ctx.getCamera();
-        if (!validPlayerDefendSquad(sim, targetingSquadId) || camera == null
+        if (!canOrderSquad(sim, targetingSquadId) || camera == null
                 || !camera.containsScreen(mouseX, mouseY)) return;
         int cellX = (int) Math.floor(camera.screenToCellX(mouseX));
         int cellY = (int) Math.floor(camera.screenToCellY(mouseY));
         if (!sim.getGrid().inBounds(cellX, cellY)) return;
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
-        var marker = BattlefieldMarkerPresentation.target("DEFEND AREA", true,
-                SquadMoveOrderService.DEFEND_AREA_RADIUS_CELLS);
+        var marker = BattlefieldMarkerPresentation.target(mode == Mode.DEFEND_AREA ? "DEFEND AREA" : "ATTACK MOVE", true,
+                mode == Mode.DEFEND_AREA ? SquadMoveOrderService.DEFEND_AREA_RADIUS_CELLS : 1f);
         CommandPowerTargetingPanel.paintTargetingMarker(camera, marker,
                 centerX, centerY, alphaMult);
     }
@@ -106,8 +121,10 @@ public final class SquadDefendTargetingPanel implements HudPanel {
             int cellX = (int) Math.floor(camera.screenToCellX(event.getX()));
             int cellY = (int) Math.floor(camera.screenToCellY(event.getY()));
             if (sim.getGrid().inBounds(cellX, cellY)) {
-                for (int squadId : targetingSquads) {
-                    if (validPlayerDefendSquad(sim, squadId)) {
+                if (mode == Mode.ATTACK_MOVE) {
+                    SelectionOrders.requestMove(sim, ctx.getSelection(), cellX, cellY);
+                } else for (int squadId : targetingSquads) {
+                    if (canOrderSquad(sim, squadId)) {
                         sim.getSquadMoveOrderService().requestDefendArea(squadId, cellX, cellY);
                     }
                 }
@@ -118,8 +135,9 @@ public final class SquadDefendTargetingPanel implements HudPanel {
         }
     }
 
-    private static boolean validPlayerDefendSquad(BattleSimulation sim, int squadId) {
-        if (sim == null || squadId == Selection.NONE) return false;
+    public static boolean canOrderSquad(BattleSimulation sim, int squadId) {
+        if (sim == null || sim.isComplete() || sim.directControl().active()
+                || squadId == Selection.NONE) return false;
         Squad squad = sim.getSquad(squadId);
         if (squad == null || squad.aliveMembers <= 0
                 || squad.faction != Faction.MARINE || squad.isDroneSquad()
