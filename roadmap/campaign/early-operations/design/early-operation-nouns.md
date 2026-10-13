@@ -753,10 +753,11 @@ equipment is part of this objective.
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
 same crew that covered the Junction. Two twin-launcher missile batteries on
-the northern hilltops cover its committed opening pass. Kestrel enters along the
-cross street, sweeps through the gap into both batteries' coverage, then arcs
-east to join a convoy-cover orbit if it survives. This authored route holds
-through damage; missile tracking and ordinary durability determine the result.
+the northern hilltops cover its committed opening pass. Kestrel enters from
+the east, flies a right-to-left pass across the cross street in front of the
+ridge, then makes a broad return over the convoy to join its cover orbit if
+it survives. This authored route holds through damage; missile tracking and
+ordinary durability determine the result.
 The pass call follows physical commitment, the launch warning an actual missile,
 and hit/loss/return lines their observed facts. Obsolete queued calls yield to
 the loss acknowledgment. Their rotating
