@@ -4,7 +4,7 @@ Status: ACTIVE — campaign route and planning index; individual arcs retain the
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — consolidate the five authored arcs into dedicated plan folders.
+Updated: 2026-10-13 — Limited Warrant completes the first recovered-suit acquisition route.
 
 ## The company's journey
 
@@ -27,7 +27,7 @@ Company preparation / Castle's first lessons
   -> A Working Ship — Asharu, Corvus
        Salvage Rights -> Cold Start -> Working Passage -> Morrow joins fleet
   -> A Small War — Agreus, Arcadia
-       Water Under Seal -> four planned follow-on chapters
+       Water Under Seal -> Limited Warrant -> three planned follow-on chapters
 ```
 
 ## Arc directory
@@ -43,7 +43,7 @@ Read the arc overview for its missions, cast and rewards, then its local
 | `broken-supply-route/` | `broken-supply-route-arc.md` | Completed opening arc; the accepted local site is frozen. Either closed branch leads onward, including a finite rescue/freight ledger closed in failure. | Junction, permanent support choice, both alternative finales, persistent losses and recurring arrangements implemented; live campaign/save acceptance remains. |
 | `wayline-corvus/` | `wayline-corvus-arc.md` | Closed supply-route branch; Dust Ledger, Blind Watch and A Cold Account cross three existing Corvus worlds. Cold Account victory and acknowledgment of its aftermath enable the Shepherd referral. | Three chapters and their campaign sequence implemented; player-controlled difficulty tuning, live travel/save acceptance and broader generated-map access remain open. |
 | `shepherd-recovery/` | `shepherd-recovery-arc.md` | Post-Cold Account reference to Tamsin Vale on Asharu; actual Working Passage departure and fleet handover unlock the Agreus referral. | All three contracts and once-only Morrow/crew transfer implemented; live campaign/save and later owned support acceptance remain. |
-| `a-small-war/` | `a-small-war-arc.md` | Actual Morrow handover; optional referral to Baronet Elian Rusk on existing Agreus in Arcadia. Cold Start alone is insufficient. | Referral and Water Under Seal implemented. Live transition, Chapters 2–5, warrant, suit rewards and yard agreement remain planned/open. |
+| `a-small-war/` | `a-small-war-arc.md` | Actual Morrow handover; optional referral to Baronet Elian Rusk on existing Agreus in Arcadia. Cold Start alone is insufficient. | Referral, Water Under Seal, Limited Warrant and Recovered Specter reward implemented. Live transition/first-suit acceptance, Chapters 3–5, further suit rewards and yard agreement remain open. |
 
 ## Capability and stakes
 
@@ -53,7 +53,7 @@ Read the arc overview for its missions, cast and rewards, then its local
 | Supply-route commitment | Two-squad coordination, fitted lift, owned heavy support and a permanent choice about whom Wayline can help. Optional Secondhand Wings is an investment, not a required chapter. | `broken-supply-route-arc.md`, `company-view-nouns.md` |
 | Corvus pursuit | Greater initiative and wider objectives, followed by the contrast with Hegemony military power at Garnir. Cooperation grants no permanent military protection. | `wayline-corvus-arc.md` |
 | Shepherd recovery | The company earns a real construction tender by restoring the cooperative's yard and protecting departure. A recovery claim or grounded gun does not itself grant a ship. | `shepherd-recovery-arc.md` |
-| Agreus sponsorship | Planned limited procurement authority, recovered power suits, crude pirate technology and a consequential yard agreement. Water Under Seal currently pays 26,000 credits and grants no suit pattern or warrant. | `a-small-war-arc.md`, `agreus-latchkey.md`, `power-suit-infantry.md` |
+| Agreus sponsorship | Limited Warrant grants bounded procurement terms, 30,000 credits and a Recovered Specter cargo card. Further recovered/pirate technology and the yard agreement remain planned. Water Under Seal pays 26,000 credits and opens that offer without granting equipment. | `a-small-war-arc.md`, `agreus-latchkey.md`, `power-suit-infantry.md` |
 
 Power suits are intended to increase what fewer squads can accomplish as the
 company becomes paramilitary. Equipment belongs to individual marines: a mixed

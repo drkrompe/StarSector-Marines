@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaterUnderSealCorrespondenceTest {
-    @Test void victoryNamesActualFeeAndLossesWithoutOfferingTheNextChapter() {
+    @Test void victoryNamesActualFeeAndLossesAndIntroducesTheLimitedWarrant() {
         var mission = AgreusArcCampaign.offer(new AgreusArcProgress(), "Agreus");
         var result = MissionOutcome.builder().mission(mission).victory(true).payoutEarned(26000).marinesLost(3)
                 .waterUnderSeal(new WaterUnderSealProgress.Report(true, true, true, true, true, true, 1, 2, false)).build();
@@ -22,8 +22,8 @@ class WaterUnderSealCorrespondenceTest {
         assertTrue(lines.get(2).text().contains("Company casualties: 3"));
         assertTrue(lines.get(2).text().contains("Constables lost: 2"));
         assertTrue(lines.get(2).text().contains("Technicians lost: 1"));
-        assertTrue(lines.get(3).text().contains("when the next contract is ready"));
-        assertTrue(lines.stream().noneMatch(line -> line.text().contains("Limited Warrant") || line.text().contains("Specter")));
+        assertTrue(lines.get(3).text().contains("Limited Warrant"));
+        assertTrue(lines.stream().noneMatch(line -> line.text().contains("Specter")));
         assertTrue(MissionDebriefConversation.recordings(result, new WaylineNarration(List.of())).isEmpty());
     }
     @Test void withdrawalReportsObservedWorkAndReplacementMobilizationWithoutPayment() {

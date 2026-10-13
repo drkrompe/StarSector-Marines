@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Shepherd dialogue distinguishes individual salvage crews and leaves exact terms in contract readouts; live campaign acceptance remains open.
+Updated: 2026-10-13 — bounded Low Quay recovery, retained records and explicit first-suit learning.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -184,8 +184,37 @@ work without company protection. Lost cargo or both technicians ends the attempt
 Confirmed employer losses persist; later mobilizations explicitly provide a new
 repair party and load. Company, boat and called-ship losses follow their ordinary
 settlement paths. Only the active attempt's complete physical receipt earns the
-26,000-credit fee once. The completed North Weir dossier grants no suit pattern,
-procurement warrant or later chapter before that contract exists.
+26,000-credit fee once. The completed North Weir dossier offers Limited Warrant;
+it does not itself grant a suit pattern.
+
+**Limited Warrant** is the Low Quay bonded-stores recovery. Rusk's readable
+civil-security procurement terms precede deployment. His supplier guarantee
+covers named surplus service files, calibration tooling and compatible stock;
+it grants no military procurement status, planetary police commission, civilian
+seizure right or orbital-fire authority. Yard management and debt enforcement
+require a separate agreement, which this recovery does not choose.
+
+Two full regular squads are recommended, with the same minimum selected force,
+fitted lift and owned-tender preparation as North Weir. Four constables cover
+the approach and one supplier technician authenticates the calibration work.
+Company infantry must secure the records office, protect eight uninterrupted
+seconds of work there and in the separate calibration cage, then escort the
+physical, vulnerable calibration carrier to the western apron. The cage also
+requires the living technician. A finite Cask Runner rearguard contests the exit;
+killing every raider is not the victory condition. Return requires the archive,
+kit and surviving company presence. Loss of the load, or the technician before
+kit recovery, fails the attempt.
+
+Authenticated records persist after withdrawal or defeat. Replacement attempts
+explicitly fund new calibration stock and personnel; confirmed losses remain
+recorded. Only the active attempt's complete recovery receipt earns 30,000
+credits and one Recovered Specter cargo template card. Already learned or carried
+knowledge satisfies the award without another copy; sale or discard cannot
+renew the entitlement. Learning the card and fitting equipment are separate
+player actions. Learning also exposes the matching Tri-Tachyon Specter Protection
+sheet, so the first recovered assault pattern is usable without an Arbalest
+reward. No equipment is automatically issued. The next yard chapter and its
+Arbalest award remain separate work in `a-small-war.md`.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

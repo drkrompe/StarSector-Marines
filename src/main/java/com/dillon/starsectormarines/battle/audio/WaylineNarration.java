@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.ops.CorvusChapter;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.fs.starfarer.api.Global;
 import org.json.JSONArray;
@@ -111,7 +112,7 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
-        if (AgreusArcCampaign.isBattle(mission)) return "story_agreus_water_under_seal";
+        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
         if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)

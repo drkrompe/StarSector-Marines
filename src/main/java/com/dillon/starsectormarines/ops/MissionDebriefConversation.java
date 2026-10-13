@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import java.util.List;
 import java.util.Objects;
 import java.text.NumberFormat;
@@ -24,6 +25,7 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (limitedWarrant(outcome)) return "LIMITED WARRANT / CASTLE & RUSK";
         if (waterUnderSeal(outcome)) return "NORTH WEIR / CASTLE & RUSK";
         if (outcome != null && outcome.workingPassage != null) return "REGISTRY TRANSFER / CASTLE & VALE";
         if (outcome != null && outcome.coldStart != null) return "COLD START / CASTLE & VALE";
@@ -33,6 +35,7 @@ final class MissionDebriefConversation {
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (limitedWarrant(outcome)) return warrantLines(outcome);
         if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
                 recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Transfer's through. Morrow's ours."),
@@ -88,6 +91,31 @@ final class MissionDebriefConversation {
                 .filter(Objects::nonNull).toList();
     }
 
+    private static boolean limitedWarrant(MissionOutcome outcome) {
+        return outcome != null && outcome.missionSource == MissionSource.STORY
+                && AgreusArcProgress.limitedWarrant(outcome.missionId) && outcome.limitedWarrant != null;
+    }
+    private static List<WaylineNarration.Line> warrantLines(MissionOutcome outcome) {
+        var r = outcome.limitedWarrant;
+        String cost = "Company casualties: " + outcome.marinesLost + ". Supplier technicians lost: " + r.techniciansLost()
+                + ". Constables lost: " + r.constablesLost() + ". Their names stay with this account.";
+        if (outcome.victory) return List.of(
+                warrantLine("records", true, "The archive is authenticated and the calibration load is back. We have the files and the tools to use them."),
+                warrantLine("award", false, "Thirty thousand credits, and the Recovered Specter refurbishment pattern under my supplier guarantee. That settles this recovery contract. It decides nothing about the yard's future management."),
+                warrantLine("issue", true, "Learn the Recovered Specter card from fleet cargo, then choose Tri-Tachyon Specter Protection in the Armory. If we already hold the card or know the pattern, there is no second copy. Nobody's fitting has changed. This is repaired security stock, not military issue; keep someone watching the flank."),
+                warrantLine("cost", true, cost));
+        return List.of(warrantLine("withdrawal", true, (r.recordsRecovered() ? "The authenticated service archive is retained. " : "The service archive was not authenticated. ")
+                        + (r.cargoLost() ? "The calibration load was destroyed." : "The calibration kit was not returned.")),
+                warrantLine("unpaid", false, "No completion fee or pattern is released. I will fund a new calibration load and replacement recovery party when you recommission the work."),
+                warrantLine("cost", true, cost));
+    }
+    private static WaylineNarration.Line warrantLine(String beat, boolean castle, String text) {
+        return new WaylineNarration.Line("warrant-debrief-" + beat, "story_agreus_limited_warrant",
+                "debrief.limited_warrant." + beat, text, 10f, 10, 15f, List.of(),
+                castle ? "CASTLE / COMPANY OPERATIONS" : "BARONET ELIAN RUSK / HOUSE RUSK",
+                castle ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+    }
+
     private static boolean waterUnderSeal(MissionOutcome outcome) {
         return outcome != null && outcome.missionSource == MissionSource.STORY
                 && AgreusArcCampaign.owns(outcome.missionId) && outcome.waterUnderSeal != null;
@@ -101,7 +129,7 @@ final class MissionDebriefConversation {
                 weirLine("secured", true, "The repair load reached the isolation switch. Both rooms are reconnected and the road gun is commissioned. The company resolved the attack; North Weir is working again."),
                 weirLine("invoice", false, "Your invoice is honored: " + NumberFormat.getIntegerInstance().format(outcome.payoutEarned) + " credits. This was security work within my concession; the Combine's administration remains its own."),
                 weirLine("cost", true, cost),
-                weirLine("closure", false, "You have my sponsorship for the work you completed. Put your company in order. I will contact you when the next contract is ready."));
+                weirLine("closure", false, "There is equipment in the Low Quay bonded stores your people could use. I can authorize its release. Read the Limited Warrant when you are ready; it covers recovery, not debt enforcement or control of the yard."));
         String work = "The north room " + (report.northRoomReconnected() ? "was reconnected" : "was not reconnected")
                 + "; the south room " + (report.southRoomReconnected() ? "was reconnected" : "was not reconnected") + ". "
                 + (report.cargoLost() ? "The repair load was destroyed." : "No repair-load loss is confirmed.");

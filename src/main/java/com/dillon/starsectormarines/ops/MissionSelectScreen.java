@@ -163,9 +163,14 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
         props.put("brokerRole", "HOUSE RUSK / KO COMBINE CONCESSION");
-        props.put("brokerIntroduction", AgreusArcCampaign.REFERRAL);
-        props.put("brokerProgress", p != null && p.completed()
-                ? "NORTH WEIR RESTORED / 26,000 CR SETTLED / Rusk will contact us when the next contract is ready."
+        props.put("brokerIntroduction", p != null && p.warrantCompleted()
+                ? "Rusk: The service archive and calibration load are accounted for. Your fee and the refurbishment pattern settle the Low Quay contract."
+                : p != null && p.completed()
+                ? "Rusk: North Weir is working. Recover the Low Quay service archive and calibration kit under my supplier guarantee, and your company may retain the Recovered Specter pattern. Read the warrant before deploying."
+                : AgreusArcCampaign.REFERRAL);
+        props.put("brokerProgress", p != null && p.warrantCompleted()
+                ? "NORTH WEIR RESTORED / LIMITED WARRANT COMPLETE / 56,000 CR SETTLED / Recovered Specter entitlement fulfilled. Learn the cargo card, then choose an Armory fitting. Further yard work is not yet commissioned."
+                : p != null && p.completed() ? "NORTH WEIR RESTORED / LIMITED WARRANT AVAILABLE / Review the procurement terms below; no yard agreement is selected."
                 : "NORTH WEIR / WATER UNDER SEAL" + (accessReason == null || accessReason.isBlank() ? "" : " / " + accessReason));
     }
     static void putAgreusReferral(Map<String, Object> props) {
@@ -396,6 +401,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
+                detailRow("force", "Company", "2 full regular squads recommended / minimum 4 ready each / fitted boats"),
+                detailRow("support", "Recovery party", "Owned tender; 4 constables and 1 supplier technician"),
+                detailRow("claim", "Low Quay", "Authenticate records, recover the calibration kit, escort its load to egress"),
+                detailRow("terms", "Limited warrant", "Deploy accepts the printed recovery terms; no debt-enforcement or yard-management agreement"),
+                detailRow("payout", "Victory award", "30,000 credits + Recovered Specter card once / explicit learning and fitting"));
         if (AgreusArcCampaign.isBattle(mission)) return List.of(
                 detailRow("force", "Company", "2 squads / minimum 4 ready each / your fitted boats"),
                 detailRow("support", "Construction", "Actual owned eligible tender required; 8 constables and 2 technicians"),

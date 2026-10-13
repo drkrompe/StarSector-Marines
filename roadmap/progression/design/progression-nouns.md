@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — tactic-sheet knowledge is acquired separately from its current issue; mixed-class and recovered suit progression remain explicit.
+Updated: 2026-10-13 — Recovered Specter gains its Limited Warrant cargo-card source.
 
 ## Purpose
 
@@ -540,11 +540,13 @@ permanently ineligible source.
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and an
 acquisition owner, and the catalog audit preserves that coverage as content is
-added. Recovered Specter and Arbalest patterns reserve their future acquisition
-for an authored expedition after the Shepherd actually joins the fleet.
-Their declared story owner supplies no live reward yet; explicit developer test
-controls are currently their only acquisition route. Neither A Cold Account
-completion nor the grounded Shepherd's repair automatically learns them.
+added. Recovered Specter is a guaranteed cargo-card reward for Limited Warrant
+on Agreus after the Shepherd actually joins the fleet and North Weir is restored.
+Learning it exposes its matching heavy fitting sheet; reward settlement never
+changes issued equipment. Recovered Arbalest reserves its acquisition for the
+next, still-planned Agreus chapter and remains available through explicit
+developer test controls. Neither A Cold Account completion nor the grounded
+Shepherd's repair automatically learns either pattern.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
