@@ -561,6 +561,18 @@ current site, its phase and progress, a refusal notice, the live-site count, and
 key); builders (ready, out or working, lost); defence drones (ready, out, lost, deployed or
 recalled); and the shield. Its help panel lists exactly these bindings.
 
+## Armory range host
+
+**Test Loadout** borrows the infantry control contract for a disposable practice
+marine carrying the selected billet's proposed equipment, the person's aptitude,
+and the experience band issued by the proposed armor.
+The range opens already under manual control. Escape, Tab, or loss of the body
+returns to the retained armory proposal and discards the practice simulation;
+there is no strategic handback or mission settlement in this host. Movement,
+aim, weapon cycles, special equipment, armor systems, and pause retain their
+ordinary battle rules. The trial frames both ends of the range on entry, with
+ordinary wheel zoom and cursor lead available afterward.
+
 ## Boundaries
 
 `ai-nouns.md` owns squad roles, mission assignment, morale, and AI handback.

@@ -38,8 +38,16 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
         var hull = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER, 20, 68, 75,
                 outline.aspect(), outline, spec.getString("spriteName"), true, BoatBayState.DAMAGED);
         var frames = new ArrayList<SnapshotArtifact>();
-        for (String mode : List.of("damaged", "shortage", "castle", "ready", "expanded", "overview")) {
-            try (var strings = new HeadlessStrings(context.modRoot(), text -> mode.equals("expanded")
+        var commodities = UiSnapshotSuite.snapshotCommodities();
+        // Missing source art must fail the evidence run rather than silently render a blank icon.
+        for (String commodity : List.of("supplies", "heavy_machinery", "metals", "rare_metals")) {
+            String icon = commodities.commodityIcon(commodity);
+            if (icon.isBlank() || !(Files.isRegularFile(context.modRoot().resolve(icon))
+                    || Files.isRegularFile(context.starsectorCore().resolve(icon))))
+                throw new IllegalStateException("Missing commodity icon for " + commodity + ": " + icon);
+        }
+        for (String mode : List.of("damaged", "shortage", "castle", "ready", "expanded", "castle-expanded", "overview")) {
+            try (var strings = new HeadlessStrings(context.modRoot(), text -> mode.contains("expanded")
                     ? OpeningLocalizationSnapshotSuite.expand(text) : text)) {
                 var roster = new MarineRoster(); var boats = roster.boatDeck();
                 boats.reconcile("home", ShuttleType.HERMES, 1);
@@ -49,7 +57,8 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
                 float day = mode.equals("ready") ? 12f : 10f;
                 var resources = new FabricationResources() {
                     public int available(String commodity) { return mode.equals("shortage") ? 0 : 15_000_000; }
-                    public String commodityIcon(String commodity) { return "graphics/icons/cargo/" + commodity + ".png"; }
+                    public String commodityName(String commodity) { return commodities.commodityName(commodity); }
+                    public String commodityIcon(String commodity) { return commodities.commodityIcon(commodity); }
                     public boolean spend(FabricationCost cost) { return canAfford(cost); }
                 };
                 var reactor = new Reactor();
@@ -79,7 +88,7 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
                                 new BoatDeckCanvas(ship, () -> bay, model::selectedBerthIndex, () -> 0, n -> n == 0).recovery(model::berthRecovery));
                         document.layout(1920, 1080);
                         BoatDeckCanvas.fitSurface(markup.requireElement("boat-deck-canvas"));
-                        if (mode.equals("castle") || mode.equals("ready")) {
+                        if (mode.startsWith("castle") || mode.equals("ready")) {
                             var guide = new PreparationGuide(document, () -> CampaignLessons.boats(roster, model), () -> {},
                                     new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                                             List.of("data/ui/components/company/preparation-guide.mlx")));
