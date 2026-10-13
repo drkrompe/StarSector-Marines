@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Additive, data-authored collectible templates and their base-game cargo issue costs. */
+/** Additive, data-authored equipment technologies. Legacy cost metadata does not price fitting. */
 public final class EquipmentTemplateCatalog {
 
     private static final Logger LOG = Global.getLogger(EquipmentTemplateCatalog.class);

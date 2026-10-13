@@ -57,7 +57,7 @@ import java.util.Random;
 public final class WarshipPointDefence {
 
     /** A mount fires once its barrel is this close to the bearing of what it has chosen. */
-    static final float ALIGNED_DEGREES = 6f;
+    public static final float ALIGNED_DEGREES = 6f;
     /** The quickest a mount reselects and fires again, however short its weapon's own cooldown. */
     static final float MIN_ENGAGEMENT_SECONDS = 0.35f;
     /** A beam strikes where it points. */
@@ -245,7 +245,13 @@ public final class WarshipPointDefence {
 
     /** Draws a tracer for a shot at something that is not ordnance (an aircraft): same marks, same renderer. */
     void trace(Warship ship, VanillaWeapon weapon, float fromX, float fromY, float toX, float toY, boolean hit) {
-        marks.add(new LiveMark(ship.faction, weapon, fromX, fromY, toX, toY, hit));
+        trace(ship.faction, weapon, fromX, fromY, toX, toY, hit);
+    }
+
+    /** As above for a shooter that is not a warship (a tender's drone): the tracer is drawn in the weapon's own colours. */
+    public void trace(Faction faction, VanillaWeapon weapon, float fromX, float fromY, float toX, float toY,
+                      boolean hit) {
+        marks.add(new LiveMark(faction, weapon, fromX, fromY, toX, toY, hit));
     }
 
     /** The nearest hostile round in flight that the mount can reach and bear on. */
@@ -284,7 +290,8 @@ public final class WarshipPointDefence {
         best.distanceSq = d2;
     }
 
-    private static float speedOf(Projectile p) {
+    /** Cells per second a ground projectile crosses at, over its whole flight. */
+    public static float speedOf(Projectile p) {
         float dx = p.toX - p.fromX;
         float dy = p.toY - p.fromY;
         return (float) Math.sqrt(dx * dx + dy * dy) / Math.max(0.001f, p.totalFlightTime);

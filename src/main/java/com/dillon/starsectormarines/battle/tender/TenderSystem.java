@@ -111,6 +111,7 @@ public final class TenderSystem {
                 continue;
             }
             tickDefence(t, dt, sim);
+            t.pointDefence().tick(dt, sim, t);
             tickOrders(t, dt, sim);
             tickBuilders(t, dt, sim);
         }

@@ -81,6 +81,16 @@ public final class WarheadStrike implements Interceptable {
     }
 
     @Override
+    public float landingX() {
+        return aimX;
+    }
+
+    @Override
+    public float landingY() {
+        return aimY;
+    }
+
+    @Override
     public float speedCells() {
         return path.speed(age);
     }
