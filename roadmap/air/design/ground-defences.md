@@ -1,8 +1,10 @@
 # Ground defences — fortresses that hold the sky
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-14
+
+Updated: 2026-10-14 — owner answers folded in: either side may hold them, the dome stops incoming fire only, balance is left to play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
@@ -69,9 +71,8 @@ boundary change, made once.
   to overload it and land rounds in the gap, or send marines to take or wreck the
   generator (the relay of `shielded-fire-support-zones.md` is this structure).
 - **Vanilla figures.** Vanilla gives the planetary shield no combat numbers, so the
-  dome's capacity and dissipation are authored, sized against a capital's sustained
-  output so that one ship alone overloads it slowly and two ships quickly. This is the
-  one place the law's "numbers from vanilla" has nothing to read.
+  dome's capacity and dissipation are authored starting figures, tuned in play. This is
+  the one place the law's "numbers from vanilla" has nothing to read.
 
 ## Defence nests
 
@@ -92,8 +93,9 @@ The fun is a combined-arms loop that the battle does not have yet:
 3. The ship's job is to cover that assault from outside the envelopes, then move in
    once they are down, and finish what its guns are for.
 
-It also gives the hostile capital's counters a ground half: a company defending a world
-with its own batteries has an answer to an enemy ship that is not another ship.
+It works the same in either direction: whichever side holds the world has the batteries
+and the generator, so a company fighting on its own side's world has an answer to an enemy
+capital that is not another ship.
 
 ## Slices
 
@@ -109,18 +111,16 @@ with its own batteries has an answer to an enemy ship that is not another ship.
 5. **Defence nests**: the profile signal sizing the dispersed posts; anti-air already
    exists.
 
-## Open questions for the owner
+## Decided
 
-1. **Can a ship destroy a battery alone?** The draft says yes, slowly and at real cost,
-   because the battery fights at ship balance. The alternative is that only marines can
-   silence one, which makes the ground assault mandatory.
-2. **Does the dome stop the company's own ship from firing out, or only hostile fire
-   coming in?** The draft says it stops hostile fire coming in; its own side's ship and
-   batteries fire out freely.
-3. **Should a defending company ever get a battery or generator of its own** (relief,
-   counterattack, garrison missions on a world it holds)? The draft says yes, through the
-   same profile signal, which makes them a counter to hostile capitals.
-4. **How rare are they?** Heavy Batteries and a Planetary Shield are late, expensive
-   industries in vanilla, which matches hostile capitals being a late-campaign threat.
-   The draft keeps the vanilla rarity rather than adding batteries to every defended
-   world.
+- **Either side may have them.** There is nothing special about attacker or defender: a
+  battery or generator belongs to whoever holds the world, and a company fighting on a
+  world its side holds has them exactly as an enemy garrison would. Every rule here is
+  written for "its side" and "hostile", never for marines or defenders.
+- **The dome stops incoming hostile fire only.** Its own side fires out freely, as every
+  shield already behaves.
+- **Balance is gameplay's to decide.** Whether a ship can grind a battery down alone, how
+  big a dome's pool is, how far an envelope reaches: these are tuned in play, not settled
+  here. The structure's figures start from vanilla's where vanilla has them.
+- **How often a world has them is the market's business.** The structures follow the
+  market's own industries; this design does not add a rarity rule of its own.
