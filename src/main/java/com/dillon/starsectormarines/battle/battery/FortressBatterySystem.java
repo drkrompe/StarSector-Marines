@@ -66,6 +66,10 @@ public final class FortressBatterySystem {
             else if (holder.hostileTo(faction) && hostile == null) hostile = faction;
         }
         battery.fireControl().tick(dt, holderPresent, hostile);
+        // The structure changes sides with its fire control, so its old side's enemies stop shooting it.
+        if (sim.identity().faction(battery.structureId()) != battery.owner()) {
+            sim.followStructureHolder(battery.structureId(), battery.owner());
+        }
     }
 
     /** Whether a body of this type can hold or take a control point: people and machines, not emplacements or drones. */

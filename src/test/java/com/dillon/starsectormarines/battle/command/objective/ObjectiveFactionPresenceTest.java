@@ -24,6 +24,7 @@ class ObjectiveFactionPresenceTest {
                     case "identity" -> roster.identity();
                     case "pendingGroundArrivals" -> args[0] == Faction.MARINE ? pending.get() : 0;
                     case "getAirEntityIds" -> new long[0];
+                    case "isCapturedStructure" -> false;
                     case "world", "survivorPickup" -> null;
                     default -> throw new AssertionError("Unexpected read: " + method.getName());
                 });
