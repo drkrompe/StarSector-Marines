@@ -17,6 +17,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechWorkshopTest {
 
+    @Test void restoredBerthsGateFabricationAtCommitWithoutSpendingOrDeletingOwnedMechs() {
+        var bay = new MechBay();
+        var resources = TestResources.stocked(2000);
+        int[] berths = {0};
+        var workshop = new MechWorkshop(bay, resources, () -> berths[0]);
+        for (int count = 0; count <= 4; count++) {
+            int supplies = resources.available(Commodities.SUPPLIES);
+            assertEquals(MechWorkshop.Status.LANCE_FULL,
+                    workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).status());
+            assertEquals(supplies, resources.available(Commodities.SUPPLIES));
+            assertEquals(count, bay.activeSquad().mechs().size());
+            if (count < 4) {
+                berths[0]++;
+                assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).succeeded());
+            }
+        }
+        berths[0] = 1;
+        assertFalse(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).succeeded());
+        assertEquals(4, bay.activeSquad().mechs().size());
+    }
+
     @Test
     void fabricatesAndInstallsAWeaponAsOneMaterialTransaction() {
         MechBay bay = MechBay.legacyStarterFixture();

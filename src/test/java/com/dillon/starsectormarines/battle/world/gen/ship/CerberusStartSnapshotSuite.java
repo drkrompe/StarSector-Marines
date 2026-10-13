@@ -79,8 +79,8 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                             if (!interior.has(purpose)) throw new AssertionError("Missing " + purpose + " seed " + seed);
                         if (interior.facility(RoomPurpose.BARRACKS).capacity() < 12)
                             throw new AssertionError("Squad cannot berth");
-                        if (map.gantries.stream().filter(g -> g.holds == Gantry.Holds.MACHINE).count() != 1)
-                            throw new AssertionError("Conversion must have exactly one machine gantry");
+                        if (map.gantries.stream().filter(g -> g.holds == Gantry.Holds.MACHINE).count() != 4)
+                            throw new AssertionError("Restored original hull must have four machine gantries");
                         if (map.gantries.stream().filter(g -> g.holds == Gantry.Holds.BOAT).count() != (state == BoatBayState.DAMAGED ? 1 : 2))
                             throw new AssertionError("Working berth count must match condition");
                         if (!graph.unplaced().isEmpty()) throw new AssertionError("Unplaced " + graph.unplaced());
@@ -273,7 +273,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
-    private static void assertPreparationAccess(MapResult map, DeckGraph graph) {
+    static void assertPreparationAccess(MapResult map, DeckGraph graph) {
         int width = map.grid.getWidth(), height = map.grid.getHeight();
         boolean[][] reached = new boolean[width][height];
         var start = graph.largest(RoomPurpose.BRIDGE).doors().stream()
