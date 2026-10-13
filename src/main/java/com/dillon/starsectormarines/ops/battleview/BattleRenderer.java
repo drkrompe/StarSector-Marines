@@ -628,7 +628,7 @@ public class BattleRenderer {
 
     private void collectFogCells(BattleSimulation sim, DrawList out, float alphaMult) {
         FogOfWarService vis = sim.getFogOfWar();
-        boolean[] revealed = vis.cellRevealedArray();
+        boolean[] revealed = vis.cellShownArray();
         int gw = vis.gridWidth();
         int gh = vis.gridHeight();
         float cellPx = rc.camera.cellPxSize();
