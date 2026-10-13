@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -574,6 +577,38 @@ public final class FleetArmoryViewModel {
     /** Reprojects campaign time, personnel, and cargo authority. */
     public void refresh() {
         domainRevision.update(value -> value + 1);
+    }
+
+    /** Value-only trial request. Previewing never issues kit or lends campaign identity. */
+    public record RangeCandidate(String name, MarineLoadout loadout) { }
+
+    public String rangeUnavailableReason() {
+        domainRevision.get();
+        MarineSquad squad = roster.squadById(selectedSquadId.get());
+        if (squad == null || squad.stationed()) return Strings.get("armoryRangeAway");
+        List<String> members = roster.manningMemberIds(squad);
+        int index = inspectedBillet.get();
+        MarineSoldier soldier = index >= 0 && index < members.size()
+                ? roster.soldierById(members.get(index)) : null;
+        if (soldier == null) return Strings.get("armoryRangeVacant");
+        if (soldier.status() != MarineSoldierStatus.ACTIVE) return Strings.get("armoryRangeUnfit");
+        if (!squadEquipmentPreview.get().canApply()) return Strings.get("armoryRangeChooseKit");
+        return "";
+    }
+
+    public RangeCandidate rangeCandidate() {
+        if (!rangeUnavailableReason().isEmpty()) return null;
+        MarineSquad squad = roster.squadById(selectedSquadId.get());
+        int index = inspectedBillet.get();
+        MarineSoldier soldier = roster.soldierById(roster.manningMemberIds(squad).get(index));
+        FireTeamBillet kit = asFireTeamBillet(squadEquipmentPreview.get().billet(index));
+        MarineArmorCatalogDef armor = kit.armorDef();
+        MarineLoadout loadout = MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
+                kit.primaryDef(), kit.grade(), SquadExperienceStandard.profileForArmor(soldier, armor),
+                kit.specialDef(), null, armor.appearanceFamily(), armor.armorCapacity(),
+                armor.armorRating(), armor.moveSpeedMult(), armor.incomingAccuracyMult(),
+                null, armor.integralSystem()).withArmorClass(armor.armorClass());
+        return new RangeCandidate(soldier.name(), loadout);
     }
 
     public FireTeamBillet viewerBilletAt(int index) {

@@ -568,7 +568,7 @@ public final class WarshipSystem {
         if (ship.doctrineClock < DOCTRINE_PERIOD_SECONDS) return;
         float elapsed = ship.doctrineClock;
         ship.doctrineClock = 0f;
-        escortUpkeep(ship);
+        if (ship.remoteOrder() == Warship.RemoteOrder.NONE) escortUpkeep(ship);
         Warship lead = WarshipEscort.liveLead(ship);
         WarshipDoctrine doctrine = ship.doctrine();
         AirThreatPicture picture = null;
@@ -582,6 +582,7 @@ public final class WarshipSystem {
             WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
             ship.setPosture(decision.posture(), decision.reason());
         }
+        if (ship.remoteOrder() != Warship.RemoteOrder.NONE) return;
         if (lead != null) {
             keepStation(ship, lead, picture);
         } else if (ship.profile().standoff()) {

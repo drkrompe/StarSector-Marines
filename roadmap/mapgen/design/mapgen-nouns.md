@@ -289,7 +289,11 @@ leaving usable loading courts and recesses outside their actual footprints.
 The checkpoint's terminal blocks retain the mass needed to contain the road. Its fifteen-cell carriageway is reserved
 before facilities, perimeter runs and dressing. Cliff-backed northern and
 southern hills replace outer filler blocks, leaving low-ground infantry routes
-behind the roadside facilities. Cross streets remain full-width cuts through
+behind the roadside facilities. Missile batteries stand on complete summit
+caps along the northern hills, overlooking the two convoy legs. They have no
+infantry approach, valley gun court or capture duty: their placement presents
+an elevated threat to aircraft. Their foundations and destruction leave the
+underlying terrain impassable. Cross streets remain full-width cuts through
 the hills, and the entire western staging and boat approach stays clear.
 Finished berths, interior anchors and the road-reserve approaches remain
 connected; no terrain or furnishing may narrow the vehicle road. The terminal
@@ -453,8 +457,11 @@ Natural-solid navigation flags survive routing copies and refuse wall damage.
 Ground vehicles and infantry read the ordinary grid; aircraft keep their own
 flight model. This is not a playable elevation system: neither the grass-topped
 summit nor the rock or ice summit is standable, and face depth is a presentational
-width rather than a ballistic height or a high-ground bonus. Ramps and occupied
-hilltops require a separate traversal/elevation contract.
+width rather than a ballistic height or a high-ground bonus. Authored fixed AA
+may be anchored on a complete summit footprint without granting ground access.
+Its launch clears only its own supporting mass under the Air contract; destroying
+the mount leaves the mass intact. Mobile hilltop occupation still requires an
+explicit ramp and traversal/elevation contract.
 
 A continuous signed field owns both representations. Its center samples decide
 blocked navigation cells; its clipped contours shape the talus, cliff face and

@@ -1,4 +1,5 @@
 package com.dillon.starsectormarines.ops;
+import com.dillon.starsectormarines.i18n.Strings;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 
@@ -3164,7 +3165,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         };
     }
 
-    private static CommodityPresentation snapshotCommodities() {
+    static CommodityPresentation snapshotCommodities() {
         return new CommodityPresentation() {
             @Override public String commodityName(String commodityId) {
                 return switch (commodityId) {
@@ -3172,6 +3173,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     case Commodities.HAND_WEAPONS -> "Heavy Armaments";
                     case Commodities.HEAVY_MACHINERY -> "Heavy Machinery";
                     case Commodities.FOOD -> "Food";
+                    case Commodities.METALS -> "Metals";
+                    case Commodities.RARE_METALS -> "Transplutonics";
                     case Commodities.MARINES -> "Marines";
                     default -> CommodityPresentation.super.commodityName(commodityId);
                 };
@@ -3184,6 +3187,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     case Commodities.HEAVY_MACHINERY ->
                             "graphics/icons/cargo/heavymachinery.png";
                     case Commodities.FOOD -> "graphics/icons/cargo/food.png";
+                    case Commodities.METALS -> "graphics/icons/cargo/materials.png";
+                    case Commodities.RARE_METALS -> "graphics/icons/cargo/raremetals.png";
                     case Commodities.MARINES -> "graphics/icons/cargo/marine.png";
                     default -> "";
                 };
@@ -3231,6 +3236,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("testLoadout", (Runnable) () -> {});
+        props.put("rangeDisabled", !viewModel.rangeUnavailableReason().isEmpty());
+        props.put("rangeHint", viewModel.rangeUnavailableReason().isEmpty()
+                ? Strings.get("armoryRangeHint") : viewModel.rangeUnavailableReason());
         props.put("firstRefitClasses", "hidden");
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
@@ -3442,6 +3451,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("deckSummary", viewModel.deckSummary());
         props.put("materialStock", viewModel.materialStock().map(rows -> CompanyResources.withCredits(rows, 0)));
         props.put("boatRows", viewModel.boatRows());
+        props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());

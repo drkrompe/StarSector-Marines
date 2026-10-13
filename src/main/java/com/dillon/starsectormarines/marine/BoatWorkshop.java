@@ -84,7 +84,41 @@ public final class BoatWorkshop {
         return new Result(Status.FABRICATED, built);
     }
 
+    /** Half a replacement bill at maximum damage; the remaining work reduces it further. */
+    public RepairQuote repairQuote(String boatId, float day) {
+        CampaignBoat boat = deck.boatById(boatId);
+        if (boat == null || boat.airworthy(day)) return null;
+        float fraction = Math.min(1f, boat.repairDaysRemaining(day) / 2f);
+        FabricationCost full = BoatFabricationCatalog.recipe(boat.pattern()).bill();
+        FabricationCost bill = new FabricationCost(full.lines().stream().map(line ->
+                new FabricationCost.Line(line.commodityId(),
+                        Math.max(1, (int) Math.ceil(line.quantity() * .5f * fraction)))).toList());
+        return new RepairQuote(boatId, boat.repairUntilDay(), resources.quote(bill));
+    }
+
+    /** A reviewed order may get cheaper as time passes, but may never spend more. */
+    public Result expedite(RepairQuote reviewed, float day) {
+        if (reviewed == null) return Result.of(Status.STALE_REPAIR);
+        CampaignBoat boat = deck.boatById(reviewed.boatId());
+        RepairQuote live = repairQuote(reviewed.boatId(), day);
+        if (boat == null || live == null || live.untilDay() != reviewed.untilDay())
+            return Result.of(Status.STALE_REPAIR);
+        for (FabricationCost.Line line : live.bill().lines()) {
+            int approved = reviewed.bill().lines().stream()
+                    .filter(old -> old.commodityId().equals(line.commodityId()))
+                    .mapToInt(FabricationCost.Line::quantity).sum();
+            if (line.quantity() > approved) return Result.of(Status.STALE_REPAIR);
+        }
+        if (!resources.spend(live.bill())) return new Result(Status.CANNOT_AFFORD, boat);
+        boat.finishRepairs();
+        return new Result(Status.REPAIRED, boat);
+    }
+
+    public record RepairQuote(String boatId, float untilDay, FabricationCost bill) { }
+
     public enum Status {
+        REPAIRED,
+        STALE_REPAIR,
         UNKNOWN_BOAT,
         UNKNOWN_FITTING,
         INCOMPATIBLE_FITTING,
@@ -101,7 +135,7 @@ public final class BoatWorkshop {
 
         public boolean succeeded() {
             return status == Status.FITTED || status == Status.ALREADY_FITTED
-                    || status == Status.FABRICATED;
+                    || status == Status.FABRICATED || status == Status.REPAIRED;
         }
     }
 }

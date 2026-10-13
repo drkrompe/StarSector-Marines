@@ -31,6 +31,18 @@ public interface BattleUiContext {
     /** Presentation pointer is currently over eligible battlefield space, including during pause. */
     default boolean directControlAimVisible() { return false; }
 
+    /** Bottom of the visible subtitle; the center lane is free above this when no subtitle is shown. */
+    default float topCenterContentBottom() { return getLayout().gridY + getLayout().gridH - BattleLayout.PAD; }
+    /** Bottom of subtitles and the current comms notice together. */
+    default float topCenterStackBottom() { return topCenterContentBottom(); }
+    /** Bottom of the visible centered developer cluster. */
+    default float developerHudBottom() { return topCenterStackBottom(); }
+    /** Bottom of the actual visible right-hand mission/time rail. */
+    default float rightHudBottom() { return getLayout().gridY + getLayout().gridH - BattleLayout.PAD; }
+    /** Highest occupied edge of the bottom command surfaces. */
+    default float bottomHudTop() { return getLayout().gridY + 76f; }
+    /** Highest bottom surface intersecting this horizontal lane; other columns do not reserve its space. */
+    default float bottomHudTop(float x, float width) { return bottomHudTop(); }
     Selection getSelection();
 
     /** Shared overlay for debug cell highlights — plan-step cells, selected squad members, captain badge, etc. */

@@ -131,7 +131,7 @@ public final class TickProfileDebugPanel implements HudPanel {
     @Override
     public boolean isVisible() {
         if (!com.dillon.starsectormarines.DevConfig.PROFILE_TICK_PHASES) return false;
-        return ctx.getSim() != null;
+        return ctx.getSim() != null && ctx.getLayout() != null && DebugHudLayout.fits(ctx, HEADER_H + LINE_H + PAD_INNER);
     }
 
     @Override
@@ -217,7 +217,7 @@ public final class TickProfileDebugPanel implements HudPanel {
         Color summaryColor = idle ? IDLE_FG : LABEL_FG;
         rowFont.drawString(summary, x0 + PAD_INNER, headerY - 4f, summaryColor, alphaMult);
 
-        if (!expanded) return;
+        if (!bodyVisible()) return;
 
         // Phase rows — execution order so the panel reads top-to-bottom as
         // the tick chain. Skipped entirely in collapsed mode (above guard).
@@ -262,7 +262,7 @@ public final class TickProfileDebugPanel implements HudPanel {
     private void renderToggleButton(BitmapFont font, float x, float y, float alphaMult) {
         HudDraw.filledRect(x, y, TOGGLE_BTN_W, DUMP_BTN_H, TOGGLE_BTN_BG, alphaMult);
         HudDraw.borderRect(x, y, TOGGLE_BTN_W, DUMP_BTN_H, TOGGLE_BTN_BORDER, alphaMult);
-        String glyph = expanded ? "-" : "+";
+        String glyph = bodyVisible() ? "-" : "+";
         // Center the glyph by eyeballed offsets — Insignia 15 is small enough
         // that single-char centering is forgiving.
         font.drawString(glyph, x + 6f, y + DUMP_BTN_H - 3f, TOGGLE_BTN_FG, alphaMult);
@@ -302,9 +302,18 @@ public final class TickProfileDebugPanel implements HudPanel {
     public void handleInput(List<InputEventAPI> events) {
         if (events == null) return;
         if (!isVisible()) return;
+        dumpBtnX = panelX() + PANEL_W - DUMP_BTN_W - DUMP_BTN_RIGHT_INSET;
+        dumpBtnY = panelY() - 8f - DUMP_BTN_H / 2f;
+        toggleBtnX = dumpBtnX - TOGGLE_BTN_W - TOGGLE_BTN_GAP;
+        toggleBtnY = dumpBtnY;
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
-            if (!e.isLMBDownEvent()) continue;
+            if (!(e.isLMBDownEvent() || e.isLMBUpEvent() || e.isRMBDownEvent()
+                    || e.isRMBUpEvent() || e.isMouseScrollEvent())) continue;
+            if (!e.isLMBDownEvent()) {
+                if (blocksWorldPointer(e.getX(), e.getY())) e.consume();
+                continue;
+            }
             float px = e.getX();
             float py = e.getY();
             // Toggle button checked before DUMP — the two rects are adjacent
@@ -320,7 +329,7 @@ public final class TickProfileDebugPanel implements HudPanel {
                     && py >= dumpBtnY && py < dumpBtnY + DUMP_BTN_H) {
                 triggerDump();
                 e.consume();
-            }
+            } else if (blocksWorldPointer(px, py)) e.consume();
         }
     }
 
@@ -352,14 +361,20 @@ public final class TickProfileDebugPanel implements HudPanel {
     /** Y of the panel's TOP edge — render() builds the bottom-left from here. */
     private float panelY() {
         BattleLayout l = ctx.getLayout();
-        return l.controlsY - BattleLayout.CONTROLS_GAP;
+        return DebugHudLayout.top(ctx);
+    }
+
+    public float occupiedBottom() { return panelY() - panelHeight(); }
+
+    private boolean bodyVisible() {
+        return expanded && DebugHudLayout.fits(ctx, HEADER_H + LINE_H + PAD_INNER + TickProfile.Phase.VALUES.length * LINE_H);
     }
 
     private float panelHeight() {
         // Header band + summary line are always present. Per-phase rows only
         // when expanded — collapsed mode is a compact two-line panel.
         float base = HEADER_H + LINE_H + PAD_INNER;
-        if (!expanded) return base;
+        if (!bodyVisible()) return base;
         return base + TickProfile.Phase.VALUES.length * LINE_H;
     }
 }

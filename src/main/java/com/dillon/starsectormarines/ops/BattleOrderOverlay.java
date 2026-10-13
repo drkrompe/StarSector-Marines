@@ -110,6 +110,10 @@ final class BattleOrderOverlay {
         if (visible && document != null && viewport != null) document.render(viewport, alpha);
     }
 
+    BattleHudSurface surface() {
+        return visible && document != null && viewport != null ? new BattleHudSurface(document, viewport) : null;
+    }
+
     void detach() {
         if (document != null) document.deactivateInput();
         shortcuts.clear();

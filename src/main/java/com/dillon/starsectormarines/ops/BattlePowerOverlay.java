@@ -43,6 +43,7 @@ final class BattlePowerOverlay {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private boolean suppressed;
     private BattlePowerOverlayModel.Presentation presentation =
             new BattlePowerOverlayModel.Presentation(false, 0, false);
 
@@ -105,13 +106,17 @@ final class BattlePowerOverlay {
     }
 
     void render(float alphaMult) {
-        if (presentation.visible() && document != null && viewport != null) {
+        if (!suppressed && presentation.visible() && document != null && viewport != null) {
             document.render(viewport, alphaMult);
         }
     }
 
+    BattleHudSurface surface() {
+        return !suppressed && presentation.visible() && document != null && viewport != null ? new BattleHudSurface(document, viewport) : null;
+    }
+
     void processInput(List<InputEventAPI> events) {
-        if (!presentation.visible() || input == null || events == null) return;
+        if (suppressed || !presentation.visible() || input == null || events == null) return;
         // RMB remains a world-level cancel gesture, even directly over the tray.
         List<InputEventAPI> retainedEvents = new ArrayList<>(events.size());
         for (InputEventAPI event : events) {
@@ -123,6 +128,13 @@ final class BattlePowerOverlay {
     void detach() {
         if (document != null) document.deactivateInput();
         input = null;
+    }
+
+    /** A selected ship owns the bottom tray; hidden powers must also release focus. */
+    void suppressed(boolean hidden) {
+        if (suppressed == hidden) return;
+        suppressed = hidden;
+        if (document != null) document.deactivateInput();
     }
 
     static float documentWidth(int powerCount) {
@@ -148,11 +160,11 @@ final class BattlePowerOverlay {
     }
 
     float occupiedHeight() {
-        return presentation.visible() && viewport != null ? viewport.height() : 0f;
+        return !suppressed && presentation.visible() && viewport != null ? viewport.height() : 0f;
     }
 
     boolean blocksWorldPointer(float x, float y) {
-        if (!presentation.visible() || viewport == null) return false;
+        if (suppressed || !presentation.visible() || viewport == null) return false;
         return x >= viewport.screenX() && x < viewport.screenX() + viewport.width()
                 && y >= viewport.screenY() && y < viewport.screenY() + viewport.height();
     }

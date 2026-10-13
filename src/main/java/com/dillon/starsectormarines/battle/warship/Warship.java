@@ -750,6 +750,41 @@ public final class Warship {
         this.hasStation = true;
     }
 
+    /** The player's remote helm intent; targeting and survival remain the ship's. */
+    public enum RemoteOrder { NONE, MOVE, HOLD, BUILD }
+    private RemoteOrder remoteOrder = RemoteOrder.NONE;
+    private record RemoteStation(boolean hasStation, float x, float y, float[][] route,
+                                 int index, boolean loops) {}
+    private RemoteStation remoteStation;
+
+    public RemoteOrder remoteOrder() { return remoteOrder; }
+
+    /** Captures mission travel once, then replaces travel using ordinary station handling. */
+    public void remoteOrder(RemoteOrder order, float x, float y) {
+        if (remoteStation == null) remoteStation = new RemoteStation(hasStation, stationX, stationY,
+                route == null ? null : route.clone(), routeIndex, routeLoops);
+        remoteOrder = order;
+        if (order != RemoteOrder.BUILD) {
+            flyRoute(null, false);
+            stationTo(x, y);
+        }
+    }
+
+    /** Gives mission travel back without touching station time, weapons or resources. */
+    public void remoteAutonomous() {
+        if (piloted()) return;
+        RemoteStation previous = remoteStation;
+        remoteStation = null;
+        remoteOrder = RemoteOrder.NONE;
+        if (previous == null) return;
+        hasStation = previous.hasStation();
+        stationX = previous.x();
+        stationY = previous.y();
+        route = previous.route();
+        routeIndex = previous.index();
+        routeLoops = previous.loops();
+    }
+
     /** The waypoints of a scripted flight, or {@code null} when the ship is not flying one. */
     private float[][] route;
     private int routeIndex;
@@ -875,7 +910,7 @@ public final class Warship {
             stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - LowPass.STATION_COST_FACTOR * dt);
             return false;
         }
-        if (!isMoving()) stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - dt);
+        if (!isMoving() || remoteOrder != RemoteOrder.NONE) stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - dt);
         return stationSecondsRemaining <= 0f;
     }
 
@@ -960,6 +995,9 @@ public final class Warship {
                             GroundFire groundFire, boolean shieldAuto, boolean shieldUp) {}
 
     private Autonomy autonomy;
+    private long helmGeneration;
+    /** Changes at takeover so queued remote input cannot survive a pilot session. */
+    public long helmGeneration() { return helmGeneration; }
     private float pilotMoveX;
     private float pilotMoveY;
 
@@ -977,6 +1015,7 @@ public final class Warship {
      */
     public void takeHelm() {
         if (autonomy != null) return;
+        helmGeneration++;
         autonomy = new Autonomy(directing, directorRadius, directorBringsGunsToBear, directorMaxAreas,
                 new ArrayList<>(held), manual, hasStation, stationX, stationY,
                 route == null ? null : route.clone(), routeIndex, routeLoops,

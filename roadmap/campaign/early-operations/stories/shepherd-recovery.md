@@ -4,7 +4,7 @@ Status: IN PROGRESS — Salvage Rights and Cold Start playable; Working Passage 
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Cold Start launch, field milestones, grounded construction and repair settlement; live acceptance and departure remain.
+Updated: 2026-10-13 — Cold Start playable; departure remains open and gates the planned Agreus referral.
 
 ## Placement and employer
 
@@ -59,6 +59,13 @@ The emotional turn after Garnir is practical independence. We cannot match an
 Onslaught, but we can stop asking a larger power to hold every position for us.
 This should feel like acquiring a workshop and crew through work together, not
 being gifted another escalation in firepower.
+
+After successful Working Passage and actual fleet handover, Vale can refer the
+company through Mara to Baronet Rusk on existing Agreus in nearby Arcadia.
+`a-small-war.md` owns that optional five-chapter follow-on and its recovered suit
+rewards; `agreus-latchkey.md` owns the local setting and cast under Ko Combine
+administration. The referral requires completed departure, not the
+claim or Cold Start repair settlement, and remains unimplemented with that arc.
 
 ## The basin
 
