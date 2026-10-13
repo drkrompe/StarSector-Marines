@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account separates extraction completion from its replayable results conversation.
+Updated: 2026-10-13 — Authored emergency calls can interrupt routine mission instructions.
 
 Read `stories.md` for the open-work board.
 
@@ -111,8 +111,13 @@ The campaign battle host consumes both story arcs' public beats once
 per attempt. Authored character clips own the voice channel ahead of marine
 chatter. A mission line starts without waiting for the squad cooldown and stops
 any playing squad call; squad chatter stays quiet during story speech and observes
-the normal gap afterwards. Mission lines never interrupt each other, including
-when a newer event supersedes the instruction being spoken. Squad transitions
+the normal gap afterwards. Ordinary mission lines finish their sentences, including
+when a newer event supersedes the instruction being spoken. An explicitly authored
+emergency call with higher priority can interrupt routine speech. Emergency calls
+wait for each other unless a newer one explicitly supersedes the current fact:
+a shootdown report can replace a pilot's now-obsolete survival call. Interrupted
+instructions return only while still relevant, within their original expiry window;
+neither interruption nor replay extends that window. Squad transitions
 continue to be sampled while speech owns the channel. Queued story lines expire in real time; later
 facts supersede obsolete instructions (for example, a lost militia line cancels
 its earlier request for support if that request has not started playing).
@@ -128,6 +133,8 @@ campaign chapter identity and therefore does not play Mara's story dialogue.
 
 The same catalog may explicitly mark an authored line as text-only, in which case
 its declared reading duration owns the subtitle and no sound lookup occurs.
+Silent reading yields to pending recorded mission speech, then returns if still
+relevant; a text-only draft cannot hold a time-critical recording behind silence.
 An absent portrait uses the retained text panel. A confirmed terminal report may
 explicitly survive completion and start on the completed battlefield, after any
 active sentence finishes; this exception never retains ordinary tactical
@@ -244,8 +251,9 @@ instruction. Callsigns are exchange-local, not claims about a roster name. No sy
 Future mixing may allow a quiet secondary monitored net behind one foreground
 exchange, with ducking around identities, instructions and urgent warnings.
 Foreground turn order remains protected, and one character cannot transmit
-twice at once. Mara's mission sentences retain their existing priority and
-completion guarantee. Runtime currently uses one foreground exchange and no secondary-net overlap.
+twice at once. Mission sentences retain their priority and completion guarantee
+except for the explicitly authored emergency interruption described above.
+Runtime currently uses one foreground exchange and no secondary-net overlap.
 Pausing starts no new turn; stale pending and ongoing contexts expire in real
 time. Completion drops unspoken turns and lets an active sentence finish. Mara
 preempts incidental speech and discards the interrupted exchange. Leaving the
