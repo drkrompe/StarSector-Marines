@@ -24,6 +24,18 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
+    @Test void briefingTurnsRetainAuthoredOrderAndExcludeOtherEventsAndMissions() {
+        var first = new WaylineNarration.Line("first", "chapter", "briefing", "First", 2, 1, 10, List.of());
+        var second = new WaylineNarration.Line("second", "chapter", "briefing.castle", "Second", 2, 1, 10,
+                List.of(), "CASTLE / COMPANY OPERATIONS", "graphics/portraits/castle.png");
+        var tactical = new WaylineNarration.Line("battle", "chapter", "contact", "Battle", 2, 1, 10, List.of());
+        var other = new WaylineNarration.Line("other", "other", "briefing", "Other", 2, 1, 10, List.of());
+        var catalog = new WaylineNarration(List.of(first, tactical, other, second));
+        assertEquals(List.of(first, second), catalog.briefing("chapter"));
+        assertEquals(List.of(other), catalog.briefing("other"));
+        assertTrue(catalog.briefing(null).isEmpty());
+        assertEquals(first, catalog.find("chapter", "briefing"));
+    }
     @Test void shepherdLinesRetainCastingAndConfirmedPassageReports() throws Exception {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));
         var entries = root.getJSONArray("lines");
