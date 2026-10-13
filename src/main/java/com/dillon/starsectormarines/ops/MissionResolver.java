@@ -371,6 +371,7 @@ public final class MissionResolver {
         return MissionOutcome.builder()
                 .workingPassage(sim.getWorkingPassage()==null?null:sim.getWorkingPassage().report(sim))
                 .waterUnderSeal(sim.getWaterUnderSeal()==null?null:sim.getWaterUnderSeal().report(sim))
+                .limitedWarrant(sim.getLimitedWarrant()==null?null:sim.getLimitedWarrant().report(sim))
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .officers(sim.officerAttemptId(), officers)
@@ -481,7 +482,7 @@ public final class MissionResolver {
             return;
         }
         if (AgreusArcCampaign.owns(outcome.missionId) && (cargo == null || AgreusArcCampaign.settle(outcome) < 0)) {
-            LOG.info("MarineOps: refused stale or invalid North Weir outcome " + outcome.missionId);
+            LOG.info("MarineOps: refused stale or invalid Agreus outcome " + outcome.missionId);
             return;
         }
         if (cargo != null) {

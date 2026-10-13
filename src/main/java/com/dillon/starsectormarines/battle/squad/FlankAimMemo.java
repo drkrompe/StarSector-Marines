@@ -93,6 +93,30 @@ public final class FlankAimMemo {
         this.stored = true;
     }
 
+    /** Ticks without a maneuver after which the next one counts as a new one. */
+    static final int MANEUVER_GAP_TICKS = 30;
+
+    private boolean maneuvering;
+    private long maneuverContact;
+    private int maneuverSince;
+    private int maneuverLast;
+
+    /**
+     * Notes that the squad is maneuvering against {@code contact} on {@code tick}, and answers whether it has been
+     * doing so for {@code limit} ticks or more. A maneuver is one run of consecutive ticks against one contact: a
+     * different contact, or a gap of more than {@link #MANEUVER_GAP_TICKS} ticks, starts a new one. Called once per
+     * member per tick; the repeats within a tick change nothing.
+     */
+    public boolean maneuverSpent(long contactId, int tick, int limit) {
+        if (!maneuvering || maneuverContact != contactId || tick - maneuverLast > MANEUVER_GAP_TICKS) {
+            maneuvering = true;
+            maneuverContact = contactId;
+            maneuverSince = tick;
+        }
+        maneuverLast = tick;
+        return tick - maneuverSince >= limit;
+    }
+
     public int aimX() { return aimX; }
 
     public int aimY() { return aimY; }

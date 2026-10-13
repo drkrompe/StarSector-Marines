@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 
@@ -24,7 +26,6 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
-import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.DevConfig;
@@ -295,7 +296,11 @@ public final class MissionLaunch {
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
         if (AgreusArcCampaign.isBattle(m)) {
-            builder = () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
+            var agreus = AgreusArcCampaign.requireCurrent(m);
+            boolean records = agreus.recordsRecovered();
+            builder = AgreusArcProgress.limitedWarrant(m.id)
+                    ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)
+                    : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
         } else if (ShepherdRecoveryCampaign.isBattle(m)) {
             var recovery=ShepherdRecoveryCampaign.requireCurrent(m);
             boolean departureChapter=recovery.repaired(), repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();
@@ -423,12 +428,10 @@ public final class MissionLaunch {
     static Supplier<BattleSimulation> supplyRouteBuilder(BrokenSupplyRouteProgress route, long seed,
                                                         List<ShuttleAssignment> manifest, TargetProfile profile) {
         int operation = route.operation();
-        LastLiftProgress.Attempt attempt = operation == BrokenSupplyRouteProgress.LIFT ? route.crew().previewAttempt() : null;
         FreightRunProgress.Attempt cargo = operation == BrokenSupplyRouteProgress.THUNDER ? route.freight().previewAttempt() : null;
         int delivered = operation == BrokenSupplyRouteProgress.THUNDER ? route.freight().deliveredCount() : 0;
         return switch (operation) {
             case BrokenSupplyRouteProgress.JUNCTION -> () -> BattleSetup.createJunction(seed, manifest, profile);
-            case BrokenSupplyRouteProgress.LIFT -> () -> BattleSetup.createLastLift(seed, manifest, profile, attempt);
             case BrokenSupplyRouteProgress.THUNDER -> () -> BattleSetup.createThunderRun(seed, manifest, profile, cargo, delivered);
             case BrokenSupplyRouteProgress.RELAY -> () -> BattleSetup.createRelayNine(seed, manifest, profile);
             default -> throw new IllegalStateException("Unknown supply-route operation");

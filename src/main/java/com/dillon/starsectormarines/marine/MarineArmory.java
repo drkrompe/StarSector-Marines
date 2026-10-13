@@ -125,6 +125,9 @@ public final class MarineArmory implements Serializable {
             for (int i = 1; i < grant.length; i++) known &= ownsArmorTemplate(grant[i]);
             if (known) acquireArmorPlan(grant[0]);
         }
+        if (ownsArmorTemplate("armor.specter-recovered")) {
+            acquireArmorPlan(SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR);
+        }
         if ((ownsArmorTemplate("armor.specter-recovered") || ownsArmorTemplate("armor.specter-heavy"))
                 && (ownsArmorTemplate("armor.arbalest-recovered") || ownsArmorTemplate("armor.arbalest"))) {
             acquireArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
@@ -453,9 +456,9 @@ public final class MarineArmory implements Serializable {
     }
 
     private void seedStarterIssue() {
-        unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
+        unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS);
         unlockArmor(MarineArmorPattern.ARMORLESS);
-        unlockArmor(MarineArmorPattern.MILITIA);
+        unlockArmor("armor.cordon-shell");
     }
 
     private void seedStarterCards() {

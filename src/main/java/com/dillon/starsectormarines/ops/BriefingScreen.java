@@ -461,7 +461,7 @@ public class BriefingScreen implements Screen {
                         : surveyFailure != null ? "Survey unavailable / retry to prepare terrain"
                         : "Compiling terrain and landing intelligence...");
         props.put("termActions", retainedTermActions(mission));
-        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST || SupplyRouteCampaign.isBattle(mission) && !SupplyRouteCampaign.recovery(mission),
+        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST || SupplyRouteCampaign.isBattle(mission),
                 mission.source == MissionSource.STATIONING);
         props.put("captains", retainedCaptainRows(mission));
         props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()

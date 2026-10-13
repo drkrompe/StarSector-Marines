@@ -1,61 +1,65 @@
 # Broken Supply Route
 
-Status: ACTIVE — branching recovery direction; campaign integration retains live acceptance.
+Status: ACTIVE — direct freight recovery sequence; live campaign acceptance remains.
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — Junction leads directly to Thunder Run; evacuation reserved for later use.
 
 ## Premise, place and cast
 
 After Wayline, Mara Venn introduces dispatch coordinator Iona Serr and a broken
-freight junction. The cooperative can fund one recovery mobilization: recover
-Rill's stranded workers or deliver the freight. Castle presents the company's
-commitment and confirmed losses without inventing an outcome for the other path.
+freight junction. The company opens the junction and escorts the cooperative's
+freight through the corridor. Castle presents the company's commitment and
+confirmed losses.
 
 The introduction uses Mara's accessible office. Opening the Junction dossier
 freezes the actual planet and local sites; inaccessible accepted work pauses
 instead of moving with a later office change.
 
-`early-operation-nouns.md` owns the canonical shared and standing arc rules,
-site freeze, branch commitment, rescue/freight ledgers and once-only settlement.
-This folder groups the arc's orientation with its remaining work. Its design
-board lists open stories; temporary work remains in its stories folder and is
-folded and deleted when shipped.
+`early-operation-nouns.md` owns the canonical chapter rules, site freeze,
+freight ledger and once-only settlement. This folder groups the arc's orientation
+with its remaining work.
 
-## Entry, choice and chapters
+## Entry and chapters
 
-Completed Wayline opens Open the Junction. Junction victory permits inspection
-of both requests; only an explicit support commitment chooses permanently.
-Back, previews, delays, defeat and reload cannot choose or reverse the branch.
+Completed Wayline opens Open the Junction. Accepted Junction victory opens
+Thunder Run directly, with no support-choice menu or intermediate Relay chapter.
 
 | Chapter | Tactical objective | Accepted victory reward | Delivery state |
 |---|---|---|---|
-| Open the Junction | Secure the common territorial junction and hand gains to militia | 12,000 credits; inspectable branch requests | Implemented; live acceptance remains |
-| Last Lift — Rill commitment | Escort and physically board the remaining stranded workers | 4,000 plus 500 per cumulatively rescued worker, at most 10,000; Crew Recovery | Implemented; live acceptance remains |
-| Thunder Run — Freight commitment | Clear road posts and escort identified cargo physically through the exit | 6,000 plus 4,000 per cumulative delivery, at most 18,000; Route Security | Implemented; live acceptance remains |
+| Open the Junction | Secure the territorial junction and hand gains to militia | 12,000 credits; Thunder Run opens | Implemented; live acceptance remains |
+| Thunder Run | Clear road posts and escort identified cargo physically through the exit | 6,000 plus 4,000 per cumulative delivery, at most 18,000; Route Security | Implemented; live acceptance remains |
 
-The finales are alternatives. Each keeps confirmed rescue, death, delivery and
-loss facts across attempts; retries contain only unresolved people or loads.
-An exhausted failed ledger closes its actual result without a fabricated victory,
-finale payment or recurring entitlement. Both branch histories remain legible.
+Confirmed deliveries and losses persist across attempts; retries contain only
+unresolved loads. An exhausted failed ledger closes its actual result without
+a fabricated victory, finale payment or recurring entitlement.
 
-All chapters recommend two full squads and accept two selected squads with
+Both chapters recommend two full squads and accept two selected squads with
 four ready people each. Actual named personnel and fitted boats cross the
-ordinary deployment boundary; supplied militia and civilian lift remain distinct.
+ordinary deployment boundary; supplied militia remain distinct.
 
 ## Resolution and next lead
 
-Successful Last Lift opens separate Crew Recovery jobs. Successful Thunder Run
-opens Route Security on the Relay Nine battlefield. Relay Nine is recurring
-work and legacy compatibility, not a new mandatory chapter before Thunder Run.
-Existing Wayline jobs continue independently.
+Successful Thunder Run opens separate Route Security jobs on the Relay Nine
+battlefield. Existing Wayline jobs continue independently. The closed freight
+account, including exhausted failure, opens The Corvus Account; its introduction
+preserves actual deliveries and losses.
 
-Either closed branch, including an exhausted failure, opens The Corvus Account.
-The introduction preserves that branch's actual facts and claims no activity
-on the unchosen path.
+## Reserved mission concept
+
+Last Lift's escort-and-boarding mission is retained for later campaign reuse.
+No future designation, placement or gate is assigned. The retained motor-pool
+map, twelve-person persistent manifest, dedicated civilian pickup, finite road
+reserves, escort duties, artwork and narration provide the prototype. Its old
+Rill and Iona framing is authoring material to revisit when a later setting is
+chosen. Detached Last Lift and Crew Recovery debug scenarios remain available;
+neither is offered by the current Wayline campaign or grants a recurring rescue
+arrangement. Detailed prototype laws remain in `early-operation-nouns.md`.
 
 ## Remaining acceptance
 
-`broken-supply-route.md` owns live branch commitment, actual deployment,
-legacy-save migration, ledgers, settlement and recurring-work acceptance.
-Controlled construction, battle playback and broker/HQ renders are implemented
-evidence; they do not accept live travel, campaign host behavior or save/reload.
+`broken-supply-route.md` owns live progression, actual deployment, freight
+receipts, settlement and recurring-work acceptance. Pre-release branch saves
+have no compatibility requirement. Controlled battle playback and broker/HQ
+renders do not accept live travel, host behavior or save/reload.

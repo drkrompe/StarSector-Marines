@@ -6,7 +6,7 @@ data, doctrine as a role mix resolved against access, and the Armory surface
 that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-10-13 — acquired sheet knowledge precedes issue resolution; mixed-class billets preserve deliberate squad composition.
+Updated: 2026-10-13 — first recovered assault card teaches its matching heavy fitting sheet.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -219,12 +219,15 @@ changing its people or composition. Regular sheets remain entirely STANDARD
 and full heavy sheets remain entirely POWER_SUIT.
 
 Recovered Specter and Arbalest provide lower-tier versions of those powered
-jobs. Their templates reserve a named story acquisition owner for a later
-expedition after actual Shepherd fleet acquisition. That reservation supplies
-no automatic grant or ordinary market, patron, license, or recovery access.
-The story reward remains unimplemented; explicit developer test acquisition
-currently enables fitting and deployment. Military patterns keep their existing
-acquisition channels and saved ownership.
+jobs. Limited Warrant supplies Recovered Specter's cargo card after actual
+Shepherd fleet acquisition and North Weir victory. Explicit learning teaches
+the Tri-Tachyon Specter Protection sheet; fitting that sheet resolves the owned
+recovered assault pattern without needing powered support knowledge. It does
+not teach foreign heavy sheets or the Salvage-assisted Section. That mixed sheet
+still requires both powered roles. Recovered Arbalest's later story award remains
+planned, with explicit developer test acquisition available. Neither recovered
+template enters ordinary market, patron, license or random recovery pools.
+Military patterns keep their existing acquisition channels and saved ownership.
 
 ## The role set
 

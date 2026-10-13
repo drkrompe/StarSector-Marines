@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
@@ -165,10 +166,10 @@ class WaylineHoundEvidenceTest {
     @Test void allLaterStoryFactoriesPhysicallyDeliverTheOwnedHoundAndGiveItAnOrder() throws Exception {
         Files.createDirectories(OUTPUT);
         JSONArray reports = new JSONArray();
-        for (int kind : new int[]{1, 2, 3, 4}) {
+        for (int kind : new int[]{1, 3, 4}) {
             var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-            if (kind != 1) { String id = route.missionId(); route.begin(id); route.settle(id, true, null); route.commit(kind == 4 ? 3 : kind); }
-            if (kind == 4) { String id = route.missionId(); route.begin(id); route.settle(id, true, null); }
+            if (kind != 1) { String id = route.missionId(); route.begin(id); route.settle(id, true, null); }
+            if (kind == 3) { String id = route.missionId(); route.begin(id); route.settle(id, true, null, new FreightRunProgress.Outcome(route.freight().previewAttempt(), List.of(0, 1, 2), List.of(), true)); }
             var mission = SupplyRouteCampaign.offers(route).get(0);
             var roster = new MarineRoster(); roster.ensureActiveSoldiers(24);
             MissionResolver.recordStoryCompletion(roster, MissionOutcome.builder()

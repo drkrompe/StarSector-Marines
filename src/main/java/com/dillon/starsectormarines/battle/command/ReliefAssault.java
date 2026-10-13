@@ -49,8 +49,8 @@ public final class ReliefAssault {
 
     /** Latest times prevent a player holding at the apron from cancelling the assault. */
     static int releaseTick(int group, int firstLanding, int firstRelief) {
-        if (group == 0) return boundedTrigger(18 * 30, 28 * 30, firstLanding, 6 * 30);
-        return boundedTrigger(38 * 30, 55 * 30, firstRelief, 8 * 30);
+        if (group == 0) return boundedTrigger(45 * 30, 60 * 30, firstLanding, 6 * 30);
+        return boundedTrigger(75 * 30, 95 * 30, firstRelief, 8 * 30);
     }
 
     private static int boundedTrigger(int earliest, int latest, int trigger, int delay) {

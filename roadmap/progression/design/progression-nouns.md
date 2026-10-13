@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — tactic-sheet knowledge is acquired separately from its current issue; mixed-class and recovered suit progression remain explicit.
+Updated: 2026-10-13 — Cordon/surplus starting issue and the Limited Warrant recovered-Specter source.
 
 ## Purpose
 
@@ -431,8 +431,8 @@ retired fire-team refit APIs that were its only readers. Equipment is owned as
 permanent template cards, and fitting is free. Existing victory milestones grant template cards, including the
 Shattercap after two victories. A deterministic safety net now keeps permanent
 collection breadth at or above 8 cards after five victories, 12 after fifteen,
-16 after thirty, and 17 after forty. The opening floor is three specs: Service
-Rook, field fatigues, and Ward security kit. New personnel receive only that
+16 after thirty, and 17 after forty. The opening floor is three specs: surplus
+Rook, field fatigues, and Cordon security shell. New personnel receive only that
 baseline; save repair retains old acquisitions without seeding specialist gear. Cards already learned or still carried in
 cargo count toward that floor, so faction-shaped acquisition advances the same
 curve instead of being duplicated by it. When a company falls below a floor,
@@ -480,8 +480,9 @@ The lowest protection band is deliberately plural rather than one universal
 "unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
 armor reserve; expired Cordon security shells provide a little rated plate; and
 Lashplate breaker harnesses supply crude mass with poor resistance and handling.
-New companies start with fatigues and Ward; Cordon and Lashplate remain collectible
-alternatives. These are generic circulation categories for early companies and
+New companies start with fatigues and Cordon shells; Ward is a protection upgrade
+and Lashplate remains a collectible alternative. Cordon starts personnel in the
+existing Green experience band and carries no integral armor system. These are generic circulation categories for early companies and
 low-end defenders, not faction-equivalent powered suits.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
@@ -540,11 +541,13 @@ permanently ineligible source.
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and an
 acquisition owner, and the catalog audit preserves that coverage as content is
-added. Recovered Specter and Arbalest patterns reserve their future acquisition
-for an authored expedition after the Shepherd actually joins the fleet.
-Their declared story owner supplies no live reward yet; explicit developer test
-controls are currently their only acquisition route. Neither A Cold Account
-completion nor the grounded Shepherd's repair automatically learns them.
+added. Recovered Specter is a guaranteed cargo-card reward for Limited Warrant
+on Agreus after the Shepherd actually joins the fleet and North Weir is restored.
+Learning it exposes its matching heavy fitting sheet; reward settlement never
+changes issued equipment. Recovered Arbalest reserves its acquisition for the
+next, still-planned Agreus chapter and remains available through explicit
+developer test controls. Neither A Cold Account completion nor the grounded
+Shepherd's repair automatically learns either pattern.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage

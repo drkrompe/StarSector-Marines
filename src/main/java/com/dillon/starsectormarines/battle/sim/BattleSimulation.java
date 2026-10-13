@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
+import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
@@ -514,6 +515,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         workingPassage = new WorkingPassageSequence(tender, militia, reserve, storyBeats);
         addObjective(workingPassage);
     }
+    private LimitedWarrantSequence limitedWarrant;
+    public LimitedWarrantSequence getLimitedWarrant() { return limitedWarrant; }
+    public void installLimitedWarrant(int technician, int constables, long carrier, List<EntitySpec> reserve, boolean records) {
+        if (simTickIndex != 0 || limitedWarrant != null) throw new IllegalStateException("Install Limited Warrant once at setup");
+        limitedWarrant = new LimitedWarrantSequence(technician, constables, carrier, reserve, records, storyBeats);
+        addObjective(limitedWarrant);
+    }
     private WaterUnderSealSequence waterUnderSeal;
     public WaterUnderSealSequence getWaterUnderSeal() { return waterUnderSeal; }
     public void installWaterUnderSeal(int technicians, long carrier, List<Integer> militia, List<EntitySpec> reserve) {
@@ -636,7 +644,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                         (int) Math.floor(rosterService.world().y(bunker.coreId())),
                         battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
                         FORT_BUNKER_REACH_CELLS, seenX, seenY,
-                        battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT));
+                        battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
+                        battery.fort().exteriorCells()));
                 // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
                 addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
@@ -670,7 +679,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         out.add(new DefenceStructureFact(kind,
                 (int) Math.floor(place.x()), (int) Math.floor(place.y()),
                 place.control().holder(), place.originalHolder(), place.control().contested(),
-                FORT_BUNKER_REACH_CELLS, seenX, seenY, battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT));
+                FORT_BUNKER_REACH_CELLS, seenX, seenY, battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
+                battery.fort().exteriorCells()));
     }
 
     /** The shield fort whose emitter is generator {@code id}, or {@code null} for a bare generator. */
@@ -694,14 +704,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
                     (int) Math.floor(room.x()), (int) Math.floor(room.y()),
                     room.control().holder(), dome.originalHolder(), room.control().contested(),
-                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT));
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
+                    fort.exteriorCells()));
         }
         Fort.Place plant = fort.place(FortAspect.POWER);
         if (plant != null && !plant.wrecked() && rosterService.isAliveById(plant.coreId())) {
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FORT_POWER,
                     (int) Math.floor(plant.x()), (int) Math.floor(plant.y()),
                     plant.control().holder(), dome.originalHolder(), plant.control().contested(),
-                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT));
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
+                    fort.exteriorCells()));
         }
     }
 
@@ -713,6 +725,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public synchronized void noteStructureSighted(int x, int y) {
         sightedStructureCells.add(((long) x << 32) | (y & 0xffffffffL));
+    }
+
+    @Override public boolean ambientHeld(long unit) {
+        return ambientTasks.isControlling(unit) || ambientTasks.isStoodDown(unit);
     }
 
     @Override public boolean isCapturedStructure(long id) { return rosterService.isCapturedStructure(id); }
@@ -744,7 +760,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (salvageRights == null ? 0 : salvageRights.pendingMembers())
                 + (coldStart == null ? 0 : coldStart.pendingMembers())
                 + (workingPassage == null ? 0 : workingPassage.pendingMembers())
-                + (waterUnderSeal == null ? 0 : waterUnderSeal.pendingMembers());
+                + (waterUnderSeal == null ? 0 : waterUnderSeal.pendingMembers())
+                + (limitedWarrant == null ? 0 : limitedWarrant.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2858,6 +2875,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (coldStart != null) coldStart.advance(this);
         if (workingPassage != null) workingPassage.advance(this);
         if (waterUnderSeal != null) waterUnderSeal.advance(this);
+        if (limitedWarrant != null) limitedWarrant.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions
