@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Basin Reclamation's recovery claim, night work sites and inspection-party consequences.
+Updated: 2026-10-13 — Cold Start cargo, shore-power and grounded construction milestones.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -41,11 +41,30 @@ The original Morrow crew's complement and casualties are not inferred from that 
 
 Salvage Rights and Cold Start take place at night. Lamps belong to occupied camp
 interiors, entrances and the wreck's service points; open ground remains dark.
-Lighting changes presentation, not perception or navigation. Cold Start's designed
-power-restoration beat brings the yard circuit online. Working Passage departs by day.
-The latter two chapter battles, partial repairs and exactly-once fleet transfer
-remain open in `shepherd-recovery.md`. A recovery claim grants no fleet member or
-construction capability by itself.
+Lighting changes presentation, not perception or navigation. Cold Start's completed
+shore-power connection brings the yard circuit online immediately; a later attempt
+retains that restored circuit. Working Passage departs by day.
+
+Cold Start follows the protected claim. The company escorts cooperative repair
+cargo to the workshop and covers living technicians at the pump and grounded hull.
+Delivered cargo and restored shore power are persistent field milestones; unfinished
+work needs another mobilization. Confirmed technician losses remain on the account,
+and replacement technicians are new cooperative personnel. A qualifying repair
+victory pays the agreed 22,000 credits once. Withdrawal or defeat can preserve
+completed field work without claiming repair victory or paying the chapter fee.
+
+Restored power enables a mission-provided construction command card backed by
+Morrow's grounded drone bay. The captain chooses a clear exterior plot; ordinary
+finite, vulnerable builder drones fly out, work and return. Known hostile contacts
+and actual damage interrupt construction under the standing tender rules. Grounded
+construction retains the large static hull and its collision, has a fixed working
+reach and grants neither flight nor a fleet member. Completing a real road gun
+allows the repair task to proceed; the gun fires and takes damage ordinarily.
+
+Working Passage and exactly-once fleet transfer remain open in
+`shepherd-recovery.md`. Completed Cold Start repairs do not offer an unimplemented
+departure chapter. A recovery claim grants no fleet member or general construction
+capability by itself.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

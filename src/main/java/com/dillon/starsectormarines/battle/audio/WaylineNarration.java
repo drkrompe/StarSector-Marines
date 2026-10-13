@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.ops.CorvusChapter;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
+import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.fs.starfarer.api.Global;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -102,7 +103,8 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
-        if(ShepherdRecoveryCampaign.isBattle(mission))return "story_shepherd_salvage";
+        if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.coldStart(mission.id)
+                ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
             return "story_corvus_cold_account";
         // Retry IDs vary; the historical chapter does not. Job zero excludes recurring work
@@ -124,6 +126,7 @@ public final class WaylineNarration {
             case THUNDER_RUN -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.THUNDER);
             case COLD_ACCOUNT -> "story_corvus_cold_account";
             case SALVAGE_RIGHTS -> "story_shepherd_salvage";
+            case COLD_START -> "story_shepherd_cold_start";
             default -> null;
         };
     }

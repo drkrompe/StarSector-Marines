@@ -286,7 +286,10 @@ public final class MissionLaunch {
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
         if (ShepherdRecoveryCampaign.isBattle(m)) {
-            builder=()->BattleSetup.createSalvageRights(seed,constructionDetachment.shuttleManifest,profile);
+            var recovery=ShepherdRecoveryCampaign.requireCurrent(m);
+            boolean repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();
+            builder=()->repairChapter?BattleSetup.createColdStart(seed,constructionDetachment.shuttleManifest,profile,delivered,powered)
+                    :BattleSetup.createSalvageRights(seed,constructionDetachment.shuttleManifest,profile);
         } else if (CorvusWaylineCampaign.isBattle(m)) {
             fixture = CorvusWaylineCampaign.requireCurrent(m).chapter().fixture(seed, constructionDetachment.shuttleManifest, profile);
             builder = fixture::build;

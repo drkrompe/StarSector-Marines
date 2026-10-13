@@ -80,9 +80,9 @@ discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 After A Cold Account, Basin Reclamation offers Salvage Rights on Asharu: a night
 recovery contract with actual company lift, allied holders, an inspection party
 and a persistent claim on the grounded Shepherd. `shepherd-recovery.md` covers
-the remaining Cold Start repair battle and Working Passage departure, including
-their construction tutorial and fleet-ownership handoff. Their geography is
-authored; those two battles and the three-chapter live campaign pass remain open.
+Cold Start's playable cargo escort, shore power and grounded construction.
+Working Passage's departure and fleet transfer remain open, alongside the live
+campaign pass through recovery and repair. The three visits share authored geography.
 
 ### Battle tier
 
