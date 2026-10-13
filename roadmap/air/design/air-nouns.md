@@ -1889,7 +1889,7 @@ side knows of is inside a threat radius wider than any rifle's reach, or for a f
 seconds after a builder is hit, and resumes when the ground is clear. **A tender knows
 what its side knows, not where every enemy is:** the contacts its squads remember and
 what the hull and its drones see from the air. An enemy nobody has seen is found by
-being shot at. A lost drone is gone for the battle.
+being shot at. A lost drone is gone for the battle. Builders are heard and seen at work in the game's own sounds and presentation-only effects, from events the tender tick records (weld crackle, stun on a hit, a ping when a site stands down, a chime on completion); `tender-ship.md` has the cues.
 
 **The wing flies; it does not teleport.** Drones leave through the bay's mouth in a
 staggered line, and recall, a stood-down build and a retreat are flights home to a

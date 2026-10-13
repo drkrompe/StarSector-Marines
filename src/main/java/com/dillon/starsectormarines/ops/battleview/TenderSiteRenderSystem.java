@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.drone.DroneHash;
 import com.dillon.starsectormarines.battle.tender.BuilderStations;
 import com.dillon.starsectormarines.battle.tender.ConstructionOrder;
 import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.tender.TenderCues;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
@@ -28,6 +29,8 @@ public final class TenderSiteRenderSystem implements RenderSystem {
     private static final float MARKER_CELLS = 0.9f;
     private static final float ARC_CELLS = 1.4f;
     private static final int UNDER_FIRE_PULSE_TICKS = 15;
+    private static final int STUN_ARCS = 5;
+    private static final int FLOURISH_SPARKS = 8;
 
     private final PolyMesh mesh = new PolyMesh(256);
 
@@ -71,7 +74,76 @@ public final class TenderSiteRenderSystem implements RenderSystem {
                 }
             }
         }
+        appendEffects(ctx);
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.HAZARDS, mesh);
+    }
+
+    /**
+     * Stun bursts on builders that were just hit and a flourish where a turret just stood: pure
+     * functions of the recorded event and the tick, from ids and ticks alone, with no state of
+     * their own and nothing written back to the simulation.
+     */
+    private void appendEffects(RenderContext ctx) {
+        int now = ctx.sim.getSimTickIndex();
+        BattleCamera camera = ctx.camera;
+        float cellPx = camera.cellPxSize();
+        for (TenderCues.Cue cue : ctx.sim.tenders().cues().recent()) {
+            if (!isKnown(ctx, cue.faction(), cue.x(), cue.y())) continue;
+            int age = now - cue.tick();
+            if (age < 0 || age >= TenderCues.EFFECT_TICKS) continue;
+            float u = age / (float) TenderCues.EFFECT_TICKS;
+            float cx = camera.cellToScreenX(cue.x());
+            float cy = camera.cellToScreenY(cue.y());
+            if (cue.kind() == TenderCues.Kind.STUN) appendStun(ctx, cue, cx, cy, u, cellPx);
+            else if (cue.kind() == TenderCues.Kind.COMPLETE) appendFlourish(ctx, cue, cx, cy, u, cellPx);
+        }
+    }
+
+    /** Jagged electric arcs flung from a shocked builder, flickering for a few frames, and a pale ring. */
+    private void appendStun(RenderContext ctx, TenderCues.Cue cue, float cx, float cy, float u, float cellPx) {
+        float fade = (1f - u) * ctx.alphaMult;
+        for (int k = 0; k < STUN_ARCS; k++) {
+            float a = DroneHash.unit(cue.id(), 400 + k + 11 * cue.tick()) * (float) (Math.PI * 2.0);
+            float len = (0.35f + 0.45f * DroneHash.unit(cue.id(), 500 + k + 11 * cue.tick())) * cellPx * (0.4f + u);
+            float px = cx;
+            float py = cy;
+            for (int s = 1; s <= 3; s++) {
+                float j = (DroneHash.unit(cue.id(), 600 + 3 * k + s + 13 * cue.tick()) - 0.5f) * 0.9f;
+                float ang = a + j;
+                float nx = cx + (float) Math.cos(ang) * len * s / 3f;
+                float ny = cy + (float) Math.sin(ang) * len * s / 3f;
+                segment(px, py, nx, ny, Math.max(1f, 0.03f * cellPx), 0.7f, 0.9f, 1f, 0.95f * fade);
+                px = nx;
+                py = ny;
+            }
+        }
+        float r = (0.25f + 0.5f * u) * cellPx;
+        PolyTess.appendAnnulus(mesh, cx, cy, r - 1.5f, r, 12, 0.6f, 0.85f, 1f, 0.7f * fade);
+    }
+
+    /** A green ring and a handful of sparks thrown outward where a turret has just been finished. */
+    private void appendFlourish(RenderContext ctx, TenderCues.Cue cue, float cx, float cy, float u, float cellPx) {
+        float fade = (1f - u) * ctx.alphaMult;
+        float r = (0.5f + 1.1f * u) * cellPx;
+        PolyTess.appendAnnulus(mesh, cx, cy, r - 2.5f, r, 24, 0.5f, 1f, 0.55f, 0.85f * fade);
+        long seed = Float.floatToIntBits(cue.x()) * 31L + Float.floatToIntBits(cue.y());
+        for (int k = 0; k < FLOURISH_SPARKS; k++) {
+            float a = DroneHash.unit(seed, 700 + k) * (float) (Math.PI * 2.0);
+            float d = (0.3f + 0.9f * u) * cellPx * (0.6f + 0.6f * DroneHash.unit(seed, 800 + k));
+            PolyTess.appendAnnulus(mesh, cx + d * (float) Math.cos(a), cy + d * (float) Math.sin(a), 0f,
+                    Math.max(1.3f, 0.04f * cellPx), 6, 1f, 0.95f, 0.6f, 0.9f * fade);
+        }
+    }
+
+    private void segment(float x0, float y0, float x1, float y1, float half,
+                         float r, float g, float b, float a) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float len = (float) Math.hypot(dx, dy);
+        if (len < 0.01f) return;
+        float nx = -dy / len * half;
+        float ny = dx / len * half;
+        mesh.appendQuad(x0 - nx, y0 - ny, x0 + nx, y0 + ny, x1 + nx, y1 + ny, x1 - nx, y1 - ny, r, g, b, a);
     }
 
     /**
