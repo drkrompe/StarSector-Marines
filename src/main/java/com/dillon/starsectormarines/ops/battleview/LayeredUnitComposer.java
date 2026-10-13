@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTran
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
@@ -44,12 +45,24 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose) {
+        emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, authoredPose, null);
+    }
+
+    static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     WeaponDef primary, boolean drawWeaponLayers,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose, IntegralSystemDef integralSystem) {
         emit((layer, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
                         out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
                                 width, height, angleDegrees, red, green, blue, opacity),
                 assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
-                weaponPhase, pose, flags, alpha, authoredPose);
+                weaponPhase, pose, flags, alpha, authoredPose, integralSystem);
     }
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
@@ -70,6 +83,18 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose) {
+        emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, authoredPose, null);
+    }
+
+    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     WeaponDef primary, boolean drawWeaponLayers,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose, IntegralSystemDef integralSystem) {
         float pxPerSw = shoulderPx;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
@@ -154,12 +179,12 @@ final class LayeredUnitComposer {
         LayeredSpriteCache specialSprite = drawSpecialLayer
                 ? assets.specialEquipment(specialDef.id()) : null;
         EquipmentLayerComposer.Placement specialPlacement = specialSprite != null
-                ? EquipmentLayerComposer.resolve(specialLayer, specialUsing, specialFiring,
-                        weaponPhase,
-                        actorX, actorY, pxPerSw, facingDeg)
+                ? equipmentPlacement(specialLayer, specialUsing, specialFiring, weaponPhase,
+                        assets, authoredPose, actorX, actorY, pxPerSw, facingDeg)
                 : null;
         LayerTransform specialTransform = layer(authoredPose, "special");
-        if (specialPlacement != null && specialTransform != null) {
+        if (specialPlacement != null && specialTransform != null
+                && specialLayer.attachment() == EquipmentLayerDef.Attachment.ACTOR) {
             specialPlacement = authoredEquipmentPlacement(specialSprite, specialTransform,
                     actorX, actorY, pxPerSw, facingDeg, specialPlacement);
         }
@@ -167,6 +192,20 @@ final class LayeredUnitComposer {
         if (specialPlacement != null
                 && specialPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
             emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
+        }
+
+        // Equipped hardware stays on its mount regardless of ammunition or activity.
+        // Activity duration is not a shot phase and must not synthesize recoil.
+        EquipmentLayerDef integralLayer = integralSystem != null
+                ? integralSystem.carrierLayer() : null;
+        LayeredSpriteCache integralSprite = integralLayer != null
+                ? assets.integralSystem(integralSystem.id()) : null;
+        EquipmentLayerComposer.Placement integralPlacement = integralSprite != null
+                ? equipmentPlacement(integralLayer, false, false, 0f, assets,
+                        authoredPose, actorX, actorY, pxPerSw, facingDeg) : null;
+        if (integralPlacement != null
+                && integralPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
+            emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
         }
 
         LayerTransform primaryTransform = layer(authoredPose, "primary");
@@ -198,6 +237,11 @@ final class LayeredUnitComposer {
                 bodyTransform, actorX, actorY, pxPerSw, facingDeg, alpha);
         emitShoulder(out, assets.shoulderRight, layer(authoredPose, "right-shoulder"),
                 bodyTransform, actorX, actorY, pxPerSw, facingDeg, alpha);
+
+        if (integralPlacement != null
+                && integralPlacement.occlusion() == EquipmentLayerDef.Occlusion.OVER_BODY) {
+            emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
+        }
 
         if (assets.foreClaw != null && swipe > 0f) {
             emitClaw(out, assets.foreClaw, leftStrikes ? leftClaw : rightClaw,
@@ -253,6 +297,52 @@ final class LayeredUnitComposer {
 
     private static LayerTransform layer(LayerPose pose, String id) {
         return pose != null ? pose.layer(id) : null;
+    }
+
+    private static EquipmentLayerComposer.Placement equipmentPlacement(
+            EquipmentLayerDef equipment, boolean using, boolean firing, float phase,
+            LayeredUnitAssets assets, LayerPose pose, float actorX, float actorY,
+            float swPx, float facingDeg) {
+        if (equipment.attachment() == EquipmentLayerDef.Attachment.ACTOR) {
+            return EquipmentLayerComposer.resolve(equipment, using, firing, phase,
+                    actorX, actorY, swPx, facingDeg);
+        }
+        LayerTransform body = layer(pose, "body");
+        boolean left = equipment.attachment() == EquipmentLayerDef.Attachment.LEFT_SHOULDER;
+        boolean right = equipment.attachment() == EquipmentLayerDef.Attachment.RIGHT_SHOULDER;
+        LayeredSpriteCache shell = left ? assets.shoulderLeft : right ? assets.shoulderRight : null;
+        // Shared authored poses may contain shoulder tracks for another armor family.
+        // Only a family with that actual independent shell can supply its joint.
+        LayerTransform parent = shell != null
+                ? layer(pose, left ? "left-shoulder" : "right-shoulder") : null;
+        float scaleX = parent != null ? parent.scaleX() : body != null ? body.scaleX() : 1f;
+        float scaleY = parent != null ? parent.scaleY() : body != null ? body.scaleY() : 1f;
+        float localAngle = parent != null ? parent.angleDegrees()
+                : body != null ? body.angleDegrees() : 0f;
+        float[] anchor;
+        if (parent != null) {
+            anchor = worldPoint(actorX, actorY, parent.offsetX(), parent.offsetY(), swPx, facingDeg);
+        } else {
+            float[] bodyPivot = worldPoint(actorX, actorY, body != null ? body.offsetX() : 0f,
+                    body != null ? body.offsetY() : -0.12f, swPx, facingDeg);
+            float bodyWidth = assets.body.pxWidth / SOURCE_SHOULDER_PX;
+            float bodyHeight = assets.body.pxHeight / SOURCE_SHOULDER_PX;
+            float localX = 0f;
+            float localY = 0f;
+            if (left || right) {
+                // Inner pauldron hinge in the torso's normalized source canvas.
+                // Convert from its center to the authored pivot before scaling.
+                localX = (0.5f - (body != null ? body.pivotX() : 0.5f)) * bodyWidth;
+                localY = ((body != null ? body.pivotY() : 0.5f) - 0.5f) * bodyHeight;
+                localX += (left ? -0.234694f : 0.234694f) * bodyWidth;
+                localY += 0.150124f * bodyHeight;
+            }
+            float[] offset = rotate(localX * scaleX * swPx, localY * scaleY * swPx,
+                    facingDeg + localAngle);
+            anchor = new float[]{bodyPivot[0] + offset[0], bodyPivot[1] + offset[1]};
+        }
+        return EquipmentLayerComposer.resolve(equipment, using, firing, phase,
+                anchor[0], anchor[1], swPx, facingDeg + localAngle, scaleX, scaleY);
     }
 
     private static void emitAuthored(SpriteEmitter out, LayeredSpriteCache sprite,

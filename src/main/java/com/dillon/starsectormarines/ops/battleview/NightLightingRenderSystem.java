@@ -2,7 +2,12 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+
+import java.util.Arrays;
 
 /** Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog. */
 final class NightLightingRenderSystem implements RenderSystem {
@@ -11,6 +16,7 @@ final class NightLightingRenderSystem implements RenderSystem {
     private NightLighting lighting;
     private float[] pools, reds, greens, blues;
     private int width;
+    private boolean[] observedSurfaces = new boolean[0];
 
     public RenderLayer layer() { return RenderLayer.NIGHT_LIGHTING; }
 
@@ -22,14 +28,21 @@ final class NightLightingRenderSystem implements RenderSystem {
         var camera = ctx.camera;
         var visible = camera.visibleCells(1, ground.getWidth(), ground.getHeight());
         var fog=ctx.sim.getFogOfWar();
-        boolean useFog=ctx.hostProfile == BattleRenderHostProfile.STANDALONE_BATTLE && fog.isInitialized();
+        boolean useFog=ctx.hostProfile.fogClipsLighting() && fog.isInitialized();
+        if (useFog) {
+            int cells = ground.getWidth() * ground.getHeight();
+            if (observedSurfaces.length != cells) observedSurfaces = new boolean[cells];
+            markObservedSurfaces(ctx.sim.getDoodads(), ctx.sim.getGrid(), fog, observedSurfaces);
+        }
         int steps = camera.cellPxSize() >= 24 ? 8 : camera.cellPxSize() >= 12 ? 4 : 2;
         shade.reset();
         for (int y = visible.minY(); y <= visible.maxY(); y++) for (int x = visible.minX(); x <= visible.maxX(); x++) {
             if (ground.getGroundKind(x,y) == CellTopology.GroundKind.VOID) continue;
             for (int sy=0; sy<steps; sy++) for (int sx=0; sx<steps; sx++) {
                 float px=x+(sx+.5f)/steps, py=y+(sy+.5f)/steps;
-                float pool=useFog && !fog.cellRevealedArray()[y*fog.gridWidth()+x] ? 0f : sample(pools,px,py);
+                int cellIndex = y * ground.getWidth() + x;
+                float pool=useFog && !fog.cellRevealedArray()[cellIndex]
+                        && !observedSurfaces[cellIndex] ? 0f : sample(pools,px,py);
                 float dark=night.darkness()*(1-.92f*Math.min(1,pool));
                 float warm=.11f*Math.min(1,pool);
                 float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
@@ -60,6 +73,24 @@ final class NightLightingRenderSystem implements RenderSystem {
             for (int halo=3;halo>=1;halo--)
                 out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,px*(.14f+halo*.13f),lamp.red(),lamp.green(),lamp.blue(),.08f*ctx.alphaMult);
             out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,Math.max(1,px*.07f),1,.94f,.75f,ctx.alphaMult);
+        }
+    }
+
+    /**
+     * Lighting admission for the same solid artwork the fog pass admits. This
+     * derived mask is never observation: ground in sprite gaps retains its fog,
+     * actors remain concealed and structural sight/navigation remain unchanged.
+     */
+    static void markObservedSurfaces(Iterable<Doodad> props, NavigationGrid grid,
+                                     FogOfWarService fog, boolean[] surfaces) {
+        Arrays.fill(surfaces, false);
+        for (Doodad prop : props) {
+            if (!DoodadRenderSystem.hasObservedSurface(prop, grid, fog)) continue;
+            for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++) {
+                int gx = prop.cellX + x, gy = prop.cellY + y;
+                if (prop.hasFogSurfaceAt(x, y) && grid.inBounds(gx, gy)
+                        && grid.blocksStructuralLineOfSight(gx, gy)) surfaces[grid.index(gx, gy)] = true;
+            }
         }
     }
 

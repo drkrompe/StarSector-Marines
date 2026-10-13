@@ -231,4 +231,44 @@ class ShieldDomeServiceTest {
         assertEquals(0f, only(sim).captureProgress(), 1e-4f);
         assertEquals(Faction.DEFENDER, only(sim).holder());
     }
+
+    @Test
+    void anAbsorbedRoundIsKeptAsAnImpactWithItsCostAndAgesUntilItsLifeIsSpent() {
+        BattleSimulation sim = arena();
+        sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        ShieldDomeService domes = sim.shieldDomes();
+        domes.absorbs(ship(Faction.MARINE, GEN_X + 4f, GEN_Y + 2f, 120f));
+        run(sim, 0.05f);
+
+        assertEquals(1, domes.recentHits().size());
+        ShieldDomeService.HitView hit = domes.recentHits().get(0);
+        assertEquals(only(sim).entityId(), hit.domeId());
+        assertEquals(120f, hit.cost(), 1e-3f);
+        assertEquals(GEN_X + 4f, hit.x(), 1e-4f);
+
+        run(sim, 1.0f);
+        ShieldDomeService.HitView aged = domes.recentHits().get(0);
+        assertEquals(0f, aged.freshness(), 1e-4f, "the flash is long gone");
+        assertTrue(aged.ageSeconds() > 1.0f, "but the impact is still crossing the dome: " + aged.ageSeconds());
+
+        run(sim, ShieldDomeService.IMPACT_SECONDS);
+        assertTrue(domes.recentHits().isEmpty(), "dropped once its life is spent");
+    }
+
+    @Test
+    void aDomeKeepsAtMostTheCapOfImpactsAndDropsTheOldest() {
+        BattleSimulation sim = arena();
+        sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        ShieldDomeService domes = sim.shieldDomes();
+        int rounds = ShieldDomeService.MAX_IMPACTS_PER_DOME + 6;
+        for (int i = 0; i < rounds; i++) {
+            // Each round lands one cell further east, so which survive is readable from x.
+            assertTrue(domes.absorbs(ship(Faction.MARINE, GEN_X - 8f + i * 0.5f, GEN_Y, 5f)));
+        }
+        run(sim, 0.02f);
+        var hits = domes.recentHits();
+        assertEquals(ShieldDomeService.MAX_IMPACTS_PER_DOME, hits.size());
+        assertEquals(GEN_X - 8f + 6 * 0.5f, hits.get(0).x(), 1e-4f, "the six oldest were dropped");
+        assertEquals(GEN_X - 8f + (rounds - 1) * 0.5f, hits.get(hits.size() - 1).x(), 1e-4f);
+    }
 }

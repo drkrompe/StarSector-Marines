@@ -28,6 +28,45 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class IntegralSystemDefTest {
 
     @Test
+    void hardwarePresentationIsOptionalAndDoesNotChangeCapability() throws JSONException {
+        IntegralSystemDef plain = IntegralSystemDef.parse(breacherAssist(), "armor.test");
+        assertNull(plain.carrierLayer());
+        JSONObject carrier = new JSONObject("""
+                {
+                  "sprite": "graphics/pod.png",
+                  "attachment": "left-shoulder",
+                  "widthShoulders": 0.32,
+                  "heightShoulders": 0.48,
+                  "pivot": [0.5, 0.5],
+                  "carried": {"offsetShoulders": [0, 0], "occlusion": "over-body"},
+                  "using": {"offsetShoulders": [0, 0], "occlusion": "over-body"},
+                  "visibleWhileCarried": true
+                }
+                """);
+        IntegralSystemDef mounted = IntegralSystemDef.parse(breacherAssist().put(
+                "presentation", new JSONObject().put("carrierLayer", carrier)), "armor.test");
+        assertEquals(EquipmentLayerDef.Attachment.LEFT_SHOULDER,
+                mounted.carrierLayer().attachment());
+        assertEquals(plain.breacherAssist(), mounted.breacherAssist());
+        assertEquals(plain.policy(), mounted.policy());
+        assertEquals(plain.durationSeconds(), mounted.durationSeconds());
+        carrier.remove("attachment");
+        assertEquals(EquipmentLayerDef.Attachment.ACTOR,
+                EquipmentLayerDef.parse(carrier, "special.test").attachment());
+        carrier.put("attachment", "unknown-joint");
+        assertThrows(JSONException.class, () -> EquipmentLayerDef.parse(carrier, "special.test"));
+    }
+
+    @Test
+    void malformedHardwarePresentationFailsAtIngestion() throws JSONException {
+        assertThrows(JSONException.class, () -> IntegralSystemDef.parse(
+                breacherAssist().put("presentation", "not-an-object"), "armor.test"));
+        assertThrows(JSONException.class, () -> IntegralSystemDef.parse(breacherAssist().put(
+                "presentation", new JSONObject().put("carrierLayer", "not-an-object")),
+                "armor.test"));
+    }
+
+    @Test
     void aBreacherAssistParsesItsAuthoredCapability() throws JSONException {
         IntegralSystemDef system = IntegralSystemDef.parse(breacherAssist(), "armor.test");
 

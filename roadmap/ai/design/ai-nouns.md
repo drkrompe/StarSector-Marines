@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — room work rounds reserve stations; launch-frozen company welfare scales infantry morale recovery.
+Updated: 2026-10-14 — a prosecution refusal walks on even under a standing route-threat commit; room work rounds reserve stations; launch-frozen company welfare scales infantry morale recovery.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1653,7 +1653,7 @@ leash plus weapon reach stopped where it stood for as long as it could see the
 contact, and since a contact being observed is itself what keeps an advancing
 HOLD fresh, seeing it was all that was required. Two squads of one live battle
 were recorded standing on their landing pads with every member settled and not
-one member engageable.
+one member engageable. The refusal belongs to prosecution whenever prosecution chose the target and anchor, even if a route-threat commit is also standing: the empty search was drawn round the squad's own centre and says nothing about the route, so reading it as the route's "plant" froze a retaking squad twenty-six cells from its objective.
 
 What neither answer may be is the old one. A committed member that returned on
 an unreachable position set an empty path and moved nobody, and because the
