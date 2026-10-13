@@ -1,4 +1,5 @@
 package com.dillon.starsectormarines.ops;
+import com.dillon.starsectormarines.i18n.Strings;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 
@@ -3231,6 +3232,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("testLoadout", (Runnable) () -> {});
+        props.put("rangeDisabled", !viewModel.rangeUnavailableReason().isEmpty());
+        props.put("rangeHint", viewModel.rangeUnavailableReason().isEmpty()
+                ? Strings.get("armoryRangeHint") : viewModel.rangeUnavailableReason());
         props.put("firstRefitClasses", "hidden");
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());

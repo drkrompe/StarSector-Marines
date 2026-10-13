@@ -70,6 +70,9 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
+import com.dillon.starsectormarines.ops.battleview.ArmoryRangeTrial;
+import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
+import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
@@ -95,6 +98,7 @@ import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -294,8 +298,28 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final CompanyOfficer companyOfficer = new CompanyOfficer();
     private final OperationRadio operationRadio = new OperationRadio();
 
+    private final ArmoryRangeTrial rangeTrial;
+    private final MarineOpsContext rangeContext;
+    private boolean rangeFinished;
+    private boolean rangeEntered;
+
+    public BattleScreen() {
+        rangeTrial = null;
+        rangeContext = null;
+    }
+
+    /** Uses battle input, rendering and weapon feedback without a campaign operation. */
+    BattleScreen(ArmoryRangeTrial trial) {
+        rangeTrial = trial;
+        rangeContext = new MarineOpsContext(null);
+        rangeContext.setBattleSimulation(trial.simulation());
+    }
+
+    boolean rangeFinished() { return rangeFinished; }
+
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
+        if (rangeContext != null) ctx = rangeContext;
         BattleSimulation nextSimulation = ctx != null ? ctx.getBattleSimulation() : null;
         if (attachedSimulation != nextSimulation) {
             exitDirectControl();
@@ -343,8 +367,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.buildTileBatches();
         renderer.onAttach();
         storySubtitles.attach(position);
-        startBattleAudio();
+        if (rangeTrial == null) startBattleAudio();
         rebuild();
+        if (rangeTrial != null && !rangeEntered) {
+            selection.selectUnit(Selection.NONE, rangeTrial.marine());
+            toggleDirectControl();
+            rangeEntered = true;
+            rangeFinished = !directControlInput.active();
+        }
     }
 
     /**
@@ -420,7 +450,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (camera == null || camera.worldCellsW() != gridW || camera.worldCellsH() != gridH) {
             camera = new BattleCamera(gridW, gridH);
         }
-        camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, layout.cellSize);
+        // A small indoor range must frame both shooter and targets at entry.
+        float cellSize = rangeTrial == null ? layout.cellSize
+                : Math.min(layout.gridW / gridW, (layout.gridH - 180f) / gridH);
+        camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, Math.max(1f, cellSize));
         ensureHud();
         ensureRetainedOverlay(sim);
     }
@@ -429,6 +462,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     public void advance(float dt) {
         lastAdvanceDt = dt;
         syncDirectControl();
+        if (rangeFinished) return;
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
         // state still update when the sim is paused. Panels' update() just
         // refreshes their cached views over the sim — cheap even at every frame.
@@ -641,7 +675,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                     new Vector2f(cue.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
                             cue.cellY() * AUDIO_WORLD_UNITS_PER_CELL), new Vector2f());
         }
-        advanceVoices(sim, dt);
+        if (rangeTrial == null) advanceVoices(sim, dt);
     }
 
     @Override
@@ -857,6 +891,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                     () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f), this::selectDirectWeapon);
         }
         directControlOverlay.attach(position, sim, speedMultiplier);
+        if (rangeTrial != null) directControlOverlay.setExitLabelKey("armoryRangeExit");
         if (manualObjectives == null) manualObjectives = new BattleManualObjectiveOverlay();
         manualObjectives.attach(position, sim);
     }
@@ -1283,6 +1318,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void retreatFromBattle() {
+        if (rangeTrial != null) { exitDirectControl(); return; }
         if (ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();
         if (sim == null || !sim.retreat()) return;
@@ -1291,6 +1327,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void continueFromBattle() {
+        if (rangeTrial != null) { exitDirectControl(); return; }
         if (ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();
         if (sim != null && sim.isComplete() && ctx.beginBattleSettlement()) {
@@ -1312,6 +1349,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void processInput(List<InputEventAPI> events) {
         syncDirectControl();
+        if (rangeFinished) return;
         boolean controlledAtInputStart = directControlInput.active();
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
@@ -1325,6 +1363,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (manualObjectives != null) manualObjectives.processInput(events);
         if (directControlOverlay != null) directControlOverlay.processInput(events);
+        if (rangeFinished) return;
         // HUD gets first crack after retained chrome so a click on a squad row doesn't
         // also pan the camera or hit a future world-picker on the cells the
         // panel overlays. Panels self-consume claimed events.
@@ -1343,6 +1382,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         directControlInput.process(manualSamples, this::toggleDirectControl,
                 this::exitDirectControl, this::selectDirectWeapon, this::requestDirectAbility,
                 this::battleChromeBlocksWorldPointer);
+        if (rangeFinished) return;
         if (directControlInput.active() && !directControlInput.physicalShiftHeld()
                 && directControlSimulation != null && directControlSimulation == getSim()
                 && directControlSimulation.directControl().active()) {
@@ -1357,6 +1397,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void toggleDirectControl() {
+        if (rangeFinished) return;
         if (directControlInput.active()) {
             exitDirectControl();
             return;
@@ -1403,6 +1444,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void exitDirectControl() {
+        if (rangeTrial != null && directControlInput.active()) rangeFinished = true;
         if (directControlSimulation != null) directControlSimulation.directControl().exit();
         directControlSimulation = null;
         actionCamera.reset();
@@ -1427,7 +1469,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 retainedRetreatOverlay.cancelConfirmation();
                 retainedRetreatOverlay.detach();
             }
-        } else if (position != null && ctx != null) {
+        } else if (rangeTrial == null && position != null && ctx != null) {
             ensureRetainedOverlay(getSim());
         }
         if (directControlOverlay != null) directControlOverlay.update(0f, getSim(), speedMultiplier);
@@ -1651,8 +1693,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             RenderContext rc = new RenderContext(
                     sim, camera, layout, alphaMult, lastAdvanceDt,
                     strategic && debugZonesVisible, strategic ? highlights : null,
-                    strategic ? selection : null);
-            renderer.renderWorld(rc);
+                    strategic ? selection : null, rangeTrial == null
+                    ? BattleRenderHostProfile.STANDALONE_BATTLE : BattleRenderHostProfile.EMBEDDED_SCENE);
+            if (rangeTrial == null) renderer.renderWorld(rc);
+            else renderer.renderWorld(rc, EnumSet.complementOf(EnumSet.of(RenderLayer.ROOFS, RenderLayer.FOG)));
             glPopAttrib();
         }
 
