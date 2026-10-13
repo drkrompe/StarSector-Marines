@@ -12,12 +12,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyPrologueScreenTest {
     @Test void fallbackAndMissingPortNeverGiveTheJangalaContactOrADisabledExit() {
-        var fallback = CompanyPrologueScreen.model(3, "Independent Port", false, 17, 14850, () -> {}, () -> {}, () -> {});
+        var fallback = CompanyPrologueScreen.model(3, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
         assertFalse(fallback.get("narrative").toString().contains("Corvus"));
         assertFalse(fallback.get("dialogue").toString().contains("Jangala"));
         assertEquals("Reach Independent Port", fallback.get("destination"));
         assertTrue(fallback.get("manifest").toString().contains("17 crew"));
-        var absent = CompanyPrologueScreen.model(5, null, false, 17, 14850, () -> {}, () -> {}, () -> {});
+        var absent = CompanyPrologueScreen.model(5, null, false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
         assertEquals("Take command", absent.get("nextLabel"));
         assertFalse(absent.get("dialogue").toString().contains("null"));
     }
@@ -27,7 +27,7 @@ class CompanyPrologueScreenTest {
         loader.reload();
         for (int page = 0; page < 6; page++) {
             var next = new AtomicInteger(); var back = new AtomicInteger(); var skip = new AtomicInteger();
-            var props = CompanyPrologueScreen.model(page, "Jangala", true, 20, 15000,
+            var props = CompanyPrologueScreen.model(page, "Jangala", true, 20, 500, 5000,
                     next::incrementAndGet, back::incrementAndGet, skip::incrementAndGet);
             try (var instance = loader.build(new Reactor(), CompanyPrologueScreen.ROOT, props)) {
                 var document = new UiDocument(instance.root());

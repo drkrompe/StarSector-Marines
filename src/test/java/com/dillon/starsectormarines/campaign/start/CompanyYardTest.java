@@ -32,6 +32,9 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.loading.IndustrySpecAPI;
 import com.fs.starfarer.api.util.MutableValue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 
 import java.lang.reflect.Proxy;
 import java.io.ByteArrayInputStream;
@@ -47,9 +50,11 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyYardTest {
-    @Test void installRequiresActualPlanetInteractionAndIssuesTheDepotOnlyOnce() {
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void installRequiresActualPlanetInteractionAndIssuesTheDepotOnlyOnce(boolean protectedStart) {
         SectorAPI previous = Global.getSector();
-        MutableValue credits = new MutableValue(15000);
+        int startingCash = protectedStart ? 0 : 15000;
+        MutableValue credits = new MutableValue(startingCash);
         boolean[] installed = {false};
         Map<String, Object> planetMethods = new HashMap<>();
         PlanetAPI planet = stub(PlanetAPI.class, planetMethods);
@@ -70,6 +75,7 @@ class CompanyYardTest {
                 "getCargo", stub(CargoAPI.class, Map.of("getCredits", credits))));
         Map<String, Object> uiMethods = new HashMap<>();
         Map<String, Object> saved = new HashMap<>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter"));
+        if (protectedStart) FoundingReserve.issue(saved);
         try {
             Global.setSector(stub(SectorAPI.class, Map.of("getPersistentData", saved, "getPlayerFleet", fleet,
                     "getPlayerFaction", faction, "getCampaignUI", stub(CampaignUIAPI.class, uiMethods))));
@@ -83,7 +89,8 @@ class CompanyYardTest {
             assertEquals(100_000, means.credits());
             assertNotNull(CompanyYard.install(ship, market));
             assertFalse(installed[0]);
-            assertEquals(15000, credits.get());
+            assertEquals(startingCash, credits.get());
+            assertEquals(protectedStart ? 5000 : 0, CompanyYard.reservedCredits(ship));
             Map<String, Object> localData = new HashMap<>();
             MemoryAPI memory = stub(MemoryAPI.class, Map.of("set", (Function<Object[], Object>) a -> {
                 localData.put((String) a[0], a[1]); return null;
@@ -97,23 +104,25 @@ class CompanyYardTest {
             uiMethods.put("getCurrentInteractionDialog", dialog);
             assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
             assertTrue(lines.stream().anyMatch(line -> line.contains("Mercenary Company Conversion")));
-            assertTrue(options.contains("Install conversion - 5,000 credits"));
+            assertTrue(options.contains(protectedStart ? "Install conversion - use reserved payment" : "Install conversion - 5,000 credits"));
             assertEquals("starter", localData.get("$smYardSelectedShip"));
-            assertEquals(15000, credits.get(), "Opening the required review spends nothing");
+            assertEquals(startingCash, credits.get(), "Opening the required review spends nothing");
             assertFalse(installed[0]);
             assertNull(CompanyYard.install(ship, market));
             assertTrue(installed[0]);
             assertFalse(CerberusCompanyStart.conversionRequired());
             assertFalse(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
-            assertEquals(10000, credits.get());
+            assertEquals(protectedStart ? 0 : 10000, credits.get());
+            assertEquals(0, CompanyYard.reservedCredits(ship));
             PreparationDepot depot = CerberusCompanyStart.accessibleDepot();
             assertNotNull(depot);
-            depot.draw("metals", 30);
+            depot.draw("metals", 30, Purpose.BOAT);
             assertNotNull(CompanyYard.install(ship, market));
             CerberusCompanyStart.establishDepot(ship, market);
             assertSame(depot, CerberusCompanyStart.depot());
             assertEquals(0, depot.available("metals"));
-            assertEquals(10000, credits.get());
+            assertEquals(protectedStart ? 0 : 10000, credits.get());
+            assertEquals(protectedStart, depot.protectedStock());
             uiMethods.clear();
             assertNull(CerberusCompanyStart.accessibleDepot());
             assertSame(depot, CerberusCompanyStart.depot());
