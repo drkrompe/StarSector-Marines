@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
+Updated: 2026-10-13 — a called ship descends a short glide from its station; slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -47,8 +47,9 @@ the battle roster is frozen at launch and holds no campaign objects (a frozen
   two committed capitals are two cards' worth of ship, not one doubled.
 - **Targeting.** The player picks a cell: the ground the ship should work. Valid
   anywhere on the map the player has seen; the ship's own rules decide what it fires at.
-- **Activation.** The ship is fitted from the frozen loadout, enters from the company's
-  own map edge, flies to a station near the cell, and works it under its side's
+- **Activation.** The ship is fitted from the frozen loadout, breaks out of the clouds on
+  the company's side of the cell a short glide from it (about twelve cells plus half its
+  length, so the descent is over the battle and the arrival is quick), settles onto a station over the cell, and works it under its side's
   `MissionStance` (an attacking company's ship supports the assault; a defending
   company's denies the drop). A tender builds there by the same stance director.
 - **Pacing.** One activation per source per battle, a bounded station time
@@ -134,7 +135,7 @@ detachment), turns on the director and doctrine, and bounds its visit at 90 s fo
 hull. Drafted owner answers applied: cruisers, capitals and the Shepherd; 90 s; no
 writeback.
 
-Finding: a capital's own hover speed makes the approach long. An Onslaught entering at the
-west edge took about 74 s to reach a cell 80 cells in, so most of a 90 s visit is travel
-for deep targets. Tuning (a faster arrival, station time counted from entry, or a nearer
-entry point) is an owner call alongside slice 3.
+A capital's own hover speed made a map-edge approach long: an Onslaught entering at the west
+edge took about 74 s to reach a cell 80 cells in. A called ship therefore comes out of the
+clouds a short glide from its station instead (`ShipStationing.callIn`), and the same
+Onslaught settles in about 21 s. Station time is counted on station, as before.
