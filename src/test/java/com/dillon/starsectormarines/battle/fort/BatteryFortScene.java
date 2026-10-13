@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.fort;
 
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
+import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -18,12 +22,14 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.AirFireOrder;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -71,6 +77,8 @@ public final class BatteryFortScene implements BehaviorScene {
     private static final int EVENT_TICK = 300;
     private static final int LATE_SHIP_TICK = 2400;
     private static final int SECONDS_TICKS = 30;
+    /** How far out from the main gate the commander's company starts, along the way in. */
+    private static final int COMMANDER_STANDOFF = 16;
 
     @Override public String id() { return "battery-fort"; }
 
@@ -85,7 +93,7 @@ public final class BatteryFortScene implements BehaviorScene {
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("guns-fire", "gun-side-hold", "bunker-taken", "bunker-wrecked", "magazine-wrecked",
-                "power-cut", "fort-taken-turns", "squad-takes-bunker")) {
+                "power-cut", "fort-taken-turns", "squad-takes-bunker", "commander-takes-bunker")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
         return reports;
@@ -123,10 +131,17 @@ public final class BatteryFortScene implements BehaviorScene {
 
     private Run playOne(String loop, FrameSink frames) throws Exception {
         FortSceneWorld terrain = stamp();
-        boolean assault = loop.equals("squad-takes-bunker");
+        boolean commander = loop.equals("commander-takes-bunker");
+        boolean assault = loop.equals("squad-takes-bunker") || commander;
         SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
                 .missionCompletion(false);
         int[] start = terrain.cell(BatteryFort.OX - 8, BatteryFort.OY + 17);
+        if (commander) {
+            // The company comes in on the lane that runs up to the main gate: a commander is told only of what the
+            // company has seen, and a lane that never comes within sight of the platform discloses nothing.
+            FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
+            start = terrain.cell(gate.mouthX() + gate.outX() * COMMANDER_STANDOFF, gate.mouthY() + gate.outY() * COMMANDER_STANDOFF);
+        }
         if (assault) builder.squad("company").faction(Faction.MARINE).size(10).at(start[0], start[1]).primary("weapon.smg").done();
         builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, 95);
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
@@ -158,7 +173,12 @@ public final class BatteryFortScene implements BehaviorScene {
             late.raiseShield(false);
         }
         ScriptedPlayer player = ScriptedPlayer.on(world);
-        if (assault) {
+        if (commander) {
+            // No scripted order: the company's commander is told only what the company has seen, and must choose.
+            sim.setAutonomousCommander(Faction.MARINE,
+                    new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT)),
+                    ConquestCommandDisclosure.INSTANCE);
+        } else if (assault) {
             int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
             int[] target = terrain.cell(core[0] - 2, core[1]);
             player.moveSquad(30, "company", target[0], target[1]);
@@ -194,11 +214,18 @@ public final class BatteryFortScene implements BehaviorScene {
                 // What a commander is told: fire control is the bunker, not the ground round the guns.
                 var facts = run.sim().defenceStructures();
                 long core = fort.place(FortAspect.FIRE_CONTROL).coreId();
-                boolean atBunker = facts.size() == 1 && facts.get(0).cellX() == (int) Math.floor(run.sim().world().x(core))
-                        && facts.get(0).cellY() == (int) Math.floor(run.sim().world().y(core));
+                var guns = facts.stream().filter(f -> f.kind() == DefenceStructureFact.Kind.FIRE_CONTROL).toList();
+                boolean atBunker = guns.size() == 1 && guns.get(0).cellX() == (int) Math.floor(run.sim().world().x(core))
+                        && guns.get(0).cellY() == (int) Math.floor(run.sim().world().y(core));
                 verdicts.add(Verdict.of("commanders-are-sent-to-the-bunker", atBunker,
-                        facts.size() + " structure fact(s), first at " + facts.get(0).cellX() + "," + facts.get(0).cellY()
-                                + ", bunker core at " + run.sim().world().x(core) + "," + run.sim().world().y(core)));
+                        guns.size() + " fire-control fact(s) of " + facts.size() + ", bunker core at "
+                                + run.sim().world().x(core) + "," + run.sim().world().y(core)));
+                // And are told of the fort's other two aspects, so they can choose between the three.
+                verdicts.add(Verdict.of("and-of-its-magazine-and-power",
+                        facts.stream().anyMatch(f -> f.kind() == DefenceStructureFact.Kind.FORT_MAGAZINE)
+                                && facts.stream().anyMatch(f -> f.kind() == DefenceStructureFact.Kind.FORT_POWER)
+                                && facts.stream().allMatch(f -> f.fortId() == fort.id()),
+                        facts.size() + " facts of fort " + fort.id()));
             }
             case "gun-side-hold" -> {
                 verdicts.add(Verdict.of("never-contested-from-the-platform", t.contestedTicks == 0
@@ -254,6 +281,26 @@ public final class BatteryFortScene implements BehaviorScene {
                         t.maxInBunker + " of the squad inside the bunker at most; " + t.alive + " alive at the end, nearest approach " + t.nearestToBunker + " cells, order " + t.lastOrder));
                 verdicts.add(Verdict.of("it-came-in-by-a-gate-or-a-breach", t.contestedTicks > 0,
                         t.contestedTicks + " ticks of contest"));
+            }
+            case "commander-takes-bunker" -> {
+                verdicts.add(Verdict.of("commander-orders-the-bunker-first",
+                        t.firstOrderAspect == FortAspect.FIRE_CONTROL,
+                        "first order " + t.firstOrderReason + " at tick " + t.firstOrderTick + ", nearest aspect "
+                                + t.firstOrderAspect));
+                verdicts.add(Verdict.of("ordered-within-two-pulses-of-sighting",
+                        t.firstSeenTick >= 0 && t.firstOrderTick >= t.firstSeenTick
+                                && t.firstOrderTick - t.firstSeenTick <= 150,
+                        "platform first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick));
+                verdicts.add(Verdict.of("company-takes-the-bunker-unscripted",
+                        t.flipTick > 0 && battery.owner() == Faction.MARINE && t.maxInBunker > 0,
+                        "flipped at tick " + t.flipTick + ", holder " + battery.owner()));
+                // With the guns its own, the next work is making them shoot properly: the plant, then the magazine, never
+                // the bunker again and never a building the company already holds.
+                verdicts.add(Verdict.of("then-goes-on-to-what-the-guns-lack",
+                        t.laterOrderTick > t.flipTick && t.flipTick > 0
+                                && (t.laterOrderAspect == FortAspect.POWER || t.laterOrderAspect == FortAspect.MAGAZINE),
+                        "orders " + t.orders + ", plant holder " + fort.place(FortAspect.POWER).control().holder()
+                                + ", magazine holder " + fort.place(FortAspect.MAGAZINE).control().holder()));
             }
             default -> {
                 verdicts.add(Verdict.of("company-holds-every-aspect",
@@ -421,6 +468,19 @@ public final class BatteryFortScene implements BehaviorScene {
                         && order != null) {
                     firstOrderTick = tick;
                     firstOrderReason = directive.reason() + " to " + order.targetCellX() + "," + order.targetCellY();
+                    firstOrderAspect = nearestAspect(order.targetCellX(), order.targetCellY());
+                }
+                if (directive != null && order != null && directive.reason().startsWith("DEFENCE_STRUCTURE_")) {
+                    String line = directive.reason() + "->" + nearestAspect(order.targetCellX(), order.targetCellY());
+                    if (orders.isEmpty() || !orders.get(orders.size() - 1).endsWith(line)) orders.add("t" + tick + " " + line);
+                }
+                if (laterOrderTick < 0 && flipTick > 0 && directive != null
+                        && directive.reason().startsWith("DEFENCE_STRUCTURE_") && order != null) {
+                    FortAspect aspect = nearestAspect(order.targetCellX(), order.targetCellY());
+                    if (aspect != FortAspect.FIRE_CONTROL) {
+                        laterOrderTick = tick;
+                        laterOrderAspect = aspect;
+                    }
                 }
                 for (long id : squadMembers) {
                     if (sim.world().isAlive(id)) {
@@ -436,9 +496,27 @@ public final class BatteryFortScene implements BehaviorScene {
             }
         }
 
+        /** The aspect whose building an order's destination is nearest to. */
+        private FortAspect nearestAspect(int x, int y) {
+            FortAspect best = null;
+            double bestGap = Double.MAX_VALUE;
+            for (Fort.Place place : fort.places()) {
+                double gap = Math.hypot(place.x() - x, place.y() - y);
+                if (gap < bestGap) {
+                    bestGap = gap;
+                    best = place.aspect();
+                }
+            }
+            return best;
+        }
+
         private int shotsAtEvent;
         long[] squadMembers = new long[0];
         int squadId = -1;
+        int laterOrderTick = -1;
+        FortAspect laterOrderAspect;
+        final List<String> orders = new ArrayList<>();
+        FortAspect firstOrderAspect;
         int firstOrderTick = -1;
         int firstSeenTick = -1;
         String firstOrderReason = "none";

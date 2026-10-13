@@ -3,9 +3,9 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
- * One ground-defence structure a command may care about: a fortress battery's fire control or a shield generator.
- * Frozen state, free of the live simulation. What a given side is <em>allowed to know</em> of it is decided where the
- * facts are disclosed ({@link ConquestCommandFacts}), not here.
+ * One ground-defence structure a command may care about: a fortress battery's fire control, a shield generator, or an
+ * aspect of a fort. Frozen state, free of the live simulation. What a given side is <em>allowed to know</em> of it is
+ * decided where the facts are disclosed ({@link ConquestCommandFacts}), not here.
  *
  * @param kind            which kind of structure it is
  * @param cellX           the structure's anchor cell
@@ -18,9 +18,19 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  *                        anchor for a bare structure; for a fort it is the battery platform, because the bunker the
  *                        commander is sent to stands inside walls nobody outside can see
  * @param seenCellY       as {@code seenCellX}
+ * @param fortId          the fort this aspect belongs to, or {@code -1} for a bare structure. Facts sharing a fort id are
+ *                        one defence whose aspects a commander chooses between
+ * @param family          what sort of fort the aspect belongs to, which says what losing each aspect costs
  */
 public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
-                                   boolean threatened, int reachCells, int seenCellX, int seenCellY) {
+                                   boolean threatened, int reachCells, int seenCellX, int seenCellY,
+                                   int fortId, Family family) {
+
+    /** An aspect of no fort, disclosed at a cell other than its own. */
+    public DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
+                                boolean threatened, int reachCells, int seenCellX, int seenCellY) {
+        this(kind, cellX, cellY, holder, originalHolder, threatened, reachCells, seenCellX, seenCellY, -1, Family.BARE);
+    }
 
     /** A structure disclosed by sighting its own anchor, which is every bare structure. */
     public DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
@@ -28,10 +38,19 @@ public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction hold
         this(kind, cellX, cellY, holder, originalHolder, threatened, reachCells, cellX, cellY);
     }
 
+    /** Whether this is one aspect of a fort rather than a structure standing alone. */
+    public boolean ofFort() {
+        return fortId >= 0 && family != Family.BARE;
+    }
+
     /**
-     * The structure kinds a command can be sent to take, wreck or hold. {@code SHIELD_GENERATOR} is where the dome is
-     * held (the generator's capture ring, or a shield fort's control room); {@code FORT_POWER} is a fort's power plant,
-     * which a side takes or wrecks to drop a dome that is not its own.
+     * The structure kinds a command can be sent to take, wreck or hold. {@code FIRE_CONTROL} is where a battery's
+     * guns are held (the bunker, for a fort); {@code SHIELD_GENERATOR} is where the dome is held (the generator's
+     * capture ring, or a shield fort's control room); {@code FORT_POWER} is a fort's power plant, which feeds a dome
+     * or a battery's traverse; {@code FORT_MAGAZINE} is a battery fort's store, which feeds sustained fire.
      */
-    public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR, FORT_POWER }
+    public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR, FORT_POWER, FORT_MAGAZINE }
+
+    /** What a fort is for, which decides how much each of its aspects matters. */
+    public enum Family { BARE, BATTERY_FORT, SHIELD_FORT }
 }
