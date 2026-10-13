@@ -95,6 +95,7 @@ public final class FortSystem {
         }
         Faction holder = fort.domeHolder(currentHolder(sim, generator));
         domes.transfer(generator, holder);
+        fort.noteDomeHolder(holder);
         domes.setPowered(generator, fort.domePowered(holder));
     }
 
