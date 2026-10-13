@@ -341,6 +341,8 @@ public final class BattleComponents {
     public static final int INTEGRAL_SYSTEM_ACTIVE_TIMER = 2;
     /** {@link #INTEGRAL_SYSTEM} field 3: uses remaining for an ammunition-gated system (INT); unused by cooldown-gated ones. */
     public static final int INTEGRAL_SYSTEM_AMMO = 3;
+    /** Committed pod launch evidence; independently expires before the activation does. */
+    public static final int INTEGRAL_SYSTEM_POD_LAUNCH = 4;
 
     /** {@link #CRASHING} field 0: the {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent} payload (OBJECT) — the falling body, fall timer, and spin. */
     public static final int CRASHING_STATE = 0;
@@ -1230,7 +1232,7 @@ public final class BattleComponents {
         ARMOR          = world.register(35, "Armor",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         INTEGRAL_SYSTEM = world.register(36, "IntegralSystem",
-                FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT);
+                FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.OBJECT);
         MECH_GAIT_STATE = world.register(37, "MechGaitState", FieldKind.OBJECT);
         MITIGATION      = world.register(38, "Mitigation",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,

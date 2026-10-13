@@ -19,7 +19,19 @@ public record EquipmentLayerDef(
         Occlusion firingOcclusion,
         boolean visibleWhileCarried,
         boolean replacePrimaryWhileUsing,
-        Attachment attachment) implements Serializable {
+        Attachment attachment,
+        float muzzleX,
+        float muzzleY) implements Serializable {
+
+    public EquipmentLayerDef(String spritePath, float widthShoulders, float heightShoulders,
+                             float pivotX, float pivotY, State carried, State using,
+                             float recoilShoulders, Occlusion firingOcclusion,
+                             boolean visibleWhileCarried, boolean replacePrimaryWhileUsing,
+                             Attachment attachment) {
+        this(spritePath, widthShoulders, heightShoulders, pivotX, pivotY, carried, using,
+                recoilShoulders, firingOcclusion, visibleWhileCarried,
+                replacePrimaryWhileUsing, attachment, 0.5f, 0f);
+    }
 
     /** Authored joint registration; actor preserves existing carrier geometry. */
     public enum Attachment {
@@ -82,6 +94,13 @@ public record EquipmentLayerDef(
         }
         float pivotX = unit((float) pivot.getDouble(0), "pivot x", equipmentId);
         float pivotY = unit((float) pivot.getDouble(1), "pivot y", equipmentId);
+        JSONArray muzzle = json.has("muzzle") ? json.getJSONArray("muzzle") : null;
+        if (muzzle != null && muzzle.length() != 2) {
+            throw new JSONException("Equipment '" + equipmentId
+                    + "' carrier muzzle must contain [x, y]");
+        }
+        float muzzleX = muzzle != null ? unit((float) muzzle.getDouble(0), "muzzle x", equipmentId) : .5f;
+        float muzzleY = muzzle != null ? unit((float) muzzle.getDouble(1), "muzzle y", equipmentId) : 0f;
         return new EquipmentLayerDef(sprite, width, height, pivotX, pivotY,
                 parseState(json.getJSONObject("carried"), equipmentId),
                 parseState(json.getJSONObject("using"), equipmentId),
@@ -90,7 +109,8 @@ public record EquipmentLayerDef(
                 optionalOcclusion(json, "firingOcclusion", equipmentId),
                 json.optBoolean("visibleWhileCarried", false),
                 json.optBoolean("replacePrimaryWhileUsing", false),
-                Attachment.fromKey(json.optString("attachment", "actor"), equipmentId));
+                Attachment.fromKey(json.optString("attachment", "actor"), equipmentId),
+                muzzleX, muzzleY);
     }
 
     private static State parseState(JSONObject json, String equipmentId) throws JSONException {
@@ -132,7 +152,7 @@ public record EquipmentLayerDef(
 
     private static float unit(float value, String label, String equipmentId)
             throws JSONException {
-        if (value < 0f || value > 1f) {
+        if (!Float.isFinite(value) || value < 0f || value > 1f) {
             throw new JSONException("Special equipment '" + equipmentId + "' " + label
                     + " must be between 0 and 1");
         }

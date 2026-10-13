@@ -311,6 +311,24 @@ class IntegralSystemActivationTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
+    @Test
+    void committedPodPulseExpiresIndependentlyOfActivationAndDoesNotSpendTwice() {
+        UnitRosterService roster = roster();
+        long id = roster.spawn(marine().integralSystem(missilePod()));
+        IntegralSystemService systems = roster.integralSystems();
+        assertTrue(systems.activate(id));
+        assertEquals(null, systems.launch(id), "activation alone is not launch evidence");
+        systems.recordPodLaunch(id, 5.2f, 5.4f, 0f, -90f);
+        assertEquals(0f, systems.launch(id).phase(), 1e-6f);
+        assertEquals(5.2f, systems.launch(id).originX());
+        systems.tick(id, 0.15f);
+        assertEquals(0.5f, systems.launch(id).phase(), 1e-6f);
+        systems.tick(id, 0.2f);
+        assertEquals(null, systems.launch(id));
+        assertTrue(systems.isActive(id));
+        assertEquals(1, systems.ammo(id));
+    }
+
     private static EntitySpec marine() {
         return new EntitySpec("breacher", Faction.MARINE, UnitType.MARINE, 5, 5);
     }

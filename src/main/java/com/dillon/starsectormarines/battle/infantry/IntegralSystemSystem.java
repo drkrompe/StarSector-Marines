@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.HoldingFiringPositionSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
+import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
 import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 import com.dillon.starsectormarines.marine.SightedStandoffSpec;
 
@@ -204,8 +205,19 @@ public final class IntegralSystemSystem {
                 }
                 case SIGHTED_STANDOFF_CONTACT -> {
                     long target = standoffTarget(id, def, sim);
-                    if (target != 0L && systems.activate(id)) {
-                        fireMissilePod(id, target, def.missilePod());
+                    if (target != 0L) {
+                        float bodyBearing = podBodyBearing(id, sim, motion);
+                        MissilePodMountGeometry.Pose mount = podPose(id, target, bodyBearing, def.missilePod());
+                        // A protruding mount must never teleport a round across a wall.
+                        // Prove the body-to-mouth segment before spending ammo/cooldown.
+                        boolean legalOrigin = def.missilePod().mount() == null
+                                || legalPodOrigin(sim.getGrid(), rosterService.world().renderX(id),
+                                    rosterService.world().renderY(id), mount);
+                        if (legalOrigin && systems.activate(id)) {
+                            fireMissilePod(id, target, def.missilePod(), mount);
+                            systems.recordPodLaunch(id, mount.muzzleX(), mount.muzzleY(),
+                                    bodyBearing, mount.bearingDegrees());
+                        }
                     }
                 }
                 case APPROACHING_DEAD_GROUND -> {
@@ -485,15 +497,17 @@ public final class IntegralSystemSystem {
      * ({@code moddable-weapons-nouns.md}) — a pod gets no exemption from the
      * collateral discipline the shipped specials already carry.
      */
-    private void fireMissilePod(long shooter, long target, MissilePodSpec pod) {
-        World world = rosterService.world();
+    private void fireMissilePod(long shooter, long target, MissilePodSpec pod,
+                                MissilePodMountGeometry.Pose mount) {
         WeaponDef weapon = pod.weaponDef();
         Faction shooterFaction = rosterService.identity().faction(shooter);
-        float fromX = world.renderX(shooter);
-        float fromY = world.renderY(shooter);
+        float fromX = mount.muzzleX();
+        float fromY = mount.muzzleY();
+        BallisticResolver.Source source = new BallisticResolver.Source(shooter, fromX, fromY,
+                0f, shooterFaction);
         int missiles = Math.max(1, weapon.projectilesPerShot());
         for (int i = 0; i < missiles; i++) {
-            BallisticResolver.Resolution res = resolver.resolve(shooter, target,
+            BallisticResolver.Resolution res = resolver.resolve(source, target,
                     weapon.accuracy(), weapon.hitSpread(), weapon.roundVelocity(),
                     weapon.range(), rng);
             rosterService.telemetry().recordRoundFired(shooter);
@@ -514,5 +528,71 @@ public final class IntegralSystemSystem {
                     res.victimId() != 0L, res.kind(), shooter));
         }
         rosterService.telemetry().recordSecondaryUsed(shooter);
+    }
+
+    static boolean legalPodOrigin(NavigationGrid grid, float bodyX, float bodyY,
+                                   MissilePodMountGeometry.Pose mount) {
+        int x = (int) Math.floor(mount.muzzleX());
+        int y = (int) Math.floor(mount.muzzleY());
+        if (x < 0 || y < 0 || x >= grid.getWidth() || y >= grid.getHeight()
+                || grid.blocksStructuralLineOfSightAt(grid.index(x, y))) return false;
+        return grid.firstWallOnLine(bodyX, bodyY, mount.muzzleX(), mount.muzzleY()) == -1L
+                && grid.firstProjectileBlockingEdgeBarrierOnLine(bodyX, bodyY,
+                        mount.muzzleX(), mount.muzzleY()) == null;
+    }
+
+    private MissilePodMountGeometry.Pose podPose(long id, long target, float bodyBearing,
+                                                MissilePodSpec pod) {
+        World world = rosterService.world();
+        float x = world.renderX(id);
+        float y = world.renderY(id);
+        MissilePodMountGeometry.Pose initial = MissilePodMountGeometry.resolve(x, y, bodyBearing,
+                bodyBearing, pod.mount());
+        float bearing = MissilePodMountGeometry.bearing(world.renderX(target) - initial.mountX(),
+                world.renderY(target) - initial.mountY());
+        return MissilePodMountGeometry.resolve(x, y, bodyBearing, bearing, pod.mount());
+    }
+
+    /** Reads simulation intent; a mount never depends on an animation pose or a loaded texture. */
+    private float podBodyBearing(long id, BattleSimulation sim, PolicyMotion motion) {
+        World world = rosterService.world();
+        if (sim.directControl().isControlling(id)) {
+            ManualIntent intent = sim.directControl().intent();
+            if (Float.isFinite(intent.aimX()) && Float.isFinite(intent.aimY())) {
+                return MissilePodMountGeometry.bearing(intent.aimX() - world.renderX(id),
+                        intent.aimY() - world.renderY(id));
+            }
+        }
+        long target = world.hasCombat(id) ? world.targetId(id) : 0L;
+        if (target != 0L && rosterService.isAliveById(target)) {
+            return MissilePodMountGeometry.bearing(world.renderX(target) - world.renderX(id),
+                    world.renderY(target) - world.renderY(id));
+        }
+        if (Math.abs(motion.vx()) > MOVING_EPSILON || Math.abs(motion.vy()) > MOVING_EPSILON) {
+            return MissilePodMountGeometry.bearing(motion.vx(), motion.vy());
+        }
+        // Applied velocity is zero before this sweep. A live AI route still
+        // owns its intended heading, including continuous waypoint coordinates.
+        if (!sim.directControl().isControlling(id)) {
+            float travel = podTravelBearing(id, rosterService.movement(),
+                    world.renderX(id), world.renderY(id));
+            if (Float.isFinite(travel)) return travel;
+        }
+        return 0f;
+    }
+
+    static float podTravelBearing(long id, MovementService movement, float x, float y) {
+        if (!movement.has(id) || movement.settled(id)) return Float.NaN;
+        int next = movement.nextWaypointIndex(id);
+        int count = movement.waypointCount(id);
+        while (next < count) {
+            float dx = movement.waypointX(id, next) - x;
+            float dy = movement.waypointY(id, next) - y;
+            if (Math.abs(dx) > MOVING_EPSILON || Math.abs(dy) > MOVING_EPSILON) {
+                return MissilePodMountGeometry.bearing(dx, dy);
+            }
+            next++;
+        }
+        return Float.NaN;
     }
 }

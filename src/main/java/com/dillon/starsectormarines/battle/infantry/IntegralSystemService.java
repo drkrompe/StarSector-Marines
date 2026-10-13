@@ -25,6 +25,29 @@ import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
  */
 public final class IntegralSystemService {
 
+    public static final float POD_LAUNCH_SECONDS = 0.3f;
+
+    /** The actual committed source and bearings, retained only for the short launch pulse. */
+    public record PodLaunch(float originX, float originY, float bodyBearingDegrees,
+                            float bearingDegrees, float remainingSeconds) {
+        public float phase() { return Math.max(0f, Math.min(1f, 1f - remainingSeconds / POD_LAUNCH_SECONDS)); }
+    }
+
+    public PodLaunch launch(long id) {
+        if (!has(id)) return null;
+        Object value = entityWorld.getObject(id, components.INTEGRAL_SYSTEM,
+                BattleComponents.INTEGRAL_SYSTEM_POD_LAUNCH);
+        return value instanceof PodLaunch launch ? launch : null;
+    }
+
+    /** Called only after a salvo has entered the ordinary shot pipeline. */
+    public void recordPodLaunch(long id, float x, float y, float bodyBearing, float podBearing) {
+        if (!has(id)) return;
+        entityWorld.setObject(id, components.INTEGRAL_SYSTEM,
+                BattleComponents.INTEGRAL_SYSTEM_POD_LAUNCH,
+                new PodLaunch(x, y, bodyBearing, podBearing, POD_LAUNCH_SECONDS));
+    }
+
     private final EntityWorld entityWorld;
     private final BattleComponents components;
     private final MitigationService mitigations;
@@ -115,6 +138,16 @@ public final class IntegralSystemService {
     public void tick(long id, float dt) {
         IntegralSystemDef def = spec(id);
         if (def == null) return;
+
+        PodLaunch launch = launch(id);
+        if (launch != null) {
+            float remaining = launch.remainingSeconds() - dt;
+            entityWorld.setObject(id, components.INTEGRAL_SYSTEM,
+                    BattleComponents.INTEGRAL_SYSTEM_POD_LAUNCH, remaining > 0f
+                            ? new PodLaunch(launch.originX(), launch.originY(),
+                                launch.bodyBearingDegrees(), launch.bearingDegrees(), remaining)
+                            : null);
+        }
 
         float cooldown = cooldownRemaining(id);
         if (cooldown > 0f) {

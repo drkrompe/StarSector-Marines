@@ -71,6 +71,7 @@
         "incomingAccuracyMult": 0.91,
         "integralSystem": {
           "id": "system.predictive-volley",
+          "mount": { "rightCells": -0.1408164, "forwardCells": 0.0036625, "muzzleForwardCells": 0.114 },
           "presentation": {
             "carrierLayer": {
               "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
@@ -78,6 +79,7 @@
               "widthShoulders": 0.32,
               "heightShoulders": 0.48,
               "pivot": [0.5, 0.5],
+              "muzzle": [0.5, 0.1041666667],
               "carried": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
               "using": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
               "visibleWhileCarried": true
@@ -647,6 +649,7 @@
         "incomingAccuracyMult": 0.99,
         "integralSystem": {
           "id": "system.battery-volley",
+          "mount": { "rightCells": -0.1606531, "forwardCells": -0.0129148, "muzzleForwardCells": 0.0912 },
           "presentation": {
             "carrierLayer": {
               "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
@@ -654,6 +657,7 @@
               "widthShoulders": 0.32,
               "heightShoulders": 0.48,
               "pivot": [0.5, 0.5],
+              "muzzle": [0.5, 0.1041666667],
               "carried": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
               "using": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
               "visibleWhileCarried": true

@@ -17,10 +17,11 @@ import java.io.Serializable;
  * {@link WeaponDef}. Duplicating {@code projectilesPerShot}, damage, or range
  * here would create a second place those numbers could disagree, which
  * {@code moddable-weapons-nouns.md}'s "one weapon behavior has one
- * authoritative authored value" law forbids. This spec only names which
- * weapon the pod fires and how many salvos the suit carries; the latter lives
- * on {@link IntegralSystemDef#startingAmmo()} alongside every other
- * ammunition-gated system, not duplicated here.
+ * authoritative authored value" law forbids. This spec names the weapon and
+ * optional physical mount geometry. Salvo stock lives on
+ * {@link IntegralSystemDef#startingAmmo()} alongside every other
+ * ammunition-gated system, not duplicated here. Absent mount geometry retains
+ * centered legacy delivery; optional carrier artwork cannot alter that source.
  *
  * <p>The referenced weapon must sit in the marine-secondary mount family — the
  * same family the carried rocket launcher and frag grenade use. A shoulder pod
@@ -28,7 +29,9 @@ import java.io.Serializable;
  * for a mech-mount or turret-mount definition here would smuggle in the mech
  * authority {@code integral-armor-systems.md} explicitly forbids.
  */
-public record MissilePodSpec(String weaponId) implements Serializable {
+public record MissilePodSpec(String weaponId, MissilePodMountSpec mount) implements Serializable {
+
+    public MissilePodSpec(String weaponId) { this(weaponId, null); }
 
     static MissilePodSpec parse(JSONObject json, String armorId, String systemId)
             throws JSONException {
@@ -50,7 +53,19 @@ public record MissilePodSpec(String weaponId) implements Serializable {
                     + " A shoulder pod is infantry ordnance carried by the suit, never a mech"
                     + " mount (integral-armor-systems.md).");
         }
-        return new MissilePodSpec(weaponId);
+        JSONObject mountJson = json.has("mount") ? json.getJSONObject("mount") : null;
+        MissilePodMountSpec mount = null;
+        if (mountJson != null) {
+            try {
+                mount = new MissilePodMountSpec((float) mountJson.getDouble("rightCells"),
+                        (float) mountJson.getDouble("forwardCells"),
+                        (float) mountJson.getDouble("muzzleForwardCells"));
+            } catch (IllegalArgumentException invalid) {
+                throw new JSONException("Missile pod '" + systemId + "' on armor '" + armorId
+                        + "' has invalid mount: " + invalid.getMessage());
+            }
+        }
+        return new MissilePodSpec(weaponId, mount);
     }
 
     /** The authoritative micro-missile behavior this pod fires. */
