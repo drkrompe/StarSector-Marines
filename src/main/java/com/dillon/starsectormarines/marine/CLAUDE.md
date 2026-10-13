@@ -71,7 +71,7 @@ sheet rather than preserving the card's twelve concrete patterns, and the first
 successful squad issue clears those ids. The current per-soldier kit remains the materialized
 state consumed by deployment and battle.
 
-New companies know only the Service Rook, field fatigues, and Ward security kit.
+New companies know only the surplus Rook, field fatigues, and Cordon security shell.
 Founding and ordinary recruits use this baseline; there is no seeded special weapon.
 Other built-in definitions remain library intent and require learned technology.
 Save repair restores only this baseline and preserves every previously learned spec.

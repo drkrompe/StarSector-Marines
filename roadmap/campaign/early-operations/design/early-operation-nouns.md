@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — direct freight sequence, Castle's contingent Morrow bargain and bounded Low Quay recovery with first-suit learning.
+Updated: 2026-10-13 — Relief militia kit and assembly apron; direct freight sequence and Castle's Low Quay recovery bargain.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -608,12 +608,15 @@ not erase different scenario roles or require identical map footprints.
 
 The finite-force command duel uses public scenario places rather than hidden
 enemy positions. In Relief, the local line keeps authored garrison ownership,
-mobile friendly squads preserve its anchor, and raiders advance on that anchor.
+the company preserves its anchor, and raiders advance on that anchor.
 The company receives a bounded five-cell defense area around its gate rally;
 acquiring a distant target must not discard the approach before it reinforces
 that area. Broken morale can still interrupt the duty.
-Relief's local line holds a freight checkpoint gate, with a relay office set
-back inside its compound. The compound is planned before surrounding buildings:
+Relief's eight local militia split evenly between an exterior inspection post
+and the freight checkpoint gate, with a relay office set back inside its compound.
+The exterior group meets the opening raiders behind an open-backed revetment.
+A western extension separates the landing apron from this first engagement so
+a standard Hermes can land and assemble all twelve company recruits. The compound is planned before surrounding buildings:
 its inspection frontage, warehouse, rear unloading apron, gates and connected
 freight/service roads form one authored place. The story keeps that geography
 stable while interior details and the target world's wild surface may vary.
@@ -623,8 +626,9 @@ concrete rather than isolated pad tiles. The employer unloads south of the
 through-road; the company's two berths share the northern apron so a split
 transport load can assemble and advance together. Inspection parking and small
 service yards stay outside the gate fight, relay entrances and attacker routes.
-Employer troops arriving by shuttle reinforce the gate under allied garrison
-authority. They do not become player squads or remain stationed at their pad.
+Employer troops arriving by shuttle wait for company assembly, then reinforce
+the gate under their own mission commander; the two predeployed posts
+retain authored garrison authority. They do not become player squads or remain stationed at their pad.
 
 The bandit assault is a finite force committed at setup. Its opening element
 is already on the approach; two later groups enter at road mouths and march
@@ -636,11 +640,14 @@ the assault. A lull or the death of the opening element never discards reserves.
 Pending ground arrivals count as forces still in play for elimination; victory
 requires the entire committed assault to be defeated.
 
-Relief fields twelve initial raiders and two four-person road groups. All twenty
+Relief fields eight initial raiders and two six-person road groups. All twenty
 carry Rooks at their ordinary low militia grades, matching the new company's
-entry-level weapon tier while its Hermes unloads four recruits per trip. Employer
-weapons and cover remain their existing advantage; Counterattack retains mixed
-militia weapons. The opening must not inherit Lancers and Longbows from the
+entry-level weapon tier while its Hermes unloads four recruits per trip. Local
+and arriving employer militia also carry Rooks; their ordinary protection and
+personnel rolls remain intact. Counterattack retains mixed militia weapons.
+The freight reserve releases between 45 and 60 seconds, and the service-road
+reserve between 75 and 95 seconds. These are road-entry times, not instant
+contact at the gate. The opening must not inherit Lancers and Longbows from the
 generic militia roll and overwhelm a partially landed starter squad.
 
 Road arrivals create ordinary, equipped militia squads. Scripted ownership

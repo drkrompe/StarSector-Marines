@@ -69,7 +69,7 @@ public final class FirstRefit implements Serializable {
             String primary = !upgraded ? WeaponRegistry.STARTER_PRIMARY_ID
                     : path == Path.STEADY_LINE ? WeaponRegistry.SQUAD_AUTOMATIC_ID : WeaponRegistry.PULSE_RIFLE_ID;
             issues.add(new SquadWeaponIssue(upgraded ? path == Path.STEADY_LINE ? "Automatic rifleman" : "Pulse rifleman" : "Rifleman",
-                    primary, upgraded ? EquipmentGrade.MILSPEC : EquipmentGrade.SERVICE, null));
+                    primary, upgraded ? EquipmentGrade.MILSPEC : EquipmentGrade.SURPLUS, null));
         }
         return List.copyOf(issues);
     }

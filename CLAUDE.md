@@ -138,7 +138,7 @@ Do not run builds or leave generated task files there.
   along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
   restores the double replay here when a particular balance run wants it.
   Relief's default matrix is three verdant-surface production maps with twelve
-  named starter recruits (Rooks and Ward security kit) aboard one standard Hermes
+  named starter recruits (surplus Rooks and Cordon shells) aboard one standard Hermes
   making three four-seat trips, repeated with +30s player delay and no player arrival
   within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
   with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
@@ -146,7 +146,8 @@ Do not run builds or leave generated task files there.
   fixtures default to `ROCK`). Optional `starterCompany: true` applies a detached
   new-company roster through the campaign deployment overlay; omitted/false keeps
   the factory loadout. Reports include each recruit landing, surviving company
-  strength at that moment, committed road-arrival times and pending raider counts.
+  strength at that moment, full-squad assembly, first company fire/loss, employer
+  gate arrival, committed road-arrival times and pending raider counts.
   Player lift is a fitted boat; optional `playerBoatId`,
   `playerPlating`, and `playerDrive` pin its identity and catalog fitting ids
   (default: `relief-boat` and standard fit). Employer lift remains one six-seat
