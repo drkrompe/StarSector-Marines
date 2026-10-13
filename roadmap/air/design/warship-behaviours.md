@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — owner decisions recorded; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
+Updated: 2026-10-12 — ship class bias (threat weights by class) built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -50,7 +50,7 @@ Read from `src/main` on 2026-10-11. This is the ground the proposal stands on, a
 **Hull class data: unread.**
 
 - `Warship.fit` reads `width`, `height`, `center`, sprite and weapon slots from the `.ship`, and from `ship_data.csv` flux, speed, turn, hit points and armour. It does **not** read `hullSize`/designation, `hints` (the CARRIER hint), `fighter bays`, the ship system id, or the shield columns (the shields session reads the last as it lands). The only `hints` read is a weapon's.
-- Vanilla gives the shapes this needs: Frigate (Lasher, Tempest), Destroyer (Enforcer), Cruiser (Aurora, Heavy Cruiser Dominator), Battleship (Onslaught, Paragon, Pegasus), Battlecruiser (Conquest, Odyssey 2 bays), Light/Fast Carrier (Condor 2, Heron 3 bays, hint CARRIER), Carrier (Mora 3), Battlecarrier (Legion 4 bays, hints CARRIER and COMBAT), Phase Cruiser (Doom, shield PHASE).
+- *(Read since the class-bias slice; see Classes below.)* Vanilla gives the shapes this needs: Frigate (Lasher, Tempest), Destroyer (Enforcer), Cruiser (Aurora, Heavy Cruiser Dominator), Battleship (Onslaught, Paragon, Pegasus), Battlecruiser (Conquest, Odyssey 2 bays), Light/Fast Carrier (Condor 2, Heron 3 bays, hint CARRIER), Carrier (Mora 3), Battlecarrier (Legion 4 bays, hints CARRIER and COMBAT), Phase Cruiser (Doom, shield PHASE).
 
 **Mission and objective model.**
 
@@ -144,7 +144,26 @@ Exactly the current director with no objective bias and no friendly weighting. I
 
 ### Classes: carriers, support ships, escorts
 
-Class is read from the hull: `hullSize` and designation from the `.ship`/`ship_data.csv`, `hints` (CARRIER), `fighter bays`, and the shield type. A small `ShipClass` (GUN_CAPITAL, CARRIER, ESCORT, SUPPORT, PHASE) is derived, never authored per hull. It changes weights and parameters:
+**Built: the class and its threat weights (`ShipClass`, `AirThreatWeights`).** `Warship.fit` derives a `ShipClass` once from the hull's `hullSize` (`.ship`) and the `designation`, `hints`, `fighter bays` and `shield type` columns of `ship_data.csv`. A hull with no table row keeps `ShipClass.DEFAULT`, a combat capital, which is the row the threat weights were tuned against, so nothing changes for a ship fitted without data.
+
+- **Size:** FRIGATE, DESTROYER, CRUISER, CAPITAL (a fighter-size hull reads as a frigate; an unknown size reads as a capital).
+- **Role:** SUPPORT if the hints say `CIVILIAN` or the designation names a tender (the Shepherd carries `CARRIER` and one bay but is a builder, so tender wins); else CARRIER if the hints say `CARRIER` or the hull has three or more bays; else COMBAT. One or two bays without the hint (Venture, Odyssey) is a gun ship with a wing; a `COMBAT` hint beside `CARRIER` (Legion, Mora, Drover) does not change the role.
+- **Shield type** (NONE, FRONT, OMNI, PHASE) is carried on the class for readouts and later weighting; it is not weighted yet (question 2 below).
+
+The weight table scales the base weights in `AirThreatPicture` (hostile ship 1.0 at full hull, armed craft 0.5 each capped at 2.0 before the multiplier, declared strength as stated). Declared threats and hostile ships count the same for every class; only armed craft differ:
+
+| Class | declared | hostile ship | armed craft |
+| --- | --- | --- | --- |
+| Combat capital (the identity row) | 1.0 | 1.0 | 1.0 |
+| Combat cruiser | 1.0 | 1.0 | 1.25 |
+| Combat destroyer | 1.0 | 1.0 | 1.5 |
+| Combat frigate | 1.0 | 1.0 | 2.0 |
+| Carrier, any size | 1.0 | 1.0 | 2.0 |
+| Support, any size | 1.0 | 1.0 | 1.5 |
+
+So one armed craft (0.5) reaches the air-superiority entry level (1.0) for a frigate or any carrier, and does not for a capital. The score has no ground-clutter term, so a carrier's near-zero weight on ground is already true of every class. A class changes only the threat score and thereby when the ship enters the air fight; no damage, flux, station or director parameter reads it.
+
+The rest of the original class intent is **not built** and is listed here as it was drafted, to be revisited with the open questions below. It changes weights and parameters:
 
 - **Carrier.** Its main contribution is its wings. Existing air cover already flies a player's committed carriers' wings in on a corridor (`FlybyRoster`, `AirCoverSystem`; origin is a corridor, not the deck). A carrier on station therefore does not launch from its hull in v1: it is the *reason* a wing exists, stays back (standoff weight high), conserves flux, and treats hostile fighters as the dominant threat. A deck-launch origin (a third origin beside berth and corridor) is deferred; `air-nouns.md` is explicit that origin is a property of a sortie.
 - **Support ship** (Mora, and the Shepherd as a drone tender, whose own model is `tender-ship.md`; tender-style hulls where `hints` or designation says so): no ground bombardment at all in its default; contributes point defence, spotting (`WarshipSpotting`) and later repair/jam effects. Its posture set is {AIR_SUPERIORITY-like, WITHDRAW}.
@@ -170,7 +189,7 @@ Class is read from the hull: `hullSize` and designation from the `.ship`/`ship_d
 | G3 | Aircraft cannot hurt a ship | "A threat for the ship class" is empty | Strike craft choosing a hull as a target through a narrow ship-damage route; not by making ships entities yet |
 | G4 | Ships are not targets | Escorts, ship-vs-ship, counter-battery, air superiority between capitals | Make a hull a target class for ship mounts (circle, then the authored polygon the nouns already require) |
 | G5 | Ground defences cannot hurt a ship, so there is no hazard to stand off from | "Stay out of range of ground defences" is fiction until it has a cause | Model it as the same kind of area drain `tickAirThreat` uses, from anti-air/anti-armour emplacements, so the posture's standoff has something to read; owner decision first |
-| G6 | Hull class, bays, hints, shield type unread | Class bias (carrier, escort) | Read the existing columns in `Warship.fit`; no new data |
+| G6 | ~~Hull class, bays, hints, shield type unread~~ | **Built (weights).** Parameter biases and escort remain, see Classes and its open questions | `ShipClass` read in `Warship.fit`; `AirThreatWeights` |
 | G7 | No query for hostile loaded shuttles with ETA | INTERCEPT | A few lines over `getAirEntityIds`; belongs with the threat picture |
 
 Recommended order: **G0 and the threat picture (slice 1)**, then **G1 (slice 2)**, then **G7 + LZ-denial INTERCEPT**, then **WITHDRAW**, then **G6 class bias**, and only then the rules that change the simulation: **G2** (ship against air, built), **G3** (air against ship) and **G5** (ground hazard against ship), each behind its own owner decision. G4 (ships as targets) is the largest and gates escorts and ship-vs-ship. The doctrine layer is useful from slice 1 without any of G2 to G5; those turn on its air-superiority half rather than being prerequisites for it.
@@ -183,7 +202,7 @@ Each lands as a `BehaviorScene` next to the existing warship scenes (`onslaught-
 - `warship-support-fire` (built): an objective knot, a denser decoy and a densest knot with the company's own people in it. Verdicts: the control takes the densest and kills its own; the attacker takes the objective first, kills no friendly, leaves the dirty knot alone, holds fire and says why; danger-close fires into the dirty knot (the flag the only difference); a stance flip from ATTACK to DEFEND moves the fire from the objective to the defended ground.
 - `warship-intercept` (built): a defender ship against a marine drop, no ship / density director / landing denial, plus the defenders' own boat landing within reach. Verdicts: the boat lands, the first zone round lands with it (fired before touchdown), far fewer marines survive five seconds after touchdown, the touchdown estimate holds within a second, no round near the defenders' own boat. Whether a detonation hurts a boat on its pad was observed, not asserted: the boat's hit points were untouched.
 - `warship-vs-air` (built): an Onslaught against a lone hostile transport, a fighter wing and a doctrine-driven air fight; and a defending ship against an inbound marine boat. Controls: the same ship under no air order. Verdicts: the boat is shot down in flight and its passengers lost where the control lands them; point-defence weapons stay silent against a transport; the large assault guns (measured by rounds per weapon id) stay silent against fighters while flak, anti-fighter and medium guns fire and kill some; air-superiority is entered, fires no assault round at aircraft, and over the ticks it held the posture fires fewer ground rounds, peaks lower in flux and leaves a hostile ground block untouched where the same ship pinned to bombard destroys it; intercept shoots the boat while the control with air fire off lands it.
-- Open: a withdraw that returns is ruled out by decision 10; ship class bias and ships as targets remain unbuilt.
+- Open: a withdraw that returns is ruled out by decision 10; ships as targets remain unbuilt. Ship class weights are pinned by unit tests (`ShipClassTest`, `AirThreatWeightsTest`), not by a scene: the only question is arithmetic over a snapshot.
 - Each is also a `sceneEvidence` row, so a regression fails the run; the snapshot suite plays the same run for the picture.
 
 ## Risks and rejected alternatives
@@ -241,3 +260,10 @@ Slice 1 (posture and readout), slice 2 (objective-aware, friendly-aware fire, st
 - **Intercept by landing denial.** An inbound hostile loaded boat (INCOMING, PAD_DESCENT or LANDED with people aboard) is ranked by seated people (a machine payload counts as six) per second to touchdown. Its zone becomes a held area, aimed at open ground rather than at a unit, from the moment a round fired now would land at touchdown until everyone is out of the boat. A zone with friendlies in the blast and margin is skipped unless danger-close.
 
 - **Intercept timing is per gun.** The zone is taken up to ten seconds before the slowest gun's first round could land at touchdown, so the hull can swing and the turrets traverse; each barrel then waits on the zone until a round fired now would land as the boat touches down. The touchdown estimate is the boat's remaining run plus half a second, or 0.9 s in its settle; both are measured, not derived, and the scene asserts the estimate holds within a second. A boat that is not visible until it is inbound cannot be pre-aimed on earlier than that, so a ship that must swing a long way is late. The scene starts the defender already lying on a bearing heading.
+
+## Open questions: ship class
+
+1. **Parameter biases are not built.** The classes section calls for a carrier that stays back, conserves flux and weights standoff high, and a support ship with no ground bombardment in its default. Each would change what an existing hull does in a battle (a Mora would fall silent), so the slice stops at threat weights. Candidate next step: a per-role `PostureProfile` adjustment (carrier: air-superiority standoff on at lower threat; support: `maxAreas` 0 under every posture but point defence), owner to confirm the support ship should not bombard at all.
+2. **Shield type is carried but not weighted.** The doc says a shielded battleship does not fear a fighter; the size column already makes that so. Whether an unshielded hull (Doom's phase cloak, a freighter) should add a further fighter multiplier is undecided, and the phase hull's cloak is out of scope until one is fitted.
+3. **Escort is not a role.** It needs a lead-ship relation and ships as bodies (G4); until then a frigate or destroyer is a small combat ship, not an escort. The escort weight on anything targeting its lead has no input to read.
+4. **The multipliers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.

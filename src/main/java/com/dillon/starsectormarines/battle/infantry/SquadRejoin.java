@@ -107,7 +107,7 @@ public final class SquadRejoin {
         // second time rather than trusting it: a generated defender squad has
         // no form-up gate, so it would read as "past form-up" on every spawn.
         if (squad.campaignSquadId == null && !squad.arrivalAssembly) return false;
-        if (SquadFormUpSystem.formingUp(squad)) return false;
+        if (SquadFormUpSystem.holdingAtLandingZone(squad)) return false;
         float[] anchor = landingAnchor(squad, unit, roster);
         if (anchor == null) return false;
         if (InfantryCohesion.withinCohesion(landedX + 0.5f, landedY + 0.5f,

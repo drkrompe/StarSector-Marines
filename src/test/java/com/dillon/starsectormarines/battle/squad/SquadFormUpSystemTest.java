@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
@@ -67,6 +68,29 @@ class SquadFormUpSystemTest {
         assertEquals("FORMING_UP", assembling.assignmentExecutionSuspension());
         assertNotNull(landed.assignmentForExecution());
         assertNull(landed.assignmentExecutionSuspension());
+    }
+
+    @Test
+    void aPlayersOrderPassesTheGateForAPartialSquad() {
+        Squad assembling = campaignSquad(12, 4);
+        ObjectiveAssignment click = ObjectiveAssignment.attackMove(assembling.id, 20, 8);
+        assembling.assignedObjective = click;
+        assembling.assignedAuthority = CommandAuthority.PLAYER_INTERVENTION;
+
+        assertSame(click, assembling.assignmentForExecution());
+        assertNull(assembling.assignmentExecutionSuspension());
+        assertTrue(SquadFormUpSystem.formingUp(assembling),
+                "the squad is still expecting its next lift while it walks");
+    }
+
+    @Test
+    void aCommandersOrderStillWaitsForTheRestOfTheSquad() {
+        Squad assembling = campaignSquad(12, 4);
+        assembling.assignedObjective = ObjectiveAssignment.attackMove(assembling.id, 20, 8);
+        assembling.assignedAuthority = CommandAuthority.MISSION_COMMAND;
+
+        assertNull(assembling.assignmentForExecution());
+        assertEquals("FORMING_UP", assembling.assignmentExecutionSuspension());
     }
 
     private static Squad campaignSquad(int expected, int landed) {

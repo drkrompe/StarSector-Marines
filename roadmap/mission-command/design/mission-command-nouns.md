@@ -119,7 +119,10 @@ Repeating an unchanged directive renews neither clock.
 
 Form-up is execution suspension, not ownership transfer. The authoritative
 directive remains visible while its executable assignment is withheld until
-the squad assembles or the suspension times out.
+the squad assembles or the suspension times out. The suspension masks the
+commander only: a player's lease passes it, because sending a partial squad
+forward is the player's call (a mission that lands four at a time into a
+stronger enemy cannot ask the player to wait for the rest).
 
 ## Subordinate command groups
 

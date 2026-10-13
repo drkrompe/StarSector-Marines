@@ -1608,7 +1608,12 @@ about the objective is a **mission stance** (attack, defend, hold), a value a
 mission sets and changes at any time, never derived from the ship's side; a
 hostile loaded shuttle is never a threat to a ship but an inbound drop. A
 mission may pin a posture, which stops the doctrine, and the debug readout
-states the posture and why.
+states the posture and why. **A warship has a class**, read once at fit time
+from the hull's size, its hints, fighter bays, designation and shield type
+(combat, carrier or support, at frigate to capital size); the class is not a
+posture and only scales how much each air threat counts toward the entry level,
+so a frigate fears a fighter and a carrier fears them more, while a combat
+capital is the unscaled row.
 
 **Support fire weighs the objective and its own side, and never refuses a
 manual order.** Under the support and intercept postures the director scores
