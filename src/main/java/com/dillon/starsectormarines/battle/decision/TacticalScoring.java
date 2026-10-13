@@ -2283,6 +2283,11 @@ public final class TacticalScoring {
             return risk <= -2 ? Doctrine.ADVANCE : Doctrine.HOLD;
         }
         if (risk >= 3) return Doctrine.DISENGAGE;
+        // Entry obeys the same freshness the release does. Releasing a stale
+        // hold to ADVANCE while admitting one from ADVANCE made the doctrine
+        // alternate every tick for as long as the belief lasted, and every
+        // change is a planner interrupt: a replan per tick for fourteen seconds.
+        if (posture == Posture.ADVANCING && !holdContactFresh) return Doctrine.ADVANCE;
         return risk >= 0 ? Doctrine.HOLD : Doctrine.ADVANCE;
     }
 

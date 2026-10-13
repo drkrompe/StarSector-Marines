@@ -74,8 +74,15 @@ final class CampaignLessons {
                 List.of("page-nav-barracks"), "lessonBarracks", () -> context.goTo(ScreenId.BARRACKS)), roster);
         boolean full = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()
                 && roster.readyCount(s) == MarineSquad.CAPACITY).count() >= 2;
-        return later(lesson(3, "lessonFormationTitle", full ? "lessonFormationAssign" : "lessonFormationRecover",
-                List.of("barracks-command-list", "barracks-formation-board", "barracks-reinforce", "barracks-missions"),
+        // Wounded marines keep their billets, so a squad short only by wounded has nothing for Fill Vacancies to
+        // fill; sending the player to a disabled button is a dead end, not guidance.
+        boolean vacant = roster.squads().stream().anyMatch(s -> !s.reserve() && !s.stationed()
+                && roster.vacancies(s) > 0);
+        String copy = full ? "lessonFormationAssign" : vacant ? "lessonFormationRecover" : "lessonFormationWounded";
+        return later(lesson(3, "lessonFormationTitle", copy,
+                vacant || full ? List.of("barracks-command-list", "barracks-formation-board", "barracks-reinforce",
+                        "barracks-missions")
+                        : List.of("barracks-command-list", "barracks-formation-board", "barracks-missions"),
                 context.getSelectedMission() == null ? "lessonHeadquarters" : "lessonBriefing",
                 () -> context.goTo(context.getSelectedMission() == null ? ScreenId.COMPANY_HQ : ScreenId.BRIEFING)), roster);
     }

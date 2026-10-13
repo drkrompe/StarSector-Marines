@@ -23,10 +23,10 @@ package com.dillon.starsectormarines.battle.air;
  */
 public final class GunshipOrbit {
 
-    /** Cells between the craft and the ground point it circles. Tight enough to read as overhead, and well inside the turret's reach whichever side of the ring a target is on. */
-    public static final float RADIUS_CELLS = 7f;
+    /** Broad overwatch circuit, still within the turret's reach of the station centre. */
+    public static final float RADIUS_CELLS = 16f;
     /** Cruise on the ring, cells/sec. Slower than the airframe's own cruise: a gunship holds station, it does not race round it. */
-    public static final float ORBIT_SPEED = 7f;
+    public static final float ORBIT_SPEED = 4f;
     /** Seconds on the ring before the craft turns for the exit. */
     public static final float STATION_SECONDS = 40f;
     /** The craft is on the ring, for the purposes of starting the clock, once within this multiple of the radius. */

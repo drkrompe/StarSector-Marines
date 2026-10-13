@@ -41,7 +41,7 @@ public final class CloseAirSupportScene implements BehaviorScene {
 
     static final int WIDTH = 76;
     static final int HEIGHT = 48;
-    private static final int TICKS = 1450;
+    private static final int TICKS = 1800;
     private static final int CALL_TICK = 30;
     private static final int TARGET_X = 44;
     private static final int TARGET_Y = 24;
@@ -57,7 +57,7 @@ public final class CloseAirSupportScene implements BehaviorScene {
                 + "ground with its one turret on the hull's own mount, fires on it from every side of the ring, and leaves when its time is spent";
     }
 
-    @Override public int frameDelayMillis() { return 90; }
+    @Override public int frameDelayMillis() { return 400; }
 
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
@@ -105,7 +105,7 @@ public final class CloseAirSupportScene implements BehaviorScene {
         }
         Trace trace = new Trace(world, loop);
         SceneRun.of(world).observe(trace)
-                .frames(frames, loop, loop.equals("called") ? 18 : 290, tick -> trace.caption(loop, tick))
+                .frames(frames, loop, loop.equals("called") ? 12 : 290, tick -> trace.caption(loop, tick))
                 .run(TICKS);
         return report(loop, trace, resources, sim);
     }
@@ -128,7 +128,7 @@ public final class CloseAirSupportScene implements BehaviorScene {
                     String.format(Locale.ROOT, "first seen at tick %d at (%.1f, %.1f), map %dx%d",
                             t.firstSeenTick, t.entryX, t.entryY, WIDTH, HEIGHT)));
             verdicts.add(Verdict.of("circles-the-ground-it-was-sent-to",
-                    t.orbitTicks >= 25 * tps && t.worstRingError <= 3f && t.laps >= 3f,
+                    t.orbitTicks >= 25 * tps && t.worstRingError <= 3f && t.laps >= 1.25f && t.laps <= 2f,
                     String.format(Locale.ROOT, "%.1f s on the ring, %.1f laps, never more than %.2f cells off a radius of %.0f",
                             t.orbitTicks / tps, t.laps, t.worstRingError, GunshipOrbit.RADIUS_CELLS)));
             verdicts.add(Verdict.of("one-turret-on-the-hulls-own-mount",

@@ -35,6 +35,13 @@ public final class MissionDefencePolicy {
     static final boolean CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE = true;
 
     /**
+     * Whether a Conquest stands its declared shield generator as a shield fort (the generator inside an inner keep, with
+     * a power plant and a control room) rather than as a bare generator beside the keep. UNTUNED first-pass
+     * mission-design choice, one line to turn off; see {@code forts.md}.
+     */
+    static final boolean CONQUEST_SHIELD_AS_FORT = true;
+
+    /**
      * Defence nests a Conquest declares when its target market holds Ground Defenses. UNTUNED first-pass
      * mission-design choice: a dozen over the canonical 560x336 map (roughly one per 15,000 cells), few enough to be
      * a field to cross rather than a wall. Change freely once play settles how thick the network should be.
@@ -59,10 +66,13 @@ public final class MissionDefencePolicy {
      */
     static GroundDefences conquest(TargetProfile market) {
         int batteries = market.heavyBatteries() ? CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM : 0;
+        boolean shield = market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE;
         GroundDefences declared = new GroundDefences(
                 CONQUEST_BATTERIES_AS_FORTS ? 0 : batteries,
-                market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE,
+                shield && !CONQUEST_SHIELD_AS_FORT,
                 market.groundDefences() ? CONQUEST_NESTS_WHEN_MARKET_HAS_THEM : 0);
-        return CONQUEST_BATTERIES_AS_FORTS ? declared.withForts(FortKind.BATTERY_FORT, batteries) : declared;
+        if (CONQUEST_BATTERIES_AS_FORTS) declared = declared.withForts(FortKind.BATTERY_FORT, batteries);
+        if (CONQUEST_SHIELD_AS_FORT && shield) declared = declared.withForts(FortKind.SHIELD_FORT, 1);
+        return declared;
     }
 }

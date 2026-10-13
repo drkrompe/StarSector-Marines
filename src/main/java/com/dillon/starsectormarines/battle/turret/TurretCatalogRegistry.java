@@ -36,6 +36,7 @@ public final class TurretCatalogRegistry {
     public static final String FORT_FIRE_CONTROL_STRUCTURE_ID = "structure.fort-fire-control";
     public static final String FORT_MAGAZINE_STRUCTURE_ID = "structure.fort-magazine";
     public static final String FORT_POWER_STRUCTURE_ID = "structure.fort-power";
+    public static final String FORT_CONTROL_ROOM_STRUCTURE_ID = "structure.fort-control-room";
     public static final String ANTI_AIR_STRUCTURE_ID = "structure.turret-anti-air-flak";
     public static final String RIDGE_AA_STRUCTURE_ID = "structure.ridge-aa";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
@@ -151,6 +152,14 @@ public final class TurretCatalogRegistry {
             validateAsset(mount.id, "sprite", mount.spritePath);
             validateAsset(mount.id, "recoilSprite", mount.recoilSpritePath);
             validateAsset(mount.weapon.id, "projectileSprite", mount.weapon.projectileSpritePath);
+        }
+        for (StructureDef structure : structuresById.values()) {
+            if (structure.buildingArt != null) {
+                for (String path : structure.buildingArt.spritePaths()) validateAsset(structure.id, "buildingArt", path);
+            }
+            if (structure.gatehouseArt != null) {
+                for (String path : structure.gatehouseArt.spritePaths()) validateAsset(structure.id, "gatehouseArt", path);
+            }
         }
     }
 

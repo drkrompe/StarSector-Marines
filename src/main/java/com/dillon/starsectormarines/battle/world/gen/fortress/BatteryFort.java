@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
 import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Building;
@@ -24,11 +26,14 @@ import java.util.List;
  * </ul>
  *
  * <p>The footprint is the whole of it, belt included; the works stand in the middle at ({@link #OX}, {@link #OY}).
- * Everything here is pure geometry in the local frame: {@code BatteryFortStage} places it on ground the city has left
+ * Everything here is pure geometry in the local frame: {@code FortStage} places it on ground the city has left
  * free and rotates it as one. A fort is stamped into a city that already exists, so the works and their glacis need
  * clear ground and the belt follows whatever ground is open.
  */
 public final class BatteryFort {
+
+    /** Strength of every wall cell of the main works, gatehouse towers included. */
+    public static final int WALL_HP = 400;
 
     /** Local width and height of the footprint, belt and wire included. */
     public static final int WIDTH = 82, HEIGHT = 72;
@@ -56,6 +61,18 @@ public final class BatteryFort {
     public static final List<int[]> NESTS = List.of(
             new int[]{OX - 1, OY - 1}, new int[]{OX + WORKS_W, OY - 1},
             new int[]{OX - 1, OY + WORKS_H}, new int[]{OX + WORKS_W, OY + WORKS_H});
+
+    /**
+     * The gatehouse pieces: a tower either side of each gate, and the gate leaves over each passage. A west-facing gate
+     * is authored as drawn; the postern on the north is the same art turned one quarter.
+     */
+    public static final List<FortPlan.Piece> GATEHOUSE = List.of(
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 13, 2, 3, 0),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 19, 2, 3, 0),
+            new FortPlan.Piece(FortPlan.PieceKind.GATE, OX, OY + 16, 2, 3, 0),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 19, OY + 2, 3, 2, 1),
+            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 25, OY + 2, 3, 2, 1),
+            new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + 22, OY, 3, 2, 1));
 
     /** Floors (x, y, width, height) of the three buildings, in the footprint frame. */
     private static final int[] BUNKER_FLOOR = {OX + 9, OY + 7, 7, 5};
@@ -119,6 +136,44 @@ public final class BatteryFort {
 
     private BatteryFort() {}
 
+    /** The battery fort as a {@link FortPlan}, for the stage that places every kind. */
+    public static final FortPlan PLAN = new FortPlan() {
+        @Override public FortKind kind() { return FortKind.BATTERY_FORT; }
+        @Override public List<FortPlan.Piece> gatehouse() { return GATEHOUSE; }
+        @Override public int width() { return WIDTH; }
+        @Override public int height() { return HEIGHT; }
+        @Override public CompoundLayout layout() { return BatteryFort.layout(); }
+        @Override public boolean isWorks(int x, int y) { return BatteryFort.isWorks(x, y); }
+        @Override public boolean isWall(int x, int y) { return BatteryFort.isWall(x, y); }
+        @Override public List<int[]> clearCells() { return BatteryFort.clearCells(); }
+        @Override public List<Gate> gates() { return GATES; }
+        @Override public List<int[]> gateCells() { return GATE_CELLS; }
+        @Override public List<int[]> nests() { return NESTS; }
+        @Override public int[][] lanes() { return LANES; }
+        @Override public List<FortBelt.Cell> belt() { return FortBelt.cells(); }
+        @Override public List<FortAspect> aspects() { return ASPECTS; }
+        @Override public int[] floor(FortAspect aspect) { return BatteryFort.floor(aspect); }
+        @Override public int[] door(FortAspect aspect) { return BatteryFort.door(aspect); }
+        @Override public int[] coreCentre(FortAspect aspect) { return BatteryFort.coreCentre(aspect); }
+        @Override public String coreStructureId(FortAspect aspect) {
+            return switch (aspect) {
+                case FIRE_CONTROL -> TurretCatalogRegistry.FORT_FIRE_CONTROL_STRUCTURE_ID;
+                case MAGAZINE -> TurretCatalogRegistry.FORT_MAGAZINE_STRUCTURE_ID;
+                case POWER -> TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID;
+                default -> throw new IllegalArgumentException("a battery fort has no " + aspect);
+            };
+        }
+        @Override public String centrepieceStructureId() { return TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID; }
+        @Override public int[] centrepiece() { return PLATFORM; }
+        @Override public FortAspect centrepieceAspect() { return null; }
+    };
+
+    private static final List<FortAspect> ASPECTS = List.of(FortAspect.FIRE_CONTROL, FortAspect.MAGAZINE, FortAspect.POWER);
+
+    /** The main gate faces west, the postern north. */
+    private static final List<FortPlan.Gate> GATES = List.of(
+            new FortPlan.Gate(OX - 1, OY + 17, -1, 0), new FortPlan.Gate(OX + 23, OY - 1, 0, -1));
+
     private static void mark(boolean[][] grid, int x, int y, int w, int h) {
         for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++) grid[x + dx][y + dy] = true;
     }
@@ -180,6 +235,7 @@ public final class BatteryFort {
             case FIRE_CONTROL -> BUNKER_FLOOR.clone();
             case MAGAZINE -> MAGAZINE_FLOOR.clone();
             case POWER -> POWER_FLOOR.clone();
+            default -> throw new IllegalArgumentException("a battery fort has no " + aspect);
         };
     }
 
