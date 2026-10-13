@@ -42,6 +42,7 @@ final class BattleSquadOverlay {
     private final BattleSquadOverlayModel model;
     private final List<MemberElement> memberElements = new ArrayList<>();
 
+    private BattleSimulation simulation;
     private PositionAPI position;
     private UiViewport viewport;
     private UiDocument document;
@@ -55,7 +56,7 @@ final class BattleSquadOverlay {
         this.selection = selection;
         this.targetingSquadId = targetingSquadId;
         model = new BattleSquadOverlayModel(reactor, selection::clear,
-                () -> defendAreaAction.accept(selection.getSelectedSquadId()));
+                () -> defendAreaAction.accept(selection.getSelectedSquadId()), this::selectMember);
     }
 
     void attach(PositionAPI nextPosition, BattleSimulation sim) {
@@ -165,6 +166,7 @@ final class BattleSquadOverlay {
     }
 
     void detach() {
+        simulation = null;
         model.hover(null);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.deactivateInput();
@@ -183,6 +185,7 @@ final class BattleSquadOverlay {
     }
 
     private BattleSquadOverlayModel.Presentation updateModel(BattleSimulation sim) {
+        simulation = sim;
         int selected = selection.hasSquadSelection()
                 ? selection.getSelectedSquadId() : Selection.NONE;
         if (sim != null) {
@@ -192,9 +195,22 @@ final class BattleSquadOverlay {
             });
             selected = selection.getSelectedSquadId();
         }
-        var result = model.update(sim, selected, targetingSquadId.getAsInt());
+        var result = model.update(sim, selected, targetingSquadId.getAsInt(),
+                selection.getSelectedUnitEntityId(), selection.squadCount() == 1);
         model.selectionScope(selection.squadCount());
         return result;
+    }
+
+    /** Revalidate the card's exact identity; a stale slot must never select its replacement. */
+    void selectMember(long unit) {
+        BattleSimulation sim = simulation;
+        int squadId = selection.getSelectedSquadId();
+        if (sim == null || sim.directControl().active() || selection.squadCount() != 1
+                || !BattleSquadOverlayModel.isPlayerInfantrySquad(sim.getSquad(squadId))
+                || sim.resolveUnit(unit) == 0L || !sim.squad().hasSquad(unit)
+                || sim.squad().squadId(unit) != squadId) return;
+        selection.selectUnit(squadId, unit);
+        presentation = updateModel(sim);
     }
 
     private boolean insidePanel(float x, float y) {

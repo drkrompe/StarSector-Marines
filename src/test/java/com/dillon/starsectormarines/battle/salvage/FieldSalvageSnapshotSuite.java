@@ -37,12 +37,34 @@ public final class FieldSalvageSnapshotSuite implements SnapshotSuite {
         if (!Files.exists(fontPath)) fontPath = context.starsectorCore().resolve(Fonts.ORBITRON_12_BOLD.sourcePath());
         Fonts.ORBITRON_12_BOLD.installMetrics(Files.readString(fontPath));
         var overlay = new BattleLaunchOverlay(0,List.of(),List.of(),List.of(),List.of(),0);
+        var frames = new ArrayList<SnapshotArtifact>();
         for (var kind : OpeningOperationKind.values()) {
             try (var sim = BattleSetup.createOpeningOperation(9303,
                     List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE,1,6)),0,kind,TargetProfile.NEUTRAL)) {
                 overlay.applyTo(sim,CommandPowerResources.FREE);
                 require(sim.fieldSalvage().caches().size() == 3, "Three reachable finds in " + kind);
+                if (kind == OpeningOperationKind.RELIEF) {
+                    var find = requireInnerYardFind(sim);
+                    spawn(sim, Faction.MARINE, find.cellX + 2, find.cellY);
+                    advance(sim, 15);
+                    require(find.discovered(), "Inner-yard find uses ordinary player observation");
+                    var yardView = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 34, 33, 80);
+                    frames.add(new SnapshotArtifact("08-relief-inner-yard.png", yardView.render(sim,
+                            "HOLD UNTIL RELIEVED / METALS FIND INSIDE THE DEFENDED CHECKPOINT", ReviewAnnotations.NONE)));
+                    var detailView = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
+                            find.cellX, find.cellY, 48);
+                    frames.add(new SnapshotArtifact("09-relief-cache.png", detailView.render(sim,
+                            "HOLD UNTIL RELIEVED / INNER YARD BETWEEN GATE AND RELAY", ReviewAnnotations.NONE)));
+                }
                 System.out.println("[field-salvage] " + kind + " / three reachable optional caches");
+            }
+        }
+        for (long seed : new long[]{42, 8107}) {
+            try (var sim = BattleSetup.createOpeningOperation(seed,
+                    List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), 0,
+                    OpeningOperationKind.RELIEF, TargetProfile.NEUTRAL)) {
+                overlay.applyTo(sim, CommandPowerResources.FREE);
+                requireInnerYardFind(sim);
             }
         }
         var map = ThunderRunCompound.generate(9303,TargetProfile.NEUTRAL).map();
@@ -51,7 +73,6 @@ public final class FieldSalvageSnapshotSuite implements SnapshotSuite {
             require(sim.fieldSalvage().caches().size() == 3, "Thunder Run has three finds");
             var cache = sim.fieldSalvage().caches().get(0);
             var renderer = new BattleReviewFrameRenderer(context.modRoot(),1920,1080,cache.cellX,cache.cellY,48);
-            var frames = new ArrayList<SnapshotArtifact>();
             frames.add(new SnapshotArtifact("01-undiscovered.png",renderer.render(sim,
                     "FIELD SALVAGE / CONTROLLED RECOVERY SCENE / no cache marker before observation",ReviewAnnotations.NONE)));
             // Stationary actors isolate collection from fighting/commander decisions. They still
@@ -95,6 +116,15 @@ public final class FieldSalvageSnapshotSuite implements SnapshotSuite {
             }
             return frames;
         }
+    }
+    private static SalvageCache requireInnerYardFind(BattleSimulation sim) {
+        var find = sim.fieldSalvage().caches().stream().filter(c -> c.resource == SalvageResource.METALS)
+                .findFirst().orElseThrow();
+        require(find.cellX >= 36 && find.cellX <= 50 && find.cellY >= 35 && find.cellY <= 38,
+                "Relief metals remain inside the authored inner yard");
+        require(sim.getMarineLandingPads().stream().anyMatch(p -> sim.getGrid().arePathConnected(
+                p.centerX, p.centerY, find.cellX, find.cellY, false)), "Inner-yard find is reachable from company landing");
+        return find;
     }
     private static long spawn(BattleSimulation sim, Faction side, int x, int y) {
         return sim.spawn(new EntitySpec("salvage-scene-" + side,side,UnitType.MARINE,x,y).role(UnitRole.STRUCTURE));
