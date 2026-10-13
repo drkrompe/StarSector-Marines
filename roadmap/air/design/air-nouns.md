@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - employer gunship and crash aftermath, retained campaign overhaul, recovery low hover and physical departure boundaries.
+Updated: 2026-10-13 - Talon Two employer callsign, gunship crash aftermath, recovery low hover and physical departure boundaries.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1378,7 +1378,7 @@ of joining the orbit. Changing the route never resets position or velocity,
 and a departing gunship retains cruise altitude rather than replaying a takeoff.
 Its controller may move the orbit center from friendly progress and public
 mission state. Retasking preserves the remaining station time and the chosen
-orbit direction. See Kestrel in `early-operation-nouns.md`.
+orbit direction. See Talon Two in `early-operation-nouns.md`.
 
 Prepared ground AA emplacements acquire hostile airborne craft, traverse,
 and fire visible aimed rounds or guided missiles. Weapon range, structural
