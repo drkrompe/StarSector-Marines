@@ -2465,7 +2465,7 @@
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[steady, focused voice] Talon Two to ground team. Wayline sent us ahead. Keep moving; we will work the next position."
@@ -2480,7 +2480,7 @@
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[steady, focused voice] Talon Two, on station. We have the road. Your militia can move up behind the company."
@@ -2510,7 +2510,7 @@
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[strained, urgent voice] Taking fire up here. Keep those emplacements off us.",
@@ -2547,7 +2547,7 @@
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[steady, focused voice] Talon Two is heading home. Good work down there."
@@ -2562,7 +2562,7 @@
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[confident, conversational voice] Talon Two again, Captain. Same crew, longer road. Coming up to cover the convoy."
@@ -2580,7 +2580,7 @@
         "supply_route.thunder_run.gunship_pass_committed"
       ],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[steady, focused voice] Talon Two, pass complete. Coming around over the column."
@@ -2599,7 +2599,7 @@
         "supply_route.thunder_run.gunship_on_station"
       ],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[strained, urgent voice, fast delivery] We're hit! Still flying. Keep her moving!",
@@ -2637,7 +2637,7 @@
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[weary, relieved voice] Talon Two clear of the corridor. Bringing her home. The road is yours, Captain."
@@ -2699,7 +2699,7 @@
         "supply_route.thunder_run.gunship_inbound"
       ],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[focused, brisk voice] Talon Two. Crossing the road, sweeping the ridge. Keep the column moving."
@@ -2717,7 +2717,7 @@
         "supply_route.thunder_run.gunship_pass_committed"
       ],
       "speaker": "TALON TWO / WAYLINE AIR",
-      "portrait": "",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
       "synthesisText": "[urgent, sharp voice, fast delivery] Launch! Ridge launchers! Missiles inbound!",

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter.Cue;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/** Actual radio overlay, at 100% scale, with every cast portrait and the text-only fallback. */
+/** Actual radio overlay at 100% scale, with infantry, pilot, command and text-only controls. */
 public final class RadioPortraitSnapshotSuite implements SnapshotSuite {
     public String id() { return "radio-portraits"; }
     public String label() { return "Marine radio faces and subtitle readability"; }
@@ -69,6 +70,15 @@ public final class RadioPortraitSnapshotSuite implements SnapshotSuite {
                             (int) surface.viewport().documentWidth(), (int) surface.viewport().documentHeight()),
                             280 + (i % 2) * 720, 180 + (i / 2) * 180, null);
                 }
+                var story = WaylineNarration.parse(new JSONObject(
+                        Files.readString(context.modRoot().resolve(WaylineNarration.PATH))));
+                var pilot = story.lines().stream().filter(line -> line.speaker().equals("TALON TWO / WAYLINE AIR"))
+                        .max(Comparator.comparingInt(line -> line.text().length())).orElseThrow();
+                overlay.update(pilot, 0);
+                var surface = overlay.surface();
+                graphics.drawImage(renderer.render(surface.document(),
+                        (int) surface.viewport().documentWidth(), (int) surface.viewport().documentHeight()),
+                        640, 900, null);
             } finally { graphics.dispose(); }
             return List.of(new SnapshotArtifact("radio-panels.png", sheet));
         } finally {
