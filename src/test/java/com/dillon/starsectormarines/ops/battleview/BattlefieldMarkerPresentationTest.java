@@ -84,7 +84,7 @@ class BattlefieldMarkerPresentationTest {
 
     private static ShieldDomeService.DomeView dome(boolean down, float flux) {
         return new ShieldDomeService.DomeView(1L, Faction.DEFENDER, 10f, 10f, 16f, flux, 1500f,
-                down, down ? 0.5f : 0f, 0f, 0f, 0f, null, 0, 0, 0, 0f);
+                down, down ? 0.5f : 0f, 0f, 0f, 0f, null, 0, 0, 0, 0f, Faction.DEFENDER, 6f);
     }
 
     @Test

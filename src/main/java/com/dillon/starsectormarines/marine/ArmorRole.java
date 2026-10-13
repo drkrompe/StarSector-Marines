@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import org.json.JSONException;
 
 import java.util.Locale;
@@ -74,6 +75,6 @@ public enum ArmorRole {
 
     /** Title-cased for the Armory card. */
     public String displayName() {
-        return Character.toUpperCase(key.charAt(0)) + key.substring(1);
+        return Strings.get("gearArmorRole" + name());
     }
 }

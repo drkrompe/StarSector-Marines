@@ -1,0 +1,226 @@
+{
+  "source_sha256": "abec03220ff7c1cedf4f9ac0ba232f0eaea2d767ba4aa45377e350cdf50de2ee",
+  "material_id_sha256": "959ecb4f70853f48d7d9a994dbd5abd4c2ae689d6352609585f5c18716e3bcf2",
+  "backing_sha256": "1fadc8a656c0d750c94b64b064d1ab01e899efa28fcb8ef39e8a1c43aab12e13",
+  "backing_registration": {
+    "source_dimensions": [
+      1578,
+      997
+    ],
+    "body_bounds": [
+      1,
+      0,
+      1578,
+      989
+    ],
+    "measurement": "Accepted raw backing alpha bounds at threshold 24. Half-open crop registered to original v1 body canvas; no central generated pixels are sampled."
+  },
+  "body_source_bounds": [
+    100,
+    269,
+    737,
+    672
+  ],
+  "body_export_canvas": [
+    150,
+    95
+  ],
+  "shoulders": {
+    "left-shoulder": {
+      "export_name": "shoulder-left.png",
+      "cut_polygon": [
+        [
+          242,
+          265
+        ],
+        [
+          285,
+          287
+        ],
+        [
+          291,
+          306
+        ],
+        [
+          278,
+          341
+        ],
+        [
+          264,
+          412
+        ],
+        [
+          249,
+          478
+        ],
+        [
+          226,
+          519
+        ],
+        [
+          203,
+          526
+        ],
+        [
+          116,
+          503
+        ],
+        [
+          95,
+          423
+        ],
+        [
+          102,
+          370
+        ],
+        [
+          107,
+          315
+        ],
+        [
+          183,
+          282
+        ]
+      ],
+      "hinge_source": [
+        269.0,
+        410.0
+      ],
+      "pivot": [
+        0.2653061224489796,
+        0.34987593052109184
+      ],
+      "parent_offset": [
+        -0.2346938775510204,
+        0.09507857733664184
+      ],
+      "transform_space": "ACTOR",
+      "mastered_offset": [
+        -0.26285714285714284,
+        0.04648800661703886
+      ],
+      "mastered_scale": 1.12
+    },
+    "right-shoulder": {
+      "export_name": "shoulder-right.png",
+      "cut_polygon": [
+        [
+          595,
+          265
+        ],
+        [
+          552,
+          287
+        ],
+        [
+          546,
+          306
+        ],
+        [
+          559,
+          341
+        ],
+        [
+          573,
+          412
+        ],
+        [
+          588,
+          478
+        ],
+        [
+          611,
+          519
+        ],
+        [
+          634,
+          526
+        ],
+        [
+          721,
+          503
+        ],
+        [
+          742,
+          423
+        ],
+        [
+          735,
+          370
+        ],
+        [
+          730,
+          315
+        ],
+        [
+          654,
+          282
+        ]
+      ],
+      "hinge_source": [
+        568.0,
+        410.0
+      ],
+      "pivot": [
+        0.7346938775510204,
+        0.34987593052109184
+      ],
+      "parent_offset": [
+        0.2346938775510204,
+        0.09507857733664184
+      ],
+      "transform_space": "ACTOR",
+      "mastered_offset": [
+        0.26285714285714284,
+        0.04648800661703886
+      ],
+      "mastered_scale": 1.12
+    }
+  },
+  "palettes": {
+    "slate": {
+      "idle_composite": {
+        "max_alpha_delta": 5,
+        "max_rgb_delta": 3,
+        "mean_rgb_delta": 0.21058742425891658,
+        "hidden_backing_coverage": 0.9849723174268389,
+        "generated_cyan_pixels_excluded": 16
+      },
+      "head_and_foot": "Unchanged v1 recipe",
+      "cap_colors": "Unchanged whole-body v1 palette ramp"
+    },
+    "olive": {
+      "idle_composite": {
+        "max_alpha_delta": 5,
+        "max_rgb_delta": 3,
+        "mean_rgb_delta": 0.17466710206451144,
+        "hidden_backing_coverage": 0.9849723174268389,
+        "generated_cyan_pixels_excluded": 16
+      },
+      "head_and_foot": "Unchanged v1 recipe",
+      "cap_colors": "Unchanged whole-body v1 palette ramp"
+    },
+    "oxide": {
+      "idle_composite": {
+        "max_alpha_delta": 5,
+        "max_rgb_delta": 3,
+        "mean_rgb_delta": 0.173941438989877,
+        "hidden_backing_coverage": 0.9849723174268389,
+        "generated_cyan_pixels_excluded": 16
+      },
+      "head_and_foot": "Unchanged v1 recipe",
+      "cap_colors": "Unchanged whole-body v1 palette ramp"
+    },
+    "sand": {
+      "idle_composite": {
+        "max_alpha_delta": 5,
+        "max_rgb_delta": 3,
+        "mean_rgb_delta": 0.21769892239033417,
+        "hidden_backing_coverage": 0.9849723174268389,
+        "generated_cyan_pixels_excluded": 16
+      },
+      "head_and_foot": "Unchanged v1 recipe",
+      "cap_colors": "Unchanged whole-body v1 palette ramp"
+    }
+  }
+}

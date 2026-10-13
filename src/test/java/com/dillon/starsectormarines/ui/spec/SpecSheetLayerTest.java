@@ -181,6 +181,31 @@ class SpecSheetLayerTest {
         }
     }
 
+    @Test
+    void translatedHeadingsAndStatRowsGrowWithoutOverlappingTheirNextRow() {
+        String expanded = "a translated heading with several longer words";
+        try (MarkupInstance instance = SpecSheetDocuments.instance()) {
+            UiDocument document = SpecSheetDocuments.laidOut(instance);
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            layer.show(new SpecSheet(expanded, expanded, null, "weapon",
+                    List.of(new SpecSheet.Stat("damage", expanded, "twenty five damage points", .5f),
+                            SpecSheet.Stat.of("Next", "10")), List.of("Field note")), instance.requireElement("near-left"));
+            var rows = layer.element().children();
+            var heading = rows.get(0).box().borderBox();
+            var first = rows.get(1).box().borderBox();
+            var second = rows.get(2).box().borderBox();
+            assertTrue(heading.height() > 34f);
+            assertTrue(first.height() > 23f);
+            assertTrue(first.y() >= heading.bottom());
+            assertTrue(second.y() >= first.bottom());
+            var line = rows.get(1).children().get(0);
+            for (var text : line.children()) {
+                int count = SpecSheetDocuments.FONT.wrapLines(text.text(), text.box().contentBox().width()).size();
+                assertTrue(line.box().contentBox().height() >= count * 20f);
+            }
+        }
+    }
+
     /** Rows are pooled, so a smaller sheet leaves nothing of the larger behind. */
     @Test
     void refillingDropsTheRowsTheNewSheetDoesNotNeed() {

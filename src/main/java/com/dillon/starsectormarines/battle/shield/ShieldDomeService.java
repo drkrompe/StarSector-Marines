@@ -248,7 +248,8 @@ public final class ShieldDomeService {
                     d.pool, d.spec.fluxCapacity(), d.overloadRemaining > 0f,
                     d.overloadTotal > 0f ? d.overloadRemaining / d.overloadTotal : 0f,
                     d.hitFlash, d.dropFlash, d.captureProgress, d.raider,
-                    d.hits, d.overloads, d.captures, d.absorbedFlux));
+                    d.hits, d.overloads, d.captures, d.absorbedFlux,
+                    d.originalHolder, d.spec.captureRadiusCells()));
         }
         snapshot = List.copyOf(views);
         List<HitView> hits = new ArrayList<>(marks.size());
@@ -290,11 +291,14 @@ public final class ShieldDomeService {
      * @param overloaded    whether the dome is down (an overload, or a reboot after capture)
      * @param recovery      share of the down time still to run, {@code [0, 1]}
      * @param raider        the side currently taking the generator, or null
+     * @param originalHolder the side the generator was built for
+     * @param captureRadius reach of the capture check around the generator, in cells
      */
     public record DomeView(long entityId, Faction holder, float x, float y, float radius,
                            float flux, float capacity, boolean overloaded, float recovery,
                            float hitFlash, float dropFlash, float captureProgress, Faction raider,
-                           int hits, int overloads, int captures, float absorbedFlux) {
+                           int hits, int overloads, int captures, float absorbedFlux,
+                           Faction originalHolder, float captureRadius) {
 
         public float level() {
             return capacity > 0f ? Math.min(1f, flux / capacity) : 0f;
@@ -322,6 +326,7 @@ public final class ShieldDomeService {
         final float x;
         final float y;
         final DomeSpec spec;
+        final Faction originalHolder;
         Faction holder;
         Faction raider;
         float pool;
@@ -340,6 +345,7 @@ public final class ShieldDomeService {
         Dome(long entityId, Faction holder, float x, float y, DomeSpec spec) {
             this.entityId = entityId;
             this.holder = holder;
+            this.originalHolder = holder;
             this.x = x;
             this.y = y;
             this.spec = spec;

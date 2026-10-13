@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,6 +13,10 @@ public record SquadLoadoutPresentationDef(
         String provenance,
         String factionLogo,
         String lore) {
+    public String provenance() { return Strings.resolve(provenance); }
+
+    public String lore() { return Strings.resolve(lore); }
+
 
     public enum Kind {
         WEAPON,

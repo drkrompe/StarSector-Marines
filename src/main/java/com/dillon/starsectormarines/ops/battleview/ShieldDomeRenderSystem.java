@@ -133,6 +133,11 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
                 || ctx.sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y));
     }
 
+    /** The colour a dome of this holder is drawn in: pale cyan for the player's side, warm red for the enemy's. */
+    static float[] tintFor(Faction holder) {
+        return Allegiance.of(holder).friendly() ? FRIENDLY : HOSTILE;
+    }
+
     private static float lerp(float a, float b, float t) {
         return a + (b - a) * Math.max(0f, Math.min(1f, t));
     }

@@ -220,6 +220,7 @@ class CommandFrameProfileTest {
                         case "getSimTickIndex" -> 75;
                         case "getCommanderInfluence" -> null;
                         case "getCompoundService" -> compounds;
+                        case "defenceStructures" -> List.of();
                         default -> throw new AssertionError("Unexpected battle read: " + method.getName());
                     });
         }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import java.util.List;
@@ -16,13 +17,15 @@ public record MissileReplenisherComponent(
         float srmReplenishmentSeconds,
         float lrmReplenishmentSeconds) {
 
+    public String displayName() { return Strings.resolve(displayName); }
+
     public static final MissileReplenisherComponent STANDARD =
             new MissileReplenisherComponent(
-                    "standard_replenisher", "Standard missile replenisher",
+                    "standard_replenisher", "@gearReplenisherStandard",
                     12f, 18f);
     public static final MissileReplenisherComponent ACCELERATED_FEED =
             new MissileReplenisherComponent(
-                    "accelerated_feed", "Accelerated feed system",
+                    "accelerated_feed", "@gearReplenisherAccelerated",
                     9f, 13.5f);
 
     private static final List<MissileReplenisherComponent> CATALOG =

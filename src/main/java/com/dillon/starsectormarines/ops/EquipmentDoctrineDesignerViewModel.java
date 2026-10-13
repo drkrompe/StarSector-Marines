@@ -379,9 +379,9 @@ public final class EquipmentDoctrineDesignerViewModel {
         if (issue.role().contains("Leader")) {
             return Strings.get("openingEquipmentDoctrineDesignerFireTeamLeadPriorityCommandIssue");
         }
-        String role = issue.primaryDef().catalogRole;
+        String role = issue.primaryDef().catalogRole();
         return role != null && !role.isBlank()
-                ? Strings.format("openingEquipmentDoctrineDesignerBillet", title(role), issue.primaryDef().displayName)
+                ? Strings.format("openingEquipmentDoctrineDesignerBillet", title(role), issue.primaryDef().displayName())
                 : Strings.get("openingEquipmentDoctrineDesignerLineBilletReliableGeneralPurposeIssue");
     }
 

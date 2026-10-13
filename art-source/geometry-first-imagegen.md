@@ -82,6 +82,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Ship mess | `MessGalleyTemplate`; long tables, separate meals and stools, coordinated galley appliances | `templates/mess-galley.png`, `tilesets/mess-galley.*` | `ship-materials` |
 | Ship berthing | `BarracksBunkTemplate`; full bunk bases, separate bedding and rails, personal locker banks | `templates/barracks-bunks.png`, `tilesets/barracks-bunks.*` | `ship-materials` |
 | Neutral ship bulkheads | `ShipBulkheadTemplate`; sixteen exposed-face masks, quiet charcoal/enamel materials | `templates/ship-bulkheads.png`, `tilesets/ship-bulkheads.*`, `tilesets/ship-neutral.README.md` | `ship-neutral` |
+| Ground-defence structures | `art-source/templates/defence-structures-guide.py`; static 3x3 plinths, a rotating gun house with barrel recoil layer, a spinning emitter ring and a tint-by-holder core, pivots at canvas centre; exporter splits and registers mechanically (Codex CLI: `art-source/defences/generate.sh`) | `templates/defence-structures-*.py`, `templates/fortress-battery-*-guide.png`, `templates/shield-generator-*-guide.png`, `defences/*.prompt.txt`, `defences/raw/` | `turrets`, `fortress-battery`, `shield-dome` |
 | Ship openings and decks | `ShipInteriorMaterialTemplate`; full-cell cardinal openings and seamless resin samples | `templates/ship-interior-materials.png`, `tilesets/ship-interior-materials.*` | `ship-materials` |
 
 Template classes live in `src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/`.

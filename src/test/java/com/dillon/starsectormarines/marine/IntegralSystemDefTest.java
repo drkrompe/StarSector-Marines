@@ -257,7 +257,7 @@ class IntegralSystemDefTest {
     void everyFamilyPointsAtAnIconThatExists() {
         for (IntegralSystemEffect effect : IntegralSystemEffect.values()) {
             assertTrue(Files.isRegularFile(Path.of("mod", effect.iconPath)),
-                    effect.displayName + " is missing its icon at " + effect.iconPath);
+                    effect.displayName() + " is missing its icon at " + effect.iconPath);
         }
     }
 

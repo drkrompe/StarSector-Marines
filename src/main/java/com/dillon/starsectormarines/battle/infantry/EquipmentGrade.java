@@ -1,17 +1,21 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 /**
  * Manufacturing/condition tier applied to a weapon family. Family controls
  * the firing pattern and art; grade provides small, composable stat changes.
  */
 public enum EquipmentGrade {
-    SURPLUS   (1, "Surplus",    0.90f, 0.80f, 0.85f, 1.20f, 1.30f),
-    SERVICE   (2, "Service",    1.00f, 1.00f, 1.00f, 1.00f, 1.00f),
-    MILSPEC   (3, "Milspec",    1.10f, 1.30f, 1.10f, 0.88f, 0.78f),
-    MASTERWORK(4, "Masterwork", 1.20f, 1.65f, 1.20f, 0.78f, 0.60f);
+    SURPLUS   (1, "@gearEquipmentGradeSURPLUS",    0.90f, 0.80f, 0.85f, 1.20f, 1.30f),
+    SERVICE   (2, "@gearEquipmentGradeSERVICE",    1.00f, 1.00f, 1.00f, 1.00f, 1.00f),
+    MILSPEC   (3, "@gearEquipmentGradeMILSPEC",    1.10f, 1.30f, 1.10f, 0.88f, 0.78f),
+    MASTERWORK(4, "@gearEquipmentGradeMASTERWORK", 1.20f, 1.65f, 1.20f, 0.78f, 0.60f);
 
     public final int tier;
-    public final String displayName;
+    private final String displayName;
+
+    public String displayName() { return Strings.resolve(displayName); }
     public final float rangeMult;
     public final float damageMult;
     public final float accuracyMult;

@@ -1,13 +1,14 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import java.util.Locale;
 
 /** Authored campaign scarcity for a reusable squad loadout, never a random-roll weight. */
 public enum SquadLoadoutRarity {
-    COMMON("Common"),
-    UNCOMMON("Uncommon"),
-    RARE("Rare"),
-    EXOTIC("Exotic");
+    COMMON("@gearSquadLoadoutRarityCOMMON"),
+    UNCOMMON("@gearSquadLoadoutRarityUNCOMMON"),
+    RARE("@gearSquadLoadoutRarityRARE"),
+    EXOTIC("@gearSquadLoadoutRarityEXOTIC");
 
     private final String displayName;
 
@@ -16,7 +17,7 @@ public enum SquadLoadoutRarity {
     }
 
     public String displayName() {
-        return displayName;
+        return Strings.resolve(displayName);
     }
 
     public String cssClass() {
