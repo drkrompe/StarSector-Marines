@@ -50,6 +50,12 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
   a defeated attempt never returns. Confirm the cumulative delivery award once,
   Route Security after success, and no unlock after total loss. An older save
   already completed at Relay Nine must retain its prior recurring work.
+- During Thunder Run's last-objective push, verify small side-road attacks reach
+  both rear militia posts and their guns engage. Check that the technical holds
+  East Crossing while the heavy escorts go forward, and no attack pool refills
+  after a recapture. Verify the opening raiders spend only their issued crude
+  rockets, and the first hauler's actual destruction produces a blast and
+  lingering smoke without obstructing the road.
 - Revisit Results, dismiss and reopen HQ/broker, and reload after either ending.
   Verify the chosen recurring arrangement, new job identities, new rescue crews,
   repeatable fees, and the unchanged historical story record. Unchosen work is

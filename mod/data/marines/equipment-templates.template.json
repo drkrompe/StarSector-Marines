@@ -88,6 +88,11 @@
   ],
   "nonPlayerEquipment": [
     {
+      "kind": "special",
+      "equipmentId": "special.scrap-rocket",
+      "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
+    },
+    {
       "kind": "primary",
       "equipmentId": "weapon.drone-pulse",
       "reason": "Integrated drone armament is not compatible with human infantry issue."

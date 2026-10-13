@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.json.JSONArray;
@@ -109,7 +110,7 @@ class ThunderRunEvidenceTest {
                 assertEquals(ThunderRunPacing.RESERVE_SIZE, sim.getThunderRun().pendingMembers());
                 assertEquals(22, count(sim, Faction.DEFENDER)); // 14 building guards + 6 checkpoint rifles + 2 guns.
                 var column = sim.getThunderRun();
-                assertEquals(fixture.optBoolean("retry")?1:3,column.cargo().size()); assertEquals(column.cargo().size()+(fixture.optBoolean("retry") ? 3 : 4),sim.getConvoyVehicleIds().length);
+                assertEquals(fixture.optBoolean("retry")?1:3,column.cargo().size()); assertEquals(column.cargo().size()+(fixture.optBoolean("retry") ? 4 : 5),sim.getConvoyVehicleIds().length);
                 if (fixture.optBoolean("destroyCargo")) for (long vehicle : column.cargo().values()) sim.convoy().destroy(vehicle);
                 List<Long> escorts = new ArrayList<>();
                 for (long vehicle : sim.getConvoyVehicleIds()) if (sim.convoy().vehicleType(vehicle).hasTurretWeapon()) {
@@ -119,7 +120,14 @@ class ThunderRunEvidenceTest {
                 }
                 Map<Long, Float> finalDamage = new LinkedHashMap<>();
                 Map<Long, Integer> finalRounds = new LinkedHashMap<>();
+                var impacts = new ReviewImpactFx(Path.of("mod"));
                 int firstFinalShot = -1;
+                int[] rearContactTicks = new int[2];
+                Map<Long, Integer> rearGunRounds = new LinkedHashMap<>();
+                int rearStart = -1, advanceWreckTick = -1;
+                int openingRocketShots = 0;
+                var rearCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,150,75,112);
+                var truckCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,119,73,40);
                 List<Long> measuredGuns = new ArrayList<>();
                 List<Long> roadGuns = new ArrayList<>();
                 Map<Long, Integer> gunDown = new LinkedHashMap<>();
@@ -178,6 +186,7 @@ class ThunderRunEvidenceTest {
                         }
                     }
                     sim.advance(BattleSimulation.TICK_DT);
+                    impacts.feed(sim);
                     int combatPhase = column.phase();
                     if (sim.getShotsThisFrame().isEmpty()) {
                         quietTicks[combatPhase]++;
@@ -192,6 +201,35 @@ class ThunderRunEvidenceTest {
                     if (column.phase() == 3) for (var shot : sim.getShotsThisFrame())
                         if (escorts.contains(shot.shooterId) && firstFinalShot < 0) firstFinalShot = sim.getSimTickIndex();
                     int tick = sim.getSimTickIndex();
+                    for (var shot : sim.getShotsThisFrame())
+                        if (shot.weaponDef() != null && "weapon.scrap-rocket".equals(shot.weaponDef().id)) openingRocketShots++;
+                    if (rearStart < 0 && sim.getStoryBeats().stream().anyMatch(e -> e.id().endsWith("road_batch_17"))) {
+                        rearStart = tick;
+                        for (long gun : measuredGuns) rearGunRounds.put(gun, sim.telemetry().roundsFired(gun));
+                    }
+                    if (rearStart >= 0) {
+                        for (var squad : sim.getSquads()) {
+                            var a = squad.assignedObjective;
+                            if (squad.faction != Faction.DEFENDER || squad.aliveMembers <= 0 || a == null) continue;
+                            for (int post = 0; post < 2; post++) {
+                                var cell = ThunderRunCompound.SUPPORT_POSTS.get(post);
+                                if (a.targetCellX() != cell.x() || a.targetCellY() != cell.y()) continue;
+                                float dx = squad.centroidX - cell.x(), dy = squad.centroidY - cell.y();
+                                if (dx * dx + dy * dy < 24 * 24) rearContactTicks[post]++;
+                            }
+                        }
+                        if ((tick - rearStart) % 900 == 0)
+                            ImageIO.write(rearCamera.render(sim,"THUNDER RUN / REAR POSTS / " + tick / 30 + "s", ReviewAnnotations.NONE, impacts),
+                                    "png",dir.resolve("rear-" + tick + ".png").toFile());
+                    }
+                    if (column.advanceHauler() != 0 && !sim.convoy().isTargetable(column.advanceHauler()) && advanceWreckTick < 0) {
+                        advanceWreckTick = tick;
+                        ImageIO.write(truckCamera.render(sim,"THUNDER RUN / ADVANCE HAULER LOST", ReviewAnnotations.NONE, impacts),
+                                "png",dir.resolve("truck-destruction.png").toFile());
+                    }
+                    if (advanceWreckTick > 0 && tick == advanceWreckTick + 30)
+                        ImageIO.write(truckCamera.render(sim,"THUNDER RUN / BURNING HAULER", ReviewAnnotations.NONE, impacts),
+                                "png",dir.resolve("truck-burning.png").toFile());
                     if (tick % 75 == 0) {
                         Set<String> assignedPosts = new HashSet<>();
                         for (var squad : sim.getSquads()) {
@@ -226,7 +264,13 @@ class ThunderRunEvidenceTest {
                         Files.writeString(dir.resolve("samples.json"),samples.toString(2));
                     }
                     boolean phaseChanged=column.phase()!=previousPhase;
-                    if(column.phase()==3 && finalTick<0) finalTick=tick;
+                    if(column.phase()==3 && finalTick<0) {
+                        finalTick=tick;
+                        var body = sim.convoy().body(column.technical());
+                        var technicalCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,body.x,body.y,32);
+                        ImageIO.write(technicalCamera.render(sim,"WAYLINE MILITIA / TECHNICAL AT EAST CROSSING", ReviewAnnotations.NONE, impacts),
+                                "png",dir.resolve("technical-parked.png").toFile());
+                    }
                     if(name.equals("ordinary-9301") && finalTick>=0 && ((tick-finalTick)%60==0
                             || (firstFinalShot>=0 && tick-firstFinalShot<450 && (tick-firstFinalShot)%6==0))) {
                         ImageIO.write(withHud(close.render(sim,"THUNDER RUN / "+(tick/30)+"s / "+column.status()),sim),"png",dir.resolve(String.format("convoy-%05d.png",tick)).toFile());
@@ -280,12 +324,27 @@ class ThunderRunEvidenceTest {
                         "Automatic company screens and militia crew must not share their exact defense center");
                 for (long gun : measuredGuns) fieldGuns.put(new JSONObject().put("id",gun)
                         .put("rounds",sim.telemetry().roundsFired(gun)).put("kills",sim.telemetry().kills(gun))
+                        .put("rearRounds",sim.telemetry().roundsFired(gun)-rearGunRounds.getOrDefault(gun,sim.telemetry().roundsFired(gun)))
                         .put("alive",sim.world().isAlive(gun)));
+                assertTrue(openingRocketShots <= 4, "Opening raiders cannot fire more than their four issued rockets");
+                if (fixture.optBoolean("requireRearPressure")) {
+                    assertTrue(rearContactTicks[0] > 0 && rearContactTicks[1] > 0, "Both actual rear posts must meet attackers");
+                    assertEquals(2, measuredGuns.size());
+                    for (long gun : measuredGuns)
+                        assertTrue(sim.telemetry().roundsFired(gun) > rearGunRounds.getOrDefault(gun, Integer.MAX_VALUE),
+                                "Each militia gun must fire after rear pressure begins");
+                    assertEquals(0, column.pendingMembers(), "Exercise the entire finite timetable");
+                    assertTrue(openingRocketShots > 0, "Measure a real opening rocket attack");
+                    assertTrue(advanceWreckTick > 0, "Measure real vehicle destruction");
+                    assertEquals(193f, sim.convoy().body(column.technical()).x, 2f, "Technical stays at the rear crossing");
+                }
                 JSONArray beats=new JSONArray();
                 for(var e:sim.getStoryBeats()) beats.put(new JSONObject().put("tick",e.tick()).put("id",e.id()));
                 var report=new JSONObject().put("fixture",name).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
+                        .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
+                        .put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
                         .put("supportGunsBuilt", column.supportGuns().size()).put("fieldGuns",fieldGuns)
                         .put("sharedAutomaticDefenseTargets", sharedDefenseTargets)
                         .put("pendingRaiders", column.pendingMembers())

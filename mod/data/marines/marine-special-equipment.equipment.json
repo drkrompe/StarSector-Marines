@@ -1,6 +1,68 @@
 {
   "equipment": [
     {
+      "id": "special.scrap-rocket",
+      "catalog": {
+        "displayName": "Scrap-Tube Rocket",
+        "subtitle": "Two crude unguided rounds",
+        "factionLogo": "graphics/factions/hegemony.png",
+        "description": "A workshop-made shoulder tube firing surplus demolition rockets. Poor sights, a slow reload and a weak shaped charge make it a threat to freight haulers rather than military armor."
+      },
+      "activation": {
+        "type": "direct-explosive",
+        "weaponId": "weapon.scrap-rocket"
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 2
+      },
+      "ai": {
+        "policy": "hardened-direct-fire"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+        "aimSprite": "graphics/battle/marine-rocket.png",
+        "usePose": "shoulder-launcher",
+        "carrierLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+          "widthShoulders": 0.4267,
+          "heightShoulders": 1.04,
+          "pivot": [
+            0.5,
+            0.5385
+          ],
+          "carried": {
+            "offsetShoulders": [
+              0.28,
+              0.05
+            ],
+            "angleDegrees": 45.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [
+              0.3333,
+              0.12
+            ],
+            "angleDegrees": 0.0,
+            "occlusion": "under-body"
+          },
+          "recoilShoulders": 0.055,
+          "firingOcclusion": "over-body",
+          "replacePrimaryWhileUsing": true
+        },
+        "layerClips": {
+          "variant": "rocket",
+          "using": "aiming",
+          "firing": "firing"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 1.0
+        }
+      }
+    },
+    {
       "id": "special.rocket-launcher",
       "catalog": {
         "displayName": "Annihilator Rocket Launcher",

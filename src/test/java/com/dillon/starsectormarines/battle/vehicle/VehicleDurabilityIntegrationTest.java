@@ -87,9 +87,11 @@ class VehicleDurabilityIntegrationTest {
             assertTrue(sim.world().hp(survivor) <= sim.world().maxHp(survivor) * 0.25f + 1e-3f);
         }
 
+        assertEquals(1, sim.getHeavyImpactsThisFrame().size(), "Destruction queues a hull blast once");
         int survivors = sim.liveUnitCount();
         sim.applyDamage(apc, 999f, 999f);
         assertEquals(survivors, sim.liveUnitCount());
+        assertEquals(1, sim.getHeavyImpactsThisFrame().size(), "Late damage cannot duplicate the blast");
         assertEquals(1, sim.getSmokingWrecks().size(),
                 "stacked/late damage cannot repeat passenger or wreck side effects");
     }
