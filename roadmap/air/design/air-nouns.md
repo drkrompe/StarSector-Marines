@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — an overhead ship may fly a low pass (Overhead ships); the ship balance law is a standing law under Overhead ships.
+Updated: 2026-10-14 — an overhead ship may fly a low pass and a small combat hull may escort a larger one (Overhead ships); the ship balance law is a standing law under Overhead ships.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1570,6 +1570,8 @@ command power that committed it (`command-powers-nouns.md`); the entity carries
 a faction and no allegiance logic of its own. What it fires at is chosen by a
 director from the densest concentration of opposing force not already being
 worked, the same rule a fighter strike uses.
+
+**A smaller combat ship may escort a larger one.** An escort is a ship with a lead-ship relation (named by a mission or script, or picked up automatically as its side's flagship when that option is on): it keeps station on a ring beside the lead on the side its threats come from, its threat picture counts a strike sortie aimed at the lead at twice an ordinary armed craft, and its anti-air fire takes those craft first. It is a posture-layer role, so it changes where the ship sits and what it favours and never how hard anything hits; when the lead is lost or leaves, the relation ends and the escort returns to its own station and posture. See `warship-behaviours.md`.
 
 **A ship may make a low pass: a fast, low run along a line, guns on the corridor, at the cost of station time.** The order (the pilot's, a script's or the debug panel's; see `ship-support.md`, slice 5) flies the hull at a burn of its own table speed with no station kept, fires on hostiles in a corridor sliding down the line through the ordinary hand-order fire machinery (so friendly fire stays on and nothing is refused or multiplied), charges twice its flying time against the stay, and gives the ship back to its station, route or pilot; its shadow lies closer and sharper, its wake is louder and it leaves dust along the line, all presentation read from the pass's own clocks.
 

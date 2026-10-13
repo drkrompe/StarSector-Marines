@@ -105,8 +105,19 @@ public final class AirThreatWeights {
      * @param shipWeight the hostile ships' summed base weight
      */
     public static float score(ShipClass shipClass, float declared, float shipWeight, int armedCraft) {
+        return score(shipClass, declared, shipWeight, armedCraft, 0);
+    }
+
+    /**
+     * As above, plus the armed craft aimed at the ship's lead when it is an escort. Each counts
+     * {@link AirThreatPicture#LEAD_CRAFT_WEIGHT} (twice an ordinary armed craft, so a single one turns an escort to
+     * the air fight whatever its own class) up to the same cap, and is not scaled by the escort's class or shield:
+     * the escort's duty is to its lead, not to itself.
+     */
+    public static float score(ShipClass shipClass, float declared, float shipWeight, int armedCraft, int leadCraft) {
         Row row = of(shipClass);
+        float lead = Math.min(AirThreatPicture.ARMED_CRAFT_CAP, leadCraft * AirThreatPicture.LEAD_CRAFT_WEIGHT);
         float craft = Math.min(AirThreatPicture.ARMED_CRAFT_CAP, armedCraft * AirThreatPicture.ARMED_CRAFT_WEIGHT);
-        return declared * row.declared() + shipWeight * row.hostileShip() + craft * row.armedCraft();
+        return declared * row.declared() + shipWeight * row.hostileShip() + craft * row.armedCraft() + lead;
     }
 }

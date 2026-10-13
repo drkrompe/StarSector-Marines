@@ -537,21 +537,77 @@ public final class WarshipSystem {
         if (ship.doctrineClock < DOCTRINE_PERIOD_SECONDS) return;
         float elapsed = ship.doctrineClock;
         ship.doctrineClock = 0f;
+        escortUpkeep(ship);
+        Warship lead = WarshipEscort.liveLead(ship);
         WarshipDoctrine doctrine = ship.doctrine();
+        AirThreatPicture picture = null;
+        if (lead != null || (ship.pinnedPosture() == null && doctrine != null)) {
+            picture = AirThreatPicture.take(sim, ship, ships);
+        }
         if (ship.pinnedPosture() == null && doctrine != null) {
-            AirThreatPicture picture = AirThreatPicture.take(sim, ship, ships);
             PostureInputs inputs = new PostureInputs(ship.hullFraction(), ship.fluxFraction(), ship.overloaded(),
                     ship.hasShield() && !ship.shieldUp(), picture.score(), picture.describe(),
                     picture.ownAir(), ship.stance());
             WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
             ship.setPosture(decision.posture(), decision.reason());
         }
-        if (ship.profile().standoff()) {
+        if (lead != null) {
+            keepStation(ship, lead, picture);
+        } else if (ship.profile().standoff()) {
             float[] station = standoffStation(ship, ship.profile().standoffScale());
             if (station != null) ship.standoffTo(station[0], station[1]);
         } else {
             ship.endStandoff();
         }
+    }
+
+    /**
+     * Keeps the escort relation honest once a second: drops one whose lead has been lost (the escort goes back to its
+     * own station and posture), and, when automatic escorts are on, gives a free small combat hull the flagship
+     * as its lead. An explicit relation is never replaced by an automatic one.
+     */
+    private void escortUpkeep(Warship ship) {
+        if (ship.departing()) return;
+        if (ship.escortLead() != null && WarshipEscort.liveLead(ship) == null) ship.releaseEscort();
+        if (autoEscort && ship.escortLead() == null) {
+            Warship lead = WarshipEscort.autoLead(ship, ships);
+            if (lead != null) {
+                ship.useDoctrine();
+                ship.setEscortLead(lead, false);
+            }
+        }
+    }
+
+    /** Stations an escort on its lead's ring, on the side the lead's threats come from, fanned from its fellow escorts. */
+    private void keepStation(Warship ship, Warship lead, AirThreatPicture picture) {
+        if (ship.departing()) return;
+        if (picture.hasThreatAxis()) {
+            ship.escortAngle(WarshipEscort.bearingDegrees(picture.threatX() - lead.centerX(),
+                    picture.threatY() - lead.centerY()));
+        } else if (Float.isNaN(ship.escortAngle())) {
+            ship.escortAngle(WarshipEscort.noseBearingDegrees(lead));
+        }
+        List<Warship> mates = WarshipEscort.escortsOf(lead, ships);
+        int slot = Math.max(0, mates.indexOf(ship));
+        float[] station = WarshipEscort.station(lead.centerX(), lead.centerY(), WarshipEscort.ringRadius(lead, ship),
+                ship.escortAngle(), slot, Math.max(1, mates.size()));
+        ship.escortTo(station[0], station[1]);
+    }
+
+    private boolean autoEscort;
+
+    /**
+     * Whether free small combat hulls pick up the side's flagship as their lead on their own ({@code false}, the
+     * default). Off by default because a station is the mission's: an automatic follow would override the stations
+     * existing missions and scenes give their ships. A mission that wants a fleet to screen its flagship turns it on,
+     * or names pairs with {@link Warship#escort}.
+     */
+    public void autoEscort(boolean on) {
+        this.autoEscort = on;
+    }
+
+    public boolean autoEscort() {
+        return autoEscort;
     }
 
     /** Distance beyond a hazard's radius a standing-off ship keeps: the standard margin times its scale, plus half the hull. */
