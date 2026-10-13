@@ -142,6 +142,14 @@ class WaylineNarrationTest {
                 assertEquals("ui", clip.getString("kind"));
                 assertEquals("wayline/" + line.id() + ".mp3", clip.getString("source"));
                 assertEquals("story/wayline", clip.getString("out"));
+                if (line.speaker().equals("TALON TWO / WAYLINE AIR")) {
+                    assertEquals("air_comms", clip.getString("processing"));
+                    assertEquals("graphics/portraits/talon-two.png", line.portrait());
+                    assertTrue(Files.isRegularFile(Path.of("mod", line.portrait())));
+                } else {
+                    assertNotEquals("air_comms", clip.optString("processing"),
+                            "The cockpit treatment belongs to the pilot, not other speakers discussing him");
+                }
             }
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
