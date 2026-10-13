@@ -218,7 +218,9 @@ vehicles; the committed payload then enters the shared durability authority.
 Arc, indirect, and other projectile procedures retain their own trajectory and
 arrival contracts. Aerial fire is not implicitly ground direct fire; modeled
 fighter shots require an Air-owned airborne source, target, roof, and wall
-policy before adoption.
+policy before adoption. Dedicated ground AA guidance uses the separate
+Air-owned live-target flight and contact contract; it does not silently adopt
+ground direct-fire targeting or point-defense eligibility.
 
 `moddable-weapons-nouns.md` owns authored weapon identity, direct-fire speed,
 spread, payload, and effect declarations. Ballistics decides where such a

@@ -161,10 +161,11 @@ class TurretCatalogRegistryTest {
     }
 
     @Test
-    void shippedStructuresAreOneCellExceptTheFortressStructuresAndFortAspectCores() {
+    void shippedStructuresRetainTheirAuthoredFootprintSizes() {
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
             if (structure.id.equals("structure.fortress-battery-placeholder")
-                    || structure.id.equals("structure.shield-generator") || structure.isFortAspectCore()) {
+                    || structure.id.equals("structure.shield-generator") || structure.isFortAspectCore()
+                    || structure.id.equals(TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID)) {
                 assertEquals(3, structure.footprintCellsX);
                 assertEquals(3, structure.footprintCellsY);
             } else {
@@ -191,6 +192,32 @@ class TurretCatalogRegistryTest {
                 duplicateStructure.getJSONArray("structures").getJSONObject(0));
         assertThrows(JSONException.class,
                 () -> new TurretCatalogRegistry().ingest(duplicateStructure, weapons));
+    }
+
+    @Test
+    void guidedMissilesRequireAnAirTargetPlatformAndValidFlightParameters() throws Exception {
+        WeaponRegistry weapons = loadWeapons();
+        JSONObject host = catalog("mount.test-aa", "weapon.ridge-aa", "structure.test-aa", "mount.test-aa", 3, 3);
+        assertThrows(JSONException.class, () -> new TurretCatalogRegistry().ingest(host, weapons));
+        host.getJSONArray("structures").getJSONObject(0).put("targetRole", "AA");
+        new TurretCatalogRegistry().ingest(host, weapons);
+
+        var catalog = new JSONObject(Files.readString(Path.of("mod/data/marines/turret-weapons.weapon.json")));
+        JSONObject guided = null;
+        var definitions = catalog.getJSONArray("weapons");
+        for (int i = 0; i < definitions.length(); i++) {
+            JSONObject weapon = definitions.getJSONObject(i);
+            if (weapon.getString("id").equals("weapon.ridge-aa")) guided = weapon;
+        }
+        if (guided == null) throw new AssertionError("Missing guided AA weapon");
+        for (String field : new String[]{"turnRateDegPerSec", "acceleration", "lifetime"}) {
+            JSONObject invalid = new JSONObject(guided.toString());
+            invalid.getJSONObject("sim").getJSONObject("airGuidance").put(field, 0);
+            assertThrows(JSONException.class, () -> WeaponDef.parse(invalid), field);
+        }
+        JSONObject indirect = new JSONObject(guided.toString());
+        indirect.getJSONObject("sim").put("indirectFire", true);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(indirect));
     }
 
     @Test
