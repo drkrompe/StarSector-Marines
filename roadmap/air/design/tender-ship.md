@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-12 — owner decisions folded: free building, the vanilla shield, campaign Shepherd sourcing, the Borer drone sprite; control, AI stance and more options are open.
+Updated: 2026-10-12 — owner decisions folded: free building, the vanilla shield, campaign Shepherd sourcing, the Borer drone sprite; player control through direct control is built; AI stance and more options are open.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
 
@@ -81,8 +81,15 @@ A tender is a warship body, so it is exactly as hittable as one: **only by ordna
 ## Who steers
 
 - **Slice 1:** the debug path. The briefing's WARSHIP DEBUG picker offers "Shepherd (tender)"; the debug panel's keys order a build at the cursor, cancel builds, and recall or deploy the defence drones, and its status line reports hull, shield, builds ("builds free", or the charges left on a metered tender), drones and the current order.
-- **Next:** the player through the existing direct-control carrier seam (`WarshipPilot`): Tab to pilot, left button lays a site, right button recalls or deploys the defence drones, 1-4 choose what to build, fog respected by the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
+- **Player (built):** the existing direct-control carrier seam (`DirectControlSession`, with `TenderPilot` for the hands; `direct-control-nouns.md` Tender owns the bindings and handback). Click the hull, Tab to pilot, WASD flies it, the left button lays a site at the cursor for the selected option, the right button recalls or deploys the defence drones on the press, 1-4 select the option (only slot 1 is filled), X cancels every unfinished site, E is the shield. Fog is the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
 - **AI by stance:** a tender with a mission stance and no pilot: ATTACK builds forward positions on cleared ground and keeps close to the advance; DEFEND builds on the held ground's approaches. Both are a director over `Tender.lay`, never a second order model.
+
+### Decisions made for the pilot
+
+- **Right button is a press, not a hold-to-send.** The drone swarm has no order to go to a point, and a pilot-directed drone would be a second drone behaviour; the button recalls or deploys, nothing more.
+- **A piloted tender does not station itself.** The pilot's hands are what bring the hull near a site: builders launch once it is within 16 cells, and are called home past 26. An AI tender still holds station five cells short of its site.
+- **Handback withdraws the pilot's sites.** A half-built site is not left for an AI that never chose it; leaving costs the work in hand, which is the honest price of taking the hull away. The defence drones return to what they were told before entry.
+- **Four sites at a time.** A held button paints sites; a short cap keeps the line something a person can read and cancel.
 
 ## Friendly fire and fog
 
@@ -106,4 +113,4 @@ No tender weapon exists, so there is no friendly fire to design. A friendly turr
 
 Built: the hull as a composed warship body (fitted from a campaign member or the stock hull, with the vanilla shield, hit points and armour) with the vanilla drone complement and launch bay, defence drones anchored to it, builder drones, both drawn as the Borer, one free build option with a visible work phase and a build-site marker, stand-down under threat, cancel and failure, the debug picker and panel path, unit tests, and the `tender-build` scene (a plain build, a patrol the screen stops, the same patrol with the screen recalled, and an assault that overruns it).
 
-Open: recall as a flight home (slice 1 docks defenders instantly), player control through direct control, AI by stance, more build options, the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance. They are on the board in `stories.md`.
+Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). Open: recall as a flight home (slice 1 docks defenders instantly), AI by stance, more build options, the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance. They are on the board in `stories.md`.

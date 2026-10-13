@@ -1892,6 +1892,8 @@ three stops a lone raider and loses to a fire team; the lever for more is more
 drones, never a tougher drone. `tender-ship.md` carries the rejected alternatives,
 the build candidates and the open questions.
 
+A tender may be flown by the player through the direct-control carrier seam (`direct-control-nouns.md`, Tender): the same build orders and drone recall, laid by the pilot's buttons instead of an AI or the debug panel.
+
 ### Authored structural bombardment
 
 A mission may explicitly order a capital to demolish standing structures in a

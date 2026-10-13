@@ -913,7 +913,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
                 id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete,
-                warships, (x, y) -> fogOfWar.isCellRevealed(x, y));
+                warships, tenders, (x, y) -> fogOfWar.isCellRevealed(x, y));
     }
 
     public DirectControlSession directControl() { return directControl; }
