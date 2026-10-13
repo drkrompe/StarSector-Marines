@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -29,6 +30,9 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
     public String id() { return "first-refit"; }
     public String label() { return "A Proper Issue / two equipment paths"; }
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        try (var strings = new HeadlessStrings(context.modRoot())) { return renderLocalized(context); }
+    }
+    private List<SnapshotArtifact> renderLocalized(SnapshotContext context) throws Exception {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         HeadlessSvgAssets.install(context.modRoot());
         MarineRoster roster = new MarineRoster();
@@ -112,13 +116,19 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
                 "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/first-refit.mlx"));
         loader.reload();
         try (var markup = loader.build(reactor, "first-refit", props)) {
-            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+            var document = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
+            var guide = new PreparationGuide(document, model::guide, () -> {},
+                    new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                            List.of("data/ui/components/company/preparation-guide.mlx")));
             markup.styles().forEach(document::addStyleSheet);
             var binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
             FleetArmoryScreen.bindFirstRefitSheets(binder, markup, model);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             var image = renderer.renderRelative(document, 1920, 1080, 1f,
+                    MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+            guide.update();
+            image = renderer.renderRelative(document, 1920, 1080, 1f,
                     MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
             if (file.equals("04-steady-line-review.png")) {
                 verifyGrid(document, markup, model);

@@ -25,24 +25,20 @@ final class SecondSquadPreparation {
                 && roster.readyCount(s) == MarineSquad.CAPACITY).count();
         long formations = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
         int ready = roster.lineReadySoldiers().size();
-        String requirements = SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission)
-                ? "The launch minimum is two squads with four ready marines each."
-                : "Check the briefing's deployment requirements before committing.";
-        StringBuilder copy = new StringBuilder("Commander, we are taking on larger jobs. This operation recommends ")
-                .append(MissionForceEnvelope.recommendedPersonnel(mission)).append(" marines. ").append(requirements)
-                .append("\n\nAboard: ").append(full).append(full == 1 ? " full squad / " : " full squads / ").append(ready).append(" ready marines.\n")
-                .append(full >= 2 ? "You already have two full squads; no new squad is needed for this lesson."
-                        : formations >= 2 ? "You already have two formations. Fill their vacant billets or let wounded soldiers recover before raising an extra squad."
-                        : "Buy missing Marines, supplies and food at a market, then open Armory and choose Found Line Squad.")
-                .append("\n\nOne new squad / Cost / Available / Buy\n");
+        String requirements = LessonCopy.text(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission)
+                ? "lessonSecondMinimum" : "lessonSecondCheck");
+        String advice = LessonCopy.text(full >= 2 ? "lessonSecondFull"
+                : formations >= 2 ? "lessonSecondExisting" : "lessonSecondFound");
+        StringBuilder costs = new StringBuilder();
         for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
             int available = stores.available(line.commodityId());
-            copy.append(stores.commodityName(line.commodityId())).append(" / ").append(line.quantity())
-                    .append(" / ").append(available).append(" / ").append(Math.max(0, line.quantity() - available)).append("\n");
+            costs.append(LessonCopy.text("lessonCostLine", stores.commodityName(line.commodityId()),
+                    line.quantity(), available, Math.max(0, line.quantity() - available)));
         }
-        copy.append("\nFounding issues twelve soldiers and their starter kit. Other weapon or armor upgrades have a separate bill.\n\nIn Barracks, select the squads and click Assign Selected on their commander's card. Then return here and Assign Squads to include both in this deployment. Wounded soldiers keep their billets; fill vacancies or wait for recovery.");
-        return new PreparationGuide.Lesson(3, "FROM ONE SQUAD TO TWO", copy.toString(),
+        return new PreparationGuide.Lesson(3, LessonCopy.text("lessonSecondTitle"),
+                LessonCopy.text("lessonSecondSummary", MissionForceEnvelope.recommendedPersonnel(mission),
+                        requirements, full, ready, advice, costs.toString()),
                 List.of("mission-prepare-armory", "mission-prepare-barracks", "mission-briefing-back"),
-                "UNDERSTOOD", acknowledge, 480);
+                LessonCopy.text("lessonUnderstood"), acknowledge, 480);
     }
 }

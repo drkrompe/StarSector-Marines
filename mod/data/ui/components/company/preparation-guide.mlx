@@ -5,14 +5,14 @@
       <div id="preparation-heading" class="preparation-heading">
         <img id="preparation-portrait" class="preparation-portrait" src="graphics/portraits/castle.png" />
         <div id="preparation-heading-copy" class="preparation-heading-copy">
-          <div id="preparation-speaker" class="preparation-speaker">CASTLE / COMPANY OFFICER</div>
+          <div id="preparation-speaker" class="preparation-speaker"></div>
           <div id="preparation-title" class="preparation-title"></div>
           <img id="preparation-progress" class="preparation-progress" src="graphics/ui/officers/preparation-step-0.svg" />
         </div>
       </div>
       <div id="preparation-copy" class="preparation-copy"></div>
       <div id="preparation-actions" class="preparation-actions">
-        <button id="preparation-continue" class="preparation-button" onclick="{continueAction}">CONTINUE</button>
+        <button id="preparation-continue" class="preparation-button" onclick="{continueAction}"></button>
       </div>
     </div>
   </div>

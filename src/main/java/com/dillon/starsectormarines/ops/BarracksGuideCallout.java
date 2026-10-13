@@ -77,6 +77,13 @@ final class BarracksGuideCallout {
         document.advance(0f);
     }
 
+    List<UiElement> inputRegions() {
+        if (!command.guideVisible()) return null;
+        var allowed = new ArrayList<>(regions().stream().flatMap(r -> r.elements().stream()).toList());
+        allowed.add(markup.requireElement("barracks-guide"));
+        return allowed;
+    }
+
     private List<Region> regions() {
         List<Region> regions = new ArrayList<>(command.guideRegions().stream()
                 .map(ids -> new Region(ids.stream().map(markup::requireElement).toList())).toList());
