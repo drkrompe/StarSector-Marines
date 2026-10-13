@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-13
-Updated: 2026-10-13 — slice 2 (writeback) is built; a called ship descends a short glide from its station; slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
+Updated: 2026-10-13 — slice 3 planet tint wired through the battle's surface palette; the low pass remains.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -101,8 +101,9 @@ In the order they are worth building:
    ids, played through the ordinary warship cue path: a slowed `gate_explosion` on entry,
    a `hit_heavy` thud at touchdown, `engine_accelerate` low at lift-off and higher
    as it climbs, each rate-limited. Any ship that does not enter this way is
-   unchanged. What remains: the planet tint is a seam only (`WarshipRenderSystem.surface`;
-   the battle does not yet carry the target's palette to presentation), the power must call
+   unchanged. The planet tint is wired: `BattleSetup` hands the target profile's surface to
+   the simulation (`BattleSimulation.surface`, null reads as bare rock) and the warship renderer
+   tints from it each frame. What remains: the power must call
    `arriveFromAbove()` on activation (the debug install does), and a departing ship is
    hidden by its climb well before it leaves the map. Needs a live look for how the
    cloud, glow and dust read over real terrain and under the live camera, and for the

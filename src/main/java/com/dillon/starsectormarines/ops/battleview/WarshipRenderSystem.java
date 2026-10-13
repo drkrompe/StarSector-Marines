@@ -16,7 +16,6 @@ import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipShell;
 import com.dillon.starsectormarines.battle.warship.WarshipThrust;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -101,7 +100,7 @@ public final class WarshipRenderSystem implements RenderSystem {
     private int tailPuffs = TAIL_PUFFS;
 
     private final ShipAtmosphereFx atmosphereFx;
-    /** What the world's surface tints the cloud, the re-entry glow and the dust; bare rock until somebody says. */
+    /** What the world's surface tints the cloud, the re-entry glow and the dust; read from the battle each frame. */
     private WarshipAtmosphere.Tint tint = WarshipAtmosphere.Tint.forPalette(null);
 
     public WarshipRenderSystem(BattleSprites sprites) {
@@ -109,14 +108,9 @@ public final class WarshipRenderSystem implements RenderSystem {
         this.atmosphereFx = new ShipAtmosphereFx(sprites);
     }
 
-    /**
-     * Tints the atmosphere effects by the surface the battle is fought over (see
-     * {@code SurfaceZoning.forPlanetType}). The seam is here and not wired: the
-     * simulation does not carry the target's palette to presentation yet, so
-     * every battle reads as bare rock until the host that built it calls this.
-     */
-    public void surface(SurfacePalette palette) {
-        this.tint = WarshipAtmosphere.Tint.forPalette(palette);
+    /** The tint this system last drew with; the battle's own surface, set from the simulation each frame. */
+    WarshipAtmosphere.Tint tint() {
+        return tint;
     }
 
     @Override
@@ -128,6 +122,7 @@ public final class WarshipRenderSystem implements RenderSystem {
     public void collect(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
+        tint = WarshipAtmosphere.Tint.forPalette(ctx.sim.surface());
         engineClockSeconds = Float.isFinite(ctx.animationTimeSeconds)
                 ? ctx.animationTimeSeconds
                 : engineClockSeconds + Math.max(0f, ctx.realDt);
