@@ -60,8 +60,11 @@ rule, and the boundary with the player's own colonies — is
 marines and mechs, preserving named squads and deliberate regular-equipment
 choices. `power-suit-field-acceptance.md` owns its mission balance, live
 persistence and distinct-art acceptance. Recovered Specter/Arbalest test patterns
-and an eight-regular/four-suit section support that pass; their story introduction
-is reserved for an expedition after the Shepherd actually joins the fleet.
+and an eight-regular/four-suit section support that pass. Their planned story
+introduction is `a-small-war.md`: five operations in Vesper Reach after the
+Shepherd actually joins the fleet, with recovered suit patterns and a crude
+pirate boarding rig. `vesper-reach.md` develops Baronet Rusk, the Greyhook flotilla
+and the yard workers caught between them. The arc and system remain unimplemented.
 
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the
@@ -86,6 +89,8 @@ and a persistent claim on the grounded Shepherd. `shepherd-recovery.md` covers
 Cold Start's playable cargo escort, shore power and grounded construction.
 Working Passage's departure and fleet transfer remain open, alongside the live
 campaign pass through recovery and repair. The three visits share authored geography.
+Actual fleet handover gates the optional Vesper Reach referral; Cold Start alone
+does not grant it or any power-suit reward.
 
 ### Battle tier
 

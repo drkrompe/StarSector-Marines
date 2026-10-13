@@ -77,6 +77,8 @@ final class BattleDirectControlOverlay {
         actionModel = new BattleDirectControlHudModel(reactor, selectWeapon, toggle, togglePause);
     }
 
+    void setExitLabelKey(String key) { actionModel.setExitLabelKey(key); }
+
     void attach(PositionAPI position, BattleSimulation sim, float speedMultiplier) {
         this.position = position;
         if (document == null) {
