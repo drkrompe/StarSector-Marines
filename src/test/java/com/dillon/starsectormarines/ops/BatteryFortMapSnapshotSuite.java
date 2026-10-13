@@ -125,6 +125,9 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
                 var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
                         sim.world().x(generator), sim.world().y(generator) - 6, 60).withRoofs();
                 out.add(new SnapshotArtifact("shield-fort-roofs.png", frame.render(sim, "Shield fort roofed")));
+                var gate = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
+                        sim.world().x(generator), sim.world().y(generator) + 22, 24).withRoofs();
+                out.add(new SnapshotArtifact("shield-fort-gate.png", gate.render(sim, "Shield fort main gate")));
             }
             return out;
         }
