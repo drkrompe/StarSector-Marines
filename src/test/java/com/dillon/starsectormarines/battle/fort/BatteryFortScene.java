@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.fort;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
+import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
@@ -79,6 +83,8 @@ public final class BatteryFortScene implements BehaviorScene {
     private static final int SECONDS_TICKS = 30;
     /** How far out from the main gate the commander's company starts, along the way in. */
     private static final int COMMANDER_STANDOFF = 16;
+    /** How far out from the main gate the works crew stands, nearer than the company. */
+    private static final int CREW_STANDOFF = 4;
 
     @Override public String id() { return "battery-fort"; }
 
@@ -93,7 +99,7 @@ public final class BatteryFortScene implements BehaviorScene {
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("guns-fire", "gun-side-hold", "bunker-taken", "bunker-wrecked", "magazine-wrecked",
-                "power-cut", "fort-taken-turns", "squad-takes-bunker", "commander-takes-bunker")) {
+                "power-cut", "fort-taken-turns", "squad-takes-bunker", "commander-takes-bunker", "commander-skips-crew")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
         return reports;
@@ -131,7 +137,8 @@ public final class BatteryFortScene implements BehaviorScene {
 
     private Run playOne(String loop, FrameSink frames) throws Exception {
         FortSceneWorld terrain = stamp();
-        boolean commander = loop.equals("commander-takes-bunker");
+        boolean crewLoop = loop.equals("commander-skips-crew");
+        boolean commander = loop.equals("commander-takes-bunker") || crewLoop;
         boolean assault = loop.equals("squad-takes-bunker") || commander;
         SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
                 .missionCompletion(false);
@@ -143,6 +150,13 @@ public final class BatteryFortScene implements BehaviorScene {
             start = terrain.cell(gate.mouthX() + gate.outX() * COMMANDER_STANDOFF, gate.mouthY() + gate.outY() * COMMANDER_STANDOFF);
         }
         if (assault) builder.squad("company").faction(Faction.MARINE).size(10).at(start[0], start[1]).primary("weapon.smg").done();
+        if (crewLoop) {
+            // A works crew relieving a captured shed, standing nearer the fort than the company: the nearest squad to the
+            // bunker, and one the dispatcher does not run while the work holds it.
+            FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
+            int[] bench = terrain.cell(gate.mouthX() + gate.outX() * CREW_STANDOFF, gate.mouthY() + gate.outY() * CREW_STANDOFF);
+            builder.squad("crew").faction(Faction.MARINE).size(1).at(bench[0], bench[1]).primary("weapon.smg").done();
+        }
         builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, 95);
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
         SceneWorld world = builder.build();
@@ -173,6 +187,14 @@ public final class BatteryFortScene implements BehaviorScene {
             late.raiseShield(false);
         }
         ScriptedPlayer player = ScriptedPlayer.on(world);
+        long crewMember = 0L;
+        if (crewLoop) {
+            crewMember = world.members("crew")[0];
+            float benchX = sim.world().x(crewMember);
+            float benchY = sim.world().y(crewMember);
+            sim.ambientTasks().assign(crewMember, new AmbientTaskRoute("bench", 0f, 1f, 0f, AmbientThreatPolicy.NONE,
+                    List.of(new AmbientTaskRoute.Stop(benchX, benchY, 1f, AmbientActivity.WORKING, benchX, benchY + 1f))));
+        }
         if (commander) {
             // No scripted order: the company's commander is told only what the company has seen, and must choose.
             sim.setAutonomousCommander(Faction.MARINE,
@@ -186,6 +208,7 @@ public final class BatteryFortScene implements BehaviorScene {
         Trace trace = new Trace(loop, ship, late, terrain, fort);
         trace.squadMembers = assault ? world.members("company") : new long[0];
         trace.squadId = assault ? world.squadId("company") : -1;
+        trace.crewSquadId = crewLoop ? world.squadId("crew") : -1;
         SceneRun.of(world).player(player).observe(trace)
                 .frames(frames, loop, 90, tick -> String.format(Locale.ROOT,
                         "%s / tick %d / hull %.0f%% / rounds %d / pool %.0f / %s", loop, tick,
@@ -282,7 +305,7 @@ public final class BatteryFortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("it-came-in-by-a-gate-or-a-breach", t.contestedTicks > 0,
                         t.contestedTicks + " ticks of contest"));
             }
-            case "commander-takes-bunker" -> {
+            case "commander-takes-bunker", "commander-skips-crew" -> {
                 verdicts.add(Verdict.of("commander-orders-the-bunker-first",
                         t.firstOrderAspect == FortAspect.FIRE_CONTROL,
                         "first order " + t.firstOrderReason + " at tick " + t.firstOrderTick + ", nearest aspect "
@@ -296,6 +319,11 @@ public final class BatteryFortScene implements BehaviorScene {
                         "flipped at tick " + t.flipTick + ", holder " + battery.owner()));
                 // With the guns its own, the next work is making them shoot properly: the plant, then the magazine, never
                 // the bunker again and never a building the company already holds.
+                if (loop.equals("commander-skips-crew")) {
+                    verdicts.add(Verdict.of("the-crew-is-never-detached", t.crewOrders == 0 && t.crewMoves == 0,
+                            t.crewOrders + " structure directives and " + t.crewMoves + " attack-move orders to the works crew, which stood "
+                                    + CREW_STANDOFF + " cells off the gate and nearer the bunker than the company"));
+                }
                 verdicts.add(Verdict.of("then-goes-on-to-what-the-guns-lack",
                         t.laterOrderTick > t.flipTick && t.flipTick > 0
                                 && (t.laterOrderAspect == FortAspect.POWER || t.laterOrderAspect == FortAspect.MAGAZINE),
@@ -411,7 +439,7 @@ public final class BatteryFortScene implements BehaviorScene {
                 // The fort's nests and gun would cut ten riflemen down in seconds; this loop is about the way in,
                 // so the squad is made to outlast them.
                 for (long id : squadMembers) sim.world().setHp(id, 5000f);
-                if (loop.equals("commander-takes-bunker")) shootOutNests(sim);
+                if (loop.startsWith("commander-")) shootOutNests(sim);
             }
             if (tick == EVENT_TICK) {
                 switch (loop) {
@@ -479,7 +507,7 @@ public final class BatteryFortScene implements BehaviorScene {
                 long core = bunker.coreId();
                 float bx = sim.world().x(core);
                 float by = sim.world().y(core);
-                if (firstSeenTick < 0 && sim.playerSeesCell((int) fort.battery().x(), (int) fort.battery().y())) firstSeenTick = tick;
+                if (firstSeenTick < 0 && fortInView(sim)) firstSeenTick = tick;
                 var snapshot = sim.getCommanderSnapshot(Faction.MARINE);
                 var directive = snapshot == null ? null : snapshot.directiveFor(squadId);
                 var order = sim.getSquad(squadId).assignedObjective;
@@ -508,11 +536,28 @@ public final class BatteryFortScene implements BehaviorScene {
                     }
                 }
             }
+            if (crewSquadId >= 0) {
+                var crewSnapshot = sim.getCommanderSnapshot(Faction.MARINE);
+                var crewDirective = crewSnapshot == null ? null : crewSnapshot.directiveFor(crewSquadId);
+                if (crewDirective != null && crewDirective.reason().startsWith("DEFENCE_STRUCTURE_")) crewOrders++;
+                var crewOrder = sim.getSquad(crewSquadId).assignedObjective;
+                if (crewOrder != null && crewOrder.targetCellX() >= 0 && crewOrder.kind() == AssignmentKind.ATTACK_MOVE) crewMoves++;
+            }
             hazardAtEnd = !sim.warships().batteryHazards().isEmpty();
             if (lateShip != null && tick >= LATE_SHIP_TICK) {
                 shotsAtDefenderShip = shots - shotsAtLateShip;
                 defenderHull = lateShip.hullFraction();
             }
+        }
+
+        /** Whether the platform or any of the fort's works is in the company's view, which is all that discloses it. */
+        private boolean fortInView(BattleSimulation sim) {
+            if (sim.playerSeesCell((int) fort.battery().x(), (int) fort.battery().y())) return true;
+            int[] works = fort.exteriorCells();
+            for (int i = 0; i + 1 < works.length; i += 2) {
+                if (sim.playerSeesCell(works[i], works[i + 1])) return true;
+            }
+            return false;
         }
 
         /** The aspect whose building an order's destination is nearest to. */
@@ -543,5 +588,8 @@ public final class BatteryFortScene implements BehaviorScene {
         String lastOrder = "none";
         int maxInBunker;
         int alive;
+        int crewSquadId = -1;
+        int crewOrders;
+        int crewMoves;
     }
 }
