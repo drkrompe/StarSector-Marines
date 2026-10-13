@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.power;
 import com.dillon.starsectormarines.battle.air.AirDeliveryPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.reinforcement.LandingZoneScorer;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -57,14 +58,31 @@ abstract class AirDeliveryPower extends CommandPower {
         float lzX = lz[0] + 0.5f;
         float lzY = lz[1] + 0.5f;
         float[] route = routeFromNearestEdge(lzX, lzY, battle.getGrid());
-        long shuttle = battle.spawnShuttle(carrier, Faction.MARINE,
+        long shuttle = dispatchCarrier(battle, carrier, Faction.MARINE, payload,
+                lzX, lzY, route, battle.playerSupportCommandClaim());
+        configureMission(battle.world().mission(shuttle), carrier, service);
+    }
+
+    /**
+     * Puts one single-sortie carrier carrying {@code payload} in the air and returns its id. The one place the
+     * physical delivery is stood up, shared by the player's powers and a commander's call, so
+     * the two cannot drift into separate deliveries.
+     *
+     * @param route {@code {entryX, entryY, exitX, exitY}}
+     * @param claim who the delivered squad belongs to; {@code null} leaves it unowned
+     */
+    static long dispatchCarrier(BattleControl battle, ShuttleType carrier,
+                                Faction faction, AirDeliveryPayload payload,
+                                float lzX, float lzY, float[] route,
+                                SquadCommandClaim claim) {
+        long shuttle = battle.spawnShuttle(carrier, faction,
                 lzX, lzY, route[0], route[1], route[2], route[3], 0f);
         ShuttleMission mission = battle.world().mission(shuttle);
         mission.payload = payload;
         mission.marinesRemaining = payload.unitsPerSortie(carrier);
         mission.totalCycles = 1;
-        mission.commandClaim = battle.playerSupportCommandClaim();
-        configureMission(mission, carrier, service);
+        mission.commandClaim = claim;
+        return shuttle;
     }
 
     /** Payload-specific setup that may inspect the post-commit power state. */

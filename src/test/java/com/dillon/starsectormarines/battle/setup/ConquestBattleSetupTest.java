@@ -12,6 +12,10 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -101,6 +105,32 @@ public class ConquestBattleSetupTest {
                 "one tiny attacker shuttle must not disarm Conquest fortifications");
         assertEquals(enemyAir.wings, sim.getFlybyRoster().wings,
                 "one tiny attacker shuttle must not cancel authored enemy air");
+    }
+
+    @Test
+    public void aDeclaredMechAllowanceReachesTheBattleAndItsScriptedCallLandsClaimedByTheMarineCommander() {
+        TargetProfile dropping = TargetProfile.NEUTRAL.withDeclaredMechDrops(MechDropDeclaration.NONE.with(
+                Faction.MARINE, new MechDropAllowance(1, List.of(MechVariant.HOUND)).calledAtTick(3)));
+        BattleSimulation sim = BattleSetup.createConquest(
+                92L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)),
+                false,
+                OperationTier.FIRST_CONTRACT,
+                RiskLevel.LOW,
+                dropping);
+
+        assertEquals(1, sim.mechDrops().lancesRemaining(Faction.MARINE));
+        assertEquals(0, sim.mechDrops().lancesRemaining(Faction.DEFENDER));
+        for (int i = 0; i < 6; i++) sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(1, sim.mechDrops().drops().size(), "the declared call is made once its tick comes");
+        MechDropService.Drop drop = sim.mechDrops().drops().get(0);
+        assertEquals("conquest-attacker", drop.issuer());
+        assertEquals("conquest-attacker", sim.world().mission(drop.carrier()).commandClaim.issuer());
+        assertEquals(0, sim.mechDrops().lancesRemaining(Faction.MARINE));
+        int[] zone = MechDropService.centroidOf(sim.getMarineLandingPads());
+        assertTrue(Math.abs(drop.lzCellX() - zone[0]) + Math.abs(drop.lzCellY() - zone[1])
+                <= MechDropService.LZ_SEARCH_RADIUS, "it lands at the drop zone the marines came down on");
     }
 
     @Test

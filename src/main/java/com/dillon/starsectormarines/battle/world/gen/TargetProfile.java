@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
@@ -72,6 +74,8 @@ import java.util.Set;
  *                      signals above, which are inputs a mission may read: map generation and battle
  *                      setup place only this, and never derive it from the signals or the map's size.
  *                      {@link GroundDefences#NONE} for a mission that said nothing.
+ * @param declaredMechDrops the mech-lance drops the MISSION lets each side's commander call down on its own authority;
+ *                      {@link MechDropDeclaration#NONE} for a mission that said nothing.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -83,7 +87,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             boolean groundDefences,
                             boolean heavyBatteries,
                             boolean planetaryShield,
-                            GroundDefences declaredDefences) {
+                            GroundDefences declaredDefences,
+                            MechDropDeclaration declaredMechDrops) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -107,6 +112,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (surface == null) surface = SurfacePalette.ROCK;
         if (link == null) link = SettlementLink.ROAD;
         if (declaredDefences == null) declaredDefences = GroundDefences.NONE;
+        if (declaredMechDrops == null) declaredMechDrops = MechDropDeclaration.NONE;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -131,6 +137,24 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         this(marketSize, stability, defenseLevel, spaceportTier, factionId,
                 functions, surface, link, groundDefence, stationedStrength,
                 groundDefences, heavyBatteries, planetaryShield, GroundDefences.NONE);
+    }
+
+    /** The profile with a defence declaration and no mech-drop declaration: every caller that predates drops. */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength,
+                         boolean groundDefences,
+                         boolean heavyBatteries,
+                         boolean planetaryShield,
+                         GroundDefences declaredDefences) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences,
+                MechDropDeclaration.NONE);
     }
 
     /**
@@ -192,7 +216,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops);
     }
 
     /**
@@ -206,7 +230,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops);
     }
 
     /**
@@ -217,6 +241,17 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declared);
+                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops);
+    }
+
+    /**
+     * This profile with the mission's declaration of the mech lances each side's commander may call, every other
+     * read left as it was. Called once, at the mission boundary (MissionDefencePolicy).
+     */
+    public TargetProfile withDeclaredMechDrops(MechDropDeclaration declared) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared);
     }
 }

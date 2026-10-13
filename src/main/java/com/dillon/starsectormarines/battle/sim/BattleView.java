@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
@@ -377,6 +378,12 @@ public interface BattleView {
 
     /** Per-cell structural topology (walls/roofs/cover classes). Rebuilt on map modification. */
     CellTopology getTopology();
+
+    /**
+     * The mech lances each commander may call down on its own authority, and the ledger that spends them.
+     * {@link MechDropService#NONE} on a battle whose mission declared none.
+     */
+    default MechDropService mechDrops() { return MechDropService.NONE; }
 
     /** The live air-entity ids (shuttles, and planned fighters) — walk these and read each craft's state by id via {@link #world()}. */
     long[] getAirEntityIds();
