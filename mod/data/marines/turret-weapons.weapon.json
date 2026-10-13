@@ -1,6 +1,28 @@
 {
   "weapons": [
     {
+      "id": "weapon.ridge-aa", "mount": "turret-mount",
+      "catalog": { "displayName": "Ridgewatch AA Missile", "modelName": "Ridgewatch", "designation": "SAM", "designationTiered": false },
+      "sim": {
+        "range": 75.0, "damage": 38.0, "accuracy": 1.0, "cooldown": 4.8, "penetration": 24.0,
+        "burstCount": 2, "burstSpacing": 0.4, "roundVelocity": 25.0, "flightSec": 4.0,
+        "airGuidance": { "turnRateDegPerSec": 140.0, "acceleration": 20.0, "lifetime": 8.0 }
+      },
+      "render": { "projectileSprite": "graphics/missiles/missile_locust.png", "projectileVisualCells": 0.85, "contrail": "missile-smoke" },
+      "fx": {
+        "launch": [ { "kind": "smoke", "radius": [0.3, 0.5], "lifetime": [0.7, 1.0], "count": 3,
+          "offsetForward": [-0.3, -0.1], "velocityForward": [-1.8, -1.2] } ],
+        "muzzle": [ { "kind": "glow", "radius": 0.65, "lifetime": 0.12, "color": "FFB060" },
+          { "kind": "fire", "radius": 0.4, "lifetime": 0.25 } ],
+        "trail": [ { "kind": "fire", "radius": [0.16, 0.23], "lifetime": [0.16, 0.25], "color": "FF9040" } ],
+        "impact": [ { "kind": "glow", "radius": 1.1, "lifetime": 0.18, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.9, "lifetime": 0.5 },
+          { "kind": "smoke", "radius": [0.6, 1.0], "lifetime": [1.1, 1.7], "count": 3, "jitter": 0.5 } ],
+        "aftermath": [ { "kind": "smoke", "radius": 0.7, "lifetime": 1.4 } ]
+      },
+      "audio": { "fireSound": "swarmer_fire", "impactSound": "marines_missile_impact" }
+    },
+    {
       "id": "weapon.tank-twin-cannon",
       "mount": "turret-mount",
       "catalog": {

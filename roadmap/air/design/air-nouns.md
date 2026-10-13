@@ -1370,8 +1370,15 @@ mission state. Retasking preserves the remaining station time and the chosen
 orbit direction. See Kestrel in `early-operation-nouns.md`.
 
 Prepared ground AA emplacements acquire hostile airborne craft, traverse,
-and fire visible aimed rounds. Weapon range, structural line of fire, cadence,
-accuracy and ordinary aircraft armor determine the result. They do not attack
+and fire visible aimed rounds or guided missiles. Weapon range, structural
+line of fire, cadence and ordinary aircraft armor determine the result. Aimed
+rounds use weapon accuracy; a guided missile accelerates and turns toward a
+live airborne target within its authored turn rate and fuel lifetime. Damage
+requires physical contact along its traveled segment. Losing the target leaves
+it coasting until expiry; destroying the launcher does not erase rounds already
+in flight. Its sprite and smoke trail follow that same simulated position.
+Guidance belongs to dedicated AA mounts, separately from ground direct fire
+and point-defense targets. They do not attack
 infantry and do not also apply the older abstract turret threat drain. Destroying
 the emplacement removes its future fire; a mission must not script a shoot-down
 regardless of whether the guns survived.

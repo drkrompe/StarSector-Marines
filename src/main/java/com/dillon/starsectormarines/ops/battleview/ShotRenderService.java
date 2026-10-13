@@ -156,13 +156,18 @@ public final class ShotRenderService implements RenderSystem {
             } else {
                 bearing = bearingDeg(s.fromX, s.visualFromY(), s.toX, s.visualToY());
             }
+            if (s.guidedFlight != null) {
+                px = s.guidedFlight.x;
+                py = s.guidedFlight.y + s.guidedFlight.z;
+                bearing = s.guidedFlight.visualBearingDegrees();
+            }
             float pxH = sprite.visualCells() * cellPx;
             float pxW = pxH * cache.aspect;
             out.addSprite(RenderLayer.SHOTS, cache.sprite,
                     cam.cellToScreenX(px), cam.cellToScreenY(py),
                     pxW, pxH, bearing, 1f, 1f, 1f, alphaMult);
 
-            if (progress > 0.02f && progress < 0.98f
+            if ((s.guidedFlight != null || progress > 0.02f && progress < 0.98f)
                     && !WeaponFxRuntime.definition(s).layers(FxSlot.TRAIL).isEmpty()) {
                 float headingRad = (float) Math.toRadians(bearing);
                 float tailDx = -(float) Math.sin(headingRad) * 0.15f;
