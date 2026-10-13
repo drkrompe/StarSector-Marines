@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- Second Wind origin prologue; Barracks owns equipment discovery, editing routes and unread equipment notices.
+Updated: 2026-10-12 -- Second Wind protects its founding payment and supplies; Barracks owns equipment discovery, editing routes and unread equipment notices.
 
 ## Purpose
 
@@ -287,8 +287,8 @@ acquisition remains the progression gate. Workshop restoration does not gate fit
 
 After Relief, Castle's portrait reward prompt appears over the debrief before its
 ordinary controls accept input. It leads with the free technology, shows the actual
-Stalwart/Lancer/Janus art, and offers compact **Choose Free Technology** and **Later**
-actions. Escape defers only the prompt; it never dismisses or settles the debrief.
+Stalwart/Lancer/Janus art, and offers one compact **Choose Free Technology**
+action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.
 
@@ -1181,7 +1181,7 @@ parallel organization or another inventory economy.
 ## Cerberus founding start and planetary stores
 
 The optional Cerberus company start is selected through vanilla character creation.
-It gives the player one unconverted Cerberus, 15,000 credits and travel reserves;
+It gives the player one unconverted Cerberus, 500 spendable credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
 A new selection first opens **Second Wind**, a skippable illustrated bridge prologue
@@ -1189,7 +1189,11 @@ with Castle's portrait and readable dialogue. The crew escaped an independent mi
 colony after its operator withdrew. They restored a grounded Cerberus; the player
 earned command by organizing the escape, while Castle supplied port and convoy
 logistics experience. Earlier player biography remains open. Pooled savings and
-Castle's finite prepaid consignment explain the starting means. Civilian crew keep
+Castle's finite prepaid consignment explain the starting means. Castle holds the
+5,000-credit conversion payment separately from the fleet account, usable only for
+the original ship's yard conversion. Spending the fleet account down to zero cannot
+prevent that order. The reserve is consumed once, never refunded as cash or renewed
+on load; existing campaigns keep their original funds and payment rules. Civilian crew keep
 the ship running; trained Marines must still be mustered through preparation.
 
 Jangala is a practical first berth, with an old yard contact and regular traffic,
@@ -1217,7 +1221,12 @@ squad-founding bill. It is issued once, saved independently of cargo, and never
 loaded wholesale into the small ship's hold. `WorkshopStores` combines cargo with
 that depot only while interacting with its accessible working planetary port,
 checks the whole order, then consumes local stock before cargo. The existing
-fabrication and squad-founding adapters share that authority. It does not replenish
+fabrication and squad-founding adapters share that authority. New Second Wind starts
+earmark the first Hermes and first squad bills separately: boat jobs cannot consume
+the squad's stores, and other workshop jobs cannot consume either allocation.
+Preparation preflight can inspect both allocations but cannot spend them. Legacy
+depots keep their existing remaining stock and unrestricted spending policy.
+The depot does not replenish
 on reload or on another conversion; unused stock remains at its planet. Ordinary
 starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
 stores rather than claiming every counted item is in the hold.

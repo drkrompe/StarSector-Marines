@@ -102,7 +102,7 @@ public final class BoatDeckScreen implements Screen {
             deck = liveDeck;
             selectedBayIndex.set(0);
             viewModel = new BoatDeckViewModel(reactor, roster.boatDeck(),
-                    new CampaignFabricationResources(true), ShipsBoatsAboard.carrier(),
+                    CampaignFabricationResources.forBoats(), ShipsBoatsAboard.carrier(),
                     this::deckChanged);
         } else {
             viewModel.refresh();

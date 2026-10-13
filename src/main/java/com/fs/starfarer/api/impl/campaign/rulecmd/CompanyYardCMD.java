@@ -85,12 +85,18 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         dialog.getTextPanel().addPara("Permanent installation: +18 personnel capacity, -25 cargo capacity, expanded barracks, "
                 + "company command eligibility and one workshop gantry. The existing single boat berth remains; the hullmod includes no boat or mech.");
         int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
-        dialog.getTextPanel().addPara("Credits - Cost: 5,000 / Available: " + credits + " / Short by: "
-                + Math.max(0, MercenaryCompanyConversion.CREDIT_COST - credits));
+        int reserved = CompanyYard.reservedCredits(ship);
+        int cash = CompanyYard.cashCost(ship);
+        dialog.getTextPanel().addPara("Yard cost: 5,000 credits / Castle's reserved payment: " + reserved
+                + " / Due from fleet: " + cash + " / Fleet funds: " + credits + " / Short by: "
+                + Math.max(0, cash - Math.max(0, credits)));
+        if (reserved > 0) dialog.getTextPanel().addPara("That payment is held for Second Wind's conversion. "
+                + "It cannot be spent on trade or other repairs. The first Hermes and first squad also have separate prepaid stores.");
         String failure = CompanyYard.refusal(ship, CompanyYard.dockedMarket());
         if (failure != null) dialog.getTextPanel().addPara(failure);
         dialog.getOptionPanel().clearOptions();
-        dialog.getOptionPanel().addOption("Install conversion - 5,000 credits", "smYardInstall");
+        dialog.getOptionPanel().addOption(reserved > 0 ? "Install conversion - use reserved payment"
+                : "Install conversion - 5,000 credits", "smYardInstall");
         dialog.getOptionPanel().setEnabled("smYardInstall", failure == null);
         dialog.getOptionPanel().addOption("Return to port", "smYardReturn");
     }
