@@ -121,11 +121,13 @@ class ShiftTest {
         assertNotNull(machinist, "the shop offered a machinist nothing");
         // Repair joined the list when the bays started publishing a defect
         // backlog: making and mending parts is the same trade, and the machinist
-        // is who a bay's snag list belongs to.
+        // is who a bay's snag list belongs to. Reading a terminal joined it with
+        // the workstation rounds (3af1bb957).
         for (AmbientTaskRoute.Stop stop : machinist.stops()) {
             assertTrue(stop.pointGroup().endsWith("fabricate")
                             || stop.pointGroup().endsWith("stow")
-                            || stop.pointGroup().endsWith("repair"),
+                            || stop.pointGroup().endsWith("repair")
+                            || stop.pointGroup().endsWith("readout"),
                     "a machinist was sent to " + stop.pointGroup());
         }
     }
