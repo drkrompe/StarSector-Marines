@@ -542,6 +542,14 @@ between bursts; the fan is an irregular expanding mass, not two straight arms.
 Each released blast keeps moving independently, slowing and billowing outward.
 This is the visual aftermath of the impact; it does not repeatedly apply the
 impact blast's damage.
+The physical impact breaches walls, roofs and destructible natural props before
+resolving occupants. The grounded hull continues crushing a swept corridor during
+its skid. Overlapping contact samples strike each actor once per crash; damage
+is tied to distance travelled, not frame count or visual fireballs. Permanent
+mountain masses remain impassable. Settled airborne fragments are persistent
+rough ground that halves infantry, mech and vehicle movement speed without
+closing a route or opening any pre-existing obstacle. Hardstand and taxiing
+wrecks retain their solid footprint.
 A hull falling beyond the battlefield does not leave an invented wreck at its
 edge. Battle resolution waits for an ongoing crash to settle.
 
@@ -561,7 +569,7 @@ reason, since a lattice boundary is addressable as ordinary source rectangles
 and a curve would need per-pixel masking that is not available. See
 `HullBreakup`.
 
-The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
+A hardstand or taxiing wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque
 here unless it says otherwise, so the wreck says otherwise — a burnt-out
 airframe is a frame with holes in it, and an apron strewn with them is still an

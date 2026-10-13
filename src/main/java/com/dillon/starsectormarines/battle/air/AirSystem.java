@@ -777,13 +777,18 @@ public class AirSystem {
         if (airframeCookOff != null) {
             airframeCookOff.cookOff(id, body.x, body.y, faction);
         }
-        settleGroundWreck(id, body);
+        settleGroundWreck(id, body, false);
     }
 
-    private void settleGroundWreck(long id, AirBody body) {
+    private void settleGroundWreck(long id, AirBody body, boolean crashDebris) {
         if (airfield == null) return;
         GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
         airfield.addGroundWreck(wreck);
+        if (crashDebris) {
+            AirframeFootprint.settleCrashDebris(navigation.getGrid(), body.x, body.y,
+                    world.airframe(id).targetRadiusCells() + 1f);
+            return;
+        }
         LongBucket nearby = new LongBucket();
         navigation.getUnitIndex().gather(body.x, body.y, GROUND_WRECK_GATHER_RADIUS_CELLS, nearby);
         AirframeFootprint.settleWreck(navigation.getGrid(), navigation.getTopology(), world,
@@ -856,11 +861,14 @@ public class AirSystem {
                             != (int) ((mission.crashSeconds - AirCrashMotion.FALL_SECONDS) / .18f)) {
                         effects.spawnCrashBlastFan(body.x, body.y, body.vx, body.vy, frame.targetRadiusCells());
                     }
-                    if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
-                            && AirCrashMotion.skid(body, dt - airborneSeconds)) {
+                    boolean stopped = mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
+                            && AirCrashMotion.skid(body, dt - airborneSeconds);
+                    if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS && airframeCookOff != null)
+                        airframeCookOff.skid(id, body.x, body.y, stopped);
+                    if (stopped) {
                         // A hull that slides off the map does not teleport back onto its edge.
                         if (body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
-                                && body.y < navigation.getGrid().getHeight() - 1) settleGroundWreck(id, body);
+                                && body.y < navigation.getGrid().getHeight() - 1) settleGroundWreck(id, body, true);
                         mission.state = ShuttleState.GONE;
                     }
                     break;
