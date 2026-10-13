@@ -53,6 +53,17 @@ final class DebugMissionDifficulty {
     }
 
     /**
+     * Returns the same mission for production work. DEBUG work states how many mech lances the attacking commander
+     * may call down, so a muster with armour and one without can be played back to back.
+     *
+     * @param requestedMechDrop the allowance to state, or {@code null} to hand the answer back to the mission type.
+     */
+    static Mission atMechDrop(Mission mission, DebugMechDrop requestedMechDrop) {
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
+        return Mission.builder(mission).mechDrop(requestedMechDrop).build();
+    }
+
+    /**
      * Returns the same mission for production work. DEBUG work states how
      * settled its map is directly, so the three maps a market could produce
      * can be played back to back on one board.

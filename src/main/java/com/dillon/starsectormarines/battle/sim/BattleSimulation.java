@@ -241,6 +241,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 
 /**
@@ -549,6 +550,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         addObjective(depotHold);
     }
     private SquadCommandClaim playerSupportCommandClaim;
+    private MechDropService mechDrops = MechDropService.NONE;
 
     public void installWaylineHound(int x, int y) {
         if (simTickIndex != 0 || waylineHound != null) throw new IllegalStateException("Install recovery once at setup");
@@ -2111,6 +2113,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public SquadCommandClaim playerSupportCommandClaim() { return playerSupportCommandClaim; }
 
+    /** Installs the mech-lance allowances the mission declared; battle setup owns the call. */
+    public void setMechDrops(MechDropService service) {
+        if (simTickIndex != 0) throw new IllegalStateException("Mech drop allowances belong to battle setup");
+        mechDrops = service != null ? service : MechDropService.NONE;
+    }
+
+    @Override public MechDropService mechDrops() { return mechDrops; }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);
@@ -2719,6 +2729,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         survivorPickup.tick(this);
         if (coldAccount != null) coldAccount.advance(this);
         if (hostileShip != null) hostileShip.advance(this);
+        mechDrops.advance(this);
         fortSystem.tick(TICK_DT, this);
         fortressBatterySystem.tick(TICK_DT, this);
         warships.tick(TICK_DT, this);

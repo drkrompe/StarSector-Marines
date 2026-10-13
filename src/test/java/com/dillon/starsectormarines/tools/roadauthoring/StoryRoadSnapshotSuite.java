@@ -23,6 +23,8 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
+import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -39,9 +41,9 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> frames = new ArrayList<>();
         TargetProfile profile = new TargetProfile(0,0,0,0,"",Set.of(),SurfacePalette.VERDANT,SettlementLink.ROAD);
         String[] names = {"relief","counterattack","junction","last-lift","relay-nine"};
-        int[][] close = {{36,19},{62,24},{58,25},{57,30},{52,25}};
+        int[][] close = {{68,19},{62,24},{58,25},{57,30},{52,25}};
         for (int seed = 8101; seed <= 8103; seed++) {
-            List<MapResult> maps = List.of(ReliefCheckpoint.generate(112,64,seed,profile).map(),
+            List<MapResult> maps = List.of(ReliefCheckpoint.generate(ReliefCheckpoint.WIDTH,ReliefCheckpoint.HEIGHT,seed,profile).map(),
                     CounterattackDepot.generate(seed,profile).map(),JunctionCompound.generate(seed,profile).map(),
                     LastLiftCompound.generate(seed,profile,12).map(),RelayNineCompound.generate(seed,profile).map());
             for (int index=0;index<maps.size();index++) {
@@ -66,11 +68,13 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                                 scene.pass(ShipDeckBattleScene.DeckView.over(0,0,72,72,15)),1920,1080)));
                     if(index==2 || index==4) frames.add(new SnapshotArtifact(names[index]+"-loading-court.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.fitting(index==2?92:103,index==2?61:76,80,45,1920,1080)),1920,1080)));
+                    if(names[index].equals("relief")) frames.add(new SnapshotArtifact("relief-west-yard.png",renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.fitting(8,12,80,45,1920,1080)),1920,1080)));
                     if(index<2) {
                         frames.add(new SnapshotArtifact(names[index]+"-apron.png",renderer.renderHostPass(
                                 scene.pass(ShipDeckBattleScene.DeckView.fitting(0,10,64,36,1920,1080)),1920,1080)));
                         frames.add(new SnapshotArtifact(names[index]+"-yards.png",renderer.renderHostPass(
-                                scene.pass(ShipDeckBattleScene.DeckView.fitting(index==0?53:80,index==0?34:52,64,36,1920,1080)),1920,1080)));
+                                scene.pass(ShipDeckBattleScene.DeckView.fitting(index==0?85:80,index==0?34:52,64,36,1920,1080)),1920,1080)));
                     }
                     if(names[index].equals("junction")) frames.add(new SnapshotArtifact("junction-east.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.over(135,26,60,68,16)),1920,1080)));
@@ -91,12 +95,12 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         }
         for (SurfacePalette surface : SurfacePalette.values()) if(surface!=SurfacePalette.VERDANT) {
             TargetProfile world = new TargetProfile(0,0,0,0,"",Set.of(),surface,SettlementLink.ROAD);
-            verifyTerrain("relief",ReliefCheckpoint.generate(112,64,8101,world).map());
+            verifyTerrain("relief",ReliefCheckpoint.generate(ReliefCheckpoint.WIDTH,ReliefCheckpoint.HEIGHT,8101,world).map());
             verifyTerrain("counterattack",CounterattackDepot.generate(8101,world).map());
             verifyTerrain("junction",JunctionCompound.generate(8101,world).map());
             verifyTerrain("relay-nine",RelayNineCompound.generate(8101,world).map());
         }
-        MapResult expanded = ReliefCheckpoint.generate(144,80,8101,profile).map();
+        MapResult expanded = ReliefCheckpoint.generate(176,80,8101,profile).map();
         verify("relief-expanded",expanded);
         verifyTerrain("relief-expanded",expanded);
         System.out.println("[story-roads] 15 production maps and expanded Relief: paved streets, clean markings/floors, clear berths and connected mission routes.");
@@ -124,8 +128,10 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             }
         }
         boolean[] crowns = new boolean[w*h];
-        for (var doodad : map.doodads) for (var canopy : TreeCanopy.values()) {
-            var def = TileRegistry.installed().doodad(canopy.id);
+        List<NaturalPropShape> shapes = new ArrayList<>(List.of(TreeCanopy.values()));
+        shapes.addAll(List.of(MineralFormation.values()));
+        for (var doodad : map.doodads) for (var canopy : shapes) {
+            var def = TileRegistry.installed().doodad(canopy.id());
             if (!doodad.sheetPath.equals(def.sheetPath) || doodad.tile.col != def.col || doodad.tile.row != def.row) continue;
             for (int y = 0; y < doodad.footprintCellsY; y++) for (int x = 0; x < doodad.footprintCellsX; x++)
                 if (canopy.blocks(x, y, doodad.quarterTurns)) crowns[(doodad.cellY+y)*w+doodad.cellX+x] = true;
@@ -133,7 +139,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         int solid=0,openNatural=0;
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             boolean natural=grid.hasTag(x,y,CellTag.NATURAL_SOLID);
-            if(natural!=(field.blocked(x,y)||crowns[y*w+x]))throw new IllegalStateException(name+" terrain contour/grid mismatch");
+            if(natural!=(field.blocked(x,y)||crowns[y*w+x]))throw new IllegalStateException(name+" terrain contour/grid mismatch at "+x+","+y+"; natural="+natural+", terrain="+field.blocked(x,y)+", canopy="+crowns[y*w+x]);
             if(natural) {
                 solid++;
                 if(grid.isWalkable(x,y)||grid.isSeeThrough(x,y)||grid.getWallHp(x,y)!=0

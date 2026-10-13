@@ -50,7 +50,14 @@ public final class MechSupport extends AirDeliveryPower {
     protected void configureMission(ShuttleMission mission, ShuttleType carrier,
                                     CommandPowerService service) {
         int remaining = service != null ? service.getChargesRemaining(ID) : maxCharges - 1;
-        List<MechDeploymentSpec> lance = deploymentLanceForRemainingCharges(remaining);
+        configureLance(mission, deploymentLanceForRemainingCharges(remaining));
+    }
+
+    /**
+     * Loads {@code lance} into a carrier that is already in the air. Shared by the player's
+     * power and a commander's call: what is unloaded is one set of mechs either way.
+     */
+    static void configureLance(ShuttleMission mission, List<MechDeploymentSpec> lance) {
         mission.mechDeployments = lance.toArray(new MechDeploymentSpec[0]);
         mission.mechVariants = lance.stream()
                 .map(MechDeploymentSpec::variant).toArray(MechVariant[]::new);
