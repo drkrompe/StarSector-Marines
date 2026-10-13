@@ -41,7 +41,8 @@ optional ship investment, then Junction's selected formations and heavy support.
 Its next step is live departure/re-entry acceptance. `campaign-learning-curve.md`
 tracks reward overlap, affordability, leadership versus force growth, advanced
 mech access and casualty carryover. `alpha-localization.md` is a required release
-gate; the new lessons use the catalog, with the wider UI migration still open.
+gate; opening tutorials and company screen copy use the catalog with expanded-copy
+checks. Shared equipment catalogs, mission/results and battle UI remain open.
 
 ### Company and progression
 

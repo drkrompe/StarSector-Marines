@@ -1814,16 +1814,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 hints.clear();
             }
         }
-        images.addAll(renderOfficerInduction(context, renderer));
+        images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
         images.addAll(renderBarracksFlow(context, renderer));
         return images;
     }
 
     /** New-company clicks through the production spotlight, including scrolling to the third choice. */
-    private static List<SnapshotArtifact> renderOfficerInduction(
-            SnapshotContext context, HeadlessUiRenderer renderer) throws Exception {
+    static List<SnapshotArtifact> renderOfficerInduction(
+            SnapshotContext context, HeadlessUiRenderer renderer, float... scales) throws Exception {
         List<SnapshotArtifact> frames = new ArrayList<>();
-        for (float scale : new float[]{1f, 1.5f}) {
+        for (float scale : scales) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
             MarineCaptain mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
@@ -2798,6 +2798,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             // The guide mounts a pointer-active callout before its first update.
             // Initialize its real lesson state before photographing a catalog hover.
+            var initialViewport = UiViewport.relative(0, 0, width / uiScale, height / uiScale, uiScale,
+                    MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+            document.layout(initialViewport.documentWidth(), initialViewport.documentHeight());
             guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-")) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -11,10 +12,10 @@ import java.util.Map;
 /** Ephemeral newsroom selection over received reports. Never writes campaign state. */
 final class CompanyHqNewsDesk {
     enum Channel {
-        ALL("ALL REPORTS"), COMPANY("COMPANY OPERATIONS"),
-        CONFIRMED("CONFIRMED SECTOR"), RUMOR("UNVERIFIED TRAFFIC");
-        final String label;
-        Channel(String label) { this.label = label; }
+        ALL("openingCompanyHqNewsDeskAllReports"), COMPANY("openingCompanyHqNewsDeskCompanyOperations"),
+        CONFIRMED("openingCompanyHqNewsDeskConfirmedSector"), RUMOR("openingCompanyHqNewsDeskUnverifiedTraffic");
+        final String labelKey;
+        Channel(String label) { this.labelKey = label; }
         boolean accepts(CompanyHqViewModel.NewsPost post) {
             return switch (this) {
                 case ALL -> true;
@@ -23,6 +24,7 @@ final class CompanyHqNewsDesk {
                 case RUMOR -> post.rumor();
             };
         }
+        String label() { return Strings.get(labelKey); }
     }
 
     private List<CompanyHqViewModel.NewsPost> posts = List.of();
@@ -81,31 +83,31 @@ final class CompanyHqNewsDesk {
             long count = posts.stream().filter(candidate::accepts).count();
             String id = "hq-wire-tab-" + candidate.name().toLowerCase();
             tabs.add(new Key(id, "wire-tab console-toggle" + (candidate == channel ? " selected" : ""),
-                    candidate.label + "  /  " + count, () -> choose(candidate)));
+                    candidate.label() + "  /  " + count, () -> choose(candidate)));
             if (candidate != Channel.ALL) {
                 List<Report> teasers = posts.stream().filter(candidate::accepts).limit(1)
                         .map(post -> report(post, "hq-source-" + candidate.name().toLowerCase() + "-" + post.id()))
                         .toList();
                 sources.add(new Source("hq-source-" + candidate.name().toLowerCase(),
-                        candidate.label, count + (count == 1 ? " recent report" : " recent reports"), teasers,
-                        teasers.isEmpty() ? "No reports received on this channel." : ""));
+                        candidate.label(), Strings.format("openingNewsRecentCount", count), teasers,
+                        teasers.isEmpty() ? Strings.get("openingCompanyHqNewsDeskNoReportsReceivedOnThisChannel") : ""));
             }
         }
         var selected = posts.stream().filter(post -> post.id().equals(selectedId)).findFirst().orElse(null);
         List<Report> rundown = posts.stream().filter(channel::accepts)
                 .map(post -> report(post, "hq-rundown-" + post.id())).toList();
         return new Desk(List.copyOf(tabs), List.copyOf(sources), rundown,
-                selected == null ? "AWAITING REPORTS" : selected.kicker(),
-                selected == null ? "No report selected" : selected.headline(),
-                selected == null ? "No reports received on this channel. Select another source to review its archive."
+                selected == null ? Strings.get("openingCompanyHqNewsDeskAwaitingReports") : selected.kicker(),
+                selected == null ? Strings.get("openingCompanyHqNewsDeskNoReportSelected") : selected.headline(),
+                selected == null ? Strings.get("openingCompanyHqNewsDeskNoReportsReceivedOnThisChannelSelect")
                         : selected.detail(),
-                selected == null ? "NO REPORT IN VIEW" : source(selected),
+                selected == null ? Strings.get("openingCompanyHqNewsDeskNoReportInView") : source(selected),
                 selected != null && selected.rumor() ? "lead-story console-well rumor-story" : "lead-story console-well",
                 selected == null ? "" : selected.rumor()
-                        ? "UNCONFIRMED / Awaiting corroboration."
-                        : "CONFIRMED / Company intelligence archive.",
-                rundown.size() + (rundown.size() == 1 ? " report in this view" : " reports in this view"),
-                rundown.isEmpty() ? "No reports received on this channel." : "",
+                        ? Strings.get("openingCompanyHqNewsDeskUnconfirmedAwaitingCorroboration")
+                        : Strings.get("openingCompanyHqNewsDeskConfirmedCompanyIntelligenceArchive"),
+                Strings.format("openingNewsVisibleCount", rundown.size()),
+                rundown.isEmpty() ? Strings.get("openingCompanyHqNewsDeskNoReportsReceivedOnThisChannel") : "",
                 selected == null ? "" : selected.crest(),
                 selected == null ? "" : selected.subject());
     }
@@ -116,8 +118,8 @@ final class CompanyHqNewsDesk {
     }
 
     private static String source(CompanyHqViewModel.NewsPost post) {
-        return post.companyReport() ? "COMPANY OPERATIONS" : post.rumor()
-                ? "UNVERIFIED SECTOR TRAFFIC" : "CONFIRMED SECTOR REPORT";
+        return post.companyReport() ? Strings.get("openingCompanyHqNewsDeskCompanyOperations") : post.rumor()
+                ? Strings.get("openingCompanyHqNewsDeskUnverifiedSectorTraffic") : Strings.get("openingCompanyHqNewsDeskConfirmedSectorReport");
     }
 
     record Key(String id, String classes, String label, Runnable action) implements MarkupPropertySource {

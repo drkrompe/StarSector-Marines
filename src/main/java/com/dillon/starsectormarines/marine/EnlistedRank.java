@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 /**
  * A rank-and-file marine's rank. Distinct from {@link Rank}, which is the
  * officer ladder above it: officers command companies, NCOs lead squads.
@@ -10,13 +11,13 @@ package com.dillon.starsectormarines.marine;
  */
 public enum EnlistedRank {
     /** Rank and file. */
-    MARINE("Marine", "Mar."),
+    MARINE("openingEnlistedRankMarine", "openingRankAbbrMar"),
     /** Leads a four-marine fire team. */
-    LANCE_CORPORAL("Lance Corporal", "LCpl."),
+    LANCE_CORPORAL("openingEnlistedRankLanceCorporal", "openingRankAbbrLCpl"),
     /** Leads a squad, and its first fire team with it. */
-    CORPORAL("Corporal", "Cpl."),
+    CORPORAL("openingEnlistedRankCorporal", "openingRankAbbrCpl"),
     /** A squad leader who has become a veteran; the officer's right hand. */
-    SERGEANT("Sergeant", "Sgt.");
+    SERGEANT("openingEnlistedRankSergeant", "openingRankAbbrSgt");
 
     private final String displayName;
     private final String abbreviation;
@@ -27,12 +28,12 @@ public enum EnlistedRank {
     }
 
     public String displayName() {
-        return displayName;
+        return Strings.get(displayName);
     }
 
     /** Short form for a roster row, where the name is what the player is scanning for. */
     public String abbreviation() {
-        return abbreviation;
+        return Strings.get(abbreviation);
     }
 
     /** True for the billets that lead something — a fire team or a whole squad. */

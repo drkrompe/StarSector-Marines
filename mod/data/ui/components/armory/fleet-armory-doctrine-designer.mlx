@@ -3,13 +3,13 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / EQUIPMENT DESIGNER" />
 
     <div id="designer-breadcrumb" class="panel">
-      <button id="designer-breadcrumb-companies" onclick="{back}">Back</button>
+      <button id="designer-breadcrumb-companies" onclick="{back}">{i18n.openingUiFleetArmoryDoctrineDesignerBack}</button>
       <div id="designer-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="designer-company" class="breadcrumb-current label tone-edge">Fleet Marine Company</div>
+      <div id="designer-company" class="breadcrumb-current label tone-edge">{i18n.openingUiFleetArmoryDoctrineDesignerFleetMarineCompany}</div>
       <div id="designer-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
       <button id="back-to-fireteams" onclick="{backToFireTeams}">{squadName}</button>
       <div id="designer-separator-current" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="designer-current" class="breadcrumb-current label tone-accent">Equipment Designer</div>
+      <div id="designer-current" class="breadcrumb-current label tone-accent">{i18n.openingUiFleetArmoryDoctrineDesignerEquipmentDesigner}</div>
     </div>
 
     <div id="designer-mode-row" class="panel">
@@ -20,7 +20,7 @@
     </div>
 
     <div id="designer-definition-library" class="panel">
-      <div id="designer-library-heading" class="label heading tone-accent">DEFINITION LIBRARY</div>
+      <div id="designer-library-heading" class="label heading tone-accent">{i18n.openingUiFleetArmoryDoctrineDesignerDefinitionLibrary}</div>
       <div id="designer-definition-list">
         <button each="definition in definitions" key="{definition.id}" id="{definition.id}" class="{definition.classes}" onclick="{definition.select}">
           <div id="{definition.nameId}" class="definition-name label tone-edge">{definition.name}</div>
@@ -31,13 +31,13 @@
 
     <div id="designer-editor" class="panel">
       <div id="designer-name-row">
-        <div id="designer-name-label" class="label heading tone-accent">DEFINITION NAME</div>
+        <div id="designer-name-label" class="label heading tone-accent">{i18n.openingUiFleetArmoryDoctrineDesignerDefinitionName}</div>
         <input id="designer-name-input" class="designer-name-input" value="{draftName}" maxlength="48" oninput="{editName}" />
-        <button id="new-doctrine-draft" onclick="{newDraft}">New Draft</button>
-        <button id="clone-doctrine" onclick="{cloneSelected}">Clone Selected</button>
-        <button id="save-doctrine" class="primary-action console-action" onclick="{saveAsNew}">Save as New</button>
-        <button id="rename-doctrine" disabled="{renameDisabled}" onclick="{rename}">Rename</button>
-        <button id="delete-doctrine" disabled="{deleteDisabled}" onclick="{delete}">Delete</button>
+        <button id="new-doctrine-draft" onclick="{newDraft}">{i18n.openingUiFleetArmoryDoctrineDesignerNewDraft}</button>
+        <button id="clone-doctrine" onclick="{cloneSelected}">{i18n.openingUiFleetArmoryDoctrineDesignerCloneSelected}</button>
+        <button id="save-doctrine" class="primary-action console-action" onclick="{saveAsNew}">{i18n.openingUiFleetArmoryDoctrineDesignerSaveAsNew}</button>
+        <button id="rename-doctrine" disabled="{renameDisabled}" onclick="{rename}">{i18n.openingUiFleetArmoryDoctrineDesignerRename}</button>
+        <button id="delete-doctrine" disabled="{deleteDisabled}" onclick="{delete}">{i18n.openingUiFleetArmoryDoctrineDesignerDelete}</button>
       </div>
 
       <div id="designer-team-tabs">

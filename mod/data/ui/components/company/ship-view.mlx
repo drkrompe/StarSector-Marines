@@ -6,7 +6,7 @@
       <img id="ship-view-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="ship-view-room-title" class="label heading tone-edge">{roomTitle}</div>
       <div id="ship-view-room-copy" class="label tone-muted">{roomCopy}</div>
-      <button id="machine-shop-equipment" class="machine-shop-equipment console-action" onclick="{equipmentAction}">MACHINE SHOP / FIT SQUADS FOR FREE</button>
+      <button id="machine-shop-equipment" class="machine-shop-equipment console-action" onclick="{equipmentAction}">{i18n.openingUiShipViewMachineShopFitSquadsForFree}</button>
     </div>
 
     <div id="ship-view-body" class="ship-view-body">
@@ -24,7 +24,7 @@
       <div id="ship-condition-detail" class="{survey.detailClasses}">
         <div id="survey-officer" class="officer-row">
           <img id="survey-portrait" class="officer-portrait" src="{survey.portrait}" />
-          <div id="survey-officer-name" class="label heading tone-accent officer-title">CASTLE / COMPANY OFFICER</div>
+          <div id="survey-officer-name" class="label heading tone-accent officer-title">{i18n.openingUiShipViewCastleCompanyOfficer}</div>
         </div>
         <div id="survey-title" class="label heading tone-accent survey-title">{survey.title}</div>
         <div id="survey-copy" class="label wrapped survey-copy">{survey.copy}</div>
@@ -39,7 +39,7 @@
     <div id="workshop-restoration" class="{survey.workshopClasses}">
       <div id="workshop-officer" class="officer-row">
         <img id="workshop-portrait" class="officer-portrait" src="{workshop.portrait}" />
-        <div id="workshop-officer-title" class="label heading tone-accent officer-title">CASTLE / COMPANY OFFICER</div>
+        <div id="workshop-officer-title" class="label heading tone-accent officer-title">{i18n.openingUiShipViewCastleCompanyOfficer}</div>
       </div>
       <div id="workshop-title" class="label heading tone-accent workshop-title">{workshop.title}</div>
       <img id="workshop-progress" class="workshop-progress" src="{workshop.progress}" />
@@ -49,7 +49,7 @@
       <div id="workshop-reason" class="label wrapped workshop-reason tone-muted">{workshop.reason}</div>
       <div id="workshop-actions" class="action-row">
         <button id="workshop-action" class="{workshop.actionClasses}" disabled="{workshop.disabled}" onclick="{workshop.action}">{workshop.actionLabel}</button>
-        <button id="workshop-focus" class="focus-action console-action" onclick="{workshop.inspect}">VIEW</button>
+        <button id="workshop-focus" class="focus-action console-action" onclick="{workshop.inspect}">{i18n.openingUiShipViewView}</button>
       </div>
       <div id="workshop-reclaim" class="{workshop.reclaimClasses}">
         <div id="workshop-reclaim-copy" class="label wrapped reclaim-copy heading">{workshop.reclaimCopy}</div>

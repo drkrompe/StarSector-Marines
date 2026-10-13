@@ -1,7 +1,7 @@
 <template props="fireTeamOverviews,targetSummary,candidateSummary,marineCards,feedbackText,feedbackClasses">
   <div id="refit-transaction" class="panel fireteam-viewer">
     <div id="viewer-context">
-      <div id="viewer-heading" class="label heading tone-edge">FIRE TEAM</div>
+      <div id="viewer-heading" class="label heading tone-edge">{i18n.openingUiArmoryRefitTransactionFireTeam}</div>
       <div id="fireteam-tabs">
         <button each="team in fireTeamOverviews" key="{team.id}" id="{team.id}" class="{team.classes}" onclick="{team.select}">{team.name}</button>
       </div>

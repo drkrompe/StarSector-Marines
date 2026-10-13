@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -25,15 +26,15 @@ public final class CompanyYard {
     }
     public static String refusal(boolean owned, boolean compatible, boolean mothballed,
                                  boolean installed, boolean docked, float credits) {
-        if (!owned || !compatible) return "Select an owned Cerberus for the conversion.";
-        if (mothballed) return "Reactivate the Cerberus before ordering yard work.";
-        if (installed) return "This ship already has the Mercenary Company Conversion.";
-        if (!docked) return "Visit an accessible planet with a working spaceport to install the conversion.";
-        if (credits < MercenaryCompanyConversion.CREDIT_COST) return "The conversion requires 5,000 credits.";
+        if (!owned || !compatible) return Strings.get("openingCompanyYardSelectAnOwnedCerberusForTheConversion");
+        if (mothballed) return Strings.get("openingCompanyYardReactivateTheCerberusBeforeOrderingYardWork");
+        if (installed) return Strings.get("openingCompanyYardThisShipAlreadyHasTheMercenaryCompany");
+        if (!docked) return Strings.get("openingCompanyYardVisitAnAccessiblePlanetWithAWorking");
+        if (credits < MercenaryCompanyConversion.CREDIT_COST) return Strings.get("openingCompanyYardTheConversionRequiresCredits");
         return null;
     }
     public static String refusal(FleetMemberAPI member, MarketAPI market) {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return "No player fleet.";
+        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return Strings.get("openingCompanyYardNoPlayerFleet");
         var fleet = Global.getSector().getPlayerFleet();
         return refusal(fleet.getFleetData().getMembersListCopy().contains(member),
                 MercenaryCompanyConversion.compatible(member), member != null && member.isMothballed(),

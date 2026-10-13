@@ -1,14 +1,14 @@
 <template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
-      <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
-      <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">Weapon Loadouts</button>
-      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">Tactic Sheets</button>
+      <div id="equipment-picker-heading" class="label heading tone-edge">{i18n.openingUiArmorySquadDoctrineLoadouts}</div>
+      <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">{i18n.openingUiArmorySquadDoctrineWeaponLoadouts}</button>
+      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">{i18n.openingUiArmorySquadDoctrineTacticSheets}</button>
     </div>
 
     <div id="loadout-browser-tools">
       <div id="loadout-browser-summary" class="label tone-edge">{loadoutBrowserSummary}</div>
-      <div id="loadout-browser-order" class="label tone-muted">Strongest first</div>
+      <div id="loadout-browser-order" class="label tone-muted">{i18n.openingUiArmorySquadDoctrineStrongestFirst}</div>
     </div>
 
     <div id="loadout-filter-list">
@@ -25,7 +25,7 @@
     <div id="armor-doctrine-slot" class="{armorPickerPanelClasses}">
       <div id="armor-doctrine-summary-row">
         <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
-        <button id="compare-armor-patterns" onclick="{showArmorComparison}">Compare Patterns</button>
+        <button id="compare-armor-patterns" onclick="{showArmorComparison}">{i18n.openingUiArmorySquadDoctrineComparePatterns}</button>
       </div>
       <div id="armor-doctrine-list" class="doctrine-list">
         <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
@@ -42,14 +42,14 @@
           <div id="{tile.compositionId}" class="doctrine-composition label">SECTION  ·  {tile.composition}</div>
           <div id="{tile.distributionId}" class="{tile.distributionClasses}">ISSUED  ·  {tile.distribution}</div>
           <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}">
-            <div id="{tile.distributionTagId}" class="doctrine-line-tag label">ISSUED</div>
+            <div id="{tile.distributionTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineIssued}</div>
             <div id="{tile.distributionGridId}" class="doctrine-span-grid">
               <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span label">{span.label}</div>
             </div>
           </div>
           <div id="{tile.carriesId}" class="{tile.carriesClasses}">CARRIES  ·  {tile.carries}</div>
           <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
-            <div id="{tile.carriesTagId}" class="doctrine-line-tag label">CARRIES</div>
+            <div id="{tile.carriesTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineCarries}</div>
             <div id="{tile.carriesGridId}" class="doctrine-span-grid">
               <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
             </div>

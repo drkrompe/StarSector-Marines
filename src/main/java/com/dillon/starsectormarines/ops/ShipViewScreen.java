@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -136,9 +137,9 @@ public final class ShipViewScreen implements Screen {
         props.put("equipmentAction", equipmentAction(context));
         props.put("workshop", workshop.row());
         props.put("survey", survey.row());
-        props.put("roomTitle", "ENGINEERING  //  SHIP CONDITION");
-        props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "SHIP SERVICES");
+        props.put("roomTitle", Strings.get("openingShipViewEngineeringShipCondition"));
+        props.put("roomCopy", Strings.get("openingShipViewSelectARoomToInspectRightDrag"));
+        props.put("contextLabel", Strings.get("openingShipViewShipServices"));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 context::roomAboard,
                 this::close,

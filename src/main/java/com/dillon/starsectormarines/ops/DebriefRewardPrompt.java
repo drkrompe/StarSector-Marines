@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.FirstRefit;
@@ -48,7 +49,7 @@ final class DebriefRewardPrompt {
     static Map<String, Object> hidden() {
         var props = new LinkedHashMap<String, Object>();
         props.put("classes", "reward-hidden"); props.put("title", ""); props.put("copy", "");
-        props.put("actionLabel", "CHOOSE FREE TECHNOLOGY"); props.put("lineIcon", "");
+        props.put("actionLabel", Strings.get("openingDebriefRewardPromptChooseFreeTechnology")); props.put("lineIcon", "");
         props.put("scoutWeaponIcon", ""); props.put("scoutArmorIcon", "");
         props.put("open", (Runnable) () -> {});
         return props;
@@ -56,11 +57,11 @@ final class DebriefRewardPrompt {
     private void refresh() {
         var props = hidden();
         props.put("classes", visible ? "reward-backdrop" : "reward-hidden");
-        props.put("title", claimed ? "YOUR FREE EQUIPMENT IS READY" : "YOU EARNED A FREE TECHNOLOGY TRANSFER");
+        props.put("title", claimed ? Strings.get("openingDebriefRewardPromptYourFreeEquipmentIsReady") : Strings.get("openingDebriefRewardPromptYouEarnedAFreeTechnologyTransfer"));
         props.put("copy", claimed
-                ? "Captain, the specs are ours. Let's put them on your squad. The Machine Shop fits learned equipment for free, even while our people recover."
-                : "Captain, Wayline owes us one. Pick a technology package, then let's fit it to your squad. No credits, no supplies, no shopping trip. Once learned, the specs are ours to use and swap freely.");
-        props.put("actionLabel", claimed ? "FIT FREE EQUIPMENT" : "CHOOSE FREE TECHNOLOGY");
+                ? Strings.get("openingDebriefRewardPromptCaptainTheSpecsAreOursLetS")
+                : Strings.get("openingDebriefRewardPromptCaptainWaylineOwesUsOnePickA"));
+        props.put("actionLabel", claimed ? Strings.get("openingDebriefRewardPromptFitFreeEquipment") : Strings.get("openingDebriefRewardPromptChooseFreeTechnology"));
         if (visible) {
             props.put("lineIcon", EquipmentIcons.primary(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC));
             props.put("scoutWeaponIcon", EquipmentIcons.primary(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.MILSPEC));

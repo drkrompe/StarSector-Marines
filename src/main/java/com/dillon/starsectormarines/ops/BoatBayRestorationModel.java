@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration.Offer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -49,12 +50,12 @@ public final class BoatBayRestorationModel {
             return switch (key) {
                 case "classes" -> visible ? "bay-restoration" : "bay-restoration hidden";
                 case "portrait" -> CompanyManagementGuide.portrait();
-                case "copy" -> "There is another wrecked Hermes behind that sealed hatch. Restore the bay first, then repair its boat separately. Those are two different jobs.";
-                case "bill" -> String.format(Locale.ROOT, "CREDITS   COST %,d / AVAILABLE %,d / SHORT BY %,d",
+                case "copy" -> Strings.get("openingBoatBayRestorationThereIsAnotherWreckedHermesBehindThat");
+                case "bill" -> String.format(Locale.ROOT, Strings.get("openingBoatBayRestorationCreditsCostDAvailableDShortBy"),
                         CompanyBayRestoration.CREDIT_COST, credits, Math.max(0, CompanyBayRestoration.CREDIT_COST - credits));
                 case "reason" -> refusal == null
-                        ? "Yard labor and materials included. Opens the second berth; repairing its original Hermes costs materials separately." : refusal;
-                case "actionLabel" -> reviewed ? String.format(Locale.ROOT, "REPAIR BAY - %,d", CompanyBayRestoration.CREDIT_COST) : "INSPECT SECOND BAY";
+                        ? Strings.get("openingBoatBayRestorationYardLaborAndMaterialsIncludedOpensThe") : refusal;
+                case "actionLabel" -> reviewed ? String.format(Locale.ROOT, Strings.get("openingBoatBayRestorationRepairBayD"), CompanyBayRestoration.CREDIT_COST) : Strings.get("openingBoatBayRestorationInspectSecondBay");
                 case "disabled" -> reviewed && refusal != null;
                 case "action" -> action;
                 default -> throw new IllegalArgumentException("Unknown restoration property: " + key);

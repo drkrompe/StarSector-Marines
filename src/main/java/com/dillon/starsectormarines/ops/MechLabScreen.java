@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
@@ -511,7 +512,7 @@ public final class MechLabScreen implements Screen {
         if (viewModel != null) viewModel.physicalGantries(berths().size());
         List<DeckGraph.Compartment> bays = mechBays();
         if (bays.isEmpty()) {
-            activeBayLabel.set("NO MECH BAY");
+            activeBayLabel.set(Strings.get("openingMechLabNoMechBay"));
             bayNavigatorClasses.set("bay-navigator hidden");
             bayContextLabel.set(deck == null ? "" : ShipBreadcrumb.of(deck.ship(), null));
             return;
@@ -519,7 +520,7 @@ public final class MechLabScreen implements Screen {
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
         selectedBayIndex.set(index);
         activeBayLabel.set(String.format(Locale.ROOT,
-                "BAY %02d / %02d", index + 1, bays.size()));
+                Strings.get("openingMechLabBayDD"), index + 1, bays.size()));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
     }
