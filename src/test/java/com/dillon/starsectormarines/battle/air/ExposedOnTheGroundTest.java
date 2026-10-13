@@ -48,11 +48,15 @@ class ExposedOnTheGroundTest {
     private static final float SHELTER_Y = 25.5f;
 
     private static BattleSimulation openField() {
-        NavigationGrid grid = new NavigationGrid(W, H);
-        for (int y = 0; y < H; y++) {
-            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        return openField(W, H);
+    }
+
+    private static BattleSimulation openField(int width, int height) {
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
-        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(W, H));
+        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(width, height));
         sim.setMissionCompletionEnabled(false);
         sim.getAirfieldService().installRunway(STRIP);
         return sim;
@@ -337,10 +341,11 @@ class ExposedOnTheGroundTest {
                 "the strip stayed claimed by an aircraft that no longer exists");
     }
 
-    /** A loss at altitude falls first, then leaves its wreck at the actual impact. */
+    /** A loss at altitude falls first, then leaves its wreck where the skid ends. */
     @Test
     void anAircraftShotDownInTheAirLeavesAnImpactWreck() {
-        BattleSimulation sim = openField();
+        // Leave room for the fighter's forward momentum through the fall and skid.
+        BattleSimulation sim = openField(160, 80);
         long craft = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
                 30.5f, 20.5f, 5f, 5f, 5f, 5f, 0f);
         ShuttleMission mission = sim.world().mission(craft);

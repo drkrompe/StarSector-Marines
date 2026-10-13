@@ -92,7 +92,7 @@ public final class DrawListRenderer {
                             activeSheet.appendPatch(c.srcX,c.srcY,c.srcW,c.srcH,c.cx,c.cy,c.w,c.h,c.r,c.g,c.b,c.a,c.patch());
                         } else if (c.angleDeg != 0f) {
                             activeSheet.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
-                                    c.cx, c.cy, c.w, c.h, c.angleDeg, c.r, c.g, c.b, c.a);
+                                    c.cx, c.cy, c.w, c.h, c.angleDeg, c.flipV, c.r, c.g, c.b, c.a);
                         } else if (c.flipV) {
                             activeSheet.appendFlippedV(c.srcX, c.srcY, c.srcW, c.srcH,
                                     c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);

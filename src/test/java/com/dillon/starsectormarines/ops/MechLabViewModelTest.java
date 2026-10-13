@@ -40,7 +40,7 @@ class MechLabViewModelTest {
 
     private static final float EPSILON = 0.01f;
     private static final List<String> COMPONENTS = List.of(
-            "mod/data/ui/components/marine-ops-page-nav.mlx",
+            "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/mech-lab/mech-lab.mlx");
 
     @Test void compactWorkshopRejectsStaleFabricationAfterCapacityShrinks() {
@@ -275,9 +275,9 @@ class MechLabViewModelTest {
         assertEquals(2000, pulse.materials().get(0).available());
         assertEquals(30, pulse.materials().get(0).required());
         assertEquals("MANUFACTURING COST", MechLabSpecSheets.materialSheet(pulse.materials().get(0)).subtitle());
-        assertEquals("2000", viewModel.materialStock().get().get(0).label());
+        assertEquals("2,000", viewModel.materialStock().get().get(0).label());
         pulse.action().run();
-        assertEquals("1970", viewModel.materialStock().get().get(0).label());
+        assertEquals("1,970", viewModel.materialStock().get().get(0).label());
         assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
                 bay.mechById(MechBay.STARTER_MECH_ID).arms());
 
@@ -407,11 +407,11 @@ class MechLabViewModelTest {
             }
             assertTrue(subjects > 0, "the catalog offered nothing to describe");
             assertEquals(subjects + 4 + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());
-            for (MechLabViewModel.MaterialRow material : viewModel.materialStock().get()) {
+            for (CompanyResources.Row material : viewModel.materialStock().get()) {
                 assertTrue(binder.isBound(instance.requireElement(material.id())));
             }
             for (MechLabViewModel.CatalogRow row : rows) {
-                for (MechLabViewModel.MaterialRow material : row.materials()) {
+                for (CompanyResources.Row material : row.materials()) {
                     assertTrue(binder.isBound(instance.requireElement(material.id())));
                 }
             }

@@ -1094,7 +1094,10 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     @Override
     public void close() {
-        if (renderer != null) renderer.getGroundParallax().dispose();
+        if (renderer != null) {
+            renderer.getGroundParallax().dispose();
+            renderer.disposeNightLighting();
+        }
         simulation.close();
     }
 

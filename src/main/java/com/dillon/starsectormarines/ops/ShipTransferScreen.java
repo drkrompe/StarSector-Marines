@@ -36,7 +36,8 @@ public final class ShipTransferScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "ship-transfer";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -108,6 +109,7 @@ public final class ShipTransferScreen implements Screen {
         props.put("selectedSummary", viewModel.selectedSummary());
         props.put("verdict", viewModel.verdict());
         props.put("costLabel", viewModel.costLabel());
+        props.put("resourceStock", viewModel.resourceStock());
         props.put("costClasses", viewModel.costClasses());
         props.put("transferLabel", viewModel.transferLabel());
         props.put("transferClasses", viewModel.transferClasses());
