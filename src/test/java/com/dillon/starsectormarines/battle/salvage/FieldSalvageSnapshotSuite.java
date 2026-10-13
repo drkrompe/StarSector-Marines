@@ -81,6 +81,18 @@ public final class FieldSalvageSnapshotSuite implements SnapshotSuite {
             require(sim.fieldSalvage().recovered().size() == 1, "Remaining nearby never duplicates the find");
             System.out.println("[field-salvage] Thunder Run: unknown, observed, company-only, interrupted, secured once");
             frames.add(new SnapshotArtifact("05-cargo-claim.png",FieldSalvageUiPreview.render(context,sim.fieldSalvage().recovered())));
+            // Real placements, current player vision, and the same marker collector for each material.
+            for (int i = 1; i < sim.fieldSalvage().caches().size(); i++) {
+                var other = sim.fieldSalvage().caches().get(i);
+                spawn(sim, Faction.MARINE, other.cellX + 2, other.cellY);
+                advance(sim, 15);
+                require(other.discovered() && !other.secured(), "Material preview is an observed pickup");
+                var materialView = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
+                        other.cellX, other.cellY, 48);
+                frames.add(new SnapshotArtifact("0" + (5 + i) + "-" + other.resource.commodityId + ".png",
+                        materialView.render(sim, "FIELD SALVAGE / " + SalvageCacheRenderSystem.label(other),
+                                ReviewAnnotations.NONE)));
+            }
             return frames;
         }
     }
