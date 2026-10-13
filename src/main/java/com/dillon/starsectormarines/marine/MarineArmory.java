@@ -24,6 +24,8 @@ public final class MarineArmory implements Serializable {
     private Set<String> unlockedRecipes = new HashSet<>();
     /** Permanent collectible equipment templates used by all live issue paths. */
     private Set<String> ownedEquipmentTemplateIds = new HashSet<>();
+    /** Learned tactic sheets are independent of the kit currently filling them. */
+    private Set<String> knownArmorPlanIds = new HashSet<>();
     /** Reusable fire-team designs; the legacy field name is retained for save compatibility. */
     private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
     /** Saved three-template compositions; applying one is still an inventory transaction. */
@@ -81,7 +83,57 @@ public final class MarineArmory implements Serializable {
         if (!EquipmentTemplateCatalog.contains(id)) {
             throw new IllegalArgumentException("Unknown equipment template id '" + id + "'");
         }
-        return ownedEquipmentTemplateIds.add(id);
+        boolean acquired = ownedEquipmentTemplateIds.add(id);
+        repairArmorPlanKnowledge();
+        return acquired;
+    }
+    public boolean knowsArmorPlan(String id) {
+        return id != null && knownArmorPlanIds.contains(id);
+    }
+    public boolean acquireArmorPlan(String id) {
+        if (SquadEquipmentDoctrines.armorPlanById(id) == null) {
+            throw new IllegalArgumentException("Unknown armor plan id '" + id + "'");
+        }
+        return knownArmorPlanIds.add(id);
+    }
+
+    /** Every equipment acquisition channel teaches the same associated tactic sheets. */
+    void repairArmorPlanKnowledge() {
+        acquireArmorPlan(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+        String[][] grants = {
+                {SquadEquipmentDoctrines.RECON_ARMOR, "armor.scout"},
+                {SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR, "armor.line"},
+                {SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR, "armor.line", "armor.combat"},
+                {SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR, "armor.combat"},
+                {SquadEquipmentDoctrines.CORPORATE_LINE_ARMOR, "armor.aegis-composite"},
+                {SquadEquipmentDoctrines.CHURCH_LINE_ARMOR, "armor.palatine"},
+                {SquadEquipmentDoctrines.SINDRIAN_LINE_ARMOR, "armor.furnace-line"},
+                {SquadEquipmentDoctrines.OUTLAW_LINE_ARMOR, "armor.reaver"},
+                {SquadEquipmentDoctrines.OUTLAW_RAIDER_ARMOR, "armor.outlaw"},
+                {SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR, "armor.vigil"},
+                {SquadEquipmentDoctrines.CHURCH_WARDEN_ARMOR, "armor.orderly"},
+                {SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR, "armor.outrider"},
+                {SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR, "armor.heavy"},
+                {SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR, "armor.specter-heavy"},
+                {SquadEquipmentDoctrines.LEAGUE_HEAVY_ARMOR, "armor.bulwark-heavy"},
+                {SquadEquipmentDoctrines.KNIGHTS_HEAVY_ARMOR, "armor.reliquary-heavy"},
+                {SquadEquipmentDoctrines.LIONS_GUARD_HEAVY_ARMOR, "armor.lions-mantle"},
+                {SquadEquipmentDoctrines.OUTLAW_HEAVY_ARMOR, "armor.foundry-breaker"}
+        };
+        for (String[] grant : grants) {
+            boolean known = true;
+            for (int i = 1; i < grant.length; i++) known &= ownsArmorTemplate(grant[i]);
+            if (known) acquireArmorPlan(grant[0]);
+        }
+        if ((ownsArmorTemplate("armor.specter-recovered") || ownsArmorTemplate("armor.specter-heavy"))
+                && (ownsArmorTemplate("armor.arbalest-recovered") || ownsArmorTemplate("armor.arbalest"))) {
+            acquireArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
+        }
+        for (FirstRefit.Path path : FirstRefit.Path.values()) {
+            if (weaponDoctrineById(path.weapons) != null && FirstRefit.technologyKnown(this, path)) {
+                acquireArmorPlan(path.armor);
+            }
+        }
     }
     public boolean ownsPrimaryTemplate(String weaponId, EquipmentGrade grade) {
         return weaponId != null && grade != null
@@ -129,7 +181,7 @@ public final class MarineArmory implements Serializable {
         return Collections.unmodifiableList(result);
     }
     /**
-     * Every authored plan, issued from what this armoury owns.
+     * Every learned tactic sheet that this armory can physically issue.
      *
      * <p>A plan names roles rather than patterns, so this is where "the standard
      * section" becomes twelve concrete suits — the best owned for each billet's
@@ -154,10 +206,10 @@ public final class MarineArmory implements Serializable {
         return Collections.unmodifiableList(result);
     }
 
-    /** Whether this stock can issue the plan without crossing protection classes. */
+    /** Whether the sheet is learned and stock can fill it without crossing protection classes. */
     public boolean canIssue(SquadArmorPlan plan) {
         MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
-        if (plan == null || catalog == null) return false;
+        if (plan == null || catalog == null || !knowsArmorPlan(plan.id())) return false;
         try {
             issue(plan);
             return true;
@@ -166,7 +218,7 @@ public final class MarineArmory implements Serializable {
         }
     }
 
-    /** Issues one plan from this armoury's own stock. */
+    /** Resolves physical issue from owned stock; previews may resolve an unlearned sheet. */
     public SquadArmorDoctrine issue(SquadArmorPlan plan) {
         return ArmorIssueResolver.resolve(plan, pattern -> ownsArmorTemplate(pattern.id()));
     }
@@ -218,8 +270,10 @@ public final class MarineArmory implements Serializable {
     SquadWeaponDoctrine ensureWeaponDoctrine(
             String id, String displayName, List<SquadWeaponIssue> issues) {
         SquadWeaponDoctrine existing = weaponDoctrineById(id);
-        return existing != null ? existing
+        SquadWeaponDoctrine result = existing != null ? existing
                 : createWeaponDoctrine(id, displayName, issues, false);
+        repairArmorPlanKnowledge();
+        return result;
     }
 
     public FireTeamTemplateCard templateCardById(String id) {
@@ -466,6 +520,7 @@ public final class MarineArmory implements Serializable {
     }
 
     private Object readResolve() {
+        if (knownArmorPlanIds == null) knownArmorPlanIds = new HashSet<>();
         if (squadProfiles == null) squadProfiles = new ArrayList<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (ownedEquipmentTemplateIds == null) ownedEquipmentTemplateIds = new HashSet<>();
@@ -485,6 +540,14 @@ public final class MarineArmory implements Serializable {
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
         repairFixedVictoryMilestones();
+        repairArmorPlanKnowledge();
+        // Profiles are saved intent owned by this armory, including legacy
+        // profiles written before sheet knowledge had its own ledger.
+        for (SquadProfile profile : squadProfiles) {
+            if (profile != null && SquadEquipmentDoctrines.armorPlanById(profile.armorDoctrineId()) != null) {
+                acquireArmorPlan(profile.armorDoctrineId());
+            }
+        }
         return this;
     }
 

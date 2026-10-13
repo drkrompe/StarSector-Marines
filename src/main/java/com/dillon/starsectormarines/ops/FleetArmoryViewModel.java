@@ -966,12 +966,12 @@ public final class FleetArmoryViewModel {
         return known;
     }
 
-    /** Sheets whose carrier class the company can field, before rarity filtering. */
+    /** Learned, fieldable sheets, before rarity filtering and after identical-issue grouping. */
     private int knownArmorLoadouts() {
         return distinctArmorIssues().size();
     }
 
-    /** Same issued kit is one choice, not thirteen faction names over the starting vest. */
+    /** Group identical issues only after the armory has checked each sheet's knowledge. */
     private List<SquadArmorDoctrine> distinctArmorIssues() {
         Map<List<String>, SquadArmorDoctrine> choices = new LinkedHashMap<>();
         for (SquadArmorDoctrine issue : roster.armory().armorDoctrines())

@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — explicit mixed-class issue and reserved story acquisition join the power-suit progression model.
+Updated: 2026-10-13 — tactic-sheet knowledge is acquired separately from its current issue; mixed-class and recovered suit progression remain explicit.
 
 ## Purpose
 
@@ -389,6 +389,22 @@ half and is *not* authored the same way — it names roles and a tradition, and 
 armoury fills them from the best owned pattern for each job
 (`role-and-access.md`). The exact kit on a marine is the materialized result.
 
+**Knowing a tactic sheet is separate from being able to fill its billets.** A
+new company knows only Watchman's Kit. Learning a suit specification can teach
+its explicitly associated formations; it does not teach every faction sheet
+that could substitute that suit. Janus teaches Tri-Tachyon recon, for example,
+without granting Hegemony or Sindrian formations. Wayline's accepted refit teaches
+its own formation, and the alternative becomes usable when its offered technology
+has been learned. These are permanent company permissions, not another consumable
+item or equipment charge. Issue requires both a learned sheet and legal owned
+patterns for its billets. A missing specialist role can still fall back within a
+learned sheet's armor class; fallback never establishes knowledge of a sheet.
+
+Older companies retain formations already assigned to squads or saved in profiles,
+along with learned specifications and materialized equipment. Other sheets are
+inferred only from their explicit acquisition requirements. Reloading never grants
+the whole sheet catalog or refits personnel automatically.
+
 **Armour is never authored a billet at a time, and there is no way to.** The
 player could once build armour definitions by cycling twelve concrete patterns,
 which froze them: such a definition names the militia vest twelve times and goes
@@ -464,8 +480,8 @@ The lowest protection band is deliberately plural rather than one universal
 "unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
 armor reserve; expired Cordon security shells provide a little rated plate; and
 Lashplate breaker harnesses supply crude mass with poor resistance and handling.
-The opening Frontier Patchwork definition issues all three beneath one sound Ward
-kit per fire team. These are generic circulation categories for early companies and
+New companies start with fatigues and Ward; Cordon and Lashplate remain collectible
+alternatives. These are generic circulation categories for early companies and
 low-end defenders, not faction-equivalent powered suits.
 
 A template card may exist in fleet cargo as one parameterized Starsector special

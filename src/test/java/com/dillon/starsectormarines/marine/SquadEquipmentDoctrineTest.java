@@ -322,11 +322,9 @@ class SquadEquipmentDoctrineTest {
         String priorWeaponDoctrine = squad.weaponDoctrineId();
         String priorArmorDoctrine = squad.armorDoctrineId();
 
-        // The refusal comes from the weapon side. An armour plan names roles
-        // rather than patterns and is issued from what the armoury already owns,
-        // so it degrades to worse kit instead of being refused for missing
-        // stock — a change of behaviour, and a deliberate one: composition is
-        // the plan's business and supply is the armoury's.
+        // Isolate the weapon refusal: this learned sheet can use fallback kit,
+        // but learning its composition grants no weapon technology.
+        roster.armory().acquireArmorPlan(SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR);
         String unaffordableWeapons = null;
         for (SquadWeaponDoctrine candidate : SquadEquipmentDoctrines.weaponDoctrines()) {
             if (!roster.armory().canAuthorWeaponDoctrine(candidate.issues())) {

@@ -58,6 +58,7 @@ public final class FirstRefit implements Serializable {
         }
         chosenPath = path;
         claimed = true;
+        repairArmorPlanKnowledge(roster.armory());
         return true;
     }
 
@@ -95,11 +96,24 @@ public final class FirstRefit implements Serializable {
     }
 
     public static boolean technologyKnown(MarineRoster roster, Path path) {
+        return technologyKnown(roster.armory(), path);
+    }
+
+    static boolean technologyKnown(MarineArmory armory, Path path) {
         if (path == null) return false;
         return path == Path.STEADY_LINE
-                ? roster.armory().ownsPrimaryTemplate(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC)
-                : roster.armory().ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC)
-                    && roster.armory().ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT);
+                ? armory.ownsPrimaryTemplate(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC)
+                : armory.ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC)
+                    && armory.ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT);
+    }
+
+    /** Repairs a saved lesson receipt without awarding technology or fitting equipment. */
+    void repairArmorPlanKnowledge(MarineArmory armory) {
+        if (!claimed) return;
+        for (Path path : Path.values()) {
+            if (chosenPath == null || chosenPath == path) armory.acquireArmorPlan(path.armor);
+        }
+        armory.repairArmorPlanKnowledge();
     }
 
     public SquadEquipmentResult issue(MarineRoster roster, String squadId, Path path, EquipmentIssueResources resources) {
