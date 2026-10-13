@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.tender.TenderDroneArt;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -46,8 +48,9 @@ public final class DroneRenderSystem implements RenderSystem {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
-        ShuttleSpriteCache cache = sprites.droneSprite();
-        if (cache == null) return;
+        ShuttleSpriteCache standard = sprites.droneSprite();
+        ShuttleSpriteCache tender = sprites.spriteByPath(TenderDroneArt.spritePath());
+        if (standard == null && tender == null) return;
 
         FogOfWarService vis = ctx.sim.getFogOfWar();
         World world = ctx.sim.world();
@@ -55,11 +58,9 @@ public final class DroneRenderSystem implements RenderSystem {
         ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        float pxH = Drone.VISUAL_CELLS * cellPx;
-        // A drone is 0.9 cells across and its bar stands just above it; two
+        // A drone is under a cell across and its bar stands just above it; two
         // cells bounds both whichever way the sprite has turned.
         float extentCells = Drone.VISUAL_CELLS * 2f;
-        float pxW = pxH * cache.aspect;
         float barW = cellPx * 0.9f;
 
         // Crashing (dead, falling) drones first so their fading wrecks paint UNDER
@@ -75,6 +76,10 @@ public final class DroneRenderSystem implements RenderSystem {
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 CrashingComponent crash = (CrashingComponent) states[r];
                 AirBody body = crash.body;
+                ShuttleSpriteCache cache = cacheFor(body, standard, tender);
+                if (cache == null) continue;
+                float pxH = heightCells(body, cache) * cellPx;
+                float pxW = pxH * cache.aspect;
                 float fade = Math.max(0f, Math.min(1f, crash.timer / Drone.CRASH_DURATION_SEC));
                 if (!view.visible(body.x, body.y, extentCells)) continue;
                 float drawAlpha = alphaMult * fade;
@@ -95,6 +100,10 @@ public final class DroneRenderSystem implements RenderSystem {
 
             // The drone's body is a world KINEMATICS component now (read by id).
             AirBody body = world.kinematics(u);
+            ShuttleSpriteCache cache = cacheFor(body, standard, tender);
+            if (cache == null) continue;
+            float pxH = heightCells(body, cache) * cellPx;
+            float pxW = pxH * cache.aspect;
             if (!view.visible(body.x, body.y, extentCells)) continue;
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
@@ -118,5 +127,21 @@ public final class DroneRenderSystem implements RenderSystem {
                         world.hp(u), world.maxHp(u), drawAlpha);
             }
         }
+    }
+
+    /** The sprite a body is drawn with: its look's own, or the shipped drone's when that look's art did not load. */
+    private static ShuttleSpriteCache cacheFor(AirBody body, ShuttleSpriteCache standard, ShuttleSpriteCache tender) {
+        if (DroneLook.of(body) == DroneLook.TENDER && tender != null) return tender;
+        return standard;
+    }
+
+    /**
+     * The sprite's long-axis length in cells. The shipped drone has an authored
+     * size; a tender's drone is drawn at hull scale from its own pixels, as it is
+     * beside its hull in fleet combat.
+     */
+    private static float heightCells(AirBody body, ShuttleSpriteCache cache) {
+        if (DroneLook.of(body) == DroneLook.TENDER && cache.pxH > 0) return TenderDroneArt.cells(cache.pxH);
+        return Drone.VISUAL_CELLS;
     }
 }

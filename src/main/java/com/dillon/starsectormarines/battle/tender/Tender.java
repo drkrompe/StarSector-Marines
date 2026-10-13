@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.VanillaData;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipSlot;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,13 +20,19 @@ import java.util.Map;
  * <p>It is not a second ship model. The body is an ordinary {@link Warship} that
  * flies, hovers, casts a shadow and takes ordnance like any other overhead hull;
  * this class adds what makes it a tender and nothing else: a complement of drones
- * (half defend it, half build), a small stock of build charges, and a line of
+ * (half defend it, half build), an optional cap on build charges, and a line of
  * {@link ConstructionOrder}s. {@link TenderSystem} runs it.
  *
  * <p>The complement is the hull's own: the Shepherd's built-in {@code borer_wing}
  * names how many drones the bay holds. Every drone lost stays lost for the rest
- * of the battle, as does every charge spent; a tender is bounded the way a
- * carried emplacement is, by what it brought.
+ * of the battle. Building is free for now: the stock of build charges is an
+ * optional cap that defaults to unlimited ({@link #UNLIMITED}), kept so a cost
+ * can be added later by changing {@link #DEFAULT_STOCK} (or a mission's
+ * {@link #stock(int)}) and nothing else.
+ *
+ * <p>It is a weak ship, pressed into the role: the hull's own hit points, armour
+ * and omni shield from the hull table, on the hull's own flux, with no weapons
+ * and no defensive buff beyond that. It is easy to kill by a determined raid.
  */
 public final class Tender implements DroneAnchor {
 
@@ -35,8 +42,14 @@ public final class Tender implements DroneAnchor {
     public static final String WING_ID = "borer_wing";
     /** Complement used when the game's wing table cannot be read. */
     static final int FALLBACK_COMPLEMENT = 6;
-    /** Build charges a fresh tender carries. */
-    public static final int DEFAULT_STOCK = 3;
+    /** The stock of a tender whose building is not metered. */
+    public static final int UNLIMITED = Integer.MAX_VALUE;
+    /**
+     * Build charges a fresh tender carries. Building is free for now, so this is
+     * {@link #UNLIMITED}; give it a number and every option's {@code cost} begins
+     * to bite.
+     */
+    public static final int DEFAULT_STOCK = UNLIMITED;
     /** Spacing, in cells, two sites must keep. */
     public static final float SITE_SPACING = 2f;
 
@@ -72,7 +85,25 @@ public final class Tender implements DroneAnchor {
      * {@link VanillaData}, so a mod's re-tuned Shepherd is a re-tuned tender.
      */
     public static Tender fit(Faction faction, float x, float y, float facingDegrees) throws Exception {
-        Warship ship = Warship.fit(new TenderLoadout(), faction, x, y, facingDegrees);
+        return fit(TenderLoadout.stock(), faction, x, y, facingDegrees);
+    }
+
+    /**
+     * Fits a campaign Shepherd as a tender, the way {@code Warship.fit(FleetMemberAPI, ...)}
+     * fits a campaign warship: the hull is the member's own. A member that is
+     * absent, or whose hull is not a Shepherd, falls back to the stock Shepherd.
+     */
+    public static Tender fit(FleetMemberAPI member, Faction faction, float x, float y, float facingDegrees)
+            throws Exception {
+        return fit(TenderLoadout.of(member), faction, x, y, facingDegrees);
+    }
+
+    private static Tender fit(TenderLoadout loadout, Faction faction, float x, float y, float facingDegrees)
+            throws Exception {
+        Warship ship = Warship.fit(loadout, faction, x, y, facingDegrees);
+        // The shield runs on the hull's own flux at the hull table's own figures; with no
+        // guns, the only thing that ever puts flux on it is a hit the shield absorbs.
+        ship.limitFlux();
         List<WarshipSlot> bays = new ArrayList<>();
         for (WarshipSlot slot : WarshipSlot.parse(VanillaData.json("data/hulls/" + HULL_ID + ".ship"))) {
             if ("LAUNCH_BAY".equals(slot.type())) bays.add(slot);
@@ -125,14 +156,19 @@ public final class Tender implements DroneAnchor {
         return bays.isEmpty() ? ship.y : ship.slotY(bays.get(0));
     }
 
-    /** Build charges left. A laid order has already drawn its charge. */
+    /** Whether building is metered: false while the stock is {@link #UNLIMITED}, which is the default. */
+    public boolean metered() {
+        return stock != UNLIMITED;
+    }
+
+    /** Build charges left, or {@link #UNLIMITED}. A laid order on a metered tender has already drawn its charge. */
     public int stock() {
         return stock;
     }
 
-    /** Sets the stock, for a mission that sends a better- or worse-provisioned tender. */
+    /** Sets a finite stock, for a mission that sends a metered tender; {@link #UNLIMITED} lifts the cap. */
     public void stock(int charges) {
-        this.stock = Math.max(0, charges);
+        this.stock = charges == UNLIMITED ? UNLIMITED : Math.max(0, charges);
     }
 
     public int builderComplement() {
@@ -201,19 +237,19 @@ public final class Tender implements DroneAnchor {
     }
 
     /**
-     * Lays a site: draws the option's charge and joins the line. Refused (null)
-     * when the stock cannot pay, the cell is not open ground, or another site is
+     * Lays a site: joins the line, drawing the option's charge when the tender is
+     * metered. Refused (null) when a metered stock cannot pay, the cell is not open ground, or another site is
      * already there. Whether the player may see the ground is the caller's rule.
      */
     public ConstructionOrder lay(BuildOption option, float x, float y, NavigationGrid grid) {
-        if (ship.destroyed() || option == null || option.cost() > stock) return null;
+        if (ship.destroyed() || option == null || (metered() && option.cost() > stock)) return null;
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
         for (ConstructionOrder other : orders) {
             if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < SITE_SPACING) return null;
         }
-        stock -= option.cost();
+        if (metered()) stock -= option.cost();
         ConstructionOrder order = new ConstructionOrder(option, cx + 0.5f, cy + 0.5f);
         orders.add(order);
         return order;
@@ -234,7 +270,7 @@ public final class Tender implements DroneAnchor {
         if (order.phase().terminal()) return;
         if (failure == null) order.cancel();
         else order.fail(failure);
-        stock += order.option().cost();
+        if (metered()) stock += order.option().cost();
     }
 
     /** Takes terminal orders off the line. */
@@ -281,9 +317,11 @@ public final class Tender implements DroneAnchor {
         String work = o == null ? "idle" : String.format(Locale.ROOT, "%s %s %d%%%s",
                 o.option().label(), o.phase(), Math.round(o.fraction() * 100f), o.contested() ? " CONTESTED" : "");
         return String.format(Locale.ROOT,
-                "TENDER %s  hull %d%%  charges %d  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
+                "TENDER %s  hull %d%%  shield %s  %s  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
                 ship.faction == Faction.MARINE ? "[friendly]" : "[hostile]",
-                Math.round(ship.hullFraction() * 100f), stock, builders.size() + builderReserve, builderComplement,
+                Math.round(ship.hullFraction() * 100f), ship.shieldState(),
+                metered() ? "charges " + stock : "builds free",
+                builders.size() + builderReserve, builderComplement,
                 defenders.size() + defenceReserve, defenceComplement, defenceOut ? "" : " (recalled)",
                 dronesLost(), built, work);
     }

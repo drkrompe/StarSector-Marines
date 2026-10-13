@@ -259,6 +259,12 @@ carry Service Rooks. Both omit carried specials, disclosed in the review.
 Armor still resolves from the company's owned patterns through the ordinary role
 and tradition rules. These are a bounded introduction to the existing catalog,
 not a separate equipment economy or a restriction on later Armory authorship.
+Milspec infantry primaries consume supplies rather than restricted heavy armaments.
+Their supply costs retain the value of the military issue while keeping its
+materials available through civilian trade. With the opening collection, both paths require only supplies and machinery,
+so the lesson can be provisioned through ordinary legal trade on Jangala. Masterwork
+weapons, heavy suits and specialized hardware retain their catalog requirements;
+a later owned armor pattern can change the resolved order and its visible bill.
 
 After Relief, the debrief prominently announces the available equipment upgrade
 and opens Castle's lesson directly. The notice remains on later non-debug
@@ -267,8 +273,14 @@ settling or forfeiting any pending salvage; ordinary settlement actions retain
 their existing ownership.
 
 The player accepts the patterns, selects an actual line squad, chooses one path,
-and reviews all twelve current and proposed kits alongside Cost, Available and
-Short by. Only explicit Issue commits the ordinary cargo-backed transaction.
+and reviews twelve clickable equipment squares in three fire-team columns of
+four billets, alongside Cost, Available and Short by. The grid uses the Barracks'
+current-equipment icons, with wounded and vacant slots identified. Selecting a
+square displays current and proposed weapon, armor and
+special equipment side by side, using existing equipment sprites and the shared
+catalog spec sheets. Core stats stay visible; hover expands field notes and suit
+systems. The review explicitly marks unchanged kit, replacements, removed specials,
+and unoccupied plan-only slots. Only explicit Issue commits the ordinary cargo-backed transaction.
 Wounds and vacancies never block assignment or issue. Current occupants, including
 WIA personnel, receive the reviewed equipment; empty slots retain the plan and
 incur no charge. Stationing and material shortages remain blockers. Successful issue completes the saved
