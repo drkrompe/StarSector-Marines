@@ -42,6 +42,9 @@ import java.util.List;
  * — both sides set independently.
  */
 public class CellTopology {
+    private NightLighting nightLighting;
+    public NightLighting nightLighting() { return nightLighting; }
+    public void setNightLighting(NightLighting value) { nightLighting = value; }
     private TerrainSurface terrainSurface;
     public TerrainSurface terrainSurface() { return terrainSurface; }
     public void setTerrainSurface(TerrainSurface value) {

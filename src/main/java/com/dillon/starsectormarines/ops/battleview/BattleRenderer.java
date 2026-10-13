@@ -312,6 +312,7 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new DroneRenderSystem(sprites),
+                new SalvageCacheRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
@@ -328,6 +329,7 @@ public class BattleRenderer {
                         })),
                 new ShuttleRenderSystem(sprites),
                 new ShipLightingRenderSystem(),
+                new NightLightingRenderSystem(),
                 new WarshipRenderSystem(sprites),
                 new LanceSweepRenderSystem(),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its

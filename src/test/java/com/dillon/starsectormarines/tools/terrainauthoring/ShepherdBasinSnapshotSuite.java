@@ -62,6 +62,11 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                     if (visit == ShepherdBasin.Visit.COLD_START)
                         frames.add(new SnapshotArtifact("cold-start-hull.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(104,101,48,27,1920,1080))),1920,1080)));
+                    if (visit == ShepherdBasin.Visit.COLD_START) {
+                        map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
+                        frames.add(new SnapshotArtifact("cold-start-power-restored.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(92,92,112,63,1920,1080))),1920,1080)));
+                    }
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("working-passage-narrows.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(166,68,128,72,1920,1080))),1920,1080)));
@@ -128,7 +133,7 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
             throw new IllegalStateException("Basin lost authored landing or landscape");
     }
 
-    /** Outdoor evidence uses ordinary daylight, never the ship compartment lighting layer. */
+    /** Outdoor evidence retains the map's lighting, never the unrelated ship compartment lamps. */
     private static BattleSceneHostPass daylight(BattleSceneHostPass source) {
         return new BattleSceneHostPass() {
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {

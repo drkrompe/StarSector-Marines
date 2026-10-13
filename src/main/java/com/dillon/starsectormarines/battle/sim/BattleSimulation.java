@@ -6,6 +6,8 @@ import java.awt.Color;
 import java.util.UUID;
 
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
+import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
+import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -448,6 +450,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final StoryBeatLog storyBeats = new StoryBeatLog();
     private OpeningOperationStoryObserver openingStory;
     private WaylineHoundRecovery waylineHound;
+    private final long generationSeed;
+    private FieldSalvage fieldSalvage = new FieldSalvage(List.of());
+    private boolean salvageInstalled;
+
+    public FieldSalvage fieldSalvage() { return fieldSalvage; }
+
+    /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
+    public void installFieldSalvage() {
+        if (salvageInstalled) return;
+        if (simTickIndex != 0) throw new IllegalStateException("Salvage must be installed before battle");
+        fieldSalvage = new FieldSalvage(SalvagePlacement.forBattle(this, generationSeed));
+        salvageInstalled = true;
+    }
     private DepotHoldSequence depotHold;
     public DepotHoldSequence getDepotHold() { return depotHold; }
     public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
@@ -730,6 +745,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology, long seed) {
+        this.generationSeed = seed;
         this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
@@ -2555,6 +2571,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (relayNineSequence != null) relayNineSequence.tick(this);
         if (thunderRun != null) thunderRun.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
+        fieldSalvage.tick(this);
         if (depotHold != null) depotHold.advance(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
