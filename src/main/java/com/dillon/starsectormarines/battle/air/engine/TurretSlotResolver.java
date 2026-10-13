@@ -94,12 +94,16 @@ public final class TurretSlotResolver {
     }
 
     private static JSONObject loadSpec(String hullId, String path) throws Exception {
+        Exception failure = null;
         try {
-            return Global.getSettings().loadJSON(path);
+            JSONObject spec = Global.getSettings().loadJSON(path);
+            // A settings stand-in may answer nothing rather than throw; that is no answer either.
+            if (spec != null) return spec;
         } catch (Exception game) {
-            HullSpecSource source = fallbackSource;
-            if (source == null) throw game;
-            return source.spec(hullId);
+            failure = game;
         }
+        HullSpecSource source = fallbackSource;
+        if (source != null) return source.spec(hullId);
+        throw failure != null ? failure : new IllegalStateException("no hull spec for " + hullId);
     }
 }
