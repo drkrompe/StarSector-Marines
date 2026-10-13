@@ -261,13 +261,14 @@ public final class TenderDirector {
     /**
      * What an unpiloted tender builds: an attacking tender the quickest option, because the advance
      * moves on and a forward position is worth having soon; a defending tender the heaviest it can
-     * pay for, because held ground gives the builders time. Null when a metered stock can pay for
-     * nothing.
+     * pay for, because held ground gives the builders time. Only turret kinds: a pod is quicker than
+     * every turret and would win ATTACK always, and nothing here knows when ordnance is coming.
+     * Null when a metered stock can pay for nothing.
      */
     static BuildOption option(MissionStance stance, Tender t) {
         BuildOption best = null;
         for (BuildOption o : BuildOption.ALL) {
-            if (t.metered() && o.cost() > t.stock()) continue;
+            if (!o.turretKind() || (t.metered() && o.cost() > t.stock())) continue;
             boolean better = best == null || (stance == MissionStance.DEFEND
                     ? o.buildSeconds() > best.buildSeconds()
                     : o.buildSeconds() < best.buildSeconds());
