@@ -4,13 +4,14 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 and 2 built (profile signals; multi-cell structures); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 4 built; placement authority moved from map generation to the mission (a mission declares batteries and a shield generator, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
 command-power stories `shielded-fire-support-zones.md` and
-`orbital-battery-fire-support-lock.md` first. This doc proposes what a world's ground
-defences are in a battle. Nothing here is built.
+`orbital-battery-fire-support-lock.md` first. This doc says what a world's ground
+defences are in a battle. The fortress battery and the shield generator are built; the
+defence nests are not.
 
 ## What the owner asked for
 
@@ -107,7 +108,7 @@ capital that is not another ship.
    read in `TargetProfileResolver` (ground defences is true for Ground Defenses *or* its
    Heavy Batteries upgrade, which keeps the network), carried through fixture JSON, and
    restatable by a mission (`Mission.defences`, the DEBUG "Ground defences" dial on
-   Conquest). Nothing in map generation reads them yet. `DetachmentResolver.planetHasHeavyArmaments`
+   Conquest). Map generation does not read them; a mission definition may (see slice 3, *Placement authority*). `DetachmentResolver.planetHasHeavyArmaments`
    is left as it is: it also counts heavy industry, so it is not the same question.
 2. **Multi-cell structures** (built, art outstanding): the turret catalog takes odd
    footprints larger than one cell, centred on the anchor cell. As built: `StructureDef`
@@ -119,12 +120,83 @@ capital that is not another ship.
    `structure.fortress-battery-placeholder` (3x3, heavy-mortar mount) is a stand-in for
    slice 3. Battery and generator art is still to do: the mount sprite is drawn at its own
    `visualCells`, not the footprint.
-3. **Fortress battery**: placement in the fortress ward, vanilla station-module guns,
-   ground-to-air aim at a hull in the envelope, the envelope registered as a capital
-   hazard, fire control and its capture rules, and the Orbital Barrage lock.
-4. **Shield generator**: the dome, its pool and overload, absorption of ship-grade
-   ordnance and barrage, the dome's look, and its capture rules.
-5. **Defence nests**: the dispersed posts, sized by the mission; anti-air already exists.
+3. **Fortress battery** (built, art outstanding): placement where a mission declares heavy
+   batteries, vanilla station-module guns, ground-to-ship aim at a hull in the envelope, the
+   envelope as a hazard warship AI keeps out of, fire control and its capture rules, and the
+   Orbital Barrage lock. As built:
+   - *Placement authority.* The mission declares, the map obeys. `GroundDefences` (battery count,
+     shield generator yes/no) is the declaration; `MissionDefencePolicy.declare` is the one place a
+     mission's declaration is decided and `MissionLaunch` stamps it on the profile
+     (`TargetProfile.declaredDefences`). Precedence: the mission's explicit `Mission.defences`
+     (the DEBUG dial) wins, then the mission type's policy, then none. A mission that says
+     nothing carries no defences. The market's three signals stay on the profile as inputs a
+     policy may read, and no generator stage or setup step reads them or derives a count from map
+     area. **Conquest's policy** lives in `MissionDefencePolicy.conquest`: it reads the market's
+     Heavy Batteries and Planetary Shield and declares four batteries and a shield generator
+     accordingly, an untuned first-pass mission-design choice that a designer changes there.
+   - *Placement.* `FortressBatteryStage` runs after the overwatch towers and stands exactly the
+     declared number of batteries; with none declared the map is unchanged. Sites are open
+     outdoor ground with a clear apron, deep band first; fewer are placed if the ground cannot
+     hold them.
+   - *Guns.* A structure that names a `battery` block in the turret catalog is registered as a
+     battery when spawned, held by the side that spawned it. Its `BatteryLoadout` is a set of
+     vanilla weapon ids taken from station modules (`citadel`: Gauss, Mjolnir, Heavy Mauler from
+     `module_citadel1_lowtech`; `hellbore-pair` from `module_large1_lowtech`); every figure is
+     the game's. The structure keeps its placeholder heavy-mortar mount, so it also shells
+     ground units as an ordinary emplacement.
+   - *Aim and damage.* A gun settles on the nearest hostile hull in reach for 1.5 seconds, then
+     fires a ship's shell from the ground (`WarshipSystem.fireFromGround`): it flies, point
+     defence can stop it, the shield then the armour rule take it, and it lands on hulls only
+     (no ground detonation under the aim point). Aim leads the hull's drift. No traverse limit
+     or ammunition yet.
+   - *Hazard.* While operational a battery registers its envelope (longest gun reach) with the
+     warship system as a live hazard hostile to everyone but its holder. A doctrine ship keeps
+     its station beyond it plus the standard margin in any posture but withdraw, working from
+     the station the mission gave so it returns when the battery falls silent; a ship with no
+     doctrine, a piloted one, or one the mission places inside, gambles. The envelope is drawn.
+   - *Fire control.* A point at the structure (a radius around its anchor, not a separate
+     body): hostile presence contests it and a contested battery is silent; uncontested hostile
+     presence for 12 seconds takes it, a holder left alone pushes the contest back in 8, and
+     both present holds it. Written for sides, so either may hold or take. Destroying the
+     structure silences it for good. A separate destructible fire-control body is not built.
+   - *Orbital Barrage.* While an intact battery's holder is hostile to the company (held or
+     contested) the power cannot be targeted and its card reads LOCKED; capture or destruction
+     lifts it. The briefing statement of this and any contract mandate to keep the site intact
+     remain in `orbital-battery-fire-support-lock.md`.
+   - *Untuned.* A single battery kills an undefended capital in well under two minutes; envelope
+     reach, lock time, capture times and counts are first-pass figures for play to settle.
+   - *Not built.* The battery sprite (the footprint is a placeholder pad), faction tech choice of
+     loadout, gun traverse and ammunition, a per-gun art mount, and a ship's hazard-aware
+     station choice for the player's own calls (the player may still place a ship inside).
+4. **Shield generator** (built, art outstanding): the dome, its pool and overload, absorption of ship-grade
+   ordnance and barrage, the dome's look, and its capture rules. As built: the catalog's
+   `structure.shield-generator` (3x3, role STRUCTURE, no gun) carries an optional `dome` block
+   (`DomeSpec`: radius, flux capacity, dissipation, overload seconds, capture radius and time),
+   and spawning it registers a dome with `ShieldDomeService`. Ship-grade ordnance is marked at its
+   source (`PendingDetonation.asShipGrade` on warship rounds, warheads, lance beams and Orbital
+   Barrage) and `Detonations` asks the domes before anything lands, so a hostile round inside an
+   up dome becomes flux (the larger of its damage and wall damage) and does nothing else, ship
+   landing FX and cues included. The round that fills the pool is absorbed; the dome then drops
+   for its overload time and recovers empty. Small arms, mech weapons, rockets, aircraft and
+   their ordnance are not touched (decided: the dome is ship-grade only). Capture: combatants
+   within the capture radius and none of the holder's friends take it after the capture time, the
+   holder's friends alone wind it back, and a taken dome reboots for 4 s; the entity's own faction
+   never changes, so the holder is the service's record. Destroying the generator drops the dome.
+   Look: `ShieldDomeRenderSystem` (HAZARDS) in the warship shield's cyan for the player's side and
+   red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
+   an enemy dome draws only where the map has been seen. Sounds are the game's own
+   `hit_shield_heavy_gun`, `shield_burnout` and `shield_raise` through the warship cue path.
+   A mission that declares a shield generator gets one beside the keep, held by the
+   garrison (`ShieldGeneratorPlacement.nearKeep`); which missions declare one is
+   `MissionDefencePolicy`'s call. All figures are first-pass and **untuned** (1500 flux, 60 per second, 9 s
+   overload, 16 cells). Evidence: `ShieldDomeServiceTest` and the `shield-dome` scene (control,
+   dome, destroyed). Still to do: generator art (a placeholder pad and the dome's core glow stand
+   in), AI awareness (no squad is sent to take or wreck a generator and nothing orders a
+   defender to retake one; a taken generator is still shot by its original side's enemies because
+   its entity faction is fixed), a campaign mission that places one for a market-held
+   shield, and the barrage-targeting preview showing a dome (barrage is absorbed, not denied, so
+   `shielded-fire-support-zones.md`'s denial contract needs reconciling with the owner's decision).
+5. **Defence nests**: the dispersed posts, sized by the mission's declaration (a count to add to `GroundDefences`); anti-air already exists.
 
 ## Decided
 

@@ -4,7 +4,7 @@ Status: PLANNED — depends on `hard-installation-first-map-feature.md` publishi
 
 Written: 2026-08-24
 
-Updated: 2026-10-14 — the planetary-shield profile signal it relies on now exists (`TargetProfile.planetaryShield`); the relay and footprint are still the dependency.
+Updated: 2026-10-14 — the shield generator and its dome now exist (`ground-defences.md`); the owner decision there is that the dome absorbs barrage as flux rather than denying its targeting, so the denial contract below needs reconciling; the relay-as-compound dependency is unchanged.
 
 Read `command-powers-nouns.md` and `campaign-battle-bridge-nouns.md` before
 implementing this story.

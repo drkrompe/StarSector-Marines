@@ -17,6 +17,9 @@ import java.io.File;
 import java.util.LinkedHashMap;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FirstRefitModelTest {
+    private HeadlessStrings strings;
+    @BeforeEach void strings() throws Exception { strings = new HeadlessStrings(new File("mod").toPath()); }
+    @AfterEach void closeStrings() { strings.close(); }
+
     @Test void lessonRequiresRealSelectionAndShowsExactlyTwoChoicesThenActualIssue() {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);

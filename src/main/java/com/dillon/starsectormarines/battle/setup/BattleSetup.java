@@ -157,6 +157,7 @@ import com.dillon.starsectormarines.battle.command.objective.ExtractionObjective
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.shield.ShieldGeneratorPlacement;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
@@ -2278,6 +2279,12 @@ public final class BattleSetup {
 
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         linkGuardpostSquads(sim, defenders.defensePosts());
+        // A mission that declares a shield generator gets one beside the keep, held
+        // by the garrison. Whether a mission declares one is its own business (see
+        // MissionDefencePolicy); this only honours the declaration.
+        if (profile != null && profile.declaredDefences().shieldGenerator()) {
+            ShieldGeneratorPlacement.nearKeep(sim, Faction.DEFENDER);
+        }
         claimConquestSetupGarrisons(sim);
         spawnAmbientCivilians(sim, map, rng);
         // Both Conquest commanders share one physical three-track layout but

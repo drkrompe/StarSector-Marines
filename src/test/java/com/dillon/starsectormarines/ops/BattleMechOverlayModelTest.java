@@ -120,6 +120,12 @@ class BattleMechOverlayModelTest {
                     .box().borderBox().width() > 380f,
                     "the lance action needs a full row rather than another packed chip");
 
+            model.selectionScope(3);
+            instance.flush();
+            assertEquals("ALL 3 SQUADS", instance.requireElement("battle-mech-tactical-order-scope").text());
+            assertEquals("WHOLE LANCE", instance.requireElement("battle-mech-lance-order-scope").text());
+            model.selectionScope(1);
+            instance.flush();
             click(document, instance.requireElement("battle-mech-defend-area"));
             assertEquals(7, defendRequested.get());
 

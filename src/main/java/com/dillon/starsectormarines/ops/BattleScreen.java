@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
@@ -54,12 +55,12 @@ import com.dillon.starsectormarines.battle.ui.highlight.AssaultCommanderOverlayP
 import com.dillon.starsectormarines.battle.ui.highlight.SabotageCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.RaidCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.ExtractionCommanderOverlayPublisher;
-import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
-import com.dillon.starsectormarines.battle.ui.highlight.MechMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.VehicleMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
+import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
@@ -221,6 +222,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleMechOverlay retainedMechOverlay;
     /** MLX-authored compact command-power deck at bottom-center. */
     private BattlePowerOverlay retainedPowerOverlay;
+    private BattleLessonOverlay campaignLesson;
     /** MLX-authored, confirmation-gated battle exit at bottom-left. */
     private BattleRetreatOverlay retainedRetreatOverlay;
     /** World click/reticle half of the power flow; card selection lives in MLX. */
@@ -426,6 +428,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void advance(float dt) {
         lastAdvanceDt = dt;
+        if (campaignLesson != null) campaignLesson.update(ctx.getBattleSimulation());
         syncDirectControl();
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
         // state still update when the sim is paused. Panels' update() just
@@ -567,12 +570,27 @@ public class BattleScreen implements Screen, BattleUiContext {
         // visibly throbs at contested compounds — the player keeps reading
         // state during pauses (mirrors the charge-site marker behaviour).
         renderer.getCompoundMarkers().update(dt);
-        // Selected-squad highlight — production cue (works without the debug
-        // panel). Republished each frame off post-tick unit positions so the
-        // green cells track members as they move; clears itself when the
-        // selection drops or the squad is wiped out.
-        SelectionHighlightPublisher.publish(selection, sim, highlights);
-        MechMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+        selection.retainSquads(id -> {
+            Squad squad = sim.getSquad(id);
+            return squad != null && squad.aliveMembers > 0;
+        });
+        Squad primarySquad = sim.getSquad(selection.getSelectedSquadId());
+        long primaryMember = selection.getSelectedUnitEntityId();
+        if (primarySquad != null && (primaryMember != 0L && sim.resolveUnit(primaryMember) == 0L
+                || primaryMember == 0L && primarySquad.isMechSquad())) {
+            long replacement = 0L;
+            for (int i = 0; i < sim.squadMemberCount(primarySquad.id); i++) {
+                replacement = sim.resolveUnit(sim.squadMemberAt(primarySquad.id, i));
+                if (replacement != 0L) break;
+            }
+            selection.selectSquads(selection.getSelectedSquadIds(), primarySquad.id, replacement, false);
+        }
+        if (worldPicker != null) {
+            worldPicker.updateHover(directControlInput.pointerX(), directControlInput.pointerY(),
+                    directControlInput.pointerKnown()
+                            && !battleChromeBlocksWorldPointer(directControlInput.pointerX(),
+                            directControlInput.pointerY()));
+        }
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
@@ -621,6 +639,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
+        if (campaignLesson != null) { campaignLesson.detach(); campaignLesson = null; }
         companyOfficer.stop();
         operationRadio.stop();
         if (storyNarration != null) storyNarration.stop();
@@ -822,6 +841,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                     commandPowerTargeting::targetingPowerId);
         }
         retainedPowerOverlay.attach(position, sim);
+        Mission lessonMission = ctx.getSelectedMission();
+        var rosterScript = MarineRosterScript.getInstance();
+        if (campaignLesson == null && rosterScript != null && (SupplyRouteCampaign.isBattle(lessonMission)
+                || CorvusWaylineCampaign.isBattle(lessonMission))) {
+            campaignLesson = new BattleLessonOverlay(rosterScript.roster());
+        }
+        if (campaignLesson != null) campaignLesson.attach(position);
         if (retainedRetreatOverlay == null) {
             retainedRetreatOverlay = new BattleRetreatOverlay(
                     this::retreatFromBattle, this::continueFromBattle);
@@ -1094,6 +1120,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         ordnanceAudio.update(releases, arrivals, simDt);
         WarshipAudio.play(sim.warships().cuesThisFrame());
+        WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
     }
 
@@ -1286,6 +1313,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
         if (!directControlInput.active()) {
+            if (campaignLesson != null) campaignLesson.processInput(events);
             if (retainedOverlay != null) retainedOverlay.processInput(events);
             if (retainedSquadOverlay != null) retainedSquadOverlay.processInput(events);
             if (retainedMechOverlay != null) retainedMechOverlay.processInput(events);
@@ -1496,30 +1524,15 @@ public class BattleScreen implements Screen, BattleUiContext {
         int cellX = (int) Math.floor(camera.screenToCellX(screenX));
         int cellY = (int) Math.floor(camera.screenToCellY(screenY));
         if (!sim.getGrid().inBounds(cellX, cellY)) return;
-        long selectedUnit = selection.getSelectedUnitEntityId();
-        if (selectedUnit != 0L && sim.world().hasMechLoadout(selectedUnit)) {
-            sim.getMechMoveOrderService().requestMove(
-                    selectedUnit, cellX, cellY);
-            return;
-        }
-        long selectedVehicle = selection.getSelectedVehicleId();
-        if (selectedVehicle != 0L && sim.getVehicleMoveOrderService() != null) {
-            sim.getVehicleMoveOrderService().requestMove(
-                    selectedVehicle, cellX, cellY);
-            return;
-        }
-        int selectedSquad = selection.getSelectedSquadId();
-        if (selectedSquad != Selection.NONE) {
-            sim.getSquadMoveOrderService().requestMove(
-                    selectedSquad, cellX, cellY);
-        }
+        SelectionOrders.requestMove(sim, selection, cellX, cellY);
     }
 
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {
         if (directControlOverlay != null
                 && directControlOverlay.blocksWorldPointer(screenX, screenY)) return true;
         if (directControlInput.active()) return false;
-        return hud != null && hud.blocksWorldPointer(screenX, screenY)
+        return !directControlInput.active() && campaignLesson != null && campaignLesson.blocksWorldPointer(screenX, screenY)
+                || hud != null && hud.blocksWorldPointer(screenX, screenY)
                 || retainedOverlay != null
                 && retainedOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedSquadOverlay != null
@@ -1647,6 +1660,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedMechOverlay != null) retainedMechOverlay.render(alphaMult);
             if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
+            if (campaignLesson != null) campaignLesson.render(alphaMult);
         }
         if (directControlOverlay != null) directControlOverlay.render(alphaMult);
         storySubtitles.render(alphaMult);

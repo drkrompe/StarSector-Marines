@@ -19,6 +19,7 @@ public final class SquadDefendTargetingPanel implements HudPanel {
 
     private final BattleUiContext ctx;
     private int targetingSquadId = Selection.NONE;
+    private List<Integer> targetingSquads = List.of();
     private int mouseX;
     private int mouseY;
 
@@ -38,11 +39,15 @@ public final class SquadDefendTargetingPanel implements HudPanel {
             return;
         }
         BattleSimulation sim = ctx.getSim();
-        if (validPlayerDefendSquad(sim, squadId)) targetingSquadId = squadId;
+        if (validPlayerDefendSquad(sim, squadId)) {
+            targetingSquadId = squadId;
+            targetingSquads = ctx.getSelection().getSelectedSquadIds();
+        }
     }
 
     public void cancel() {
         targetingSquadId = Selection.NONE;
+        targetingSquads = List.of();
     }
 
     @Override public boolean isVisible() { return targetingSquadId != Selection.NONE; }
@@ -50,7 +55,8 @@ public final class SquadDefendTargetingPanel implements HudPanel {
     @Override
     public void update(float dt) {
         if (targetingSquadId == Selection.NONE) return;
-        if (ctx.getSelection().getSelectedSquadId() != targetingSquadId
+        if (!ctx.getSelection().getSelectedSquadIds().equals(targetingSquads)
+                || ctx.getSelection().getSelectedSquadId() != targetingSquadId
                 || !validPlayerDefendSquad(ctx.getSim(), targetingSquadId)) {
             cancel();
         }
@@ -76,6 +82,8 @@ public final class SquadDefendTargetingPanel implements HudPanel {
     @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null || targetingSquadId == Selection.NONE) return;
+        update(0f);
+        if (targetingSquadId == Selection.NONE) return;
         BattleSimulation sim = ctx.getSim();
         BattleCamera camera = ctx.getCamera();
         if (sim == null || camera == null) return;
@@ -91,18 +99,22 @@ public final class SquadDefendTargetingPanel implements HudPanel {
                     && event.getEventValue() == Keyboard.KEY_ESCAPE) {
                 cancel();
                 event.consume();
-                continue;
+                return;
             }
             if (!event.isLMBDownEvent()
                     || !camera.containsScreen(event.getX(), event.getY())) continue;
             int cellX = (int) Math.floor(camera.screenToCellX(event.getX()));
             int cellY = (int) Math.floor(camera.screenToCellY(event.getY()));
             if (sim.getGrid().inBounds(cellX, cellY)) {
-                sim.getSquadMoveOrderService().requestDefendArea(
-                        targetingSquadId, cellX, cellY);
+                for (int squadId : targetingSquads) {
+                    if (validPlayerDefendSquad(sim, squadId)) {
+                        sim.getSquadMoveOrderService().requestDefendArea(squadId, cellX, cellY);
+                    }
+                }
                 cancel();
             }
             event.consume();
+            if (targetingSquadId == Selection.NONE) return;
         }
     }
 

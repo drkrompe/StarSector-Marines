@@ -4,14 +4,10 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Barracks contains the equipment workspace and its unread opportunities.
+Updated: 2026-10-13 — world selection supports squad groups and ground selection circles.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
-
-Earlier 2026-08-31 — primary world selection now distinguishes a click from a
-drag marquee and deterministically selects one player squad or combat Mech
-inside the dragged area.
 
 Earlier 2026-08-31 — the selected infantry plate now arms a Defend Area
 placement mode whose next world click previews and places a 40-cell-diameter
@@ -500,10 +496,28 @@ Primary world selection resolves on release. Motion within the pointer threshold
 remains the ordinary nearest-unit click, including defender inspection and empty-
 ground deselection. Crossing that threshold paints a bounded marquee and considers
 only live player infantry squads and combat Mechs; convoy vehicles, hostiles, and
-mission payloads are not drag candidates. The one candidate nearest the marquee
-center wins, with stable entity identity breaking an exact tie. This preserves the
-single-selection command model while leaving room for a later multi-selection
-authority rather than pretending a set exists today.
+mission payloads are not drag candidates. Every intersecting squad joins one
+deduplicated selection. The member nearest the marquee center is the primary,
+with stable entity identity breaking ties; that primary drives the detail plate
+and exact-member controls. Shift-click and Shift-drag add player squads.
+An ordinary click replaces the group, and empty ground clears it. Losing a squad
+removes only that squad from the group.
+
+Right-click sends the shared destination to every selected squad through its
+existing order authority, including contextual infantry capture and transport
+assignments. A multi-squad selection sends Mech moves to each live chassis in
+its selected lances; a single exact Mech retains its individual move control.
+Each recipient independently validates the order. Group selection does not
+create a new formation, merge squads, or change mission authority. The plate
+shows the group count and the scope of Defend Area; doctrine and lance
+coordination controls retain their explicit primary scopes.
+
+Selected player members wear green ground circles, the exact primary wears
+gold, and hovering a player member previews its squad with lighter circles.
+The rings follow rendered positions under the characters, not navigation cells,
+and yield to visibility, HUD chrome and direct control. Hostile inspection adds
+no cell highlight. The selected-squad diagnostics do not paint contact cells,
+captain cells or tactical direction traces.
 Player-facing Conquest command intent occupies the top-left opposite the top-right
 time/objective rail. When organizational groups are published, this bounded
 readout shows named leaders, deployed squad strength, task and regrouping state;
@@ -556,23 +570,22 @@ it never mutates the squad, loadout, campaign default, assignment, or contact
 picture directly, and it is absent for enemies, infantry, rescue payloads, and
 stale selections. With that exact friendly Mech selected, a stationary
 right-click on world ground requests a one-shot tactical move; the simulation's
-resolved reachable destination is shown as a cyan cell cue until arrival.
-Crossing the pointer threshold instead keeps RMB-drag camera panning, and HUD
+resolved reachable destination remains simulation-owned without a persistent
+destination-cell overlay. Crossing the pointer threshold instead keeps RMB-drag camera panning, and HUD
 chrome blocks the world request behind it. A selected friendly infantry squad
-uses the same gesture and cue at squad scope, whether selection came from one
+uses the same gesture at squad scope, whether selection came from one
 world member or the squad roster; the surface supplies only the requested cell
 and does not mutate mission authority or combat state. When that cell lies
 inside an uncaptured Conquest compound, the simulation resolves the gesture to
-the compound's authoritative capture room and keeps the cue there until capture
-completes; a Marine-held compound remains ordinary ground. Selecting a squad
+the compound's authoritative capture room until capture completes; a Marine-held compound remains ordinary ground. Selecting a squad
 opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 
 The selected-infantry plate and selected-Mech plate expose **Defend Area**
 as a deliberate two-step command rather than overloading the contextual
-right-click gesture. Infantry issues it for the selected squad; a Mech issues
-one shared order for its whole battle lance.
+right-click gesture. It issues one order for each selected squad or battle lance. A single
+Mech selection issues one shared order for its whole battle lance.
 The infantry summary row is reserved for squad identity, strength, and morale;
 its contextual controls live in a separate tactical-order row so adding or
 renaming an order cannot compress the status readout.
@@ -581,7 +594,7 @@ reticle; right-click, Escape, or selection change cancels without issuing an
 order. Placement returns the input seam to ordinary world selection, while the
 selected squad's accepted circle remains visible as a center and perimeter cue
 until another order or withdrawal supersedes it. Presentation supplies only
-the squad identity and clicked cell; the simulation validates and snaps the
+the selected squad identities and clicked cell; the simulation validates and snaps the
 center and owns the defensive behavior.
 
 The direct-control entry plate reserves a stable position above the taller of

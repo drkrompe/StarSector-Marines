@@ -164,8 +164,10 @@ final class BattleMechOverlay {
     private BattleMechOverlayModel.Presentation updateModel(BattleSimulation sim) {
         int squadId = selection.hasSquadSelection()
                 ? selection.getSelectedSquadId() : Selection.NONE;
-        return model.update(sim, squadId, selection.getSelectedUnitEntityId(),
+        var result = model.update(sim, squadId, selection.getSelectedUnitEntityId(),
                 targetingSquadId.getAsInt());
+        model.selectionScope(selection.squadCount());
+        return result;
     }
 
     private void requestDoctrine(long mechId, MechRole role) {

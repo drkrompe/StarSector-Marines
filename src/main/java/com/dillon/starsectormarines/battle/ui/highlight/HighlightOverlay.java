@@ -10,9 +10,8 @@ import java.util.Map;
 /**
  * Shared cell-highlight state for overlays on the battle map. Multiple "sources"
  * write into their own slot keyed by string id and are rendered together:
- * the selected squad (a production selection cue, fed by
- * {@code SelectionHighlightPublisher}), plus debug sources (the GOAP panel's
- * per-step action cells, a captain badge). Sources don't stomp each other —
+ * accepted defensive areas and explicit developer overlays. Unit selection is
+ * rendered separately as circles beneath characters. Sources don't stomp each other —
  * clearing one source leaves the others intact.
  *
  * <p>Pure state holder: the GL was hoisted out to {@code HighlightRenderer}

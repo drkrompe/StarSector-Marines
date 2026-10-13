@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MechLabViewModelTest {
 
@@ -296,7 +297,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void castleModalDoesNotShiftTheLabAndEscapeReturnsFittingInput() throws Exception {
+    void castleSpotlightKeepsFittingControlsLiveAndResumesAfterLeaving() throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = new MechBay();
         bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
@@ -306,26 +307,38 @@ class MechLabViewModelTest {
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor, "mech-lab", props(model))) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = PreparationGuide.document(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            TutorialModal.bind(document, instance, model::labGuideVisible,
-                    "castle-lab-lesson", "mech-lab-root", model::dismissLabPrompt, () -> {});
+            var guideLoader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                    List.of("data/ui/components/company/preparation-guide.mlx"));
+            var guide = new PreparationGuide(document, model::campaignLesson, () -> {}, guideLoader);
             document.layout(1920, 1080);
             var stage = instance.requireElement("mech-doll-canvas");
             float x = stage.box().borderBox().x(), y = stage.box().borderBox().y();
             float width = stage.box().borderBox().width(), height = stage.box().borderBox().height();
-            assertTrue(model.labGuideVisible());
+            guide.update();
+            assertTrue(guide.visible());
             document.keyPressed(UiKey.ESCAPE, Set.of(), false);
             instance.flush();
             document.layout(1920, 1080);
-            assertFalse(model.labGuideVisible());
+            assertTrue(guide.visible(), "Escape must not mark physical fitting practice complete");
             assertEquals(x, stage.box().borderBox().x(), EPSILON);
             assertEquals(y, stage.box().borderBox().y(), EPSILON);
             assertEquals(width, stage.box().borderBox().width(), EPSILON);
             assertEquals(height, stage.box().borderBox().height(), EPSILON);
-            assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
-            assertTrue(model.labGuideVisible());
+            var rack = model.catalogRows().get().stream().filter(row -> row.weaponPreview() == MechWeaponComponent.SRM_5).findFirst().orElseThrow();
+            var install = instance.requireElement(rack.actionId()).box().borderBox();
+            document.pointerDown(install.x() + install.width() / 2, install.y() + install.height() / 2);
+            document.pointerUp(install.x() + install.width() / 2, install.y() + install.height() / 2);
+            assertEquals(3, bay.labLesson(), "The actual install control must work through the spotlight");
+            var reopened = new MechLabViewModel(new Reactor(), bay);
+            reopened.resumeCampaignLesson();
+            assertEquals(3, bay.labLesson());
+            assertNotNull(reopened.campaignLesson());
+            assertTrue(reopened.removeInstalledWeapon(SocketId.LEFT_SHOULDER));
+            assertTrue(reopened.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+            assertEquals(4, bay.labLesson());
         }
     }
 

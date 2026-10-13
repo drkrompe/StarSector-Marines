@@ -4,8 +4,6 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
-import com.dillon.starsectormarines.battle.squad.AudibleBearing;
-import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
@@ -226,14 +224,11 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 }
                 detailContentH = computeDetailContentHeight(s);
                 detailScroll.setMetrics(detailContentH, detailViewportHeight());
-                publishCaptainHighlight(s);
-                publishBeliefHighlights(s);
-                publishDoctrineHighlight(s);
                 return;
             }
-            // Selected squad vanished (wiped out, or stale id). Close both
-            // selected-squad panes rather than leaving a dead selection open.
-            sel.clear();
+            // Drop vanished squads while preserving the surviving group.
+            sel.retainSquads(id -> sim.getSquad(id) != null
+                    && sim.getSquad(id).aliveMembers > 0);
         }
         lastDetailSquadId = Selection.NONE;
         HighlightOverlay overlay = ctx.getHighlights();
@@ -242,10 +237,6 @@ public final class SquadPlanDebugPanel implements HudPanel {
         overlay.clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
         overlay.clear(HighlightOverlay.SRC_HEARD_NOISE);
         overlay.clear(HighlightOverlay.SRC_CONTACT_DOCTRINE);
-        // SRC_SELECTED_SQUAD is owned by SelectionHighlightPublisher (production)
-        // now — it clears itself when the selection drops, so the panel no longer
-        // touches it.
-
     }
 
     private float panelX() {
@@ -1212,50 +1203,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return null;
     }
 
-    /**
-     * Debug captain badge: the selected squad's leader cell in gold. The green
-     * selected-squad member highlight is a production cue now, published every
-     * frame by {@code SelectionHighlightPublisher} — this panel only adds the
-     * (debug-only) captain marker on top. Source is cleared when no leader.
-     */
-    private void publishCaptainHighlight(Squad squad) {
-        HighlightOverlay overlay = ctx.getHighlights();
-        long leaderUnit = ctx.getSim().resolveUnit(squad.leaderId);
-        if (leaderUnit != 0L) {
-            overlay.put(HighlightOverlay.SRC_CAPTAIN, List.of(
-                    new CellHighlight(ctx.getSim().world().cellX(leaderUnit), ctx.getSim().world().cellY(leaderUnit), HighlightOverlay.COLOR_CAPTAIN)));
-        } else {
-            overlay.clear(HighlightOverlay.SRC_CAPTAIN);
-        }
-    }
-
-    /** Draws the selected squad's remembered hostile cells as fading ghosts. */
-    private void publishBeliefHighlights(Squad squad) {
-        List<CellHighlight> cells = new ArrayList<>();
-        for (BelievedContact contact : squad.believedContacts()) {
-            Color base = contact.source() == BeliefSource.AUDIO
-                    ? HighlightOverlay.COLOR_AUDIO_CONTACT
-                    : HighlightOverlay.COLOR_BELIEVED_CONTACT;
-            int alpha = Math.round(64f + 191f * contact.confidence());
-            alpha = Math.max(0, Math.min(255, alpha));
-            Color faded = new Color(base.getRed(), base.getGreen(),
-                    base.getBlue(), alpha);
-            cells.add(new CellHighlight(contact.lastSeenCellX(),
-                    contact.lastSeenCellY(), faded));
-        }
-        ctx.getHighlights().put(HighlightOverlay.SRC_BELIEVED_CONTACTS, cells);
-        AudibleBearing bearing = squad.audibleBearing();
-        ctx.getHighlights().put(HighlightOverlay.SRC_HEARD_NOISE,
-                bearing == null ? List.of() : List.of(new CellHighlight(
-                        bearing.cellX(), bearing.cellY(), HighlightOverlay.COLOR_HEARD_NOISE)));
-    }
-
-    /** Publishes the selected squad's bounded tactical-axis trace. */
-    private void publishDoctrineHighlight(Squad squad) {
-        ctx.getHighlights().put(HighlightOverlay.SRC_CONTACT_DOCTRINE,
-                doctrineAxisCells(squad));
-    }
-
+    /** Diagnostic geometry retained for offline inspection; never published to the world HUD. */
     static List<CellHighlight> doctrineAxisCells(Squad squad) {
         SquadContactPicture picture = squad.contactPicture;
         float lengthSquared = picture.axisX() * picture.axisX()

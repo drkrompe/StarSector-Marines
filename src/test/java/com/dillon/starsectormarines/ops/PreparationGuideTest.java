@@ -61,6 +61,23 @@ class PreparationGuideTest {
         assertTrue(complete.get(), "The dialogue must accept input independently of its dim backdrop");
     }
 
+    @Test void campaignPopoverLeavesNavigationVisibleAndCombatModeLeavesWorldControlsLive() {
+        var worldOrders = new AtomicInteger();
+        var navigation = new UiElement("marine-ops-page-nav").style("position: absolute; left: 0px; top: 0px; width: 1920px; height: 60px;");
+        var target = new UiElement("workspace").style("position: absolute; left: 450px; top: 200px; width: 1000px; height: 800px;");
+        var world = button("world-order", 1200, worldOrders::incrementAndGet);
+        var document = new UiDocument(new UiElement("root").child(navigation).child(target).child(world)).theme(MarineOpsThemes.standard());
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                List.of("data/ui/components/company/preparation-guide.mlx"));
+        var guide = new PreparationGuide(document, () -> new PreparationGuide.Lesson(1,
+                "FITTING", "Practice on the live controls.", List.of("workspace", "marine-ops-page-nav"), null, null), () -> {}, loader);
+        document.layout(1920, 1080); guide.update();
+        assertTrue(guide.calloutBounds().y() >= navigation.box().borderBox().bottom());
+        click(document, world); assertEquals(0, worldOrders.get());
+        guide.combatInput();
+        click(document, world); assertEquals(1, worldOrders.get(), "Field coaching must not block world orders outside its portrait");
+    }
+
     private static UiElement button(String id, int left, Runnable action) {
         return new UiElement(id).tag(UiTag.BUTTON).onClick(action)
                 .style("position: absolute; top: 700px; left: " + left + "px; width: 120px; height: 40px;");

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
@@ -289,6 +290,7 @@ public class BattleRenderer {
                 new UnitShadowRenderSystem(sprites, sun),
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
+                new SelectionRingRenderSystem(),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
                 RenderSystem.of(RenderLayer.FOG, doodads::collectVisibleSurfaces),
                 // The unit atlas is built inside the layer it serves, the way
@@ -305,12 +307,14 @@ public class BattleRenderer {
                 new UnitRenderService(sprites),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
+                new ShieldDomeRenderSystem(),
                 new TenderSiteRenderSystem(),
                 new FragGrenadeRenderSystem(),
                 new SmokeRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new DroneRenderSystem(sprites),
+                new SalvageCacheRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
@@ -990,6 +994,19 @@ public class BattleRenderer {
             out.addCustom(RenderLayer.OBJECTIVES, () -> {
                 objectiveMarkerFont.ensureLoaded();
                 drawObjectiveText(marker.label(), cx, cy, ORBITAL_WARNING, .8f, alphaMult);
+            });
+        }
+
+        for (var marker : FortressBatteryMarkers.forBatteries(sim.fortressBatteries(), Faction.MARINE)) {
+            float cx = rc.camera.cellToScreenX(marker.x());
+            float cy = rc.camera.cellToScreenY(marker.y());
+            float radius = cellPx * marker.radius();
+            Color tint = marker.hostile() ? ORBITAL_WARNING : BattlefieldMarkerPresentation.PROGRESS;
+            float alpha = (marker.kind() == FortressBatteryMarkers.Kind.ENVELOPE ? .45f : .9f) * alphaMult;
+            appendObjectiveAnnulus(cx, cy, radius - 2f, radius, tint, alpha);
+            out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                objectiveMarkerFont.ensureLoaded();
+                drawObjectiveText(marker.label(), cx, cy, tint, .8f, alphaMult);
             });
         }
 
