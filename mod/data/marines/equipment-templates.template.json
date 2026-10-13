@@ -5,7 +5,7 @@
       "grades": {
         "surplus": { "accessTier": "common", "supplies": 1 },
         "service": { "accessTier": "common" },
-        "milspec": { "accessTier": "advanced", "supplies": 3, "heavyArmaments": 1 },
+        "milspec": { "accessTier": "advanced", "supplies": 8 },
         "masterwork": { "accessTier": "prestige", "supplies": 5, "heavyArmaments": 2 }
       }
     },
@@ -14,7 +14,7 @@
       "grades": {
         "surplus": { "accessTier": "common", "supplies": 1 },
         "service": { "accessTier": "common", "supplies": 2 },
-        "milspec": { "accessTier": "advanced", "supplies": 3, "heavyArmaments": 1 },
+        "milspec": { "accessTier": "advanced", "supplies": 8 },
         "masterwork": { "accessTier": "prestige", "supplies": 5, "heavyArmaments": 2 }
       }
     },
@@ -23,7 +23,7 @@
       "grades": {
         "surplus": { "accessTier": "common", "supplies": 1 },
         "service": { "accessTier": "common", "supplies": 2 },
-        "milspec": { "accessTier": "advanced", "supplies": 3, "heavyArmaments": 1 },
+        "milspec": { "accessTier": "advanced", "supplies": 8 },
         "masterwork": { "accessTier": "prestige", "supplies": 5, "heavyArmaments": 2 }
       }
     },
@@ -32,7 +32,7 @@
       "grades": {
         "surplus": { "accessTier": "common", "supplies": 2 },
         "service": { "accessTier": "common", "supplies": 3 },
-        "milspec": { "accessTier": "advanced", "supplies": 4, "heavyArmaments": 1 },
+        "milspec": { "accessTier": "advanced", "supplies": 9 },
         "masterwork": { "accessTier": "prestige", "supplies": 6, "heavyArmaments": 2 }
       }
     },
@@ -41,7 +41,7 @@
       "grades": {
         "surplus": { "accessTier": "common", "supplies": 2 },
         "service": { "accessTier": "common", "supplies": 3 },
-        "milspec": { "accessTier": "advanced", "supplies": 4, "heavyArmaments": 1 },
+        "milspec": { "accessTier": "advanced", "supplies": 9 },
         "masterwork": { "accessTier": "prestige", "supplies": 6, "heavyArmaments": 2 }
       }
     }
