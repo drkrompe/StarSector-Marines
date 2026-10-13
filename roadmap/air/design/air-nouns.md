@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks.
+Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks. Campaign overhaul retains damage across servicing.
 
 Earlier 2026-09-01 â€” an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -38,6 +38,21 @@ that data reads in atmosphere and what role the resulting craft has in a
 mission.
 
 ## Core vocabulary
+
+**Remote ship command** selects a player-owned overhead hull without taking its helm.
+Move replaces its travel with a station on observed ground; Hold brakes onto its
+current point. Weapons and survival remain the hull's, and a bounded support visit
+continues spending time while following remote travel. Autonomous hands the original
+station or route back. A piloted, grounded, destroyed or withdrawing hull cannot
+accept remote movement. Direct control temporarily masks the accepted remote station
+and returns to it on handback.
+
+A remote tender build lays the ordinary construction option and lets the tender fly
+to its normal standoff: costs, crew, threat stand-down, spacing and work time stay the
+same. Explicit remote work suspends independent site choosing. Move or Hold withdraws
+unfinished sites through the ordinary refund path; Autonomous resumes choosing.
+Mission-owned grounded construction keeps its own authority and option gate.
+
 
 **Air craft** is the broad category. It has a continuous **body**: position,
 facing, velocity, and motion state. A body is a kinematic fact, not a behavior
@@ -355,6 +370,14 @@ plating scales the hull, the drive scales forward speed and both accelerations â
 and turn rate, damping, seats, hardpoints, sprite and hull id are the pattern's
 and are delegated untouched. A better boat is faster and tougher, not a
 different aircraft.
+
+**Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
+worst missing-hull fraction observed across its trips, including a final partial tick.
+Its persistent identity joins those observations after tactical entities leave the
+field or receive carrier patches. Settlement freezes that evidence once for the
+battle; destroyed boats are losses, never recovery candidates. Campaign boats stay
+grounded during their bounded recovery, including in the ambient ship scene.
+`company-view-nouns.md` owns the repair clock, resource acceleration and lesson.
 
 **Fitting a transport does not remove its hold.** Unloading, payload reloads,
 and boat-deck dispatch resolve the transport pattern from either a bare pattern
@@ -1347,11 +1370,26 @@ mission state. Retasking preserves the remaining station time and the chosen
 orbit direction. See Kestrel in `early-operation-nouns.md`.
 
 Prepared ground AA emplacements acquire hostile airborne craft, traverse,
-and fire visible aimed rounds. Weapon range, structural line of fire, cadence,
-accuracy and ordinary aircraft armor determine the result. They do not attack
+and fire visible aimed rounds or guided missiles. Weapon range, structural
+line of fire, cadence and ordinary aircraft armor determine the result. Aimed
+rounds use weapon accuracy; a guided missile accelerates and turns toward a
+live airborne target within its authored turn rate and fuel lifetime. Damage
+requires physical contact along its traveled segment. Losing the target leaves
+it coasting until expiry; destroying the launcher does not erase rounds already
+in flight. Its sprite and smoke trail follow that same simulated position.
+Guidance belongs to dedicated AA mounts, separately from ground direct fire
+and point-defense targets. They do not attack
 infantry and do not also apply the older abstract turret threat drain. Destroying
 the emplacement removes its future fire; a mission must not script a shoot-down
 regardless of whether the guns survived.
+
+An authored fixed AA mount may stand entirely on a terrain summit. Its air
+firing line clears the continuous supporting hill from that origin, then
+resumes ordinary structural obstruction: a separate ridge or intervening
+building still blocks. A missile may likewise clear that launch hill before
+entering ordinary flight; leaving it ends that exemption. This narrow mount
+contract grants no ground sight, walkability, height bonus or generic hill
+traversal. The summit stays blocked after the emplacement is destroyed.
 
 `ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared

@@ -521,6 +521,13 @@ fifth input mode. It is selected by clicking its hull, entered with Tab through 
 recognises the hull as a tender and routes the buttons to the tender instead of to batteries
 it does not have. The shield (E) is the warship's.
 
+Strategic ship selection can also issue remote movement and construction commands
+without entering this session (`ui-nouns.md`, Remote ship commands). Takeover
+suspends a previously accepted remote task, and handback resumes it with its
+existing resources and sites. Uncommitted remote input from before or during a
+pilot session cannot take effect afterward. Sites laid before takeover survive
+handback; only new sites laid by the pilot are withdrawn under the manual contract.
+
 - **Left button, held: lay a build site** at the cursor cell for the selected option. It is the
   same `Tender.lay` the debug panel calls: the cell must be ground the player has observed
   (the fog rule a warship's laid area uses), open and walkable, and clear of other sites. One
@@ -553,6 +560,18 @@ cards: helm; the selected option with the other slots marked "soon"; the site ca
 current site, its phase and progress, a refusal notice, the live-site count, and the cancel
 key); builders (ready, out or working, lost); defence drones (ready, out, lost, deployed or
 recalled); and the shield. Its help panel lists exactly these bindings.
+
+## Armory range host
+
+**Test Loadout** borrows the infantry control contract for a disposable practice
+marine carrying the selected billet's proposed equipment, the person's aptitude,
+and the experience band issued by the proposed armor.
+The range opens already under manual control. Escape, Tab, or loss of the body
+returns to the retained armory proposal and discards the practice simulation;
+there is no strategic handback or mission settlement in this host. Movement,
+aim, weapon cycles, special equipment, armor systems, and pause retain their
+ordinary battle rules. The trial frames both ends of the range on entry, with
+ordinary wheel zoom and cursor lead available afterward.
 
 ## Boundaries
 

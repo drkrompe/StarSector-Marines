@@ -1688,7 +1688,7 @@ public final class BattleSetup {
         sim.installThunderRun(attempt, delivered, reserve);
         sim.installWaylineGunship(true);
         for (var gun : ThunderRunCompound.ANTI_AIR_POSTS) sim.spawn(MapTurret.create("freight-aa-" + gun.y(),
-                Faction.DEFENDER, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, gun.x(), gun.y()));
+                Faction.DEFENDER, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, gun.x(), gun.y()));
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new ThunderRunCommand(faction),
                     (view, perspective, topology, claims) -> ThunderRunCommandFrame.disclose(

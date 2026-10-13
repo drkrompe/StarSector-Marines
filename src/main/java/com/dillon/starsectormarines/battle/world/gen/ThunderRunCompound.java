@@ -52,7 +52,7 @@ public final class ThunderRunCompound {
         return new Cell(251, detachment % 2 == 0 ? 65 : 85);
     }
     public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
-    public static final List<Cell> ANTI_AIR_POSTS = List.of(new Cell(115, 63), new Cell(145, 64));
+    public static final List<Cell> ANTI_AIR_POSTS = List.of(new Cell(119, 9), new Cell(198, 9));
     public static final List<Cell> EXIT_GUNS = List.of(new Cell(304, 65), new Cell(304, 85));
     public static final List<String> SITE_NAMES = List.of("Convoy staging", "Dispatch Post", "East Crossing", "Outbound Gate");
     public record Layout(MapResult map, List<TacticalNode> sites) {
@@ -69,9 +69,11 @@ public final class ThunderRunCompound {
                 ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
                 ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 75, 270, 64))).run(c);
         for (Cell gun : ANTI_AIR_POSTS) {
-            c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
-            c.grid.setWalkable(gun.x, gun.y, false);
-            c.grid.setSeeThrough(gun.x, gun.y, true);
+            for (int y = gun.y - 1; y <= gun.y + 1; y++) for (int x = gun.x - 1; x <= gun.x + 1; x++) {
+                if (!c.topology.terrainSurface().isFullSummit(x, y) || c.grid.isWalkable(x, y))
+                    throw new IllegalStateException("Ridge AA must stand entirely on an impassable summit");
+                c.doodads.add(new Doodad(x, y, TileRegistry.installed().doodad("doodad.fl-striped-yellow")));
+            }
         }
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
@@ -99,7 +101,6 @@ public final class ThunderRunCompound {
         requireRoute(map, 275, 2);
         requireRoute(map, 275, 141);
         for (Cell gun : EXIT_GUNS) requireRoute(map, gun.x + 2, gun.y);
-        for (Cell gun : ANTI_AIR_POSTS) requireRoute(map, gun.x - 1, gun.y);
         for (Cell post : SUPPORT_POSTS) requireRoute(map, post.x, post.y);
         for (var posts : COMPANY_POSTS) for (Cell post : posts) requireRoute(map, post.x, post.y);
         for (int site = 0; site < 4; site++) for (int section = 0; section < 2; section++) {
@@ -203,6 +204,20 @@ public final class ThunderRunCompound {
             circulation[flank[0]][flank[1]] = true;
             for (int i = 0; i < Paths.cellCount(path); i++) circulation[Paths.cellX(path, i)][Paths.cellY(path, i)] = true;
         }
+        // Reserve summit mounts from optional dressing without opening their terrain.
+        for (Cell gun : ANTI_AIR_POSTS)
+            for (int y = gun.y - 3; y <= gun.y + 3; y++) for (int x = gun.x - 3; x <= gun.x + 3; x++)
+                circulation[x][y] = true;
+        // Keep optional woods out of the sight lanes between the summits and the convoy circuit.
+        // This reserves vegetation only: authored walls and terrain keep their collision and LOS.
+        for (int i = 0; i < ANTI_AIR_POSTS.size(); i++) {
+            Cell gun = ANTI_AIR_POSTS.get(i);
+            float aimX = i == 0 ? 126f : 198f;
+            for (int y = gun.y; y <= 68; y++) {
+                int x = Math.round(gun.x + (aimX - gun.x) * (y - gun.y) / (68f - gun.y));
+                for (int dx = -3; dx <= 3; dx++) circulation[x + dx][y] = true;
+            }
+        }
         c.put(BspKeys.ROAD_RESERVATION, circulation);
     }
 
@@ -224,8 +239,6 @@ public final class ThunderRunCompound {
     }
     /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
     private static void fortifications(GenContext c) {
-        // Separate AA pits overlook the first convoy leg, far outside the western insertion corridor.
-        for (Cell gun : ANTI_AIR_POSTS) supportEmplacement(c, gun, false);
         // Dispatch looks east along the verge; Crossing covers its western side road.
         supportEmplacement(c, SUPPORT_POSTS.get(0), true);
         supportEmplacement(c, SUPPORT_POSTS.get(1), false);

@@ -31,13 +31,23 @@ final class StorySubtitleOverlay {
         if (document != null) document.layout(viewport.documentWidth(), viewport.documentHeight());
     }
 
-    /** Shared live/preview placement, inset from the granted host's top-left corner. */
+    /** Shared message lane between the left command and right objective rails. */
     static UiViewport viewport(UiViewport host) {
         float scale = host.documentScale();
         float width = Math.min(640, host.documentWidth() - 24) * scale;
         float height = 116 * scale;
-        return new UiViewport(host.screenXFor(12), host.screenTopFor(12) - height,
+        return new UiViewport(host.screenX() + (host.width() - width) / 2f, host.screenTopFor(12) - height,
                 width, height, scale);
+    }
+
+    BattleHudSurface surface() {
+        return document == null || viewport == null ? null : new BattleHudSurface(document, viewport);
+    }
+
+    boolean blocksWorldPointer(float x, float y) {
+        return document != null && viewport != null && x >= viewport.screenX()
+                && x < viewport.screenX() + viewport.width() && y >= viewport.screenY()
+                && y < viewport.screenY() + viewport.height();
     }
 
     static Map<String, Object> props(String subtitle) {

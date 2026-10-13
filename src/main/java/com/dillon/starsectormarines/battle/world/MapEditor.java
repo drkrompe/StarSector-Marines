@@ -363,6 +363,8 @@ public final class MapEditor {
     }
 
     public void flipCellToRubble(int cellX, int cellY) {
+        // Destroying a summit emplacement does not demolish the mountain beneath it.
+        if (grid.hasTag(cellX, cellY, NavigationGrid.CellTag.NATURAL_SOLID)) return;
         grid.setWalkable(cellX, cellY, true);
         grid.setWallHp(cellX, cellY, 0);
         topology.setWall(cellX, cellY, false);

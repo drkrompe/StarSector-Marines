@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-13 — recovered suit entry, explicit mixed sections, and layered Arbalest support the reserved post-Shepherd progression.
+Updated: 2026-10-13 — per-marine mixed issue and planned Agreus recovered-suit progression.
 
 ## Purpose
 
@@ -36,6 +36,13 @@ status, billet, squad, officer relationships, twelve-person capacity, and the
 three derived four-person teams. Each wearer still occupies one ordinary lift
 seat. A POWER_SUIT adds neither a roster nor a battle unit type.
 
+Equipment is individual: squadmates may wear different armor patterns and carry
+different weapons. A mixed squad can combine regular and powered wearers in
+different roles. A sheet's class requirement constrains the billets it describes;
+it does not require every member to use the same pattern or equipment set.
+The eight-regular/four-suit section below is one authored composition, not the
+definition or only possible ratio of a mixed squad.
+
 Deployment freezes the resolved class with the marine's issued equipment and
 plain combat values. Battle fixtures and hover presentation preserve that same
 fact rather than rediscovering it from a suit name, tier, or appearance. The
@@ -65,23 +72,30 @@ confirm those relationships rather than assume them from a unit test.
 
 ## Protection and counterplay
 
-The first introduction belongs after the Shepherd has completed its recovery
-and joined the player's fleet. A follow-on expedition on a new world, preferably
-in another system, should use that construction capability to recover worn suit
-technology. Completing A Cold Account, securing the grounded hull, or finishing
-Cold Start repairs is not this milestone. Working Passage and the subsequent
-expedition remain separate unfinished story work; no suit reward is attached to
-those earlier victories.
+The planned first introduction belongs after the Shepherd has completed its
+recovery and joined the player's fleet. `a-small-war.md` sends the company to
+existing Agreus in nearby Arcadia, where Baronet Rusk's bounded procurement warrant and
+the company's construction capability make recovered suit technology obtainable.
+`agreus-latchkey.md` owns that local setting and cast. Completing A Cold Account, securing
+the grounded hull, or finishing Cold Start repairs is not this milestone.
+Working Passage and the Agreus arc remain separate unfinished story work; no
+suit reward is attached to those earlier victories.
 
 Recovered Specter and Arbalest patterns form the initial tier-III step, with
 lower protection and weaker or shorter-lived systems than the tier-IV military
 patterns. A mixed section is an available transition before a full suit section;
 it is a composition choice, not a finite inventory of four shells. Collected
-technology still permits ordinary free fitting. The exact expedition destination
-and reward sequence are reserved for the story pass. These recovered templates
-declare that future story owner and remain outside random faction acquisition.
+technology still permits ordinary free fitting. The planned arc rewards recovered
+Specter, recovered Arbalest and then a proposed pirate Boarding Jack sidegrade;
+its story owns that sequence and calibration targets. The two existing recovered
+templates declare that future story owner and remain outside random faction acquisition.
 Explicit development controls can teach them for campaign-loop testing without
 completing a story or automatically changing anyone's issued kit.
+
+Existing military suit sources can still precede that story through patron and
+victory thresholds. A strict story-first progression needs the later obtainable
+military procurement route and shared acquisition gate specified in
+`a-small-war.md`, preserving equipment already acquired in existing saves.
 
 Suit armor supplies the endurance step. Infantry biological structure stays
 unchanged, and armor break exposes the same wearer rather than ejecting or

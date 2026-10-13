@@ -4,6 +4,7 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import org.lwjgl.input.Keyboard;
 
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * Flying a {@link BattleCamera} by hand: drag to pan, wheel to zoom, WASD to
@@ -106,9 +107,22 @@ public final class CameraControls {
      */
     public void process(List<InputEventAPI> events, BattleCamera camera,
                         PointerSpace space, RightClickHandler rightClickHandler) {
+        process(events, camera, space, rightClickHandler, (x, y) -> false);
+    }
+
+    /** Chrome refuses new gestures; a drag already begun in the world may finish over it. */
+    public void process(List<InputEventAPI> events, BattleCamera camera,
+                        PointerSpace space, RightClickHandler rightClickHandler,
+                        BiPredicate<Float, Float> chrome) {
         if (events == null || camera == null || space == null) return;
         for (InputEventAPI event : events) {
-            if (event.isConsumed()) continue;
+            if (event.isConsumed()) {
+                if (event.isRMBUpEvent()) {
+                    rightGestureActive = false;
+                    panDragging = false;
+                }
+                continue;
+            }
 
             // Zoom to the cursor, and only over the view itself, so scrolling
             // elsewhere does not fight whatever is under the pointer.
@@ -116,6 +130,7 @@ public final class CameraControls {
                 float wheelX = space.x(event.getX());
                 float wheelY = space.y(event.getY());
                 if (!camera.containsScreen(wheelX, wheelY)) continue;
+                if (chrome.test(wheelX, wheelY)) { event.consume(); continue; }
                 // Wheel deltas arrive as raw LWJGL values — typically a
                 // hundred and twenty per notch on Windows, one on some Linux
                 // builds — so they are normalised to a notch either way.
@@ -130,6 +145,7 @@ public final class CameraControls {
                 float downX = space.x(event.getX());
                 float downY = space.y(event.getY());
                 if (!camera.containsScreen(downX, downY)) continue;
+                if (chrome.test(downX, downY)) { event.consume(); continue; }
                 rightGestureActive = true;
                 rightDownX = downX;
                 rightDownY = downY;

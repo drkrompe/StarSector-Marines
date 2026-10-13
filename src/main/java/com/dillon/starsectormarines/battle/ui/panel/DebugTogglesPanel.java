@@ -162,11 +162,13 @@ public final class DebugTogglesPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return ctx.getLayout() != null;
+        return ctx.getLayout() != null && DebugHudLayout.fits(ctx, HEADER_H);
     }
 
     @Override
-    public void update(float dt) { /* no per-frame state */ }
+    public void update(float dt) {
+        if (!isVisible() || !bodyVisible()) draggingDial = -1;
+    }
 
     @Override
     public void render(float alphaMult) {
@@ -203,7 +205,7 @@ public final class DebugTogglesPanel implements HudPanel {
         glEnd();
 
         // Row backgrounds + checkboxes (only when expanded).
-        if (expanded) {
+        if (bodyVisible()) {
             for (int i = 0; i < rows.size(); i++) {
                 float ry = y + totalH - HEADER_H - (i + 1) * ROW_H;
 
@@ -239,7 +241,7 @@ public final class DebugTogglesPanel implements HudPanel {
         glEnd();
 
         // Header separator when expanded.
-        if (expanded) {
+        if (bodyVisible()) {
             glBegin(GL_LINES);
             glVertex2f(x,           y + totalH - HEADER_H);
             glVertex2f(x + PANEL_W, y + totalH - HEADER_H);
@@ -247,9 +249,9 @@ public final class DebugTogglesPanel implements HudPanel {
         }
 
         // Text labels.
-        String headerText = "DEBUG " + (expanded ? "-" : "+");
+        String headerText = "DEBUG " + (bodyVisible() ? "-" : "+");
         font.drawString(headerText, x + PADDING, y + totalH - 4f, HEADER_TEXT, alphaMult);
-        if (expanded) {
+        if (bodyVisible()) {
             for (int i = 0; i < rows.size(); i++) {
                 Row r = rows.get(i);
                 float ry = y + totalH - HEADER_H - (i + 1) * ROW_H;
@@ -332,9 +334,12 @@ public final class DebugTogglesPanel implements HudPanel {
         if (events == null) return;
         if (!isVisible()) return;
 
+        curX = panelX(); curY = panelY();
         float totalH = computeHeight();
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
+            if (!(e.isMouseMoveEvent() || e.isMouseScrollEvent() || e.isLMBDownEvent()
+                    || e.isLMBUpEvent() || e.isRMBDownEvent() || e.isRMBUpEvent())) continue;
             int px = e.getX();
             int py = e.getY();
             boolean inside = px >= curX && px < curX + PANEL_W
@@ -362,7 +367,10 @@ public final class DebugTogglesPanel implements HudPanel {
                 continue;
             }
 
-            if (!e.isLMBDownEvent()) continue;
+            if (!e.isLMBDownEvent()) {
+                if (inside) e.consume();
+                continue;
+            }
             if (!inside) continue;
             int rowIdx = rowAt(py, totalH);
             if (rowIdx == -1) {
@@ -370,7 +378,7 @@ public final class DebugTogglesPanel implements HudPanel {
                 e.consume();
                 continue;
             }
-            if (rowIdx >= 0 && expanded) {
+            if (rowIdx >= 0 && bodyVisible()) {
                 Row row = rows.get(rowIdx);
                 if (row.isDial()) {
                     draggingDial = rowIdx;
@@ -416,7 +424,7 @@ public final class DebugTogglesPanel implements HudPanel {
         float headerTop = curY + totalH;
         float headerBottom = headerTop - HEADER_H;
         if (py >= headerBottom && py < headerTop) return -1;
-        if (!expanded) return -2;
+        if (!bodyVisible()) return -2;
         float rowsTop = headerBottom;
         if (py >= rowsTop || py < curY) return -2;
         int idx = (int) ((rowsTop - py) / ROW_H);
@@ -424,8 +432,14 @@ public final class DebugTogglesPanel implements HudPanel {
         return idx;
     }
 
+    public float occupiedBottom() { return panelY(); }
+
+    private boolean bodyVisible() {
+        return expanded && DebugHudLayout.fits(ctx, HEADER_H + rows.size() * ROW_H);
+    }
+
     private float computeHeight() {
-        return HEADER_H + (expanded ? rows.size() * ROW_H : 0f);
+        return HEADER_H + (bodyVisible() ? rows.size() * ROW_H : 0f);
     }
 
     /** Right half of the centered profiler + DEBUG developer-tool cluster. */
@@ -439,6 +453,6 @@ public final class DebugTogglesPanel implements HudPanel {
     /** Y of the panel's BOTTOM edge — render() builds upward from this. */
     private float panelY() {
         BattleLayout l = ctx.getLayout();
-        return l.controlsY - BattleLayout.CONTROLS_GAP - computeHeight();
+        return DebugHudLayout.top(ctx) - computeHeight();
     }
 }

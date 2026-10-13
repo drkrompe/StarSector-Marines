@@ -73,6 +73,20 @@ public final class WeaponDef {
     public final float hitSpread;
     /** Round speed in cells/sec. */
     public final float roundVelocity;
+    /** Optional air-target guidance. The AA host supplies current target state, never a promised hit. */
+    public final Guidance guidance;
+    public record Guidance(float turnRate, float acceleration, float lifetime) {
+        static Guidance parse(JSONObject value) throws JSONException {
+            if (value == null) return null;
+            float turn = (float) value.getDouble("turnRateDegPerSec");
+            float acceleration = (float) value.getDouble("acceleration");
+            float lifetime = (float) value.getDouble("lifetime");
+            if (!Float.isFinite(turn) || turn <= 0 || !Float.isFinite(acceleration) || acceleration <= 0
+                    || !Float.isFinite(lifetime) || lifetime <= 0)
+                throw new JSONException("Guidance requires positive finite turn rate, acceleration and lifetime");
+            return new Guidance(turn, acceleration, lifetime);
+        }
+    }
     /** Minimum legal firing range; zero for ordinary direct fire. */
     public final float minRange;
     /** Splash radius in cells; zero for precise rounds. */
@@ -140,7 +154,7 @@ public final class WeaponDef {
                       float penetration, float contactDamage, float contactPenetration,
                       int bodyPenetrations,
                       int burstCount, float burstSpacing, int projectilesPerShot,
-                      float accuracyFalloff, float hitSpread, float roundVelocity,
+                      float accuracyFalloff, float hitSpread, float roundVelocity, Guidance guidance,
                       float minRange, float aoeRadius, int wallDamage,
                       float wallDamageRadius, float aimDuration, float flightSec,
                       float arcHeight, boolean interceptableProjectile,
@@ -178,6 +192,7 @@ public final class WeaponDef {
         this.accuracyFalloff = accuracyFalloff;
         this.hitSpread = hitSpread;
         this.roundVelocity = roundVelocity;
+        this.guidance = guidance;
         this.minRange = minRange;
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
@@ -303,6 +318,7 @@ public final class WeaponDef {
                 (float) sim.optDouble("accuracyFalloff", 0.0),
                 (float) sim.optDouble("hitSpread", 0.0),
                 (float) sim.optDouble("roundVelocity", 0.0),
+                Guidance.parse(sim.optJSONObject("airGuidance")),
                 (float) sim.optDouble("minRange", 0.0),
                 (float) sim.optDouble("aoeRadius", 0.0),
                 sim.optInt("wallDamage", 0),
@@ -394,6 +410,11 @@ public final class WeaponDef {
         if (def.burstCount < 1 || def.projectilesPerShot < 1) {
             throw new JSONException("Weapon '" + def.id
                     + "' must emit at least one burst round and one projectile per shot");
+        }
+        if (def.guidance != null && (def.mount != MountClass.TURRET_MOUNT || !(def.roundVelocity > 0f)
+                || !Float.isFinite(def.roundVelocity) || def.projectilesPerShot != 1
+                || def.interceptableProjectile || def.indirectFire || def.arcHeight != 0f || def.tracerTailCells != 0f)) {
+            throw new JSONException("Weapon '" + def.id + "' air guidance requires a direct turret missile with positive velocity");
         }
         if (def.burstCount == 1 && def.burstSpacing != 0f) {
             throw new JSONException("Weapon '" + def.id

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Wayline directs Kestrel at Junction and Thunder Run; replay-local loss and physical crash aftermath.
+Updated: 2026-10-13 - Kestrel support and physical crash aftermath; planned post-handover arc on existing Agreus.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -76,6 +76,16 @@ Working Passage and exactly-once fleet transfer remain open in
 `shepherd-recovery.md`. Completed Cold Start repairs do not offer an unimplemented
 departure chapter. A recovery claim grants no fleet member or general construction
 capability by itself.
+
+**A Small War** is the planned next arc after that actual fleet handover. Vale's
+reference leads through Mara to **Baronet Elian Rusk** on **Agreus**, in the
+nearby **Arcadia** system. His local concession under Ko Combine administration
+supports a bounded procurement warrant and recovered suit rewards through work against the **Greyhook flotilla**. Equipment
+is issued to individual marines and can be mixed within existing squads. The
+company also chooses who controls access to the liberated Latchkey Yard; earned
+patterns remain learned on either route. `agreus-latchkey.md` owns the local
+setting and cast; `a-small-war.md` owns the unimplemented chapters, agreements,
+rewards and acceptance. No earlier Shepherd milestone substitutes for departure.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
@@ -721,9 +731,13 @@ equipment is part of this objective.
 ## Authored freight finale
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
-same crew that covered the Junction. Two prepared flak positions north of the
-road threaten its circuit. They fire through ordinary aiming and aircraft damage;
-the loss is an encounter outcome, never a mandatory scripted death. Clearing
+same crew that covered the Junction. Two twin-launcher missile batteries on
+the northern hilltops threaten its circuit over the convoy legs. Their rotating
+mounts launch visible tracking missiles through ordinary aircraft damage.
+The hilltops and slopes remain impassable, including beneath a destroyed
+battery. Their placement does not invite a valley assault or add a capture
+objective; existing guards retain their roadside duties. Kestrel's loss is an
+encounter outcome, never a mandatory scripted death. Clearing
 the guns early can preserve the gunship. A surviving Kestrel can cover the next
 crossing until its station time runs out. Losing it does not gate convoy progress,
 increase the company's deployment minimum, or charge the player for Wayline's

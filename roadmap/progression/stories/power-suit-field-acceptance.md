@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — bounded exchange evidence exists; mission balance, live persistence, and final art remain unverified.
 Written: 2026-10-13
-Updated: 2026-10-13 — playable recovered/military pairs and mixed issue support campaign testing; story introduction is reserved until after Shepherd acquisition.
+Updated: 2026-10-13 — playable pairs support campaign testing; Agreus introduction authored, runtime arc and later military-source gate remain open.
 
 Read `progression-nouns.md`, `personnel-nouns.md`, `combat-durability-nouns.md`,
 `role-and-access.md`, and `power-suit-infantry.md` before this acceptance pass.
@@ -89,11 +89,14 @@ Starsector save and host settlement receipt that it cannot verify. It is not
 permission to call the full live loop accepted.
 
 The narrative unlock remains open: finish Shepherd departure/fleet handover,
-then author an expedition to a new world or system that introduces recovered
-frames before military issue. `storySource: post-shepherd-power-suits` reserves
+then implement the five-chapter expedition to existing Agreus in `a-small-war.md`.
+Its recovered frames and pirate sidegrade precede a later military procurement
+arc in the intended progression. `storySource: post-shepherd-power-suits` reserves
 ownership of the recovered rewards and keeps them out of random acquisition;
 it does not create a mission or prove that its reward has shipped. Existing
-military acquisitions are retained for compatibility until that story pass.
+military acquisitions are retained for compatibility. Their generic sources
+currently permit earlier access; a strict introduction order needs the later
+procurement route and shared acquisition gate as well as this recovered-suit arc.
 
 - Compare one POWER_SUIT squad with two STANDARD squads under concentrated
   fire, matched weapons and visible issued quality, and identical objectives.

@@ -175,6 +175,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private final boolean[] boatsHeld;
     private final boolean[] boatWrecks;
+    private final boolean[] groundedBoats;
     /**
      * Range targets already spawned, by the cell of butts they stand in. One
      * per set of butts rather than one per shooter: a lane is shot at by
@@ -238,6 +239,12 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed,
                                BattleSprites sprites, boolean[] boatsHeld, boolean[] boatWrecks) {
+        this(deck, rooms, seed, sprites, boatsHeld, boatWrecks, null);
+    }
+
+    public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed, BattleSprites sprites,
+                               boolean[] boatsHeld, boolean[] boatWrecks, boolean[] groundedBoats) {
+        this.groundedBoats = groundedBoats == null ? null : groundedBoats.clone();
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
         lighting = new ShipDeckLighting(deck.topology, rooms, seed);
@@ -480,6 +487,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             AirfieldService.Berth registered = bays.addBayBerth(berth, boats,
                     route == null ? null : new float[]{route.outside().x(), route.outside().y()});
             registered.shipRoute = route;
+            registered.grounded = groundedBoats != null && boatBerth - 1 < groundedBoats.length
+                    && groundedBoats[boatBerth - 1];
             occupiedBerths[index] = true;
         }
         if (bays.berths().isEmpty()) return;
