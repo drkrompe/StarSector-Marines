@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -184,5 +185,23 @@ public class HoldPositionTest {
         assertFalse(Paths.isEmpty(path));
         assertEquals(4, Paths.destX(path));
         assertEquals(4, Paths.destY(path));
+    }
+
+    @Test
+    public void dugInSurvivorStaysWhereHeIsInsteadOfSeekingCover() {
+        BattleSimulation sim = openSim();
+        Squad squad = brokenRemnant(node(true));
+        long survivor = sim.spawn(new EntitySpec("last", Faction.DEFENDER, UnitType.MARINE, 2, 4)
+                .home(4, 4));
+        sim.spawn(new EntitySpec("enemy", Faction.MARINE, UnitType.MARINE, 0, 4));
+        sim.addDoodad(new Doodad(6, 4, new TileManifest.TileFrame(4, 7),
+                false, Doodad.COVER_HEAVY));
+        sim.setPath(survivor, new int[]{4, 4});
+        sim.combat().setDigInSeconds(survivor, DigInSystem.DIG_IN_SECONDS);
+
+        assertEquals(ActionStatus.RUNNING, LastStandHold.INSTANCE.execute(survivor, squad, sim));
+
+        assertTrue(Paths.isEmpty(sim.world().path(survivor)),
+                "a dug-in marine neither walks home nor to better cover");
     }
 }

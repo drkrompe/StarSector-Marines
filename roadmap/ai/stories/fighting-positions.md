@@ -1,10 +1,10 @@
 # Fighting positions
 
-Status: IN PROGRESS — slices 1 (substrate) and 2 (digging in) built; slice 3 (defend-area fill) next
+Status: IN PROGRESS — slices 1–3 built; slice 4 (evidence and overlay) next
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — substrate and dig-in built (`FightingPositionIndex`, `DigInSystem`, per-marine morale drain halved, `battle.infantry.fightingPositions`); fort sandbags and trenches are not yet destructible, so only plain sandbag runs dissolve under fire.
+Updated: 2026-10-13 — substrate, dig-in and defend-area fill built (`FightingPositionIndex`, `DigInSystem`, `FightingPositionClaims`); quiet defend-area squads now pack into a position rather than spreading; fort sandbags and trenches are not yet destructible.
 
 ## Intent
 

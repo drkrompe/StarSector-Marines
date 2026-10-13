@@ -73,6 +73,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
@@ -430,6 +431,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Per-tick squad morale recovery + hysteresis + near-miss drain. Drain on hit/death fires from {@link DamageResolver#resolve}; this system owns the passive recovery + flag transitions. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadMoraleSystem squadMorale;
     private final DigInSystem digIn;
+    /** Fighting-position cell claims for defend-area squads; recomputed each tick between the squad replan and the unit dispatch. */
+    private final FightingPositionClaims fightingPositionClaims = new FightingPositionClaims();
     /** Per-tick squad-level GOAP replan pass — dispatches each squad to drone / mech / infantry behavior. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadReplanSystem squadReplan;
     /** Divides a shared contact between squads under one attack-move order. */
@@ -1513,6 +1516,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public boolean isDugIn(long id) {
         return rosterService.combat().isDugIn(id);
+    }
+
+    @Override
+    public FightingPositionClaims fightingPositionClaims() {
+        return fightingPositionClaims;
     }
 
     @Override
@@ -2604,6 +2612,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         long goapStageStart = System.nanoTime();
         directControl.validate();
         squadReplan.tick(this);
+        fightingPositionClaims.tick(this);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_SQUAD_REPLAN,
                 System.nanoTime() - goapStageStart);
         // Capture assigned starts and build route fields while every member is
