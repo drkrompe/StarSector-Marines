@@ -80,6 +80,25 @@
       "material": "CONCRETE",
       "endCap": "BUTT",
       "autoEdge": false
+    },
+    {
+      "id": "rear-yard-service-lane",
+      "points": [
+        [
+          38,
+          15
+        ],
+        [
+          38,
+          52
+        ]
+      ],
+      "width": 3,
+      "shoulder": 0,
+      "wear": 0.65,
+      "seed": 5104,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
     }
   ]
 }

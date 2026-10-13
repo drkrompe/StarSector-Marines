@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -39,6 +40,14 @@ import java.util.List;
  * {@code BattleControl}. See {@code ecs-nouns.md}.
  */
 public interface BattleControl extends BattleView, SquadDirectiveControl {
+
+    /**
+     * Calls one of {@code side}'s declared mech lances down at the drop zone near the hint, claimed by {@code claim}
+     * (the calling commander's mission claim). A commander's call, paid from its mission allowance, not the player's power.
+     */
+    default MechDropService.Outcome callMechDrop(Faction side, SquadCommandClaim claim, int hintX, int hintY) {
+        return mechDrops().call(this, side, claim.issuer(), claim, hintX, hintY);
+    }
 
     /** Authored ownership for player support deliveries; absent on generic battlefields. */
     default SquadCommandClaim playerSupportCommandClaim() { return null; }

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
+import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
@@ -56,6 +57,7 @@ public final class MissionObjectiveProjection {
             } else if (objective instanceof SalvageRightsSequence salvage) items.add(buildingFootprint(
                     MissionObjectiveFamilies.salvage(salvage),sim.getTopology(),sim.getGrid(),salvage.targetBuilding()));
             else if (objective instanceof WaterUnderSealSequence weir) items.add(weirFootprints(MissionObjectiveFamilies.waterUnderSeal(weir), sim.getTopology(), sim.getGrid()));
+            else if (objective instanceof YardOwnersSequence yard) items.add(MissionObjectiveFamilies.yardOwners(yard));
             else if (objective instanceof LimitedWarrantSequence warrant) items.add(MissionObjectiveFamilies.limitedWarrant(warrant));
             else if (objective instanceof ColdStartSequence repair) {
                 items.add(MissionObjectiveFamilies.coldStart(repair));

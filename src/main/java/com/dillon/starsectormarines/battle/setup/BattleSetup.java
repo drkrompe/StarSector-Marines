@@ -5,10 +5,13 @@ import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
+import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
+import com.dillon.starsectormarines.battle.command.YardOwnersCommand;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
 import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.power.YardConstruction;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -1579,6 +1582,64 @@ public final class BattleSetup {
         return sim;
     }
 
+    /** Latchkey territorial inspection with preserved tooling and optional owned support. */
+    public static BattleSimulation createYardOwners(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("The Yard's Owners requires one to four fitted company boats");
+        MapResult map = LatchkeyYard.generate(seed, profile);
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(YardOwnersCommand.issuer(Faction.MARINE), "Company fitted inspection lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        for (var site : LatchkeyYard.SITES) {
+            var post = openingDefenseNode(site.x(), site.y(), Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, site.x(), site.y(), 4), Faction.DEFENDER, "Hookhand yard guard", post, rng);
+        }
+        List<Integer> constables = new ArrayList<>();
+        for (int x : new int[]{32,38}) {
+            int squad = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+            for (int[] cell : pickSpawnCluster(map.grid,x,59,4))
+                sim.spawn(makeOpeningMilitia("Latchkey constable",Faction.ALLY,cell[0],cell[1],rng).squad(squad).role(UnitRole.PATROL));
+            sim.getSquad(squad).originalSize = 4;
+            sim.claimSquadCommand(squad,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.ALLY),"Constables inherit company gains");
+            constables.add(squad);
+        }
+        int technicians = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        for (int y : new int[]{57,61}) sim.spawn(new EntitySpec("Latchkey inspection technician",Faction.ALLY,UnitType.TECHNICIAN,28,y)
+                .squad(technicians).role(UnitRole.PATROL));
+        sim.getSquad(technicians).originalSize = 2;
+        sim.claimSquadCommand(technicians,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.ALLY),"Living supplier inspection party");
+        List<List<EntitySpec>> reserves = new ArrayList<>();
+        for (int[] ingress : new int[][]{{150,76},{145,36}}) {
+            List<EntitySpec> group = new ArrayList<>();
+            for (int[] cell : pickSpawnCluster(map.grid,ingress[0],ingress[1],4))
+                group.add(makeOpeningMilitia("Hookhand counterattack",Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
+            reserves.add(group);
+        }
+        sim.installYardOwners(technicians,constables,reserves);
+        for (Faction faction : List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
+            sim.setAutonomousCommander(faction,new YardOwnersCommand(faction),YardOwnersCommand.disclosure(sim.getYardOwners()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(YardOwnersCommand.issuer(Faction.MARINE),"Company inspection support"));
+        return sim;
+    }
+
     /** Repair mobilization already ashore at the recovered basin, with optional reserve boats and one physical cargo carrier. */
     public static BattleSimulation createColdStart(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean cargoDelivered, boolean shorePower) {
         if(manifest==null || manifest.size()>4)
@@ -2500,6 +2561,8 @@ public final class BattleSetup {
         sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
+        // What the mission let each side's commander call down; a mission that declared none leaves the inert service.
+        if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was
@@ -2571,9 +2634,13 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        sim.setAutonomousCommander(Faction.MARINE,
-                new ConquestCommand(tracks, map.lanes),
+        ConquestCommand marineCommand = new ConquestCommand(tracks, map.lanes);
+        sim.setAutonomousCommander(Faction.MARINE, marineCommand,
                 ConquestCommandDisclosure.INSTANCE);
+        // A DEBUG-stated call lands claimed by this commander, at the middle of the drop zone it came down on.
+        sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                SquadCommandClaim.mission(marineCommand.strategyId(), "commander-called mech lance"),
+                () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
         ConquestDefenderStartingForce startingForce =
                 ConquestDefenderStartingForce.capture(sim, tracks);
         ConquestDefenderCommand defenderCommand = new ConquestDefenderCommand(

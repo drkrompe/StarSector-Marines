@@ -266,7 +266,8 @@ public final class MissionLaunch {
         // The mission, not the market and not the map, decides which ground defences
         // the battle carries; the market's signals stay on the profile as inputs.
         final TargetProfile profile = marketProfile.withDeclaredDefences(
-                MissionDefencePolicy.declare(m, marketProfile));
+                MissionDefencePolicy.declare(m, marketProfile))
+                .withDeclaredMechDrops(MissionDefencePolicy.declareMechDrops(m));
 
         // How settled the map is: the mission's own statement where it made one,
         // and the market's size where it did not. Resolved once here rather than
@@ -298,7 +299,9 @@ public final class MissionLaunch {
         if (AgreusArcCampaign.isBattle(m)) {
             var agreus = AgreusArcCampaign.requireCurrent(m);
             boolean records = agreus.recordsRecovered();
-            builder = AgreusArcProgress.limitedWarrant(m.id)
+            builder = AgreusArcProgress.yardOwners(m.id)
+                    ? () -> BattleSetup.createYardOwners(seed, constructionDetachment.shuttleManifest, profile)
+                    : AgreusArcProgress.limitedWarrant(m.id)
                     ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)
                     : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
         } else if (ShepherdRecoveryCampaign.isBattle(m)) {

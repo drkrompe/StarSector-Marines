@@ -41,6 +41,8 @@ public final class Mission {
     public final OperationTier tier;
     public final String        requirements;
     public final String        flavor;
+    /** Optional authored conversation; flavor remains its plain-text projection. */
+    public final List<MissionDialogue.Turn> dialogue;
     public final float         normalizedX;
     public final float         normalizedY;
     public final FlybyRoster   clientFighterSupport;
@@ -175,6 +177,12 @@ public final class Mission {
     public final DebugDefences defences;
 
     /**
+     * The mech lances the attacking commander may call down, explicitly declared, or null to leave it to the mission
+     * type's policy ({@link MissionDefencePolicy#declareMechDrops}). A DEBUG statement today.
+     */
+    public final DebugMechDrop mechDrop;
+
+    /**
      * The route each of those lanes takes, in lane order, or null for lanes
      * that derive their own.
      *
@@ -253,7 +261,8 @@ public final class Mission {
                 b.tier != null ? b.tier : OperationTier.forRisk(b.risk),
                 b.type != null ? b.type.tierFloor : null);
         this.requirements = b.requirements;
-        this.flavor       = b.flavor;
+        this.dialogue     = b.dialogue == null ? List.of() : List.copyOf(b.dialogue);
+        this.flavor       = dialogue.isEmpty() ? b.flavor : MissionDialogue.transcript(dialogue);
         this.normalizedX  = b.normalizedX;
         this.normalizedY  = b.normalizedY;
         this.clientFighterSupport = b.clientFighterSupport != null
@@ -284,6 +293,7 @@ public final class Mission {
         this.standoff         = b.standoff;
         this.landing          = b.landing;
         this.defences         = b.defences;
+        this.mechDrop         = b.mechDrop;
         this.lanes            = b.lanes;
         // Not List.copyOf: a null entry is a lane that derives its own route,
         // which is exactly what a mission stating one lane's path and leaving
@@ -330,6 +340,7 @@ public final class Mission {
         private OperationTier tier;
         private String requirements = "";
         private String flavor = "";
+        private List<MissionDialogue.Turn> dialogue = List.of();
         private float normalizedX;
         private float normalizedY;
         private FlybyRoster clientFighterSupport = FlybyRoster.EMPTY;
@@ -351,6 +362,7 @@ public final class Mission {
         private Integer lanes;
         private LandingKind landing;
         private DebugDefences defences;
+        private DebugMechDrop mechDrop;
         private List<LanePath> lanePaths;
         private Long battleSeed;
 
@@ -379,6 +391,7 @@ public final class Mission {
             this.tier = m.tier;
             this.requirements = m.requirements;
             this.flavor = m.flavor;
+            this.dialogue = m.dialogue;
             this.normalizedX = m.normalizedX;
             this.normalizedY = m.normalizedY;
             this.clientFighterSupport = m.clientFighterSupport;
@@ -400,6 +413,7 @@ public final class Mission {
             this.lanes = m.lanes;
             this.landing = m.landing;
             this.defences = m.defences;
+            this.mechDrop = m.mechDrop;
             this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
@@ -456,6 +470,14 @@ public final class Mission {
 
         public Builder flavor(String flavor) {
             this.flavor = flavor;
+            this.dialogue = List.of();
+            return this;
+        }
+
+        /** Replaces the plain flavor with one ordered, reusable authored conversation. */
+        public Builder dialogue(List<MissionDialogue.Turn> dialogue) {
+            this.dialogue = List.copyOf(dialogue);
+            this.flavor = MissionDialogue.transcript(this.dialogue);
             return this;
         }
 
@@ -549,6 +571,12 @@ public final class Mission {
         /** @param defences stated ground defences of the target world; null reads the market. */
         public Builder defences(DebugDefences defences) {
             this.defences = defences;
+            return this;
+        }
+
+        /** @param mechDrop stated mech-lance allowance for the attacker; null reads the mission type's policy. */
+        public Builder mechDrop(DebugMechDrop mechDrop) {
+            this.mechDrop = mechDrop;
             return this;
         }
 
