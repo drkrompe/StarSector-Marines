@@ -1,4 +1,4 @@
-<template props="tacticalScope,mechTitle,mechIdentity,deployedDoctrine,effectiveDoctrine,doctrineState,doctrineStateClasses,formOnLeadClasses,freeReignClasses,formOnLeadMeta,freeReignMeta,formOnLeadDisabled,freeReignDisabled,formOnLeadAction,freeReignAction,defendAreaLabel,defendAreaMeta,defendAreaClasses,defendAreaAction,doctrineCards,backAction,defaultAction">
+<template props="mechTitle,mechIdentity,deployedDoctrine,effectiveDoctrine,doctrineState,doctrineStateClasses,formOnLeadClasses,freeReignClasses,formOnLeadMeta,freeReignMeta,formOnLeadDisabled,freeReignDisabled,formOnLeadAction,freeReignAction,doctrineCards,backAction,defaultAction">
   <div id="battle-mech-overlay" class="battle-mech-overlay">
     <div id="battle-mech-panel" class="mech-panel">
       <div id="battle-mech-header" class="mech-header">
@@ -30,14 +30,6 @@
         </button>
       </div>
 
-      <div id="battle-mech-tactical-order-heading-row" class="section-heading-row">
-        <div id="battle-mech-tactical-order-heading" class="label heading section-heading">TACTICAL ORDER</div>
-        <div id="battle-mech-tactical-order-scope" class="label section-scope">{tacticalScope}</div>
-      </div>
-      <button id="battle-mech-defend-area" class="{defendAreaClasses}" onclick="{defendAreaAction}">
-        <div id="battle-mech-defend-area-name" class="label heading mech-defend-area-name">{defendAreaLabel}</div>
-        <div id="battle-mech-defend-area-meta" class="label mech-defend-area-meta">{defendAreaMeta}</div>
-      </button>
 
       <div id="battle-mech-doctrine-heading-row" class="section-heading-row">
         <div id="battle-mech-doctrine-heading" class="label heading section-heading">FIELD DOCTRINE</div>
@@ -71,7 +63,7 @@
 
   .mech-panel {
     width: 414px;
-    height: 293px;
+    height: 236px;
     flex-direction: column;
     padding: 7px;
     gap: 6px;
@@ -210,32 +202,6 @@
   .lance-order-meta { width: 48px; height: 13px; text-align: right; color: #a0ada8; }
   .lance-order-card-active .lance-order-name { color: #a7ccc4; }
   .lance-order-card-active .lance-order-meta { color: #8ee3ff; }
-
-  .mech-defend-area {
-    width: 100%;
-    height: 18px;
-    flex-direction: row;
-    padding: 6px;
-    gap: 8px;
-    border-width: 1px;
-    border-color: #727b79;
-    background-color: #303a32f2;
-    color: #a7ccc4;
-    text-align: left;
-    overflow: hidden;
-  }
-
-  .mech-defend-area:hover { background-color: #46524a; border-color: #a7ccc4; }
-  .mech-defend-area:active { background-color: #222b24; }
-  .mech-defend-area-name { width: 0px; height: 16px; flex-grow: 1; color: #a7ccc4; }
-  .mech-defend-area-meta { width: 138px; height: 13px; text-align: right; color: #a0ada8; }
-  .mech-defend-area-active {
-    border-color: #ffd464;
-    background-color: #3a3018;
-    color: #ffd464;
-  }
-  .mech-defend-area-active .mech-defend-area-name { color: #ffd464; }
-  .mech-defend-area-active .mech-defend-area-meta { color: #bcae82; }
 
   .doctrine-cards {
     width: 100%;

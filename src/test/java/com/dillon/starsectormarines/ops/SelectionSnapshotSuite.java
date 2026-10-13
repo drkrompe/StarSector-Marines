@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -73,9 +74,8 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
             BufferedImage image = renderer.renderHostPass(pass, 1920, 1080);
             Reactor reactor = new Reactor();
             BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { });
-            model.update(sim, selection.getSelectedSquadId(), Selection.NONE,
+            model.update(sim, selection.getSelectedSquadId(),
                     selection.getSelectedUnitEntityId(), selection.squadCount() == 1);
-            model.selectionScope(selection.squadCount());
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                     List.of(BattleSquadOverlay.COMPONENT_PATH));
             loader.reload();
@@ -88,6 +88,19 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
                         (int) BattleSquadOverlay.DOCUMENT_WIDTH, (int) BattleSquadOverlay.DOCUMENT_HEIGHT);
                 Graphics2D graphics = image.createGraphics();
                 graphics.drawImage(plate, 12, 800, null);
+                graphics.dispose();
+            }
+            BattleOrderOverlayModel orders = new BattleOrderOverlayModel(reactor, mode -> {});
+            orders.update(selection.squadCount(), false, group ? Mode.DEFEND_AREA : Mode.ATTACK_MOVE);
+            MarkupLoader orderLoader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                    List.of(BattleOrderOverlay.COMPONENT_PATH));
+            try (var markup = orderLoader.reloadAndBuild(reactor, BattleOrderOverlay.COMPONENT, orders.props())) {
+                UiDocument document = new UiDocument(markup.root());
+                for (var style : markup.styles()) document.addStyleSheet(style);
+                document.theme(MarineOpsThemes.standard());
+                var plate = renderer.render(document, (int) BattleOrderOverlay.WIDTH, (int) BattleOrderOverlay.HEIGHT);
+                Graphics2D graphics = image.createGraphics();
+                graphics.drawImage(plate, (1920 - plate.getWidth()) / 2, 1080 - 12 - plate.getHeight(), null);
                 graphics.dispose();
             }
             return new SnapshotArtifact(group ? "selected-and-hovered.png" : "single-member-focus.png", image);

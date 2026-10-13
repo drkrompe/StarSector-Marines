@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- Second Wind's lance bay restores its first berth with Wayward and three further berths through separate yard orders.
+Updated: 2026-10-13 — Engineering uses wall-anchored condition glyphs and expandable inspection cards; campaign lessons end at preparation so battle presentation leaves room for mission dialogue.
 
 ## Purpose
 
@@ -1320,9 +1320,15 @@ screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
 **Engineering** is the persistent ship-condition navigation tab, reached from
 every company room and Armory subview. It contains the former Walk the Ship
-room-condition survey. Selecting a compartment on
-the actual deck or its list entry focuses that room and shows Castle's portrait,
-a condition blurb, its working benefit and any next repair. Sealed structural
+room-condition survey. Small SVG glyphs straddle compartment walls with sealed,
+damaged, faulty-power or working status. They have no opaque tiles and shrink for
+small rooms so furnishings remain visible. Hovering a room or glyph opens a bounded
+inspection card beside it; selecting pins that card for interaction without changing
+the camera. The card retains Castle's portrait, condition, working benefit, bill and
+reviewed repair action. Moving into its controls keeps it open; Close, Escape or
+empty-deck selection dismisses it. Cards stay inside the viewport and scroll when
+needed; badges follow the same camera as the rooms. A separate compact distribution
+control represents the ship-wide circuits order. Sealed structural
 rooms are distinct from accessible damaged rooms and usable rooms on faulty
 power. Workshop stages retain their own reviewed orders; the second boat bay can
 also be repaired here through its existing yard authority.
@@ -1508,13 +1514,10 @@ Briefing confirmation records preparation only when two ready selected formation
 and available Mech Support are selected; absent heavy support does not gate an
 otherwise legal infantry departure. These receipts do not own launch permission.
 
-`BattleLessonOverlay` coaches support selection and landing with the same
-portrait and a lightly shaded command-tray highlight. Only the portrait consumes
-input: world targeting, commands and battle shortcuts remain available. The
-host observes a spent Mech Support charge and an actual friendly mech on the
-field before recording delivery. Reading the heat/infantry-screen advice is a
-separate saved receipt. Debug battles are excluded. Failure to call or land
-support leaves the lesson available on a later eligible contract.
+Campaign lessons end before deployment. Battle presentation leaves the mission's
+story dialogue unobstructed by preparation popovers or command-tray spotlights.
+Mech Support remains available through its ordinary command card and landing
+controls, without a field-tutorial acknowledgement or a reminder on later contracts.
 
 New lesson prose and labels use `Strings` through `LessonCopy`; complete variable
 sentences live in the marineOps catalog. `alpha-localization.md` owns the remaining

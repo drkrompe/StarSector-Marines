@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.Rect;
 
 import java.awt.Color;
 
@@ -71,6 +73,25 @@ public final class ShipViewCanvas implements CanvasProducer {
     private RoomPurpose focus;
     private Compartment focusedRoom, selectedRoom;
     public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; }
+    /** Inspection does not fly the camera away from the other room markers. */
+    public void select(Compartment room) { selectedRoom = room; }
+
+    /** A small glyph straddles the upper-right wall, leaving the room interior clear. */
+    public Rect markerBounds(Compartment room, CanvasMetrics metrics) {
+        Rect bounds = roomBounds(room, metrics);
+        float size = Math.min(22f, Math.min(bounds.width(), bounds.height()) * 0.45f);
+        return new Rect(bounds.right() - size / 2f, bounds.y() - size / 2f, size, size);
+    }
+
+    /** Screen-space footprint lets inspection cards open beside either edge of a room. */
+    public Rect roomBounds(Compartment room, CanvasMetrics metrics) {
+        if (camera == null || host == null) return Rect.EMPTY;
+        float left = metrics.toDocumentX(host.canvasXForScreen(camera.cellToScreenX(room.left())));
+        float right = metrics.toDocumentX(host.canvasXForScreen(camera.cellToScreenX(room.right() + 1)));
+        float top = metrics.toDocumentY(host.canvasYForScreen(camera.cellToScreenY(room.bottom() + 1)));
+        float bottom = metrics.toDocumentY(host.canvasYForScreen(camera.cellToScreenY(room.top())));
+        return new Rect(left, top, right - left, bottom - top);
+    }
     public Compartment roomAt(float x, float y) {
         if (camera == null || !camera.containsScreen(x, y) || !ship.ready()) return null;
         int cx = (int) Math.floor(camera.screenToCellX(x)), cy = (int) Math.floor(camera.screenToCellY(y));

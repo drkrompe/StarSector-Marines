@@ -41,9 +41,8 @@ class BattleSquadOverlayModelTest {
     void mlxProjectsThreeFireTeamsAndHoveredLoadout() throws Exception {
         Reactor reactor = new Reactor();
         AtomicInteger backs = new AtomicInteger();
-        AtomicInteger defendAreas = new AtomicInteger();
         BattleSquadOverlayModel model = new BattleSquadOverlayModel(
-                reactor, backs::incrementAndGet, defendAreas::incrementAndGet);
+                reactor, backs::incrementAndGet);
         model.updateProjected(new BattleSquadOverlayModel.SquadState(
                 "Squad 20", 11, 12, 0.72f, members()));
 
@@ -57,8 +56,6 @@ class BattleSquadOverlayModelTest {
             assertEquals("SQUAD 20", instance.requireElement("battle-squad-title").text());
             assertEquals("11/12", instance.requireElement("battle-squad-strength").text());
             assertEquals(3, instance.requireElement("battle-squad-fireteams").childCount());
-            assertEquals("DEFEND AREA", instance.requireElement(
-                    "battle-squad-defend-area").text());
             for (int team = 0; team < 3; team++) {
                 assertEquals(4, instance.requireElement(
                         "battle-squad-fireteam-" + team + "-members").childCount());
@@ -75,17 +72,9 @@ class BattleSquadOverlayModelTest {
 
             var summary = instance.requireElement("battle-squad-summary")
                     .box().borderBox();
-            var orders = instance.requireElement("battle-squad-orders")
-                    .box().borderBox();
             var fireteams = instance.requireElement("battle-squad-fireteams")
                     .box().borderBox();
-            assertTrue(summary.bottom() <= orders.y(),
-                    "squad identity and command controls occupy separate rows");
-            assertTrue(orders.bottom() <= fireteams.y(),
-                    "command controls remain clear of the fire-team matrix");
-            assertTrue(instance.requireElement("battle-squad-order-label")
-                            .box().borderBox().width() >= 128f,
-                    "the tactical-order caption keeps its authored width");
+            assertTrue(summary.bottom() <= fireteams.y());
 
             var title = instance.requireElement("battle-squad-title").box().borderBox();
             var strength = instance.requireElement("battle-squad-strength")
@@ -98,15 +87,6 @@ class BattleSquadOverlayModelTest {
                     "strength remains clear of the protected morale block");
             assertTrue(morale.width() >= 102f,
                     "morale keeps enough width for its label and bar");
-
-            model.selectionScope(3);
-            instance.flush();
-            assertEquals("ALL 3 SQUADS", instance.requireElement("battle-squad-order-label").text());
-            assertEquals("SQUAD 20", instance.requireElement("battle-squad-title").text(),
-                    "the roster and its statistics still describe the focused squad");
-            model.selectionScope(1);
-            instance.flush();
-            assertEquals("TACTICAL ORDER", instance.requireElement("battle-squad-order-label").text());
 
             model.hover("battle-squad-member-0-0");
             instance.flush();
@@ -131,13 +111,6 @@ class BattleSquadOverlayModelTest {
                     back.y() + back.height() * 0.5f));
             assertEquals(1, backs.get());
 
-            var defend = instance.requireElement("battle-squad-defend-area")
-                    .box().borderBox();
-            assertTrue(document.pointerDown(defend.x() + defend.width() * 0.5f,
-                    defend.y() + defend.height() * 0.5f));
-            assertTrue(document.pointerUp(defend.x() + defend.width() * 0.5f,
-                    defend.y() + defend.height() * 0.5f));
-            assertEquals(1, defendAreas.get());
         }
     }
 
@@ -147,7 +120,7 @@ class BattleSquadOverlayModelTest {
         Selection selection = new Selection();
         selection.selectUnit(20, 1L);
         BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { },
-                () -> { }, unit -> selection.selectUnit(20, unit));
+                unit -> selection.selectUnit(20, unit));
         var state = new BattleSquadOverlayModel.SquadState("Squad 20", 11, 12, 1f, members());
         model.updateProjected(state, selection.getSelectedUnitEntityId(), true);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
