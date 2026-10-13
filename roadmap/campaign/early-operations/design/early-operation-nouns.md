@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Cold Start cargo, shore-power and grounded construction milestones.
+Updated: 2026-10-13 — campaign guidance ends at preparation, leaving battle story beats unobstructed.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -955,7 +955,9 @@ Shipped implementation evidence is in `shipped.md`.
 
 `castle-campaign-lessons.md` connects Relief's technology choice and actual issue
 to Counterattack's recovered Hound, physical SRM refitting, optional ship
-investments, Junction's selected two-squad force and first heavy-support call.
+investments, Junction's selected two-squad force and pre-deployment heavy-support selection.
+The battle retains ordinary support controls and story dialogue without a separate
+campaign tutorial overlay.
 Guidance resumes from saved company transactions and learning receipts across
 entry screens; it neither awards replacement gifts nor owns mission unlocks.
 The power/cost/promotion audit and later three/four-squad lessons are open in
