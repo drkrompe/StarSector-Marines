@@ -14,7 +14,7 @@
         <div id="results-refit-title" class="label heading tone-accent">EQUIPMENT UPGRADE AVAILABLE / A PROPER ISSUE</div>
         <div id="results-refit-message" class="label refit-message">{refitCopy}</div>
       </div>
-      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">REVIEW UPGRADE / ARMORY</button>
+      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">REVIEW EQUIPMENT UPGRADE</button>
     </div>
     <div id="mission-results-body" class="mission-results-body">
       <div id="mission-results-summary" class="console-section results-summary">

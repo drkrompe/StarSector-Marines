@@ -1,11 +1,11 @@
 <template props="companySummary,selectedSquadName,cargoStockRows,fireTeamOverviews,targetSummary,candidateSummary,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / SQUAD ISSUE" />
 
     <div id="fireteam-breadcrumb" class="panel console-command-rail">
-      <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
+      <button id="fireteam-breadcrumb-companies" onclick="{back}">Back</button>
       <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-      <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>
+      <button id="back-to-squads" onclick="{backToSquads}">Equipment</button>
       <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
       <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
       <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>

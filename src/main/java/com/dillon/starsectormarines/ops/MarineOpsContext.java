@@ -138,7 +138,7 @@ public class MarineOpsContext {
     private boolean prepareAfterSettlement;
     private ScreenId armoryReturnScreen = ScreenId.MISSION_SELECT;
     /** Back target for the retained company workspace inside an armory visit. */
-    private ScreenId fleetArmoryWorkspaceBackScreen = ScreenId.FLEET_ARMORY_OVERVIEW;
+    private ScreenId fleetArmoryWorkspaceBackScreen = ScreenId.BARRACKS;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
@@ -476,17 +476,17 @@ public class MarineOpsContext {
         return ship != null && ship.gettingReady();
     }
 
-    /** Opens the owned-company landing view used by the campaign Company HQ. */
+    /** Compatibility route: company equipment is now reached through Barracks. */
     public void openCompanyArmoryFrom(ScreenId returnScreen) {
         armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.COMPANY_HQ;
-        fleetArmoryWorkspaceBackScreen = ScreenId.FLEET_ARMORY_OVERVIEW;
-        goTo(ScreenId.FLEET_ARMORY_OVERVIEW);
+        fleetArmoryWorkspaceBackScreen = ScreenId.BARRACKS;
+        goTo(ScreenId.BARRACKS);
     }
 
     /** Enters one company's retained armory while preserving its immediate back target. */
     public void openFleetArmoryWorkspaceFrom(ScreenId backScreen) {
         fleetArmoryWorkspaceBackScreen = backScreen != null
-                ? backScreen : ScreenId.FLEET_ARMORY_OVERVIEW;
+                ? backScreen : ScreenId.BARRACKS;
         goTo(ScreenId.FLEET_ARMORY);
     }
 
