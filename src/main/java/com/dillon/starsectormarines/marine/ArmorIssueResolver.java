@@ -11,7 +11,9 @@ import java.util.function.Predicate;
  * Turns a {@link SquadArmorPlan} into the twelve patterns a squad actually
  * wears, by applying somebody's stock to it ({@code role-and-access.md}).
  *
- * <p>This is where the two axes meet, and it is the only place they do. The
+ * <p>The plan fixes protection class before role or tradition is considered.
+ * No fallback crosses that class: a regular section stays regular as stock grows,
+ * and a power-suit section is refused until matching shells are owned. The
  * plan supplies the role of each billet and the tradition to prefer; the caller
  * supplies what is available. Nothing here reads a tier directly: access is
  * expressed entirely as "which patterns may I use", so a company's ceiling, a
@@ -34,7 +36,7 @@ public final class ArmorIssueResolver {
      * preferring the plan's own tradition; failing that, the best available of
      * that role from anyone. A role nobody available fills falls back to line
      * kit — the plan's own tradition again first — and finally to whatever is
-     * available at all, because a marine with no suit is worse than a marine in
+     * available within the plan's protection class, because a marine with no suit is worse than a marine in
      * the wrong one, and because a company that has genuinely never bought a
      * recon suit should still be able to field its sections.
      *
@@ -62,11 +64,12 @@ public final class ArmorIssueResolver {
         }
         List<MarineArmorCatalogDef> stock = new ArrayList<>();
         for (MarineArmorCatalogDef pattern : catalog.all()) {
-            if (available == null || available.test(pattern)) stock.add(pattern);
+            if (pattern.armorClass() == plan.armorClass()
+                    && (available == null || available.test(pattern))) stock.add(pattern);
         }
         if (stock.isEmpty()) {
             throw new IllegalStateException("Armour plan '" + plan.id()
-                    + "' cannot be issued: nothing at all is available");
+                    + "' cannot be issued: no " + plan.armorClass().displayName() + " armor is available");
         }
 
         Map<ArmorRole, List<MarineArmorCatalogDef>> bands = new EnumMap<>(ArmorRole.class);

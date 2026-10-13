@@ -12,6 +12,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * How a plan becomes twelve suits ({@code role-and-access.md}).
@@ -121,6 +122,40 @@ class ArmorIssueResolverTest {
     }
 
     // ---------------------------------------------------------------- fixture
+
+    @Test
+    void regularPlanNeverConvertsToOwnedPowerSuits() throws JSONException {
+        JSONObject power = pattern("t.power", ArmorRole.LINE, 4, 60f, 12f);
+        power.getJSONObject("catalog").put("armorClass", "power-suit");
+        withCatalog(List.of(pattern("t.standard", ArmorRole.LINE, 2, 5f, 4f), power), () -> {
+            SquadArmorDoctrine issued = ArmorIssueResolver.resolveUnrestricted(plan(SquadRoleMix.BALANCED));
+            assertEquals(Set.of("t.standard"), new LinkedHashSet<>(issued.issueIds()));
+        });
+    }
+
+    @Test
+    void powerSuitFallbackStaysInClassEvenWhenStandardKitFillsExactRole() throws JSONException {
+        JSONObject power = pattern("t.power", ArmorRole.ASSAULT, 3, 40f, 12f);
+        power.getJSONObject("catalog").put("armorClass", "power-suit");
+        withCatalog(List.of(pattern("t.standard", ArmorRole.LINE, 4, 22f, 13f), power), () -> {
+            SquadArmorPlan plan = new SquadArmorPlan("plan.power", "Power", "",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, ArmorClass.POWER_SUIT);
+            SquadArmorDoctrine issued = ArmorIssueResolver.resolveUnrestricted(plan);
+            assertEquals(MarineSquad.CAPACITY, issued.issueIds().size());
+            assertEquals(Set.of("t.power"), new LinkedHashSet<>(issued.issueIds()));
+        });
+    }
+
+    @Test
+    void missingClassStockRefusesRatherThanIssuingAnotherClass() {
+        withCatalog(List.of(pattern("t.standard", ArmorRole.LINE, 4, 22f, 13f)), () -> {
+            SquadArmorPlan plan = new SquadArmorPlan("plan.power", "Power", "",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, ArmorClass.POWER_SUIT);
+            IllegalStateException failure = assertThrows(IllegalStateException.class,
+                    () -> ArmorIssueResolver.resolveUnrestricted(plan));
+            assertTrue(failure.getMessage().contains("Power suit"));
+        });
+    }
 
     private static List<String> wornBy(ArmorRole role, SquadRoleMix mix,
                                        SquadArmorDoctrine issued) {

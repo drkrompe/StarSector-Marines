@@ -483,7 +483,7 @@ public final class BarracksCommandModel {
         List<String> notes = new ArrayList<>();
         SquadProfile profile = roster.armory().squadProfile(squad.squadProfileId());
         if (profile != null) notes.add("Profile: " + roster.armory().weaponDoctrineById(profile.weaponDoctrineId()).displayName()
-                + " / " + roster.armory().armorDoctrineById(profile.armorDoctrineId()).displayName());
+                + " / " + ArmorPlanPresentation.label(roster.armory(), profile.armorDoctrineId()));
         notes.add(armor == null ? "No issued armor: all billets vacant." : "Armor image: " + armor.displayName() + ", the most common current issue.");
         notes.add(issue + ". Assigning a profile never changes issued equipment by itself.");
         if (muster.woundedCount() > 0) notes.add(String.format(Locale.ROOT,
@@ -501,7 +501,7 @@ public final class BarracksCommandModel {
                 "id", profile.id(), "profilenameId", profile.id() + ":name",
                 "profiledetailId", profile.id() + ":detail", "name", profile.name(),
                 "detail", roster.armory().weaponDoctrineById(profile.weaponDoctrineId()).displayName()
-                        + "\n" + roster.armory().armorDoctrineById(profile.armorDoctrineId()).displayName(),
+                        + "\n" + ArmorPlanPresentation.label(roster.armory(), profile.armorDoctrineId()),
                 "classes", profile.id().equals(profileId) ? "profile-card selected" : "profile-card",
                 "select", (Runnable) () -> selectProfile(profile.id()))).toList();
     }

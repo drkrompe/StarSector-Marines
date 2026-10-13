@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.marine.ArmorClass;
+
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -69,6 +71,7 @@ public final class EntitySpec {
     /** Which aircraft this hull is, for a based aircraft; null otherwise. */
     public Airframe airframe;
     public LayeredArmorFamily layeredArmorFamily;
+    public ArmorClass armorClass = ArmorClass.STANDARD;
     public Objective assignedObjective;
     public int homeCellX = -1;
     public int homeCellY = -1;
@@ -148,6 +151,8 @@ public final class EntitySpec {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
         return variant.applyTo(this);
     }
+    public EntitySpec armorClass(ArmorClass armorClass) { this.armorClass = armorClass != null ? armorClass : ArmorClass.STANDARD; return this; }
+
     public EntitySpec layeredArmorFamily(LayeredArmorFamily family) { this.layeredArmorFamily = family; return this; }
 
     /**

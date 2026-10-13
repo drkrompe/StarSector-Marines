@@ -658,7 +658,9 @@ public final class BattleSetup {
             ChargeSiteObjective site = sites.get(dropIndex % sites.size());
             MarineLoadout prior = roster[0];
             roster[0] = new MarineLoadout(UnitRole.PLANTER, site, prior.primaryWeaponId,
-                    prior.equipmentGrade, prior.soldierProfile, null, 0);
+                    prior.equipmentGrade, prior.soldierProfile, null, 0, prior.campaignSoldierId,
+                    prior.armorFamily, prior.armorCapacity, prior.armorRating, prior.armorMoveSpeedMult,
+                    prior.armorIncomingAccuracyMult, prior.campaignSquad, prior.integralSystem, prior.armorClass);
         }
         return roster;
     }

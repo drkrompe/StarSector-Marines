@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
@@ -348,9 +347,8 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
 
     private String loadoutSummary(MarineSquad squad) {
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
-        SquadArmorDoctrine armor = roster.armory().armorDoctrineById(squad.armorDoctrineId());
         String weaponName = weapons != null ? weapons.displayName() : "Field weapons";
-        String armorName = armor != null ? armor.displayName() : "Field armor";
+        String armorName = ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId());
         return weaponName + " / " + armorName;
     }
 

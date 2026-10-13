@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -222,7 +223,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     members.add(new BattleSquadOverlayModel.MemberState(i + 1L, i / 4, i == 0,
                             i == 0 ? "Rhea Voss" : "Marine " + (i + 1), 100f, 100f,
                             40f, 40f, 12f, "Assault rifle", "AR", new Color(140, 185, 210),
-                            "", "", "", "", "", "Regular", "Steady", UnitRole.COMBATANT));
+                            "", "", "", "", "", "Regular", "Steady", UnitRole.COMBATANT,
+                            ArmorClass.STANDARD));
                 }
                 model.updateProjected(new BattleSquadOverlayModel.SquadState("Squad 20", 12, 12,
                         .72f, members));

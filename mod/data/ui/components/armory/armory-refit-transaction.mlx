@@ -124,9 +124,9 @@
   .marine-viewer-card.status-vacant { border-color: #607188; opacity: 0.55; }
   .marine-header { flex-direction: row; height: 24px; gap: 5px; }
   .marine-name { width: 0px; height: 24px; flex-grow: 1; padding: 3px 1px; font-family: body; }
-  .marine-badges { flex-direction: row; width: 158px; height: 24px; gap: 3px; }
+  .marine-badges { flex-direction: row; width: 224px; height: 24px; gap: 3px; }
   .marine-badge { height: 22px; padding: 3px 5px; border-width: 1px; text-align: center; }
-  .class-badge { width: 52px; background-color: #172b3b; border-color: #a5c6bc; }
+  .class-badge { width: 118px; background-color: #172b3b; border-color: #a5c6bc; }
   .weapon-badge { width: 32px; background-color: #102633; border-color: #a5c6bc; }
   .armor-badge { width: 32px; background-color: #2b2718; border-color: #dfb84d; }
   .marine-hero { flex-direction: row; height: 100px; gap: 7px; overflow: hidden; }

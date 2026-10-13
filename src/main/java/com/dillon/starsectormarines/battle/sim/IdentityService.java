@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.marine.ArmorClass;
+
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -65,6 +67,13 @@ public final class IdentityService {
      * body has; its domain type is asked of the domain component.
      */
     public UnitType type(long id) { return (UnitType) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE); }
+
+    /** Frozen infantry protection class; legacy/non-infantry identities default to regular. */
+    public ArmorClass armorClass(long id) {
+        ArmorClass value = (ArmorClass) entityWorld.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_ARMOR_CLASS);
+        return value != null ? value : ArmorClass.STANDARD;
+    }
 
     /** Persistent chassis profile, or null for a non-mech ground entity. */
     public MechVariant mechVariant(long id) {

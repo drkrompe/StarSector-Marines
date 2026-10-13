@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.ArmorRole;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.LoadoutEffectiveness;
@@ -846,6 +847,7 @@ public final class FleetArmoryViewModel {
         String selected = selectedArmorDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            if (!roster.armory().canIssue(plan)) continue;
             SquadArmorDoctrine issued = roster.armory().issue(plan);
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
@@ -856,7 +858,8 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = titleCase(plan.tradition().key.replace('_', ' '))
+            String metadata = plan.armorClass().displayName() + "  ·  "
+                    + titleCase(plan.tradition().key.replace('_', ' '))
                     + "  ·  FIELDS TIER " + tierMark(maximumArmorTier(issued));
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
@@ -957,14 +960,7 @@ public final class FleetArmoryViewModel {
         return known;
     }
 
-    /**
-     * Every authored sheet, always. A sheet names roles and the armoury fills
-     * them from whatever is owned, so there is no such thing as one this company
-     * cannot field — the worst case is a role marked "(no kit)" on the section
-     * line and filled with line armour ({@code role-and-access.md}). Weapons
-     * still gate on collected cards, which is why the weapon count above it does
-     * real work and this one is a total.
-     */
+    /** Sheets whose carrier class the company can field, before rarity filtering. */
     private int knownArmorLoadouts() {
         return roster.armory().armorDoctrines().size();
     }
@@ -1002,12 +998,12 @@ public final class FleetArmoryViewModel {
                     "comparison-card",
                     armor.displayName(),
                     "TIER " + tierMark(armor.tier()),
-                    armor.role().displayName(),
+                    armor.armorClass().displayName(),
                     armorComparisonStats(id, armor),
                     IntegralSystemCopy.tile(armor),
                     IntegralSystemCopy.iconPath(armor),
                     comparisonSystemClasses(armor),
-                    armor.description()));
+                    "ROLE · " + armor.role().displayName() + "\n" + armor.description()));
         }
         return List.copyOf(cards);
     }
@@ -1101,7 +1097,7 @@ public final class FleetArmoryViewModel {
                 selectedArmorDoctrineId.get());
         return doctrine != null
                 ? "Assigned  ·  " + doctrine.displayName()
-                : "Assign a tactic sheet";
+                : ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get());
     }
 
     private List<MarineViewerCard> buildMarineCards() {
@@ -1156,14 +1152,15 @@ public final class FleetArmoryViewModel {
                     marineName(soldier), billet != null ? billet.name() : "Unfilled billet",
                     marineStatus(soldier), serviceSummary(soldier),
                     personnelSummary(soldier),
-                    armorCatalog != null ? armorCatalog.role().displayName() : "VACANT",
+                    armorCatalog != null ? armorCatalog.armorClass().displayName() : "VACANT",
                     billet != null ? "W " + billet.grade().tierMark() : "W —",
                     billet != null ? "A " + tierMark(armorCatalog.tier()) : "A —",
                     billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
                             + billet.grade().displayName : "No primary",
                     primaryFactionLogo, equipmentFactionLogoClasses(primaryFactionLogo),
                     weaponStats(id, billet, soldier),
-                    billet != null ? armorCatalog.displayName() + "  ·  Tier "
+                    billet != null ? armorCatalog.displayName() + "  ·  "
+                            + armorCatalog.role().displayName() + "  ·  Tier "
                             + tierMark(armorCatalog.tier()) : "No armor",
                     armorStats(id, billet),
                     armorFactionLogo, equipmentFactionLogoClasses(armorFactionLogo),
@@ -1197,11 +1194,9 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(
                 selectedWeaponDoctrineId.get());
-        SquadArmorDoctrine armor = roster.armory().armorDoctrineById(
-                selectedArmorDoctrineId.get());
         return "Proposed  ·  "
                 + (weapons != null ? weapons.displayName() : "Choose weapons")
-                + "  /  " + (armor != null ? armor.displayName() : "Choose armor");
+                + "  /  " + ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get());
     }
 
     private String buildApplyLabel() {
@@ -1359,10 +1354,9 @@ public final class FleetArmoryViewModel {
     private String assignedDoctrineName(MarineSquad squad) {
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(
                 squad.weaponDoctrineId());
-        SquadArmorDoctrine armor = roster.armory().armorDoctrineById(
-                squad.armorDoctrineId());
-        if (weapons == null || armor == null) return "Individual equipment";
-        return weapons.displayName() + "  /  " + armor.displayName();
+        if (weapons == null) return "Individual equipment";
+        return weapons.displayName() + "  /  "
+                + ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId());
     }
 
     /**
@@ -1466,17 +1460,18 @@ public final class FleetArmoryViewModel {
             // cannot yet field into a reason to buy something: the ISSUED line
             // below would otherwise just show twelve of the wrong suit and no
             // explanation ({@code role-and-access.md}).
-            if (!ownsAnyPatternFor(role)) part += " (no kit)";
+            if (!ownsAnyPatternFor(role, plan.armorClass())) part += " (no kit)";
             parts.add(part);
         }
         return String.join("  ·  ", parts);
     }
 
-    private boolean ownsAnyPatternFor(ArmorRole role) {
+    private boolean ownsAnyPatternFor(ArmorRole role, ArmorClass armorClass) {
         MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
         if (catalog == null) return true;
         for (MarineArmorCatalogDef pattern : catalog.all()) {
-            if (pattern.role() == role && roster.armory().ownsArmorTemplate(pattern.id())) {
+            if (pattern.role() == role && pattern.armorClass() == armorClass
+                    && roster.armory().ownsArmorTemplate(pattern.id())) {
                 return true;
             }
         }

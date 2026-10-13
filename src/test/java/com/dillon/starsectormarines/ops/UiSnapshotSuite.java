@@ -67,6 +67,9 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
@@ -719,7 +722,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         leader ? "READY" : "",
                         index < 4 ? "Veteran" : "Regular",
                         index % 3 == 0 ? "Gifted" : "Steady",
-                        UnitRole.COMBATANT));
+                        UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD));
             }
         }
         return members;
@@ -2366,6 +2369,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        if (armorPicker) collectArmorTemplates(roster);
+        if (pickerOpen) {
+            var weapons = SquadEquipmentDoctrines.weaponById(SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS);
+            for (var issue : weapons.issues()) {
+                roster.armory().acquireEquipmentTemplate(
+                        EquipmentTemplateCatalog.primaryId(issue.primaryId(), issue.grade()));
+                if (issue.specialEquipmentId() != null) roster.armory().acquireEquipmentTemplate(
+                        EquipmentTemplateCatalog.specialId(issue.specialEquipmentId()));
+            }
+        }
         MarineSquad squad = roster.squads().get(0);
         if (!pickerOpen) {
             Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
@@ -2378,8 +2391,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
                 reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
                 snapshotSquadFoundingResources());
-        if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().get(1).select().run();
-        if (fireteam && armorPicker) viewModel.showArmorPickerAction().run();
+        if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().stream()
+                .filter(tile -> tile.id().equals("weapon-doctrine:" + SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS))
+                .findFirst().orElseThrow().select().run();
+        if (fireteam && armorPicker) {
+            viewModel.showArmorPickerAction().run();
+            viewModel.armorDoctrineTiles().get().get(0).select().run();
+        }
         HeadlessArmoryPreviewRenderer armoryPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -2521,6 +2539,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        collectArmorTemplates(roster);
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
@@ -2535,6 +2554,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 instance.requireElement("comparison-list").scrollTop(100_000f);
             }
             return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
+    /** A collected Armory fixture, distinct from the campaign's starter ownership. */
+    private static void collectArmorTemplates(MarineRoster roster) {
+        for (var armor : MarineArmorCatalogRegistry.installed().all()) {
+            roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor.id()));
         }
     }
 

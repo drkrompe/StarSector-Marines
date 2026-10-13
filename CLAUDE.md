@@ -1104,6 +1104,7 @@ The discovered suite ids and default output directories are:
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, outdoor daylight, enlarged grounded Shepherd, cargo/infantry access and clear construction plots across palettes and seeds; no battle or campaign simulation | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
+| `power-suit` | One regular squad, one XIV squad, and two regular squads against fixed rifle opposition, plus a marksman control at 1920x1080; matched training and grade, no suit systems. Casualties and endurance observations, not mission-balance acceptance | `build/snapshots/power-suit/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `ships-boats` | One hull's own boats: a bay with its rank of shuttles, every bay ringed with the door it launches through, and an animated turnaround — a boat leaving its berth, the berth standing empty, and the boat home again | `build/snapshots/ships-boats/` |
