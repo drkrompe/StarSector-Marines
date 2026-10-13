@@ -209,7 +209,7 @@ public final class EquipmentTemplateCatalog {
                 if (!grades.has(gradeKey)) continue;
                 JSONObject gradeEntry = grades.getJSONObject(gradeKey);
                 register(new EquipmentTemplateCard(primaryId(weaponId, grade),
-                        weapon.catalogName(grade.tier), EquipmentTemplateCard.Kind.PRIMARY,
+                        null, EquipmentTemplateCard.Kind.PRIMARY,
                         weaponId, grade, parseAccessTier(gradeEntry),
                         parseCost(gradeEntry)), source);
             }
@@ -222,7 +222,7 @@ public final class EquipmentTemplateCatalog {
             JSONObject entry = array.getJSONObject(index);
             String armorId = requireText(entry, "equipmentId");
             MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(armorId);
-            register(new EquipmentTemplateCard(armorId(armorId), armor.displayName(),
+            register(new EquipmentTemplateCard(armorId(armorId), null,
                     EquipmentTemplateCard.Kind.ARMOR, armorId, null,
                     parseAccessTier(entry),
                     parseCost(entry.getJSONObject("issueCost"))),
@@ -236,7 +236,7 @@ public final class EquipmentTemplateCatalog {
             JSONObject entry = array.getJSONObject(index);
             String specialId = requireText(entry, "equipmentId");
             SpecialEquipmentDef special = SpecialEquipmentRegistry.require(specialId);
-            register(new EquipmentTemplateCard(specialId(specialId), special.displayName(),
+            register(new EquipmentTemplateCard(specialId(specialId), null,
                     EquipmentTemplateCard.Kind.SPECIAL, specialId, null,
                     parseAccessTier(entry),
                     parseCost(entry.getJSONObject("issueCost"))), source);

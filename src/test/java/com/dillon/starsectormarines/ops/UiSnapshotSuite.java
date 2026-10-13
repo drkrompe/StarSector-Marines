@@ -753,7 +753,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 reactor, () -> { }, (mechId, role) -> { },
                 (mechId, order) -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
-                3, 303L, "Sirocco Three", MechVariant.SIROCCO.displayName,
+                3, 303L, "Sirocco Three", MechVariant.SIROCCO.displayName(),
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
                 MechLanceOrder.FREE_REIGN,
                 BattleMechOverlayModel.selectableRoles()));
@@ -2637,6 +2637,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             throws Exception {
         return renderMechLab(context, renderer, width, height, uiScale, pickerOpen,
                 selectHound, selectVacant, specSheet, null);
+    }
+
+    static List<SnapshotArtifact> renderEquipmentSheets(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("mech-component-spec.png", renderMechLab(context, renderer,
+                        1920, 1080, 1f, false, true, false, true)),
+                new SnapshotArtifact("mech-chassis-spec.png", renderMechLab(context, renderer,
+                        1920, 1080, 1f, false, false, true, true)));
     }
 
     static List<SnapshotArtifact> renderCampaignGantries(SnapshotContext context) throws Exception {

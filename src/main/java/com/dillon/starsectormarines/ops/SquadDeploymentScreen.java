@@ -205,7 +205,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                         + " · " + statusLabel(soldier),
                 "FIREPOWER " + firepower, "PROTECTION " + protection,
                 "PRIMARY · " + primary.catalogName(soldier.primaryGrade())
-                        + " · " + soldier.primaryGrade().displayName,
+                        + " · " + soldier.primaryGrade().displayName(),
                 "ARMOR · " + armor.displayName() + " · " + armor.role().displayName(),
                 special != null ? "SPECIAL · " + special.displayName() : "SPECIAL · NONE",
                 armor.hasIntegralSystem()
