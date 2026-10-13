@@ -299,7 +299,9 @@ public final class MissionLaunch {
         if (AgreusArcCampaign.isBattle(m)) {
             var agreus = AgreusArcCampaign.requireCurrent(m);
             boolean records = agreus.recordsRecovered();
-            builder = AgreusArcProgress.limitedWarrant(m.id)
+            builder = AgreusArcProgress.yardOwners(m.id)
+                    ? () -> BattleSetup.createYardOwners(seed, constructionDetachment.shuttleManifest, profile)
+                    : AgreusArcProgress.limitedWarrant(m.id)
                     ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)
                     : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
         } else if (ShepherdRecoveryCampaign.isBattle(m)) {

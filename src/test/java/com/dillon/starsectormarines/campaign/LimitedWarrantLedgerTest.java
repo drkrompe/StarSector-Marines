@@ -18,7 +18,7 @@ class LimitedWarrantLedgerTest {
         assertFalse(p.begin(id, "jangala"));
         assertTrue(p.begin(id, "agreus", "Agreus"));
         assertEquals(30000, win(p, id));
-        assertNull(p.nextMissionId());
+        assertTrue(AgreusArcProgress.yardOwners(p.nextMissionId()));
         assertEquals(-1, win(p, id));
     }
     @Test void retainedRecordsAndReplacementAttemptSurviveSerialization() throws Exception {

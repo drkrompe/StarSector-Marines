@@ -372,6 +372,7 @@ public final class MissionResolver {
                 .workingPassage(sim.getWorkingPassage()==null?null:sim.getWorkingPassage().report(sim))
                 .waterUnderSeal(sim.getWaterUnderSeal()==null?null:sim.getWaterUnderSeal().report(sim))
                 .limitedWarrant(sim.getLimitedWarrant()==null?null:sim.getLimitedWarrant().report(sim))
+                .yardOwners(sim.getYardOwners()==null?null:sim.getYardOwners().report(sim))
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .officers(sim.officerAttemptId(), officers)
