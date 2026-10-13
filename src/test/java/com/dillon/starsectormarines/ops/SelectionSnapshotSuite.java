@@ -91,7 +91,7 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
                 graphics.dispose();
             }
             BattleOrderOverlayModel orders = new BattleOrderOverlayModel(reactor, mode -> {});
-            orders.update(selection.squadCount(), false, group ? Mode.DEFEND_AREA : Mode.ATTACK_MOVE);
+            orders.update(selection.squadCount(), false, group ? Mode.DEFEND_AREA : Mode.NONE);
             MarkupLoader orderLoader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                     List.of(BattleOrderOverlay.COMPONENT_PATH));
             try (var markup = orderLoader.reloadAndBuild(reactor, BattleOrderOverlay.COMPONENT, orders.props())) {
