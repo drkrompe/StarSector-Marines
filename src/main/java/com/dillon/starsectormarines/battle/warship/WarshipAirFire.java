@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.warship;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.HullStrike;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -69,7 +70,7 @@ public final class WarshipAirFire {
 
     /** A hostile-or-not aircraft as the guns see it this tick. */
     private record Craft(long id, Faction faction, float x, float y, float vx, float vy, float radius,
-                         AirTargetClass target, boolean armed, boolean drop, float durability) {}
+                         AirTargetClass target, boolean armed, boolean drop, float durability, ShuttleMission mission) {}
 
     /** One round on its way to a craft. */
     private static final class Shot {
@@ -242,7 +243,7 @@ public final class WarshipAirFire {
             boolean mech = mission.mechVariant != null || (mission.mechVariants != null && mission.mechVariants.length > 0);
             boolean drop = mission.marinesRemaining > 0 || mech;
             Craft craft = new Craft(id, faction, body.x, body.y, body.vx, body.vy, targets.targetRadius(id), cls,
-                    mission.strikeSortie, drop, Math.max(0f, world.hp(id)) + Math.max(0f, world.armor(id)));
+                    mission.strikeSortie, drop, Math.max(0f, world.hp(id)) + Math.max(0f, world.armor(id)), mission);
             crafts.add(craft);
             byId.put(id, craft);
         }
@@ -349,17 +350,22 @@ public final class WarshipAirFire {
     }
 
     /**
-     * The craft this mount shoots next: armed craft before loaded boats before the rest, then the
-     * nearest, then the lowest id; never one the rounds already in the air will kill.
+     * The craft this mount shoots next: for an escort, armed craft aimed at its lead first; then armed craft
+     * before loaded boats before the rest, then the nearest, then the lowest id; never one the rounds already
+     * in the air will kill.
      */
     private Craft pick(Warship ship, Warship.Mount m, float mx, float my, Scope scope, WeaponClass wc) {
+        Warship lead = WarshipEscort.liveLead(ship);
+        float leadRadius = lead == null ? 0f : 0.5f * Math.max(lead.lengthCells, lead.widthCells);
         Craft best = null;
         int bestTier = Integer.MAX_VALUE;
         double bestDist = Double.MAX_VALUE;
         for (Craft c : crafts) {
             if (!eligible(ship, scope, wc, c) || !inReach(ship, m, mx, my, c)) continue;
             if (committed.getOrDefault(c.id(), 0f) >= c.durability()) continue;
-            int tier = c.armed() ? 0 : c.drop() ? 1 : 2;
+            boolean atLead = lead != null
+                    && HullStrike.aimedAt(c.mission(), lead.centerX(), lead.centerY(), leadRadius);
+            int tier = atLead ? 0 : c.armed() ? 1 : c.drop() ? 2 : 3;
             double d = Math.hypot(c.x() - mx, c.y() - my);
             if (tier < bestTier || (tier == bestTier && d < bestDist)) {
                 best = c;

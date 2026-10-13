@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirLocomotion;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.HullStrike;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -36,6 +37,11 @@ public final class AirThreatPicture {
     static final float HOSTILE_SHIP_WEIGHT = 1f;
     /** Weight of one hostile armed craft in the air. */
     static final float ARMED_CRAFT_WEIGHT = 0.5f;
+    /**
+     * Weight of one hostile armed craft aimed at the lead of an escort: twice an ordinary armed craft, so one is
+     * enough to turn an escort to the air fight (the entry level is 1.0) whatever its own class.
+     */
+    static final float LEAD_CRAFT_WEIGHT = 1f;
     /** Most the armed craft can add to the score, so a swarm of strike craft cannot outweigh a capital. */
     static final float ARMED_CRAFT_CAP = 2f;
     /**
@@ -65,9 +71,18 @@ public final class AirThreatPicture {
     private final int ownAir;
     private final List<InboundDrop> drops;
     private final ShipClass shipClass;
+    private final int leadCraft;
+    private final float axisX;
+    private final float axisY;
+    private final int axisCount;
 
     AirThreatPicture(float declared, int hostileShips, float shipWeight, int armedCraft, int ownAir,
-                     List<InboundDrop> drops, ShipClass shipClass) {
+                     List<InboundDrop> drops, ShipClass shipClass, int leadCraft, float axisX, float axisY,
+                     int axisCount) {
+        this.leadCraft = leadCraft;
+        this.axisX = axisX;
+        this.axisY = axisY;
+        this.axisCount = axisCount;
         this.declared = declared;
         this.hostileShips = hostileShips;
         this.shipWeight = shipWeight;
@@ -81,10 +96,21 @@ public final class AirThreatPicture {
     public static AirThreatPicture take(BattleSimulation sim, Warship ship, List<Warship> ships) {
         int hostile = 0;
         float weight = 0f;
+        Warship lead = WarshipEscort.liveLead(ship);
+        float leadRadius = lead == null ? 0f : 0.5f * Math.max(lead.lengthCells, lead.widthCells);
+        int leadCraft = 0;
+        float axisX = 0f;
+        float axisY = 0f;
+        int axisCount = 0;
         for (Warship other : ships) {
             if (other == ship || other.destroyed() || other.departing() || !ship.faction.hostileTo(other.faction)) continue;
             hostile++;
             weight += HOSTILE_SHIP_WEIGHT * (0.5f + 0.5f * other.hullFraction());
+            if (lead != null) {
+                axisX += other.centerX();
+                axisY += other.centerY();
+                axisCount++;
+            }
         }
         World world = sim.world();
         long[] ids = sim.getAirEntityIds().clone();
@@ -103,13 +129,26 @@ public final class AirThreatPicture {
             }
             if (!ship.faction.hostileTo(faction)) continue;
             if (mission.strikeSortie) {
-                if (airborne && canHurt(world, id, mission, ship)) armed++;
+                if (!airborne) continue;
+                if (lead != null && HullStrike.aimedAt(mission, lead.centerX(), lead.centerY(), leadRadius)
+                        && canHurt(world, id, mission, lead)) {
+                    leadCraft++;
+                    AirBody body = world.kinematics(id);
+                    if (body != null) {
+                        axisX += body.x;
+                        axisY += body.y;
+                        axisCount++;
+                    }
+                } else if (canHurt(world, id, mission, ship)) {
+                    armed++;
+                }
                 continue;
             }
             InboundDrop drop = dropOf(world, id, mission, faction);
             if (drop != null) drops.add(drop);
         }
-        return new AirThreatPicture(ship.declaredAirThreat(), hostile, weight, armed, own, drops, ship.shipClass());
+        return new AirThreatPicture(ship.declaredAirThreat(), hostile, weight, armed, own, drops, ship.shipClass(),
+                leadCraft, axisX, axisY, axisCount);
     }
 
     /**
@@ -153,7 +192,7 @@ public final class AirThreatPicture {
      * each scaled by the ship's class ({@link AirThreatWeights}).
      */
     public float score() {
-        return AirThreatWeights.score(shipClass, declared, shipWeight, armedCraft);
+        return AirThreatWeights.score(shipClass, declared, shipWeight, armedCraft, leadCraft);
     }
 
     public int hostileShips() {
@@ -162,6 +201,26 @@ public final class AirThreatPicture {
 
     public int armedCraft() {
         return armedCraft;
+    }
+
+    /** Hostile armed craft aimed at this ship's lead (an escort only); zero for a ship that escorts nobody. */
+    public int leadCraft() {
+        return leadCraft;
+    }
+
+    /** Whether there is a direction the lead's threats come from: craft aimed at it, or hostile ships. Escorts only. */
+    public boolean hasThreatAxis() {
+        return axisCount > 0;
+    }
+
+    /** Centroid of what threatens the lead (craft aimed at it, hostile ships), in cells; meaningful when {@link #hasThreatAxis()}. */
+    public float threatX() {
+        return axisCount == 0 ? 0f : axisX / axisCount;
+    }
+
+    /** See {@link #threatX()}. */
+    public float threatY() {
+        return axisCount == 0 ? 0f : axisY / axisCount;
     }
 
     public int ownAir() {
@@ -188,6 +247,10 @@ public final class AirThreatPicture {
         if (armedCraft > 0) {
             if (out.length() > 0) out.append(", ");
             out.append(armedCraft).append(" armed craft");
+        }
+        if (leadCraft > 0) {
+            if (out.length() > 0) out.append(", ");
+            out.append(leadCraft).append(" armed craft at the lead");
         }
         return out.length() == 0 ? "none" : out.toString();
     }
