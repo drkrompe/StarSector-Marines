@@ -71,9 +71,9 @@ final class BattlePowerOverlayModel {
         if (service == null) return updateProjected(0f, 0f, 0, List.of(), null);
         List<PowerState> states = new ArrayList<>();
         for (CommandPower power : service.getAvailablePowers()) {
-            states.add(new PowerState(power.id, power.displayName, power.cpCost,
-                    power.supplyCost, service.getCooldownRemaining(power.id),
-                    service.getChargesRemaining(power.id)));
+            int charges = service.getChargesRemaining(power.id);
+            states.add(new PowerState(power.id, power.cardLabel(charges), power.cpCost,
+                    power.supplyCost, service.getCooldownRemaining(power.id), charges));
         }
         return updateProjected(service.getCommandPoints(), service.getMaxCommandPoints(),
                 service.getAvailableSupplies(), states, targetingPowerId);

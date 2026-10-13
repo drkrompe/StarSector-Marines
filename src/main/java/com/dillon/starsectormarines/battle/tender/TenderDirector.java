@@ -283,7 +283,7 @@ public final class TenderDirector {
      * moves to its idle station. Returns the plan acted on, for evidence.
      */
     static Plan direct(Tender t, BattleSimulation sim, float dt) {
-        if (t.piloted() || t.ship().stance() == MissionStance.HOLD) return Plan.NONE;
+        if (t.piloted() || t.ship().departing() || t.ship().stance() == MissionStance.HOLD) return Plan.NONE;
         t.directorClock += dt;
         if (t.directorClock < DECIDE_SECONDS) return Plan.NONE;
         t.directorClock = 0f;

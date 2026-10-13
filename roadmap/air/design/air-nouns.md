@@ -1386,6 +1386,8 @@ flying.
 
 ### Overhead ships
 
+In play a ship is called, not placed: the Ship on Station command power (see `ship-support.md`) fits a frozen source (a committed member, a stock hull or an employer's offer) and sends it in from the company's edge. Ordinary missions and campaign missions differ only in the source, loadout, cost and writeback they hand that one mechanism.
+
 Ships are larger air craft whose decisive ground interaction must be their
 actual hull silhouette. An on-map implementation first rejects ground fire
 against the hull's broad radius and then resolves it against the rotated

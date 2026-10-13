@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
+import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
@@ -100,17 +102,26 @@ public final class PowerCatalog {
             byId.put(MarineInsertion.ID, new MarineInsertion());
         }
 
+        List<ShipSupportSource> ships = new ArrayList<>();
         if (committedShips != null) {
             for (FleetMemberAPI ship : committedShips) {
                 for (CommandPower power : contributedBy(ship)) {
-                    byId.putIfAbsent(power.id, power);
+                    // Ships are separate sources of one power: each is its own charge.
+                    if (power instanceof ShipOnStation shipPower) ships.addAll(shipPower.sources());
+                    else byId.putIfAbsent(power.id, power);
                 }
             }
         }
         for (String id : employerPowerIds(m)) {
+            ShipSupportSource offered = employerShipSource(id);
+            if (offered != null) {
+                ships.add(offered);
+                continue;
+            }
             CommandPower p = forId(id);
             if (p != null) byId.putIfAbsent(p.id, p);
         }
+        if (!ships.isEmpty()) byId.put(ShipOnStation.ID, new ShipOnStation(ships));
         if (byId.containsKey(MechSupport.ID)
                 && configuredMechs != null && !configuredMechs.isEmpty()) {
             byId.put(MechSupport.ID, MechSupport.configured(configuredMechs));
@@ -126,11 +137,21 @@ public final class PowerCatalog {
      * own production power tuning. Mech Support is the sole power with a
      * launch-specific payload; attaching one to another power is invalid.
      */
+    public static CommandPower restore(String id, List<MechDeploymentSpec> mechDeployments) {
+        return restore(id, mechDeployments, List.of());
+    }
+
+    /** As above, plus the frozen ships a Ship on Station commitment carries. */
     public static CommandPower restore(String id,
-                                       List<MechDeploymentSpec> mechDeployments) {
+                                       List<MechDeploymentSpec> mechDeployments,
+                                       List<ShipSupportSource> ships) {
         Objects.requireNonNull(id, "id");
         List<MechDeploymentSpec> deployments = mechDeployments == null
                 ? List.of() : List.copyOf(mechDeployments);
+        if (ShipOnStation.ID.equals(id)) return new ShipOnStation(ships == null ? List.of() : ships);
+        if (ships != null && !ships.isEmpty()) {
+            throw new IllegalArgumentException("Power '" + id + "' cannot carry ships");
+        }
         if (MechSupport.ID.equals(id)) {
             return deployments.isEmpty()
                     ? new MechSupport() : MechSupport.configured(deployments);
@@ -163,6 +184,46 @@ public final class PowerCatalog {
             CommandPower power = forId(id);
             if (power != null) out.add(power);
         }
+        ShipSupportSource source = shipSourceOf(ship);
+        if (source != null) out.add(new ShipOnStation(List.of(source)));
+        return out;
+    }
+
+    /**
+     * The ship a committed member becomes when called over a battle, frozen from its fitted
+     * variant: a cruiser or capital with a gun that reaches the ground, or the Shepherd as a
+     * tender. Null for any other hull. No campaign object survives in the result.
+     */
+    public static ShipSupportSource shipSourceOf(FleetMemberAPI ship) {
+        if (ship == null || ship.getVariant() == null || ship.getHullSpec() == null) return null;
+        String name = ship.getShipName() != null ? ship.getShipName() : "Support ship";
+        ShipSupportSource frozen = ShipSupportSource.ofVariant(ship.getVariant(), name, false);
+        return ShipSupportSource.of(frozen.hullId(), ship.getHullSpec().getHullSize(), name, frozen.weapons());
+    }
+
+    /** The stock ship an employer offers as {@code ship_on_station:<hull>}; null for any other id. */
+    static ShipSupportSource employerShipSource(String id) {
+        if (id == null || !id.startsWith(ShipOnStation.EMPLOYER_PREFIX)) return null;
+        return ShipSupportSource.stockFor(id.substring(ShipOnStation.EMPLOYER_PREFIX.length()));
+    }
+
+    /** Adds stock or debug ships to the roster's Ship on Station power, creating the power if the roster has none. */
+    public static List<CommandPower> withShipSources(List<CommandPower> powers, List<ShipSupportSource> extra) {
+        if (extra == null || extra.isEmpty()) return powers;
+        List<ShipSupportSource> ships = new ArrayList<>();
+        List<CommandPower> out = new ArrayList<>();
+        int at = -1;
+        for (CommandPower power : powers) {
+            if (power instanceof ShipOnStation existing) {
+                ships.addAll(existing.sources());
+                at = out.size();
+            }
+            out.add(power);
+        }
+        ships.addAll(extra);
+        ShipOnStation merged = new ShipOnStation(ships);
+        if (at >= 0) out.set(at, merged);
+        else out.add(merged);
         return out;
     }
 
