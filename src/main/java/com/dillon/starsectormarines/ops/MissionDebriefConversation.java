@@ -37,7 +37,7 @@ final class MissionDebriefConversation {
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
                 recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Transfer's through. Morrow's ours."),
                 recoveryLine("departure-corridor", false, outcome.missionSource.isDebug()
-                        ? "The contract would leave the Colossus stores, yard and haul road with us. The company's final payment would be Morrow; this exercise makes no transfer."
+                        ? "The contract would leave the Colossus shipment, yard and haul road with us. The company's final payment would be Morrow; this exercise makes no transfer."
                         : "All right. Have someone check the drone bay filters before you put her to work. The dust here gets into everything."),
                 recoveryLine("departure-crew", true, outcome.missionSource.isDebug()
                         ? "A contracted departure would include berth offers to willing working hands. Fleet crew, on our payroll, with the ship's upkeep ours from handover."
@@ -47,10 +47,10 @@ final class MissionDebriefConversation {
                         : outcome.marinesLost > 0 ? "I'm sorry about your people, Castle. Get the rest of them home."
                         : "They know her better than I do. Let them show you around before you start pulling things apart."));
         if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
-                recoveryLine("first-gun", true, "I could get used to having a few of those."),
+                recoveryLine("first-gun", true, "I was hoping for another workshop. Now I'm thinking about all the places we've had to hold with a handful of rifles."),
                 recoveryLine("repair-complete", false, outcome.missionSource.isDebug()
                         ? "Repair exercise complete. No campaign payment is issued."
-                        : "Good to hear those builders again. We used to complain about the noise."),
+                        : "They've been keeping this yard together for years. Just don't take her anywhere yet. I've got haulers waiting for that road."),
                 recoveryLine("repair-cost", true, outcome.missionSource.isDebug()
                         ? "Keep the exercise losses in the review. A contracted company has to cover supplies and crew pay before committing to departure."
                         : outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
@@ -62,12 +62,12 @@ final class MissionDebriefConversation {
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
                 recoveryLine("registry", true, outcome.missionSource.isDebug()
                         ? "Inspection exercise complete. No campaign claim or payment is issued."
-                        : "The workshop's salvageable. I take it that doesn't change our price?"),
+                        : "The fitters think they can save her workshop. Are we still agreed?"),
                 recoveryLine("terms", false, outcome.missionSource.isDebug()
                         ? "The actual contract includes a repair party. We'd supply the parts and fitters."
-                        : "No, Castle. We have an agreement."),
-                recoveryLine("repair-bill", true, "Parts and fitters included?"),
-                recoveryLine("repair-terms", false, "For the repair, yes. After she leaves, you're buying your own."),
+                        : "Yes. I've got people waiting to move that shipment. I'd rather you kept yours here than went looking for another contract."),
+                recoveryLine("repair-bill", true, "Then keep the fitters on her. I'd like to know what we've put our name to."),
+                recoveryLine("repair-terms", false, "They'll need shore power before they can tell you much more. I've put the parts aside."),
                 recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
                         ? "I'll want better cover for the next crew. Where are we sending them?"
                         : "Fair enough. Where do you want the company?"),
