@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — owner answers folded in: either side may hold them, the dome stops incoming fire only, balance is left to play.
+Updated: 2026-10-14 — owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
@@ -30,10 +30,12 @@ The market's own industries name them, and each does a different job:
 | Heavy Batteries | armoured subsurface batteries; no captain would get within their firing envelopes | **Fortress battery**: a few large structures carrying ship-grade guns whose envelope a ship must respect. The barrier. |
 | Planetary Shield | a plasma envelope that disrupts long-range bombardment | **Shield generator**: a structure projecting a dome with its own flux pool that soaks ship-grade ordnance landing inside it until it overloads. |
 
-So the target profile needs three signals rather than one `defenseLevel` number: whether
-the market has ground defences, heavy batteries, and a planetary shield. The two
-command-power stories already ask for the battery and shield signals; this is the same
-boundary change, made once.
+So the target profile carries three signals rather than one `defenseLevel` number:
+whether the market has ground defences, heavy batteries, and a planetary shield. They are
+inputs a mission may read when it decides what its map carries, not the decision itself;
+any mission may also declare its defences directly. The two command-power stories
+already ask for the battery and shield signals; this is the same boundary change, made
+once.
 
 ## Fortress battery
 
@@ -100,7 +102,8 @@ capital that is not another ship.
 ## Slices
 
 1. **Profile signals**: ground defences, heavy batteries and planetary shield on the
-   target profile, read once from the market (shared with both command-power stories).
+   target profile, read once from the market (shared with both command-power stories),
+   as inputs to mission design.
 2. **Multi-cell structures**: the turret catalog takes footprints larger than one cell
    (today every structure is 1x1 by validation), with art for a battery and a generator.
 3. **Fortress battery**: placement in the fortress ward, vanilla station-module guns,
@@ -108,8 +111,7 @@ capital that is not another ship.
    hazard, fire control and its capture rules, and the Orbital Barrage lock.
 4. **Shield generator**: the dome, its pool and overload, absorption of ship-grade
    ordnance and barrage, the dome's look, and its capture rules.
-5. **Defence nests**: the profile signal sizing the dispersed posts; anti-air already
-   exists.
+5. **Defence nests**: the dispersed posts, sized by the mission; anti-air already exists.
 
 ## Decided
 
@@ -122,5 +124,8 @@ capital that is not another ship.
 - **Balance is gameplay's to decide.** Whether a ship can grind a battery down alone, how
   big a dome's pool is, how far an envelope reaches: these are tuned in play, not settled
   here. The structure's figures start from vanilla's where vanilla has them.
-- **How often a world has them is the market's business.** The structures follow the
-  market's own industries; this design does not add a rarity rule of its own.
+- **How often a battle has them is a mission design question,** in the campaign and in
+  ordinary battles alike, and its numbers come from play and balancing. A mission
+  decides what defences its map carries (a Conquest map would likely have batteries); the
+  market's industries are one input a campaign mission may read, not the rule. This doc
+  defines what the structures are, not how many there are.
