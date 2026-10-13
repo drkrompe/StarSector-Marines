@@ -593,13 +593,13 @@
     // Vehicle engine loops are NOT encoded here — they reference the base game's sounds/sfx_engines/
     // clips directly (see the VEHICLE ENGINE LOOPS block in mod/data/config/sounds.json).
     { "id": "marines_ticking_clock",  "source": "ticking-clock.wav",                "kind": "ui", "out": "battle" },
-    {"id": "wayline_thunder_run_gunship_inbound", "source": "wayline/wayline_thunder_run_gunship_inbound.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_thunder_run_gunship_pass_committed", "source": "wayline/wayline_thunder_run_gunship_pass_committed.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_thunder_run_gunship_missile_warning", "source": "wayline/wayline_thunder_run_gunship_missile_warning.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_thunder_run_gunship_on_station", "source": "wayline/wayline_thunder_run_gunship_on_station.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_thunder_run_gunship_hit", "source": "wayline/wayline_thunder_run_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
+    {"id": "wayline_thunder_run_gunship_inbound", "source": "wayline/wayline_thunder_run_gunship_inbound.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
+    {"id": "wayline_thunder_run_gunship_pass_committed", "source": "wayline/wayline_thunder_run_gunship_pass_committed.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
+    {"id": "wayline_thunder_run_gunship_missile_warning", "source": "wayline/wayline_thunder_run_gunship_missile_warning.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
+    {"id": "wayline_thunder_run_gunship_on_station", "source": "wayline/wayline_thunder_run_gunship_on_station.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
+    {"id": "wayline_thunder_run_gunship_hit", "source": "wayline/wayline_thunder_run_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_thunder_run_gunship_lost", "source": "wayline/wayline_thunder_run_gunship_lost.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_thunder_run_gunship_returned", "source": "wayline/wayline_thunder_run_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
+    {"id": "wayline_thunder_run_gunship_returned", "source": "wayline/wayline_thunder_run_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "marines_castle_thunder_advance_distress", "source": "wayline/marines_castle_thunder_advance_distress.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
     {"id": "marines_castle_thunder_defend_dispatch", "source": "wayline/marines_castle_thunder_defend_dispatch.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
     {"id": "marines_castle_thunder_defend_order_placed", "source": "wayline/marines_castle_thunder_defend_order_placed.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
@@ -610,11 +610,11 @@
     {"id": "marines_castle_thunder_militia_gun_1_ready", "source": "wayline/marines_castle_thunder_militia_gun_1_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
     {"id": "marines_castle_thunder_advance_load_lost", "source": "wayline/marines_castle_thunder_advance_load_lost.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
     {"id": "marines_castle_thunder_advance_load_clear", "source": "wayline/marines_castle_thunder_advance_load_clear.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_junction_gunship_inbound", "source": "wayline/wayline_junction_gunship_inbound.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_junction_gunship_on_station", "source": "wayline/wayline_junction_gunship_on_station.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
+    {"id": "wayline_junction_gunship_inbound", "source": "wayline/wayline_junction_gunship_inbound.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
+    {"id": "wayline_junction_gunship_on_station", "source": "wayline/wayline_junction_gunship_on_station.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_covering_militia", "source": "wayline/wayline_junction_gunship_covering_militia.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_junction_gunship_hit", "source": "wayline/wayline_junction_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
+    {"id": "wayline_junction_gunship_hit", "source": "wayline/wayline_junction_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_lost", "source": "wayline/wayline_junction_gunship_lost.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_junction_gunship_returned", "source": "wayline/wayline_junction_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"}
+    {"id": "wayline_junction_gunship_returned", "source": "wayline/wayline_junction_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"}
   ]
 }
