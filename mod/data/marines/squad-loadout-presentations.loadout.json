@@ -1,6 +1,15 @@
 {
   "loadouts": [
     {
+      "id": "armor:salvage-assisted",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogSalvageAssistedProvenance",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "@gearCatalogSalvageAssistedLore"
+    },
+    {
       "id": "wayline:steady-line",
       "kind": "WEAPON",
       "tier": 3,

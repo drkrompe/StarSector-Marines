@@ -66,6 +66,7 @@ class FactionEquipmentCatalogTest {
         }
 
         assertEquals(new HashSet<>(EquipmentTemplateCatalog.all().stream()
+                .filter(card -> EquipmentTemplateCatalog.installed().storySource(card.id()) == null)
                 .map(EquipmentTemplateCard::id).toList()), offered);
         assertFalse(FactionEquipmentCatalog.installed().entries().stream()
                 .flatMap(pool -> pool.offers(FactionEquipmentSource.MARKET).stream())

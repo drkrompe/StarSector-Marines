@@ -57,6 +57,8 @@
     { "equipmentId": "armor.reaver", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.scout", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "armor.heavy", "accessTier": "prestige", "issueCost": {} },
+    { "equipmentId": "armor.specter-recovered", "storySource": "post-shepherd-power-suits", "accessTier": "advanced", "issueCost": {} },
+    { "equipmentId": "armor.arbalest-recovered", "storySource": "post-shepherd-power-suits", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.specter-heavy", "accessTier": "prestige", "issueCost": {} },
     { "equipmentId": "armor.bulwark-heavy", "accessTier": "prestige", "issueCost": {} },
     { "equipmentId": "armor.reliquary-heavy", "accessTier": "prestige", "issueCost": {} },

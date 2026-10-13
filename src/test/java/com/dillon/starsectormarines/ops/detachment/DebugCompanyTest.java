@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.ArmorIssueResolver;
 import com.dillon.starsectormarines.marine.ArmorRole;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
@@ -228,10 +229,11 @@ class DebugCompanyTest {
                     ArmorRole wanted = plan.roleAt(billet);
                     ArmorRole worn = MarineArmorCatalogRegistry
                             .require(issued.issueId(billet)).role();
-                    assertEquals(plan.armorClass(), MarineArmorCatalogRegistry
+                    assertEquals(plan.armorClassAt(billet), MarineArmorCatalogRegistry
                             .require(issued.issueId(billet)).armorClass());
+                    ArmorClass billetClass = plan.armorClassAt(billet);
                     boolean roleAvailable = MarineArmorCatalogRegistry.installed().all().stream()
-                            .anyMatch(pattern -> pattern.armorClass() == plan.armorClass()
+                            .anyMatch(pattern -> pattern.armorClass() == billetClass
                                     && pattern.tier() <= ceiling.maxArmorTier() && pattern.role() == wanted);
                     if (roleAvailable) assertEquals(wanted, worn,
                             plan.id() + " at tier " + ceiling.maxArmorTier() + " billet "
@@ -243,9 +245,12 @@ class DebugCompanyTest {
     }
 
     private static boolean classAvailable(SquadArmorPlan plan, DebugBilletPlan ceiling) {
-        return MarineArmorCatalogRegistry.installed().all().stream().anyMatch(
-                pattern -> pattern.armorClass() == plan.armorClass()
-                        && pattern.tier() <= ceiling.maxArmorTier());
+        try {
+            issuedAtCeiling(plan, ceiling);
+            return true;
+        } catch (IllegalStateException unavailable) {
+            return false;
+        }
     }
 
     private static SquadArmorDoctrine issuedAtCeiling(SquadArmorPlan plan, DebugBilletPlan ceiling) {

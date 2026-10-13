@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * A squad's armour intent: <b>what jobs it is organised around, and whose kit it
@@ -25,7 +28,13 @@ public record SquadArmorPlan(
         String description,
         ArmorTradition tradition,
         SquadRoleMix mix,
-        ArmorClass armorClass) implements Serializable {
+        ArmorClass armorClass,
+        List<ArmorClass> billetClasses) implements Serializable {
+
+    public SquadArmorPlan(String id, String displayName, String description,
+            ArmorTradition tradition, SquadRoleMix mix, ArmorClass armorClass) {
+        this(id, displayName, description, tradition, mix, armorClass, null);
+    }
 
     public SquadArmorPlan(String id, String displayName, String description,
             ArmorTradition tradition, SquadRoleMix mix) {
@@ -35,6 +44,12 @@ public record SquadArmorPlan(
     public SquadArmorPlan {
         // Older serialized record components arrive as null.
         if (armorClass == null) armorClass = ArmorClass.STANDARD;
+        if (billetClasses != null) {
+            if (billetClasses.size() != MarineSquad.CAPACITY) {
+                throw new IllegalArgumentException("An armor plan needs twelve billet classes");
+            }
+            billetClasses = List.copyOf(billetClasses);
+        }
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Armour plan id is required");
         }
@@ -44,6 +59,24 @@ public record SquadArmorPlan(
         if (mix == null) {
             throw new IllegalArgumentException("Armour plan '" + id + "' needs a role mix");
         }
+    }
+
+    public String displayName() { return Strings.resolve(displayName); }
+    public String description() { return Strings.resolve(description); }
+
+    /** Uniform legacy plans retain their class; explicit mixed plans declare every seat. */
+    public ArmorClass armorClassAt(int index) {
+        return billetClasses == null ? armorClass : billetClasses.get(index);
+    }
+
+    public boolean isMixedClass() {
+        return billetClasses != null && billetClasses.stream().distinct().count() > 1;
+    }
+
+    public String armorClassDisplayName() {
+        return isMixedClass()
+                ? ArmorClass.STANDARD.displayName() + " / " + ArmorClass.POWER_SUIT.displayName()
+                : armorClassAt(0).displayName();
     }
 
     /** The job billet {@code index} does. */

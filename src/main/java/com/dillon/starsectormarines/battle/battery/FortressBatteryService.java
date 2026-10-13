@@ -37,6 +37,12 @@ public final class FortressBatteryService {
         return battery;
     }
 
+    /** The battery whose platform is structure {@code structureId}, or {@code null}. */
+    public FortressBattery byStructure(long structureId) {
+        for (FortressBattery b : batteries) if (b.structureId() == structureId) return b;
+        return null;
+    }
+
     public List<FortressBattery> batteries() {
         return view;
     }

@@ -3447,6 +3447,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("deckSummary", viewModel.deckSummary());
         props.put("materialStock", viewModel.materialStock().map(rows -> CompanyResources.withCredits(rows, 0)));
         props.put("boatRows", viewModel.boatRows());
+        props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());

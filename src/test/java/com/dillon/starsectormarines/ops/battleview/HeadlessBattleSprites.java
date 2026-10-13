@@ -371,6 +371,9 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadFamily(LayeredArmorFamily.SPECTER_HEAVY, INFANTRY_ROOT + "armor/specter-heavy/",
                 layer(INFANTRY_ROOT + "armor/specter-heavy/foot.png"), null,
                 rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.ARBALEST_HEAVY, INFANTRY_ROOT + "armor/specter-heavy/paints/olive/",
+                layer(INFANTRY_ROOT + "armor/specter-heavy/paints/olive/foot.png"), null,
+                rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.BULWARK_HEAVY, INFANTRY_ROOT + "armor/bulwark-heavy/",
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.RELIQUARY_HEAVY, INFANTRY_ROOT + "armor/reliquary-heavy/",
@@ -403,12 +406,14 @@ final class HeadlessBattleSprites extends BattleSprites {
                             LayeredSpriteCache rocket, LayeredSpriteCache amr,
                             LayeredSpriteCache flash, LayeredSpriteCache surplus,
                             LayeredSpriteCache masterwork) throws IOException {
+        boolean articulatedShoulders = family == LayeredArmorFamily.SPECTER_HEAVY
+                || family == LayeredArmorFamily.ARBALEST_HEAVY;
         LayeredUnitAssets loaded = new LayeredUnitAssets(layer(root + "body.png"),
                 layer(root + "head.png"), foot, claw, rifle, laser, smg, dmr,
                 rocket, amr, flash, surplus, masterwork,
-                family == LayeredArmorFamily.SPECTER_HEAVY
+                articulatedShoulders
                         ? optionalLayer(root + "shoulder-left.png") : null,
-                family == LayeredArmorFamily.SPECTER_HEAVY
+                articulatedShoulders
                         ? optionalLayer(root + "shoulder-right.png") : null);
         SpecialEquipmentRegistry equipment = SpecialEquipmentRegistry.installed();
         if (equipment != null) {

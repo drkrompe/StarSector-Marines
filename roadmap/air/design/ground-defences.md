@@ -275,7 +275,8 @@ wiped company is still fighting. A structure that never changes hands is counted
 ## Next: forts
 
 The bare structures are the parts; `forts.md` is the direction for building them into
-walled forts whose aspects are taken or wrecked one at a time.
+walled forts whose aspects are taken or wrecked one at a time. The battery fort and its
+fire-control, magazine and power aspects are built; see `forts.md`.
 
 ## Decided
 

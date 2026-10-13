@@ -521,6 +521,13 @@ fifth input mode. It is selected by clicking its hull, entered with Tab through 
 recognises the hull as a tender and routes the buttons to the tender instead of to batteries
 it does not have. The shield (E) is the warship's.
 
+Strategic ship selection can also issue remote movement and construction commands
+without entering this session (`ui-nouns.md`, Remote ship commands). Takeover
+suspends a previously accepted remote task, and handback resumes it with its
+existing resources and sites. Uncommitted remote input from before or during a
+pilot session cannot take effect afterward. Sites laid before takeover survive
+handback; only new sites laid by the pilot are withdrawn under the manual contract.
+
 - **Left button, held: lay a build site** at the cursor cell for the selected option. It is the
   same `Tender.lay` the debug panel calls: the cell must be ground the player has observed
   (the fog rule a warship's laid area uses), open and walkable, and clear of other sites. One

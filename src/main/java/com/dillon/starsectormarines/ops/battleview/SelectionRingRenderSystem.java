@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.warship.Warship;
 
 /** Ground rings follow rendered bodies rather than their navigation cells. */
 public final class SelectionRingRenderSystem implements RenderSystem {
@@ -16,6 +18,29 @@ public final class SelectionRingRenderSystem implements RenderSystem {
         var sim = ctx.sim;
         var camera = ctx.camera;
         ViewCull view = ViewCull.of(camera);
+        Warship ship = selection.getSelectedWarship();
+        Tender tender = ship == null ? null : sim.tenders().of(ship);
+        if (ship != null && ship.faction == Faction.MARINE && !ship.destroyed() && !ship.departing() && !ship.departed()
+                && (sim.warships().ships().contains(ship) || tender != null && tender.grounded() && tender.anchorAlive())) {
+            float radius = Math.max(1f, ship.lengthCells * 0.5f + 0.4f);
+            float centerX = ship.x, centerY = ship.y;
+            if (tender != null && tender.grounded() && tender.groundDisplay() != null) {
+                Tender.GroundDisplay display = tender.groundDisplay();
+                centerX = display.centerX();
+                centerY = display.centerY();
+                radius = display.enclosingRadius() + 0.4f;
+            }
+            if (view.visible(centerX, centerY, radius * 2f)) {
+                ring(out, camera.cellToScreenX(centerX), camera.cellToScreenY(centerY),
+                        radius * camera.cellPxSize(), true, true, ctx.alphaMult * 0.9f);
+            }
+            if (ship.remoteOrder() == Warship.RemoteOrder.MOVE || ship.remoteOrder() == Warship.RemoteOrder.HOLD) {
+                float tx = camera.cellToScreenX(ship.stationX()), ty = camera.cellToScreenY(ship.stationY());
+                out.addLine(RenderLayer.HIGHLIGHTS, camera.cellToScreenX(ship.x), camera.cellToScreenY(ship.y),
+                        tx, ty, 1.2f, 1f, 0.83f, 0.39f, ctx.alphaMult * 0.65f);
+                ring(out, tx, ty, camera.cellPxSize(), true, true, ctx.alphaMult * 0.75f);
+            }
+        }
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE || !sim.squad().hasSquad(unit)) continue;

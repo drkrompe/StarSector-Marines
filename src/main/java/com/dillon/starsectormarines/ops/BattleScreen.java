@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
+import com.dillon.starsectormarines.battle.ui.panel.ShipOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
@@ -231,6 +232,9 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleRetreatOverlay retainedRetreatOverlay;
     /** World click/reticle half of the power flow; card selection lives in MLX. */
     private CommandPowerTargetingPanel commandPowerTargeting;
+    private ShipOrderTargetingPanel shipOrderTargeting;
+    private BattleShipCommandController shipCommandController;
+    private BattleShipCommandOverlay shipCommandOverlay;
     /** World placement for the contextual tactical-order bar. */
     private SquadOrderTargetingPanel squadOrderTargeting;
     /** Says what a right-click would do at the cell under the pointer. */
@@ -480,12 +484,17 @@ public class BattleScreen implements Screen, BattleUiContext {
                     ctx != null ? ctx.getBattleSimulation() : null);
         }
         if (retainedPowerOverlay != null) {
+            retainedPowerOverlay.suppressed(selection.hasWarshipSelection());
             retainedPowerOverlay.update(dt,
                     ctx != null ? ctx.getBattleSimulation() : null);
         }
         if (retainedOrderOverlay != null) {
             retainedOrderOverlay.update(dt, getSim(),
                     retainedPowerOverlay == null ? 0f : retainedPowerOverlay.occupiedHeight());
+        }
+        if (shipCommandOverlay != null && !directControlInput.active()) {
+            shipCommandOverlay.heroBottomInset(shipHeroBottomInset());
+            shipCommandOverlay.update(dt);
         }
         if (retainedRetreatOverlay != null) {
             BattleSimulation current = ctx != null ? ctx.getBattleSimulation() : null;
@@ -690,6 +699,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
         if (directControlOverlay != null) directControlOverlay.detach();
+        if (shipOrderTargeting != null) shipOrderTargeting.cancel();
+        if (shipCommandOverlay != null) shipCommandOverlay.detach();
         if (manualObjectives != null) manualObjectives.detach();
         // Release the decal accumulator's FBO + color texture. Without this, an
         // attach/detach cycle leaks one FBO per battle — fine for a single
@@ -744,6 +755,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // an armed power claims the map click before squad selection sees it.
         commandPowerTargeting = new CommandPowerTargetingPanel(this);
         hud.addPanel(commandPowerTargeting);
+        shipOrderTargeting = new ShipOrderTargetingPanel(this, this::battleChromeBlocksWorldPointer);
+        hud.addPanel(shipOrderTargeting);
         // Added above the picker and power targeter. Infantry squads and Mech
         // lances share this Defend Area placement owner. Arming either
         // targeting family cancels the other, so only one world click owner
@@ -881,6 +894,14 @@ public class BattleScreen implements Screen, BattleUiContext {
                     () -> squadOrderTargeting.mode(), this::toggleSquadOrderTargeting);
         }
         retainedOrderOverlay.attach(position, sim, retainedPowerOverlay.occupiedHeight());
+        if (shipCommandController == null) {
+            shipCommandController = new BattleShipCommandController(this::getSim, selection,
+                    shipOrderTargeting, this::toggleCommandPowerTargeting,
+                    commandPowerTargeting::targetingPowerId, this::cancelOtherShipInput);
+            shipCommandOverlay = new BattleShipCommandOverlay(shipCommandController::state);
+        }
+        shipCommandOverlay.heroBottomInset(shipHeroBottomInset());
+        shipCommandOverlay.attach(position);
         if (retainedRetreatOverlay == null) {
             retainedRetreatOverlay = new BattleRetreatOverlay(
                     this::retreatFromBattle, this::continueFromBattle);
@@ -900,6 +921,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         exitDirectControl();
         if (squadOrderTargeting == null) return;
         if (commandPowerTargeting != null) commandPowerTargeting.cancel();
+        if (shipOrderTargeting != null) shipOrderTargeting.cancel();
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
         squadOrderTargeting.toggle(selection.getSelectedSquadId(), mode);
@@ -909,7 +931,26 @@ public class BattleScreen implements Screen, BattleUiContext {
         exitDirectControl();
         if (commandPowerTargeting == null) return;
         if (squadOrderTargeting != null) squadOrderTargeting.cancel();
+        if (shipOrderTargeting != null) shipOrderTargeting.cancel();
         commandPowerTargeting.toggle(powerId);
+    }
+
+    private void cancelOtherShipInput() {
+        if (commandPowerTargeting != null) commandPowerTargeting.cancel();
+        if (squadOrderTargeting != null) squadOrderTargeting.cancel();
+        if (worldPicker != null) worldPicker.cancel();
+        cameraControls.release();
+    }
+
+    /** The ship selector clears the exact visible selection plate and takeover shortcut. */
+    private float shipHeroBottomInset() {
+        if (position == null) return 132f;
+        if (selection.hasSquadSelection() || selection.hasVehicleSelection()) {
+            var plate = BattleDirectControlOverlay.entryViewport(position, true);
+            return plate.screenY() + plate.height() - position.getY();
+        }
+        return BattleLayout.PAD + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP
+                + TaskForceStatusPanel.PANEL_H;
     }
 
     private void toggleConquestPicture(Faction perspective) {
@@ -1357,7 +1398,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedOverlay != null) retainedOverlay.processInput(events);
             if (retainedSquadOverlay != null) retainedSquadOverlay.processInput(events);
             if (retainedMechOverlay != null) retainedMechOverlay.processInput(events);
-            if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
+            if (retainedPowerOverlay != null && !selection.hasWarshipSelection()) retainedPowerOverlay.processInput(events);
+            if (shipCommandOverlay != null) shipCommandOverlay.processInput(events);
             if (retainedOrderOverlay != null) retainedOrderOverlay.processInput(events);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
         }
@@ -1383,6 +1425,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                 this::exitDirectControl, this::selectDirectWeapon, this::requestDirectAbility,
                 this::battleChromeBlocksWorldPointer);
         if (rangeFinished) return;
+        if (shipOrderTargeting != null) shipOrderTargeting.pointer(directControlInput.pointerX(),
+                directControlInput.pointerY(), directControlInput.pointerKnown());
+        if (retainedPowerOverlay != null) retainedPowerOverlay.suppressed(selection.hasWarshipSelection());
         if (directControlInput.active() && !directControlInput.physicalShiftHeld()
                 && directControlSimulation != null && directControlSimulation == getSim()
                 && directControlSimulation.directControl().active()) {
@@ -1415,6 +1460,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (worldPicker != null) worldPicker.cancel();
         if (commandPowerTargeting != null) commandPowerTargeting.cancel();
         if (squadOrderTargeting != null) squadOrderTargeting.cancel();
+        if (shipOrderTargeting != null) shipOrderTargeting.cancel();
         actionCamera.reset();
         followControlledUnit(0f);
         if (turretAuthor != null) turretAuthor.active = false;
@@ -1465,6 +1511,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedMechOverlay != null) retainedMechOverlay.detach();
             if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
             if (retainedOrderOverlay != null) retainedOrderOverlay.detach();
+            if (shipCommandOverlay != null) shipCommandOverlay.detach();
             if (retainedRetreatOverlay != null) {
                 retainedRetreatOverlay.cancelConfirmation();
                 retainedRetreatOverlay.detach();
@@ -1478,6 +1525,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     private void syncDirectControl() {
         BattleSimulation sim = getSim();
+        if (Display.isCreated() && !Display.isActive() && shipOrderTargeting != null) shipOrderTargeting.cancel();
         if (directControlInput.active() && (sim != directControlSimulation
                 || sim == null || sim.isComplete() || !sim.directControl().active()
                 || Display.isCreated() && !Display.isActive())) {
@@ -1589,7 +1637,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                 || retainedMechOverlay != null
                 && retainedMechOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedPowerOverlay != null
-                && retainedPowerOverlay.blocksWorldPointer(screenX, screenY)
+                && !selection.hasWarshipSelection() && retainedPowerOverlay.blocksWorldPointer(screenX, screenY)
+                || shipCommandOverlay != null
+                && shipCommandOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedOrderOverlay != null
                 && retainedOrderOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedRetreatOverlay != null
@@ -1712,7 +1762,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedOrderOverlay != null) retainedOrderOverlay.render(alphaMult);
             if (retainedSquadOverlay != null) retainedSquadOverlay.render(alphaMult);
             if (retainedMechOverlay != null) retainedMechOverlay.render(alphaMult);
-            if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
+            if (retainedPowerOverlay != null && !selection.hasWarshipSelection()) retainedPowerOverlay.render(alphaMult);
+            if (shipCommandOverlay != null) shipCommandOverlay.render(alphaMult);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
         }
         if (manualObjectives != null) manualObjectives.render(alphaMult);
