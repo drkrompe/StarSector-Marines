@@ -20,6 +20,10 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
+import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.ShieldFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
@@ -41,7 +45,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
@@ -84,6 +90,9 @@ public final class FortStage implements GenStage {
     private static final EnumSet<GroundKind> REFUSED_GROUND = EnumSet.of(GroundKind.INDOOR, GroundKind.WATER,
             GroundKind.TILE, GroundKind.STREET, GroundKind.LZ_MARKER, GroundKind.VOID, GroundKind.SIDEWALK,
             GroundKind.STRIPED);
+    /** UNTUNED: how much a shield fort values covering the keep against a supply compound. */
+    private static final int KEEP_WEIGHT = 6;
+    private static final int SUPPLY_WEIGHT = 2;
     private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak"};
 
     /** A candidate centre with the order it is taken in. */
@@ -93,7 +102,7 @@ public final class FortStage implements GenStage {
     private static final List<FortPlan> PLANS = List.of(BatteryFort.PLAN, ShieldFort.PLAN);
 
     /** Where a fort stands, for evidence. */
-    public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan) {}
+    public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target) {}
 
     private final List<Placed> placed = new ArrayList<>();
 
@@ -122,21 +131,25 @@ public final class FortStage implements GenStage {
         sites.sort(Comparator.comparingInt(Site::band).thenComparingLong(Site::centreDistSq)
                 .thenComparingInt(Site::y).thenComparingInt(Site::x));
 
+        FortSiting.Anchors anchors = profile.declaredDefences().siting() == FortSitingPolicy.COVER_THE_APPROACH
+                ? anchorsOf(ctx) : null;
+        List<FortSiting.Valued> garrison = anchors != null ? garrisonValues(ctx) : List.of();
+
         for (FortPlan plan : PLANS) {
             int budget = profile.declaredDefences().fortCount(plan.kind());
             if (budget <= 0) continue;
             CompoundLayout layout = plan.layout();
-            int standing = 0;
-            for (Site site : sites) {
-                if (standing >= budget) break;
-                if (tooClose(site)) continue;
-                CompoundLayout.Placement at = fit(plan, layout, ground, site, ctx);
-                if (at == null) continue;
-                int fortId = placed.size();
-                stamp(ctx, plan, at, fortId, ground);
-                ground.exclude(plan, at);
-                placed.add(new Placed(at, fortId, plan));
-                standing++;
+            List<FortSiting.Point> targets = anchors == null ? null : targetsFor(plan, anchors, budget);
+            for (int n = 0; n < budget; n++) {
+                FortSiting.Point target = targets == null ? null : targets.get(n);
+                Placed made = null;
+                if (target != null) {
+                    made = placeNear(plan, layout, ground, sitedFor(plan, sites, anchors, target, garrison), ctx, anchors, target);
+                }
+                // The declared count stands where ground allows: a fort whose intended ground is taken falls back to
+                // the leftover order rather than vanishing.
+                if (made == null) made = placeNear(plan, layout, ground, sites, ctx, anchors, null);
+                if (made == null) break;
             }
         }
         if (placed.isEmpty()) return;
@@ -145,6 +158,98 @@ public final class FortStage implements GenStage {
     }
 
     // ------------------------------------------------------------------------------------------ site
+
+    /**
+     * The first site in {@code order} where a fort of this plan can stand, stamped and recorded; {@code null} when none
+     * fits. {@code target} is the ground a siting intended, kept for evidence; {@code null} for leftover ground.
+     */
+    private Placed placeNear(FortPlan plan, CompoundLayout layout, Ground ground, List<Site> order, GenContext ctx,
+                             FortSiting.Anchors anchors, FortSiting.Point target) {
+        FortSiting.Point facing = anchors == null ? null : anchors.landing();
+        for (Site site : order) {
+            if (tooClose(site)) continue;
+            CompoundLayout.Placement at = fit(plan, layout, ground, site, ctx, facing);
+            if (at == null) continue;
+            int fortId = placed.size();
+            stamp(ctx, plan, at, fortId, ground);
+            ground.exclude(plan, at);
+            Placed made = new Placed(at, fortId, plan, target);
+            placed.add(made);
+            return made;
+        }
+        return null;
+    }
+
+    /** The candidate sites in the order a siting intent wants them: a battery fort nearest its target, a shield fort over the most. */
+    private static List<Site> sitedFor(FortPlan plan, List<Site> sites, FortSiting.Anchors anchors,
+                                       FortSiting.Point target, List<FortSiting.Valued> garrison) {
+        List<Site> order = new ArrayList<>(sites);
+        Comparator<Site> byDistance = Comparator.comparingLong((Site s) -> {
+            long dx = s.x() - target.x();
+            long dy = s.y() - target.y();
+            return dx * dx + dy * dy;
+        }).thenComparingInt(Site::y).thenComparingInt(Site::x);
+        if (plan.kind() == FortKind.SHIELD_FORT) {
+            float radius = TurretCatalogRegistry.requireStructure(plan.centrepieceStructureId()).dome.radiusCells();
+            Map<Site, Integer> covered = new IdentityHashMap<>();
+            for (Site s : order) covered.put(s, FortSiting.domeCoverage(garrison, s.x(), s.y(), radius));
+            order.sort(Comparator.comparingInt((Site s) -> -covered.get(s)).thenComparing(byDistance));
+        } else {
+            // Sliding along the approach is cheaper than leaving it, so a fort stays a barrier where its exact ground is taken.
+            order.sort(Comparator.comparingLong((Site s) -> FortSiting.approachCost(anchors, target, s.x(), s.y()))
+                    .thenComparing(byDistance));
+        }
+        return order;
+    }
+
+    private static List<FortSiting.Point> targetsFor(FortPlan plan, FortSiting.Anchors anchors, int count) {
+        if (plan.kind() == FortKind.BATTERY_FORT) return FortSiting.batteryTargets(anchors, count);
+        List<FortSiting.Point> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) out.add(FortSiting.shieldTarget(anchors));
+        return out;
+    }
+
+    /**
+     * The battle's two ends as the plan stated them: the keep (the command post, the one nearest the objective place when
+     * there is more than one) and the landing place. {@code null} when the map states either no landing or no keep, in
+     * which case a siting policy has nothing to aim at and forts take leftover ground.
+     */
+    static FortSiting.Anchors anchorsOf(GenContext ctx) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        if (plan == null) return null;
+        Precinct landing = plan.landingPlace();
+        if (landing == null) return null;
+        Precinct objective = plan.objective();
+        TacticalNode keep = null;
+        long best = Long.MAX_VALUE;
+        for (TacticalNode node : ctx.tactical) {
+            if (node.kind != TacticalNode.Kind.COMMAND_POST) continue;
+            long dx = objective == null ? 0 : node.anchorX - objective.seedX();
+            long dy = objective == null ? 0 : node.anchorY - objective.seedY();
+            long d = dx * dx + dy * dy;
+            if (keep == null || d < best) {
+                keep = node;
+                best = d;
+            }
+        }
+        if (keep == null) return null;
+        return new FortSiting.Anchors(new FortSiting.Point(keep.anchorX, keep.anchorY),
+                new FortSiting.Point(landing.seedX(), landing.seedY()), ctx.width, ctx.height);
+    }
+
+    /** The garrison's places a dome should cover, weighted: the keep most, then the supply compounds. */
+    private static List<FortSiting.Valued> garrisonValues(GenContext ctx) {
+        List<FortSiting.Valued> out = new ArrayList<>();
+        for (TacticalNode node : ctx.tactical) {
+            int weight = switch (node.kind) {
+                case COMMAND_POST -> KEEP_WEIGHT;
+                case BARRACKS, ARMORY, AIRBASE -> SUPPLY_WEIGHT;
+                default -> 0;
+            };
+            if (weight > 0) out.add(new FortSiting.Valued(node.centerX(), node.centerY(), weight));
+        }
+        return out;
+    }
 
     private boolean tooClose(Site site) {
         long sq = (long) FORT_SEPARATION * FORT_SEPARATION;
@@ -179,8 +284,8 @@ public final class FortStage implements GenStage {
      * the map centre, whose whole box and margin is open ground; {@code null} when no turn fits.
      */
     private static CompoundLayout.Placement fit(FortPlan plan, CompoundLayout layout, Ground ground, Site site,
-                                                GenContext ctx) {
-        int[][] order = turnsByGateFacing(plan, layout, ctx, site);
+                                                GenContext ctx, FortSiting.Point facing) {
+        int[][] order = turnsByGateFacing(plan, layout, ctx, site, facing);
         for (int[] turn : order) {
             int q = turn[0];
             int w = q % 2 == 0 ? plan.width() : plan.height();
@@ -190,15 +295,16 @@ public final class FortStage implements GenStage {
             if (x < 0 || y < 0 || x + w > ctx.width || y + h > ctx.height) continue;
             CompoundLayout.Placement at = layout.at(x, y, q);
             // The works and the glacis round them need clear ground; the belt beyond follows whatever is open.
-            if (ground.clear(plan, at)) return at;
+            if (ground.clear(plan, at, facing != null)) return at;
         }
         return null;
     }
 
     /** Turns ordered by the main gate's outward direction against the direction to the map centre, best first. */
-    private static int[][] turnsByGateFacing(FortPlan plan, CompoundLayout layout, GenContext ctx, Site site) {
-        double toCentreX = ctx.width * 0.5 - site.x();
-        double toCentreY = ctx.height * 0.5 - site.y();
+    private static int[][] turnsByGateFacing(FortPlan plan, CompoundLayout layout, GenContext ctx, Site site,
+                                              FortSiting.Point facing) {
+        double toCentreX = (facing != null ? facing.x() : ctx.width * 0.5) - site.x();
+        double toCentreY = (facing != null ? facing.y() : ctx.height * 0.5) - site.y();
         double length = Math.hypot(toCentreX, toCentreY);
         if (length > 0) {
             toCentreX /= length;
@@ -252,6 +358,8 @@ public final class FortStage implements GenStage {
         private final int height;
         private final boolean[][] bad;
         private final boolean[][] rock;
+        /** Cells refused only because a road crosses them: a sited fort lets a road run through its glacis. */
+        private final boolean[][] roadOnly;
         private int[][] sums;
         private boolean dirty = true;
 
@@ -260,6 +368,7 @@ public final class FortStage implements GenStage {
             height = ctx.height;
             bad = new boolean[width][height];
             rock = new boolean[width][height];
+            roadOnly = new boolean[width][height];
             // Loose stone is scatter, not ground the city holds: a fort levels it. Mountains and shelves stay.
             for (Doodad doodad : ctx.doodads) {
                 if (!looseStone(doodad)) continue;
@@ -282,16 +391,17 @@ public final class FortStage implements GenStage {
                     boolean refuse = (!levelled && (!grid.isWalkable(x, y) || topology.isFixture(x, y)))
                             || REFUSED_GROUND.contains(topology.getGroundKind(x, y))
                             || topology.isWall(x, y)
-                            || PlacementGuards.touchesDoorway(grid, x, y)
-                            || (road != null && road[x][y]);
-                    bad[x][y] = refuse;
+                            || PlacementGuards.touchesDoorway(grid, x, y);
+                    boolean onRoad = road != null && road[x][y];
+                    bad[x][y] = refuse || onRoad;
+                    roadOnly[x][y] = onRoad && !refuse;
                 }
             }
             int[][] claim = ctx.get(BspKeys.PRECINCT_CLAIM);
             if (claim != null) {
                 // A place the plan has claimed is prior: the fort stands in the open country between them.
                 for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < height; y++) if (claim[x][y] != GrownTrunkPlan.UNOWNED) bad[x][y] = true;
+                    for (int y = 0; y < height; y++) if (claim[x][y] != GrownTrunkPlan.UNOWNED) take(x, y);
                 }
             }
             for (TacticalNode node : ctx.tactical) {
@@ -310,7 +420,7 @@ public final class FortStage implements GenStage {
 
         private void markBox(int x0, int y0, int x1, int y1) {
             for (int x = Math.max(0, x0); x <= Math.min(width - 1, x1); x++) {
-                for (int y = Math.max(0, y0); y <= Math.min(height - 1, y1); y++) bad[x][y] = true;
+                for (int y = Math.max(0, y0); y <= Math.min(height - 1, y1); y++) take(x, y);
             }
             dirty = true;
         }
@@ -337,17 +447,25 @@ public final class FortStage implements GenStage {
         void take(int x, int y) {
             if (x >= 0 && y >= 0 && x < width && y < height) {
                 bad[x][y] = true;
+                roadOnly[x][y] = false;
                 dirty = true;
             }
         }
 
         /** Whether every cell of the works and their glacis is open ground when the layout is placed as given. */
-        boolean clear(FortPlan plan, CompoundLayout.Placement at) {
+        boolean clear(FortPlan plan, CompoundLayout.Placement at, boolean roadsInGlacis) {
             for (int[] local : plan.clearCells()) {
                 int[] cell = at.cell(local[0], local[1]);
-                if (!ok(cell[0], cell[1])) return false;
+                if (ok(cell[0], cell[1])) continue;
+                // A road may cross the glacis, never the works: the fort stands beside the road and its gates meet it.
+                if (roadsInGlacis && !plan.isWorks(local[0], local[1]) && roadOnly(cell[0], cell[1])) continue;
+                return false;
             }
             return true;
+        }
+
+        private boolean roadOnly(int x, int y) {
+            return x >= 0 && y >= 0 && x < width && y < height && roadOnly[x][y];
         }
 
         boolean clear(int x, int y, int w, int h) {

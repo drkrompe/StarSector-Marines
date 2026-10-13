@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -824,6 +825,23 @@ class BattleFixtureJsonTest {
         encoded.getJSONObject("targetProfile").remove("declaredForts");
         TargetProfile legacy = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
         assertEquals(0, legacy.declaredDefences().fortCount(FortKind.SHIELD_FORT));
+    }
+
+    /** A mission's fort siting survives a replay; a fixture without it reads as leftover ground. */
+    @Test
+    void roundTripsFortSiting() throws Exception {
+        TargetProfile sited = TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(0, false, 0)
+                .withForts(FortKind.BATTERY_FORT, 2).withSiting(FortSitingPolicy.COVER_THE_APPROACH));
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                9_124L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4, sited, false);
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        assertEquals("COVER_THE_APPROACH", encoded.getJSONObject("targetProfile").getString("declaredFortSiting"));
+        TargetProfile decoded = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(sited, decoded);
+        encoded.getJSONObject("targetProfile").remove("declaredFortSiting");
+        TargetProfile legacy = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(FortSitingPolicy.LEFTOVER_GROUND, legacy.declaredDefences().siting());
     }
 
     private static CivilianRescueBattleFixture canonicalFixture() {
