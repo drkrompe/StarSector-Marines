@@ -223,9 +223,9 @@ abstract class AbstractZoneAction implements Action {
     }
 
     /**
-     * Whether a route-threat commitment that rests on memory alone gives way to
-     * an order the player handed the squad. On by default;
-     * {@code -Dbattle.squad.staleCommitFallThrough=false} restores the freeze.
+     * Whether a route-threat commitment needs contact seen inside the hold
+     * window to stand. On by default;
+     * {@code -Dbattle.squad.routeCommitNeedsFreshContact=false} is the control.
      *
      * <p>A squad dump of a live Thunder Run recorded nine marines standing still
      * for the whole of a belief's fourteen-second lifetime while the player
@@ -233,41 +233,34 @@ abstract class AbstractZoneAction implements Action {
      * seconds earlier, nobody could see anything, and movement resumed on the
      * very tick the last belief decayed. Route-threat weight is summed over
      * remembered contacts at their decayed confidence, so a few stale beliefs
-     * near the route commit the squad; the firing-position search is then run
-     * against the contact's <em>real</em> position, which has long since moved,
-     * finds nothing, and "nothing" is read as "plant" — every tick, clearing
-     * every path, until the memory fades. {@code contactHoldIsFresh} already
-     * says stale evidence must not immobilise an advance, and the doctrine hold
-     * obeys it; the route commit did not.
+     * near the route committed the squad; the firing-position search was then
+     * run against the contact's <em>real</em> position, which had long since
+     * moved, found nothing, and "nothing" was read as "plant" — every tick,
+     * clearing every path, until the memory faded. The search itself was the
+     * other cost: negative answers are never retained, so each member repeated
+     * it on every one of those ticks.
      *
-     * <p>Scoped to the squad whose order came from outside the AI, the same
-     * scope as {@link #prosecutesContactOffRoute}: an autonomous advance is
-     * still free to plant against a defended line it remembers, and moving that
-     * is a balance question for the commander matrix, not a fix for a player
-     * whose click is ignored.
+     * <p>{@code contactHoldIsFresh} already says stale evidence must not
+     * immobilise an advance, and the doctrine hold obeys it. The commit now does
+     * too, at the point it is decided rather than at one of its consumers, so
+     * the plant, the bounding advance and the traffic system's quiet test all
+     * agree. Memory still informs aim, awareness and the doctrine; it just
+     * cannot hold a squad in place by itself.
      */
-    public static final String STALE_COMMIT_FALL_THROUGH_PROPERTY =
-            "battle.squad.staleCommitFallThrough";
+    public static final String ROUTE_COMMIT_NEEDS_FRESH_CONTACT_PROPERTY =
+            "battle.squad.routeCommitNeedsFreshContact";
 
-    private static volatile boolean staleCommitFallThrough = Boolean.parseBoolean(
-            System.getProperty(STALE_COMMIT_FALL_THROUGH_PROPERTY, "true"));
+    private static volatile boolean routeCommitNeedsFreshContact = Boolean.parseBoolean(
+            System.getProperty(ROUTE_COMMIT_NEEDS_FRESH_CONTACT_PROPERTY, "true"));
 
     /** Evidence seam, as {@link #setProsecutionFallThroughForEvidence}. */
-    public static void setStaleCommitFallThroughForEvidence(boolean value) {
-        staleCommitFallThrough = value;
+    public static void setRouteCommitNeedsFreshContactForEvidence(boolean value) {
+        routeCommitNeedsFreshContact = value;
     }
 
-    /**
-     * Whether a route-commit refusal ("no firing cell", "no path") walks on to
-     * the objective instead of planting.
-     *
-     * @param yieldsToOrder whether this action carries an order that outranks remembered contacts
-     * @param doctrineHold  a hard hold always plants, and is only ever in force on fresh evidence
-     * @param contactFresh  whether any contact was seen within the hold window
-     */
-    static boolean staleCommitWalksOn(boolean yieldsToOrder, boolean doctrineHold,
-                                      boolean contactFresh) {
-        return staleCommitFallThrough && yieldsToOrder && !doctrineHold && !contactFresh;
+    /** The commit the score and onset asked for, kept only while evidence for it is fresh. */
+    static boolean commitStands(boolean committed, boolean contactFresh) {
+        return committed && (contactFresh || !routeCommitNeedsFreshContact);
     }
 
     /** Maximum off-axis firing-position radius at full threat weight. */
@@ -346,16 +339,6 @@ abstract class AbstractZoneAction implements Action {
      */
     protected boolean prosecutesContactOffRoute(Squad squad) {
         return true;
-    }
-
-    /**
-     * Whether this action's destination is an order that a route-threat commit
-     * resting on stale memory must not hold up; see
-     * {@link #STALE_COMMIT_FALL_THROUGH_PROPERTY}. Defaults to false: an
-     * autonomous advance keeps planting against what it remembers.
-     */
-    protected boolean yieldsStaleCommitToOrder(Squad squad) {
-        return false;
     }
 
     /**
@@ -512,24 +495,18 @@ abstract class AbstractZoneAction implements Action {
             // it continues its assigned advance — so it does, keeping the
             // target for opportunity fire on the way.
             boolean prosecutionOnly = refusalBelongsToProsecution(prosecuteContact, doctrineHold);
-            boolean staleCommit = staleCommitWalksOn(yieldsStaleCommitToOrder(squad),
-                    doctrineHold, TacticalScoring.contactHoldIsFresh(squad,
-                            squad.contactPicture, sim.getSimTickIndex()));
             switch (advanceToReachableFiringPosition(member, sim, firingPos)) {
                 case MOVED -> { return; }
                 case NO_POSITION -> {
-                    if (!staleCommit && (!prosecutionFallThrough || !prosecutionOnly)) {
+                    if (!prosecutionFallThrough || !prosecutionOnly) {
                         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
                         return;
                     }
                     // fall through to the objective
                 }
                 case UNREACHABLE -> {
-                    if (!staleCommit) {
-                        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-                        return;
-                    }
-                    // fall through to the objective
+                    if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                    return;
                 }
                 case NOT_WORTH_THE_WALK -> { /* fall through to the objective */ }
             }
@@ -789,6 +766,10 @@ abstract class AbstractZoneAction implements Action {
         squad.advanceThreatAnchorY = threat.axisAnchorY();
         squad.advanceThreatRetreating = threat.primaryRetreating();
         applyContactOnset(squad, sim, tick);
+        if (!commitStands(squad.advanceEngageCommitted, TacticalScoring.hasFreshBelief(squad, tick))) {
+            squad.advanceEngageCommitted = false;
+            squad.advanceEngageLeash = 0f;
+        }
     }
 
     /**

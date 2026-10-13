@@ -901,8 +901,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
             directives.put(squad.id, directive(squad, preferred, effective,
                     AssignmentReason.valueOf(entry.getValue().reason())));
         }
+        List<String> structureNotes = List.of();
         if (phase == Phase.LANE_ADVANCE || phase == Phase.FRONT_ADJUST) {
-            assignDefenceStructureTasks(frame, squads, committed, allSquads, directives);
+            structureNotes = assignDefenceStructureTasks(frame, squads, committed, allSquads, directives);
         }
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
                 remainingCompounds, keep, directives, allSquads).withGroups(groups.groups());
@@ -911,21 +912,29 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 frame.influence() != null ? frame.influence().updatedTick() : -1,
                 squads.size() + holding.size(), 0,
-                List.of("remaining compounds=" + remainingCompounds),
+                summaries(remainingCompounds, structureNotes),
                 proposals, detail);
+    }
+
+    private static List<String> summaries(int remainingCompounds, List<String> structureNotes) {
+        List<String> out = new ArrayList<>();
+        out.add("remaining compounds=" + remainingCompounds);
+        out.addAll(structureNotes);
+        return out;
     }
 
     /**
      * Detaches a few squads from lane work to ground-defence structures this side knows of (see
      * {@link DefenceStructureTactics}). Squads committed to a compound capture or in a command group are never
      * offered; what is offered is lane work, which the lane planner re-issues to the squad the moment the structure
-     * work stands down.
+     * work stands down. Returns one trace line per squad detached, saying which aspect and why.
      */
-    private void assignDefenceStructureTasks(ConquestCommandFrame frame, List<PlanningSquad> squads,
-                                             IntOpenHashSet committed, Map<Integer, PlanningSquad> allSquads,
-                                             Map<Integer, SquadDirective> directives) {
+    private List<String> assignDefenceStructureTasks(ConquestCommandFrame frame, List<PlanningSquad> squads,
+                                                     IntOpenHashSet committed, Map<Integer, PlanningSquad> allSquads,
+                                                     Map<Integer, SquadDirective> directives) {
+        List<String> notes = new ArrayList<>();
         List<DefenceStructureFact> structures = frame.facts().structures();
-        if (structures.isEmpty()) return;
+        if (structures.isEmpty()) return notes;
         List<DefenceStructureTactics.Candidate> candidates = new ArrayList<>();
         for (PlanningSquad squad : squads) {
             if (committed.contains(squad.id) || squad.commandGroup != null
@@ -944,7 +953,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 case RETAKE -> AssignmentReason.DEFENCE_STRUCTURE_RETAKE;
                 case TAKE -> AssignmentReason.DEFENCE_STRUCTURE_TAKE;
             }));
+            notes.add("squad " + squad.id + " " + task.role() + (task.wreck() ? " (wreck) " : " ") + task.reason());
         }
+        return notes;
     }
 
     @Override

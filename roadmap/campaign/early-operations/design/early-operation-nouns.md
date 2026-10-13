@@ -774,10 +774,15 @@ equipment is part of this objective.
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
 same crew that covered the Junction. Two twin-launcher missile batteries on
-the northern hilltops cover its committed opening pass. Kestrel enters along the
-cross street, sweeps through the gap into both batteries' coverage, then arcs
-east to join a convoy-cover orbit if it survives. This authored route holds
-through damage; missile tracking and ordinary durability determine the result.
+the northern hilltops cover its opening pass. Kestrel enters from the west
+and sweeps left to right ahead of the eastbound column. An actual missile
+launch interrupts the pass: Kestrel banks forward and away from the ridge,
+then attempts to leave the corridor instead of returning to its cover orbit.
+The break preserves momentum and normal hull handling; it grants no dodge
+immunity. Batteries can reacquire and fire further volleys through ordinary
+range, line-of-fire and reload checks. Breaking early can keep Kestrel from
+reaching the second battery. Missile tracking and ordinary durability decide
+whether it escapes or crashes; only an unthreatened pass joins the cover orbit.
 The pass call follows physical commitment, the launch warning an actual missile,
 and hit/loss/return lines their observed facts. Obsolete queued calls yield to
 the loss acknowledgment. Their rotating
@@ -786,7 +791,7 @@ The hilltops and slopes remain impassable, including beneath a destroyed
 battery. Their placement does not invite a valley assault or add a capture
 objective; existing guards retain their roadside duties. Kestrel's loss is an
 encounter outcome, never a mandatory scripted death. Clearing
-the guns early can preserve the gunship. A surviving Kestrel can cover the next
+the guns early can preserve the gunship. An unthreatened Kestrel can cover the next
 crossing until its station time runs out. Losing it does not gate convoy progress,
 increase the company's deployment minimum, or charge the player for Wayline's
 ship. A crash damages the ground and leaves a permanent wreck for that battle,

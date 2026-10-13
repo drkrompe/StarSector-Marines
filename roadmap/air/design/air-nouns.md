@@ -1371,7 +1371,11 @@ its ownership grants no player card, cost, crew seats or campaign airframe.
 A mission may give its incoming gunship a committed waypoint pass before it
 joins the station. Ordinary steering flies each leg; it grants no immunity,
 teleportation or predetermined damage. Actual guided-AA launches against the
-craft publish its missile-warning fact for observed story responses.
+craft publish its missile-warning fact for observed story responses. An employer
+controller may interrupt the pass with evasive waypoints and a withdrawal;
+the shared flight system hands the completed break to ordinary egress instead
+of joining the orbit. Changing the route never resets position or velocity,
+and a departing gunship retains cruise altitude rather than replaying a takeoff.
 Its controller may move the orbit center from friendly progress and public
 mission state. Retasking preserves the remaining station time and the chosen
 orbit direction. See Kestrel in `early-operation-nouns.md`.

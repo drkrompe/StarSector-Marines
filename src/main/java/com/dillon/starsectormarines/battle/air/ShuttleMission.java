@@ -294,6 +294,8 @@ public final class ShuttleMission {
     public boolean gunship;
     /** Optional mission-authored approach, flown before joining the ordinary station circle. */
     public GunshipIngress gunshipIngress;
+    /** Finish the current evasive gunship waypoints by leaving, rather than joining the station. */
+    public boolean gunshipWithdrawAfterIngress;
     /** Last actual guided-AA launch against this craft, for observed threat responses. */
     public int lastMissileLaunchTick = -1;
     /** Radius of the ring a gunship holds about its target, in cells. */
