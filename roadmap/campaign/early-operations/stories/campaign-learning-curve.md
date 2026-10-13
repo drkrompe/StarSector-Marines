@@ -2,6 +2,7 @@
 
 Status: PLANNED
 Written: 2026-10-12
+Updated: 2026-10-13 — planned post-Shepherd suit rewards and military acquisition collision.
 
 Read `early-operation-nouns.md`, `meta-progression.md` and
 `company-view-nouns.md`. `castle-campaign-lessons.md` owns the first tutorial slice.
@@ -19,6 +20,7 @@ Read `early-operation-nouns.md`, `meta-progression.md` and
 | Blind Watch | Three squads; 30,000 credits | Divide objective duties; revisit leadership and specialty training |
 | Cold Account | Four squads; 42,000 credits | Restore billets, prepare leadership, extract under intervention |
 | A Working Ship | Planned Shepherd and construction | Protect builders, establish positions, hand off ground |
+| A Small War | Planned recovered Specter, recovered Arbalest and pirate Boarding Jack; two-to-three-squad recommendation | Mix individual equipment within existing squads; use builders and allied holders to sustain a district commitment |
 
 Record availability, explanation, actual configuration and actual field use
 separately. Also record total campaign victories and side jobs: story position
@@ -40,6 +42,11 @@ alone cannot describe the player's equipment or cash.
   one acknowledgement of a two-squad reminder cannot cover later growth.
 - [ ] Give advanced mech chassis and weapon patterns explicit campaign sources;
   new campaigns currently retain the starter fabrication restriction.
+- [ ] Implement the post-handover reward sequence in `a-small-war.md` and reconcile
+  military POWER_SUIT access with its later procurement route. Current patron and
+  victory thresholds can award military patterns first; preserve already acquired
+  equipment and advanced STANDARD niches. Mixed issue is a composition choice,
+  not a finite inventory of recovered suits.
 - [ ] Establish a sustainable casualty-carryover run, including recovery and
   replacement bills. Corvus's existing automated evidence is not live balance
   acceptance; keep its tuning with `wayline-corvus.md`.
@@ -48,3 +55,5 @@ alone cannot describe the player's equipment or cash.
 
 `shepherd-recovery.md` owns the planned construction arc. This story does not
 claim its maps already award a working fleet ship or unlock construction.
+`a-small-war.md` owns the planned Vesper Reach expedition and its initial fee
+ledger; its three patterns, travel and casualty pressure need campaign acceptance.
