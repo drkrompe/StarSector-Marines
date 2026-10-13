@@ -15,7 +15,7 @@ public final class SecondhandWings {
     public record Review(String shipId, ShuttleType pattern, int berths, List<Trade> outgoing) { }
 
     public static Review review(BoatDeck deck) {
-        return new Review(deck.shipId(), deck.pattern(), deck.berths(), deck.boats().stream().filter(Objects::nonNull)
+        return new Review(deck.shipId(), deck.pattern(), deck.berths(), deck.airworthy().stream()
                 .map(boat -> new Trade(boat.id(), boat.displayName(), boat.plating().id(), boat.drive().id())).toList());
     }
 
