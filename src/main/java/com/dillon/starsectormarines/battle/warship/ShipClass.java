@@ -14,8 +14,25 @@ import java.util.Locale;
  * @param role   what the hull is for
  * @param bays   fighter bays the table lists (0 for none)
  * @param shield the table's shield type, or {@code NONE}; weighs armed craft in {@link AirThreatWeights}
+ * @param shieldArc the table's {@code shield arc} in degrees (the model's own default for the type when the
+ *                  column is blank); meaningless for {@code NONE} and {@code PHASE}
+ * @param shieldEfficiency the table's {@code shield efficiency}, flux taken per point of damage absorbed
+ *                  (lower is better; 1 when blank)
  */
-public record ShipClass(HullSize size, Role role, int bays, Shield shield) {
+public record ShipClass(HullSize size, Role role, int bays, Shield shield, float shieldArc, float shieldEfficiency) {
+
+    /** A class with the shield figures the model assumes for its type: a front shield 180 degrees, an omni 360, efficiency 1. */
+    public ShipClass(HullSize size, Role role, int bays, Shield shield) {
+        this(size, role, bays, shield, defaultArc(shield), 1f);
+    }
+
+    private static float defaultArc(Shield shield) {
+        return switch (shield) {
+            case FRONT -> 180f;
+            case OMNI -> 360f;
+            default -> 0f;
+        };
+    }
 
     /** Hull size, smallest first. A fighter-size hull is read as a frigate. */
     public enum HullSize { FRIGATE, DESTROYER, CRUISER, CAPITAL }
@@ -49,6 +66,12 @@ public record ShipClass(HullSize size, Role role, int bays, Shield shield) {
      * An unknown or absent size reads as a capital, the hull the rest of the fit defaults to.
      */
     public static ShipClass classify(String hullSize, String designation, String hints, String bays, String shieldType) {
+        return classify(hullSize, designation, hints, bays, shieldType, null, null);
+    }
+
+    /** As above, with the table's {@code shield arc} and {@code shield efficiency} columns; blank or non-positive means the type's default. */
+    public static ShipClass classify(String hullSize, String designation, String hints, String bays, String shieldType,
+                                     String shieldArc, String shieldEfficiency) {
         int bayCount = (int) Math.max(0, Math.round(number(bays)));
         String hintSet = "," + normal(hints).replace(" ", "") + ",";
         Role role;
@@ -59,7 +82,11 @@ public record ShipClass(HullSize size, Role role, int bays, Shield shield) {
         } else {
             role = Role.COMBAT;
         }
-        return new ShipClass(sizeOf(hullSize), role, bayCount, shieldOf(shieldType));
+        Shield shield = shieldOf(shieldType);
+        float arc = (float) number(shieldArc);
+        float efficiency = (float) number(shieldEfficiency);
+        return new ShipClass(sizeOf(hullSize), role, bayCount, shield,
+                arc > 0 ? Math.min(360f, arc) : defaultArc(shield), efficiency > 0 ? efficiency : 1f);
     }
 
     private static HullSize sizeOf(String raw) {
