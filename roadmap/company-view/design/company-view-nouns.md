@@ -287,8 +287,8 @@ acquisition remains the progression gate. Workshop restoration does not gate fit
 
 After Relief, Castle's portrait reward prompt appears over the debrief before its
 ordinary controls accept input. It leads with the free technology, shows the actual
-Stalwart/Lancer/Janus art, and offers compact **Choose Free Technology** and **Later**
-actions. Escape defers only the prompt; it never dismisses or settles the debrief.
+Stalwart/Lancer/Janus art, and offers one compact **Choose Free Technology**
+action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.
 

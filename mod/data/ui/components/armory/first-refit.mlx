@@ -84,7 +84,6 @@
     </div>
     <div id="refit-footer" class="refit-actions">
     <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">INSPECT SQUAD</button>
-    <button id="refit-later" class="refit-later" onclick="{backToSquads}">{lesson.laterLabel}</button>
     </div>
   </div>
 </template>
@@ -136,6 +135,5 @@
   .refit-status { height: 28px; white-space: normal; }
   .refit-actions { flex-direction: row; height: 40px; gap: 12px; }
   .refit-action { width: 260px; height: 26px; padding: 6px 12px; border-width: 1px; font-family: heading; }
-  .refit-later { width: 260px; height: 22px; padding: 4px 12px; border-width: 1px; }
   .refit-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>
