@@ -32,6 +32,10 @@ public final class TurretCatalogRegistry {
     public static final String LOCUST_STRUCTURE_ID = "structure.turret-locust";
     /** The fortress battery: a multi-cell structure carrying ship-grade guns. Its art is still a placeholder. */
     public static final String FORTRESS_BATTERY_STRUCTURE_ID = "structure.fortress-battery-placeholder";
+    /** The fort aspect cores: a console, a store and a plant, each a three-by-three structure that can be wrecked. */
+    public static final String FORT_FIRE_CONTROL_STRUCTURE_ID = "structure.fort-fire-control";
+    public static final String FORT_MAGAZINE_STRUCTURE_ID = "structure.fort-magazine";
+    public static final String FORT_POWER_STRUCTURE_ID = "structure.fort-power";
     public static final String ANTI_AIR_STRUCTURE_ID = "structure.turret-anti-air-flak";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
 

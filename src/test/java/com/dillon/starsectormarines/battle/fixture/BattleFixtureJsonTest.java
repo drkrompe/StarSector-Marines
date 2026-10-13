@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -749,6 +750,34 @@ class BattleFixtureJsonTest {
                 BattleFixtureJson.fromJson(encoded)).targetProfile();
         assertEquals(false, legacy.groundDefences() || legacy.heavyBatteries() || legacy.planetaryShield());
         assertEquals(GroundDefences.NONE, legacy.declaredDefences());
+    }
+
+    /** Declared forts survive a replay by kind, and a fixture that predates them (or names none) reads as none. */
+    @Test
+    void roundTripsDeclaredForts() throws Exception {
+        TargetProfile forted = TargetProfile.NEUTRAL.withDeclaredDefences(
+                new GroundDefences(1, true, 4).withForts(FortKind.BATTERY_FORT, 3));
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                9_121L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4, forted, false);
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        assertEquals(3, encoded.getJSONObject("targetProfile").getJSONObject("declaredForts").getInt("BATTERY_FORT"));
+        TargetProfile decoded = ((CivilianRescueBattleFixture)
+                BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(forted, decoded);
+        assertEquals(3, decoded.declaredDefences().fortCount(FortKind.BATTERY_FORT));
+
+        // No forts declared: nothing is written, and a fixture without the key reads as none.
+        JSONObject plain = BattleFixtureJson.toJson(new CivilianRescueBattleFixture(
+                9_122L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4,
+                TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(2, false)), false));
+        assertEquals(false, plain.getJSONObject("targetProfile").has("declaredForts"));
+        encoded.getJSONObject("targetProfile").remove("declaredForts");
+        TargetProfile legacy = ((CivilianRescueBattleFixture)
+                BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(0, legacy.declaredDefences().fortCount(FortKind.BATTERY_FORT));
     }
 
     private static CivilianRescueBattleFixture canonicalFixture() {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.fort.FortTag;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 
@@ -33,6 +34,8 @@ public final class DefensePost {
     /** Optional occupied drone-hub platform cell authored by the layout. */
     public final Integer droneHubCellX;
     public final Integer droneHubCellY;
+    /** The fort this post is part of and which part it is, or null for a post that belongs to no fort. */
+    public final FortTag fort;
 
     public DefensePost(DefensePostKind tier, int anchorX, int anchorY, List<TurretSpec> turrets) {
         this(tier, null, anchorX, anchorY, turrets, null, null);
@@ -41,6 +44,18 @@ public final class DefensePost {
     public DefensePost(DefensePostKind tier, String layoutId,
                        int anchorX, int anchorY, List<TurretSpec> turrets,
                        Integer droneHubCellX, Integer droneHubCellY) {
+        this(tier, layoutId, anchorX, anchorY, turrets, droneHubCellX, droneHubCellY, null);
+    }
+
+    /** A post that is part of a fort: its structure is the fort's platform, one of its aspect cores, or a wall nest. */
+    public DefensePost(DefensePostKind tier, int anchorX, int anchorY, List<TurretSpec> turrets, FortTag fort) {
+        this(tier, null, anchorX, anchorY, turrets, null, null, fort);
+    }
+
+    private DefensePost(DefensePostKind tier, String layoutId,
+                        int anchorX, int anchorY, List<TurretSpec> turrets,
+                        Integer droneHubCellX, Integer droneHubCellY, FortTag fort) {
+        this.fort = fort;
         this.tier = tier;
         this.layoutId = layoutId;
         this.anchorX = anchorX;
