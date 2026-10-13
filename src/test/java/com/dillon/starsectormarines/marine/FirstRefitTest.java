@@ -38,6 +38,9 @@ class FirstRefitTest {
             MarineRoster roster = claimed();
             var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
             var preview = roster.previewSquadEquipment(squad.id(), path.weapons, path.armor);
+            assertEquals(0, preview.issueCost().heavyArmaments(), "The opening refit must use legal civilian-market cargo");
+            assertEquals(0, preview.issueCost().food());
+            assertTrue(preview.issueCost().supplies() > 0);
             Hold hold = new Hold(preview.issueCost());
             assertEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
             assertEquals(EquipmentTemplateCost.ZERO, hold.stock);
