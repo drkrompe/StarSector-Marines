@@ -38,6 +38,7 @@ public final class MissionSelectScreen implements Screen {
 
     static final String ROOT_COMPONENT = "mission-select";
     static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/mission-dialogue.mlx",
             "data/ui/components/missions/mission-select.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -104,16 +105,16 @@ public final class MissionSelectScreen implements Screen {
         });
         props.put("clients", clientRows(selectedClient));
         props.put("clientEmpty", context == null || context.clients.isEmpty()
-                ? "No clients have work at this market." : "");
+                ? Strings.get("missionSelectNoClientsHaveWorkAtThisMarket") : "");
         props.put("missionHeader", selectedClient != null
-                ? selectedClient.displayName : "Contracts");
+                ? selectedClient.displayName : Strings.get("missionSelectContracts"));
         props.put("missionSummary", missionSummary(selectedClient, missions));
         props.put("missions", missionRows(missions, selectedMission, this::selectMission));
         props.put("stationingRows", stationing);
         props.put("missionEmpty", selectedClient == null
-                ? "Choose a client to inspect their current work."
+                ? Strings.get("missionSelectChooseAClientToInspectTheirCurrent")
                 : missions.isEmpty() && stationing.isEmpty()
-                        ? "Nothing pending from this client." : "");
+                        ? Strings.get("missionSelectNothingPendingFromThisClient") : "");
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
         putBroker(props, selectedClient, script == null ? null : script.roster());
         OpeningBroker.Destination office = OpeningBroker.current();
@@ -137,20 +138,20 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putShepherd(Map<String,Object> props, ShepherdRecoveryProgress progress) {
-            props.put("missionSummary",ShepherdRecoveryCampaign.TITLE);
+            props.put("missionSummary",Strings.get("missionSelectShepherdTitle"));
             props.put("brokerClasses","broker-dossier console-readout");
             props.put("brokerPortrait",OpeningBroker.CREST);
             props.put("brokerName",ShepherdRecoveryCampaign.NAME);
-            props.put("brokerRole","BASIN RECLAMATION COOPERATIVE / INDEPENDENT");
+            props.put("brokerRole",Strings.get("missionSelectBASINRECLAMATIONCOOPERATIVEINDEPENDENT"));
             props.put("brokerIntroduction",progress!=null && progress.departed()
-                    ? "The haulers are moving again. Give my regards to the hands aboard Morrow."
+                    ? Strings.get("missionSelectTheHaulersAreMovingAgainGiveMy")
                     : progress!=null && progress.repaired()
-                        ? "The fitters have done what they can in the cradle. Let's see her out into the open."
+                        ? Strings.get("missionSelectTheFittersHaveDoneWhatTheyCan")
                         : progress!=null && progress.claimSecured()
-                            ? progress.shorePower() ? "Power's on. We've still got work to do before she can fly."
-                                : "My people are back in the workshop. Now let's get them some power."
-                            : "Venn gave me your name. I have a load to get out of that basin, and someone else has taken an interest. She said you could clear the way.");
-            props.put("brokerProgress",progress!=null && progress.departed()?"COMPLETE / MORROW REGISTRY TRANSFERRED":progress!=null && progress.repaired()?"WORKING PASSAGE / DEPARTURE CLEARANCE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
+                            ? progress.shorePower() ? Strings.get("missionSelectPowerSOnWeVeStillGot")
+                                : Strings.get("missionSelectMyPeopleAreBackInTheWorkshop")
+                            : Strings.get("missionSelectVennGaveMeYourNameIHave"));
+            props.put("brokerProgress",progress!=null && progress.departed()?Strings.get("missionSelectCOMPLETEMORROWREGISTRYTRANSFERRED"):progress!=null && progress.repaired()?Strings.get("missionSelectWORKINGPASSAGEDEPARTURECLEARANCE"):progress!=null && progress.claimSecured()?Strings.get("missionSelectCOLDSTARTSHOREPOWERREPAIRS"):Strings.get("missionSelectSALVAGERIGHTSNIGHTRECOVERY"));
     }
 
     static void putAgreus(Map<String, Object> props) {
@@ -158,54 +159,55 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putAgreus(Map<String, Object> props, AgreusArcProgress p, String accessReason) {
-        props.put("missionSummary", AgreusArcCampaign.TITLE);
+        props.put("missionSummary", Strings.get("missionSelectAgreusTitle"));
         props.put("brokerClasses", "broker-dossier console-readout");
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
-        props.put("brokerRole", "HOUSE RUSK / KO COMBINE CONCESSION");
+        props.put("brokerRole", Strings.get("missionSelectHOUSERUSKKOCOMBINECONCESSION"));
         props.put("brokerIntroduction", p != null && p.yardCompleted()
-                ? "Rusk: Latchkey's inspection is settled. Read the custody documents before agreeing to further work. No handover agreement has been signed."
+                ? Strings.get("missionSelectRuskLatchkeySInspectionIsSettledReadThe")
                 : p != null && p.warrantCompleted()
-                ? "Rusk: The Low Quay recovery is settled. Now secure Latchkey for inspection. Its tools can validate the Recovered Arbalest pattern; the yard's custody needs a separate agreement."
+                ? Strings.get("missionSelectRuskTheLowQuayRecoveryIsSettledNow")
                 : p != null && p.completed()
-                ? "Rusk: North Weir is working. Recover the Low Quay service archive and calibration kit under my supplier guarantee, and your company may retain the Recovered Specter pattern. Read the warrant before deploying."
+                ? Strings.get("missionSelectRuskNorthWeirIsWorkingRecoverTheLow")
                 : AgreusArcCampaign.REFERRAL);
         props.put("brokerProgress", p != null && p.yardCompleted()
-                ? "LATCHKEY INSPECTED / 92,000 CR SETTLED / Both recovered-suit entitlements fulfilled. Learn both cards to fit Salvage-assisted Section. Custody remains unsigned."
+                ? Strings.get("missionSelectLATCHKEYINSPECTED92000CRSETTLEDBothRecovered")
                 : p != null && p.warrantCompleted()
-                ? "LIMITED WARRANT COMPLETE / THE YARD'S OWNERS AVAILABLE / 36,000 CR + Recovered Arbalest card / inspection only; no custody agreement."
-                : p != null && p.completed() ? "NORTH WEIR RESTORED / LIMITED WARRANT AVAILABLE / Review the procurement terms below; no yard agreement is selected."
-                : "NORTH WEIR / WATER UNDER SEAL" + (accessReason == null || accessReason.isBlank() ? "" : " / " + accessReason));
+                ? Strings.get("missionSelectLIMITEDWARRANTCOMPLETETHEYARDSOWNERSAVAILABLE")
+                : p != null && p.completed() ? Strings.get("missionSelectNORTHWEIRRESTOREDLIMITEDWARRANTAVAILABLEReviewThe")
+                : Strings.format("missionSelectAgreusProgress", accessReason == null || accessReason.isBlank()
+                        ? "" : Strings.format("missionSelectAccessSuffix", accessReason)));
     }
     static void putAgreusReferral(Map<String, Object> props) {
         var d = AgreusArcCampaign.destination();
-        props.put("missionSummary", "Vale's reference / Agreus, Arcadia");
-        props.put("detailKicker", "OPTIONAL / AFTER MORROW'S HANDOVER");
-        props.put("detailTitle", "Meet " + AgreusArcCampaign.NAME);
-        props.put("detailMeta", d == null ? "Agreus / Arcadia / access paused" : d.label() + " / House Rusk concession");
+        props.put("missionSummary", Strings.get("missionSelectValeSReferenceAgreusArcadia"));
+        props.put("detailKicker", Strings.get("missionSelectOPTIONALAFTERMORROWSHANDOVER"));
+        props.put("detailTitle", Strings.format("missionSelectMeet", AgreusArcCampaign.NAME));
+        props.put("detailMeta", d == null ? Strings.get("missionSelectAgreusArcadiaAccessPaused") : Strings.format("missionSelectRuskLocation", d.label()));
         props.put("detailFlavor", AgreusArcCampaign.REFERRAL + " " + AgreusArcCampaign.accessReason());
     }
 
     static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {
-        props.put("missionSummary", CorvusWaylineCampaign.TITLE);
+        props.put("missionSummary", Strings.get("missionSelectCorvusTitle"));
         props.put("brokerPortrait", OpeningBroker.PORTRAIT);
         props.put("brokerName", OpeningBroker.NAME);
-        props.put("brokerRole", "WAYLINE / CORVUS OPERATIONS");
+        props.put("brokerRole", Strings.get("missionSelectWAYLINECORVUSOPERATIONS"));
         CorvusChapter chapter = selectedMission == null ? null : CorvusWaylineProgress.forMission(selectedMission.id);
         props.put("brokerIntroduction", chapter == CorvusChapter.BLIND_WATCH
-                ? "Your Asharu records gave us a target we can prepare for. We know where their watch is, and we can take it away."
+                ? Strings.get("missionSelectYourAsharuRecordsGaveUsATarget")
                 : chapter == CorvusChapter.COLD_ACCOUNT
-                ? "The listening post is silent. Your company has put us in reach of Sable Wake's dispatch compound. This next job needs a different kind of care."
+                ? Strings.get("missionSelectTheListeningPostIsSilentYourCompany")
                 : CorvusWaylineCampaign.introduction(route));
         props.put("brokerProgress", CorvusWaylineCampaign.isBattle(selectedMission)
-                ? selectedMission.name + " / " + selectedMission.targetPlanetName : "SABLE WAKE / ROUTE INTERDICTION");
+                ? selectedMission.name + " / " + selectedMission.targetPlanetName : Strings.get("missionSelectSABLEWAKEROUTEINTERDICTION"));
     }
 
     static void putSupplyRoute(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission, boolean accessible) {
-        props.put("missionSummary", "BROKEN SUPPLY ROUTE");
-        props.put("brokerIntroduction", route == null ? "Mara Venn: Iona Serr needs the freight corridor reopened. Open the Junction dossier to begin." : route.status());
-        props.put("brokerProgress", route == null ? "NEW DISPATCH / IONA SERR" : "Story paid: " + route.storyPayment() + " cr / recurring paid: " + route.recurringPayment() + " cr");
-        if (route != null && !accessible) props.put("brokerIntroduction", "Accepted work remains on " + route.planetName() + ". Access is unavailable; operations paused.");
+        props.put("missionSummary", Strings.get("missionSelectBROKENSUPPLYROUTE"));
+        props.put("brokerIntroduction", route == null ? Strings.get("missionSelectMaraVennIonaSerrNeedsTheFreightCorridor") : route.status());
+        props.put("brokerProgress", route == null ? Strings.get("missionSelectNEWDISPATCHIONASERR") : Strings.format("missionSelectRoutePayments", NumberFormat.getIntegerInstance().format(route.storyPayment()), NumberFormat.getIntegerInstance().format(route.recurringPayment())));
+        if (route != null && !accessible) props.put("brokerIntroduction", Strings.format("missionSelectRoutePaused", route.planetName()));
     }
 
     static Map<String, Object> previewProps() {
@@ -244,11 +246,11 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailMeta", "Jangala  ·  First Contract  ·  1 squad recommended");
         props.put("detailFlavor", "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
         props.put("detailRows", List.of(
-                detailRow("tier", "Operation scale", "First Contract"),
-                detailRow("presence", "Field presence", "1 squad active · reserve held off-map"),
-                detailRow("opposition", "Opposition", "Regular core · veterans possible"),
-                detailRow("lift", "Lift required", "2 sorties"),
-                detailRow("payout", "Payout", "20,500 credits")));
+                detailRow("tier", Strings.get("missionSelectOperationScale"), Strings.get("missionSelectTierFIRST_CONTRACT")),
+                detailRow("presence", Strings.get("missionSelectFieldPresence"), "1 squad active · reserve held off-map"),
+                detailRow("opposition", Strings.get("missionSelectOpposition"), "Regular core · veterans possible"),
+                detailRow("lift", Strings.get("missionSelectLiftRequired"), "2 sorties"),
+                detailRow("payout", Strings.get("missionSelectPayout"), "20,500 credits")));
         props.put("briefDisabled", false);
         props.put("briefAction", none);
         props.put("declineDisabled", false);
@@ -280,9 +282,9 @@ public final class MissionSelectScreen implements Screen {
             String base = "client-" + i;
             boolean isSelected = client == selected;
             String status = client.locked && client.lockReason != null
-                    ? "Unavailable"
+                    ? Strings.get("missionSelectUnavailable")
                     : client.repLevel != null ? client.repLevel.getDisplayName() : "";
-            if (OpeningBroker.isContact(client)) status = "Independent broker";
+            if (OpeningBroker.isContact(client)) status = Strings.get("missionSelectIndependentBroker");
             rows.add(new ClientRow(base, base + "-name", base + "-rep",
                     client.crestPath,
                     "client-card" + (isSelected ? " selected" : "")
@@ -302,7 +304,7 @@ public final class MissionSelectScreen implements Screen {
             boolean isSelected = selected != null && selected.id.equals(mission.id);
             int recommended = MissionForceEnvelope.recommendedSquads(mission);
             String active = mission.fieldPresencePolicy.limited()
-                    ? "  ·  " + mission.fieldPresencePolicy.activeSquadLimit() + " max active"
+                    ? Strings.format("missionSelectActiveLimit", mission.fieldPresencePolicy.activeSquadLimit())
                     : "";
             int multiplier = mission.cashMultiplier & 0xFF;
             if (multiplier <= 0) multiplier = 100;
@@ -312,12 +314,11 @@ public final class MissionSelectScreen implements Screen {
                     "mission-card " + typeClass(mission.type)
                             + (isSelected ? " selected" : ""),
                     Character.toString(mission.type.glyph), mission.name,
-                    (mission.source == MissionSource.RECURRING ? "Repeatable"
-                            : mission.source == MissionSource.STORY ? "Story" : mission.tier.displayName)
-                            + "  ·  " + recommended
-                            + (recommended == 1 ? " squad" : " squads") + active,
+                    Strings.format("missionSelectRowMeta", mission.source == MissionSource.RECURRING
+                            ? Strings.get("missionSelectRepeatable") : mission.source == MissionSource.STORY
+                            ? Strings.get("missionSelectStory") : tierName(mission.tier), recommended, active),
                     ShepherdRecoveryProgress.workingPassage(mission.id) ? "MORROW"
-                            : SupplyRouteCampaign.freight(mission) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
+                            : SupplyRouteCampaign.freight(mission) ? Strings.format("missionSelectMaximumCredits", credits.format(payout)) : Strings.format("missionSelectCompactCredits", credits.format(payout)), () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -334,10 +335,10 @@ public final class MissionSelectScreen implements Screen {
         if (row < 0) return List.of();
         ContractType type = ContractType.fromByte(state.contractType[row]);
         String title = type == ContractType.GARRISON
-                ? "Garrison Contract" : "Cadre Contract";
+                ? Strings.get("missionSelectGarrisonContract") : Strings.get("missionSelectCadreContract");
         return List.of(new StationingRow("stationing-contract",
                 "stationing-contract-title", "stationing-contract-action",
-                title, active >= 0L ? "Manage assignment" : "Configure assignment",
+                title, active >= 0L ? Strings.get("missionSelectManageAssignment") : Strings.get("missionSelectConfigureAssignment"),
                 () -> configureStationing(contractId)));
     }
 
@@ -374,21 +375,20 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailImageClasses", scene == null ? "mission-detail-image-wrap surface-dark"
                 : "mission-detail-image-wrap story-location surface-dark");
         props.put("detailImage", scene == null ? props.get("planetImage") : scene.image);
-        props.put("detailHeader", scene == null ? "Dossier" : "LOCATION FILE / " + scene.location);
+        props.put("detailHeader", scene == null ? Strings.get("missionSelectDossier") : Strings.format("missionSelectLocationFile", scene.location));
         props.put("detailClasses", "mission-detail panel" + (present ? "" : " empty-detail"));
         props.put("detailKicker", present
-                ? SupplyRouteCampaign.operationLabel(mission) + "  ·  " + mission.risk.name() + " RISK"
-                : "MISSION DOSSIER");
-        props.put("detailTitle", present ? mission.name : "Select a contract");
+                ? Strings.format("missionSelectOperationRisk", operationName(mission), Strings.get(mission.risk.displayKey))
+                : Strings.get("missionSelectMISSIONDOSSIER"));
+        props.put("detailTitle", present ? mission.name : Strings.get("missionSelectSelectAContract"));
         props.put("detailMeta", present
-                ? mission.tier.displayName + "  ·  "
-                        + MissionForceEnvelope.recommendedSquads(mission)
-                        + (MissionForceEnvelope.recommendedSquads(mission) == 1 ? " squad recommended" : " squads recommended")
-                : "Choose a row in the contract list.");
+                ? Strings.format("missionSelectRecommendation", tierName(mission.tier), MissionForceEnvelope.recommendedSquads(mission))
+                : Strings.get("missionSelectChooseARowInTheContractList"));
         props.put("detailFlavor", present ? mission.flavor :
-                "The selected operation's scale, field-presence limit, opposition, lift, and payout will appear here before you enter deployment planning.");
+                Strings.get("missionSelectTheSelectedOperationSScaleFieldPresence"));
+        MissionDialogue.put(props, "detail", mission);
         props.put("detailRows", present ? detailRows(mission) : List.of());
-        props.put("briefLabel", "BRIEF & DEPLOY");
+        props.put("briefLabel", Strings.get("missionSelectBRIEFDEPLOY"));
         props.put("briefDisabled", !present);
         props.put("briefAction", brief);
         props.put("declineDisabled", !present);
@@ -397,61 +397,59 @@ public final class MissionSelectScreen implements Screen {
 
     private static List<DetailRow> detailRows(Mission mission) {
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
-                detailRow("force","Company","3 full squads recommended / minimum 2 with 4 ready each / fitted boats"),
-                detailRow("support","Inspection party","Owned tender; 8 constables, 2 technicians; optional owned mech with employer heavy lift"),
-                detailRow("claim","Latchkey","Hold dispatch, tooling hall and operator entrance together; protect inspection"),
-                detailRow("terms","Preservation","Marked tooling must survive / no bombardment or fighter strikes / custody unsigned"),
-                detailRow("payout","Victory award","36,000 credits + Recovered Arbalest card / learn both recovered cards for Salvage-assisted Section"));
+                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
+                detailRow("support",Strings.get("missionSelectInspectionParty"),Strings.get("missionSelectOwnedTender8Constables2TechniciansOptionalOwned")),
+                detailRow("claim",Strings.get("missionSelectLatchkey"),Strings.get("missionSelectHoldDispatchToolingHallAndOperatorEntranceTogether")),
+                detailRow("terms",Strings.get("missionSelectPreservation"),Strings.get("missionSelectMarkedToolingMustSurviveNoBombardmentOrFighter")),
+                detailRow("payout",Strings.get("missionSelectVictoryAward"),Strings.get("missionSelect36000CreditsRecoveredArbalestCardLearnBoth")));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
-                detailRow("force", "Company", "2 full regular squads recommended / minimum 4 ready each / fitted boats"),
-                detailRow("support", "Recovery party", "Owned tender; 4 constables and 1 supplier technician"),
-                detailRow("claim", "Low Quay", "Authenticate records, recover the calibration kit, escort its load to egress"),
-                detailRow("terms", "Limited warrant", "Deploy accepts the printed recovery terms; no debt-enforcement or yard-management agreement"),
-                detailRow("payout", "Victory award", "30,000 credits + Recovered Specter card once / explicit learning and fitting"));
+                detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelect2FullRegularSquadsRecommendedMinimum4Ready")),
+                detailRow("support", Strings.get("missionSelectRecoveryParty"), Strings.get("missionSelectOwnedTender4ConstablesAnd1SupplierTechnician")),
+                detailRow("claim", Strings.get("missionSelectLowQuay"), Strings.get("missionSelectAuthenticateRecordsRecoverTheCalibrationKitEscortIts")),
+                detailRow("terms", Strings.get("missionSelectLimitedWarrant"), Strings.get("missionSelectDeployAcceptsThePrintedRecoveryTermsNoDebt")),
+                detailRow("payout", Strings.get("missionSelectVictoryAward"), Strings.get("missionSelect30000CreditsRecoveredSpecterCardOnceExplicit")));
         if (AgreusArcCampaign.isBattle(mission)) return List.of(
-                detailRow("force", "Company", "2 squads / minimum 4 ready each / your fitted boats"),
-                detailRow("support", "Construction", "Actual owned eligible tender required; 8 constables and 2 technicians"),
-                detailRow("claim", "North Weir", "Escort repair cargo, reconnect both rooms, build and protect a road gun"),
-                detailRow("payout", "Victory fee", "26,000 credits once / no suit award"));
+                detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelect2SquadsMinimum4ReadyEachYour")),
+                detailRow("support", Strings.get("missionSelectConstruction"), Strings.get("missionSelectActualOwnedEligibleTenderRequired8Constables")),
+                detailRow("claim", Strings.get("missionSelectNorthWeir"), Strings.get("missionSelectEscortRepairCargoReconnectBothRoomsBuild")),
+                detailRow("payout", Strings.get("missionSelectVictoryFee"), Strings.get("missionSelect26000CreditsOnceNoSuitAward")));
         if(ShepherdRecoveryCampaign.isBattle(mission)&&ShepherdRecoveryProgress.workingPassage(mission.id))return List.of(
-                detailRow("force","Company","2 squads / your fitted boats / optional owned mech"),
-                detailRow("support","Cooperative","8 militia hold captured positions; Morrow builds the guns"),
-                detailRow("claim","Departure","Pump bend > Narrows > Defended climb-out"),
-                detailRow("payout","Payment in kind","Morrow / Shepherd construction tender / willing minimum crew"));
+                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect2SquadsYourFittedBoatsOptionalOwned")),
+                detailRow("support",Strings.get("missionSelectCooperative"),Strings.get("missionSelect8MilitiaHoldCapturedPositionsMorrowBuilds")),
+                detailRow("claim",Strings.get("missionSelectDeparture"),Strings.get("missionSelectPumpBendNarrowsDefendedClimbOut")),
+                detailRow("payout",Strings.get("missionSelectPaymentInKind"),Strings.get("missionSelectMorrowShepherdConstructionTenderWillingMinimumCrew")));
         if(ShepherdRecoveryCampaign.isBattle(mission))return List.of(
-                detailRow("force","Company","2 squads recommended / optional owned mech"),
-                detailRow("support","Cooperative",ShepherdRecoveryProgress.coldStart(mission.id)
-                        ? "14 militia / 2 repair technicians" : "8 militia / 2 inspection technicians"),
-                detailRow("claim","Agreement",ShepherdRecoveryProgress.coldStart(mission.id)
-                        ? "Claim protected; complete repairs and departure to earn Morrow"
-                        : "18,000 cr inspection / 22,000 cr repairs / Morrow after all three contracts"),
-                detailRow("payout","Payment on victory",NumberFormat.getIntegerInstance().format(mission.payout)+" credits"));
+                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect2SquadsRecommendedOptionalOwnedMech")),
+                detailRow("support",Strings.get("missionSelectCooperative"),ShepherdRecoveryProgress.coldStart(mission.id)
+                        ? Strings.get("missionSelect14Militia2RepairTechnicians") : Strings.get("missionSelect8Militia2InspectionTechnicians")),
+                detailRow("claim",Strings.get("missionSelectAgreement"),ShepherdRecoveryProgress.coldStart(mission.id)
+                        ? Strings.get("missionSelectClaimProtectedCompleteRepairsAndDepartureTo")
+                        : Strings.get("missionSelect18000CrInspection22000Cr")),
+                detailRow("payout",Strings.get("missionSelectPaymentOnVictory"),Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         if (CorvusWaylineCampaign.isBattle(mission)) return List.of(
-                detailRow("force", "Company commitment", MissionForceEnvelope.recommendedSquads(mission)
-                        + " squads recommended / minimum two squads with four ready each"),
-                detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
-                detailRow("opposition", "Sable Wake crew", MissionForceEnvelope.oppositionExpectation(mission.risk)),
-                detailRow("payout", "Payment on victory", NumberFormat.getIntegerInstance().format(mission.payout) + " credits"));
+                detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.format("missionSelectCorvusForce", MissionForceEnvelope.recommendedSquads(mission))),
+                detailRow("lift", Strings.get("missionSelectCompanyLift"), Strings.get("missionSelect14FittedBoatsTripsFollowThe")),
+                detailRow("opposition", Strings.get("missionSelectSableWakeCrew"), Strings.get("missionSelectOpposition" + mission.risk.name())),
+                detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         if (SupplyRouteCampaign.owns(mission.id)) return List.of(
-                detailRow("force", "Company commitment", "2 squads recommended / at least 4 ready in each of two squads"),
-                detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
-                detailRow("opposition", "Opposition", "Local raiders / no fighter or mech support"),
-                detailRow("payout", "Payment on victory", SupplyRouteCampaign.freight(mission) ? "6,000 + 4,000 per delivered carrier / maximum 18,000 cr"
-                        : NumberFormat.getIntegerInstance().format(mission.payout) + " credits"));
+                detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.get("missionSelect2SquadsRecommendedAtLeast4Ready")),
+                detailRow("lift", Strings.get("missionSelectCompanyLift"), Strings.get("missionSelect14FittedBoatsTripsFollowThe")),
+                detailRow("opposition", Strings.get("missionSelectOpposition"), Strings.get("missionSelectLocalRaidersNoFighterOrMechSupport")),
+                detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), SupplyRouteCampaign.freight(mission) ? Strings.get("missionSelect60004000PerDeliveredCarrier")
+                        : Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         int multiplier = mission.cashMultiplier & 0xFF;
         if (multiplier <= 0) multiplier = 100;
         long payout = (long) mission.payout * multiplier / 100L;
         boolean opening = OpeningOperationKind.fromMission(mission) != null;
         String lift = opening
-                ? Math.max(0, mission.requiredDrops - mission.employerShuttles) + " company / "
-                    + mission.employerShuttles + " employer sorties"
-                : mission.requiredDrops + (mission.requiredDrops == 1 ? " sortie" : " sorties");
+                ? Strings.format("missionSelectOpeningLift", Math.max(0, mission.requiredDrops - mission.employerShuttles), mission.employerShuttles)
+                : Strings.format("missionSelectSorties", mission.requiredDrops);
         return List.of(
-                detailRow("tier", "Operation scale", mission.tier.displayName),
-                detailRow("presence", "Field presence", mission.fieldPresencePolicy.briefingText()),
-                detailRow("opposition", "Opposition", opening ? "Local bandit militia" : MissionForceEnvelope.oppositionExpectation(mission.risk)),
-                detailRow("lift", "Lift required", lift),
-                detailRow("payout", "Payout", NumberFormat.getIntegerInstance().format(payout) + " credits"));
+                detailRow("tier", Strings.get("missionSelectOperationScale"), tierName(mission.tier)),
+                detailRow("presence", Strings.get("missionSelectFieldPresence"), fieldPresence(mission.fieldPresencePolicy)),
+                detailRow("opposition", Strings.get("missionSelectOpposition"), opening ? Strings.get("missionSelectLocalBanditMilitia") : Strings.get("missionSelectOpposition" + mission.risk.name())),
+                detailRow("lift", Strings.get("missionSelectLiftRequired"), lift),
+                detailRow("payout", Strings.get("missionSelectPayout"), Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(payout))));
     }
 
     private static DetailRow detailRow(String key, String label, String value) {
@@ -461,13 +459,14 @@ public final class MissionSelectScreen implements Screen {
 
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
+        MissionDialogue.put(props, "detail", null);
         putCompanyNews(props, List.of(), () -> { });
         putBroker(props, null);
-        props.put("briefLabel", "BRIEF & DEPLOY");
-        props.put("screenTitle", "Marine Operations");
-        props.put("clientHeader", "Clients");
-        props.put("catalogHeader", "Contracts");
-        props.put("detailHeader", "Dossier");
+        props.put("briefLabel", Strings.get("missionSelectBRIEFDEPLOY"));
+        props.put("screenTitle", Strings.get("missionSelectMarineOperations"));
+        props.put("clientHeader", Strings.get("missionSelectClients"));
+        props.put("catalogHeader", Strings.get("missionSelectContracts"));
+        props.put("detailHeader", Strings.get("missionSelectDossier"));
         props.put("detailImageClasses", "mission-detail-image-wrap surface-dark");
         props.put("detailImage", null);
         return props;
@@ -480,11 +479,11 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putReferral(Map<String, Object> props, OpeningBroker.Destination office, String referral) {
-        props.put("missionEmpty", "Mara Venn handles new companies. Her office is on " + office.label() + ".");
-        props.put("missionSummary", "New company referral / " + OpeningBroker.NAME);
-        props.put("detailKicker", "FIRST CONTRACT LEAD");
-        props.put("detailTitle", "Meet " + OpeningBroker.NAME);
-        props.put("detailMeta", office.label() + " / Independent broker");
+        props.put("missionEmpty", Strings.format("missionSelectOfficeReferral", office.label()));
+        props.put("missionSummary", Strings.format("missionSelectReferralHeader", OpeningBroker.NAME));
+        props.put("detailKicker", Strings.get("missionSelectFIRSTCONTRACTLEAD"));
+        props.put("detailTitle", Strings.format("missionSelectMeet", OpeningBroker.NAME));
+        props.put("detailMeta", Strings.format("missionSelectBrokerLocation", office.label()));
         props.put("detailFlavor", referral);
     }
 
@@ -497,7 +496,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerClasses", contact ? "broker-dossier console-readout" : "broker-hidden");
         props.put("brokerPortrait", contact ? OpeningBroker.PORTRAIT : null);
         props.put("brokerName", contact ? OpeningBroker.NAME : "");
-        props.put("brokerRole", contact ? "INDEPENDENT / WAYLINE COOPERATIVE" : "");
+        props.put("brokerRole", contact ? Strings.get("missionSelectINDEPENDENTWAYLINECOOPERATIVE") : "");
         props.put("brokerIntroduction", contact ? WaylineArc.introduction(roster) : "");
         props.put("brokerProgress", contact ? WaylineArc.progress(roster) : "");
     }
@@ -506,15 +505,15 @@ public final class MissionSelectScreen implements Screen {
         if (context == null) return "";
         String market = context.market != null ? context.market.getName() : null;
         String planet = context.planet != null ? context.planet.getName() : null;
-        String location = market != null ? market : planet != null ? planet : "Unknown market";
-        return location + "  ·  Current local offers";
+        String location = market != null ? market : planet != null ? planet : Strings.get("missionSelectUnknownMarket");
+        return Strings.format("missionSelectLocalOffers", location);
     }
 
     static String missionSummary(Client client, List<Mission> missions) {
-        if (client == null) return "Choose a client to inspect current work.";
-        if (OpeningBroker.isContact(client)) return WaylineArc.TITLE;
+        if (client == null) return Strings.get("missionSelectChooseAClientToInspectCurrentWork");
+        if (OpeningBroker.isContact(client)) return Strings.get("missionSelectWaylineTitle");
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
-            return "Developer catalogue  ·  " + missions.size() + " eligible operation fixtures";
+            return Strings.format("missionSelectDebugCount", missions.size());
         }
         if (MarineOpsContext.isPolityClient(client)) {
             // A polity row is a live raid and nothing else, so a non-empty list is the
@@ -522,8 +521,22 @@ public final class MissionSelectScreen implements Screen {
             return Strings.get(missions == null || missions.isEmpty()
                     ? "postingClientSummary" : "postingClientSummaryRaid");
         }
-        return missions.size() + (missions.size() == 1 ? " current offer" : " current offers")
-                + "  ·  most markets will have none";
+        return Strings.format("missionSelectOfferCount", missions.size());
+    }
+
+    private static String operationName(Mission mission) {
+        if (!SupplyRouteCampaign.owns(mission.id)) return Strings.get(mission.type.displayKey);
+        return Strings.get(SupplyRouteCampaign.freight(mission)
+                ? "missionSelectOperationFreight" : "missionSelectOperationCapture");
+    }
+
+    private static String fieldPresence(FieldPresencePolicy policy) {
+        return policy.limited() ? Strings.format("missionSelectFieldReserve", policy.activeSquadLimit())
+                : Strings.get("missionSelectFieldUnrestricted");
+    }
+
+    private static String tierName(OperationTier tier) {
+        return Strings.get("missionSelectTier" + tier.name());
     }
 
     private static String typeClass(MissionType type) {

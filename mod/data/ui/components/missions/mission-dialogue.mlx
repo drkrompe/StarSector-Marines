@@ -1,0 +1,17 @@
+<template props="turns">
+  <div id="mission-dialogue" class="mission-dialogue">
+    <div each="turn in turns" key="{turn.id}" id="{turn.id}" class="mission-dialogue-turn">
+      <div id="{turn.speakerId}" class="mission-dialogue-speaker-wrap" style="{turn.speakerVisibility}">
+        <div id="{turn.speakerLabelId}" class="label mission-dialogue-speaker" style="{turn.speakerStyle}">{turn.speaker}</div>
+      </div>
+      <div id="{turn.textId}" class="label mission-dialogue-text">{turn.text}</div>
+    </div>
+  </div>
+</template>
+<style>
+  .mission-dialogue { flex-direction: column; height: auto; gap: 5px; }
+  .mission-dialogue-turn { flex-direction: column; height: auto; }
+  .mission-dialogue-speaker-wrap { flex-direction: column; height: auto; padding-bottom: 2px; }
+  .mission-dialogue-speaker { height: auto; white-space: normal; }
+  .mission-dialogue-text { height: auto; white-space: normal; color: #ffffff; }
+</style>
