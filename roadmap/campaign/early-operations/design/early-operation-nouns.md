@@ -19,7 +19,12 @@ withdrawing the work.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
 Cooperative**, an authored local Independent employer. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
-cooperative's local permit is not planetary government authority. Completion of
+basin is the cooperative's shipbreaking yard, disrupted by wreckage from recent
+fighting overhead. Morrow's crew made an emergency landing in their own cradle
+and evacuated; surviving hands return with the repair party. Armed scrappers
+occupy the abandoned yard. That outfit is the opposition, not scavengers as a
+whole; the overhead battle and local claims are mod-authored history.
+The cooperative's local permit is not planetary government authority. Completion of
 the Corvus arc and acknowledgement of its aftermath precede the proposed offer;
 neither Broken Supply Route branch changes eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and

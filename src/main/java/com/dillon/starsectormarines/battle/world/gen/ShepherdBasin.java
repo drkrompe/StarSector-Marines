@@ -47,7 +47,7 @@ public final class ShepherdBasin {
                 new CellTopology(WIDTH, HEIGHT), new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Morrow recovery basin", List.of(ShepherdBasin::grounds,
-                ShepherdBasin::buildings, ShepherdBasin::yards,
+                ShepherdBasin::buildings, ShepherdBasin::yards, ShepherdBasin::shipbreaking,
                 context -> recoveryYard(context, visit),
                 context -> RoadRasterizer.clearReplacedSurfaces(context.topology, WIDTH, HEIGHT),
                 ShepherdBasin::yardSurfaces, ShepherdBasin::terrain, new FinalizeStage(),
@@ -198,6 +198,77 @@ public final class ShepherdBasin {
         }
         // Working Passage leaves the cradle empty for a live Tender, never a
         // second static hull beneath it. Its moving body belongs to battle setup.
+    }
+
+    /** Older sorted stock reads differently from the recent, diagonally strewn wreckage. */
+    private static void shipbreaking(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // North inventory faces the rear service road. Gaps are working aisles,
+        // including a clear strip before the cliff toe at the top of the map.
+        yard.gravel(98, 150, 153, 159);
+        for (int x : new int[]{99, 113, 127, 141}) yard.bay(x, 150, x + 10, 159);
+        yard.prop(101, 151, "basin-scrap-hull-shell", 0);
+        yard.prop(115, 152, "basin-scrap-drive-section", 0);
+        yard.prop(129, 153, "basin-scrap-rib-section", 0);
+        yard.prop(143, 153, "basin-scrap-wreck-frame", 0);
+        yard.prop(156, 155, "stores-cargo-loader", 1);
+
+        // Southern cutting beds connect to the receiving yard via open ground.
+        // No whole recoverable ships: these are sections already stripped for parts.
+        yard.gravel(46, 36, 83, 45);
+        for (int x : new int[]{47, 60, 73}) yard.bay(x, 37, x + 10, 44);
+        yard.prop(49, 38, "basin-scrap-rib-section", 1);
+        yard.prop(62, 38, "basin-scrap-intake-section", 1);
+        yard.prop(75, 38, "basin-scrap-wreck-frame", 1);
+        yard.prop(69, 50, "industrial-machine-tool", 0);
+        yard.prop(75, 50, "industrial-pipe-bundle", 0);
+        yard.prop(81, 50, "industrial-pallet-stack", 0);
+
+        // The active cutting station sits beside, not inside, Morrow's cradle.
+        yard.bay(101, 105, 111, 115);
+        yard.prop(103, 107, "basin-scrap-drive-section", 1);
+        yard.prop(104, 119, "industrial-drum-cluster", 0);
+        yard.prop(108, 119, "industrial-pipe-bundle", 0);
+
+        // Fresh impacts interrupt the old yard pattern. Scars are shallow damage
+        // overlays; each large wreck section separately owns its solid footprint.
+        scar(c, 219, 147, 236, 128, 3.6);
+        yard.prop(230, 124, "basin-scrap-shattered-hull", 1);
+        yard.prop(220, 145, "basin-scrap-plate-stack", 2);
+        scar(c, 207, 35, 235, 42, 3.4);
+        yard.prop(229, 39, "basin-scrap-engine-break", 3);
+        yard.prop(216, 32, "basin-scrap-plate-stack", 1);
+        scar(c, 242, 63, 257, 72, 2.6);
+        yard.prop(249, 66, "basin-scrap-hull-shell", 2);
+
+        // Emergency landing scars lead into the cradle and remain after ascent.
+        // They do not damage the road topology or place collision in a service lane.
+        scar(c, 94, 100, 118, 108, 1.5);
+        scar(c, 97, 97, 119, 104, 1.1);
+        yard.prop(112, 103, "industrial-generator-damaged", 0);
+        yard.prop(149, 104, "industrial-cable-reel-damaged", 0);
+
+        // Abandoned evacuation muster beside the receiving store: crew, not loot.
+        concrete(c, 47, 107, 63, 113);
+        yard.bay(48, 108, 62, 112);
+        yard.prop(49, 109, "medical-supply-trolley", 0);
+        yard.prop(52, 109, "medical-treatment-table", 0);
+        yard.cargo(57, 109);
+    }
+
+    private static void scar(GenContext c, double ax, double ay, double bx, double by, double radius) {
+        double dx = bx - ax, dy = by - ay, lengthSquared = dx * dx + dy * dy;
+        for (int y = (int) Math.floor(Math.min(ay, by) - radius); y <= Math.ceil(Math.max(ay, by) + radius); y++)
+            for (int x = (int) Math.floor(Math.min(ax, bx) - radius); x <= Math.ceil(Math.max(ax, bx) + radius); x++) {
+                if (!c.grid.inBounds(x, y) || !c.grid.isWalkable(x, y)
+                        || c.topology.hasBuildingKindHint(x, y)) continue;
+                double t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / lengthSquared));
+                double px = x - ax - t * dx, py = y - ay - t * dy;
+                if (px * px + py * py <= radius * radius) {
+                    c.topology.setTag(x, y, CellTopology.Tag.GROUND_DAMAGED, true);
+                    c.markMadeGround(x, y);
+                }
+            }
     }
 
     private static void terrain(GenContext c) {
