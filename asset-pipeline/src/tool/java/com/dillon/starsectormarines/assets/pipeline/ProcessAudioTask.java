@@ -90,10 +90,10 @@ public final class ProcessAudioTask {
                     + "alimiter=limit=0.89:level=false:latency=true"));
         }
         if (processing == AudioManifest.Processing.AIR_COMMS) {
-            // Lower the pilot two semitones (2^(-2/12)) without slowing his phrase timing.
+            // Lower the pilot one semitone (2^(-1/12)) without slowing his phrase timing.
             // Narrow cockpit radio, with a driven microphone.
             // Filter again after saturation so its harmonics do not restore the clean high end.
-            options.addAll(List.of("-af", "rubberband=tempo=1:pitch=0.890898718:channels=together,"
+            options.addAll(List.of("-af", "rubberband=tempo=1:pitch=0.943874313:channels=together,"
                     + "highpass=f=420:p=2,lowpass=f=2500:p=2,"
                     + "acompressor=threshold=0.06:ratio=6:attack=3:release=70:makeup=3,"
                     + "asoftclip=type=tanh:threshold=0.38:oversample=4,volume=3,"
