@@ -644,14 +644,14 @@
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
       "battle": {
-        "appearanceFamily": "ARMY_GREEN",
+        "appearanceFamily": "ARBALEST_HEAVY",
         "armorCapacity": 50.0,
         "armorRating": 11.0,
         "moveSpeedMult": 0.84,
         "incomingAccuracyMult": 0.99,
         "integralSystem": {
           "id": "system.battery-volley",
-          "mount": { "rightCells": -0.1606531, "forwardCells": -0.0129148, "muzzleForwardCells": 0.0912 },
+          "mount": { "rightCells": -0.2249142, "forwardCells": 0.0346128, "muzzleForwardCells": 0.12768 },
           "presentation": {
             "carrierLayer": {
               "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
@@ -777,6 +777,141 @@
           "restoredHealth": 22.0,
           "durationSeconds": 1.5,
           "startingAmmo": 5
+        }
+      }
+    },
+    {
+      "id": "armor.specter-recovered",
+      "catalog": {
+        "displayName": "@gearCatalogArmorSpecterRecoveredDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "tritachyon",
+        "description": "@gearCatalogArmorSpecterRecoveredDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": {
+        "appearanceFamily": "SPECTER_HEAVY",
+        "armorCapacity": 36.0,
+        "armorRating": 8.0,
+        "moveSpeedMult": 0.9,
+        "incomingAccuracyMult": 0.94,
+        "integralSystem": {
+          "id": "system.predictive-breach",
+          "presentation": {
+            "carrierLayer": {
+              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
+              "attachment": "left-shoulder",
+              "widthShoulders": 0.32,
+              "heightShoulders": 0.4,
+              "pivot": [
+                0.5,
+                0.5
+              ],
+              "carried": {
+                "offsetShoulders": [
+                  -0.13,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "using": {
+                "offsetShoulders": [
+                  -0.13,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "visibleWhileCarried": true
+            }
+          },
+          "grade": "service",
+          "displayName": "@gearCatalogSystemPredictiveBreachDisplayName",
+          "description": "@gearCatalogSystemPredictiveBreachDescription",
+          "effect": "breacher-assist",
+          "policy": "exposed-under-fire",
+          "incomingPressureThreshold": 1.5,
+          "maxCoverLevel": 1,
+          "resource": "cooldown",
+          "durationSeconds": 1.5,
+          "cooldownSeconds": 18.0,
+          "moveSpeedMult": 1.25,
+          "screenSoak": 3.0,
+          "shieldedArcDegrees": 100.0
+        }
+      }
+    },
+    {
+      "id": "armor.arbalest-recovered",
+      "catalog": {
+        "displayName": "@gearCatalogArmorArbalestRecoveredDisplayName",
+        "role": "support",
+        "armorClass": "power-suit",
+        "tradition": "hegemony",
+        "description": "@gearCatalogArmorArbalestRecoveredDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": {
+        "appearanceFamily": "ARBALEST_HEAVY",
+        "armorCapacity": 34.0,
+        "armorRating": 9.0,
+        "moveSpeedMult": 0.8,
+        "incomingAccuracyMult": 1.02,
+        "integralSystem": {
+          "id": "system.battery-volley",
+          "mount": {
+            "rightCells": -0.2249142,
+            "forwardCells": 0.0346128,
+            "muzzleForwardCells": 0.12768
+          },
+          "presentation": {
+            "carrierLayer": {
+              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
+              "attachment": "left-shoulder",
+              "widthShoulders": 0.32,
+              "heightShoulders": 0.48,
+              "pivot": [
+                0.5,
+                0.5
+              ],
+              "muzzle": [
+                0.5,
+                0.1041666667
+              ],
+              "carried": {
+                "offsetShoulders": [
+                  -0.1,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "using": {
+                "offsetShoulders": [
+                  -0.1,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "visibleWhileCarried": true
+            }
+          },
+          "grade": "service",
+          "displayName": "@gearCatalogSystemBatteryVolleyDisplayName",
+          "description": "@gearCatalogSystemRecoveredBatteryVolleyDescription",
+          "effect": "missile-pod",
+          "resource": "ammunition",
+          "policy": "sighted-standoff-contact",
+          "minimumStandoffCells": 6.0,
+          "squadSalvoIntervalSeconds": 1.5,
+          "durationSeconds": 1.0,
+          "startingAmmo": 2,
+          "weaponId": "weapon.micro-missile"
         }
       }
     }

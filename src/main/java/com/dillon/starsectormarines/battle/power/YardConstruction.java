@@ -16,6 +16,9 @@ public final class YardConstruction extends CommandPower {
         this.source = source;
     }
 
+    /** Exact mission-owned drone bay; UI association does not grant another source access. */
+    public Tender source() { return source; }
+
     @Override public boolean canTarget(int x, int y, BattleView battle) {
         if (!super.canTarget(x, y, battle) || !source.anchorAlive()) return false;
         if (source.metered() && source.stock() < BuildOption.VULCAN_TURRET.cost()) return false;

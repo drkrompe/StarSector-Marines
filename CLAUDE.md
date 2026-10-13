@@ -195,6 +195,13 @@ Do not run builds or leave generated task files there.
   1920x1080 PNGs at the final arrival.
   It is not a live campaign save or a full-mission balance replay. Broker/HQ flow
   evidence uses `createSnapshots -Psnapshot=supply-route` at 100% scale.
+  `-Pmission=power-suit-campaign` checks a detached twelve-person mixed section:
+  explicit recovered-template acquisition, ordinary fitting, two six-seat ferry
+  trips, real combat, personnel writeback and Java roster serialization. It
+  writes `build/reports/commander/power-suit-campaign/summary.json` and explicitly
+  leaves live Starsector save/reload and host settlement receipts unverified.
+  Default observation is 9000 ticks; an unresolved fight ends with controlled
+  retreat. This is equipment-loop evidence, not acceptance of a story reward.
   `-Pmission=corvus` plays the three fixed Corvus chapters with their recommended
   named companies, starter squad equipment and recovered chaingun-only Hound.
   It requests normal Mech Support at the first legal pad, then leaves command
@@ -1102,6 +1109,7 @@ The discovered suite ids and default output directories are:
 | Suite | Evidence | Output |
 |-------|----------|--------|
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
+| `ship-command-ui` | Production ship selector and contextual build tray at 1920×1080/100%, remote Move/Hold/Auto, physical turret construction, takeover handback and Cold Start's grounded power gate; controlled fixtures, not Working Passage or campaign ownership acceptance | `build/snapshots/ship-command-ui/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `pod-battle` | Actual catalog Arbalest missile-pod launches alongside Legionary infantry and Hound, movement and primary combat verdicts; 1920x1080 at 100% scale, normal and closer lossless PNG sequences at 15 fps plus launch detail at 30 fps | `build/snapshots/pod-battle/` |
 | `equipment-mounts` | Catalog-equipped Aegis and Arbalest missile pods, Specter emitter, Legionary control, articulation and weapon clearance; enlarged and normal world-scale samples with twelve lossless frames at 1920x1080, 100% scale | `build/snapshots/equipment-mounts/` |

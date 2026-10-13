@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — bounded exchange evidence exists; mission balance, live persistence, and final art remain unverified.
 Written: 2026-10-13
-Updated: 2026-10-13 — Specter shoulder layers included in compositor and battle evidence.
+Updated: 2026-10-13 — playable recovered/military pairs and mixed issue support campaign testing; story introduction is reserved until after Shepherd acquisition.
 
 Read `progression-nouns.md`, `personnel-nouns.md`, `combat-durability-nouns.md`,
 `role-and-access.md`, and `power-suit-infantry.md` before this acceptance pass.
@@ -65,7 +65,35 @@ body shadows and shots, without battle HUD, selection markers, fog, or GL
 terrain relief. This makes silhouette and gait review reproducible, while
 crowded mission readability and live-host acceptance remain open.
 
+The retained `pod-battle-normal.mp4`, `pod-battle-closer.mp4` and
+`pod-battle-detail.mp4` use the same native-resolution contract for Arbalest's
+olive layered shell beside regular marines and a Hound. Its shoulder-mounted
+missiles originate at the authored pod muzzle. The detail clip repeats one
+second of a real launch five times; the wider clips show the twelve-second
+exchange and the squad's staggered salvos.
+
 ## Acceptance
+
+For the current development build, Intel > Marines Debug > Power-suit test
+technology explicitly learns either the two recovered templates or the two
+military templates. This is permanent test acquisition, not a campaign reward;
+it does not refit named soldiers. Fit through the ordinary Armory and use a real
+campaign operation when checking settlement and live save/reload. The
+Salvage-assisted Section issues eight regular billets, two assault suits and
+two support suits. Full suit sheets remain available when their class is owned.
+
+`commanderEvidence -Pmission=power-suit-campaign` checks a detached named mixed
+section through ordinary equipment issue, ferry lift, combat, personnel
+writeback and Java roster serialization. Its report separately names the live
+Starsector save and host settlement receipt that it cannot verify. It is not
+permission to call the full live loop accepted.
+
+The narrative unlock remains open: finish Shepherd departure/fleet handover,
+then author an expedition to a new world or system that introduces recovered
+frames before military issue. `storySource: post-shepherd-power-suits` reserves
+ownership of the recovered rewards and keeps them out of random acquisition;
+it does not create a mission or prove that its reward has shipped. Existing
+military acquisitions are retained for compatibility until that story pass.
 
 - Compare one POWER_SUIT squad with two STANDARD squads under concentrated
   fire, matched weapons and visible issued quality, and identical objectives.

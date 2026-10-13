@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — takeover retains a bounded objective readout and public world locators.
+Updated: 2026-10-13 — remote ship selection and construction share strategic input; takeover retains mission readouts.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -685,6 +685,36 @@ chose a time setting during control. Window focus loss, screen detach, battle
 completion, or simulation release exits control and clears held input. The plate
 and input host project the battle-owned session; neither owns unit movement,
 eligibility, damage, or squad membership.
+
+### Remote ship commands
+
+Strategic mode has a compact ship selector above the lower-left selection area.
+Each entry projects an exact friendly ship already in the battle, its existing
+hull image, condition and current activity. Choosing it changes selection without
+taking the helm. Its contextual action tray replaces the bottom-center fleet
+power tray; returning to company selection restores that tray and its current
+resources. Ground squad and ship selection remain mutually exclusive.
+
+Right-click sends a selected mobile ship to observed ground. Move also arms a
+next-click destination; Hold retains the current position and Auto returns travel
+to the mission. Ordinary firing and survival remain active. A selected tender
+adds catalog images for its real construction options, plus cancellation and
+defense-drone deployment. Build selects a plot through the existing drone work
+rules; it never conjures a turret. Hints explain unavailable actions and rejected
+locations. The chosen hull and its accepted destination remain marked in the world.
+
+Only one placement mode owns the next world click. Right-click or Escape cancels
+armed placement, as do changing selection, taking the helm and losing the host.
+An invalid plot remains armed without consuming stock. Hidden trays release focus
+and cannot intercept world input. Ship orders cross a simulation-owned mailbox;
+the picture and targeting preview do not move ships or spend construction stock.
+
+A grounded mission tender appears when the mission activates its drone bay. It
+shows its grounded state and exposes only that mission's authorized construction
+power; its selector does not grant flight or the mobile tender's broader catalog.
+Remote commands do not extend a called ship's permitted station time. Tab remains
+the separate direct-control toggle, and returning from piloting resumes the
+previously accepted remote task.
 
 ## Vertical scrolling
 

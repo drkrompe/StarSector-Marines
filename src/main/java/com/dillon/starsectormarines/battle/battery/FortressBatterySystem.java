@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.battery;
 
+import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -67,11 +70,23 @@ public final class FortressBatterySystem {
         if (aim == null) return;
         long id = battery.structureId();
         float bearing = TurretAim.bearingTo(battery.x(), battery.y(), aim.x, aim.y);
-        float rate = battery.structure().mount.turnRateDegPerSec * dt;
+        float traverse = battery.fort() == null ? 1f : battery.fort().gunRate(battery.owner());
+        float rate = battery.structure().mount.turnRateDegPerSec * dt * traverse;
         sim.turretState().setFacingDegrees(id, TurretAim.slewToward(sim.turretState().facingDegrees(id), bearing, rate));
     }
 
     private static void tickFireControl(float dt, BattleSimulation sim, FortressBattery battery) {
+        Fort.Place bunker = battery.fort() == null ? null : battery.fort().place(FortAspect.FIRE_CONTROL);
+        if (bunker != null) {
+            // In a fort fire control is held where it is housed: inside the bunker, not in a ring round the guns.
+            // A wrecked bunker is held by nobody, and the guns have nothing to obey.
+            if (!bunker.wrecked()) {
+                FortSystem.Presence there = FortSystem.scan(sim, battery.owner(), bunker);
+                battery.fireControl().tick(dt, there.holderPresent(), there.hostile());
+            }
+            followHolder(sim, battery);
+            return;
+        }
         float r = battery.structure().fireControlRadius;
         float rSq = r * r;
         Faction holder = battery.owner();
@@ -88,7 +103,11 @@ public final class FortressBatterySystem {
             else if (holder.hostileTo(faction) && hostile == null) hostile = faction;
         }
         battery.fireControl().tick(dt, holderPresent, hostile);
-        // The structure changes sides with its fire control, so its old side's enemies stop shooting it.
+        followHolder(sim, battery);
+    }
+
+    /** The structure changes sides with its fire control, so its old side's enemies stop shooting it. */
+    private static void followHolder(BattleSimulation sim, FortressBattery battery) {
         if (sim.identity().faction(battery.structureId()) != battery.owner()) {
             sim.followStructureHolder(battery.structureId(), battery.owner());
         }
@@ -105,7 +124,9 @@ public final class FortressBatterySystem {
         gun.target = null;
     }
 
-    private void tickGun(float dt, BattleSimulation sim, FortressBattery battery, FortressBattery.Gun gun) {
+    private void tickGun(float tickDt, BattleSimulation sim, FortressBattery battery, FortressBattery.Gun gun) {
+        // A fort whose power is not the guns' own slows how fast they lock, cycle and traverse.
+        float dt = battery.fort() == null ? tickDt : tickDt * battery.fort().gunRate(battery.owner());
         gun.cooldown -= dt;
         if (!battery.operational()) {
             silence(gun);
@@ -122,6 +143,12 @@ public final class FortressBatterySystem {
             }
             gun.burstTimer -= dt;
             if (gun.burstTimer > 0f) return;
+            if (battery.fort() != null && !battery.fort().takeRound(battery.owner())) {
+                // The magazine is not feeding the guns and the ready rounds are spent: the burst ends here.
+                gun.burstRemaining = 0;
+                gun.cooldown = Math.max(gun.cooldown, MIN_CYCLE_SECONDS);
+                return;
+            }
             if (sim.warships().fireFromGround(gun.weapon, battery.owner(), battery.x(), battery.y(), target) >= 0f) {
                 gun.shotsFired++;
                 sim.turretState().setRecoilTimer(battery.structureId(), 0f);
