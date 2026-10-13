@@ -279,11 +279,22 @@ All learned infantry equipment is freely fitted and swapped by the Machine Shop.
 No supplies, armaments, machinery, or credits are charged for fitting; technology
 acquisition remains the progression gate. Workshop restoration does not gate fitting.
 
-After Relief, the debrief prominently announces the available equipment upgrade
-and opens Castle's lesson directly. The notice remains on later non-debug
-results while the lesson is unfinished. Armory returns to that debrief without
-settling or forfeiting any pending salvage; ordinary settlement actions retain
-their existing ownership.
+After Relief, Castle's portrait reward prompt appears over the debrief before its
+ordinary controls accept input. It leads with the free technology, shows the actual
+Stalwart/Lancer/Janus art, and offers compact **Choose Free Technology** and **Later**
+actions. Escape defers only the prompt; it never dismisses or settles the debrief.
+The prompt does not learn technology. Its primary action opens the full comparison;
+a company with one line squad has that squad selected automatically.
+
+Accepting or deferring the handoff acknowledges this presented outcome, so returning
+from the Armory does not immediately repeat it. An unfinished lesson can be prompted
+on the next non-debug debrief; completion ends the reminders. An accepted transfer
+instead offers **Fit Free Equipment**. The persistent debrief/HQ notice remains a
+resume route. Narration waits until the reward prompt is dismissed or the player
+returns. Pending salvage remains untouched across this handoff.
+
+Reward, fit, and navigation actions use compact buttons in action rows, never
+full-width acceptance bars. The two equipment choices remain comparison cards.
 
 The player selects an actual line squad, compares either path without learning it,
 then explicitly accepts one technology transfer. The review shows twelve clickable equipment squares in three fire-team columns of
