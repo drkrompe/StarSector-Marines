@@ -88,12 +88,13 @@ public final class ShipConditionOverlay {
         for (var room : ship.rooms().compartments()) {
             UiElement marker = markup.requireElement("survey-room-" + room.id());
             Rect anchor = deck.markerBounds(room, metrics);
-            anchors.put(room.id(), anchor);
+            anchors.put(room.id(), deck.roomBounds(room, metrics));
             markers.put(marker, room.id());
             marker.onClick(() -> select(room.id()));
             if (bounds.contains(anchor.x(), anchor.y()) && anchor.right() <= bounds.right() && anchor.bottom() <= bounds.bottom()) {
                 style(marker, position(anchor.x() - bounds.x(), anchor.y() - bounds.y())
-                        + "opacity: 1; pointer-events: auto; transition: none;");
+                        + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; ", anchor.width(), anchor.height())
+                        + "opacity: 1; pointer-events: auto; transition: none; background-color: transparent; background-image: none;");
             } else style(marker, HIDDEN);
         }
         power.onClick(() -> select(-1));

@@ -1320,8 +1320,9 @@ screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
 **Engineering** is the persistent ship-condition navigation tab, reached from
 every company room and Armory subview. It contains the former Walk the Ship
-room-condition survey. Compact SVG badges mark the actual compartments with sealed,
-damaged, faulty-power or working status. Hovering a room or badge opens a bounded
+room-condition survey. Small SVG glyphs straddle compartment walls with sealed,
+damaged, faulty-power or working status. They have no opaque tiles and shrink for
+small rooms so furnishings remain visible. Hovering a room or glyph opens a bounded
 inspection card beside it; selecting pins that card for interaction without changing
 the camera. The card retains Castle's portrait, condition, working benefit, bill and
 reviewed repair action. Moving into its controls keeps it open; Close, Escape or

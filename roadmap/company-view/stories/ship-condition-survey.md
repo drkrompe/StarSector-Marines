@@ -39,7 +39,8 @@ future launches without undoing that hull's paid repair.
 
 ## Acceptance
 
-- [x] Production Engineering overlay evidence covers compact markers, hover-to-card
+- [x] Production Engineering overlay evidence covers transparent wall glyphs sized
+      to leave small rooms visible, hover-to-card
       continuity, pinned reviewed orders, close, workshop inspection, pan/zoom alignment
       and viewport bounds at 150%. `engineering-overlays` renders the overview and
       expanded cards at 1920x1080, 100% scale.

@@ -103,11 +103,9 @@
   .condition-panel { position: absolute; left: 0px; top: 0px; flex-direction: column; width: 370px; height: auto; padding: 16px; gap: 10px; border-width: 2px; border-color: #b99f65; background-color: #18221f; overflow: scroll; opacity: 0; pointer-events: none; }
   .survey-heading { position: absolute; left: 14px; top: 12px; width: 620px; height: 24px; pointer-events: none; }
   .survey-power { position: absolute; left: 14px; top: 42px; width: 290px; height: 32px; padding: 3px 8px; }
-  .survey-room { position: absolute; left: 0px; top: 0px; width: 28px; height: 28px; padding: 2px; border-width: 1px; border-color: #64746d; background-color: #14201e; opacity: 0; pointer-events: none; }
-  .survey-room.selected { border-color: #e3bd70; background-color: #374137; }
-  .survey-room:hover { border-color: #e3bd70; background-color: #374137; }
-  .survey-room { transition: background-color 140ms ease-out, border-color 140ms ease-out; }
-  .survey-icon { width: 28px; height: 28px; pointer-events: none; }
+  .survey-room { position: absolute; left: 0px; top: 0px; width: 22px; height: 22px; padding: 0px; border-width: 0px; background-color: transparent; background-image: none; opacity: 0; pointer-events: none; }
+  .survey-room.selected, .survey-room:hover, .survey-room:active, .survey-room:focus-visible { background-color: transparent; background-image: none; }
+  .survey-icon { width: 100%; height: 100%; pointer-events: none; }
   .survey-markers { position: absolute; left: 0px; top: 0px; width: 0px; height: 0px; overflow: visible; }
   .survey-card-header { flex-direction: row; width: 100%; height: 26px; align-items: center; }
   .survey-card-hint { width: 0px; flex-grow: 1; height: 20px; }
