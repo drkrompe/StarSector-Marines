@@ -64,6 +64,45 @@ class GoapMechBehaviorPlayerOrderTest {
                 lance.currentPlan.currentStep().action);
     }
 
+    /**
+     * A mech's weapons are triggered by the mech fire pass, and a marine's
+     * shot is queued through a fire intent the mech never reads. Area defence
+     * is written for both, so it has to pull the mech's own trigger: a Hound
+     * ordered to hold a circle used to stand in it while an enemy walked up.
+     */
+    @Test
+    void aMechHoldingAnAreaFiresOnAnEnemyInsideIt() {
+        BattleSimulation sim = openSimulation(80, 48);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long hound = spawn(sim, squadId, MechVariant.HOUND,
+                MechRole.BALANCED, 30, 20);
+        Squad lance = sim.getSquad(squadId);
+        lance.leaderId = hound;
+        lance.aliveMembers = 1;
+        lance.originalSize = 1;
+        lance.centroidX = 30.5f;
+        lance.centroidY = 20.5f;
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER,
+                UnitType.MARINE, 34, 20));
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        sim.getSquadMoveOrderService().requestDefendArea(squadId, 30, 20);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        assertTrue(lance.hasPlayerOrder(AssignmentKind.DEFEND_AREA),
+                "the order has to land on the lance or the test proves nothing");
+        var loadout = sim.world().mechLoadout(hound);
+        loadout.torsoAimTargetId = enemy;
+        loadout.torsoOnTarget = true;
+
+        new DefendArea(30, 20, lance.assignmentForExecution().targetRadiusCells())
+                .execute(hound, lance, sim);
+
+        boolean fired = false;
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount != null && mount.cycleRemaining > 0f) fired = true;
+        }
+        assertTrue(fired, "the Hound fires on an enemy four cells from its post");
+    }
+
     private static long spawn(BattleSimulation sim, int squadId,
                               MechVariant variant, MechRole role,
                               int x, int y) {
