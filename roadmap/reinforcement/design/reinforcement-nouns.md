@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — retryable preparation includes admission before expensive proof allocation; its wait is not a fixed search-attempt quotient.
+Updated: 2026-10-13 — a commander-called mech drop is a paid delivery claimed for its caller, neither a means nor an arrival policy.
 
 Earlier 2026-09-03 — a derived lift is floored at the shape it replaces, so sizing it can never hand back less than the standing ferry.
 
@@ -153,6 +153,21 @@ not a sizing, so the fallback is its floor. For a force under that threshold the
 two shapes are then the same shape, and turning the derivation on is a battle
 identical to leaving it off, which is the honest answer for a force the ferry
 already carries.
+
+**A commander-called drop is neither a means nor an arrival policy.** A side's
+commander may call a mech lance down on its own authority, paid from a
+mission-declared allowance rather than a reinforcement ticket or the player's
+command points. It is not a means: it is not selected against anything, owes no
+arrival estimate and consults no supply gate, because the mission already
+decided the side may have it. It is not an arrival policy either: it answers a
+call made during the battle rather than delivering what was committed before the
+first tick. It borrows the law every producer of battle actors obeys and the
+claim rule above: the lance flies in the same Valkyrie and unloads through the
+same payload as the player's Mech Support, **is claimed for the commander that
+called it**, and so lands as an ordinary machine squad that commander plans.
+Its descent follows the calling side's own arrival policy (orbital for marines,
+the nearest map edge for any other). The allowance is spent only on a committed
+call, and a call with no viable ground near the drop zone spends nothing.
 
 The installed means set is defender-only: convoy, shuttle, and walk-in. Which one answers a given request is decided by arrival estimate, and each is honest about a different cost. A convoy owes its staging delay and a drive that bends round city blocks. A sortie flies three or four times a truck's speed but does not leave an authored field until a crew has walked out to the ramp, and counting that walk is what keeps air the answer to a call the trucks cannot reach in time rather than the answer to all of them. A walk-in owes the whole march on foot, which is why it reads as the floor without being placed there — it wins on merit only when the position needing force is close enough to the rear that walking is genuinely quickest, and otherwise arrives when nothing else can come at all.
 

@@ -24,6 +24,8 @@ import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -825,6 +827,37 @@ class BattleFixtureJsonTest {
         encoded.getJSONObject("targetProfile").remove("declaredForts");
         TargetProfile legacy = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
         assertEquals(0, legacy.declaredDefences().fortCount(FortKind.SHIELD_FORT));
+    }
+
+    /** A mission's mech-lance allowances survive a replay by side; a fixture without them reads as none. */
+    @Test
+    void roundTripsDeclaredMechDrops() throws Exception {
+        TargetProfile dropping = TargetProfile.NEUTRAL.withDeclaredMechDrops(MechDropDeclaration.NONE
+                .with(Faction.MARINE, new MechDropAllowance(2,
+                        List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO)).calledAtTick(300))
+                .with(Faction.DEFENDER, new MechDropAllowance(1, List.of(MechVariant.HOUND))));
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                9_125L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4, dropping, false);
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        JSONObject marines = encoded.getJSONObject("targetProfile").getJSONObject("declaredMechDrops")
+                .getJSONObject("MARINE");
+        assertEquals(2, marines.getInt("lances"));
+        assertEquals(300, marines.getInt("debugCallTick"));
+        TargetProfile decoded = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(dropping, decoded);
+        assertEquals(MechDropAllowance.NO_DEBUG_CALL,
+                decoded.declaredMechDrops().forSide(Faction.DEFENDER).debugCallTick());
+
+        // Nothing declared: nothing is written, and a fixture without the key (legacy) reads as none.
+        JSONObject plain = BattleFixtureJson.toJson(new CivilianRescueBattleFixture(
+                9_126L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4, TargetProfile.NEUTRAL, false));
+        assertFalse(plain.getJSONObject("targetProfile").has("declaredMechDrops"));
+        encoded.getJSONObject("targetProfile").remove("declaredMechDrops");
+        TargetProfile legacy = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(MechDropDeclaration.NONE, legacy.declaredMechDrops());
     }
 
     /** A mission's fort siting survives a replay; a fixture without it reads as leftover ground. */
