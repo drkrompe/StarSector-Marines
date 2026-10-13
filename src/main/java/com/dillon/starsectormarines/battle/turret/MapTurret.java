@@ -22,8 +22,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * <p>Stats come from the installed structure definition at construction; the mount cell is
  * flagged non-walkable on the {@link com.dillon.starsectormarines.battle.nav.NavigationGrid}
  * by {@link BattleSetup} before the sim is built (same pattern vehicles use).
- * On death, {@link BattleSimulation} flips the cell to walkable + rubble so
- * a destroyed turret stops blocking pathing and LOS.
+ * On death, {@link BattleSimulation} flips ordinary ground to walkable rubble.
+ * An authored summit mount leaves the impassable natural terrain beneath it intact.
  *
  * <p>A plain config/factory class, <b>not</b> an {@code Entity} subclass — the
  * turret's live per-instance state ({@code facingDegrees}/{@code recoilTimer}/

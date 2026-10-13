@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -34,13 +35,13 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
         InstalledHullSpecs.install(); InstalledWeaponSlots.install(); InstalledVanillaData.install();
         try {
             List<SceneReport> reports = new ArrayList<>();
-            for (boolean cleared : new boolean[]{false, true}) reports.add(playOne(frames, cleared));
+            for (String loop : List.of("live-batteries", "eastern-battery", "cleared-batteries")) reports.add(playOne(frames, loop));
             return reports;
         } finally { TurretSlotResolver.useHullSpecs(null); }
     }
 
-    private SceneReport playOne(FrameSink frames, boolean cleared) {
-        String loop = cleared ? "cleared-batteries" : "live-batteries";
+    private SceneReport playOne(FrameSink frames, String loop) {
+        boolean cleared = loop.equals("cleared-batteries"), eastern = loop.equals("eastern-battery");
         var profile = new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
         var layout = ThunderRunCompound.generate(cleared ? 9302 : 9301, profile);
         var map = layout.map();
@@ -53,9 +54,9 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
                 long gun = sim.spawn(MapTurret.create("ridge-" + post.x(), Faction.DEFENDER,
                         TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, post.x(), post.y()));
                 guns.add(gun);
-                if (cleared) sim.applyDamage(gun, 10000f, 100f);
+                if (cleared || eastern && post.equals(ThunderRunCompound.ANTI_AIR_POSTS.get(0))) sim.applyDamage(gun, 10000f, 100f);
             }
-            long aircraft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, 126, 75, -12, 75, -12, 75);
+            long aircraft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, eastern ? 190 : 126, 75, -12, 75, -12, 75);
             var mission = sim.world().mission(aircraft);
             mission.orbitSecondsLeft = 70f;
             // Keep this isolated AA acceptance about the batteries, not the gunship's target choices.
@@ -76,7 +77,8 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
                 sim.advance(BattleSimulation.TICK_DT);
             }
             return new SceneReport(id(), loop, 3000, List.of(
-                    Verdict.of("ridge-access", true, "Generation proves all settlement interiors and battery approaches connected"),
+                    Verdict.of("batteries-on-inaccessible-summits", hillMountsIntact(sim),
+                            "Full summit footprints remain natural-solid and impassable, including after battery destruction"),
                     Verdict.of(cleared ? "clearing-preserves-kestrel" : "missiles-can-down-kestrel",
                             cleared ? !mission.destroyed && launches == 0 : mission.destroyed && launches > 0 && curvedSamples > 0,
                             "destroyed=" + mission.destroyed + ", launches=" + launches + ", guided samples=" + curvedSamples),
@@ -84,5 +86,14 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
                             "first launch=" + firstLaunch + ", first damage=" + firstDamage)),
                     Map.of("launches", launches, "guidedSamples", curvedSamples, "firstDamageTick", firstDamage));
         }
+    }
+
+    private static boolean hillMountsIntact(BattleSimulation sim) {
+        for (var post : ThunderRunCompound.ANTI_AIR_POSTS)
+            for (int y = post.y() - 1; y <= post.y() + 1; y++) for (int x = post.x() - 1; x <= post.x() + 1; x++) {
+                if (sim.getGrid().isWalkable(x, y) || !sim.getGrid().hasTag(x, y, CellTag.NATURAL_SOLID)
+                        || !sim.getTopology().terrainSurface().isFullSummit(x, y)) return false;
+            }
+        return true;
     }
 }
