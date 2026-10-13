@@ -260,7 +260,7 @@ final class BattleDirectControlStatus {
             if (mount == null) continue;
             WeaponDef weapon = mount.weaponDef();
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
-                    mount.component.displayName, behavior(weapon, mount.component.projectilesPerTrigger),
+                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger),
                     HeavyWeapons.supportsPointFire(mount), mount.cycleRemaining, mount.component.cycleSeconds(),
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
@@ -274,7 +274,7 @@ final class BattleDirectControlStatus {
 
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount) {
         WeaponDef weapon = mount.weapon;
-        return new WeaponStatus(1, "TURRET", weapon.displayName, behavior(weapon, weapon.burstCount),
+        return new WeaponStatus(1, "TURRET", weapon.displayName(), behavior(weapon, weapon.burstCount),
                 !weapon.indirectFire && weapon.arcHeight == 0f
                         && Float.isFinite(weapon.range) && weapon.range > 0f,
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,

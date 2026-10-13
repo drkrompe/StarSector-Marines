@@ -218,7 +218,7 @@ public final class FabricationSystem {
         // indistinguishable from one that was already on the map.
         sim.world().attachMechLoadout(unit, FactionMechLoadouts.create(
                 chassis, chassis.defaultRole, works.factionId()));
-        LOG.info("FabricationSystem: " + builder + " " + chassis.displayName
+        LOG.info("FabricationSystem: " + builder + " " + chassis.displayName()
                 + " rolled out of the bay at " + stocks.centerX + "," + stocks.centerY);
         return true;
     }

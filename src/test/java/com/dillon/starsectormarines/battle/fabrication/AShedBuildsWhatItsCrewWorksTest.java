@@ -213,7 +213,7 @@ class AShedBuildsWhatItsCrewWorksTest {
         assertTrue(shed.works.bays().get(0).chassis.maxStructure
                         <= FabricationService.FIELD_SHED_STRUCTURE_LIMIT,
                 "the shed has laid a keel for a "
-                        + shed.works.bays().get(0).chassis.displayName);
+                        + shed.works.bays().get(0).chassis.displayName());
     }
 
     /**

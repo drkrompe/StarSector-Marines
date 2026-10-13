@@ -69,7 +69,7 @@ class AShedBuildsItsOwnFactionsMachinesTest {
 
         for (MechVariant chassis : tooling("hegemony")) {
             assertTrue(chassis.maxStructure <= FabricationService.FIELD_SHED_STRUCTURE_LIMIT,
-                    "a field shed is tooled for the " + chassis.displayName
+                    "a field shed is tooled for the " + chassis.displayName()
                             + ", which is a yard's work");
         }
     }
@@ -89,7 +89,7 @@ class AShedBuildsItsOwnFactionsMachinesTest {
         assertFalse(neutral.isEmpty(), "a shed with no doctrine behind it builds nothing at all");
         for (MechVariant chassis : neutral) {
             assertTrue(chassis.maxStructure <= FabricationService.FIELD_SHED_STRUCTURE_LIMIT,
-                    "the fallback offers the " + chassis.displayName + " to a field shed");
+                    "the fallback offers the " + chassis.displayName() + " to a field shed");
         }
         assertTrue(neutral.contains(MechVariant.HOUND) && neutral.contains(MechVariant.SIROCCO),
                 "the fallback is not the light catalogue but " + neutral);

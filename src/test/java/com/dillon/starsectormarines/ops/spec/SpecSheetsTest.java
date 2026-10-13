@@ -69,7 +69,7 @@ class SpecSheetsTest {
 
         assertEquals(rifle.catalogName(EquipmentGrade.MILSPEC), milspec.title());
         assertTrue(milspec.subtitle().contains(rifle.designation(EquipmentGrade.MILSPEC)));
-        assertTrue(milspec.subtitle().contains(EquipmentGrade.MILSPEC.displayName));
+        assertTrue(milspec.subtitle().contains(EquipmentGrade.MILSPEC.displayName()));
         assertEquals(SpecSheets.ACCENT_WEAPON, milspec.accent());
         assertEquals(rifle.catalogFactionLogo, milspec.crestPath());
         assertEquals(List.of("DMG", "RNG", "ACC", "DPS"),
@@ -168,7 +168,7 @@ class SpecSheetsTest {
     void everyMechVariantHasAFieldNoteAndFiveMeters() {
         for (MechVariant variant : MechVariant.values()) {
             SpecSheet sheet = SpecSheets.mech(variant);
-            assertEquals(variant.displayName, sheet.title());
+            assertEquals(variant.displayName(), sheet.title());
             assertEquals(SpecSheets.ACCENT_MECH, sheet.accent());
             assertFalse(sheet.subtitle().isBlank(), variant + " needs a designation and role");
             assertFalse(sheet.notes().isEmpty(), variant + " needs a field note");
@@ -188,10 +188,10 @@ class SpecSheetsTest {
     void aMechSheetNamesTheHardwareItIsCarryingOnce() {
         SpecSheet bulwark = SpecSheets.mech(MechVariant.BULWARK);
         long armLines = bulwark.notes().stream()
-                .filter(note -> note.startsWith(MechVariant.BULWARK.arms.displayName)).count();
+                .filter(note -> note.startsWith(MechVariant.BULWARK.arms.displayName())).count();
         long podLines = bulwark.notes().stream()
                 .filter(note -> note.startsWith(
-                        MechVariant.BULWARK.leftShoulder.displayName)).count();
+                        MechVariant.BULWARK.leftShoulder.displayName())).count();
         assertEquals(1, armLines);
         assertEquals(1, podLines, "matched shoulders are described once");
         assertEquals(3, bulwark.notes().size(), "chassis prose plus two pieces of hardware");
@@ -201,7 +201,7 @@ class SpecSheetsTest {
     void everyMechComponentHasItsOwnSheet() {
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
             SpecSheet sheet = SpecSheets.mechWeapon(component);
-            assertEquals(component.displayName, sheet.title());
+            assertEquals(component.displayName(), sheet.title());
             assertEquals(SpecSheets.ACCENT_MECH, sheet.accent());
             assertFalse(sheet.subtitle().isBlank(), component + " needs a designation");
             assertFalse(sheet.notes().isEmpty(), component + " needs a field note");
@@ -218,8 +218,8 @@ class SpecSheetsTest {
                 "the title stays the equipment's; a card is a way of owning one");
         assertTrue(sheet.subtitle().startsWith(titleCase(primary.accessTier().name())),
                 "the card's access tier leads: " + sheet.subtitle());
-        assertTrue(sheet.subtitle().contains(primary.grade().displayName + " issue"));
-        assertTrue(sheet.subtitle().contains(weapon.catalogRole));
+        assertTrue(sheet.subtitle().contains(primary.grade().displayName() + " issue"));
+        assertTrue(sheet.subtitle().contains(weapon.catalogRole()));
         assertEquals(SpecSheets.ACCENT_WEAPON, sheet.accent());
         assertEquals(SpecSheets.weapon(weapon, primary.grade()).stats(), sheet.stats());
 

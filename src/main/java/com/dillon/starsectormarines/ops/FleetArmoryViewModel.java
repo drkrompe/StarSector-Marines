@@ -832,7 +832,7 @@ public final class FleetArmoryViewModel {
     static String weaponComposition(SquadWeaponDoctrine doctrine) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (SquadWeaponIssue issue : doctrine.issues()) {
-            String role = WeaponRegistry.require(issue.primaryId()).catalogRole;
+            String role = WeaponRegistry.require(issue.primaryId()).catalogRole();
             counts.merge(role, 1, Integer::sum);
         }
         return counts.entrySet().stream().map(entry -> entry.getValue() + " " + entry.getKey())
@@ -1161,7 +1161,7 @@ public final class FleetArmoryViewModel {
                     billet != null ? Strings.format("openingFleetArmoryW", billet.grade().tierMark()) : Strings.get("openingFleetArmoryW2"),
                     billet != null ? Strings.format("openingFleetArmoryA", tierMark(armorCatalog.tier())) : Strings.get("openingFleetArmoryA2"),
                     billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
-                            + billet.grade().displayName : Strings.get("openingFleetArmoryNoPrimary"),
+                            + billet.grade().displayName() : Strings.get("openingFleetArmoryNoPrimary"),
                     primaryFactionLogo, equipmentFactionLogoClasses(primaryFactionLogo),
                     weaponStats(id, billet, soldier),
                     billet != null ? Strings.format("openingFleetArmoryTier3", armorCatalog.displayName(), armorCatalog.role().displayName(), tierMark(armorCatalog.tier())) : Strings.get("openingFleetArmoryNoArmor"),
@@ -1381,7 +1381,7 @@ public final class FleetArmoryViewModel {
             }
             if (count == 0) continue;
             spans.add(span(tileId, "distribution", spans.size(),
-                    count + " " + weapon.modelName, weaponSheet(weapon, grades),
+                    count + " " + weapon.modelName(), weaponSheet(weapon, grades),
                     EquipmentIcons.primary(weapon, quotedGrade(grades))));
         }
         int specials = 0;
@@ -1428,7 +1428,7 @@ public final class FleetArmoryViewModel {
         SpecSheet sheet = SpecSheets.weapon(weapon, quoted);
         if (lowest == highest) return sheet;
         return new SpecSheet(sheet.title(),
-                Strings.format("openingFleetArmoryIssuedHere", sheet.subtitle(), lowest.displayName, highest.displayName),
+                Strings.format("openingFleetArmoryIssuedHere", sheet.subtitle(), lowest.displayName(), highest.displayName()),
                 sheet.crestPath(), sheet.accent(), sheet.stats(), sheet.notes());
     }
 
