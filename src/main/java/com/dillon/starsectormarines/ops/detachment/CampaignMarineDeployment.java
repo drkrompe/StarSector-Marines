@@ -80,6 +80,11 @@ public final class CampaignMarineDeployment {
 
     public static CampaignMarineDeployment freezeSelection(MarineRoster roster,
             Set<String> selectedSquadIds, int requiredSeats, MarineCaptain commander) {
+        return freezeSelection(roster, selectedSquadIds, requiredSeats, commander, 1f);
+    }
+
+    public static CampaignMarineDeployment freezeSelection(MarineRoster roster,
+            Set<String> selectedSquadIds, int requiredSeats, MarineCaptain commander, float moraleRecoveryMultiplier) {
         CampaignMarineDeployment deployment = freezeSelection(roster, selectedSquadIds, requiredSeats);
         TaskForce force = TaskForce.of(roster, commander, selectedSquadIds);
         List<MarineLoadout> seats = new ArrayList<>();
@@ -87,7 +92,7 @@ public final class CampaignMarineDeployment {
             CampaignSquadTag prior = seat.campaignSquad;
             CampaignSquadTag tag = prior == null ? null : new CampaignSquadTag(prior.squadId,
                     prior.label, prior.leader, prior.strength, prior.fireTeamIndex,
-                    force.groupForSquad(prior.squadId));
+                    force.groupForSquad(prior.squadId), moraleRecoveryMultiplier);
             seats.add(new MarineLoadout(seat.role, seat.objective, seat.primaryWeaponId,
                     seat.equipmentGrade, seat.soldierProfile, seat.specialEquipmentId,
                     seat.secondaryAmmo, seat.campaignSoldierId, seat.armorFamily,

@@ -22,15 +22,18 @@ class CampaignSquadIndexTest {
     void lateLiftsAndSplitLandingsRetainFrozenOfficerMembership() {
         CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
         CommandGroupIdentity group = new CommandGroupIdentity("officer:o1", "o1", "Vance", true);
-        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", true, 12, 0, group);
+        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", true, 12, 0, group, 1.25f);
         int first = resolve(index, tag, 0);
         int late = resolve(index, tag, 0);
         int split = resolve(index, tag, 1);
         assertEquals(first, late);
+        assertEquals(1.25f, squads.get(late).moraleRecoveryMultiplier);
+        assertEquals(1.25f, squads.get(split).moraleRecoveryMultiplier);
         assertEquals(group, squads.get(first).commandGroupIdentity);
         assertEquals(group, squads.get(split).commandGroupIdentity);
         int another = resolve(index, new CampaignSquadTag("cs-2", "Squad 02", true, 12, 0, group), 0);
         assertNotEquals(first, another);
+        assertEquals(1f, squads.get(another).moraleRecoveryMultiplier);
         assertEquals(group, squads.get(another).commandGroupIdentity);
     }
 

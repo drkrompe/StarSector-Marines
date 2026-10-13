@@ -158,7 +158,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
             List<String> baseline = null;
             for (int phase : new int[]{0, 1, 2}) {
                 boolean restored = phase > 0;
-                var state = new ShipRestoration(true, restored, phase == 2, phase == 2);
+                var state = new ShipRestoration(true, restored, phase == 2, phase == 2, phase == 2);
                 var ship = hull.withWorkshop(WorkshopState.BURIED).withRestoration(state);
                 var deck = CompanyDeck.home(ship, seed, null, List::of, List::of, () -> new boolean[]{true});
                 try {
@@ -171,6 +171,12 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                     long gantries = deck.map().gantries.stream().filter(g -> g.holds == Gantry.Holds.MACHINE).count();
                     if (gantries != (restored ? 1 : 0)) throw new AssertionError("Sealed Mech Lab offers a gantry");
                     if (deck.has(RoomPurpose.VEHICLE_BAY) != restored) throw new AssertionError("Mech Lab navigation disagrees with condition");
+                    var mess = deck.room(RoomPurpose.MESS_HALL);
+                    if (deck.has(RoomPurpose.MESS_HALL) != state.messHall()) throw new AssertionError("Wrong mess availability");
+                    boolean meals = deck.map().fixtureTasks.stream().anyMatch(t -> mess.contains(t.cellX(), t.cellY()));
+                    if (meals != state.messHall()) throw new AssertionError("Mess tasks disagree with repair");
+                    int messCapacity = ShipInterior.of(ship, graph).facility(RoomPurpose.MESS_HALL).capacity();
+                    if (messCapacity != (state.messHall() ? 90 : 0)) throw new AssertionError("Wrong working mess capacity");
                     int billets = ShipInterior.of(ship, graph).facility(RoomPurpose.BARRACKS).capacity();
                     if (graph.damaged(deck.room(RoomPurpose.BARRACKS).id())) throw new AssertionError("Default Barracks opens sealed quarters");
                     if (billets != (phase == 2 ? 54 : 36)) throw new AssertionError("Wrong usable billet count: " + billets);
@@ -182,7 +188,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                     if (seed == 42) {
                         Reactor reactor = new Reactor();
                         var model = new ShipConditionModel(reactor, () -> deck,
-                                work -> new CompanyShipRestoration.Offer(state, 12000, restored ? "Work complete." : null),
+                                work -> new CompanyShipRestoration.Offer(state, 12000, null),
                                 work -> "Snapshot only", () -> new CompanyBayRestoration.Offer(true, 12000, null), () -> "Snapshot only",
                                 room -> {}, () -> {});
                         String name = phase == 2 ? "restored" : phase == 1 ? "mission-two" : "damaged";
@@ -191,6 +197,9 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                         model.select(deck.room(RoomPurpose.VEHICLE_BAY).id());
                         for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact("condition-" + name + "-mech-" + scale + ".png",
                                 UiSnapshotSuite.renderShipCondition(context, deck, model, reactor, scale, RoomPurpose.VEHICLE_BAY)));
+                        model.select(mess.id());
+                        for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact("condition-" + name + "-mess-" + scale + ".png",
+                                UiSnapshotSuite.renderShipCondition(context, deck, model, reactor, scale, RoomPurpose.MESS_HALL)));
                         model.select(ShipConditionStage.spareBillets(graph).get(0).id());
                         frames.add(new SnapshotArtifact("condition-" + name + "-billets.png",
                                 UiSnapshotSuite.renderShipCondition(context, deck, model, reactor, 1f, null)));

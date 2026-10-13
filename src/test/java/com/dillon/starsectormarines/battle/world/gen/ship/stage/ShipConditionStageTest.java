@@ -20,6 +20,28 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShipConditionStageTest {
+    @Test void sealedMessRemovesTasksAndBlocksCrewUntilItsOwnRepair() {
+        for (var pose : RoomPose.all()) for (boolean restored : new boolean[]{false, true}) {
+            var room = new DeckGraph.Compartment(1, RoomShape.rectangle(22, 12).posed(pose), 4, 4,
+                    pose, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.MESS_HALL, List.of());
+            var ctx = new GenContext(new NavigationGrid(40, 40), new CellTopology(40, 40), new Random(7), 40, 40, 7);
+            ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(List.of(room), List.of()));
+            for (int y = room.top(); y <= room.bottom(); y++) for (int x = room.left(); x <= room.right(); x++)
+                if (room.contains(x, y)) ctx.grid.setWalkableFloor(x, y);
+            ctx.fixtureTasks.add(new FixtureTask(6, 6, Affordance.FABRICATE, 6, 6, -1, true));
+            var state = new ShipRestoration(true, true, true, true, restored);
+            new ShipConditionStage(state).run(ctx);
+            ShipConditionStage.restrictAccess(ctx, state);
+            assertEquals(!restored, ctx.get(ShipKeys.DECK_GRAPH).damaged(1));
+            assertEquals(restored ? 1 : 0, ctx.fixtureTasks.size());
+            assertEquals(restored, ctx.grid.isWalkable(6, 6));
+            for (var d : ctx.doodads) {
+                assertTrue(room.contains(d.cellX, d.cellY), d.definitionId());
+                assertTrue(room.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1), d.definitionId());
+            }
+        }
+    }
+
     @Test void sealedGantryDisappearsAndSurvivingBoatWorkKeepsItsBerthAcrossPoses() {
         for (var pose : RoomPose.all()) {
             var room = new DeckGraph.Compartment(1, RoomShape.rectangle(16, 10).posed(pose), 4, 4,

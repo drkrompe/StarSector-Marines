@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- Second Wind protects its founding payment and supplies; Barracks owns equipment discovery, editing routes and unread equipment notices.
+Updated: 2026-10-12 -- Engineering and mess welfare restoration; Second Wind's Harker's Claim origin and Nessa Venn yard connection, protected founding stores and Barracks equipment discovery.
 
 ## Purpose
 
@@ -1194,8 +1194,9 @@ It gives the player one unconverted Cerberus, 500 spendable credits and travel r
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
 A new selection first opens **Second Wind**, a skippable illustrated bridge prologue
-with Castle's portrait and readable dialogue. The crew escaped an independent mining
-colony after its operator withdrew. They restored a grounded Cerberus; the player
+with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an
+independent mining asteroid, after its operator withdrew. Company scrip became
+worthless as the colony's supplies ran out. They restored a grounded Cerberus; the player
 earned command by organizing the escape, while Castle supplied port and convoy
 logistics experience. Earlier player biography remains open. Pooled savings and
 Castle's finite prepaid consignment explain the starting means. Castle holds the
@@ -1205,8 +1206,13 @@ prevent that order. The reserve is consumed once, never refunded as cash or rene
 on load; existing campaigns keep their original funds and payment rules. Civilian crew keep
 the ship running; trained Marines must still be mustered through preparation.
 
-Jangala is a practical first berth, with an old yard contact and regular traffic,
-not a promise of Hegemony protection. The prologue uses the actual accessible
+Jangala is a practical first berth, with regular traffic and **Nessa Venn**, a yard
+forewoman who ran ore with Castle before settling there. She once towed Castle's
+disabled freighter home despite repeated threats to leave her behind; their familiar
+barbs and her attention to the repairs carry that relationship into the yard visit.
+This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
+are authored backstory, not new sector entities or additional mission prerequisites.
+The prologue uses the actual accessible
 destination and adjusts its copy if Jangala is unavailable. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
@@ -1301,7 +1307,9 @@ and commits use the same current installed-tool quote. A company that changes
 ships receives the new home's benefits, never a discount left over from an old
 screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
-**Walk the Ship** is also the room-condition survey. Selecting a compartment on
+**Engineering** is the persistent ship-condition navigation tab, reached from
+every company room and Armory subview. It contains the former Walk the Ship
+room-condition survey. Selecting a compartment on
 the actual deck or its list entry focuses that room and shows Castle's portrait,
 a condition blurb, its working benefit and any next repair. Sealed structural
 rooms are distinct from accessible damaged rooms and usable rooms on faulty
@@ -1313,6 +1321,21 @@ Depot**, the second story mission. Completion supplies restoration of the single
 mech gantry with Wayward's recovery, so the first-mech fitting lesson opens into
 a working bay without another bill. The completed chapter is the durable repair
 fact, including on older saves. Ordinary ships are unaffected.
+
+The original hull's mess hall starts sealed. Field rations in working quarters
+keep the first mission available. A 2,500-credit yard order after Relief restores
+its pressure skin, galley and tables, crew meal routines, and a company welfare
+benefit: infantry morale recovers 25% faster once the normal incoming-fire delay
+has elapsed. Morale still starts full, retains casualty ceilings and break/clear
+thresholds, and has no additional food upkeep. Castle explains both the temporary
+arrangement and the exact benefit beside her portrait in Engineering.
+
+The benefit belongs to the active converted original company home and freezes
+with the selected personnel at launch. Later shuttle trips and split landings
+retain it; allies, enemies, mechs and detached debug companies receive none.
+Changing homes affects future deployments, not battles already underway. Other
+hulls remain on their existing baseline. Hull welfare is distinct from officer
+specialties, wound recovery and a future persistent company morale economy.
 
 Two spare company bunkrooms start sealed, leaving 36 of the converted hull's
 54 billets usable. A 4,000-credit yard order after Relief restores both rooms and

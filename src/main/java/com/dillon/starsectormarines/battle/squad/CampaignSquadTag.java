@@ -40,6 +40,9 @@ public final class CampaignSquadTag {
     /** Stable zero-based fire-team billet derived from the campaign squad roster. */
     public final int fireTeamIndex;
 
+    /** Launch-frozen company welfare benefit; ordinary and fixture seats default to one. */
+    public final float moraleRecoveryMultiplier;
+
     public CampaignSquadTag(String squadId, String label, boolean leader, int strength) {
         this(squadId, label, leader, strength, Squad.NO_FIRE_TEAM);
     }
@@ -52,6 +55,14 @@ public final class CampaignSquadTag {
 
     public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
                             int fireTeamIndex, CommandGroupIdentity commandGroupIdentity) {
+        this(squadId, label, leader, strength, fireTeamIndex, commandGroupIdentity, 1f);
+    }
+
+    public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
+                            int fireTeamIndex, CommandGroupIdentity commandGroupIdentity, float moraleRecoveryMultiplier) {
+        if (!Float.isFinite(moraleRecoveryMultiplier) || moraleRecoveryMultiplier <= 0f)
+            throw new IllegalArgumentException("Morale recovery multiplier must be finite and positive");
+        this.moraleRecoveryMultiplier = moraleRecoveryMultiplier;
         this.commandGroupIdentity = commandGroupIdentity;
         this.squadId = squadId;
         this.label = label;

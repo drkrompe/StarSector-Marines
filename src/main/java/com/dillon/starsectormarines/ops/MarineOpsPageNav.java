@@ -56,7 +56,7 @@ final class MarineOpsPageNav {
          * opposite reason {@link #HQ} does not: every hull with an interior has
          * a deck, so there is nothing here a ship can fail to have.
          */
-        SHIP_VIEW(null, null);
+        SHIP_VIEW(null, "engineering");
 
         private final RoomPurpose room;
         private final String button;
@@ -104,7 +104,7 @@ final class MarineOpsPageNav {
                     Runnable returnAction, Runnable hqAction,
                     Runnable barracksAction,
                     Runnable armoryAction, Runnable mechLabAction,
-                    Runnable boatsAction) {
+                    Runnable boatsAction, Runnable engineeringAction) {
         if (props == null) throw new IllegalArgumentException("props are required");
         if (current == null) throw new IllegalArgumentException("current page is required");
         if (aboard == null) throw new IllegalArgumentException("the ship's rooms are required");
@@ -116,6 +116,16 @@ final class MarineOpsPageNav {
         props.put("armoryClasses", "");
         put(props, Page.MECH_LAB, current, aboard, mechLabAction);
         put(props, Page.BOAT_DECK, current, aboard, boatsAction);
+        put(props, Page.SHIP_VIEW, current, aboard, engineeringAction);
+    }
+
+    /** Compatibility helper for focused fixtures without engineering navigation. */
+    static void put(Map<String, Object> props, Page current,
+                    Function<RoomPurpose, Aboard> aboard,
+                    Runnable returnAction, Runnable hqAction, Runnable barracksAction,
+                    Runnable armoryAction, Runnable mechLabAction, Runnable boatsAction) {
+        put(props, current, aboard, returnAction, hqAction, barracksAction,
+                armoryAction, mechLabAction, boatsAction, () -> { });
     }
 
     /** Compatibility helper for focused fixtures that do not exercise room routing. */

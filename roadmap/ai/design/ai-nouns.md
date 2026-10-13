@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — room work rounds can reserve specific stations through the shared task-point claims.
+Updated: 2026-10-12 — room work rounds reserve stations; launch-frozen company welfare scales infantry morale recovery.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1792,6 +1792,13 @@ bite where they were taken. This is deliberately harsher than a squad-wide
 ceiling: losing one marine costs a four-man team a quarter of its ceiling, and
 the survivor of a team is brittle even in a squad that is otherwise intact.
 Cohesion is a property of the men who were actually under that fire.
+
+Campaign infantry may carry a launch-frozen welfare recovery multiplier from
+their company home. It scales recovery after the ordinary incoming-fire delay,
+never starting morale, casualty ceilings, hit drain, or break/clear thresholds.
+It belongs to their campaign squad across shuttle trips and split landings.
+Scenario personnel and mechs retain their baseline; battle code never reads
+live ship repairs. The campaign benefit is defined in `company-view-nouns.md`.
 
 Breaking is not the same as being ordered out. A broken team withdraws on
 emergent reality, below the squad's plan and without consuming its authority —

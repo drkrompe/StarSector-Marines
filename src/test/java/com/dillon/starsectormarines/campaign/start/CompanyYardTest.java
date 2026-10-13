@@ -57,6 +57,7 @@ class CompanyYardTest {
         MutableValue credits = new MutableValue(startingCash);
         boolean[] installed = {false};
         Map<String, Object> planetMethods = new HashMap<>();
+        planetMethods.put("getId", "jangala");
         PlanetAPI planet = stub(PlanetAPI.class, planetMethods);
         var industry = stub(Industry.class, Map.of("isFunctional", true,
                 "getSpec", stub(IndustrySpecAPI.class, Map.of("hasTag", true))));
@@ -104,6 +105,12 @@ class CompanyYardTest {
             uiMethods.put("getCurrentInteractionDialog", dialog);
             assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
             assertTrue(lines.stream().anyMatch(line -> line.contains("Mercenary Company Conversion")));
+            assertTrue(lines.stream().anyMatch(line -> line.contains("Nessa Venn")));
+            lines.clear();
+            planetMethods.put("getId", "other");
+            assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
+            assertFalse(lines.stream().anyMatch(line -> line.contains("Nessa")), "The personal yard contact belongs to Jangala");
+            planetMethods.put("getId", "jangala");
             assertTrue(options.contains(protectedStart ? "Install conversion - use reserved payment" : "Install conversion - 5,000 credits"));
             assertEquals("starter", localData.get("$smYardSelectedShip"));
             assertEquals(startingCash, credits.get(), "Opening the required review spends nothing");
