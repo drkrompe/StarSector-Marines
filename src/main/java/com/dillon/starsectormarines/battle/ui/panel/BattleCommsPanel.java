@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.comms.BattleCommsFeed;
 import com.dillon.starsectormarines.battle.ui.comms.CounterattackCommsPresenter;
+import com.dillon.starsectormarines.battle.ui.comms.HostileShipCommsPresenter;
 import com.dillon.starsectormarines.battle.ui.comms.WaylineHoundCommsPresenter;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -53,6 +54,7 @@ public final class BattleCommsPanel implements HudPanel {
     private final BattleCommsFeed feed = new BattleCommsFeed();
     private final CounterattackCommsPresenter counterattackPresenter = new CounterattackCommsPresenter();
     private final WaylineHoundCommsPresenter houndPresenter = new WaylineHoundCommsPresenter();
+    private final HostileShipCommsPresenter hostileShipPresenter = new HostileShipCommsPresenter();
     private final BitmapFont font = Fonts.ORBITRON_20;
     private final BitmapFont markerFont = Fonts.ORBITRON_12_BOLD;
     private float wallClock;
@@ -66,6 +68,7 @@ public final class BattleCommsPanel implements HudPanel {
         feed.update(dt);
         counterattackPresenter.update(ctx.getSim(), feed);
         houndPresenter.update(ctx.getSim(), feed);
+        hostileShipPresenter.update(ctx.getSim(), feed);
         wallClock += Math.max(0f, dt);
     }
 

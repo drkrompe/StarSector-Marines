@@ -208,6 +208,9 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
+import com.dillon.starsectormarines.battle.power.HostileShipSupport;
+import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 
 /**
  * Headless auto-battler simulation. Owns the {@link NavigationGrid}, the unit
@@ -936,6 +939,24 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void setCompanyStance(MissionStance stance) { this.companyStance = stance != null ? stance : MissionStance.ATTACK; }
 
     @Override public TraversalAxis shipAxis() { return ShipStationing.axisOf(this); }
+
+    private HostileShipSupport hostileShip;
+
+    /** The defending side's ship, when its world warrants one (or a debug pick installed one). */
+    public HostileShipSupport getHostileShipSupport() { return hostileShip; }
+
+    /**
+     * Gives the defending side one ship to call over the battle on the same mechanism the company
+     * uses; installed once at launch, before the first tick.
+     */
+    public HostileShipSupport installHostileShipSupport(ShipSupportSource source, boolean atStart,
+                                                        Consumer<Warship> onCalled) {
+        if (simTickIndex != 0 || hostileShip != null) {
+            throw new IllegalStateException("Hostile ship support installs once, before the first tick");
+        }
+        hostileShip = new HostileShipSupport(source, atStart, onCalled, storyBeats);
+        return hostileShip;
+    }
 
     @Override public void addTender(Tender tender) { tenders.add(this, tender); }
     /** Published derived navigation geometry; exposed for battle diagnostics. */
@@ -2343,6 +2364,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         lanceSweeps.tick(TICK_DT, detonations::detonateNow);
         survivorPickup.tick(this);
         if (coldAccount != null) coldAccount.advance(this);
+        if (hostileShip != null) hostileShip.advance(this);
         warships.tick(TICK_DT, this);
         detonations.tick();
         tickProfile.lap(TickProfile.Phase.DETONATIONS);

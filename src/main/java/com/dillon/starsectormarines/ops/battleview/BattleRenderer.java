@@ -970,6 +970,17 @@ public class BattleRenderer {
             }
         }
 
+        for (var marker : HostileShipMarkers.forSupport(sim.getHostileShipSupport())) {
+            float cx = rc.camera.cellToScreenX(marker.x());
+            float cy = rc.camera.cellToScreenY(marker.y());
+            float radius = cellPx * marker.radius();
+            appendObjectiveAnnulus(cx, cy, radius - 2f, radius, ORBITAL_WARNING, .8f * alphaMult);
+            out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                objectiveMarkerFont.ensureLoaded();
+                drawObjectiveText(marker.label(), cx, cy, ORBITAL_WARNING, .8f, alphaMult);
+            });
+        }
+
         for (EquipmentDrop drop : sim.getEquipmentDrops()) {
             if (drop.consumed) continue;
             float cx = rc.camera.cellToScreenX(drop.cellX + 0.5f);

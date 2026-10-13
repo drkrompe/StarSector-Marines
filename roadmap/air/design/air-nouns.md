@@ -1386,7 +1386,7 @@ flying.
 
 ### Overhead ships
 
-In play a ship is called, not placed: the Ship on Station command power (see `ship-support.md`) fits a frozen source (a committed member, a stock hull or an employer's offer) and sends it in from the company's edge. Ordinary missions and campaign missions differ only in the source, loadout, cost and writeback they hand that one mechanism.
+In play a ship is called, not placed: the Ship on Station command power (see `ship-support.md`) fits a frozen source (a committed member, a stock hull or an employer's offer) and sends it in from the company's edge. Ordinary missions and campaign missions differ only in the source, loadout, cost and writeback they hand that one mechanism. The defending world uses the same call: a defended world (target-profile defence level) hands its side one frozen stock hull, its commander calls it once when the marines threaten ground it must hold, with a warning beat and ground marker ahead, and it holds ground under `DEFEND` (see `ship-support.md`, slice 4).
 
 Ships are larger air craft whose decisive ground interaction must be their
 actual hull silhouette. An on-map implementation first rejects ground fire

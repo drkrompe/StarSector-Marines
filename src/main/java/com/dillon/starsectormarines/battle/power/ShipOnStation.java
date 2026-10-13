@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.ShipStationing;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -89,10 +90,19 @@ public final class ShipOnStation extends CommandPower {
         }
     }
 
-    /** Fits, places and orders one source over the battle. Shared by the power and the scenes. */
+    /** Fits, places and orders one source over the battle for the company. Shared by the power and the scenes. */
     public static Warship call(ShipSupportSource source, float stationX, float stationY,
                                BattleControl battle) throws Exception {
-        Faction side = Faction.MARINE;
+        return call(source, Faction.MARINE, stationX, stationY, battle);
+    }
+
+    /**
+     * The one call path for either side. The company's ship takes the company's mission stance;
+     * the defender's ship always holds ground ({@link MissionStance#DEFEND}), descending on the
+     * defender's side of the station.
+     */
+    public static Warship call(ShipSupportSource source, Faction side, float stationX, float stationY,
+                               BattleControl battle) throws Exception {
         int w = battle.getGrid().getWidth();
         int h = battle.getGrid().getHeight();
         Tender tender = null;
@@ -110,7 +120,7 @@ public final class ShipOnStation extends CommandPower {
         }
         ship.stationTo(stationX, stationY);
         ship.arriveFromAbove();
-        ship.stance(battle.companyStance());
+        ship.stance(side == Faction.DEFENDER ? MissionStance.DEFEND : battle.companyStance());
         ship.stayFor(STATION_SECONDS);
         if (tender != null) {
             battle.addTender(tender);
