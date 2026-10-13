@@ -13,6 +13,11 @@ model remains aimed at a small company as it grows; the fixed, modest payout is
 the reason for a veteran company to move on, rather than an eligibility rule
 withdrawing the work.
 
+`campaign-overview.md` maps the full authored route. The five arc folders hold
+their reading guides, local setting material and remaining work; this document
+continues to own the shared authored-operation model and standing chapter laws.
+Use the arc's own open-work board before changing its plan.
+
 ## Story arcs, chapters, and recurring work
 
 **A Working Ship** is the post-**A Cold Account** recovery arc on Asharu.
