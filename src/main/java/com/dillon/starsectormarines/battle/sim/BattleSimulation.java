@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.fort.FortSystem;
 import com.dillon.starsectormarines.battle.fort.FortTag;
@@ -620,6 +621,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     Math.round(battery.structure().fireControlRadius)));
         }
         for (ShieldDomeService.DomeView dome : shieldDomes.domes()) {
+            Fort shieldFort = shieldFortOf(dome.entityId());
+            if (shieldFort != null) {
+                addShieldFortFacts(out, shieldFort, dome);
+                continue;
+            }
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
                     (int) Math.floor(dome.x()), (int) Math.floor(dome.y()),
                     dome.holder(), dome.originalHolder(),
@@ -627,6 +633,38 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     Math.round(dome.captureRadius())));
         }
         return out;
+    }
+
+    /** The shield fort whose emitter is generator {@code id}, or {@code null} for a bare generator. */
+    private Fort shieldFortOf(long id) {
+        for (Fort fort : forts.forts()) {
+            if (fort.kind() == FortKind.SHIELD_FORT && fort.emitterId() == id) return fort;
+        }
+        return null;
+    }
+
+    /**
+     * A shield fort's facts. The dome is held at the control room, so that is where a side is sent to take or hold it;
+     * the plant is a second fact, because cutting it drops the dome for whoever the dome does not serve. Both are
+     * disclosed by sighting the generator, the one part of the fort that stands out over its walls.
+     */
+    private void addShieldFortFacts(List<DefenceStructureFact> out, Fort fort, ShieldDomeService.DomeView dome) {
+        int seenX = (int) Math.floor(dome.x());
+        int seenY = (int) Math.floor(dome.y());
+        Fort.Place room = fort.place(FortAspect.CONTROL_ROOM);
+        if (room != null && !room.wrecked() && rosterService.isAliveById(room.coreId())) {
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
+                    (int) Math.floor(room.x()), (int) Math.floor(room.y()),
+                    room.control().holder(), dome.originalHolder(), room.control().contested(),
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY));
+        }
+        Fort.Place plant = fort.place(FortAspect.POWER);
+        if (plant != null && !plant.wrecked() && rosterService.isAliveById(plant.coreId())) {
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FORT_POWER,
+                    (int) Math.floor(plant.x()), (int) Math.floor(plant.y()),
+                    plant.control().holder(), dome.originalHolder(), plant.control().contested(),
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY));
+        }
     }
 
     @Override public boolean isCapturedStructure(long id) { return rosterService.isCapturedStructure(id); }
@@ -1679,16 +1717,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The battle's fortress batteries: whose they are, whether they fire, and what they withhold. */
     public FortressBatteryService fortressBatteries() { return fortressBatteries; }
 
+    /** Opens the roof over every building cell in the inclusive rectangle: a cave-in, as a wrecked building leaves. */
+    public void openRoofs(int minX, int minY, int maxX, int maxY) {
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) mapEditor.destroyRoof(x, y);
+        }
+    }
+
     /** The battle's forts: the walled compounds built round a battery, and the aspects housed in them. */
     public FortService forts() { return forts; }
 
     /** Records that the spawned structure {@code id} is a part of a fort: its platform, an aspect core or a nest. */
     public void tagFortPart(FortTag tag, long id, StructureDef structure, Faction holder) {
+        forts.tagFrame(tag.fortId(), tag);
         if (structure.isBattery()) {
             FortressBattery battery = fortressBatteries.byStructure(id);
             if (battery != null) forts.tagPlatform(tag.fortId(), battery);
+        } else if (structure.isShieldGenerator()) {
+            forts.tagEmitter(tag.fortId(), id, holder);
+            shieldDomes.govern(id);
         } else if (structure.isFortAspectCore()) {
-            forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder);
+            forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder, structure.id);
         } else {
             forts.tagNest(tag.fortId(), id);
         }

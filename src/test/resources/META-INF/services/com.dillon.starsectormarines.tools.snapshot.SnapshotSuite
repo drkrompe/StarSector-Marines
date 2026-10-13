@@ -135,6 +135,8 @@ com.dillon.starsectormarines.ops.ShipCommandUiSnapshotSuite
 com.dillon.starsectormarines.ops.HudCompositionSnapshotSuite
 com.dillon.starsectormarines.ops.BoatRecoverySnapshotSuite
 com.dillon.starsectormarines.battle.fort.BatteryFortSceneSnapshotSuite
+com.dillon.starsectormarines.battle.fort.ShieldFortSceneSnapshotSuite
 com.dillon.starsectormarines.ops.BatteryFortMapSnapshotSuite
+com.dillon.starsectormarines.ops.ShieldFortMapSnapshotSuite
 com.dillon.starsectormarines.battle.air.RidgeAirDefenceSceneSnapshotSuite
 com.dillon.starsectormarines.ops.WorkingPassageSnapshotSuite

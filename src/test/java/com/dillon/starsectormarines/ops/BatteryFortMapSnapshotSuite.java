@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -40,6 +43,8 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
 
     private static final int WIDTH = 1920;
     private static final int HEIGHT = 1080;
+    private static final List<FortAspect> BATTERY_BUILDINGS =
+            List.of(FortAspect.FIRE_CONTROL, FortAspect.MAGAZINE, FortAspect.POWER);
     private static final long[] SEEDS = {91L, 20261013L};
 
     @Override public String id() { return "battery-fort-map"; }
@@ -93,11 +98,104 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
                     var around = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT, cx, cy, 150);
                     out.add(new SnapshotArtifact(String.format(Locale.ROOT, "seed-%d-fort-%d-surroundings.png", seed, i),
                             around.render(sim, "Battery fort " + i + " in its surroundings / seed " + seed)));
+                    var roofed = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT, cx, cy, 84).withRoofs();
+                    out.add(new SnapshotArtifact(String.format(Locale.ROOT, "seed-%d-fort-%d-roofs.png", seed, i),
+                            roofed.render(sim, "Battery fort " + i + " roofed / seed " + seed)));
                     i++;
                 }
+                if (seed == SEEDS[0]) out.addAll(buildingStates(context, sim));
             }
         }
+        out.addAll(shieldFort(context));
         return out;
+    }
+
+    /** The shield fort's two buildings wear the same art, turned to their own doors: one roofed close frame. */
+    private static List<SnapshotArtifact> shieldFort(SnapshotContext context) throws Exception {
+        TargetProfile profile = fixtureProfile().withDeclaredDefences(
+                new GroundDefences(0, false).withForts(FortKind.SHIELD_FORT, 1));
+        try (BattleSimulation sim = BattleSetup.createConquest(SEEDS[0],
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), false,
+                OperationTier.FIRST_CONTRACT, RiskLevel.LOW, profile)) {
+            List<SnapshotArtifact> out = new ArrayList<>();
+            for (Fort fort : sim.forts().forts()) {
+                if (fort.kind() != FortKind.SHIELD_FORT) continue;
+                long generator = fort.emitterId();
+                var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
+                        sim.world().x(generator), sim.world().y(generator) - 6, 60).withRoofs();
+                out.add(new SnapshotArtifact("shield-fort-roofs.png", frame.render(sim, "Shield fort roofed")));
+            }
+            return out;
+        }
+    }
+
+    /**
+     * Each aspect building in each condition, at game scale: intact, damaged, destroyed (the first fort, whose core is
+     * hurt and then killed in turn) and captured (the second fort, taken by the marines). Real production state: the
+     * cores are damaged through the simulation's own damage path and the holder flips through the capture rule.
+     */
+    private static List<SnapshotArtifact> buildingStates(SnapshotContext context, BattleSimulation sim)
+            throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        List<Fort> forts = sim.forts().forts();
+        if (forts.size() < 2) return out;
+        Fort ladder = forts.get(0);
+        Fort taken = forts.get(1);
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
+            out.add(stateFrame(context, sim, ladder, aspect, "intact"));
+        }
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
+            Fort.Place place = taken.place(aspect);
+            for (int s = 0; s < 40; s++) {
+                if (aspect == FortAspect.FIRE_CONTROL) {
+                    taken.battery().fireControl().tick(1f, false, Faction.MARINE);
+                } else {
+                    place.control().tick(1f, false, Faction.MARINE);
+                }
+            }
+            out.add(stateFrame(context, sim, taken, aspect, "captured"));
+        }
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
+            long core = ladder.place(aspect).coreId();
+            for (int s = 0; s < 40 && damageFraction(sim, ladder, aspect) > 0.45f; s++) {
+                sim.applyDamage(core, 40f, 60f);
+            }
+            out.add(stateFrame(context, sim, ladder, aspect, "damaged"));
+        }
+        float[][] at = new float[FortAspect.values().length][];
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
+            long core = ladder.place(aspect).coreId();
+            at[aspect.ordinal()] = new float[]{sim.world().x(core), sim.world().y(core)};
+            for (int s = 0; s < 200 && sim.world().isAlive(core); s++) sim.applyDamage(core, 80f, 200f);
+        }
+        for (int tick = 0; tick < 6; tick++) sim.advance(BattleSimulation.TICK_DT);
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
+            float[] p = at[aspect.ordinal()];
+            var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT, p[0], p[1], 24).withRoofs();
+            out.add(new SnapshotArtifact(String.format(Locale.ROOT, "state-%s-wrecked.png", slug(aspect)),
+                    frame.render(sim, aspect.label() + " / wrecked")));
+        }
+        return out;
+    }
+
+    private static float damageFraction(BattleSimulation sim, Fort fort, FortAspect aspect) {
+        long core = fort.place(aspect).coreId();
+        StructureDef def = TurretCatalogRegistry.requireStructure(
+                fort.place(aspect).structureId());
+        return (sim.world().hp(core) + sim.world().armor(core)) / (def.maxStructure + def.armorCapacity);
+    }
+
+    private static SnapshotArtifact stateFrame(SnapshotContext context, BattleSimulation sim, Fort fort,
+                                               FortAspect aspect, String state) throws Exception {
+        long core = fort.place(aspect).coreId();
+        var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
+                sim.world().x(core), sim.world().y(core), 24).withRoofs();
+        return new SnapshotArtifact(String.format(Locale.ROOT, "state-%s-%s.png", slug(aspect), state),
+                frame.render(sim, aspect.label() + " / " + state));
+    }
+
+    private static String slug(FortAspect aspect) {
+        return aspect.name().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
     /** The market a real Conquest is generated against: without one the stock dense crossroad is used instead. */

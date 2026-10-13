@@ -140,6 +140,23 @@ class TacticalScoringContactPictureTest {
     }
 
     @Test
+    void aStaleContactCannotFlipAnAdvanceInAndOutOfHold() {
+        // Releasing a stale hold to ADVANCE while admitting one from ADVANCE alternated the doctrine every tick,
+        // and each change interrupts the planner. Even odds from the flank is risk 1: held while fresh, not stale.
+        Doctrine entered = TacticalScoring.selectDoctrine(
+                Posture.ADVANCING, ForceBalance.EVEN, Sector.LEFT_FLANK,
+                Motion.LATERAL, false, Doctrine.ADVANCE, true, false);
+        assertEquals(Doctrine.ADVANCE, entered, "no hold is entered on evidence that could not keep one");
+        assertEquals(Doctrine.ADVANCE, TacticalScoring.selectDoctrine(
+                Posture.ADVANCING, ForceBalance.EVEN, Sector.LEFT_FLANK,
+                Motion.LATERAL, false, entered, true, false));
+        assertEquals(Doctrine.HOLD, TacticalScoring.selectDoctrine(
+                Posture.ADVANCING, ForceBalance.EVEN, Sector.LEFT_FLANK,
+                Motion.LATERAL, false, Doctrine.ADVANCE, true, true),
+                "a fresh contact still holds the line");
+    }
+
+    @Test
     void contactInitiativeReceivesApproachButProsecutesPartialLateralLine() {
         assertEquals(ContactInitiative.RECEIVE,
                 TacticalScoring.selectContactInitiative(Doctrine.HOLD,

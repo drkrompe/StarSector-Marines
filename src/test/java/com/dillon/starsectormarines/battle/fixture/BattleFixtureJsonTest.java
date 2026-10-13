@@ -780,6 +780,25 @@ class BattleFixtureJsonTest {
         assertEquals(0, legacy.declaredDefences().fortCount(FortKind.BATTERY_FORT));
     }
 
+    /** A shield fort declared beside battery forts survives a replay under its own kind; legacy reads as none. */
+    @Test
+    void roundTripsADeclaredShieldFort() throws Exception {
+        TargetProfile forted = TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(0, false, 0)
+                .withForts(FortKind.BATTERY_FORT, 2).withForts(FortKind.SHIELD_FORT, 1));
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                9_123L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4, forted, false);
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        assertEquals(1, encoded.getJSONObject("targetProfile").getJSONObject("declaredForts").getInt("SHIELD_FORT"));
+        TargetProfile decoded = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(forted, decoded);
+        assertEquals(1, decoded.declaredDefences().fortCount(FortKind.SHIELD_FORT));
+        assertEquals(2, decoded.declaredDefences().fortCount(FortKind.BATTERY_FORT));
+        encoded.getJSONObject("targetProfile").remove("declaredForts");
+        TargetProfile legacy = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(0, legacy.declaredDefences().fortCount(FortKind.SHIELD_FORT));
+    }
+
     private static CivilianRescueBattleFixture canonicalFixture() {
         return new CivilianRescueBattleFixture(
                 5_005L,

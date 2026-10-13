@@ -51,4 +51,5 @@ com.dillon.starsectormarines.battle.command.DefenceStructureCommandScene
 com.dillon.starsectormarines.battle.infantry.PodBattleScene
 com.dillon.starsectormarines.battle.air.GunshipCrashScene
 com.dillon.starsectormarines.battle.fort.BatteryFortScene
+com.dillon.starsectormarines.battle.fort.ShieldFortScene
 com.dillon.starsectormarines.battle.air.RidgeAirDefenceScene

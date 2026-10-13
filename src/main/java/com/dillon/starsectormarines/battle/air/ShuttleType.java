@@ -26,10 +26,10 @@ import java.util.Locale;
  * again after deboard.
  *
  * <p>Also acts as the per-type {@link AirHandling} profile. Three rough
- * handling tiers:
+ * handling tiers, plus the Mudskipper's steady utility profile:
  *
  * <ul>
- *   <li><b>Nimble</b> (Aeroshuttle, Mudskipper, Kite, Hermes) — small drop
+ *   <li><b>Nimble</b> (Aeroshuttle, Kite, Hermes) — small drop
  *       craft. High turn rate, crisp accel/brake, low lateral damping.</li>
  *   <li><b>Medium</b> (Wayfarer, Shepherd) — utility hulls.</li>
  *   <li><b>Bus</b> (Buffalo, Tarsus, Mule, Nebula, Valkyrie) — heavy
@@ -38,7 +38,7 @@ import java.util.Locale;
  * </ul>
  *
  * <p>Combat capability is orthogonal to handling: Valkyrie is a heavy bus
- * AND fully armed (4 hardpoints, 150 HP), while a Mudskipper is nimble with a single
+ * AND fully armed (4 hardpoints, 150 HP), while a Mudskipper is deliberate with a single
  * hardpoint, which the Close Air Support gunship sortie circles overhead with.
  * {@link #kitFor} maps {@code (role, hardpoints)} to a turret loadout (which
  * turret structure ids) — the default A2G role expands to a mix of Arbalests + a
@@ -75,8 +75,8 @@ public enum ShuttleType implements AirHandling, Airframe {
 
     MUDSKIPPER(
             "graphics/ships/mudskipper/mudskipper.png",
-            1, 12f, 0.55f,
-            Profiles.NIMBLE, 1, 60f,
+            1, 7f, 0.55f,
+            Profiles.STEADY, 1, 60f,
             "mudskipper", "mudskipper_mk2"),
 
     SHEPHERD(
@@ -313,6 +313,8 @@ public enum ShuttleType implements AirHandling, Airframe {
     public static final class Profiles {
         /** Small drop craft — twitchy. */
         public static final HandlingProfile NIMBLE = new HandlingProfile(10f, 12f, 130f, 3.0f, 5.0f);
+        /** Mudskipper utility craft — gradual thrust and broad, deliberate heading changes. */
+        public static final HandlingProfile STEADY = new HandlingProfile(3f, 4f, 32f, 3.0f, 5.0f);
         /** Utility hulls — middle of the road. */
         public static final HandlingProfile MEDIUM = new HandlingProfile( 6f,  7f,  75f, 4.0f, 6.0f);
         /** Heavy freighters / dedicated transports — hovering bus. */

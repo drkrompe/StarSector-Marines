@@ -19,10 +19,11 @@ import java.util.Map;
  * @param shieldGenerator  whether the defending garrison holds a shield generator beside its keep
  * @param nests            defence nests (small hardened anti-air and anti-infantry emplacements) to scatter over the
  *                         map; never negative
- * @param forts            walled forts to stand on the map, by kind; absent or zero is none. A fort is a battery plus
- *                         its walls, fire-control bunker, magazine and power building (see {@code forts.md}); it is
- *                         declared separately from a bare {@link #batteries} so scenes and debug can still stand a
- *                         structure on its own
+ * @param forts            walled forts to stand on the map, by kind; absent or zero is none. A battery fort is a
+ *                         battery plus its walls, fire-control bunker, magazine and power building; a shield fort is
+ *                         a shield generator plus its walls, inner keep, power plant and control room (see
+ *                         {@code forts.md}). A fort is declared separately from a bare {@link #batteries} or
+ *                         {@link #shieldGenerator} so scenes and debug can still stand a structure on its own
  */
 public record GroundDefences(int batteries, boolean shieldGenerator, int nests, Map<FortKind, Integer> forts) {
 

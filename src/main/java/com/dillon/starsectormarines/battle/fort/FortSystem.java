@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fort;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -34,7 +35,7 @@ public final class FortSystem {
     private static final int MAX_INTERIOR_CELLS = 600;
 
     /** The aspects held by standing in their building; fire control is held through the battery's own state. */
-    private static final FortAspect[] HELD_BY_PRESENCE = {FortAspect.MAGAZINE, FortAspect.POWER};
+    private static final FortAspect[] HELD_BY_PRESENCE = {FortAspect.MAGAZINE, FortAspect.POWER, FortAspect.CONTROL_ROOM};
 
     /** Who is standing at a place: whether the holder's side is, and the first hostile side if any. */
     public record Presence(boolean holderPresent, Faction hostile) { }
@@ -43,12 +44,17 @@ public final class FortSystem {
         FortService service = sim.forts();
         if (service.isEmpty()) return;
         for (Fort fort : service.forts()) {
+            if (fort.kind() == FortKind.SHIELD_FORT) {
+                tickShield(dt, sim, fort);
+                continue;
+            }
             FortressBattery battery = fort.battery();
             if (battery == null) continue;
             for (Fort.Place place : fort.places()) {
                 if (!place.resolved()) resolve(sim, place);
                 if (!place.wrecked() && !sim.world().isAlive(place.coreId())) {
                     place.markWrecked();
+                    openRoof(sim, fort, place);
                     if (place.aspect() == FortAspect.MAGAZINE) goUp(sim, fort, place);
                 }
             }
@@ -63,6 +69,45 @@ public final class FortSystem {
             Fort.Place bunker = fort.place(FortAspect.FIRE_CONTROL);
             if (bunker != null && !bunker.wrecked()) sim.followStructureHolder(bunker.coreId(), battery.owner());
         }
+    }
+
+    /**
+     * A shield fort: finds each building, notices a core or the generator destroyed, lets the power plant and the
+     * control room be held by whoever stands in them, hands the dome to the control room's holder and gives it power
+     * only while the plant stands, is uncontested, and is that holder's to draw on.
+     */
+    private static void tickShield(float dt, BattleSimulation sim, Fort fort) {
+        long generator = fort.emitterId();
+        if (generator == 0L) return;
+        for (Fort.Place place : fort.places()) {
+            if (!place.resolved()) resolve(sim, place);
+            if (!place.wrecked() && !sim.world().isAlive(place.coreId())) {
+                place.markWrecked();
+                openRoof(sim, fort, place);
+            }
+        }
+        Fort.Place emitter = fort.place(FortAspect.EMITTER);
+        if (emitter.wrecked()) return;
+        ShieldDomeService domes = sim.shieldDomes();
+        domes.govern(generator);
+        for (FortAspect aspect : HELD_BY_PRESENCE) {
+            Fort.Place place = fort.place(aspect);
+            if (place == null || place.wrecked()) continue;
+            Presence there = scan(sim, place.control().holder(), place);
+            place.control().tick(dt, there.holderPresent(), there.hostile());
+            sim.followStructureHolder(place.coreId(), place.control().holder());
+        }
+        Faction holder = fort.domeHolder(currentHolder(sim, generator));
+        domes.transfer(generator, holder);
+        fort.noteDomeHolder(holder);
+        domes.setPowered(generator, fort.domePowered(holder));
+    }
+
+    private static Faction currentHolder(BattleSimulation sim, long generator) {
+        for (ShieldDomeService.DomeView dome : sim.shieldDomes().domes()) {
+            if (dome.entityId() == generator) return dome.holder();
+        }
+        return sim.identity().faction(generator);
     }
 
     /**
@@ -130,6 +175,14 @@ public final class FortSystem {
         boolean[] mask = new boolean[(maxX - minX + 1) * (maxY - minY + 1)];
         for (int[] c : cells) mask[(c[1] - minY) * (maxX - minX + 1) + (c[0] - minX)] = true;
         place.resolve(mask, minX, minY, maxX, maxY, sim.world().x(place.coreId()), sim.world().y(place.coreId()));
+    }
+
+    /** A wrecked building loses its roof, once, so the floor shows through whatever the wreck art leaves open. */
+    private static void openRoof(BattleSimulation sim, Fort fort, Fort.Place place) {
+        if (place.roofOpened() || place.structureId() == null) return;
+        place.markRoofOpened();
+        int[] b = place.floorBounds(fort.frame());
+        if (b != null) sim.openRoofs(b[0], b[1], b[2], b[3]);
     }
 
     /** A wrecked magazine goes up: a blast that shakes the walls of its own building and whoever is inside. */

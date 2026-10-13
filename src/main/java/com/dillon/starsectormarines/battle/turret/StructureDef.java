@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortBuildingArt;
+import com.dillon.starsectormarines.battle.fort.FortGatehouseArt;
 import com.dillon.starsectormarines.battle.shield.DomeSpec;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,6 +41,10 @@ public final class StructureDef {
     public final FortAspect fortAspect;
     /** The painted base and animated overlay layers, or null for a structure drawn as a flat pad under its mount. */
     public final StructureArt art;
+    /** How the building housing this fort aspect is drawn, or null for a structure that is not an aspect core. */
+    public final FortBuildingArt buildingArt;
+    /** How a fort's gatehouse is drawn, authored on the fort's platform, or null for any other structure. */
+    public final FortGatehouseArt gatehouseArt;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
@@ -46,7 +52,10 @@ public final class StructureDef {
                          int footprintCellsX, int footprintCellsY, float forceScore,
                          String mountId, TurretMountDef mount,
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
-                         StructureArt art, TurretRole targetRole, FortAspect fortAspect) {
+                         StructureArt art, TurretRole targetRole, FortAspect fortAspect,
+                         FortBuildingArt buildingArt, FortGatehouseArt gatehouseArt) {
+        this.buildingArt = buildingArt;
+        this.gatehouseArt = gatehouseArt;
         this.targetRole = targetRole;
         this.fortAspect = fortAspect;
         this.dome = dome;
@@ -138,6 +147,10 @@ public final class StructureDef {
         }
         JSONObject artJson = json.optJSONObject("art");
         StructureArt art = artJson != null ? StructureArt.parse(id, artJson) : null;
+        JSONObject buildingJson = json.optJSONObject("buildingArt");
+        FortBuildingArt buildingArt = buildingJson != null ? FortBuildingArt.parse(id, buildingJson) : null;
+        JSONObject gatehouseJson = json.optJSONObject("gatehouseArt");
+        FortGatehouseArt gatehouseArt = gatehouseJson != null ? FortGatehouseArt.parse(id, gatehouseJson) : null;
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));
         if (mount.weapon.guidance != null && role != TurretRole.AA)
             throw new JSONException("Air-guided weapon requires an AA structure: " + id);
@@ -147,6 +160,7 @@ public final class StructureDef {
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount,
                 batteryLoadoutId, fireControlRadius, dome, art,
                 role,
-                json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null);
+                json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null,
+                buildingArt, gatehouseArt);
     }
 }
