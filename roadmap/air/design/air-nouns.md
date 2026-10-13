@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks.
+Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks. Campaign overhaul retains damage across servicing.
 
 Earlier 2026-09-01 â€” an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -371,6 +371,14 @@ and turn rate, damping, seats, hardpoints, sprite and hull id are the pattern's
 and are delegated untouched. A better boat is faster and tougher, not a
 different aircraft.
 
+**Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
+worst missing-hull fraction observed across its trips, including a final partial tick.
+Its persistent identity joins those observations after tactical entities leave the
+field or receive carrier patches. Settlement freezes that evidence once for the
+battle; destroyed boats are losses, never recovery candidates. Campaign boats stay
+grounded during their bounded recovery, including in the ambient ship scene.
+`company-view-nouns.md` owns the repair clock, resource acceleration and lesson.
+
 **Fitting a transport does not remove its hold.** Unloading, payload reloads,
 and boat-deck dispatch resolve the transport pattern from either a bare pattern
 or a fitted boat. They never replace the flying frame to make it qualify: that
@@ -557,6 +565,14 @@ between bursts; the fan is an irregular expanding mass, not two straight arms.
 Each released blast keeps moving independently, slowing and billowing outward.
 This is the visual aftermath of the impact; it does not repeatedly apply the
 impact blast's damage.
+The physical impact breaches walls, roofs and destructible natural props before
+resolving occupants. The grounded hull continues crushing a swept corridor during
+its skid. Overlapping contact samples strike each actor once per crash; damage
+is tied to distance travelled, not frame count or visual fireballs. Permanent
+mountain masses remain impassable. Settled airborne fragments are persistent
+rough ground that halves infantry, mech and vehicle movement speed without
+closing a route or opening any pre-existing obstacle. Hardstand and taxiing
+wrecks retain their solid footprint.
 A hull falling beyond the battlefield does not leave an invented wreck at its
 edge. Battle resolution waits for an ongoing crash to settle.
 
@@ -576,7 +592,7 @@ reason, since a lattice boundary is addressable as ordinary source rectangles
 and a curve would need per-pixel masking that is not available. See
 `HullBreakup`.
 
-The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
+A hardstand or taxiing wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque
 here unless it says otherwise, so the wreck says otherwise â€” a burnt-out
 airframe is a frame with holes in it, and an apron strewn with them is still an

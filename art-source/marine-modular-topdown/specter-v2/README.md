@@ -69,3 +69,13 @@ Regenerate with `createSnapshots -Psnapshot=specter-layers`; the suite also
 retains lossless PNG frames for video encoding. The video repeats its 1.2-second
 cycle five times. The backing was generated with the built-in ImageGen tool
 using the exact retained prompt, body reference, and annotated cutting guide.
+
+Arbalest's first playable shell consumes the existing olive exports directly,
+through its own `ARBALEST_HEAVY` appearance family and armor mastering entry.
+Its torso, two shoulder hinges, helmet and feet preserve this registration.
+No duplicate source plates or raster edits are involved. The left-pauldron pod
+uses a neutral physical center at (-0.2249142, 0.0346128) cells and muzzle reach
+0.12768 cells: the 1.12 shell scale at the ordinary 0.60-cell shoulder unit,
+with its authored (-0.10, 0.01) shoulder-local equipment offset. The muzzle is
+at normalized (0.5, 20/192) on the pod sprite. Battle evidence must be regenerated
+when shell or mount registration changes.

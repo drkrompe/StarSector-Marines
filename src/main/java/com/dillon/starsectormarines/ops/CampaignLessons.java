@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import java.util.ArrayList;
@@ -10,12 +11,13 @@ import java.util.Set;
 
 /** Resumable guidance derived from actual company work, independent of an entry screen. */
 final class CampaignLessons {
-    enum Step { NONE, REFIT, GANTRY, INVESTMENTS, FORMATIONS }
+    enum Step { NONE, BOAT_RECOVERY, REFIT, GANTRY, INVESTMENTS, FORMATIONS }
     private CampaignLessons() { }
 
     static Step next(MarineRoster roster) {
-        if (roster == null || roster.officerInductionRequired()
-                || !roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)) return Step.NONE;
+        if (roster == null || roster.officerInductionRequired()) return Step.NONE;
+        if (roster.campaignLessons().boatRecoveryPending()) return Step.BOAT_RECOVERY;
+        if (!roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)) return Step.NONE;
         if (FirstRefit.available(roster)) return Step.REFIT;
         if (!roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId)) return Step.NONE;
         if (roster.mechBay().mechById(WaylineHound.ID) != null
@@ -27,6 +29,8 @@ final class CampaignLessons {
     static PreparationGuide.Lesson handoff(MarineRoster roster, MarineOpsContext context, ScreenId host) {
         if (context.getSelectedMission() != null && context.getSelectedMission().source.isDebug()) return null;
         return switch (next(roster)) {
+            case BOAT_RECOVERY -> lesson(1, "boatLessonTitle", "boatLessonHandoff",
+                    List.of("page-nav-boats"), "boatLessonVisit", () -> context.goTo(ScreenId.BOAT_DECK));
             case REFIT -> lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("barracks-equipment"),
                     "lessonEquipment", () -> context.openFleetArmoryWorkspaceFrom(host));
             case GANTRY -> lesson(1, "lessonGantryTitle", "lessonGantryHandoff", List.of("page-nav-mech-lab"),
@@ -39,6 +43,20 @@ final class CampaignLessons {
                     "lessonBarracks", () -> context.goTo(ScreenId.BARRACKS));
             default -> null;
         };
+    }
+
+    static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model) {
+        if (next(roster) != Step.BOAT_RECOVERY) return null;
+        CampaignBoat boat = model.boat(roster.campaignLessons().damagedBoatId());
+        if (boat == null) return lesson(1, "boatLessonTitle", "boatLessonGone", List.of("boat-list"),
+                "lessonContinue", roster.campaignLessons()::reviewBoatRecovery);
+        boolean selected = model.selectedBerthIndex() >= 0
+                && roster.boatDeck().boats().get(model.selectedBerthIndex()) == boat;
+        if (!selected) return lesson(1, "boatLessonTitle", "boatLessonInspect", List.of("boat-list"),
+                "boatLessonInspectAction", () -> model.inspect(boat.id()));
+        return lesson(1, "boatLessonTitle", boat.airworthy(model.day()) ? "boatLessonReady" : "boatLessonChoice",
+                List.of("boat-deck-canvas", "boat-recovery", "boat-material-stock", "page-nav-return"),
+                "boatLessonUnderstood", roster.campaignLessons()::reviewBoatRecovery);
     }
 
     static long formations(MarineRoster roster) {

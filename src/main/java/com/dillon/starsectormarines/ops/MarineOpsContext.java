@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
+
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -200,7 +202,8 @@ public class MarineOpsContext {
                 CompanyShipDesignation.deckSeedFor(hull),
                 new BattleSprites(), MarineOpsContext::companyLance,
                 MarineOpsContext::companyMarines,
-                MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks);
+                MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks)
+                .groundedBoats(MarineOpsContext::companyBoatsGrounded);
         return companyDeck;
     }
 
@@ -224,6 +227,18 @@ public class MarineOpsContext {
         return held;
     }
 
+    static boolean[] companyBoatsGrounded() {
+        if (Global.getSector() == null) return null;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        if (script == null) return null;
+        var boats = script.roster().boatDeck().boats();
+        boolean[] grounded = new boolean[boats.size()];
+        float day = CampaignClock.dayFloat();
+        for (int i = 0; i < boats.size(); i++)
+            grounded[i] = boats.get(i) != null && !boats.get(i).airworthy(day);
+        return grounded;
+    }
+
     static boolean[] companyBoatWrecks() {
         if (Global.getSector() == null) return null;
         var script = MarineRosterScript.getInstance();
@@ -242,6 +257,8 @@ public class MarineOpsContext {
         for (boolean boat : held) signature.append(boat ? '1' : '0');
         boolean[] wrecks = companyBoatWrecks();
         if (wrecks != null) for (boolean wreck : wrecks) signature.append(wreck ? 'W' : '-');
+        boolean[] grounded = companyBoatsGrounded();
+        if (grounded != null) for (boolean repairing : grounded) signature.append(repairing ? 'G' : '-');
         return signature.toString();
     }
 

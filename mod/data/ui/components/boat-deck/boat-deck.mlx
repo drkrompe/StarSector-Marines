@@ -1,4 +1,4 @@
-<template props="wings,fabricationActionLabel,restoration,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="recovery,wings,fabricationActionLabel,restoration,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <company-resource-stock stockId="boat-material-stock" rows="{materialStock}" />
@@ -79,6 +79,16 @@
             <div id="selected-boat-name" class="label boat-name tone-accent">{selectedBoatName}</div>
             <div id="selected-boat-identity" class="label tone-muted boat-identity">{selectedBoatIdentity}</div>
             <button id="boat-back-to-deck" class="compact-action console-action" onclick="{backToDeck}">{i18n.openingUiBoatDeckBackToDeck}</button>
+          </div>
+
+          <div id="boat-recovery" class="{recovery.classes}" style="{recovery.style}">
+            <div id="boat-recovery-status" class="label recovery-status tone-accent">{recovery.status}</div>
+            <div id="boat-recovery-track" class="recovery-track"><div id="boat-recovery-fill" class="recovery-fill" style="{recovery.fillStyle}" /></div>
+            <div id="boat-recovery-order" class="{recovery.orderClasses}">
+              <div id="boat-recovery-copy" class="label recovery-copy tone-muted">{i18n.boatRepairCopy}</div>
+              <div id="boat-recovery-costs" class="recovery-costs"><company-resource-cost each="row in recovery.materials" key="{row.id}" row="{row}" /></div>
+              <div id="boat-recovery-actions" class="recovery-actions"><button id="boat-recovery-expedite" class="recovery-action console-action" disabled="{recovery.disabled}" onclick="{recovery.expedite}">{i18n.boatRepairExpedite}</button></div>
+            </div>
           </div>
 
           <div id="boat-performance-grid" class="panel performance-grid">
@@ -225,6 +235,15 @@
   .fabricate-action.blocked { border-color: #8f3f44; background-color: #251419; }
 
   .boat-fitting { flex-direction: row; width: 800px; gap: 7px; overflow: hidden; }
+  .boat-recovery { flex-direction: column; padding: 7px; gap: 5px; }
+  .recovery-status { white-space: normal; height: 38px; }
+  .recovery-track { flex-direction: row; height: 5px; background-color: #18252d; }
+  .recovery-fill { height: 100%; background-color: #dfc588; }
+  .boat-recovery-order { height: 234px; flex-direction: column; gap: 5px; }
+  .recovery-copy { white-space: normal; height: 64px; }
+  .recovery-costs { flex-direction: column; height: 126px; gap: 2px; }
+  .recovery-actions { flex-direction: row; height: 32px; }
+  .recovery-action { width: 210px; height: 32px; }
   .fitting-side { flex-direction: column; width: 310px; gap: 6px; overflow: hidden; }
   .boat-strip { flex-direction: column; align-items: start; height: 96px; padding: 7px; gap: 3px; }
   .boat-name { height: 27px; font-family: title; }

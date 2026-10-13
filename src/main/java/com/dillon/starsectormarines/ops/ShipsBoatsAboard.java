@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
@@ -88,6 +90,31 @@ public final class ShipsBoatsAboard {
         deck.registerFoundingWrecks(CerberusCompanyStart.startingShipId());
         return deck.reconcile(aboard.getId(), ShipsBoats.carriedBy(ship),
                 ShipsBoats.aboard(ship).size());
+    }
+
+    /** Shared explanation for a briefing whose owned lift is all in recovery. */
+    public static String recoveryBlocker() {
+        BoatDeck deck = deck();
+        if (deck == null) return null;
+        float day = CampaignClock.dayFloat();
+        if (!deck.airworthy(day).isEmpty()) return null;
+        float soonest = Float.POSITIVE_INFINITY;
+        for (CampaignBoat boat : deck.boats())
+            if (boat != null) soonest = Math.min(soonest, boat.repairDaysRemaining(day));
+        return Float.isFinite(soonest) ? Strings.format("boatLiftGrounded", Math.ceil(soonest * 10f) / 10d) : null;
+    }
+
+    /** Refuse stale frozen aircraft at the final campaign launch boundary. */
+    static void requireAirworthy(Mission mission, List<FittedBoat> committed) {
+        if (mission.source.isDebug() || mission.source == MissionSource.STATIONING) return;
+        BoatDeck deck = deck();
+        if (deck == null) return;
+        float day = CampaignClock.dayFloat();
+        for (FittedBoat frame : committed) {
+            CampaignBoat boat = deck.boatById(frame.boatId());
+            if (boat == null || !boat.airworthy(day))
+                throw new IllegalStateException("Committed company aircraft is unavailable: " + frame.boatId());
+        }
     }
 
     /** The ship the lift comes off, for a screen that wants to name her. */

@@ -103,6 +103,7 @@ public final class UnitLayerLayouts {
             case FURNACE_LINE -> "armor-master-furnace-line";
             case REAVER -> "armor-master-reaver";
             case SPECTER_HEAVY -> "armor-master-specter-heavy";
+            case ARBALEST_HEAVY -> "armor-master-arbalest-heavy";
             case BULWARK_HEAVY -> "armor-master-bulwark-heavy";
             case RELIQUARY_HEAVY -> "armor-master-reliquary-heavy";
             case LIONS_MANTLE -> "armor-master-lions-mantle";

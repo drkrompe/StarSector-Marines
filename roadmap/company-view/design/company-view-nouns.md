@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Planned boat recovery distinguishes automatic campaign-day repairs, optional paid acceleration and permanent loss of installed fittings.
+Updated: 2026-10-13 — Surviving boat damage now grounds lift for bounded campaign recovery, with optional paid acceleration and resumable Castle guidance.
 
 ## Purpose
 
@@ -565,6 +565,40 @@ incompatible and surplus boats are left behind and reported. Every replacement
 requires the ordinary workshop bill, creates a new identity at standard fit, and
 never recovers the destroyed aircraft's installed fittings.
 
+**A damaged survivor is grounded while the crew repairs it.** Recovery begins at
+mission settlement and runs concurrently for every surviving boat aboard, including
+while travelling. Full recovery takes two campaign days times the worst missing-hull
+fraction observed during the battle, capped at two days. Tactical servicing can patch
+a boat for another trip but cannot erase this overhaul work; trips do not add
+separate repair jobs. A saved deadline carries progress across closing screens,
+save/load and compatible ship transfers. Old boats without a deadline are healthy.
+The original wrecked Hermes and sealed facilities remain separate paid restorations.
+
+Boat Deck anchors a hull-condition bar and recovery clock to the actual berth;
+clicking that marker selects the aircraft. The side panel holds retained fittings
+and the paid repair bill. Grounded
+boats stay visible on their berths but neither ambient flights nor mission lift can
+use them. Briefing explains the next recovery when all company lift is grounded;
+launch rechecks that committed aircraft still exist and are airworthy. Paused UI time
+is not campaign time. Returning to campaign and waiting requires no repair materials,
+docking or restored workshop.
+
+**Expedite repairs buys back the remaining wait.** Each material costs half its
+standard replacement quantity times the remaining damage fraction, rounded up, with
+existing workshop tooling applied to the quote. The order completes that boat now
+and retains identity and fittings. Time can lower a reviewed bill; a changed job or
+increased price requires review, and failed payment changes nothing. The shared
+Available strip stays separate from Cost and Short by. Destruction takes precedence
+over recovery and replacement never inherits the lost aircraft's upgrades.
+
+Castle introduces the first damaged return, including after defeat, through her
+portrait and the actual condition/order controls. Founding induction takes precedence.
+An unfinished receipt survives alternate company/briefing entries and save/load;
+returning after completion explains the ready boat, and a missing boat explains
+replacement. Acknowledging the choice completes the lesson without requiring spending.
+Paying for repairs alone does not acknowledge it. `boat-condition-and-repairs.md`
+retains live campaign acceptance.
+
 **Who was aboard went down with her.** The marines still aboard on the sortie
 that was lost are fallen, and roll the same outcome as a marine shot on the
 ground. Passengers of later cycles never left the ship and are untouched —
@@ -765,12 +799,8 @@ exempt. Once complete, later losses never re-lock the tutorial. Readiness and li
 checks still apply to each mission. The lesson takes precedence over the optional
 replenishment guide. `first-mission-preparation.md` and
 `castle-officer-induction.md` retain live acceptance; narration remains a separate
-production pass. Persistent surviving boat condition remains planned in
-`boat-condition-and-repairs.md`: automatic recovery takes at most two campaign
-days, with optional resource spending to expedite it. Surviving boats retain
-identity and fittings. Castle teaches waiting versus spending without requiring
-a purchase. This ordinary recovery is separate from the opening wreck and
-ship-facility restoration orders; those retain their costs and story gates.
+production pass. Castle's first damaged-return guidance follows the Boat Deck
+recovery model and preserves this founding lesson's precedence.
 
 Barracks opens on company formations grouped by their home officer, with an
 independent acting-NCO group for squads without an officer. Commander portraits,

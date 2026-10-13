@@ -95,10 +95,41 @@ class MarineArmoryTest {
         assertTrue(armory.issue(heavy).issueIds().stream().allMatch(
                 id -> MarineArmorCatalogRegistry.require(id).armorClass() == ArmorClass.POWER_SUIT));
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
-            if (plan.armorClass() == ArmorClass.STANDARD) {
+            if (!plan.isMixedClass() && plan.armorClass() == ArmorClass.STANDARD) {
                 assertTrue(armory.issue(plan).issueIds().stream().allMatch(
                         id -> MarineArmorCatalogRegistry.require(id).armorClass() == ArmorClass.STANDARD));
             }
+        }
+    }
+
+    @Test
+    void mixedRefitRequiresBothSuitRolesAndRetainsNamedSeatsAcrossSave() throws Exception {
+        MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
+        MarineSquad squad = roster.createSquad();
+        roster.recruitToSquad(squad.id(), MarineSquad.CAPACITY);
+        List<String> ids = List.copyOf(squad.memberIds());
+        SquadArmorPlan mixed = SquadEquipmentDoctrines.armorPlanById(
+                SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
+        assertFalse(roster.armory().canIssue(mixed));
+        roster.armory().unlockArmor("armor.specter-recovered");
+        assertFalse(roster.armory().canIssue(mixed));
+        roster.armory().unlockArmor("armor.arbalest-recovered");
+        assertTrue(roster.armory().canIssue(mixed));
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(),
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, mixed.id()));
+        MarineRoster loaded = roundTrip(roster);
+        assertEquals(ids, loaded.squadById(squad.id()).memberIds());
+        assertEquals(mixed.id(), loaded.squadById(squad.id()).armorDoctrineId());
+        CampaignMarineDeployment deployed = CampaignMarineDeployment.freezeSelection(
+                loaded, Set.of(squad.id()), MarineSquad.CAPACITY);
+        assertEquals(8, deployed.commitments().stream()
+                .filter(seat -> seat.armorClass() == ArmorClass.STANDARD).count());
+        assertEquals(4, deployed.commitments().stream()
+                .filter(seat -> seat.armorClass() == ArmorClass.POWER_SUIT).count());
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            assertEquals(ids.get(billet), deployed.commitments().get(billet).campaignSoldierId());
+            assertEquals(mixed.armorClassAt(billet), deployed.commitments().get(billet).armorClass());
         }
     }
 

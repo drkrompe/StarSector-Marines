@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -123,6 +124,23 @@ public class Detonations {
         detonate(det);
     }
 
+    /** Physical hull contact breaches structures before resolving exposed occupants.
+     * A crash's overlapping sweep samples spend their actor payload only once per victim.
+     * This is ground contact, not ordnance arriving through a planetary shield.
+     */
+    public void crushNow(PendingDetonation det, LongSet struck) {
+        damageStructures(det);
+        int r = (int) Math.ceil(det.wallDamageRadius);
+        for (int y = (int) Math.floor(det.endpointY) - r; y <= det.endpointY + r; y++) {
+            for (int x = (int) Math.floor(det.endpointX) - r; x <= det.endpointX + r; x++) {
+                float dx = x + .5f - det.endpointX, dy = y + .5f - det.endpointY;
+                if (grid.inBounds(x, y) && dx * dx + dy * dy <= det.wallDamageRadius * det.wallDamageRadius)
+                    mapEditor.destroyRoof(x, y);
+            }
+        }
+        detonate(det, struck);
+    }
+
     /**
      * Ticks every queued detonation; when one's timer drains, applies splash
      * + wall damage and removes it. Reverse iteration for in-place removal.
@@ -152,7 +170,11 @@ public class Detonations {
      * {@code UnitSpatialIndex} if detonation frequency ever rises.
      */
     private void detonate(PendingDetonation det) {
-        if (screen != null && screen.absorbs(det)) {
+        detonate(det, null);
+    }
+
+    private void detonate(PendingDetonation det, LongSet crashStruck) {
+        if (crashStruck == null && screen != null && screen.absorbs(det)) {
             det.markAbsorbed();
             return;
         }
@@ -188,6 +210,7 @@ public class Detonations {
             long[] dense = roster.denseArray();
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
+                if (crashStruck != null && crashStruck.contains(u)) continue;
                 if (det.excludesAreaTarget(u)) continue;
                 if (det.friendlyFireImmune && det.shooterFaction.friendlyTo(
                         roster.identity().faction(u))) continue;
@@ -218,6 +241,7 @@ public class Detonations {
             BodyService bodies = roster.bodies();
             for (int i = 0, n = bodies.bodyCount(); i < n; i++) {
                 long bodyId = bodies.bodyAt(i);
+                if (crashStruck != null && crashStruck.contains(bodyId)) continue;
                 BodyCarrier carrier = bodies.carrierOf(bodyId);
                 if (carrier == null || !carrier.isTargetable(bodyId)) continue;
                 if (det.excludesAreaTarget(bodyId)) continue;
@@ -236,6 +260,7 @@ public class Detonations {
                 aoeScratch.add(bodyId);
             }
             for (int i = 0, n = aoeScratch.size(); i < n; i++) {
+                if (crashStruck != null) crashStruck.add(aoeScratch.getLong(i));
                 damageService.applyDamage(aoeScratch.getLong(i), det.shooterId, det.damage, det.penetration, 1f);
             }
             aoeScratch.clear();
@@ -255,6 +280,11 @@ public class Detonations {
                 }
             }
         }
+        if (crashStruck == null) damageStructures(det);
+    }
+
+    private void damageStructures(PendingDetonation det) {
+        int targetCx = (int) Math.floor(det.endpointX), targetCy = (int) Math.floor(det.endpointY);
         if (det.wallDamage > 0) {
             if (det.wallDamageRadius > 0f) {
                 mapEditor.damageWallsInRadius(det.endpointX, det.endpointY, det.wallDamageRadius,

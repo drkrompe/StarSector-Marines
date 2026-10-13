@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.battery.FortressBatteryService;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
@@ -34,11 +35,16 @@ public final class FortressBatteryMarkers {
             if (b.operational()) {
                 out.add(new Marker(hostile ? "BATTERY ENVELOPE" : "FRIENDLY BATTERY", b.x(), b.y(), b.envelopeCells(),
                         Kind.ENVELOPE, hostile, 0f));
-            } else if (b.fireControl().contested()) {
+            } else if (b.fireControl().contested() && !hasBunker(b)) {
+                // A fort's contest is shown at its bunker by FortMarkers, not as a ring round the guns.
                 out.add(new Marker("FIRE CONTROL", b.x(), b.y(), b.structure().fireControlRadius, Kind.CONTEST,
                         hostile, b.fireControl().captureProgress()));
             }
         }
         return out;
+    }
+
+    private static boolean hasBunker(FortressBattery battery) {
+        return battery.fort() != null && battery.fort().place(FortAspect.FIRE_CONTROL) != null;
     }
 }

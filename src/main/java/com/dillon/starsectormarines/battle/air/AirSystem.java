@@ -299,6 +299,7 @@ public class AirSystem {
      * resolution, once, after the battle.
      */
     private final List<AirLoss> losses = new ArrayList<>();
+    private final BoatDamageLedger boatDamage = new BoatDamageLedger();
 
     /**
      * The raw entity world + its component registry, cached from {@link #roster}.
@@ -745,6 +746,12 @@ public class AirSystem {
         return aboard;
     }
 
+    /** Captures the last partial tick too; returned values survive entity teardown. */
+    public BoatDamageLedger boatDamage() {
+        for (long id : air) boatDamage.observe(world.airframe(id), world.hp(id));
+        return boatDamage;
+    }
+
     /** Every craft this battle destroyed, in the order it lost them. */
     public List<AirLoss> airLosses() {
         return Collections.unmodifiableList(losses);
@@ -777,13 +784,18 @@ public class AirSystem {
         if (airframeCookOff != null) {
             airframeCookOff.cookOff(id, body.x, body.y, faction);
         }
-        settleGroundWreck(id, body);
+        settleGroundWreck(id, body, false);
     }
 
-    private void settleGroundWreck(long id, AirBody body) {
+    private void settleGroundWreck(long id, AirBody body, boolean crashDebris) {
         if (airfield == null) return;
         GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
         airfield.addGroundWreck(wreck);
+        if (crashDebris) {
+            AirframeFootprint.settleCrashDebris(navigation.getGrid(), body.x, body.y,
+                    world.airframe(id).targetRadiusCells() + 1f);
+            return;
+        }
         LongBucket nearby = new LongBucket();
         navigation.getUnitIndex().gather(body.x, body.y, GROUND_WRECK_GATHER_RADIUS_CELLS, nearby);
         AirframeFootprint.settleWreck(navigation.getGrid(), navigation.getTopology(), world,
@@ -831,6 +843,7 @@ public class AirSystem {
             ShuttleMission mission = world.mission(id);
             AirBody body = world.kinematics(id);
             Airframe frame = world.airframe(id);
+            boatDamage.observe(frame, world.hp(id));
             AirHandling flight = frame.flight();
             ShuttleType carrier = ShuttleType.fromAirframe(frame);
             switch (mission.state) {
@@ -856,11 +869,14 @@ public class AirSystem {
                             != (int) ((mission.crashSeconds - AirCrashMotion.FALL_SECONDS) / .18f)) {
                         effects.spawnCrashBlastFan(body.x, body.y, body.vx, body.vy, frame.targetRadiusCells());
                     }
-                    if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
-                            && AirCrashMotion.skid(body, dt - airborneSeconds)) {
+                    boolean stopped = mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
+                            && AirCrashMotion.skid(body, dt - airborneSeconds);
+                    if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS && airframeCookOff != null)
+                        airframeCookOff.skid(id, body.x, body.y, stopped);
+                    if (stopped) {
                         // A hull that slides off the map does not teleport back onto its edge.
                         if (body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
-                                && body.y < navigation.getGrid().getHeight() - 1) settleGroundWreck(id, body);
+                                && body.y < navigation.getGrid().getHeight() - 1) settleGroundWreck(id, body, true);
                         mission.state = ShuttleState.GONE;
                     }
                     break;
@@ -1348,6 +1364,8 @@ public class AirSystem {
                                             : mission.seatsPerSortie;
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
+                            // Structural overhaul remains in boatDamage; tactical servicing
+                            // makes repeated lifts viable without erasing campaign recovery.
                             // The re-arm is a full refit at the carrier, so repair the hull too —
                             // without this, damage taken on one run carries across sorties and a
                             // cycling shuttle dies early on a later one despite "re-arming". The

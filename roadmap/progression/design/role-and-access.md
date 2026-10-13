@@ -6,7 +6,7 @@ data, doctrine as a role mix resolved against access, and the Armory surface
 that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
+Updated: 2026-10-13 — explicit mixed-class billets and recovered suit access preserve deliberate squad composition.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -132,12 +132,13 @@ means buying into another tradition, which is a real decision rather than an
 automatic upgrade. It also means a section can be mixed-tier by intent, and two
 consequences follow that are worth stating:
 
-- **An armour plan can no longer be refused for missing stock.** It names roles,
+- **An ordinary same-class armour plan falls back within its class.** It names roles,
   and the armoury fills them from whatever is owned — degrading to worse kit,
   and finally to line kit for a role nobody has bought. A company that has never
   bought a scout suit still fields its sections; it just has no scout in one.
-  Composition is the plan's business and supply is the armoury's, and only the
-  weapon side can now refuse an issue.
+  Composition is the plan's business and supply is the armoury's. A plan still
+  requires acquired stock in its declared class; explicitly strict billets also
+  require their requested role rather than silently substituting another job.
 - **A squad's experience band is the squad's, not one marine's.** Experience is
   issued with the armour, so reading the leader's own suit was indistinguishable
   from reading the squad's while all twelve wore the same pattern. It is not any
@@ -181,8 +182,8 @@ and the ladder between them becomes the thing that expresses access:
   pool, sold on recycle speed. Tier is the strength axis; grade remains the
   character axis; a suit may be a masterwork example of a cheap tier.
 - Because a capability then exists at more than one tier, the ladder is
-  *checkable*, and the claim is stronger than it first looks: **every** suit at a
-  tier must be worth more than **every** suit below it. A tier that only raised
+  *checkable* within an armor class: **every** suit at a
+  tier must be worth more than **every** suit below it in that class. A tier that only raised
   its ceiling would let a company pay for tier IV and be handed something worse
   than what it already owned.
 - That comparison needs an index rather than an authored field, because suits
@@ -200,13 +201,30 @@ is explicit data; none of those axes is derived from another. A Kestrel riot
 shell remains STANDARD ASSAULT equipment, while an Arbalest is POWER_SUIT SUPPORT.
 Redoubt, Outrider, and Corpsman remain advanced STANDARD equipment.
 
-A tactic sheet declares the class it equips. Its resolver considers only that
+A tactic sheet declares the class each billet equips. Its resolver considers only that
 class, including fallback within it; learning a power-suit pattern does not turn
 a regular sheet into a mechanized formation. The six heavy faction sheets ask
 for POWER_SUIT issue. A sheet with no acquired pattern in its required class is
 unavailable rather than advertised with a silently different issue. Existing
 role and tradition preferences apply inside that boundary. Refitting preserves
 the twelve named billets, and `power-suit-infantry.md` owns the category direction.
+
+The Salvage-assisted Section deliberately combines eight STANDARD billets
+(one recon and seven line) with two POWER_SUIT assault and two POWER_SUIT support
+billets. Its four powered billets require acquired patterns in both requested
+roles. A powered breacher cannot fill a missing powered support job, and regular
+kit cannot fill either. The sheet becomes available only when its whole issue
+can be resolved; military patterns later improve the same formation without
+changing its people or composition. Regular sheets remain entirely STANDARD
+and full heavy sheets remain entirely POWER_SUIT.
+
+Recovered Specter and Arbalest provide lower-tier versions of those powered
+jobs. Their templates reserve a named story acquisition owner for a later
+expedition after actual Shepherd fleet acquisition. That reservation supplies
+no automatic grant or ordinary market, patron, license, or recovery access.
+The story reward remains unimplemented; explicit developer test acquisition
+currently enables fitting and deployment. Military patterns keep their existing
+acquisition channels and saved ownership.
 
 ## The role set
 
@@ -413,13 +431,13 @@ than asserting it, because the invariant this doc actually wants does not hold
 yet and a failing test is not a plan.
 
 That report is now an assertion. `everyRoleIsAvailableAtMoreThanOneTier` is the
-invariant this doc exists for, and a second — `aCapabilityGetsStrongerWithTheTierOfTheSuitCarryingIt`
-— pins the ladder: the best example of an effect at each populated tier is at
-least as strong as the best at the tier below, measured on that effect's own
-headline axis. It is compared between populated tiers and on the *best* example
-rather than every one, because a capability may skip a tier and because suits
-within a tier are deliberate side-grades — the Foundry-breaker and the Reliquary
-are both tier IV and their pools differ sevenfold.
+coverage invariant this doc exists for. The system ladder compares populated
+tiers within the same armor class and capability: its floor must exceed the
+previous tier's ceiling on the shared capability index. Patterns remain
+side-grades within a tier, and a capability may skip tiers. STANDARD and
+POWER_SUIT have separate ladders because class is an independent issue choice;
+a recovered powered frame need not carry a stronger temporary system than a
+higher-tier regular specialist.
 
 Neither test could have been written before the matrix was filled. The second
 one especially: a ladder needs two rungs.
