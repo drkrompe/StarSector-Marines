@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * Calls a Mudskipper gunship over the targeted ground: it comes in from the nearest map edge,
- * rings the cell with a flank toward it while the broadside guns on that side work the ground,
+ * circles overhead of the cell while its turret works the ground beneath it,
  * and leaves when its time is up.
  *
  * <p>The power conjures a fresh craft the way Marine Insertion conjures a Valkyrie. A committed

@@ -728,7 +728,7 @@ class BattleFixtureJsonTest {
         TargetProfile fortress = new TargetProfile(5, 6, 2, 1, "hegemony",
                 EnumSet.of(EconomicFunction.HABITATION), SurfacePalette.ROCK,
                 SettlementLink.ROAD, 0f, 0f, true, true, false,
-                new GroundDefences(3, true));
+                new GroundDefences(3, true, 7));
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 9_120L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
                 false, RiskLevel.LOW, 4, fortress, false);
@@ -744,6 +744,7 @@ class BattleFixtureJsonTest {
         profile.remove("planetaryShield");
         profile.remove("declaredBatteries");
         profile.remove("declaredShieldGenerator");
+        profile.remove("declaredNests");
         TargetProfile legacy = ((CivilianRescueBattleFixture)
                 BattleFixtureJson.fromJson(encoded)).targetProfile();
         assertEquals(false, legacy.groundDefences() || legacy.heavyBatteries() || legacy.planetaryShield());
