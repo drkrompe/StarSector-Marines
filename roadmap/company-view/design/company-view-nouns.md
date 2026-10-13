@@ -273,8 +273,10 @@ settling or forfeiting any pending salvage; ordinary settlement actions retain
 their existing ownership.
 
 The player accepts the patterns, selects an actual line squad, chooses one path,
-and reviews a selectable twelve-billet roll alongside Cost, Available and
-Short by. Selecting a billet displays current and proposed weapon, armor and
+and reviews twelve clickable equipment squares in three fire-team columns of
+four billets, alongside Cost, Available and Short by. The grid uses the Barracks'
+current-equipment icons, with wounded and vacant slots identified. Selecting a
+square displays current and proposed weapon, armor and
 special equipment side by side, using existing equipment sprites and the shared
 catalog spec sheets. Core stats stay visible; hover expands field notes and suit
 systems. The review explicitly marks unchanged kit, replacements, removed specials,
