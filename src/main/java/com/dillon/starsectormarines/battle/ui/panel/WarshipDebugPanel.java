@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.tender.DebugTender;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -57,6 +58,8 @@ public final class WarshipDebugPanel implements HudPanel {
     public static final int GO_KEY = Keyboard.KEY_F10;
     /** Add the cell under the cursor to the route and patrol it in a loop. */
     public static final int ROUTE_KEY = Keyboard.KEY_F11;
+    /** A tender: select the next build option. */
+    public static final int OPTION_KEY = Keyboard.KEY_F12;
 
     private static final float PAD = 6f;
     private static final Color TEXT = new Color(0xFF, 0xE0, 0x90);
@@ -64,6 +67,7 @@ public final class WarshipDebugPanel implements HudPanel {
 
     private final BattleUiContext ctx;
     private final List<float[]> route = new ArrayList<>();
+    private int tenderOption;
     private final BitmapFont font = Fonts.INSIGNIA_15_AA;
 
     public WarshipDebugPanel(BattleUiContext ctx) {
@@ -124,7 +128,7 @@ public final class WarshipDebugPanel implements HudPanel {
             float mouseX = Global.getSettings().getMouseX();
             float mouseY = Global.getSettings().getMouseY();
             if (camera != null && camera.containsScreen(mouseX, mouseY)) {
-                DebugTender.buildAt(ctx.getSim(), tender, camera.screenToCellX(mouseX), camera.screenToCellY(mouseY));
+                DebugTender.buildAt(ctx.getSim(), tender, BuildOption.ALL.get(tenderOption), camera.screenToCellX(mouseX), camera.screenToCellY(mouseY));
             }
             return true;
         }
@@ -134,6 +138,10 @@ public final class WarshipDebugPanel implements HudPanel {
         }
         if (key == FLUX_KEY) {
             DebugTender.toggleDefence(tender);
+            return true;
+        }
+        if (key == OPTION_KEY) {
+            tenderOption = DebugTender.nextOption(tenderOption);
             return true;
         }
         return false;
@@ -167,7 +175,7 @@ public final class WarshipDebugPanel implements HudPanel {
         if (ship == null || layout == null) return;
         font.ensureLoaded();
         Tender tender = DebugTender.of(ctx.getSim(), ship);
-        String line = tender != null ? tender.statusLine()
+        String line = tender != null ? tender.statusLine() + "  option " + BuildOption.ALL.get(tenderOption).label()
                 : DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
         String hint = tender != null ? DebugTender.HINT
                 : "F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
