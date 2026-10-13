@@ -105,6 +105,14 @@ public final class EffectsService {
                 0.05f + rng.nextFloat() * 0.10f));
     }
 
+    /** A hull-sized, purely visual cook-off followed by three minutes of cooling smoke. */
+    public void spawnVehicleWreck(float x, float y, float length, float width) {
+        float scale = Math.max(1f, Math.min(2.5f, (float) Math.sqrt(length * width) * .65f));
+        spawnHeavyImpact(x, y, scale);
+        smokingWrecks.add(new SmokingWreck((int) Math.floor(x), (int) Math.floor(y),
+                180f, .05f, scale, 24f));
+    }
+
     /** Live smoking wrecks. Read-only — callers iterate; mutation happens through {@link #spawnSmokingWreck} and {@link #tickWrecks(float)}. */
     public List<SmokingWreck> getSmokingWrecks() {
         return Collections.unmodifiableList(smokingWrecks);
@@ -236,21 +244,21 @@ public final class EffectsService {
             w.nextPuffTimer -= dt;
             if (w.nextPuffTimer <= 0f) {
                 float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
-                float radius = 0.40f + cooledFrac * 0.45f;
+                float radius = (0.40f + cooledFrac * 0.45f) * w.effectScale;
                 smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
                 w.nextPuffTimer = WRECK_PUFF_MIN_GAP
                         + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
             }
 
-            if (age < WRECK_BURN_DURATION) {
+            if (age < w.burnDuration) {
                 w.nextFireTimer -= dt;
                 if (w.nextFireTimer <= 0f) {
-                    float burnRemaining = WRECK_BURN_DURATION - age;
+                    float burnRemaining = w.burnDuration - age;
                     float intensity = (burnRemaining < WRECK_FIRE_FADE_DURATION)
                             ? burnRemaining / WRECK_FIRE_FADE_DURATION
                             : 1f;
                     if (rng.nextFloat() < intensity) {
-                        float fireRadius = 0.40f + rng.nextFloat() * 0.30f;
+                        float fireRadius = (0.40f + rng.nextFloat() * 0.30f) * w.effectScale;
                         fireBurstsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, fireRadius});
                     }
                     w.nextFireTimer = WRECK_FIRE_MIN_GAP

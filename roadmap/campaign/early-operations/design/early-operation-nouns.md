@@ -714,11 +714,23 @@ the crossing. Physical chassis steering, terrain, shared damage, turret fire
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
+One light militia technical follows the staged advance and stays behind at
+East Crossing. Its pickup chassis and independently traversing machine gun use
+ordinary vehicle movement, finite ammunition and shared damage. It is employer
+support, not a campaign vehicle grant. Two of the opening four raiders carry
+two crude unguided rockets each. Poor accuracy, slow aiming and low penetration
+let them threaten freight without granting an effective military anti-armor kit.
+The advance load's fate still comes from combat rather than a scripted kill.
 Fourteen low-tech raiders guard the roadside buildings. Six more already man
-two rifle bays at the exit checkpoint. A finite sixty-eight-person pressure pool
-arrives in seventeen four-person batches: one already attacking the earlier load,
+two rifle bays at the exit checkpoint. A finite ninety-two-person pressure pool
+arrives in twenty-three four-person batches: one already attacking the earlier load,
 five across Dispatch defense and departure, seven across East Crossing defense and
-the outbound approach, and four during the final run. Some later Crossing attacks use
+the outbound approach, and four during the final run. Six additional four-person squads alternate between
+the militia gun posts after the East Crossing defense window, entering through
+the north/south road mouths while the company pushes on Outbound Gate. Each
+attacks the prepared post itself through ordinary squad movement and fire; no
+teleportation, instant damage or infinite replenishment protects or threatens it.
+Their clocks survive subsequent captures. Some later Crossing attacks use
 the outbound side roads to block the company's next advance, rather than all
 chasing its rear. The timetable retains each phase's first release clock through
 later progress, so an early capture cannot cancel a trailing attack. A minimum
@@ -742,8 +754,8 @@ changes no vanilla diplomacy, trade, market ownership or bombardment permission.
 The battle HUD distinguishes release instructions from actual freight results,
 with stable load numbers and delivered/lost counts. Moving hulls produce a
 bounded dust treatment; industrial container bodies identify the freight and
-independently aimed roof turrets identify the escorts. Presentation changes no
-collision, visibility or damage.
+independently aimed roof turrets identify the escorts. Destroyed hulls visibly cook off, burn briefly and leave a longer, finite smoke
+tail. Presentation changes no collision, visibility or damage.
 Start, actual player landing, each released leg, freight commitment, rear clearance,
 heavy lead advancement, each cargo delivery/loss and terminal results publish once-only story hooks. Hidden ambush deployment remains
 observer-only, ready for a future sighting-aware dialogue adapter.

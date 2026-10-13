@@ -315,7 +315,7 @@ public class GroundSystem {
         turrets.cancelQueuedFire(id);
         resolveOnboardPassengers(id, mission, type, body);
         resolveOnboardRiders(id, body);
-        effects.spawnSmokingWreck((int) Math.floor(body.x), (int) Math.floor(body.y));
+        effects.spawnVehicleWreck(body.x, body.y, type.visualLengthCells, type.visualWidthCells);
     }
 
     /**
