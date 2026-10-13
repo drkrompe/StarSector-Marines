@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress.Phase;
+import com.dillon.starsectormarines.battle.story.ColdStartPicket;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import java.lang.reflect.Proxy;
@@ -80,5 +81,29 @@ class ColdStartCommandTest {
         var incumbent=squad(1,Faction.MARINE,CommandAuthority.MISSION_COMMAND,command.strategyId(),-1,old);
         var proposal=command.plan(frame(Faction.MARINE,Phase.ESCORT,true,incumbent)).proposals().get(0);
         assertSame(old,proposal.assignment());assertEquals(CommandStabilityBreak.NONE,proposal.stabilityBreak());
+    }
+    @Test void registeredPicketRetainsItsOuterPostAcrossPhasesAndWithdrawsToItsOwnInnerRally() {
+        var command = new ColdStartCommand(Faction.ALLY, 3);
+        var post = new ColdStartPicket("south_picket", 7, 176, 38, 151, 96, 3);
+        var old = ObjectiveAssignment.defendArea(7, 176, 38, 3);
+        var militia = squad(7, Faction.ALLY, CommandAuthority.MISSION_COMMAND, command.strategyId(), -1, old);
+        var base = new CommandFrame(75, Faction.ALLY, List.of(militia), null, topology(), new CommandAssignmentSnapshot(Map.of()));
+        for (var phase : List.of(Phase.ESCORT, Phase.POWER, Phase.CONSTRUCTION, Phase.REPAIR)) {
+            var proposal = command.plan(new ColdStartCommand.Frame(base, phase, 171, 117, true, List.of(post.report()))).proposals().get(0);
+            assertSame(old, proposal.assignment());
+            assertEquals(CommandStabilityBreak.NONE, proposal.stabilityBreak());
+        }
+        post.observe(60, 2, 0, true, false);
+        var withdrawing = command.plan(new ColdStartCommand.Frame(base, Phase.REPAIR, 147, 115, true, List.of(post.report()))).proposals().get(0).assignment();
+        assertEquals(151, withdrawing.targetCellX()); assertEquals(96, withdrawing.targetCellY());
+        assertEquals(AssignmentKind.WITHDRAW, withdrawing.kind());
+        post.observe(70, 2, 2, false, false);
+        var arrived = command.plan(new ColdStartCommand.Frame(base, Phase.REPAIR, 147, 115, true, List.of(post.report()))).proposals().get(0).assignment();
+        assertEquals(AssignmentKind.DEFEND_AREA, arrived.kind());
+        assertEquals(151, arrived.targetCellX()); assertEquals(96, arrived.targetCellY());
+        post.observe(71, 2, 0, true, false);
+        var player = squad(7, Faction.ALLY, CommandAuthority.PLAYER_INTERVENTION, "player", 100, old);
+        var leased = new CommandFrame(75, Faction.ALLY, List.of(player), null, topology(), new CommandAssignmentSnapshot(Map.of()));
+        assertEquals(CommandProposal.Action.RETAIN, command.plan(new ColdStartCommand.Frame(leased, Phase.REPAIR, 147, 115, true, List.of(post.report()))).proposals().get(0).action());
     }
 }

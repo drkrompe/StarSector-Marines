@@ -6,6 +6,187 @@
   "voiceSettings": {},
   "lines": [
     {
+      "id": "basin_cold_start_south_haul_contact",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.south_haul_contact",
+      "text": "Our south haul picket has contact, Captain. They are only a small detachment. Give them support if you can.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] Our south haul picket has contact, Captain. They are only a small detachment. Give them support if you can.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": []
+    },
+    {
+      "id": "basin_cold_start_south_haul_withdrawing",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.south_haul_withdrawing",
+      "text": "The south haul picket is falling back toward the inner line. Cover their crossing, Captain.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The south haul picket is falling back toward the inner line. Cover their crossing, Captain.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": [
+        "cold_start.south_haul_contact"
+      ]
+    },
+    {
+      "id": "basin_cold_start_south_haul_overrun",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.south_haul_overrun",
+      "text": "The south haul outer post is no longer holding. Keep the repair line covered and watch for our people coming back.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The south haul outer post is no longer holding. Keep the repair line covered and watch for our people coming back.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": [
+        "cold_start.south_haul_contact"
+      ]
+    },
+    {
+      "id": "basin_cold_start_south_haul_inner_hold",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.south_haul_inner_hold",
+      "text": "The surviving south haul picket has reached its inner hold. Keep that approach covered while the crew works.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The surviving south haul picket has reached its inner hold. Keep that approach covered while the crew works.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": [
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun"
+      ]
+    },
+    {
+      "id": "basin_cold_start_quarry_contact",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.quarry_contact",
+      "text": "Our quarry road picket has contact, Captain. They are only a small detachment. Give them support if you can.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] Our quarry road picket has contact, Captain. They are only a small detachment. Give them support if you can.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": []
+    },
+    {
+      "id": "basin_cold_start_quarry_withdrawing",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.quarry_withdrawing",
+      "text": "The quarry road picket is falling back toward the inner line. Cover their crossing, Captain.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The quarry road picket is falling back toward the inner line. Cover their crossing, Captain.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": [
+        "cold_start.quarry_contact"
+      ]
+    },
+    {
+      "id": "basin_cold_start_quarry_overrun",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.quarry_overrun",
+      "text": "The quarry road outer post is no longer holding. Keep the repair line covered and watch for our people coming back.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The quarry road outer post is no longer holding. Keep the repair line covered and watch for our people coming back.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": [
+        "cold_start.quarry_contact"
+      ]
+    },
+    {
+      "id": "basin_cold_start_quarry_inner_hold",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.quarry_inner_hold",
+      "text": "The surviving quarry road picket has reached its inner hold. Keep that approach covered while the crew works.",
+      "durationSeconds": 8.0,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The surviving quarry road picket has reached its inner hold. Keep that approach covered while the crew works.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": [
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun"
+      ]
+    },
+    {
+      "id": "basin_cold_start_inner_line_fortified",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.inner_line_fortified",
+      "text": "The new road gun is ready at the inner line. Keep the crew covered, Captain. Its fire can help us hold the approaches.",
+      "durationSeconds": 7.5,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] The new road gun is ready at the inner line. Keep the crew covered, Captain. Its fire can help us hold the approaches.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": []
+    },
+    {
+      "id": "basin_cold_start_south_entry_denied",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.south_entry_denied",
+      "text": "A south haul road party has broken off at your screen, Captain. Keep that entry covered.",
+      "durationSeconds": 7.5,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] A south haul road party has broken off at your screen, Captain. Keep that entry covered.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": []
+    },
+    {
+      "id": "basin_cold_start_quarry_entry_denied",
+      "missionId": "story_shepherd_cold_start",
+      "event": "cold_start.quarry_entry_denied",
+      "text": "A quarry road party has broken off at your screen, Captain. Keep that entry covered.",
+      "durationSeconds": 7.5,
+      "priority": 18,
+      "expiresSeconds": 25,
+      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
+      "portrait": "",
+      "voiced": false,
+      "synthesisText": "[firm, practical] A quarry road party has broken off at your screen, Captain. Keep that entry covered.",
+      "voiceId": "cZH6erlGkOyAQheipyno",
+      "supersedes": []
+    },
+    {
       "id": "basin_passage_bend_build",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.bend_build",
@@ -355,7 +536,18 @@
         "cold_start.complete",
         "cold_start.crew_lost",
         "cold_start.carrier_lost",
-        "cold_start.approach"
+        "cold_start.approach",
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun",
+        "cold_start.south_haul_inner_hold",
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun",
+        "cold_start.quarry_inner_hold",
+        "cold_start.inner_line_fortified",
+        "cold_start.south_entry_denied",
+        "cold_start.quarry_entry_denied"
       ]
     },
     {
@@ -383,7 +575,18 @@
         "cold_start.complete",
         "cold_start.crew_lost",
         "cold_start.carrier_lost",
-        "cold_start.approach"
+        "cold_start.approach",
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun",
+        "cold_start.south_haul_inner_hold",
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun",
+        "cold_start.quarry_inner_hold",
+        "cold_start.inner_line_fortified",
+        "cold_start.south_entry_denied",
+        "cold_start.quarry_entry_denied"
       ]
     },
     {
@@ -519,7 +722,18 @@
         "cold_start.turret_ready",
         "cold_start.crew_lost",
         "cold_start.carrier_lost",
-        "cold_start.approach"
+        "cold_start.approach",
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun",
+        "cold_start.south_haul_inner_hold",
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun",
+        "cold_start.quarry_inner_hold",
+        "cold_start.inner_line_fortified",
+        "cold_start.south_entry_denied",
+        "cold_start.quarry_entry_denied"
       ]
     },
     {
@@ -547,7 +761,18 @@
         "cold_start.turret_ready",
         "cold_start.complete",
         "cold_start.carrier_lost",
-        "cold_start.approach"
+        "cold_start.approach",
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun",
+        "cold_start.south_haul_inner_hold",
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun",
+        "cold_start.quarry_inner_hold",
+        "cold_start.inner_line_fortified",
+        "cold_start.south_entry_denied",
+        "cold_start.quarry_entry_denied"
       ]
     },
     {
@@ -575,7 +800,18 @@
         "cold_start.turret_ready",
         "cold_start.complete",
         "cold_start.crew_lost",
-        "cold_start.approach"
+        "cold_start.approach",
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun",
+        "cold_start.south_haul_inner_hold",
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun",
+        "cold_start.quarry_inner_hold",
+        "cold_start.inner_line_fortified",
+        "cold_start.south_entry_denied",
+        "cold_start.quarry_entry_denied"
       ]
     },
     {

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Working Passage departure, recovery and permanent fleet handover; live campaign acceptance remains open.
+Updated: 2026-10-13 - Colossus yard stakes, Cold Start outer pickets and permanent fleet handover; live campaign acceptance remains open.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -24,8 +24,15 @@ fighting overhead. Morrow's crew made an emergency landing in their own cradle
 and evacuated; surviving hands return with the repair party. Armed scrappers
 occupy the abandoned yard. That outfit is the opposition, not scavengers as a
 whole; the overhead battle and local claims are mod-authored history.
-The cooperative's local permit is not planetary government authority. Completion of
-the Corvus arc and acknowledgement of its aftermath precede the offer;
+The cooperative's local permit is not planetary government authority.
+The broken Colossus against the northern rear canyon wall is the yard's grounded
+cargo and equipment depot, surrounded by valuable hull scrap. These stores and
+working installations are the scrappers' prize and the cooperative's reason to
+pay for reopening the basin. The cooperative keeps that larger asset and the
+yard; its smaller tender Morrow is the agreed payment in kind for all three
+contracts. The Colossus grants no fleet member, extra salvage objective or cargo
+inventory. The contract and settled correspondence make the exchange explicit.
+Completion of the Corvus arc and acknowledgement of its aftermath precede the offer;
 neither Broken Supply Route branch changes eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
@@ -75,6 +82,16 @@ and actual damage interrupt construction under the standing tender rules. Ground
 construction retains the large static hull and its collision, has a fixed working
 reach and grants neither flight nor a fleet member. Completing a real road gun
 allows the repair task to proceed; the gun fires and takes damage ordinarily.
+
+Two three-person cooperative outer pickets screen Cold Start's south haul and
+quarry approaches, alongside eight inner militia holders and two technicians.
+Four committed six-person raider teams assault through those
+roads. The first actual casualty or a post breach orders surviving pickets to
+withdraw toward distinct inner holds; a broken post never implies that its people
+were all killed. Survivor hold reports require physical arrival. The company can
+support a forward detachment or deny an exposed entry, while the constructed
+gun helps hold the tighter repair line. Refused road personnel remain distinct
+from casualties. No mandatory deaths or extra reward depend on these posts.
 
 Working Passage follows completed repairs. The same hull travels in a low hover
 with its full 24 by 20-cell body, clearing terrain along its actual movement.

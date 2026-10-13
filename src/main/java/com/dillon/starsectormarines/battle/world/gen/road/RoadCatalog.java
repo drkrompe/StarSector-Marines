@@ -46,7 +46,7 @@ public final class RoadCatalog {
             case JUNCTION -> new int[]{192,112};
             case LAST_LIFT -> new int[]{192,128};
             case RELAY_NINE -> new int[]{208,128};
-            case SHEPHERD_BASIN -> new int[]{304,176};
+            case SHEPHERD_BASIN -> new int[]{304,224};
             default -> throw new IllegalArgumentException("Unknown mission road plan: " + path);
         };
         if (plan.width() != size[0] || plan.height() != size[1])

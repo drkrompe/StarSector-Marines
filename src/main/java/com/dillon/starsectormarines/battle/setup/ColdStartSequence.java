@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress;
+import com.dillon.starsectormarines.battle.story.ColdStartPicket;
+import com.dillon.starsectormarines.battle.story.ColdStartRoadEntry;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress.Phase;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.tender.Tender;
@@ -35,8 +37,13 @@ public final class ColdStartSequence implements Objective {
     private final List<EntitySpec> reserve;
     private final StoryBeatLog log;
     private final List<Integer> roadSquads = new ArrayList<>();
+    private final List<Integer> roadBatches = new ArrayList<>();
+    private final ColdStartRoadEntry[] roadEntries = {new ColdStartRoadEntry(), new ColdStartRoadEntry(), new ColdStartRoadEntry(), new ColdStartRoadEntry()};
+    private final Set<Integer> deniedRoadTeams = new HashSet<>();
+    private final Set<Integer> passedRoadMouth = new HashSet<>();
     private final Set<Integer> handedOff = new HashSet<>();
     private final Set<Long> turretIds = new HashSet<>();
+    private final List<ColdStartPicket> pickets = new ArrayList<>();
     private Tender tender;
     private float[] routeX, routeY;
     private int escortX = 20, escortY = 78, released;
@@ -46,11 +53,19 @@ public final class ColdStartSequence implements Objective {
     public ColdStartSequence(int engineers, long carrier, List<EntitySpec> reserve,
                              boolean delivered, boolean powered, StoryBeatLog log) {
         this.engineers = engineers; this.carrier = carrier; this.reserve = List.copyOf(reserve); this.log = log;
-        if (reserve.size() != 16) throw new IllegalArgumentException("Cold Start needs four committed road teams");
+        if (reserve.size() != 24) throw new IllegalArgumentException("Cold Start needs four six-person road teams");
         progress = new ColdStartProgress(delivered, powered);
     }
     public ColdStartProgress progress() { return progress; }
-    public int pendingMembers() { return progress.terminal() ? 0 : reserve.size() - released * 4; }
+    public void registerPicket(String key, int squadId, int outerX, int outerY, int innerX, int innerY, int members) {
+        if (initialized || pickets.stream().anyMatch(p -> p.report().squadId() == squadId || p.report().key().equals(key)))
+            throw new IllegalStateException("Pickets must be unique and registered before advance");
+        pickets.add(new ColdStartPicket(key, squadId, outerX, outerY, innerX, innerY, members));
+    }
+    public List<ColdStartPicket.Report> pickets() { return pickets.stream().map(ColdStartPicket::report).toList(); }
+    public int pendingMembers() { return progress.terminal() ? 0 : reserve.size() - released * 6; }
+    /** Off-map entrants refused by an actual sustained friendly boundary screen; these are not casualties. */
+    public int deniedRoadMembers() { return deniedRoadTeams.size() * 6; }
     public long repairCarrierId() { return carrier; }
     public int engineersSquadId() { return engineers; }
     public Tender tender() { return tender; }
@@ -98,6 +113,7 @@ public final class ColdStartSequence implements Objective {
             if (side == Faction.MARINE && name != null && name.startsWith("tender-turret-")) turretIds.add(id);
         }
         Phase before = progress.phase();
+        observePickets(sim);
         if (before == Phase.CONSTRUCTION && tender != null && tender.buildersLost() >= tender.builderComplement() && tender.built() == 0) {
             progress.fail();
             emit(sim, "builders_lost");
@@ -108,7 +124,8 @@ public final class ColdStartSequence implements Objective {
             if (!report.shorePower()) emit(sim, "pump_started");
         }
         // Only public stage transitions commit finite attackers. Their travel and combat remain ordinary.
-        if (report.cargoDelivered() && company && released == 0) release(sim);
+        if (released == 0 && (report.cargoDelivered() && company
+                || carrierAlive && sim.convoy().body(carrier).x >= 50)) release(sim);
         if (pumpStarted && released == 1) release(sim);
         if (pumpStarted && sim.getSimTickIndex() - pumpStartTick >= 450 && released == 2) release(sim);
         if (before == Phase.REPAIR && released == 3) release(sim);
@@ -180,27 +197,98 @@ public final class ColdStartSequence implements Objective {
             throw new IllegalStateException("Cold Start recommended turret site is unreachable");
     }
     private void release(BattleSimulation sim) {
+        boolean visible = false;
+        for (int i = released * 6; i < released * 6 + 6; i++) {
+            var entry = reserve.get(i);
+            for (int y = entry.cellY - 1; y <= entry.cellY + 1; y++)
+                for (int x = entry.cellX - 1; x <= entry.cellX + 1; x++) visible |= sim.playerSeesCell(x, y);
+        }
+        var entry = reserve.get(released * 6);
+        boolean screened = false;
+        if (visible) for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long id = sim.liveUnitAt(i);
+            if (sim.identity().type(id).combatant && Faction.MARINE.friendlyTo(sim.identity().faction(id))
+                    && Math.hypot(sim.world().x(id) - entry.cellX, sim.world().y(id) - entry.cellY) <= 40
+                    && sim.getGrid().hasLineOfSight((int)sim.world().x(id), (int)sim.world().y(id), entry.cellX, entry.cellY)) screened = true;
+        }
+        if (roadEntries[released].denied(sim.getSimTickIndex(), visible, screened)) {
+            int batch = released++;
+            deniedRoadTeams.add(batch);
+            emit(sim, batch == 2 ? "quarry_entry_denied" : "south_entry_denied");
+            log.emitOnce(sim.getSimTickIndex(), "cold_start.road_team_denied_" + batch, StoryBeatLog.Audience.OBSERVER_ONLY);
+            if (batch == 3) finalResponseReached = true;
+            return;
+        }
+        // Visible entries remain off-map; denied entry records no killed or spawned soldiers.
+        if (visible) return;
         int batch = released++;
         if (batch == 0) emit(sim, "approach");
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
-        for (int i = batch * 4; i < batch * 4 + 4; i++) sim.spawn(reserve.get(i).squad(squad));
-        sim.getSquad(squad).originalSize = 4;
-        int x = batch == 2 ? 270 : 194, y = batch == 2 ? 145 : 45;
+        for (int i = batch * 6; i < batch * 6 + 6; i++) sim.spawn(reserve.get(i).squad(squad));
+        sim.getSquad(squad).originalSize = 6;
+        int[] ingress = roadMouth(batch);
+        int x = ingress[0], y = ingress[1];
         sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, x, y), CommandAuthority.SCRIPTED, ROAD, "Scrappers enter along the haul road");
         roadSquads.add(squad);
+        roadBatches.add(batch);
         log.emitOnce(sim.getSimTickIndex(), "cold_start.road_team_" + batch, StoryBeatLog.Audience.OBSERVER_ONLY);
     }
     private void handoffRoadTeams(BattleSimulation sim) {
         for (int i = 0; i < roadSquads.size(); i++) {
             int id = roadSquads.get(i);
+            int batch = roadBatches.get(i);
             var squad = sim.getSquad(id);
-            int x = i == 2 ? 270 : 194, y = i == 2 ? 145 : 45;
-            if (!handedOff.contains(id) && sim.squadMemberCount(id) > 0
-                    && (Math.hypot(squad.centroidX - x, squad.centroidY - y) < 6 || squad.hasDirectContactThisTick())) {
+            int[] mouth = roadMouth(batch);
+            if (!passedRoadMouth.contains(id) && sim.squadMemberCount(id) > 0
+                    && Math.hypot(squad.centroidX - mouth[0], squad.centroidY - mouth[1]) < 4) {
+                int[] post = roadIngress(batch);
+                sim.assignSquadCommand(ObjectiveAssignment.attackMove(id, post[0], post[1]),
+                        CommandAuthority.SCRIPTED, ROAD, "Scrappers cross the outer picket approach");
+                passedRoadMouth.add(id);
+            }
+            int[] ingress = roadIngress(batch);
+            int x = ingress[0], y = ingress[1];
+            if (passedRoadMouth.contains(id) && !handedOff.contains(id) && sim.squadMemberCount(id) > 0
+                    && Math.hypot(squad.centroidX - x, squad.centroidY - y) < 4) {
                 if (sim.handoffSquadCommand(id, ROAD, CommandAuthority.MISSION_COMMAND, ColdStartCommand.issuer(Faction.DEFENDER), null, "Raid the repair yard")) handedOff.add(id);
             }
-            if (i == 3 && (sim.squadMemberCount(id) == 0 || Math.hypot(squad.centroidX - BUILD_X, squad.centroidY - BUILD_Y) < 36)) finalResponseReached = true;
+            if (batch == 3 && (sim.squadMemberCount(id) == 0 || Math.hypot(squad.centroidX - BUILD_X, squad.centroidY - BUILD_Y) < 36)) finalResponseReached = true;
         }
+    }
+    private static int[] roadMouth(int batch) {
+        return batch == 2 ? new int[]{283,135} : new int[]{194,14};
+    }
+    private int[] roadIngress(int batch) {
+        int lane = batch == 2 ? 1 : 0;
+        if (pickets.size() > lane) {
+            var post = pickets.get(lane).report();
+            return new int[]{post.outerX(), post.outerY()};
+        }
+        return batch == 2 ? new int[]{270,145} : new int[]{194,45};
+    }
+    private void observePickets(BattleSimulation sim) {
+        for (var picket : pickets) {
+            var before = picket.report();
+            int inside = 0;
+            boolean breached = false;
+            for (int i = 0; i < sim.liveUnitCount(); i++) {
+                long id = sim.liveUnitAt(i);
+                if (sim.squad().hasSquad(id) && sim.squad().squadId(id) == before.squadId()
+                        && Math.hypot(sim.world().x(id) - before.innerX(), sim.world().y(id) - before.innerY()) <= 5) inside++;
+                if (sim.identity().type(id).combatant && Faction.ALLY.hostileTo(sim.identity().faction(id))
+                        && Math.hypot(sim.world().x(id) - before.outerX(), sim.world().y(id) - before.outerY()) <= 3) breached = true;
+            }
+            var squad = sim.getSquad(before.squadId());
+            picket.observe(sim.getSimTickIndex(), sim.squadMemberCount(before.squadId()), inside,
+                    squad != null && squad.hasDirectContactThisTick(), breached);
+            var after = picket.report();
+            if (after.contacted()) emit(sim, after.key() + "_contact");
+            if (after.withdrawing()) emit(sim, after.key() + "_withdrawing");
+            if (after.overrun()) emit(sim, after.key() + "_overrun");
+            if (after.state() == ColdStartPicket.State.INNER_HOLD) emit(sim, after.key() + "_inner_hold");
+        }
+        if (tender != null && tender.built() > 0 && turretIds.stream().anyMatch(sim.world()::isAlive))
+            emit(sim, "inner_line_fortified");
     }
     private void emit(BattleSimulation sim, String beat) { log.emitOnce(sim.getSimTickIndex(), "cold_start." + beat, StoryBeatLog.Audience.PLAYER); }
     private static boolean isCompany(BattleSimulation sim, long id) {
