@@ -1906,6 +1906,8 @@ drone that is out of the bay, alive and not away chasing a raider fires; a build
 never does, a docked or recalled drone cannot, and the tender stays a ship with no guns.
 The tracer is drawn through the warship point-defence marks.
 
+A tender may be flown by the player through the direct-control carrier seam (`direct-control-nouns.md`, Tender): the same build orders and drone recall, laid by the pilot's buttons instead of an AI or the debug panel.
+
 ### Authored structural bombardment
 
 A mission may explicitly order a capital to demolish standing structures in a
