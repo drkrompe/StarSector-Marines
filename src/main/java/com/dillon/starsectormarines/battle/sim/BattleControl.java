@@ -176,7 +176,7 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /**
      * Spawn a gunship: an armed {@code type} craft that flies in from {@code (entryX, entryY)}, circles
-     * {@code (centreX, centreY)} with a flank toward it while its broadside guns work the ground, then
+     * {@code (centreX, centreY)} overhead while its turret works the ground beneath it, then
      * leaves by {@code (exitX, exitY)}. Returns its world entity id; nothing needs configuring afterwards.
      */
     long spawnGunship(ShuttleType type, Faction faction,
