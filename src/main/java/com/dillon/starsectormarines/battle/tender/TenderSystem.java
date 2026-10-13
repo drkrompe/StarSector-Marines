@@ -44,6 +44,14 @@ public final class TenderSystem {
     /** Within this of its station, and slower than {@link #ARRIVE_SPEED}, the tender is on station. */
     static final float ARRIVE_CELLS = 2.5f;
     static final float ARRIVE_SPEED = 1.0f;
+    /**
+     * A piloted tender does not station itself: its builders launch once it is within this many
+     * cells of the site, and the work stops (builders home) while the pilot is farther than
+     * {@link #PILOT_LEASH_CELLS}.
+     */
+    public static final float PILOT_REACH_CELLS = 16f;
+    /** How far a piloted tender may be from a working site before its builders are called home. */
+    public static final float PILOT_LEASH_CELLS = 26f;
     /** A builder this close to the site is working it. */
     static final float WORK_RADIUS = 3.2f;
     /** Radius, in cells, of the ring a builder works on. */
@@ -69,8 +77,16 @@ public final class TenderSystem {
 
     /** Puts a tender over the battle: its hull is flown by the warship system, its drones launch from the next tick. */
     public void add(BattleSimulation sim, Tender tender) {
-        tenders.add(tender);
+        track(tender);
         sim.addWarship(tender.ship());
+    }
+
+    /**
+     * Lists a tender without registering its hull with a simulation, for a caller that flies the
+     * hull itself (a session test, a scene). {@link #add} is the way a battle gets one.
+     */
+    public void track(Tender tender) {
+        tenders.add(tender);
     }
 
     /** Tenders over the battle, for presentation and evidence. */
@@ -200,6 +216,10 @@ public final class TenderSystem {
         switch (o.phase()) {
             case QUEUED -> {
                 o.begin();
+                if (t.piloted()) {
+                    o.standoff(t.ship().x, t.ship().y);
+                    return;
+                }
                 float dx = t.ship().x - o.siteX();
                 float dy = t.ship().y - o.siteY();
                 float len = (float) Math.hypot(dx, dy);
@@ -211,8 +231,10 @@ public final class TenderSystem {
             }
             case TRANSIT -> {
                 Warship ship = t.ship();
-                boolean there = Math.hypot(ship.x - o.standoffX(), ship.y - o.standoffY()) <= ARRIVE_CELLS
-                        && ship.speed() <= ARRIVE_SPEED;
+                boolean there = t.piloted()
+                        ? Math.hypot(ship.x - o.siteX(), ship.y - o.siteY()) <= PILOT_REACH_CELLS
+                        : Math.hypot(ship.x - o.standoffX(), ship.y - o.standoffY()) <= ARRIVE_CELLS
+                                && ship.speed() <= ARRIVE_SPEED;
                 if (there) {
                     o.startWork();
                     deployBuilders(t, sim);
@@ -244,7 +266,7 @@ public final class TenderSystem {
             t.retire(o, "no builders left");
             return;
         }
-        boolean contested = hostileNear(sim, t.faction(), o.siteX(), o.siteY());
+        boolean contested = hostileNear(sim, t.faction(), o.siteX(), o.siteY()) || outOfReach(t, o);
         // Builders stood down for a threat come back out once the ground is clear.
         if (!contested) deployBuilders(t, sim);
         int crew = t.builderComplement();
@@ -252,6 +274,11 @@ public final class TenderSystem {
         String name = "tender-turret-" + nextSite++;
         sim.spawn(MapTurret.create(name, t.faction(), o.option().structureId(),
                 (int) Math.floor(o.siteX()), (int) Math.floor(o.siteY())));
+    }
+
+    /** Whether a pilot has flown the tender too far from {@code o}'s site for its builders to keep working. */
+    public static boolean outOfReach(Tender t, ConstructionOrder o) {
+        return t.piloted() && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
     }
 
     private static boolean hostileNear(BattleSimulation sim, Faction side, float x, float y) {
