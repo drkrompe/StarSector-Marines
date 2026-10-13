@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — commanders choose which aspect to take, wreck or stand to at for the effect wanted (battery and shield forts); fort buildings drawn by function with intact, damaged, wrecked and taken states, bolder wire, a taken plant keeps running; shield fort built (slice 3), folding in the local shield relay; redoubt/citadel remain.
+Updated: 2026-10-13 - Conquest sites its declared forts as barriers on the approach (`FortSitingPolicy`, `FortSiting`, reserved ground); battery fort and shield fort commanders choose aspects (`FortTactics`); fort buildings drawn by function; shield fort built (slice 3); redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -208,6 +208,39 @@ carries folded leaves, and neither draws over a breach. A new fort kind adds dat
 layout, not renderer code. Retained sources: `art-source/fort-buildings/`. Art is authored with the door on one edge; a plan whose door is on the other
 edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick and belt wire is two rows.
 The belt wire is a bold coil on a dark contact shadow. A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. The shield fort carries the same gatehouse pieces, turned to face each of its three gates.
+
+## Built: siting (mission-owned)
+
+Where a fort stands is a mission-design decision as much as how many there are, so the declaration carries it:
+`GroundDefences.siting` is a `FortSitingPolicy`. `LEFTOVER_GROUND` is the default and what every scene, debug dial and
+unconverted mission gets: forts take the open ground the city has left, deep band first, nearest the map centre. On a
+Conquest map that is the rear flank, and it is why an earlier evidence run saw no marine within 29 cells of a fort in
+36,000 ticks. `COVER_THE_APPROACH` is Conquest's opt-in (`CONQUEST_FORTS_COVER_THE_APPROACH`, untuned, one line to
+turn off): a fort is a barrier on the way in.
+
+- **Intent (`FortSiting`, pure geometry).** Two ends of the battle, the landing and the keep. Battery forts are aimed at
+  the way between them (about half way, spread across the approach a fort's width apart, staggered in depth); the shield
+  fort is aimed at the keep, ranking sites by the weight of garrison compounds a dome would cover and then by nearness.
+  A fort that cannot have its exact ground slides along the line of advance before it leaves it, and a site behind the
+  landing or past the keep is taken only when nothing on the approach fits. All figures are untuned first passes.
+- **Reserved ground.** The middle of a Conquest map is a grid of roads and claimed places by the time forts are stamped, and
+  no pocket is left to fit a fort in (measured: the claim map and a bad-ground map of the west fixture both showed it). So a
+  sited mission reserves the ground round each target while the precinct skeleton grows, before the town: road arms do not
+  grow into it (`GrownTrunkPlan.grow` takes a keep-clear mask) and zoned town claims give it up (`FortReservations`).
+  Programmed places (keep installation, landing, lane compounds) are prior and keep their ground, and a reservation never
+  lands on a place's seed.
+- **Placement rules.** Prior claims, roads, doorways, landing berths, posts and the one-fort-one-footprint margin all still
+  bind. A sited fort lets a road cross its glacis (the belt simply is not drawn there) but never its works, and its main
+  gate faces the landing rather than the map centre. The declared count stands: a fort whose intended ground is gone falls
+  back to leftover order and records no target.
+- **What it does not do.** A dome is 16 cells across and a fort's works are wider than that, so a shield fort beside the
+  keep cannot put its dome over the keep: measured 66 to 115 cells from the keep on the two fixtures, covering none of the
+  garrison. Dome reach is the missing lever, a number for play. Battery guns fire at warships only, so ground marines are
+  not shot by them; a sited battery fort matters to the ground battle as a place to take, and to a ship overhead as a hazard.
+- **Evidence.** `createSnapshots -Psnapshot=fort-siting` draws both Conquest fixtures, forts declared, leftover against
+  sited, with landing, keep, lanes, batteries' envelopes and domes marked (1920x1080). `commanderEvidence -Pmission=conquest`
+  with a fixture declaring `declaredForts` and `declaredFortSiting` replays them; `FortOutcomes` reports nearest marine,
+  disclosure tick and aspect holders per fort.
 
 ## Slices
 
