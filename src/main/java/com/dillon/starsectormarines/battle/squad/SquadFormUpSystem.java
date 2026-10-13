@@ -58,6 +58,22 @@ public final class SquadFormUpSystem {
                 && squad.formUpElapsed < FORM_UP_TIMEOUT;
     }
 
+    /**
+     * Whether the squad is being held at its LZ: still forming up, and nobody
+     * with the authority to send it has done so.
+     *
+     * <p>The gate protects a squad from the commander walking its first team
+     * into contact alone. A player who clicks a partial squad forward has made
+     * that call on purpose — and on a mission that lands four marines at a time
+     * into a numerically superior enemy, waiting for the rest is the losing
+     * move. So a player's order passes the gate while a commander's is still
+     * masked. The squad keeps counting as {@link #formingUp} (its remaining
+     * lifts are still due), but it is no longer held.
+     */
+    public static boolean holdingAtLandingZone(Squad squad) {
+        return formingUp(squad) && !squad.underPlayerOrder();
+    }
+
     public void tick(float dt) {
         for (Squad squad : roster.getSquads()) {
             if (formingUp(squad)) {

@@ -244,11 +244,12 @@ public final class Squad {
 
     /**
      * The assignment-shaped context tactical behavior may execute this tick.
-     * Form-up masks every order; otherwise the authoritative assignment passes
-     * through unchanged, whether a commander wrote it or a player's lease did.
+     * Form-up masks a commander's orders; a player's lease passes through it,
+     * because sending a partial squad forward is the player's call to make.
+     * Otherwise the authoritative assignment passes through unchanged.
      */
     public ObjectiveAssignment assignmentForExecution() {
-        if (SquadFormUpSystem.formingUp(this)) return null;
+        if (SquadFormUpSystem.holdingAtLandingZone(this)) return null;
         return assignedObjective;
     }
 
@@ -271,7 +272,7 @@ public final class Squad {
 
     /** Null when command execution is ready, otherwise a stable diagnostic reason. */
     public String assignmentExecutionSuspension() {
-        return SquadFormUpSystem.formingUp(this) ? "FORMING_UP" : null;
+        return SquadFormUpSystem.holdingAtLandingZone(this) ? "FORMING_UP" : null;
     }
 
     /**
