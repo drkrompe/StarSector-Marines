@@ -91,6 +91,10 @@ public final class ShipConditionOverlay {
             UiElement marker = markup.requireElement("survey-room-" + room.id());
             Rect anchor = deck.markerBounds(room, metrics);
             anchors.put(room.id(), deck.roomBounds(room, metrics));
+            if (marker.hasClass("healthy")) {
+                style(marker, HIDDEN);
+                continue;
+            }
             markers.put(marker, room.id());
             marker.onClick(() -> select(room.id()));
             if (bounds.contains(anchor.x(), anchor.y()) && anchor.right() <= bounds.right() && anchor.bottom() <= bounds.bottom()) {

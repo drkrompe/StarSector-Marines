@@ -80,9 +80,11 @@ public final class ShipConditionModel {
                     : graph.emergencyLighting(room.id()) ? Strings.get("openingShipConditionFaultyPower") : Strings.get("openingShipConditionWorking");
             if (state.applies() && room.purpose() == RoomPurpose.VEHICLE_BAY && state.mechBay())
                 status = Strings.format("openingShipConditionBerthsWorking", state.workingMechBerths());
-            rooms.add(Map.of("roomId", room.id(), "icon", "graphics/ui/company/condition-" + (sealed ? "sealed" : graph.damaged(room.id()) ? "repair" : graph.emergencyLighting(room.id()) ? "power" : "working") + ".svg",
+            String condition = sealed ? "sealed" : graph.damaged(room.id()) ? "repair" : graph.emergencyLighting(room.id()) ? "power" : "";
+            String classes = condition.isEmpty() ? "survey-room healthy" : "survey-room";
+            rooms.add(Map.of("roomId", room.id(), "icon", condition.isEmpty() ? "" : "graphics/ui/company/condition-" + condition + ".svg",
                     "nameId", "survey-name-" + room.id(), "id", "survey-room-" + room.id(), "label", name(room) + " / " + (room.id() + 1),
-                    "status", status, "classes", room.id() == selected ? "survey-room selected" : "survey-room",
+                    "status", status, "classes", classes + (room.id() == selected ? " selected" : ""),
                     "select", selection(room.id())));
         }
         var selectedRoom = graph.compartments().stream().filter(r -> r.id() == selected).findFirst().orElse(null);
