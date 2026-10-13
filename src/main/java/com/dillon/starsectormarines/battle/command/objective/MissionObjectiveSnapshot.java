@@ -20,7 +20,16 @@ public record MissionObjectiveSnapshot(List<Item> objectives, List<SquadActivity
     }
 
     /** A named place or tracked friendly payload; a beacon does not imply a capture radius. */
-    public record Marker(String id, String name, int x, int y, String status, State state) { }
+    public record Cell(int x, int y) { }
+    public record Marker(String id, String name, int x, int y, String status, State state, List<Cell> footprint, float radius) {
+        public Marker { footprint = List.copyOf(footprint); }
+        public Marker(String id, String name, int x, int y, String status, State state, List<Cell> footprint) {
+            this(id, name, x, y, status, state, footprint, 0);
+        }
+        public Marker(String id, String name, int x, int y, String status, State state) {
+            this(id, name, x, y, status, state, List.of(), 0);
+        }
+    }
     public record SquadActivity(int squadId, String name, String task, String status) { }
 
     public MissionObjectiveSnapshot {

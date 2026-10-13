@@ -104,6 +104,8 @@ public final class CompoundService {
          * slice 2.
          */
         public float captureProgress;
+        /** Latest capture-referee gates; public area control, never a hostile roster or position. */
+        public boolean attackersPresent, defendersPresent;
 
         /**
          * Resolved capture cell — the walkable cell whose zone <em>is</em> this
