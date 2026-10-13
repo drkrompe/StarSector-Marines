@@ -241,7 +241,7 @@
   .recovery-fill { height: 100%; background-color: #dfc588; }
   .boat-recovery-order { height: 234px; flex-direction: column; gap: 5px; }
   .recovery-copy { white-space: normal; height: 64px; }
-  .recovery-costs { flex-direction: column; height: 108px; gap: 2px; }
+  .recovery-costs { flex-direction: column; height: 126px; gap: 2px; }
   .recovery-actions { flex-direction: row; height: 32px; }
   .recovery-action { width: 210px; height: 32px; }
   .fitting-side { flex-direction: column; width: 310px; gap: 6px; overflow: hidden; }

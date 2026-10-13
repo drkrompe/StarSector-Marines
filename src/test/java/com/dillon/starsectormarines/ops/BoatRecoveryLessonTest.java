@@ -47,6 +47,8 @@ class BoatRecoveryLessonTest {
                 assertEquals(0f, callout.intersect(panel).width() * callout.intersect(panel).height(),
                         "Castle must not hide any part of the reviewed repair bill");
                 assertTrue(button.height() >= 30 && button.bottom() <= panel.bottom());
+                for (UiElement cost : markup.requireElement("boat-recovery-costs").children())
+                    assertTrue(cost.box().borderBox().bottom() <= button.y(), "Cost rows cannot overlap Expedite");
                 var track = markup.requireElement("boat-recovery-track").box().contentBox();
                 var fill = markup.requireElement("boat-recovery-fill").box().borderBox();
                 assertEquals(.25f, fill.width() / track.width(), .02f);
