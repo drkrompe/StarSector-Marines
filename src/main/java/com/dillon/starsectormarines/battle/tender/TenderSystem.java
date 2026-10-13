@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -311,8 +312,21 @@ public final class TenderSystem {
         int crew = t.builderComplement();
         if (!o.work(dt, onSite, crew, contested)) return;
         String name = "tender-turret-" + nextSite++;
-        sim.spawn(MapTurret.create(name, t.faction(), o.option().structureId(),
-                (int) Math.floor(o.siteX()), (int) Math.floor(o.siteY())));
+        finish(o.option(), t.faction(), name, (int) Math.floor(o.siteX()), (int) Math.floor(o.siteY()), sim);
+    }
+
+    /**
+     * Stands up what a finished site becomes: a catalog turret, or a point-defence pod queued
+     * through the same service a carried one uses (the tender is its own carrier id, 0, so no
+     * marine is credited). The order that got here is the same for both.
+     */
+    static void finish(BuildOption option, Faction faction, String name, int cellX, int cellY,
+                       BattleSimulation sim) {
+        if (option.kind() == BuildOption.Kind.POINT_DEFENCE) {
+            sim.pointDefense().queuePlacement(0L, faction, cellX, cellY, option.podSpec());
+        } else {
+            sim.spawn(MapTurret.create(name, faction, option.structureId(), cellX, cellY));
+        }
     }
 
     /** Whether a pilot has flown the tender too far from {@code o}'s site for its builders to keep working. */

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — a tender knows only what its side knows: stand-down and the stance AI read known contacts, and a hit on a builder blocks the site.
+Updated: 2026-10-14 — the interceptor pod is a fifth build option (key 5); a tender knows only what its side knows: stand-down and the stance AI read known contacts, and a hit on a builder blocks the site.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
 
@@ -41,14 +41,14 @@ Rejected: a role flag on the shuttle mission. The shuttle machinery is built aro
 
 ## What a tender can build
 
-Only deployables that already exist, through the paths they already have. It builds four **catalog turrets** (vulcan, arbalest, dual flak, heavy mortar): each a `TurretCatalogRegistry` structure placed through `MapTurret.create`, exactly the entity a defence post stamps, so it fires, takes fire, shows a durability bar and dies through the ordinary pipelines.
+Only deployables that already exist, through the paths they already have. It builds four **catalog turrets** (vulcan, arbalest, dual flak, heavy mortar): each a `TurretCatalogRegistry` structure placed through `MapTurret.create`, exactly the entity a defence post stamps, so it fires, takes fire, shows a durability bar and dies through the ordinary pipelines. A fifth option, the **interceptor pod**, runs the same construction order and differs only at completion (`BuildOption.Kind`).
 
 Candidates, in the order they cost least to add (each is a `BuildOption` plus, where noted, a placement path):
 
 | Candidate | Path it would use | Note |
 | --- | --- | --- |
-| Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher, locust, heavy MG and hephaestus are further data-only candidates once a fifth slot or a selector exists |
-| Point-defence emplacement | `PointDefenseService.queuePlacement` | already bounded by lifetime and magazine |
+| Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher, locust, heavy MG and hephaestus are further data-only candidates once a sixth slot or a selector exists |
+| Point-defence emplacement | `PointDefenseService.queuePlacement` | built: key 5, 8 s / 1 charge. The structure and spec are the carried Palisade pod's (45 s life, 8-round magazine, 44 structure plus armour), so the item stays the one authority; it is lighter than any turret and so quicker. Completion queues the placement with the tender's faction and no carrier. Number keys were extended to 1-5 rather than replacing a turret. The stance AI considers turret kinds only: the pod is quicker than every turret and would win ATTACK every time, and an unpiloted tender has no read on incoming ordnance |
 | Revetment / cover screen | `DeployedCoverService.queuePlacement` | a boundary feature, not an entity, and needs a facing |
 | Sensor, repair, supply | none yet | wait on the systems that would use them |
 
@@ -155,4 +155,4 @@ Built: point defence by the defence drones' mining lasers (the `tender-point-def
 
 Since added: launch and recovery as real flight (staggered, through the bay's mouth, docking on arrival, leading a moving bay), the escort ring, the leash and break-off, retreat and repair of hurt defenders, builder stations with a welding arc, and separation, with unit tests and the `tender-sortie` scene beside `tender-build`.
 
-Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). AI by stance is built (`TenderDirector`, unit tests and the `tender-stance` scene). Open: the non-turret build options (point defence, revetment), the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.
+Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). AI by stance is built (`TenderDirector`, unit tests and the `tender-stance` scene). Open: the remaining non-turret build option (revetment), the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.

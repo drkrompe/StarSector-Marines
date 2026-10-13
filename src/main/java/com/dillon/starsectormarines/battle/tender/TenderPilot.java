@@ -23,7 +23,7 @@ import java.util.function.BiPredicate;
 public final class TenderPilot {
 
     /** Slots on the number keys. Options fill them in order; the rest are shown as not yet available. */
-    public static final int OPTION_SLOTS = 4;
+    public static final int OPTION_SLOTS = 5;
     /** Live sites a pilot may have laid at once. A held button paints sites; this is what stops it flooding the line. */
     public static final int MAX_SITES = 4;
     /** Ticks a placement notice stays on the strip. */
