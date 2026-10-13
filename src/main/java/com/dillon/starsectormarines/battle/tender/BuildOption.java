@@ -17,7 +17,7 @@ import java.util.List;
  * @param label        what a player is told it is
  * @param structureId  turret-catalog structure the finished site becomes
  * @param buildSeconds seconds a full crew of builders needs; fewer builders take longer
- * @param cost         build charges drawn from the tender's stock when the site is laid
+ * @param cost         build charges drawn from a metered tender's stock when the site is laid (unmetered tenders ignore it)
  */
 public record BuildOption(String id, String label, String structureId, float buildSeconds, int cost) {
 

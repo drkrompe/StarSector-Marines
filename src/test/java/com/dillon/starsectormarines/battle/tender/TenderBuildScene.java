@@ -122,9 +122,9 @@ public final class TenderBuildScene implements BehaviorScene {
                         String.format(Locale.ROOT, "%.1fs of work against %.1fs for a full crew", seconds, fullSeconds)));
                 verdicts.add(Verdict.of("the-structure-stands", t.turretAlive(),
                         "turret at the site: " + t.turretAlive() + ", completed at tick " + t.completeTick));
-                verdicts.add(Verdict.of("spends-one-charge",
-                        tender.stock() == Tender.DEFAULT_STOCK - BuildOption.VULCAN_TURRET.cost(),
-                        tender.stock() + " of " + Tender.DEFAULT_STOCK + " charges left"));
+                verdicts.add(Verdict.of("building-is-free",
+                        !tender.metered() && tender.stock() == Tender.UNLIMITED,
+                        tender.metered() ? tender.stock() + " charges left" : "unmetered; nothing was drawn"));
                 verdicts.add(Verdict.of("builders-come-home",
                         tender.buildersOut() == 0 && tender.builderReserve() == tender.builderComplement(),
                         tender.buildersOut() + " still out, " + tender.builderReserve() + " in the bay"));
@@ -154,10 +154,9 @@ public final class TenderBuildScene implements BehaviorScene {
                         tender.buildersLost() == 0 && t.completeTick < 0 && t.contestedTicks > 0,
                         tender.buildersLost() + " builders lost, build " + (t.completeTick >= 0 ? "finished" : "unfinished")
                                 + ", " + t.contestedTicks + " contested ticks"));
-                verdicts.add(Verdict.of("cancelling-returns-the-charge",
-                        t.order.phase() == ConstructionOrder.Phase.CANCELLED && tender.stock() == Tender.DEFAULT_STOCK
-                                && tender.orders().isEmpty(),
-                        "order " + t.order.phase() + ", " + tender.stock() + " of " + Tender.DEFAULT_STOCK + " charges"));
+                verdicts.add(Verdict.of("cancelling-withdraws-the-order",
+                        t.order.phase() == ConstructionOrder.Phase.CANCELLED && tender.orders().isEmpty(),
+                        "order " + t.order.phase() + ", " + tender.orders().size() + " still on the line"));
             }
             default -> {
                 verdicts.add(Verdict.of("no-screen-is-out", tender.defendersOut() == 0 && t.defenceEverOut == 0,
@@ -183,7 +182,6 @@ public final class TenderBuildScene implements BehaviorScene {
         metrics.put("dronesLost", tender.dronesLost());
         metrics.put("raidersAlive", t.raidersAlive());
         metrics.put("firstRaiderHurtTick", t.firstRaiderHurt);
-        metrics.put("charges", tender.stock());
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
