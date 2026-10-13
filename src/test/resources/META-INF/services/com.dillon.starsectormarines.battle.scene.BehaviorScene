@@ -54,3 +54,4 @@ com.dillon.starsectormarines.battle.fort.BatteryFortScene
 com.dillon.starsectormarines.battle.fort.ShieldFortScene
 com.dillon.starsectormarines.battle.air.RidgeAirDefenceScene
 com.dillon.starsectormarines.battle.command.AssaultMusterScene
+com.dillon.starsectormarines.battle.power.MechDropScene

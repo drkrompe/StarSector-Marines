@@ -31,7 +31,7 @@ Design: `conquest-command.md`
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
 | `phased-assault.md` (design) slice 1 | IN PROGRESS | Foothold and muster: hold the beachhead, form assault companies at the drop zone, commit at critical mass. |
-| `phased-assault.md` (design) slice 2 | IN PROGRESS | Commander-called mech lance drop to the drop zone from the mission allowance. |
+| `phased-assault.md` (design) slice 2 | IN PROGRESS | Call surface, allowance and delivery are built (`mech-drop` scene); open: the muster's commander-side caller, and a Conquest matrix comparison once it calls. |
 | `phased-assault.md` (design) slice 3 | PLANNED | Per-stamp fort assault plans and a plan executor for a company. |
 
 ## Sabotage

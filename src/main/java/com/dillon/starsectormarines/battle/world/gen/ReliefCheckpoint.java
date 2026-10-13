@@ -32,14 +32,17 @@ import java.util.Random;
 public final class ReliefCheckpoint {
     public record Cell(int x, int y) {}
     public record Layout(MapResult map, PointOfInterest relay, Cell gate,
-                         Cell openingAttack, List<Cell> mainApproach, List<Cell> serviceApproach) {}
+                         Cell forwardPost, Cell openingAttack, List<Cell> mainApproach, List<Cell> serviceApproach) {}
 
-    private static final Cell GATE = new Cell(51, 30);
-    private static final Cell OPENING = new Cell(67, 30);
+    public static final int WIDTH = 144;
+    public static final int HEIGHT = 64;
+    private static final Cell GATE = new Cell(83, 30);
+    private static final Cell FORWARD_POST = new Cell(99, 30);
+    private static final Cell OPENING = new Cell(122, 30);
     private ReliefCheckpoint() {}
 
     public static Layout generate(int width, int height, long seed, TargetProfile profile) {
-        if (width < 112 || height < 64) throw new IllegalArgumentException("Relief needs its First Contract footprint");
+        if (width < WIDTH || height < HEIGHT) throw new IllegalArgumentException("Relief needs its First Contract footprint");
         GenContext ctx = new GenContext(new NavigationGrid(width, height),
                 new CellTopology(width, height), new Random(seed), width, height, seed);
         ctx.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
@@ -48,16 +51,16 @@ public final class ReliefCheckpoint {
                 ReliefCheckpoint::defences,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
                 ReliefCheckpoint::yardSurfaces, ReliefCheckpoint::freight, ReliefCheckpoint::terrain,
-                new FinalizeStage(), new OutdoorLandscapeStage(21, 20, 67, 30))).run(ctx);
+                new FinalizeStage(), new OutdoorLandscapeStage(21, 20, OPENING.x, OPENING.y))).run(ctx);
         PointOfInterest relay = ctx.pois.stream().filter(p -> p.kind == PointOfInterest.Kind.COMMS).findFirst().orElseThrow();
-        List<Cell> main = List.of(new Cell(width - 2, 30), new Cell(82, 30), new Cell(59, 30));
-        List<Cell> service = List.of(new Cell(82, height - 2), new Cell(82, 30), new Cell(59, 30));
+        List<Cell> main = List.of(new Cell(width - 2, 30), new Cell(114, 30), new Cell(91, 30));
+        List<Cell> service = List.of(new Cell(114, height - 2), new Cell(114, 30), new Cell(91, 30));
         RoadGraph roads = roads(main, service);
         MapResult map = new MapResult(ctx.grid, ctx.topology, 21, 20, OPENING.x, OPENING.y,
                 ctx.pois, ctx.doodads, new TacticalMap(List.of()), ctx.get(BspKeys.BUILDINGS),
                 List.of(), roads, ctx.landingPads);
         validate(map, relay, main, service);
-        return new Layout(map, relay, GATE, OPENING, main, service);
+        return new Layout(map, relay, GATE, FORWARD_POST, OPENING, main, service);
     }
 
     private static void grounds(GenContext c) {
@@ -74,11 +77,11 @@ public final class ReliefCheckpoint {
                 if (patches.sample(x, y) < 0.15f) c.topology.setGroundKind(x, y, GroundKind.DIRT);
         }
         // Made ground is fixed; seed variation belongs inside the freight buildings.
-        pave(c, 12, 11, 56, 57, GroundKind.SIDEWALK);
-        pave(c, 14, 12, 54, 55, GroundKind.COURTYARD);
+        pave(c, 12, 11, 88, 57, GroundKind.SIDEWALK);
+        pave(c, 14, 12, 86, 55, GroundKind.COURTYARD);
         pave(c, 0, 26, c.width - 1, 34, GroundKind.SIDEWALK);
 
-        pave(c, 78, 33, 86, c.height - 1, GroundKind.SIDEWALK);
+        pave(c, 110, 33, 118, c.height - 1, GroundKind.SIDEWALK);
 
         // Freight approaches and rear boat apron share the authored road document.
         var roads = RoadCatalog.relief(c.width, c.height);
@@ -89,7 +92,7 @@ public final class ReliefCheckpoint {
             c.landingPads.add(new LandingPad(25, y, 8, 3,
                     LandingPad.Approach.WEST, LandingPad.Purpose.FREIGHT_APRON));
         // Vehicle inspection bays outside the gate, leaving the through-road clear.
-        pave(c, 57, 22, 73, 26, GroundKind.COURTYARD);
+        pave(c, 89, 22, 105, 26, GroundKind.COURTYARD);
     }
 
     private static void yardSurfaces(GenContext c) {
@@ -109,13 +112,13 @@ public final class ReliefCheckpoint {
     }
 
     private static void buildings(GenContext c) {
-        shell(c, PointOfInterest.Kind.COMMS, 36, 39, 48, 48, Frontage.TOP);
-        BuildingStamp.OFFSET_DEPOT.place(c, 35, 14, 1); // Supplies beside the southern stand.
-        shell(c, PointOfInterest.Kind.DEPOT, 45, 20, 51, 26, Frontage.BOTTOM);
-        BuildingStamp.T_WORKSHOP.place(c, 64, 39, 1);
-        BuildingStamp.OFFSET_DEPOT.place(c, 92, 41, 0);
-        BuildingStamp.T_WORKSHOP.place(c, 64, 9, 0);
-        BuildingStamp.OFFSET_DEPOT.place(c, 92, 10, 2);
+        shell(c, PointOfInterest.Kind.COMMS, 68, 39, 80, 48, Frontage.TOP);
+        BuildingStamp.OFFSET_DEPOT.place(c, 67, 14, 1); // Supplies beside the southern stand.
+        shell(c, PointOfInterest.Kind.DEPOT, 77, 20, 83, 26, Frontage.BOTTOM);
+        BuildingStamp.T_WORKSHOP.place(c, 96, 39, 1);
+        BuildingStamp.OFFSET_DEPOT.place(c, 124, 41, 0);
+        BuildingStamp.T_WORKSHOP.place(c, 96, 9, 0);
+        BuildingStamp.OFFSET_DEPOT.place(c, 124, 10, 2);
     }
 
     private static void shell(GenContext c, PointOfInterest.Kind kind, int l, int t, int r, int b, Frontage frontage) {
@@ -126,15 +129,18 @@ public final class ReliefCheckpoint {
         // A modest compound wall, not a military fortress. Wide gates remain on the road.
         for (int y = 12; y <= 55; y++) if (y < 27 || y > 33) {
             if (y < 14 || y > 53) wall(c, 14, y);
-            wall(c, 54, y);
+            wall(c, 86, y);
         }
-        for (int x = 14; x <= 54; x++) {
+        for (int x = 14; x <= 86; x++) {
             wall(c, x, 12);
             wall(c, x, 55);
         }
         // Chest-high inspection barriers leave the road passable and provide real cover.
         for (int y : new int[]{27, 28, 32, 33})
-            c.grid.placeEdgeBarrier(51, y, Direction.E, SharedEdgeBarrier.Kind.REVETMENT);
+            c.grid.placeEdgeBarrier(GATE.x, y, Direction.E, SharedEdgeBarrier.Kind.REVETMENT);
+        // Open-backed exterior screen. The freight road remains fully traversable.
+        for (int y : new int[]{27, 28, 32, 33})
+            c.grid.placeEdgeBarrier(FORWARD_POST.x + 1, y, Direction.E, SharedEdgeBarrier.Kind.REVETMENT);
     }
 
     private static void wall(GenContext c, int x, int y) {
@@ -144,21 +150,54 @@ public final class ReliefCheckpoint {
 
     private static void freight(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
+        rearWorkingYards(yard);
         // Inspection lay-by beside the gate, leaving both attacker approaches open.
-        yard.bay(58, 23, 63, 26);
-        yard.prop(59, 24, "parked-utility-truck", 0);
+        yard.bay(90, 23, 95, 26);
+        yard.prop(91, 24, "parked-utility-truck", 0);
         // Workshop spares and a small receiving court beyond the service-road junction.
-        yard.gravel(57, 40, 60, 50);
-        yard.prop(58, 43, "industrial-cable-reel", 0);
-        yard.prop(58, 47, "industrial-drum-cluster", 0);
-        yard.gravel(91, 55, 104, 59);
-        yard.cargo(93, 56);
-        yard.prop(100, 56, "stores-cargo-loader", 0);
-        yard.bay(105, 39, 109, 48);
-        yard.prop(106, 42, "parked-flatbed-truck", 1);
+        yard.gravel(89, 40, 92, 50);
+        yard.prop(90, 43, "industrial-cable-reel", 0);
+        yard.prop(90, 47, "industrial-drum-cluster", 0);
+        yard.gravel(123, 55, 136, 59);
+        yard.cargo(125, 56);
+        yard.prop(132, 56, "stores-cargo-loader", 0);
+        yard.bay(137, 39, 141, 48);
+        yard.prop(138, 42, "parked-flatbed-truck", 1);
         // Relay power is outside its doors, on the apron-facing service strip.
-        yard.prop(40, 52, "industrial-cable-reel", 0);
-        yard.prop(44, 52, "industrial-drum-cluster", 0);
+        yard.prop(72, 52, "industrial-cable-reel", 0);
+        yard.prop(76, 52, "industrial-drum-cluster", 0);
+    }
+
+    /** Working courts occupy the apron shoulders; the road and assembly crossing stay open. */
+    private static void rearWorkingYards(StoryServiceYard yard) {
+        // Incoming freight: separate stacks, a loader aisle, and gates onto the service lane.
+        yard.gravel(41, 43, 63, 53);
+        yard.fence(41, 43, 63, 53);
+        for (int x : new int[]{44, 54}) {
+            yard.bay(x - 1, 45, x + 5, 51);
+            yard.cargo(x, 46);
+            yard.cargo(x, 50);
+        }
+        yard.prop(50, 47, "stores-cargo-loader", 0);
+        yard.prop(60, 46, "industrial-pallet-stack", 0);
+        yard.prop(60, 50, "industrial-dumpster", 0);
+
+        // Delivery vehicles face the shared maneuvering aisle, away from the boat stands.
+        for (int x : new int[]{42, 49, 56}) yard.bay(x, 16, x + 5, 21);
+        yard.prop(43, 18, "parked-cargo-truck", 1);
+        yard.prop(50, 18, "parked-flatbed-truck", 1);
+        yard.prop(57, 18, "parked-box-van", 1);
+        yard.cargo(43, 23);
+        yard.prop(51, 24, "industrial-pallet-stack", 0);
+        yard.prop(57, 24, "industrial-pipe-bundle", 0);
+
+        // A compact repair strip makes the wall edge useful without closing the yard.
+        yard.gravel(41, 13, 62, 14);
+        yard.prop(43, 13, "industrial-machine-tool", 0);
+        yard.prop(46, 13, "industrial-cable-reel", 0);
+        yard.prop(51, 13, "industrial-generator", 0);
+        yard.prop(55, 13, "industrial-drum-cluster", 0);
+        yard.prop(59, 13, "industrial-scrap-pile", 0);
     }
 
     private static void pave(GenContext c, int l, int t, int r, int b, GroundKind ground) {
@@ -199,6 +238,8 @@ public final class ReliefCheckpoint {
     private static void validate(MapResult map, PointOfInterest relay, List<Cell> main, List<Cell> service) {
         List<Cell> required = new ArrayList<>(main);
         required.addAll(service);
+        required.add(FORWARD_POST);
+        required.add(OPENING);
         for (PointOfInterest place : map.pointsOfInterest)
             required.add(new Cell(place.interiorAnchorX, place.interiorAnchorY));
         for (LandingPad pad : map.landingPads) {

@@ -138,7 +138,7 @@ Do not run builds or leave generated task files there.
   along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
   restores the double replay here when a particular balance run wants it.
   Relief's default matrix is three verdant-surface production maps with twelve
-  named starter recruits (Rooks and Ward security kit) aboard one standard Hermes
+  named starter recruits (surplus Rooks and Cordon shells) aboard one standard Hermes
   making three four-seat trips, repeated with +30s player delay and no player arrival
   within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
   with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
@@ -146,7 +146,8 @@ Do not run builds or leave generated task files there.
   fixtures default to `ROCK`). Optional `starterCompany: true` applies a detached
   new-company roster through the campaign deployment overlay; omitted/false keeps
   the factory loadout. Reports include each recruit landing, surviving company
-  strength at that moment, committed road-arrival times and pending raider counts.
+  strength at that moment, full-squad assembly, first company fire/loss, employer
+  gate arrival, committed road-arrival times and pending raider counts.
   Player lift is a fitted boat; optional `playerBoatId`,
   `playerPlating`, and `playerDrive` pin its identity and catalog fitting ids
   (default: `relief-boat` and standard fit). Employer lift remains one six-seat
@@ -1114,6 +1115,7 @@ The discovered suite ids and default output directories are:
 | `water-under-seal` | Production North Weir contract with named regular squads, fitted boats, physical cargo and technician work, an owned-source tender call and actual road-gun construction. Includes absent arrival, withheld construction, cargo/technician loss and withdrawal/replacement controls; 1920×1080/100%, detached evidence rather than live campaign travel/save acceptance. | `build/snapshots/water-under-seal/` |
 | `limited-warrant` | Low Quay recovery with 24 named regular marines and fitted boats: three ordinary seeds, absent arrival, lost cargo/technician and withdrawal with replacement attempts. Physical recovery receipts feed once-only settlement; briefing, battle and debrief frames at 1920x1080/100%. Detached evidence, not live host save/reload; report in `build/reports/limited-warrant/playback.txt`. | `build/snapshots/limited-warrant/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
+| `radio-portraits` | All six infantry faces in the production subtitle overlay, longest combat reports, Castle command reply and text-only fallback; 1920x1080 review sheet at 100% panel scale | `build/snapshots/radio-portraits/` |
 | `pod-battle` | Actual catalog Arbalest missile-pod launches alongside Legionary infantry and Hound, movement and primary combat verdicts; 1920x1080 at 100% scale, normal and closer lossless PNG sequences at 15 fps plus launch detail at 30 fps | `build/snapshots/pod-battle/` |
 | `equipment-mounts` | Catalog-equipped Aegis and Arbalest missile pods, Specter emitter, Legionary control, articulation and weapon clearance; enlarged and normal world-scale samples with twelve lossless frames at 1920x1080, 100% scale | `build/snapshots/equipment-mounts/` |
 | `squad-selection` | Selected and hovered infantry circles, unmarked enemy bodies, and the group command plate at 1920x1080, 100% scale | `build/snapshots/squad-selection/` |

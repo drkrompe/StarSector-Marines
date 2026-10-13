@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -197,34 +199,38 @@ class OpeningOperationCommandTest {
                 picture(service, Faction.MARINE).intentFor(marine.id).role());
     }
 
-    @Test
-    void militiaWaitForCompanyThenHoldWarehouseAndRespectExternalOrders() {
+    @ParameterizedTest
+    @EnumSource(value = OpeningOperationKind.class, names = {"RELIEF", "COUNTERATTACK"})
+    void militiaWaitForCompanyThenHoldWarehouseAndRespectExternalOrders(OpeningOperationKind kind) {
         try (var sim = openSim(false)) {
             var militia = squad(sim, Faction.ALLY, UnitRole.COMBATANT, 2, 4);
             var marine = squad(sim, Faction.MARINE, UnitRole.COMBATANT, 12, 6);
             marine.arrivalAssembly = true;
             marine.expectedSize = 12;
             marine.originalSize = 6;
-            var facts = new OpeningOperationCommandFacts(OpeningOperationKind.COUNTERATTACK,
-                    "depot", "Dispatch", 24, 10);
+            var facts = new OpeningOperationCommandFacts(kind,
+                    "opening-place", "Opening place", 24, 10);
             boolean[] captured = {false};
             var service = new CommanderService();
             service.setAutonomousCommander(Faction.ALLY, new OpeningOperationCommand(Faction.ALLY),
                     new OpeningOperationCommandDisclosure(facts, () -> captured[0]));
             claim(service, militia);
             service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
-            assertEquals("DEPOT_WAIT_FOR_COMPANY", service.activeDirective(militia.id).reason());
+            assertEquals(kind == OpeningOperationKind.RELIEF ? "RELIEF_WAIT_FOR_COMPANY" : "DEPOT_WAIT_FOR_COMPANY", service.activeDirective(militia.id).reason());
             assertEquals(AssignmentKind.DEFEND_AREA, militia.assignedObjective.kind());
             assertTrue(militia.assignedObjective.targetCellX() < 6);
             marine.originalSize = 12;
             service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
-            assertEquals("DEPOT_SCREEN_COMPANY", service.activeDirective(militia.id).reason());
-            assertTrue(Math.abs(militia.assignedObjective.targetCellX() - 12) <= 3);
-            captured[0] = true;
-            service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
-            assertEquals("DEPOT_HOLD", service.activeDirective(militia.id).reason());
-            assertEquals(AssignmentKind.DEFEND_AREA, militia.assignedObjective.kind());
-            assertNear(facts, militia.assignedObjective);
+            assertEquals(kind == OpeningOperationKind.RELIEF ? "RELIEF_ANCHOR_PRESERVE" : "DEPOT_SCREEN_COMPANY", service.activeDirective(militia.id).reason());
+            if (kind == OpeningOperationKind.RELIEF) assertNear(facts, militia.assignedObjective);
+            else assertTrue(Math.abs(militia.assignedObjective.targetCellX() - 12) <= 3);
+            if (kind == OpeningOperationKind.COUNTERATTACK) {
+                captured[0] = true;
+                service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+                assertEquals("DEPOT_HOLD", service.activeDirective(militia.id).reason());
+                assertEquals(AssignmentKind.DEFEND_AREA, militia.assignedObjective.kind());
+                assertNear(facts, militia.assignedObjective);
+            }
             var external = ObjectiveAssignment.defendArea(militia.id, 5, 5);
             service.assignments().assignExternal(militia, external, CommandAuthority.PLAYER_INTERVENTION,
                     "test-player", "hold", 0);

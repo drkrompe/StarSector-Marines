@@ -1,10 +1,12 @@
 # Phased assault
 
 Status: ACTIVE — direction for how a large attacking force lands, masses and
-assaults a defended position. Nothing here is built yet; slices are on the
+assaults a defended position. Slice 2 (the mech drop) is built; the rest is not. Slices are on the
 mission-command board.
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — slice 2 (commander-called mech drop) built; its call surface is recorded under "Mech lances arrive without the player".
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -79,6 +81,24 @@ A muster that wants mechs needs a commander-called drop: the same delivery (a
 lift carrying a lance) claimed for the attacking commander, landing at the
 defended drop zone, paid from the mission's own allowance rather than the
 player's command points. The player's power is unchanged.
+
+**As built.** The call is `MechDropService.call` (reached from a battle control
+as `callMechDrop(side, claim, hintX, hintY)`; `BattleView.mechDrops()` answers
+`lancesRemaining`, `canCall` and `landingZone` without spending anything). The
+caller supplies its own mission claim and a drop-zone cell (the muster's rally
+point, or `MechDropService.centroidOf` the marine landing pads); the service
+chooses the nearest viable landing cell, flies the delivery that
+`MechSupport` flies (`AirDeliveryPower.dispatchCarrier`, `MechSupportPayload`,
+one shared lance loader), and answers `COMMITTED`, `NO_ALLOWANCE` or
+`NO_LANDING_ZONE`. The marines' lance descends from orbit as the marine lift
+does. A mission declares the allowance (`MechDropAllowance`, a lance count and
+a composition of up to four variants) on the target profile beside its ground
+defences; Conquest declares an untuned two lances of Bulwark, two Hounds and a
+Sirocco for its marines, every other mission none. The landed lance is claimed
+for the caller and is an ordinary machine squad the commander plans. A DEBUG
+briefing dial states the allowance, and its "at once" value calls the first lance
+ten seconds in, claimed by the marine commander, so the delivery can be watched
+without a muster that asks for it. The `mech-drop` scene is the acceptance.
 
 ## Slices
 

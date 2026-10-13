@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Authored emergency calls can interrupt routine mission instructions.
+Updated: 2026-10-13 — Infantry radio faces follow the speaking actor; authored emergency calls can interrupt routine mission instructions.
 
 Read `stories.md` for the open-work board.
 
@@ -186,8 +186,11 @@ increasing the voice budget or inventing tactical facts. A one-line pool remains
 valid and necessarily repeats.
 
 Command subtitles identify CASTLE / COMPANY COMMAND and use her original
-painted portrait; infantry subtitles identify the
-current exchange's callsign. They remain visible for the recorded lifetime even
+painted portrait; infantry subtitles identify the current exchange's callsign
+and show that radio actor's helmet-interior portrait. The same face follows the
+actor through acknowledgements, readbacks and combat reports. These are radio
+cast identities, not portraits assigned to individual roster marines or squads.
+They remain visible for the recorded lifetime even
 when audio is muted or unavailable. Selection and timing are presentation state and leave
 simulation randomness untouched.
 

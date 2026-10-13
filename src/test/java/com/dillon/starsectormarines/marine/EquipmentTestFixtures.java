@@ -11,7 +11,7 @@ public final class EquipmentTestFixtures {
         soldier.setSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
     }
     public static void learnServiceKit(MarineArmory armory) {
-        for (String id : List.of(WeaponRegistry.PULSE_RIFLE_ID, WeaponRegistry.SMG_ID,
+        for (String id : List.of(WeaponRegistry.STARTER_PRIMARY_ID, WeaponRegistry.PULSE_RIFLE_ID, WeaponRegistry.SMG_ID,
                 WeaponRegistry.SQUAD_AUTOMATIC_ID, WeaponRegistry.DMR_ID)) {
             armory.unlockPrimary(id, EquipmentGrade.SERVICE);
         }
