@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import com.dillon.starsectormarines.battle.world.gen.fortress.MaintenanceOutpost;
 
@@ -1541,9 +1542,15 @@ public final class BattleSetup {
         for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++) {
             int x = batch == 0 ? 128 : ThunderRunPacing.usesOutboundRoad(batch) ? 275 : 165;
             int y = batch == 0 ? 65 : batch % 2 == 0 ? 140 : 2;
-            for (int[] cell : pickSpawnCluster(map.grid, x, y, ThunderRunPacing.RAIDERS_PER_BATCH))
-                reserve.add(makeOpeningMilitia("freight-road-raider-" + reserve.size(), Faction.DEFENDER,
-                        cell[0], cell[1], rng).role(UnitRole.PATROL));
+            int member = 0;
+            for (int[] cell : pickSpawnCluster(map.grid, x, y, ThunderRunPacing.RAIDERS_PER_BATCH)) {
+                var raider = makeOpeningMilitia("freight-road-raider-" + reserve.size(), Faction.DEFENDER,
+                        cell[0], cell[1], rng).role(UnitRole.PATROL);
+                if (batch == 0 && member < 2)
+                    raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SCRAP_ROCKET_ID), 2);
+                reserve.add(raider);
+                member++;
+            }
         }
         sim.installThunderRun(attempt, delivered, reserve);
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))

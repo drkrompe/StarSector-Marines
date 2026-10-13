@@ -35,6 +35,9 @@ import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import com.dillon.starsectormarines.battle.warship.DebugWarship;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
+import com.dillon.starsectormarines.ops.detachment.HostileShipFleets;
+import com.dillon.starsectormarines.ops.detachment.HostileShipReport;
+import com.dillon.starsectormarines.ops.detachment.HostileShipSelection;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
@@ -196,7 +199,8 @@ public final class MissionLaunch {
             Detachment frozen = det;
             return new ScenarioPlan(Arrays.asList(m.id, seed, manifest), det,
                     debugScenario.opening() ? 1 : 0, null,
-                    () -> DebugMissionCatalog.build(debugScenario, seed, frozen.shuttleManifest), "pirates", null);
+                    () -> DebugMissionCatalog.build(debugScenario, seed, frozen.shuttleManifest), "pirates",
+                    HostileShipReport.UNDEFENDED);
         }
         if (SupplyRouteCampaign.owns(m.id)) {
             SupplyRouteCampaign.requireCurrent(m);
@@ -365,21 +369,28 @@ public final class MissionLaunch {
         String defenderFactionId = SupplyRouteCampaign.isBattle(m) || openingOperation != null || isSilentColonyBattle(m)
                 || isCivilianRescueBattle(m) ? "" : profile.factionId();
         return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder, defenderFactionId,
-                hostileShipFor(m, profile, defenderFactionId));
+                hostileShipFor(m, profile, defenderFactionId, null));
     }
 
     /**
-     * The ship the defending world answers with, frozen at launch: only a defended world with a named
-     * owner, never a stationed company's own colony or a scripted chapter that supplies its own ship.
+     * The ship the defending world answers with, frozen at launch. A campaign mission takes the largest
+     * eligible hull of a free fleet of the defending faction in the target's system
+     * ({@link HostileShipSelection}); a debug, scenario or employer-scripted mission hands the same
+     * input in by declaration ({@code declared}) and searches nothing. Never a stationed company's own
+     * colony, a scripted chapter that supplies its own ship, or a mission with no named defender.
      */
-    static ShipSupportSource hostileShipFor(Mission m, TargetProfile profile, String defenderFactionId) {
+    static HostileShipReport hostileShipFor(Mission m, TargetProfile profile, String defenderFactionId,
+                                            ShipSupportSource declared) {
         if (defenderFactionId == null || defenderFactionId.isEmpty() || m.source == MissionSource.STATIONING
-                || CorvusWaylineCampaign.isBattle(m)) return null;
+                || CorvusWaylineCampaign.isBattle(m)) return HostileShipReport.declared(declared);
         try {
-            return HostileShipSupport.sourceFor(profile);
+            boolean campaign = !m.source.isDebug();
+            return HostileShipSelection.resolve(declared, campaign, profile,
+                    campaign && declared == null
+                            ? HostileShipFleets.inSystemOf(m.targetPlanetName, profile) : List.of());
         } catch (RuntimeException e) {
             Global.getLogger(MissionLaunch.class).warn("MarineOps: hostile ship could not be sourced", e);
-            return null;
+            return HostileShipReport.UNDEFENDED;
         }
     }
 
@@ -402,7 +413,7 @@ public final class MissionLaunch {
     /** Pure construction input; contains no campaign API handles. */
     record ScenarioPlan(Object key, Detachment detachment, int firstPlayerShuttle,
                         BattleFixture fixture, Supplier<BattleSimulation> builder,
-                        String defenderFactionId, ShipSupportSource hostileShip) { }
+                        String defenderFactionId, HostileShipReport hostileShip) { }
 
     /** Applies campaign state only after the player explicitly accepts deployment. */
     static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
@@ -466,7 +477,7 @@ public final class MissionLaunch {
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
-            installHostileShip(m, debugWarship, plan.hostileShip(), sim);
+            installHostileShip(m, debugWarship, plan.hostileShip().sourceOrNull(), sim);
             sim.setCompanyStance(m.source == MissionSource.STATIONING ? MissionStance.DEFEND : MissionStance.ATTACK);
             sim.setOperationOfficer(OfficerCommandProfile.capture(m.source.isDebug() ? null : ctx.getSelectedCaptain()));
             if (fixture != null) {
