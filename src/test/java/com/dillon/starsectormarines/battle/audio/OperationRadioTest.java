@@ -25,6 +25,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import javax.imageio.ImageIO;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,7 +59,8 @@ class OperationRadioTest {
                 }
                 reports.put(cue, ids);
             }
-            actors.add(new Actor(name, name, name + "_call", name + "_ack", name + "_readback", reports));
+            actors.add(new Actor(name, name, name + "_call", name + "_ack", name + "_readback",
+                    reports, "graphics/portraits/radio-" + name + ".png"));
         }
         return new Catalog(actors, Map.of(AssignmentKind.ATTACK_MOVE, "order"), lines);
     }
@@ -78,6 +80,7 @@ class OperationRadioTest {
         var call = radio.beginExchange();
         String actor = call.line().id().replace("_call", "");
         assertEquals("COMPANY COMMAND", call.speaker());
+        assertEquals("graphics/portraits/castle.png", call.portrait());
         assertNull(radio.advance(3, true, false, false));
         assertEquals(call, radio.current(), "Duration estimate must not cut off actual playback");
         finish();
@@ -85,10 +88,15 @@ class OperationRadioTest {
         var ack = radio.advance(0.2f, true, false, false);
         assertEquals(actor + "_ack", ack.line().id());
         assertEquals(actor, ack.speaker());
+        assertEquals("graphics/portraits/radio-" + actor + ".png", ack.portrait());
         finish();
-        assertEquals("order", radio.advance(0.36f, true, false, false).line().id());
+        var instruction = radio.advance(0.36f, true, false, false);
+        assertEquals("order", instruction.line().id());
+        assertEquals(call.portrait(), instruction.portrait());
         finish();
-        assertEquals(actor + "_readback", radio.advance(0.36f, true, false, false).line().id());
+        var readback = radio.advance(0.36f, true, false, false);
+        assertEquals(actor + "_readback", readback.line().id());
+        assertEquals(ack.portrait(), readback.portrait());
         finish();
         assertFalse(radio.busy());
     }
@@ -186,6 +194,7 @@ class OperationRadioTest {
             assertNotNull(report);
             assertNotEquals(previous, report.speaker());
             assertTrue(report.line().id().endsWith(cue.name()));
+            assertEquals("graphics/portraits/radio-" + report.line().speaker() + ".png", report.portrait());
             previous = report.speaker();
             assertNull(muted.report(Cue.CONTACT), "No simultaneous transmissions");
             muted.advance(1, false, false, false);
@@ -286,6 +295,15 @@ class OperationRadioTest {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", OperationRadio.PATH)));
         Catalog catalog = OperationRadio.parse(root);
         assertEquals(6, catalog.actors().size());
+        var portraits = new HashSet<String>();
+        for (Actor actor : catalog.actors()) {
+            assertFalse(actor.portrait().isBlank(), actor.id());
+            assertTrue(portraits.add(actor.portrait()), "Each voice has a distinct face");
+            var portrait = ImageIO.read(Path.of("mod", actor.portrait()).toFile());
+            assertNotNull(portrait, actor.id());
+            assertEquals(256, portrait.getWidth());
+            assertEquals(256, portrait.getHeight());
+        }
         assertEquals(151, catalog.lines().size());
         for (Cue cue : Cue.values()) {
             assertEquals(18, catalog.actors().stream().mapToInt(actor -> actor.reports().get(cue).size()).sum());
@@ -321,11 +339,13 @@ class OperationRadioTest {
         // Catalogs using the original one-ID-per-event schema remain usable.
         var actors = root.getJSONArray("actors");
         for (int i = 0; i < actors.length(); i++) {
+            actors.getJSONObject(i).remove("portrait");
             JSONObject reports = actors.getJSONObject(i).getJSONObject("reports");
             for (Cue cue : Cue.values()) reports.put(cue.name(), reports.getJSONArray(cue.name()).getString(0));
         }
         Catalog legacy = OperationRadio.parse(root);
         for (Actor actor : legacy.actors()) {
+            assertTrue(actor.portrait().isBlank(), "Older catalogs retain text-only presentation");
             for (Cue cue : Cue.values()) assertEquals(1, actor.reports().get(cue).size());
         }
     }

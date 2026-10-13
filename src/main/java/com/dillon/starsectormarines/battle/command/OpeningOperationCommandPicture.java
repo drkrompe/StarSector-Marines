@@ -46,6 +46,7 @@ public record OpeningOperationCommandPicture(
         BANDIT_DEPOT_SECURE,
         BANDIT_DEPOT_DEFEND,
         DEPOT_WAIT_FOR_COMPANY,
+        RELIEF_WAIT_FOR_COMPANY,
         DEPOT_SCREEN_COMPANY,
         DEPOT_APPROACH_GATE,
         DEPOT_CROSS_YARD,

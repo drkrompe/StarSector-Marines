@@ -26,13 +26,13 @@ public final class FireTeamTemplateCards {
     public static List<FireTeamTemplateCard> starterCards() {
         return List.of(
                 card(FIELD_ID, "Field",
-                        billet("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID, null,
+                        starterBillet("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
+                        starterBillet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
+                        starterBillet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
+                        starterBillet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS)),
                 card(LINE_ID, "Line",
                         billet("Team Leader", WeaponRegistry.PULSE_RIFLE_ID, null,
@@ -102,6 +102,12 @@ public final class FireTeamTemplateCards {
     private static FireTeamTemplateCard card(String id, String name,
                                              FireTeamBillet... billets) {
         return new FireTeamTemplateCard(id, name, List.of(billets));
+    }
+
+    private static FireTeamBillet starterBillet(String name, String primaryId,
+                                                String specialEquipmentId, MarineArmorPattern armor) {
+        return new FireTeamBillet(name, primaryId, EquipmentGrade.SURPLUS,
+                specialEquipmentId, armor.id);
     }
 
     private static FireTeamBillet billet(String name, String primaryId,

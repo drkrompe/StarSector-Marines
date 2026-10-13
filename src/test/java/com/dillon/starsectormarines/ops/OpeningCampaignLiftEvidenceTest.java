@@ -17,6 +17,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.SectorAPI;
+import java.lang.reflect.Proxy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +36,17 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Campaign manifests and real ferry flight, run with the opt-in Relief evidence task. */
 @Tag("relief-command-evidence")
 class OpeningCampaignLiftEvidenceTest {
+    private SectorAPI previousSector;
+
+    @BeforeEach void detachedHost() {
+        previousSector = Global.getSector();
+        Global.setSector((SectorAPI) Proxy.newProxyInstance(SectorAPI.class.getClassLoader(),
+                new Class<?>[]{SectorAPI.class}, (proxy, method, args) ->
+                        method.getName().equals("getScripts") ? List.of() : null));
+    }
+
+    @AfterEach void restoreHost() { Global.setSector(previousSector); }
+
     @Test
     void oneHermesDeliversTheWholeNamedSquadAcrossBothOpeningChapters() throws Exception {
         Path output = Path.of(System.getProperty("relief.command.evidence.outputDir",

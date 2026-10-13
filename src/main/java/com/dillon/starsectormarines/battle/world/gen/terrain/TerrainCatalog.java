@@ -47,7 +47,7 @@ public final class TerrainCatalog {
     public static void validate(String path, TerrainPlan plan) {
         int width, height;
         switch (path) {
-            case RELIEF -> { width = 112; height = 64; }
+            case RELIEF -> { width = 144; height = 64; }
             case COUNTERATTACK -> { width = 160; height = 96; }
             case JUNCTION -> { width = 192; height = 112; }
             case RELAY_NINE -> { width = 208; height = 128; }
