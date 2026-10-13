@@ -162,7 +162,7 @@ public final class MechLabViewModel {
         });
         selectedMechIdentity = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
-            return mech != null ? Strings.format("openingMechLabChassisWalkerHeavyAsset", mech.variant().displayName)
+            return mech != null ? Strings.format("openingMechLabChassisWalkerHeavyAsset", mech.variant().displayName())
                     : fabricatingChassis()
                     ? Strings.get("openingMechLabSelectADiscoveredChassisPatternAndCommit")
                     : Strings.get("openingMechLabSelectAnAssignedHeavyAssetFromThe");
@@ -421,7 +421,7 @@ public final class MechLabViewModel {
         MechWorkshop.Result result = workshop.moveWeapon(mech.id(), sourceMount, targetMount);
         if (result.succeeded()) selectedSlot.set(target);
         feedbackText.set(switch (result.status()) {
-            case MOVED -> Strings.format("openingMechLabMovedTo", component.displayName, target.label());
+            case MOVED -> Strings.format("openingMechLabMovedTo", component.displayName(), target.label());
             case TARGET_OCCUPIED -> Strings.get("openingMechLabMoveBlockedTheTargetHardpointIsOccupied");
             case INCOMPATIBLE -> Strings.get("openingMechLabMoveBlockedIncompatibleSocketTypeOrCapacity");
             default -> Strings.get("openingMechLabMoveCancelledCampaignHardwareWasNotChanged");
@@ -437,7 +437,7 @@ public final class MechLabViewModel {
         MechWeaponComponent component = mech.weaponAt(mount);
         MechWorkshop.Result result = workshop.stripWeapon(mech.id(), mount);
         feedbackText.set(result.succeeded()
-                ? Strings.format("openingMechLabReturnedToBayStoresIsEmpty", component.displayName, source.label())
+                ? Strings.format("openingMechLabReturnedToBayStoresIsEmpty", component.displayName(), source.label())
                 : Strings.get("openingMechLabRemovalCancelledCampaignHardwareWasNotChanged"));
         if (result.succeeded()) selectedSlot.set(source);
         finishWeaponCommand(result);
@@ -525,7 +525,7 @@ public final class MechLabViewModel {
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
                     base + ":action",
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
-                    mech.displayName(), mech.variant().displayName + "  ·  " + roleLabel(mech.role()),
+                    mech.displayName(), mech.variant().displayName() + "  ·  " + roleLabel(mech.role()),
                     mech.missileReplenisher().displayName(), () -> selectMech(mech.id())));
         }
         return List.copyOf(rows);
@@ -544,7 +544,7 @@ public final class MechLabViewModel {
                             : "overview-gantry vacant",
                     String.format(Locale.ROOT, Strings.get("openingMechLabGantryD"), index + 1),
                     mech != null ? mech.displayName() : Strings.get("openingMechLabVacant2"),
-                    mech != null ? mech.variant().displayName + "  ·  " + roleLabel(mech.role())
+                    mech != null ? mech.variant().displayName() + "  ·  " + roleLabel(mech.role())
                             : Strings.get("openingMechLabPressOnPadToFabricate"),
                     mech == null, () -> selectGantry(gantry)));
         }
@@ -758,7 +758,7 @@ public final class MechLabViewModel {
                     base + ":preview",
                     "catalog-preview", null, component, null,
                     installed ? "catalog-row selected" : !showMaterials ? "catalog-row"
-                            : "catalog-row requires-fabrication", component.displayName,
+                            : "catalog-row requires-fabrication", component.displayName(),
                     badge, badgeClasses,
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
                     telemetry, deltaText, deltaClasses,
@@ -1000,9 +1000,9 @@ public final class MechLabViewModel {
     private boolean applyWeaponResult(MechWorkshop.Result result,
                                       MechWeaponComponent component) {
         feedbackText.set(switch (result.status()) {
-            case ALREADY_INSTALLED -> Strings.format("openingMechLabIsAlreadyInstalled", component.displayName);
-            case INSTALLED_FROM_STORES -> Strings.format("openingMechLabInstalledFromBayStores", component.displayName);
-            case FABRICATED_AND_INSTALLED -> Strings.format("openingMechLabFabricatedFromFleetCargoAndInstalled", component.displayName);
+            case ALREADY_INSTALLED -> Strings.format("openingMechLabIsAlreadyInstalled", component.displayName());
+            case INSTALLED_FROM_STORES -> Strings.format("openingMechLabInstalledFromBayStores", component.displayName());
+            case FABRICATED_AND_INSTALLED -> Strings.format("openingMechLabFabricatedFromFleetCargoAndInstalled", component.displayName());
             case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
             case INCOMPATIBLE -> Strings.get("openingMechLabRefitBlockedIncompatibleSocketTypeOrCapacity");
             case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabFabricationBlockedRequiredFleetMaterialsAreShort");
@@ -1027,7 +1027,7 @@ public final class MechLabViewModel {
         MechWeaponComponent previous = mech.weaponAt(mount);
         MechWorkshop.Result result = workshop.stripWeapon(mech.id(), mount);
         feedbackText.set(switch (result.status()) {
-            case STRIPPED -> Strings.format("openingMechLabStrippedAndReturnedToCargoStores", (previous != null ? previous.displayName : Strings.get("openingMechLabHardware")));
+            case STRIPPED -> Strings.format("openingMechLabStrippedAndReturnedToCargoStores", (previous != null ? previous.displayName() : Strings.get("openingMechLabHardware")));
             case ALREADY_STRIPPED -> Strings.get("openingMechLabHardpointIsAlreadyEmpty");
             case INCOMPATIBLE -> Strings.get("openingMechLabCannotStripThisHardpointFactoryLocked");
             default -> Strings.get("openingMechLabUnequipBlockedCampaignHardwareWasNotChanged");
@@ -1115,7 +1115,7 @@ public final class MechLabViewModel {
     private static String slotComponent(CampaignMech mech, SocketId slot) {
         if (mech == null) return Strings.get("openingMechLabNoAsset");
         return switch (slot) {
-            case CORE -> Strings.format("openingMechLabIntegratedCore", mech.variant().displayName);
+            case CORE -> Strings.format("openingMechLabIntegratedCore", mech.variant().displayName());
             case ARMS -> componentName(mech.arms());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
@@ -1138,7 +1138,7 @@ public final class MechLabViewModel {
     }
 
     private static String componentName(MechWeaponComponent component) {
-        return component != null ? component.displayName : Strings.get("openingMechLabEmptyHardpoint");
+        return component != null ? component.displayName() : Strings.get("openingMechLabEmptyHardpoint");
     }
 
     private static String ammoSummary(CampaignMech mech) {

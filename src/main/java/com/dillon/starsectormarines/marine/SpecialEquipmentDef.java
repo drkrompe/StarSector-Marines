@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -28,6 +29,12 @@ public record SpecialEquipmentDef(
         CloseContactSpec closeContactSpec,
         DeployableEmplacementSpec deployableEmplacementSpec,
         DeployableCoverSpec deployableCoverSpec) implements Serializable {
+    public String displayName() { return Strings.resolve(displayName); }
+
+    public String catalogSubtitle() { return Strings.resolve(catalogSubtitle); }
+
+    public String catalogDescription() { return Strings.resolve(catalogDescription); }
+
 
     /** Parses one entry from {@code *.equipment.json}; malformed required data fails load. */
     public static SpecialEquipmentDef parse(JSONObject json) throws JSONException {

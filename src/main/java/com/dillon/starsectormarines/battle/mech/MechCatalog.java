@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -49,7 +50,10 @@ public final class MechCatalog {
      * @param description provenance prose; no numbers, because every number a
      *                    screen shows comes from {@link MechVariant}
      */
-    public record ChassisEntry(String designation, String role, String description) { }
+    public record ChassisEntry(String designation, String role, String description) {
+        public String role() { return Strings.resolve(role); }
+        public String description() { return Strings.resolve(description); }
+    }
 
     /**
      * One fitted component's identity.
@@ -57,7 +61,9 @@ public final class MechCatalog {
      * @param designation the catalog code, e.g. {@code SRM-15}
      * @param description provenance prose
      */
-    public record ComponentEntry(String designation, String description) { }
+    public record ComponentEntry(String designation, String description) {
+        public String description() { return Strings.resolve(description); }
+    }
 
     public MechCatalog(Map<MechVariant, ChassisEntry> chassis,
                        Map<MechWeaponComponent, ComponentEntry> components) {

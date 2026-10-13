@@ -81,16 +81,16 @@ final class LoadoutInspection {
         item.put("proposed", subject(id + ":proposed", after, proposed, kind));
         List<SpecSheet.Stat> oldStats = stats(before, kind, soldier);
         List<SpecSheet.Stat> newStats = stats(after, kind, soldier);
-        Map<String, SpecSheet.Stat> oldByLabel = new LinkedHashMap<>(), newByLabel = new LinkedHashMap<>();
-        for (var stat : oldStats) oldByLabel.put(stat.label(), stat);
-        for (var stat : newStats) newByLabel.put(stat.label(), stat);
-        Map<String, SpecSheet.Stat> union = new LinkedHashMap<>(oldByLabel);
-        union.putAll(newByLabel);
+        Map<String, SpecSheet.Stat> oldById = new LinkedHashMap<>(), newById = new LinkedHashMap<>();
+        for (var stat : oldStats) oldById.put(stat.id(), stat);
+        for (var stat : newStats) newById.put(stat.id(), stat);
+        Map<String, SpecSheet.Stat> union = new LinkedHashMap<>(oldById);
+        union.putAll(newById);
         List<Map<String, Object>> rows = new ArrayList<>();
         for (String label : union.keySet()) {
-            SpecSheet.Stat old = oldByLabel.get(label), next = newByLabel.get(label);
+            SpecSheet.Stat old = oldById.get(label), next = newById.get(label);
             Map<String, Object> stat = row(id + ":stat:" + label, "icon", "label", "oldTrack", "oldFill", "oldValue", "arrow", "newTrack", "newFill", "newValue");
-            stat.put("label", statLabel(label));
+            stat.put("label", statLabel(union.get(label)));
             stat.put("icon", "graphics/ui/equipment/" + statIcon(label) + ".svg");
             stat.put("before", old == null ? "—" : old.value());
             stat.put("after", next == null ? "—" : next.value());
@@ -137,12 +137,12 @@ final class LoadoutInspection {
         return String.format(Locale.ROOT, "width: %.2f%%;", stat == null || !stat.hasMeter() ? 0f : stat.fill() * 100);
     }
 
-    private static String statLabel(String label) {
-        return switch (label) {
+    private static String statLabel(SpecSheet.Stat stat) {
+        return switch (stat.id()) {
             case "DMG" -> Strings.get("openingLoadoutDamage"); case "RNG" -> Strings.get("openingLoadoutRange"); case "ACC" -> Strings.get("openingLoadoutAccuracy");
             case "DPS" -> Strings.get("openingLoadoutSustainedDps"); case "RESIST" -> Strings.get("openingLoadoutResistance"); case "PEN" -> Strings.get("openingLoadoutPenetration");
             case "MOVE" -> Strings.get("openingLoadoutMovement"); case "EVASION" -> Strings.get("openingLoadoutEvasion"); case "ARMOR" -> Strings.get("openingLoadoutArmor");
-            default -> label;
+            default -> stat.label();
         };
     }
 

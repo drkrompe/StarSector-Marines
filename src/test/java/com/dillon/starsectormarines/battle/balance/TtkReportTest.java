@@ -111,7 +111,7 @@ class TtkReportTest {
             }
         }
         appendTable(report, "Equipment grade ladder", "grade",
-                byGrade, m -> m.scenario().grade().displayName);
+                byGrade, m -> m.scenario().grade().displayName());
 
         List<Measurement> byProfile = new ArrayList<>();
         for (SoldierProfile profile : new SoldierProfile[]{GREEN, REGULAR, VETERAN, ELITE}) {
@@ -379,7 +379,7 @@ class TtkReportTest {
                 .append("s. Their mean TTK describes only the trials that resolved.\n\n");
         for (Measurement m : unresolved) {
             out.append("- ").append(describe(m))
-                    .append(" (").append(m.scenario().grade().displayName)
+                    .append(" (").append(m.scenario().grade().displayName())
                     .append(", ").append(m.scenario().cover().label).append(" cover, ")
                     .append(m.distanceCells()).append(" cells)")
                     .append(" — killed in ").append(m.kills()).append(" of ").append(m.trials())

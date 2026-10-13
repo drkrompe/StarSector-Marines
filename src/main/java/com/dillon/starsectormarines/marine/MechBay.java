@@ -162,7 +162,7 @@ public final class MechBay implements Serializable {
         int serial = nextAvailableSerial();
         CampaignMech mech = new CampaignMech("support_mech_"
                 + String.format(Locale.ROOT, "%02d", serial),
-                variant.displayName + " " + String.format(Locale.ROOT, "%02d", serial), variant,
+                variant.displayName() + " " + String.format(Locale.ROOT, "%02d", serial), variant,
                 variant.defaultRole, MissileReplenisherComponent.STANDARD.id());
         if (!addMech(squadId, mech)) return null;
         nextFabricatedSerial = serial + 1;

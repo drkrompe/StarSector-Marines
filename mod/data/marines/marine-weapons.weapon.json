@@ -4,13 +4,13 @@
       "id": "weapon.field-rifle",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Field Rifle",
-        "modelName": "Rook",
+        "displayName": "@gearCatalogWeaponFieldRifleDisplayName",
+        "modelName": "@gearCatalogWeaponFieldRifleModelName",
         "designation": "FR-1",
         "designationTiered": false,
-        "role": "LINE",
+        "role": "@gearCatalogWeaponFieldRifleRole",
         "factionLogo": "graphics/factions/neutral_traders.png",
-        "description": "Preserved in countless Domain forge archives, the Rook serves Hegemony auxiliaries, Church militias, and frontier guards. Its heavy slug rewards steady aim; the slow action punishes a collapsing line."
+        "description": "@gearCatalogWeaponFieldRifleDescription"
       },
       "sim": {
         "range": 22.0,
@@ -43,13 +43,13 @@
       "id": "weapon.pulse-rifle",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Pulse Rifle",
-        "modelName": "Lancer",
+        "displayName": "@gearCatalogWeaponPulseRifleDisplayName",
+        "modelName": "@gearCatalogWeaponPulseRifleModelName",
         "designation": "PLS",
         "designationTiered": true,
-        "role": "LINE",
+        "role": "@gearCatalogWeaponFieldRifleRole",
         "factionLogo": "graphics/factions/tritachyon.png",
-        "description": "Tri-Tachyon sold the Lancer as a corporate-security arm before the AI Wars made its logo awkward. Proprietary cells deliver flexible three-pulse fire at a corporate-maintenance price."
+        "description": "@gearCatalogWeaponPulseRifleDescription"
       },
       "sim": {
         "range": 24.0,
@@ -81,13 +81,13 @@
       "id": "weapon.smg",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Shredder Carbine",
-        "modelName": "Rattler",
+        "displayName": "@gearCatalogWeaponSmgDisplayName",
+        "modelName": "@gearCatalogWeaponSmgModelName",
         "designation": "SHD",
         "designationTiered": true,
-        "role": "ASSAULT",
+        "role": "@gearCatalogWeaponSmgRole",
         "factionLogo": "graphics/factions/pirates.png",
-        "description": "Rattler is a black-market family, not one factory pattern. Pirate shops and Pather cells turn civilian flechette mechanisms into brutal close-range boarding carbines."
+        "description": "@gearCatalogWeaponSmgDescription"
       },
       "sim": {
         "range": 14.0,
@@ -121,13 +121,13 @@
       "id": "weapon.squad-automatic",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Squad Automatic",
-        "modelName": "Stalwart",
+        "displayName": "@gearCatalogWeaponSquadAutomaticDisplayName",
+        "modelName": "@gearCatalogWeaponSquadAutomaticModelName",
         "designation": "SA",
         "designationTiered": true,
-        "role": "SUPPORT",
+        "role": "@gearCatalogWeaponSquadAutomaticRole",
         "factionLogo": "graphics/factions/hegemony.png",
-        "description": "The Hegemony standardized the Stalwart from a Domain support rifle. Its reinforced receiver sustains long slug bursts while League and Diktat arsenals copy it freely."
+        "description": "@gearCatalogWeaponSquadAutomaticDescription"
       },
       "sim": {
         "range": 22.0,
@@ -161,13 +161,13 @@
       "id": "weapon.dmr",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Railgun",
-        "modelName": "Longbow",
+        "displayName": "@gearCatalogWeaponDmrDisplayName",
+        "modelName": "@gearCatalogWeaponDmrModelName",
         "designation": "RG",
         "designationTiered": true,
-        "role": "MARKSMAN",
+        "role": "@gearCatalogWeaponDmrRole",
         "factionLogo": "graphics/factions/persean_league.png",
-        "description": "Kazeron combines revived the Longbow as a League interoperability project. Its standardized cells drive a narrow penetrator down sight lines ordinary rifles cannot contest."
+        "description": "@gearCatalogWeaponDmrDescription"
       },
       "sim": {
         "range": 32.0,
@@ -201,13 +201,13 @@
       "id": "weapon.drone-pulse",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Drone Pulse Laser",
-        "modelName": "Wisp",
+        "displayName": "@gearCatalogWeaponDronePulseDisplayName",
+        "modelName": "@gearCatalogWeaponDronePulseModelName",
         "designation": "DPLS",
         "designationTiered": true,
-        "role": "DRONE",
+        "role": "@gearCatalogWeaponDronePulseRole",
         "factionLogo": "graphics/factions/tritachyon.png",
-        "description": "Tri-Tachyon designed the Wisp for tireless facility-security drones. Its measured two-pulse cadence favors persistent pressure; human-compatible stocks were never part of the contract."
+        "description": "@gearCatalogWeaponDronePulseDescription"
       },
       "sim": {
         "range": 26.0,
@@ -239,8 +239,8 @@
       "id": "weapon.mech-chaingun",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Chaingun",
-        "modelName": "Chaingun",
+        "displayName": "@gearCatalogWeaponMechChaingunDisplayName",
+        "modelName": "@gearCatalogWeaponMechChaingunModelName",
         "designation": "MCG",
         "designationTiered": false
       },
@@ -280,8 +280,8 @@
       "id": "weapon.mech-pulse-laser",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Rapid Pulse Laser",
-        "modelName": "Staccato Array",
+        "displayName": "@gearCatalogWeaponMechPulseLaserDisplayName",
+        "modelName": "@gearCatalogWeaponMechPulseLaserModelName",
         "designation": "MPL",
         "designationTiered": false
       },
@@ -328,8 +328,8 @@
       "id": "weapon.mech-bastion-autocannon",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Bastion Autocannon",
-        "modelName": "Bastion",
+        "displayName": "@gearCatalogWeaponMechBastionAutocannonDisplayName",
+        "modelName": "@gearCatalogWeaponMechBastionAutocannonModelName",
         "designation": "BAC",
         "designationTiered": false
       },
@@ -371,8 +371,8 @@
       "id": "weapon.mech-linear-cannon",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Linear Cannon",
-        "modelName": "Linear Cannon",
+        "displayName": "@gearCatalogWeaponMechLinearCannonDisplayName",
+        "modelName": "@gearCatalogWeaponMechLinearCannonModelName",
         "designation": "MLC",
         "designationTiered": false
       },
@@ -408,8 +408,8 @@
       "id": "weapon.mech-heavy-cannon",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Heavy Cannon",
-        "modelName": "Heavy Cannon",
+        "displayName": "@gearCatalogWeaponMechHeavyCannonDisplayName",
+        "modelName": "@gearCatalogWeaponMechHeavyCannonModelName",
         "designation": "MHC",
         "designationTiered": false
       },
@@ -452,8 +452,8 @@
       "id": "weapon.mech-demolition-cannon",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Demolition Cannon",
-        "modelName": "Foundry Breaker",
+        "displayName": "@gearCatalogWeaponMechDemolitionCannonDisplayName",
+        "modelName": "@gearCatalogWeaponMechDemolitionCannonModelName",
         "designation": "FBR",
         "designationTiered": false
       },
@@ -508,8 +508,8 @@
       "id": "weapon.mech-muster-autogun",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Muster Commercial Autogun",
-        "modelName": "Muster",
+        "displayName": "@gearCatalogWeaponMechMusterAutogunDisplayName",
+        "modelName": "@gearCatalogWeaponMechMusterAutogunModelName",
         "designation": "CAG-6",
         "designationTiered": false
       },
@@ -551,8 +551,8 @@
       "id": "weapon.mech-quarry-breaker",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Quarry Breaker Cannon",
-        "modelName": "Quarry",
+        "displayName": "@gearCatalogWeaponMechQuarryBreakerDisplayName",
+        "modelName": "@gearCatalogWeaponMechQuarryBreakerModelName",
         "designation": "QBC-2",
         "designationTiered": false
       },
@@ -604,8 +604,8 @@
       "id": "weapon.mech-pioneer-rocket",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Pioneer Utility Rocket Cradle",
-        "modelName": "Pioneer",
+        "displayName": "@gearCatalogWeaponMechPioneerRocketDisplayName",
+        "modelName": "@gearCatalogWeaponMechPioneerRocketModelName",
         "designation": "PRC-4",
         "designationTiered": false
       },
@@ -653,8 +653,8 @@
       "id": "weapon.mech-srm-pod",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "SRM Pod",
-        "modelName": "SRM Pod",
+        "displayName": "@gearCatalogWeaponMechSrmPodDisplayName",
+        "modelName": "@gearCatalogWeaponMechSrmPodModelName",
         "designation": "SRM",
         "designationTiered": false
       },
@@ -697,8 +697,8 @@
       "id": "weapon.mech-lrm-artillery",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "LRM Artillery",
-        "modelName": "LRM Artillery",
+        "displayName": "@gearCatalogWeaponMechLrmArtilleryDisplayName",
+        "modelName": "@gearCatalogWeaponMechLrmArtilleryModelName",
         "designation": "LRM",
         "designationTiered": false
       },
@@ -745,8 +745,8 @@
       "id": "weapon.mech-shoulder-laser",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Shoulder Laser Cannon",
-        "modelName": "Lance Cannon",
+        "displayName": "@gearCatalogWeaponMechShoulderLaserDisplayName",
+        "modelName": "@gearCatalogWeaponMechShoulderLaserModelName",
         "designation": "SLC",
         "designationTiered": false
       },
@@ -801,8 +801,8 @@
       "id": "weapon.mech-thermal-lance",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "Thermal Lance",
-        "modelName": "Lion's Brand",
+        "displayName": "@gearCatalogWeaponMechThermalLanceDisplayName",
+        "modelName": "@gearCatalogWeaponMechThermalLanceModelName",
         "designation": "LBT",
         "designationTiered": false
       },
@@ -861,8 +861,8 @@
       "id": "weapon.scrap-rocket",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Scrap-Tube Unguided Rocket",
-        "modelName": "Scrap-Tube",
+        "displayName": "@gearCatalogWeaponScrapRocketDisplayName",
+        "modelName": "@gearCatalogWeaponScrapRocketModelName",
         "designation": "RKT-S",
         "designationTiered": false
       },
@@ -932,8 +932,8 @@
       "id": "weapon.annihilator-launcher",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Annihilator Rocket Launcher",
-        "modelName": "Annihilator",
+        "displayName": "@gearCatalogWeaponAnnihilatorLauncherDisplayName",
+        "modelName": "@gearCatalogWeaponAnnihilatorLauncherModelName",
         "designation": "RKT-1",
         "designationTiered": false
       },
@@ -974,8 +974,8 @@
       "id": "weapon.frag-grenade",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Shattercap Fragmentation Grenade",
-        "modelName": "Shattercap",
+        "displayName": "@gearCatalogWeaponFragGrenadeDisplayName",
+        "modelName": "@gearCatalogWeaponFragGrenadeModelName",
         "designation": "FRG-1",
         "designationTiered": false
       },
@@ -1016,8 +1016,8 @@
       "id": "weapon.anti-materiel-rifle",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Breachlight Anti-Materiel Rifle",
-        "modelName": "Breachlight",
+        "displayName": "@gearCatalogWeaponAntiMaterielRifleDisplayName",
+        "modelName": "@gearCatalogWeaponAntiMaterielRifleModelName",
         "designation": "AMR-1",
         "designationTiered": false
       },
@@ -1053,8 +1053,8 @@
       "id": "weapon.breaching-cutter",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Emberjaw Thermal Breacher",
-        "modelName": "Emberjaw",
+        "displayName": "@gearCatalogWeaponBreachingCutterDisplayName",
+        "modelName": "@gearCatalogWeaponBreachingCutterModelName",
         "designation": "CUT-1",
         "designationTiered": false
       },
@@ -1087,8 +1087,8 @@
       "id": "weapon.vibro-blade",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Quillon Vibro-Blade",
-        "modelName": "Quillon",
+        "displayName": "@gearCatalogWeaponVibroBladeDisplayName",
+        "modelName": "@gearCatalogWeaponVibroBladeModelName",
         "designation": "VBL-1",
         "designationTiered": false
       },
@@ -1120,8 +1120,8 @@
       "id": "weapon.micro-missile",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "Halcyon Micro-Missile",
-        "modelName": "Halcyon",
+        "displayName": "@gearCatalogWeaponMicroMissileDisplayName",
+        "modelName": "@gearCatalogWeaponMicroMissileModelName",
         "designation": "MSL-1",
         "designationTiered": false
       },

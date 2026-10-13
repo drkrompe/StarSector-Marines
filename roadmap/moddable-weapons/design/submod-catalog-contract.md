@@ -4,9 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-30 — documented optional projectile-bound tracer tails; armour
-reaches the field through a tactic sheet rather than a picker, and a contributed
-pattern is no longer shadowed by the core one sharing its cell.
+Updated: 2026-10-13 — equipment display fields support translation references.
 
 ## Provider entry point
 
@@ -78,6 +76,22 @@ modular actor families are `RIFLE`, `LASER_GUN`, `SMG`, and `DMR`; several weapo
 definitions may intentionally share one family. The family controls the weapon held
 by the layered marine actor in battle, Armory portraits, and embedded scenes. It is
 required and validated so a contributed id cannot quietly fall back to generic art.
+
+## Equipment display text
+
+Equipment display text can be a literal or an `@key` reference into the
+`marineOps` namespace in `data/strings/strings.json`. This applies to weapon
+names, model names, descriptive roles and descriptions; armor and integral-system
+names and descriptions; and special-equipment names, subtitles and descriptions.
+References resolve when displayed, not when the catalog loads. Translation mods
+override string values; they do not replace equipment definitions. Use namespaced
+keys for contributed copy. Java consumers use display accessors rather than raw
+text fields.
+
+Equipment ids, designation codes, armor role/tradition keys, grades, activation
+policies and numerical values remain mechanical data and must not be translated.
+Template names follow their referenced equipment. Literal addon text remains
+supported, and player-authored names remain player-owned.
 
 ## Weapon effects
 

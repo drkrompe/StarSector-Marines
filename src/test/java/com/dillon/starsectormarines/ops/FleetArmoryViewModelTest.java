@@ -378,7 +378,7 @@ class FleetArmoryViewModelTest {
     private static WeaponDef primaryNamedBy(String text) {
         for (WeaponDef weapon : WeaponRegistry.installed().all()) {
             if (weapon.mount == MountClass.MARINE_PRIMARY
-                    && text.endsWith(" " + weapon.modelName)) {
+                    && text.endsWith(" " + weapon.modelName())) {
                 return weapon;
             }
         }

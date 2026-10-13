@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +29,10 @@ public record MarineArmorCatalogDef(
         float moveSpeedMult,
         float incomingAccuracyMult,
         IntegralSystemDef integralSystem) {
+    public String displayName() { return Strings.resolve(displayName); }
+
+    public String description() { return Strings.resolve(description); }
+
 
     /** Compatibility for callers predating explicit protection classes. */
     public MarineArmorCatalogDef(String id, String displayName, ArmorRole role,

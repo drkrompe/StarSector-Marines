@@ -1515,8 +1515,10 @@ its complete variable messages to `Strings.format`. The marineOps catalog owns
 copy, including markup labels through `{i18n.key}`. Formatting uses MessageFormat
 numbered arguments (and choice patterns for quantities); plain `get` preserves
 literal apostrophes. Existing printf-based cost displays retain printf patterns.
-Rank/specialty labels and `@key` boat catalog display fields resolve when read,
-not during static initialization. The management guide stores titleKey/textKey
+Rank/specialty labels and `@key` equipment catalog display fields resolve when read,
+not during static initialization. This includes weapons, armor, special items,
+integral systems, mech hardware and their derived template and recipe names.
+Add-on literal copy remains supported. The management guide stores titleKey/textKey
 beside stable narration IDs; synthesis text is recording direction, not UI copy.
 Saved identifiers, authored/player names and resource transactions are independent
 of translated display text. `alpha-localization.md` owns the remaining

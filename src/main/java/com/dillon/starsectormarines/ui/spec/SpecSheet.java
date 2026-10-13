@@ -37,15 +37,22 @@ public record SpecSheet(String title,
     /**
      * One stat row.
      *
+     * @param id stable identity for comparisons, independent of the translated label
      * @param label the stat's name as shown
      * @param value the value as shown, already formatted
      * @param fill  meter fill in 0..1, or negative for a row with no meter
      */
-    public record Stat(String label, String value, float fill) {
+    public record Stat(String id, String label, String value, float fill) {
+
+        /** Literal rows remain supported; comparable translated rows supply an explicit id. */
+        public Stat(String label, String value, float fill) {
+            this(label, label, value, fill);
+        }
 
         public static final float NO_METER = -1f;
 
         public Stat {
+            if (id == null || id.isBlank()) throw new IllegalArgumentException("A stat needs an id");
             if (label == null || label.isBlank()) throw new IllegalArgumentException("A stat needs a label");
             value = value == null ? "" : value;
             if (fill > 1f) fill = 1f;

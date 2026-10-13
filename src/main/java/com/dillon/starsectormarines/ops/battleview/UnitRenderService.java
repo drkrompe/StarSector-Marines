@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
+import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -37,6 +39,8 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -244,6 +248,9 @@ public final class UnitRenderService implements RenderSystem {
         }
     }
 
+    /** Structure animation clock, and the accumulated angle of each spinning art layer keyed by structure id and layer index. */
+    private float structureClock;
+    private final Map<Long, Float> layerAngles = new HashMap<>();
     private final Stratum footprints = new Stratum();
     private final Stratum turrets = new Stratum();
     private final Stratum hubs = new Stratum();
@@ -281,6 +288,16 @@ public final class UnitRenderService implements RenderSystem {
                 cy = StructureFootprint.minY(structure, cy);
             }
             if (!view.visible(cx + spanX * 0.5f, cy + spanY * 0.5f, Math.max(spanX, spanY))) continue;
+            ShuttleSpriteCache artBase = turretState.isTurret(u) ? structureBase(u, turretState) : null;
+            if (artBase != null) {
+                // Painted base: the whole footprint, upright, in place of the flat pad.
+                float w = spanX * cellPx;
+                float h = spanY * cellPx;
+                out.addSprite(RenderLayer.UNITS, artBase.sprite,
+                        cam.cellToScreenX(cx) + w * 0.5f, cam.cellToScreenY(cy) + h * 0.5f,
+                        w, h, 0f, 1f, 1f, 1f, alphaMult);
+                continue;
+            }
             float x0 = cam.cellToScreenX(cx);
             float y0 = cam.cellToScreenY(cy);
             if (spanX == 1 && spanY == 1) {
@@ -308,17 +325,24 @@ public final class UnitRenderService implements RenderSystem {
         ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
+        float dt = advanceStructureClock(ctx);
+        float clock = structureClock;
         for (int i = 0, n = turrets.size(); i < n; i++) {
             long id = turrets.id(i);
             StructureDef structure = turretState.structure(id);
             if (!view.visible(world.renderX(id), world.renderY(id),
-                    structure.mount.visualCells * AUTHORED_EXTENT_SLACK)) continue;
+                    bodyExtentCells(structure) * AUTHORED_EXTENT_SLACK)) continue;
             float facingDegrees = turretState.facingDegrees(id);
             float cx = cam.cellToScreenX(world.renderX(id));
             float cy = cam.cellToScreenY(world.renderY(id));
 
             ShuttleSpriteCache base = sprites.turretSprites().get(structure.id);
             if (base == null) {
+                // A structure whose body is all painted art has no mount sprite on purpose.
+                if (structure.art != null) {
+                    emitArtLayers(ctx, out, structure, id, cx, cy, cellPx, alphaMult, clock, dt);
+                    continue;
+                }
                 float half = cellPx * BattleRenderer.UNIT_FRAC / 2f;
                 emitSolidQuad(out, cx, cy, half, DEFENDER_COLOR, alphaMult);
                 continue;
@@ -336,7 +360,98 @@ public final class UnitRenderService implements RenderSystem {
             }
             emitWholeSprite(out, base, pose.facingDegrees(), pose.spriteHeightPx(),
                     pose.baseCenterX(), pose.baseCenterY(), alphaMult);
+            if (structure.art != null) {
+                emitArtLayers(ctx, out, structure, id, cx, cy, cellPx, alphaMult, clock, dt);
+            }
         }
+    }
+
+    /** Longest extent, in cells, that a structure body can be drawn across: its mount sprite, its art layers and its footprint. */
+    private static float bodyExtentCells(StructureDef structure) {
+        float extent = Math.max(structure.mount.visualCells,
+                Math.max(structure.footprintCellsX, structure.footprintCellsY));
+        if (structure.art != null) {
+            for (StructureArt.Layer layer : structure.art.layers()) extent = Math.max(extent, layer.cells());
+        }
+        return extent;
+    }
+
+    /** The painted base of a structure that has one and whose sprite loaded, else null (the flat pad is drawn). */
+    private ShuttleSpriteCache structureBase(long id, TurretStateService turretState) {
+        StructureDef structure = turretState.structure(id);
+        if (structure.art == null || structure.art.basePath == null) return null;
+        return sprites.spriteByPath(structure.art.basePath);
+    }
+
+    /**
+     * Advances the structure animation clock: the host's absolute clock when it supplies one (so repeated passes
+     * agree), otherwise real time accumulated here. Returns the seconds since the previous pass, bounded so a stalled
+     * frame does not spin a layer through a lap.
+     */
+    private float advanceStructureClock(RenderContext ctx) {
+        float now = Float.isFinite(ctx.animationTimeSeconds)
+                ? ctx.animationTimeSeconds
+                : structureClock + Math.max(0f, ctx.realDt);
+        float dt = Math.max(0f, Math.min(0.25f, now - structureClock));
+        structureClock = now;
+        return dt;
+    }
+
+    /**
+     * Overlay layers of a structure's art, upright and centre-pivoted on the structure. A spinning layer's angle is
+     * accumulated per layer rather than read off the clock, so a dome layer that stops while its dome is down resumes
+     * from where it stopped. A dome layer is tinted by the side holding the dome, dims to a smoulder while the dome
+     * is overloaded and flares white when it takes a round.
+     */
+    private void emitArtLayers(RenderContext ctx, DrawList out, StructureDef structure, long id,
+                               float cx, float cy, float cellPx, float alphaMult, float clock, float dt) {
+        List<StructureArt.Layer> layers = structure.art.layers();
+        ShieldDomeService.DomeView dome = null;
+        for (StructureArt.Layer layer : layers) {
+            if (layer.dome()) {
+                dome = findDome(ctx, id);
+                break;
+            }
+        }
+        for (int i = 0; i < layers.size(); i++) {
+            StructureArt.Layer layer = layers.get(i);
+            ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath());
+            if (sprite == null) continue;
+            float spin = 1f;
+            float bright = 1f;
+            float r = 1f;
+            float g = 1f;
+            float b = 1f;
+            if (layer.dome() && dome != null) {
+                float[] tint = ShieldDomeRenderSystem.tintFor(dome.holder());
+                float flash = dome.hitFlash();
+                r = tint[0] + (1f - tint[0]) * flash;
+                g = tint[1] + (1f - tint[1]) * flash;
+                b = tint[2] + (1f - tint[2]) * flash;
+                if (dome.overloaded()) {
+                    spin = 0f;
+                    bright = 0.22f;
+                }
+            }
+            if (layer.pulseDepth() > 0f && layer.pulseHz() > 0f) {
+                double wave = 0.5 + 0.5 * Math.sin(2.0 * Math.PI * layer.pulseHz() * clock);
+                bright *= 1f - layer.pulseDepth() * (float) wave;
+            }
+            long key = id * 16L + i;
+            float angle = layerAngles.getOrDefault(key, 0f) + layer.spinDegPerSec() * spin * dt;
+            angle %= 360f;
+            layerAngles.put(key, angle);
+            float size = layer.cells() * cellPx;
+            out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
+                    r * bright, g * bright, b * bright, alphaMult);
+        }
+    }
+
+    private static ShieldDomeService.DomeView findDome(RenderContext ctx, long structureId) {
+        for (ShieldDomeService.DomeView dome : ctx.sim.shieldDomes().domes()) {
+            if (dome.entityId() == structureId) return dome;
+        }
+        return null;
     }
 
     /**
