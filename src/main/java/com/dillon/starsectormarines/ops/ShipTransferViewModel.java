@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -531,7 +532,8 @@ public final class ShipTransferViewModel {
         if (ship == null || !ship.quarters()) return Strings.get("openingShipTransferSelectAShipWithCompanyQuartersAnd");
         if (ShipsBoats.aboard(ship.ship()).isEmpty()) return Strings.get("openingShipTransferThisHullHasNoBoatBerthChoose");
         StringBuilder text = new StringBuilder(Strings.get("openingShipTransferFirstMissionStoresCostAvailableShortBy"));
-        for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship()))) {
+        for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship())).stream()
+                .sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId()))).toList()) {
             int available = preparationResources.available(line.commodityId());
             text.append(Strings.format("companyResourceNamedCost", preparationResources.commodityName(line.commodityId()), CompanyResources.number(line.quantity())));
             if (available < line.quantity()) text.append(" · ").append(Strings.format("companyResourceShortBy", CompanyResources.number(line.quantity() - available)));

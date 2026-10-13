@@ -56,17 +56,17 @@ final class CompanyPreparationGuide {
         if (CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, model.preparationBill());
         return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideChooseOurCompanyShip"),
                 Strings.format("openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd", model.preparationBill()),
-                List.of("transfer-commit", "transfer-fleet-list"), null, null);
+                List.of("transfer-commit", "transfer-fleet-list", "transfer-resource-stock"), null, null, 480);
     }
 
     static PreparationGuide.Lesson foundingLesson(MarineOpsContext context, String bill) {
         boolean installed = MercenaryCompanyConversion.installed(CerberusCompanyStart.startingShip());
         return new PreparationGuide.Lesson(0, installed ? Strings.get("openingCompanyPreparationGuideOurCompanyCommandVessel") : Strings.get("openingCompanyPreparationGuideMercenaryCompanyConversion"),
                 CerberusCompanyStart.instructions() + (installed && bill != null ? "\n\n" + bill : ""),
-                installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit")
+                installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit", "transfer-resource-stock")
                         : List.of("page-nav-return"),
                 installed ? Strings.get("openingCompanyPreparationGuideChooseShip") : null,
-                installed ? () -> context.goTo(ScreenId.SHIP_TRANSFER) : null);
+                installed ? () -> context.goTo(ScreenId.SHIP_TRANSFER) : null, installed && bill != null ? 540 : 310);
     }
 
     static PreparationGuide.Lesson headquarters(MarineOpsContext context) {
