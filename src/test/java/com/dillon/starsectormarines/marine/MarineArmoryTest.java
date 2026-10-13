@@ -21,6 +21,28 @@ import static org.junit.jupiter.api.Assertions.*;
 class MarineArmoryTest {
 
     @Test
+    void newCompanyKeepsOnlyBaselineTechnologyAcrossLoadAndFirstVictory() throws Exception {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(24);
+        Set<String> baseline = Set.of(
+                EquipmentTemplateCatalog.primaryId(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE),
+                EquipmentTemplateCatalog.armorId(MarineArmorPattern.ARMORLESS),
+                EquipmentTemplateCatalog.armorId(MarineArmorPattern.MILITIA));
+        assertEquals(baseline, roster.armory().ownedEquipmentTemplateIds());
+        for (MarineSoldier soldier : roster.soldiers()) {
+            assertEquals(WeaponRegistry.STARTER_PRIMARY_ID, soldier.primaryId());
+            assertEquals(MarineArmorPattern.MILITIA.id, soldier.armorId());
+            assertNull(soldier.specialEquipmentId());
+        }
+        MarineArmory loaded = roundTrip(roster).armory();
+        loaded.repairCollectionProgression(Set.of());
+        loaded.recordVictory(false);
+        assertEquals(baseline, loaded.ownedEquipmentTemplateIds());
+        loaded.unlockPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE);
+        assertTrue(roundTrip(loaded).ownsPrimaryTemplate(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE));
+    }
+
+    @Test
     void newRecruitStartsWithBasicFieldRifle() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(1);
@@ -41,9 +63,9 @@ class MarineArmoryTest {
     }
 
     @Test
-    void squadAutomaticIsStarterReachableAndJoinsTheMilspecLadder() {
+    void squadAutomaticRequiresAcquisitionAndJoinsTheMilspecLadder() {
         MarineArmory armory = new MarineArmory();
-        assertTrue(armory.isPrimaryUnlocked(
+        assertFalse(armory.isPrimaryUnlocked(
                 WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE));
         assertFalse(armory.isPrimaryUnlocked(
                 WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC));
@@ -80,6 +102,7 @@ class MarineArmoryTest {
     void legacyRecipeOwnershipMigratesToEquipmentTemplateCards() throws Exception {
         MarineArmory armory = new MarineArmory();
         armory.unlockPrimary(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK);
+        armory.unlockSecondary(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
         Field ownedTemplates = MarineArmory.class.getDeclaredField(
                 "ownedEquipmentTemplateIds");
         ownedTemplates.setAccessible(true);
@@ -115,8 +138,8 @@ class MarineArmoryTest {
         assertTrue(armory.equipmentTemplateCards().size()
                         >= EquipmentCollectionCurve.minimumCollectedAtVictories(0),
                 "starter issue should already satisfy the zero-victory floor");
-        assertTrue(armory.ownsArmorTemplate("armor.cordon-shell"));
-        assertTrue(armory.ownsArmorTemplate("armor.lashplate-harness"));
+        assertFalse(armory.ownsArmorTemplate("armor.cordon-shell"));
+        assertFalse(armory.ownsArmorTemplate("armor.lashplate-harness"));
 
         for (int victory = 1; victory <= 40; victory++) {
             armory.recordVictory(false);

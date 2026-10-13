@@ -71,11 +71,13 @@ sheet rather than preserving the card's twelve concrete patterns, and the first
 successful squad issue clears those ids. The current per-soldier kit remains the materialized
 state consumed by deployment and battle.
 
-Built-in starter definitions are exact distributions, not best-fit suggestions.
-Their first billet in each four-person team receives the leader's scarce weapon and
-armor issue. `MarineArmory` must seed or repair every matching template card on new
-and migrated saves; the campaign founding authority separately charges for personnel and baseline
-stores when raising a new squad. Equipment fitting itself is free.
+New companies know only the Service Rook, field fatigues, and Ward security kit.
+Founding and ordinary recruits use this baseline; there is no seeded special weapon.
+Other built-in definitions remain library intent and require learned technology.
+Save repair restores only this baseline and preserves every previously learned spec.
+The collection safety net starts from three specs, never the old broad starter library.
+The campaign founding authority separately charges for personnel and baseline stores;
+equipment fitting itself is free.
 
 Equipment-template acquisition enters the campaign through a parameterized
 special cargo item. Its data is the stable equipment-template id; learning it

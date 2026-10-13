@@ -17,6 +17,6 @@ public final class TenderBuildSceneSnapshotSuite extends BehaviorSceneSnapshotSu
 
     /** Where the tender stands off from the site, close enough to read the drones' own sprites beside the hull. */
     @Override protected float[] closeView(String loopId) {
-        return loopId.equals("build") || loopId.equals("raid") ? new float[] {57.5f, 40.5f, 22f} : null;
+        return loopId.equals("build") || loopId.equals("raid") || loopId.equals("ambush") ? new float[] {57.5f, 40.5f, 22f} : null;
     }
 }

@@ -2009,6 +2009,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
         warships.beginFrame();
+        tenders.cues().beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
         if (isComplete()) return;
