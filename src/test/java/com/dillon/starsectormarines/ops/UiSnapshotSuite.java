@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
+
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -2135,6 +2137,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("survey", ShipConditionModel.workshopOnly());
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
         props.put("roomCopy",
@@ -3130,6 +3133,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
+        var survey = ShipConditionModel.workshopOnly();
+        if (workshop.offer().state() == WorkshopState.NONE) survey.put("classes", "hidden");
+        props.put("survey", survey);
         props.put("workshop", workshop);
         props.put("roomTitle", "SECOND WIND / RESTORATION");
         props.put("roomCopy", "Inspect the workshop. Restoring her rooms keeps their place in the hull.");
@@ -3142,6 +3148,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             var canvas = new ShipViewCanvas(ship);
             if (focusWorkshop) canvas.focus(RoomPurpose.PARTS_CAGE);
+            document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
+            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            return renderRelative(renderer, document, 1920, 1080, scale);
+        }
+    }
+
+    public static BufferedImage renderShipCondition(SnapshotContext context, CompanyDeck ship,
+                                                    ShipConditionModel model, Reactor reactor,
+                                                    float scale, RoomPurpose focus) throws Exception {
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
+        loader.reload();
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("survey", model.row());
+        props.put("workshop", WorkshopRestorationModel.Row.hidden());
+        props.put("roomTitle", "SECOND WIND / WALK THE SHIP");
+        props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
+        props.put("contextLabel", "COMPANY SHIP / CONDITION");
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
+                purpose -> ship.has(purpose) ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO,
+                () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        try (var instance = loader.build(reactor, "ship-view", props)) {
+            var document = new UiDocument(instance.root());
+            instance.styles().forEach(document::addStyleSheet);
+            document.theme(MarineOpsThemes.standard());
+            var canvas = new ShipViewCanvas(ship);
+            if (focus != null) canvas.focus(focus);
             document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));

@@ -210,7 +210,7 @@ public final class CompanyDeck {
     public boolean has(RoomPurpose purpose) {
         if (purpose == null) return false;
         if (!ship.habitable()) return false;
-        return rooms().largest(purpose) != null;
+        return rooms().compartments().stream().anyMatch(r -> r.purpose() == purpose && !rooms().damaged(r.id()));
     }
 
     /**
@@ -219,6 +219,9 @@ public final class CompanyDeck {
      */
     public DeckGraph.Compartment room(RoomPurpose purpose) {
         if (!ship.habitable()) return null;
+        if (purpose == RoomPurpose.BARRACKS) return rooms().compartments().stream()
+                .filter(room -> room.purpose() == purpose && !rooms().damaged(room.id()))
+                .max(Comparator.comparingInt(DeckGraph.Compartment::area)).orElse(null);
         return rooms().largest(purpose);
     }
 
@@ -411,7 +414,7 @@ public final class CompanyDeck {
     private List<DeckGraph.Compartment> berthings() {
         List<DeckGraph.Compartment> found = new ArrayList<>();
         for (DeckGraph.Compartment room : rooms().compartments()) {
-            if (room.purpose() == RoomPurpose.BARRACKS) found.add(room);
+            if (room.purpose() == RoomPurpose.BARRACKS && !rooms().damaged(room.id())) found.add(room);
         }
         found.sort(Comparator.comparingInt(DeckGraph.Compartment::area).reversed());
         return found;

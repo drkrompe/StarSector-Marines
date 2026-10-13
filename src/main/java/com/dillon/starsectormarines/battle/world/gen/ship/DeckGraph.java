@@ -130,6 +130,8 @@ public final class DeckGraph {
     private final List<BayAperture> apertures;
     private final ShuttleType boats;
     private final Set<Integer> damagedRooms;
+    private final Set<Integer> faultyCircuits;
+    public boolean emergencyLighting(int id) { return damaged(id) || faultyCircuits.contains(id); }
 
     public boolean damaged(int compartmentId) { return damagedRooms.contains(compartmentId); }
 
@@ -165,6 +167,12 @@ public final class DeckGraph {
 
     public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
                      List<BayAperture> apertures, ShuttleType boats, Set<Integer> damagedRooms) {
+        this(compartments, unplaced, apertures, boats, damagedRooms, Set.of());
+    }
+
+    public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
+                     List<BayAperture> apertures, ShuttleType boats, Set<Integer> damagedRooms, Set<Integer> faultyCircuits) {
+        this.faultyCircuits = Set.copyOf(faultyCircuits);
         this.damagedRooms = Set.copyOf(damagedRooms);
         this.compartments = List.copyOf(compartments);
         this.unplaced = List.copyOf(unplaced);
