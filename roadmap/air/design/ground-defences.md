@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.; a fort's aspects are chosen between by `FortTactics` (see `forts.md`).
+Updated: 2026-10-13 - where a declared fort stands is the mission's decision too (`FortSitingPolicy`, see `forts.md`); planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder; barrage is absorbed by a dome, not denied; placement authority moved from map generation to the mission; either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -301,4 +301,4 @@ fire-control, magazine and power aspects are built; see `forts.md`.
   ordinary battles alike, and its numbers come from play and balancing. A mission
   decides what defences its map carries (a Conquest map would likely have batteries); the
   market's industries are one input a campaign mission may read, not the rule. This doc
-  defines what the structures are, not how many there are.
+  defines what the structures are, not how many there are. Where a declared fort stands is the mission's too (`FortSitingPolicy`; see `forts.md`).
