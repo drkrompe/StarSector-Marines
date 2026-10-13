@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -59,11 +60,14 @@ public final class ShipArrivalScene implements BehaviorScene {
         List<SceneReport> reports = new ArrayList<>();
         reports.add(playOne("arrival", frames));
         reports.add(playOne("departure", frames));
+        // The same descent over a frozen and a verdant world: the glow, cloud and dust take the planet's tint.
+        reports.add(playOne("arrival-frozen", frames));
+        reports.add(playOne("arrival-verdant", frames));
         return reports;
     }
 
     private SceneReport playOne(String loop, FrameSink frames) throws Exception {
-        boolean arrival = loop.equals("arrival");
+        boolean arrival = loop.startsWith("arrival");
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         // A few marines beneath the approach, so the ground it works has something on it,
         // and one distant defender so the simulation never decides the battle.
@@ -74,6 +78,7 @@ public final class ShipArrivalScene implements BehaviorScene {
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261013L);
+        sim.setSurface(surfaceFor(loop));
 
         Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE, 0f, 0f, 0f);
         DebugWarship.Placement p = DebugWarship.place(Faction.MARINE, TraversalAxis.WEST_TO_EAST,
@@ -99,7 +104,14 @@ public final class ShipArrivalScene implements BehaviorScene {
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, 4, tick -> caption(loop, ship, tick))
                 .run(ticks);
-        return report(loop, ship, trace, ticks);
+        return report(loop, sim, ship, trace, ticks);
+    }
+
+    /** The palette a loop is fought over; the unsuffixed loops are bare rock, as a battle with no planet behind it is. */
+    private static SurfacePalette surfaceFor(String loop) {
+        if (loop.endsWith("-frozen")) return SurfacePalette.FROZEN;
+        if (loop.endsWith("-verdant")) return SurfacePalette.VERDANT;
+        return null;
     }
 
     private static String caption(String loop, Warship ship, int tick) {
@@ -113,10 +125,12 @@ public final class ShipArrivalScene implements BehaviorScene {
                 WarshipAtmosphere.hullVisibility(ship.entrySeconds(), ship.departingSeconds(), ship.departing()));
     }
 
-    private SceneReport report(String loop, Warship ship, Trace trace, int ticks) {
+    private SceneReport report(String loop, BattleSimulation sim, Warship ship, Trace trace, int ticks) {
         List<Verdict> verdicts = new ArrayList<>();
         Map<WarshipSoundCue.Kind, Integer> cues = trace.cues;
-        if (loop.equals("arrival")) {
+        verdicts.add(Verdict.of("surface-carried", sim.surface() == surfaceFor(loop),
+                "battle surface " + sim.surface()));
+        if (loop.startsWith("arrival")) {
             double headway = ship.x - DebugWarship.place(Faction.MARINE, TraversalAxis.WEST_TO_EAST,
                     WIDTH, HEIGHT, ship.lengthCells).x();
             verdicts.add(Verdict.of("descent-clock-ran",
