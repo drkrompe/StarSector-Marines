@@ -79,17 +79,19 @@ class UnitLayerLayoutsTest {
     @Test
     void factionArmorMasteringScalesMixedBodyAndHelmetOverAnimation() throws Exception {
         UnitLayerLayouts layouts = load();
-        LayerPose idle = layouts.clip("marine-line", "rifle", "idle").sample(0f);
+        LayerPose walking = layouts.clip("marine-line", "rifle", "walking").sample(0.25f);
 
-        LayerPose mastered = layouts.applyArmorMastering(idle,
+        LayerPose mastered = layouts.applyArmorMastering(walking,
                 LayeredArmorFamily.PALATINE, LayeredArmorFamily.SPECTER_HEAVY);
 
         assertEquals(1.0f, mastered.layer("body").scaleX(), 0.000001f);
-        assertEquals(1.8f, mastered.layer("head").scaleX(), 0.000001f);
-        assertEquals(1.5f, mastered.layer("head").scaleY(), 0.000001f);
-        assertEquals(idle.layer("head").offsetY() + 0.016f,
+        assertEquals(1.0f, mastered.layer("head").scaleX(), 0.000001f);
+        assertEquals(1.0f, mastered.layer("head").scaleY(), 0.000001f);
+        assertEquals(walking.layer("head").offsetY() - 0.033625f,
                 mastered.layer("head").offsetY(), 0.000001f);
-        assertEquals(idle.layer("primary"), mastered.layer("primary"));
+        assertEquals(walking.layer("head").angleDegrees(), mastered.layer("head").angleDegrees());
+        assertEquals(walking.layer("primary"), mastered.layer("primary"));
+        assertEquals(walking.layer("left-foot"), mastered.layer("left-foot"));
     }
 
     @Test

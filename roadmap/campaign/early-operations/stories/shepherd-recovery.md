@@ -1,10 +1,10 @@
 # A Working Ship
 
-Status: IN PROGRESS — Salvage Rights playable; Cold Start and Working Passage have maps and mission designs
+Status: IN PROGRESS — Salvage Rights and Cold Start playable; Working Passage departure remains open
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — First recovery contract, physical inspection and persistent claim; later chapter battles remain open.
+Updated: 2026-10-13 — Cold Start launch, field milestones, grounded construction and repair settlement; live acceptance and departure remain.
 
 ## Placement and employer
 
@@ -171,9 +171,11 @@ Beat order:
    approach in small finite detachments from the south road and eastern quarry.
    Trigger them from escort progress and power work, not a long fixed silence.
    Successful connection restores the yard-light circuit around the pumps and
-   cradle; emergency lights remain on throughout. The authored powered review is
-   a lighting-state preview until this chapter's repair sequence is implemented.
-3. The first builder deployment uses the real Tender construction path, limited
+   cradle immediately; emergency lights remain on throughout. A later mobilization
+   retains completed shore power.
+3. Restored power exposes **Build Vulcan Turret** in the ordinary command tray.
+   Choose its card, then clear exterior ground near Morrow. Target cancellation uses
+   the normal command interface. The first builder deployment uses the real Tender construction path, limited
    to the grounded ship's safe working reach. A suggested gun position protects
    the cradle approach. Contact interrupts unsafe work under ordinary tender rules;
    no special invulnerable tutorial drone flies through fire.
@@ -224,9 +226,9 @@ The transfer includes an explicit berth offer to willing surviving Morrow crew,
 not ownership of people or an automatic new marine squad. Fleet crew accounting
 and any named engineer handoff must be resolved with the campaign reward.
 
-## Battle and campaign acceptance still to implement
+## Remaining battle and campaign acceptance
 
-### Repair and departure contract design
+### Cold Start acceptance and departure design
 
 Cold Start is a **6–8 minute target**, subject to playback. Start with the earlier
 workshop held and the receiving store clear. The repair carrier waits at the apron
@@ -272,9 +274,10 @@ this contract; these timings and teams are proposed encounter design, not tested
 
 ### Remaining acceptance
 
-- Cold Start and Working Passage offers, briefs/debriefs, archive and debug fixtures.
-  Salvage Rights supplies the post-Cold gate, HQ notification, Vale contact,
-  actual company lift, fixed claim payment and first debug fixture. No new recordings.
+- Live Cold Start discovery, launch, return to HQ and save/load acceptance. Both
+  recovery chapters have campaign offers, text-only narration and debug fixtures;
+  Working Passage remains unavailable until its departure and ownership handoff ship.
+  Cold Start pays 22,000 credits only on an accepted repair victory.
 - Design for a rebuilding company: two squads as the initial test force, allied
   holders and engineers; Hound optional. Use the real launch roster and fitted
   boats. A weakened company can postpone and replenish. Do not assume every
@@ -283,10 +286,10 @@ this contract; these timings and teams are proposed encounter design, not tested
   outside visible company positions; no spawning inside the work zone. Distinct
   militia holds advance only after company gains, and built positions must be
   seen helping before the next beat.
-- Keep repair-crew survival, partial repairs, tender damage and failed withdrawal
-  explicit. Capture/recovery milestones persist; no replenishing dead people or
-  duplicating a hull on reload. Exact loss/recovery policy needs its own bounded
-  implementation decision before battle settlement ships.
+- Keep Working Passage tender damage and failed withdrawal explicit. Cold Start
+  already retains delivery, shore power and technician losses without carrying
+  unfinished work or a free turret into another sortie. Departure's exact hull
+  disable/recovery policy still needs a bounded decision before that settlement ships.
 - Fleet transfer once on final victory, using stored member identity. Never let
   `Tender.fit` fallback summon a stock Shepherd if the awarded hull was sold or
   lost. Atmosphere permission and support eligibility are mission facts; this
@@ -294,8 +297,9 @@ this contract; these timings and teams are proposed encounter design, not tested
 - Preserve the current free construction rules. Construction time, finite fragile
   drones and secure working ground are the immediate constraints. Do not add a
   new cargo economy to this arc. Ordinary fleet upkeep still applies to ownership.
-- Full-width hull flight/arrival clearance, builder reach at the grounded cradle,
-  repair-carrier traversal, threat/recall behavior and three battles need playback.
+- Full-width hull flight/arrival clearance and the departure battle need playback.
+  Cold Start separately exercises physical repair-carrier traversal and grounded
+  builder reach; this does not establish a flying Shepherd's clearance.
   The live grounded/low-hover body must retain the large footprint until climb-out;
   repair completion cannot snap it back to the tiny overhead scale.
   Map navigation checks alone do not establish those runtime behaviors.
@@ -315,3 +319,13 @@ plus an absent-company control. It checks exact committed identities, aircraft a
 squad reunion, and records phase transitions and survivors. Production contract and
 debrief documents render at 1920×1080 / 100%. This remains detached headless evidence;
 live Asharu discovery, save/load and return-to-HQ acceptance are still required.
+
+`createSnapshots -Psnapshot=cold-start` exercises the repair chapter with named
+company personnel and their fitted boats, including a mixed Hermes/Aeroshuttle
+manifest. Its ordinary command-card input requests one turret; it does not spawn
+the gun or force victory. Reports record physical carrier movement, shore-light
+state, builder work, actual turret shots, personnel outcomes and phase changes.
+Absent-company and no-construction controls must not complete their missing work.
+A withdrawal after shore power feeds its real report through campaign settlement
+before constructing a retry. Frames are 1920×1080 / 100%; this is detached headless
+playback, not a recording of a live campaign save.

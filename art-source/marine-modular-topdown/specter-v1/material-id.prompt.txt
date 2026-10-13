@@ -1,0 +1,7 @@
+Built-in ImageGen; 2026-10-13. Source sheet used as edit target. Transparent background requested.
+
+Use case: precise-object-edit. Produce a flat MATERIAL-ID CLASSIFICATION MASK of this exact transparent three-part Specter sprite source sheet. This is machine-readable production masking, not a redesign or illustration.
+Preserve the input pixel canvas size, exact part positions, silhouettes, central body hole, transparent gutters, and every alpha boundary. Do not move, scale, rotate, add or remove any pixel region. There are exactly three separated parts: body left, helmet middle, boot right.
+Classify all PAINTABLE outer armor casing/composite panels as perfectly flat vivid MAGENTA RGB (255,0,255). Include their illuminated and dark portions, edge bevels, and worn edges, so each paintable panel is a continuous filled region.
+Classify all NON-PAINTABLE components as perfectly flat BLACK RGB (0,0,0): rubber joints, bellows, recessed seams, gunmetal hinges, bolts, metallic trim rings, helmet socket ring, vent mesh, boot sole/ankle seal, sensor insets and all cyan emission lights. Use black to preserve small protected panel details too.
+No original gray shading, no gradients, no reflections, no antialias noise inside broad panels, no text, no labels, no extra colors. Outside the original parts and inside the original circular body hole must remain transparent. Exactly preserve original geometry. Only replace surface colors with this black and magenta material classification.

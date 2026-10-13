@@ -23,15 +23,23 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (outcome != null && outcome.coldStart != null) return "COLD START / CASTLE & VALE";
         if (outcome != null && outcome.salvageRights != null) return "RECOVERY AGREEMENT / CASTLE & VALE";
         if (firstContract(outcome)) return "FIRST CONTRACT / CASTLE & MARA";
         return coldAccount(outcome) || blindWatch(outcome) ? "AFTER ACTION / CASTLE & MARA" : "RECOVERY AGREEMENT / TRANSCRIPT";
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
+                recoveryLine("first-gun", true, "That is a position we do not have to fill with another squad. Keep the crew covered. Let the machine do its job."),
+                recoveryLine("repair-complete", false, "Drone bay answers. Pumps hold pressure. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow stays in the cradle until we clear her departure corridor."),
+                recoveryLine("repair-cost", true, outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
+                        ? "Put the people we lost on the roll before we count the machinery."
+                        : "The work is signed off. We still have a ship to bring home."),
+                recoveryLine("departure-pending", false, "Working Passage is not yet available. Replenish your company; the recovery claim and completed repairs remain protected."));
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
                 recoveryLine("registry", true, "Put Morrow's registry in the agreement. We bring your crews back to work; when this ship flies, it flies with us."),
-                recoveryLine("terms", false, "Hull and drone workshop, after the repair and departure contracts. The fixed yard stays with the cooperative. Today's payment is released; the claim is protected."),
+                recoveryLine("terms", false, "Hull and drone workshop, after the repair and departure contracts. The fixed yard stays with the cooperative. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"Today's payment is released; the claim is protected.")),
                 recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
                         ? "We lost people getting that inspection done. Put their names beside ours before anyone starts dividing the machinery."
                         : "Your inspection team is back. Let's keep doing it that way. What gets her power back?"),

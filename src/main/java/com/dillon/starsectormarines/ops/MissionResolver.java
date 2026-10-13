@@ -367,6 +367,7 @@ public final class MissionResolver {
         int specialtyRecovery = OfficerMissionResult.salvageBonus(officers, victory, marinesEngaged);
 
         return MissionOutcome.builder()
+                .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())

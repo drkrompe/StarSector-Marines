@@ -1,0 +1,56 @@
+{
+  "canvas": [
+    1920,
+    1080
+  ],
+  "facing": "north",
+  "north_axis": "negativeY",
+  "parts": {
+    "body": {
+      "region": [
+        80,
+        250,
+        820,
+        850
+      ],
+      "target_width": 150
+    },
+    "head": {
+      "region": [
+        900,
+        300,
+        1280,
+        740
+      ],
+      "target_width": 72
+    },
+    "foot": {
+      "region": [
+        1400,
+        300,
+        1740,
+        760
+      ],
+      "target_size": [
+        38,
+        52
+      ]
+    }
+  },
+  "body_socket_center": [
+    450,
+    465
+  ],
+  "body_socket_bounds": [
+    336,
+    355,
+    564,
+    575
+  ],
+  "body_opaque_bounds": [
+    150,
+    310,
+    751,
+    741
+  ]
+}
