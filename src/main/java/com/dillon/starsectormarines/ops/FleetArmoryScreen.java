@@ -56,6 +56,7 @@ public final class FleetArmoryScreen implements Screen {
     private final ArmoryPreviewAssets previewAssets = new ArmoryPreviewAssets();
 
     private MarineOpsContext context;
+    private Runnable dismissDialog;
     private MarineRoster roster;
     private FleetArmoryViewModel viewModel;
     private FirstRefitModel firstRefit;
@@ -83,6 +84,7 @@ public final class FleetArmoryScreen implements Screen {
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
+        this.dismissDialog = dismissDialog;
         viewport = MarineOpsUiViewport.from(position);
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
@@ -195,7 +197,8 @@ public final class FleetArmoryScreen implements Screen {
         if (prepared != null) prepared.commit();
         document = built;
         if (view == View.FIRST_REFIT) CompanyNotices.Notice.FIRST_REFIT.review(roster);
-        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.armory(roster, context), this::cancelGallery);
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
+                CompanyPreparationGuide.armory(roster, context), () -> leaveGallery(dismissDialog)), this::cancelGallery);
         markupInstance = candidate;
         specSheets = candidateSheets;
         boundSquadCards = view == View.SQUADS ? viewModel.squadCards().get() : null;
