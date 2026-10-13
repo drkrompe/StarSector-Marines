@@ -68,6 +68,10 @@ import java.util.Set;
  *                      which blends this with other tiers into one number.
  * @param planetaryShield the world holds a plasma envelope against bombardment
  *                      (vanilla Planetary Shield).
+ * @param declaredDefences what the MISSION declared the battle carries. Distinct from the three market
+ *                      signals above, which are inputs a mission may read: map generation and battle
+ *                      setup place only this, and never derive it from the signals or the map's size.
+ *                      {@link GroundDefences#NONE} for a mission that said nothing.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -78,7 +82,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             float stationedStrength,
                             boolean groundDefences,
                             boolean heavyBatteries,
-                            boolean planetaryShield) {
+                            boolean planetaryShield,
+                            GroundDefences declaredDefences) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -95,17 +100,37 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
     public static final TargetProfile NEUTRAL =
             new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
                     SurfacePalette.ROCK, SettlementLink.ROAD, 0f, 0f,
-                    false, false, false);
+                    false, false, false, GroundDefences.NONE);
 
     public TargetProfile {
         if (factionId == null) factionId = "";
         if (surface == null) surface = SurfacePalette.ROCK;
         if (link == null) link = SettlementLink.ROAD;
+        if (declaredDefences == null) declaredDefences = GroundDefences.NONE;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
         groundDefence = nonNegative(groundDefence);
         stationedStrength = nonNegative(stationedStrength);
+    }
+
+    /**
+     * The profile with the three market signals and no mission declaration: what a market read produces before a
+     * mission has said what its battle carries.
+     */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength,
+                         boolean groundDefences,
+                         boolean heavyBatteries,
+                         boolean planetaryShield) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, GroundDefences.NONE);
     }
 
     /**
@@ -167,7 +192,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences);
     }
 
     /**
@@ -181,6 +206,17 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences);
+    }
+
+    /**
+     * This profile with the mission's declaration of its defences, every market read left as it was. Called once, at
+     * the mission boundary (MissionDefencePolicy), and read by the stages that place what it names.
+     */
+    public TargetProfile withDeclaredDefences(GroundDefences declared) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declared);
     }
 }

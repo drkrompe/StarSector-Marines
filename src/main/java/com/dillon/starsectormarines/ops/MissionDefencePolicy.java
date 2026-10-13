@@ -1,0 +1,50 @@
+package com.dillon.starsectormarines.ops;
+
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+
+/**
+ * Decides which ground defences a mission's battle carries. This is the one place the decision is made: map
+ * generation and battle setup place whatever {@link GroundDefences} comes out of here and nothing else, so a
+ * designer who wants more, fewer or different defences changes this class (or a mission's explicit statement), not a
+ * generator stage.
+ *
+ * <p>Precedence: a mission's explicit {@link Mission#defences} statement (today the DEBUG ground-defences dial) wins;
+ * otherwise the mission type's policy applies; a type with no policy carries none.
+ */
+public final class MissionDefencePolicy {
+
+    private MissionDefencePolicy() {}
+
+    /**
+     * Fortress batteries a Conquest declares when its target market holds Heavy Batteries.
+     * UNTUNED first-pass mission-design choice: it equals what the old area rule gave the canonical 560x336 Conquest
+     * map, so the numbers can be changed freely once play settles how often and how heavy.
+     */
+    static final int CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM = 4;
+
+    /** Whether a Conquest declares a shield generator when its target market holds a Planetary Shield. UNTUNED. */
+    static final boolean CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE = true;
+
+    /**
+     * The defences this mission declares.
+     *
+     * @param market the target world's profile as the market gave it; its signals are an input, not the answer
+     */
+    public static GroundDefences declare(Mission mission, TargetProfile market) {
+        if (mission.defences != null) return mission.defences.declaration();
+        if (mission.type == MissionType.CONQUEST) return conquest(market);
+        return GroundDefences.NONE;
+    }
+
+    /**
+     * UNTUNED first-pass mission-design choice: a Conquest reads its market's Heavy Batteries and Planetary Shield
+     * signals and declares them at the fixed amounts above. Change here to make Conquest always, never or sometimes
+     * carry them.
+     */
+    static GroundDefences conquest(TargetProfile market) {
+        return new GroundDefences(
+                market.heavyBatteries() ? CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM : 0,
+                market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE);
+    }
+}

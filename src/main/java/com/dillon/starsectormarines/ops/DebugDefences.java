@@ -1,31 +1,28 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 
 /**
- * The DEBUG board's statement of which ground defences the target world holds,
- * overriding what its market's industries said. A mission that states none
- * ({@code null}) keeps the market's own answer.
+ * The DEBUG board's statement of which ground defences the battle carries,
+ * overriding the mission type's own policy. A mission that states none
+ * ({@code null}) keeps that policy. Each value is a {@link GroundDefences}
+ * declaration.
  */
 public enum DebugDefences {
-    NONE(false, false, false),
-    GROUND(true, false, false),
-    BATTERIES(true, true, false),
-    SHIELD(false, false, true),
-    FORTRESS(true, true, true);
+    NONE(0, false),
+    BATTERIES(2, false),
+    SHIELD(0, true),
+    FORTRESS(2, true);
 
-    private final boolean groundDefences;
-    private final boolean heavyBatteries;
-    private final boolean planetaryShield;
+    private final GroundDefences declaration;
 
-    DebugDefences(boolean groundDefences, boolean heavyBatteries, boolean planetaryShield) {
-        this.groundDefences = groundDefences;
-        this.heavyBatteries = heavyBatteries;
-        this.planetaryShield = planetaryShield;
+    DebugDefences(int batteries, boolean shieldGenerator) {
+        this.declaration = new GroundDefences(batteries, shieldGenerator);
     }
 
-    /** The profile with its three defence signals replaced by this statement. */
-    public TargetProfile applyTo(TargetProfile profile) {
-        return profile.withDefences(groundDefences, heavyBatteries, planetaryShield);
+    /** The declaration this statement makes. */
+    public GroundDefences declaration() {
+        return declaration;
     }
 }
+
