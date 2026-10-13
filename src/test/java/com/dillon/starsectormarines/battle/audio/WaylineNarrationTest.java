@@ -24,6 +24,23 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
+    @Test void coldStartRetriesShareTheirOwnTextOnlyConstructionGuidance() throws Exception {
+        String chapter = "story_shepherd_cold_start";
+        assertEquals(chapter, WaylineNarration.storyMissionId(Mission.builder()
+                .id("basin_cold_start_v1_2").source(MissionSource.STORY).build()));
+        assertEquals(chapter, WaylineNarration.storyMissionId(
+                DebugMissionCatalog.Scenario.COLD_START.mission()));
+        var catalog = catalog();
+        assertFalse(catalog.find(chapter, "briefing").voiced());
+        for (String event : List.of("convoy_arrived", "workshop", "pump_started", "power_restored",
+                "turret_ready", "complete", "crew_lost", "carrier_lost", "approach")) {
+            var line = catalog.find(chapter, "cold_start." + event);
+            assertNotNull(line);
+            assertFalse(line.voiced());
+        }
+        assertTrue(catalog.find(chapter, "cold_start.power_restored").text().contains("Build Vulcan Turret"));
+    }
+
     @Test
     void everyVoicedLineHasARecordedTakeAndSoundRegistration() throws Exception {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));

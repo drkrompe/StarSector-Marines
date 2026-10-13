@@ -87,7 +87,7 @@ public final class TenderSystem {
     /** Puts a tender over the battle: its hull is flown by the warship system, its drones launch from the next tick. */
     public void add(BattleSimulation sim, Tender tender) {
         track(tender);
-        sim.addWarship(tender.ship());
+        if (!tender.grounded()) sim.addWarship(tender.ship());
     }
 
     /**
@@ -137,7 +137,7 @@ public final class TenderSystem {
     private void collapse(Tender t, BattleSimulation sim) {
         for (ConstructionOrder o : t.orders()) t.retire(o, "the tender was lost");
         t.sweep();
-        boolean wreck = t.ship().destroyed();
+        boolean wreck = t.grounded() || t.ship().destroyed();
         for (Long id : new ArrayList<>(t.defenders)) release(t, id, wreck, sim);
         for (Long id : new ArrayList<>(t.builders)) release(t, id, wreck, sim);
     }
@@ -206,6 +206,8 @@ public final class TenderSystem {
     private long launch(Tender t, BattleSimulation sim, boolean armed, int squadId) {
         float bx = t.bayX();
         float by = t.bayY();
+        if (t.grounded() && (!sim.getGrid().inBounds((int) bx, (int) by)
+                || !sim.getGrid().isWalkable((int) bx, (int) by))) return 0L;
         int[] cell = openCell(sim.getGrid(), bx, by);
         String name = (armed ? "tender-defence-" : "tender-builder-") + nextDrone++;
         EntitySpec spec = Drone.create(name, t.faction(), cell[0], cell[1], 0L, DroneLook.TENDER);
@@ -255,6 +257,10 @@ public final class TenderSystem {
         switch (o.phase()) {
             case QUEUED -> {
                 o.begin();
+                if (t.grounded()) {
+                    o.standoff(t.bayX(), t.bayY());
+                    return;
+                }
                 if (t.piloted()) {
                     o.standoff(t.ship().x, t.ship().y);
                     return;
@@ -270,7 +276,7 @@ public final class TenderSystem {
             }
             case TRANSIT -> {
                 Warship ship = t.ship();
-                boolean there = t.piloted()
+                boolean there = t.grounded() ? t.groundSiteReachable(o.siteX(), o.siteY(), grid) : t.piloted()
                         ? Math.hypot(ship.x - o.siteX(), ship.y - o.siteY()) <= PILOT_REACH_CELLS
                         : Math.hypot(ship.x - o.standoffX(), ship.y - o.standoffY()) <= ARRIVE_CELLS
                                 && ship.speed() <= ARRIVE_SPEED;
@@ -382,7 +388,7 @@ public final class TenderSystem {
             ys[i] = world.y(mateIds[i]);
         }
         float towardTender = o == null ? 0f
-                : AirBody.facingToward(t.ship().x - o.siteX(), t.ship().y - o.siteY());
+                : AirBody.facingToward(t.bayX() - o.siteX(), t.bayY() - o.siteY());
         int released = 0;
         for (int i = 0; i < n; i++) {
             long id = ids.get(i);

@@ -38,6 +38,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 public final class VehicleMission {
     /** Mission-owned travel for an allied deployed column; never a player move order. */
     public float[] authoredRouteX, authoredRouteY;
+    /** Escort driver holds the existing route while braking through ordinary chassis physics. */
+    public boolean authoredRoutePaused;
     public VehicleLeg authoredLeg = VehicleLeg.MOVE_ORDER;
 
 
