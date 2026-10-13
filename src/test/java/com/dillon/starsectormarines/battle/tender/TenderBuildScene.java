@@ -53,6 +53,11 @@ public final class TenderBuildScene implements BehaviorScene {
     /** Ticks after the last builder arrives before stations are expected to be clean of the arrival traffic. */
     private static final int SETTLE_TICKS = 90;
     private static final String CARBINE = "weapon.smg";
+    /** Thirty-two cells of reach: outranges the hull's and the builders' twenty cells of sight. */
+    private static final String MARKSMAN_RIFLE = "weapon.dmr";
+    /** Twenty-seven cells north of the site: beyond the tender's sight, inside the rifle's reach of the builders. */
+    private static final int MARKSMAN_X = 60;
+    private static final int MARKSMAN_Y = 67;
 
     @Override public String id() {
         return "tender-build";
@@ -60,7 +65,8 @@ public final class TenderBuildScene implements BehaviorScene {
 
     @Override public String label() {
         return "Drone tender: it flies to a site, its borer drones build a turret there, its defence drones screen the work "
-                + "against a raid, and with the screen recalled the same raid is not stopped";
+                + "against a raid, and with the screen recalled the same raid is not stopped; an unseen marksman is found only "
+                + "by the hits on the builders, where the all-seeing control stood the site down before any shot";
     }
 
     @Override
@@ -68,7 +74,7 @@ public final class TenderBuildScene implements BehaviorScene {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("build", "raid", "undefended", "overrun")) {
+        for (String loop : List.of("build", "raid", "undefended", "overrun", "ambush", "ambush-omniscient-control")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
         return reports;
@@ -80,9 +86,28 @@ public final class TenderBuildScene implements BehaviorScene {
         return loop.equals("overrun") ? ASSAULT : PATROL;
     }
 
+    private static boolean ambush(String loop) {
+        return loop.startsWith("ambush");
+    }
+
     private Run playOne(String loop, FrameSink frames) throws Exception {
+        String previous = System.getProperty(TenderThreat.PROPERTY);
+        if (loop.equals("ambush-omniscient-control")) System.setProperty(TenderThreat.PROPERTY, "false");
+        try {
+            return playWorld(loop, frames);
+        } finally {
+            if (previous == null) System.clearProperty(TenderThreat.PROPERTY);
+            else System.setProperty(TenderThreat.PROPERTY, previous);
+        }
+    }
+
+    private Run playWorld(String loop, FrameSink frames) throws Exception {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
-        if (!loop.equals("build")) {
+        if (ambush(loop)) {
+            // One rifleman who holds his ground: nobody sees him until he fires.
+            builder.squad("raid").faction(Faction.DEFENDER).size(1).at(MARKSMAN_X, MARKSMAN_Y).primary(MARKSMAN_RIFLE)
+                    .stationary().done();
+        } else if (!loop.equals("build")) {
             builder.squad("raid").faction(Faction.DEFENDER).size(raiders(loop)).at(RAID_X, 38).primary(CARBINE)
                     .assigned(id -> ObjectiveAssignment.attackMove(id, (int) SITE_X, (int) SITE_Y)).done();
         }
@@ -93,7 +118,9 @@ public final class TenderBuildScene implements BehaviorScene {
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261012L);
         Tender tender = Tender.fit(Faction.MARINE, START_X, START_Y, -90f);
-        if (loop.equals("undefended")) tender.defenceOut(false);
+        // The ambush loops recall the screen: left out it would fly to the shooter and kill him, and the
+        // question is what the builders alone do about a marksman they cannot see.
+        if (loop.equals("undefended") || ambush(loop)) tender.defenceOut(false);
         sim.tenders().add(sim, tender);
         ConstructionOrder order = tender.lay(BuildOption.VULCAN_TURRET, SITE_X, SITE_Y, sim.getGrid());
         if (order == null) throw new IllegalStateException("the scene's site was refused");
@@ -177,6 +204,47 @@ public final class TenderBuildScene implements BehaviorScene {
                         t.order.phase() == ConstructionOrder.Phase.CANCELLED && tender.orders().isEmpty(),
                         "order " + t.order.phase() + ", " + tender.orders().size() + " still on the line"));
             }
+            case "ambush" -> {
+                int blockTicks = Math.round(TenderThreat.BLOCK_SECONDS / BattleSimulation.TICK_DT);
+                verdicts.add(Verdict.of("builders-are-shot-by-someone-unseen", t.firstHit >= 0 && t.firstRaiderSeen < 0,
+                        "first builder hit at tick " + t.firstHit + ", " + t.builderDamage + " HP of builder damage, marksman "
+                                + "ever within sight of the tender: " + (t.firstRaiderSeen >= 0)));
+                verdicts.add(Verdict.of("not-stood-down-before-the-first-hit",
+                        t.firstHit >= 0 && t.workTicksBeforeHit > 0 && (t.firstContested < 0 || t.firstContested >= t.firstHit),
+                        t.workTicksBeforeHit + " ticks worked before the hit at tick " + t.firstHit
+                                + ", first contested tick " + t.firstContested));
+                verdicts.add(Verdict.of("a-hit-puts-the-site-under-fire",
+                        t.firstUnderFire >= 0 && t.firstUnderFire >= t.firstHit,
+                        "first underFire tick " + t.firstUnderFire + " after the hit at " + t.firstHit));
+                verdicts.add(Verdict.of("builders-go-home-after-the-hit",
+                        t.homeAfterHit >= 0 && t.homeAfterHit - t.firstHit <= 300,
+                        "no builder out at tick " + t.homeAfterHit + ", " + (t.homeAfterHit - t.firstHit) + " ticks after the hit"));
+                // Either the crew survives and the work resumes only after the block, or the volley
+                // that hit them killed them all and the order ends for want of builders. Both are
+                // honest outcomes of an unseen shooter; the detail says which one this world gave.
+                boolean resumed = t.firstResume >= 0 && t.resumeGap >= blockTicks;
+                boolean crewLost = t.firstResume < 0 && tender.buildersLost() == tender.builderComplement()
+                        && t.order.phase() == ConstructionOrder.Phase.FAILED;
+                verdicts.add(Verdict.of("work-resumes-after-the-block-or-the-crew-is-gone", resumed || crewLost,
+                        resumed ? "first progress after the hit at tick " + t.firstResume + ", " + t.resumeGap
+                                + " ticks after the most recent hit (block is " + blockTicks + ")"
+                                : "no progress after the hit: " + tender.buildersLost() + " of " + tender.builderComplement()
+                                + " builders lost (lost at ticks " + t.lossTicks + ", builders flew out again at tick " + t.relaunch + "), order " + t.order.phase() + " \""
+                                + t.order.failure() + "\" at " + Math.round(t.order.fraction() * 100f) + "%"));
+                verdicts.add(Verdict.of("no-work-while-under-fire", t.workedWhileUnderFire == 0,
+                        t.underFireTicks + " under-fire ticks, " + t.workedWhileUnderFire + " of them advanced the build"));
+            }
+            case "ambush-omniscient-control" -> {
+                verdicts.add(Verdict.of("stood-down-before-any-builder-is-hit",
+                        t.firstContested >= 0 && (t.firstHit < 0 || t.firstContested < t.firstHit) && t.builderDamage == 0f,
+                        "first contested tick " + t.firstContested + " with the marksman unseen, first hit tick " + t.firstHit
+                                + ", " + t.builderDamage + " HP of builder damage"));
+                verdicts.add(Verdict.of("never-under-fire-because-never-hit", t.underFireTicks == 0 && tender.buildersLost() == 0,
+                        t.underFireTicks + " under-fire ticks, " + tender.buildersLost() + " builders lost"));
+                verdicts.add(Verdict.of("the-job-stalls", t.completeTick < 0 && t.contestedTicks > 0,
+                        "build " + (t.completeTick >= 0 ? "finished at tick " + t.completeTick : "unfinished")
+                                + ", " + t.contestedTicks + " contested ticks"));
+            }
             default -> {
                 verdicts.add(Verdict.of("no-screen-is-out", tender.defendersOut() == 0 && t.defenceEverOut == 0,
                         tender.defendersOut() + " defence drones out"));
@@ -201,6 +269,11 @@ public final class TenderBuildScene implements BehaviorScene {
         metrics.put("dronesLost", tender.dronesLost());
         metrics.put("raidersAlive", t.raidersAlive());
         metrics.put("firstRaiderHurtTick", t.firstRaiderHurt);
+        metrics.put("firstBuilderHitTick", t.firstHit);
+        metrics.put("builderDamage", t.builderDamage);
+        metrics.put("buildersLost", tender.buildersLost());
+        metrics.put("underFireTicks", t.underFireTicks);
+        metrics.put("finalFraction", t.order.fraction());
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
@@ -217,6 +290,22 @@ public final class TenderBuildScene implements BehaviorScene {
         int peakOnSite;
         int defenceEverOut;
         int firstRaiderHurt = -1;
+        int firstHit = -1;
+        final List<Integer> lossTicks = new ArrayList<>();
+        int relaunch = -1;
+        int lastHit = -1;
+        float builderDamage;
+        int workTicksBeforeHit;
+        int firstContested = -1;
+        int firstUnderFire = -1;
+        int underFireTicks;
+        int workedWhileUnderFire;
+        int homeAfterHit = -1;
+        int firstResume = -1;
+        int resumeGap = -1;
+        int firstRaiderSeen = -1;
+        private final Map<Long, Float> hp = new LinkedHashMap<>();
+        private int lostSeen;
         final Map<Long, Integer> launchTicks = new LinkedHashMap<>();
         final Map<Long, Integer> arrivalTicks = new LinkedHashMap<>();
         final Map<Long, Integer> dockTicks = new LinkedHashMap<>();
@@ -240,6 +329,17 @@ public final class TenderBuildScene implements BehaviorScene {
             if (phase == ConstructionOrder.Phase.WORKING) {
                 if (workStart < 0) workStart = tick;
                 workTicks++;
+                if (firstHit < 0) workTicksBeforeHit++;
+                if (order.contested() && firstContested < 0) firstContested = tick;
+                if (order.underFire()) {
+                    underFireTicks++;
+                    if (firstUnderFire < 0) firstUnderFire = tick;
+                    if (order.fraction() > lastFraction + 1e-6f) workedWhileUnderFire++;
+                } else if (firstHit >= 0 && firstResume < 0 && !order.contested()
+                        && order.fraction() > lastFraction + 1e-6f) {
+                    firstResume = tick;
+                    resumeGap = tick - lastHit;
+                }
                 if (order.contested()) {
                     contestedTicks++;
                     lastContested = tick;
@@ -248,6 +348,28 @@ public final class TenderBuildScene implements BehaviorScene {
                 lastFraction = order.fraction();
             }
             if (phase == ConstructionOrder.Phase.COMPLETE && completeTick < 0) completeTick = tick;
+            boolean hit = false;
+            for (Long id : tender.builders) {
+                float now = sim.world().hp(id);
+                Float before = hp.put(id, now);
+                if (before != null && now < before) {
+                    builderDamage += before - now;
+                    hit = true;
+                }
+            }
+            if (tender.buildersLost() > lostSeen) {
+                int lostBefore = lostSeen;
+                lostSeen = tender.buildersLost();
+                for (int k = lostBefore; k < lostSeen; k++) lossTicks.add(tick);
+                hit = true;
+            }
+            if (hit) {
+                if (firstHit < 0) firstHit = tick;
+                lastHit = tick;
+            }
+            if (firstHit >= 0 && homeAfterHit < 0 && tick > firstHit && tender.buildersOut() == 0) homeAfterHit = tick;
+            if (homeAfterHit >= 0 && relaunch < 0 && tick > homeAfterHit && tender.buildersOut() > 0) relaunch = tick;
+            if (firstRaiderSeen < 0 && hasRaid() && withinSight(sim)) firstRaiderSeen = tick;
             peakBuildersOut = Math.max(peakBuildersOut, tender.buildersOut());
             defenceEverOut = Math.max(defenceEverOut, tender.defendersOut());
             int onSite = 0;
@@ -280,6 +402,23 @@ public final class TenderBuildScene implements BehaviorScene {
         }
 
         private BattleSimulation sim;
+
+        /** Whether a raider is inside the tender's own sight: the hull, or any drone it has out. */
+        private boolean withinSight(BattleSimulation sim) {
+            float sight = TenderThreat.OVERHEAD_SIGHT_CELLS;
+            for (long u : world.members("raid")) {
+                if (!sim.getRoster().isAliveById(u)) continue;
+                float x = sim.world().x(u);
+                float y = sim.world().y(u);
+                if (Math.hypot(x - tender.ship().x, y - tender.ship().y) <= sight) return true;
+                List<Long> eyes = new ArrayList<>(tender.builders);
+                eyes.addAll(tender.defenders);
+                for (Long id : eyes) {
+                    if (Math.hypot(x - sim.world().x(id), y - sim.world().y(id)) <= sight) return true;
+                }
+            }
+            return false;
+        }
 
         private void trackSorties(BattleSimulation sim, int tick) {
             List<Long> now = new ArrayList<>(tender.builders);

@@ -37,9 +37,10 @@ import java.util.List;
  * turrets a free tender raises: it is the ground, not a count.
  *
  * <p>The decision ({@link #plan}) is a pure function of a frozen {@link Picture}, so it is tested
- * without a battle; {@link Picture#read} is the only part that looks at the simulation. Like the
- * build's own stand-down check, it reads hostile positions directly rather than through the side's
- * knowledge.
+ * without a battle; {@link Picture#read} is the only part that looks at the simulation. Hostiles
+ * are what the tender's side knows ({@link TenderThreat}), the same picture the build's own
+ * stand-down reads, so it never lays a site its builders would at once abandon and never avoids
+ * an enemy nobody has seen.
  */
 public final class TenderDirector {
 
@@ -71,7 +72,7 @@ public final class TenderDirector {
      * @param stance     the hull's stance
      * @param focus      the stance's objective ground ({@link ObjectiveBias#focus})
      * @param friendlies the side's ground people and vehicles
-     * @param hostiles   every hostile body on the field
+     * @param hostiles   the hostiles its side knows of ({@link TenderThreat#known})
      * @param turrets    the side's standing turrets
      * @param sites      the tender's own live sites
      */
@@ -85,7 +86,6 @@ public final class TenderDirector {
             World world = sim.world();
             long[] dense = roster.denseArray();
             Points friendlies = new Points();
-            Points hostiles = new Points();
             Points turrets = new Points();
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
@@ -93,10 +93,6 @@ public final class TenderDirector {
                 if (f == null) continue;
                 float x = world.x(u);
                 float y = world.y(u);
-                if (side.hostileTo(f)) {
-                    hostiles.add(x, y);
-                    continue;
-                }
                 if (!side.friendlyTo(f)) continue;
                 UnitType type = roster.identity().type(u);
                 if (type == UnitType.TURRET) turrets.add(x, y);
@@ -109,7 +105,7 @@ public final class TenderDirector {
                 if (!o.phase().terminal()) sites.add(o.siteX(), o.siteY());
             }
             return new Picture(tender.ship().stance(), ObjectiveBias.focus(sim, tender.ship()),
-                    friendlies.array(), hostiles.array(), turrets.array(), sites.array());
+                    friendlies.array(), TenderThreat.known(sim, tender), turrets.array(), sites.array());
         }
     }
 

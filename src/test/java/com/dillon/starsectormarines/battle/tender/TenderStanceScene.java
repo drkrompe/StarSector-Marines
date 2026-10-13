@@ -29,8 +29,9 @@ import java.util.Map;
  * ground and a tender that is never directed, so nothing is laid. {@code attack} gives the tender
  * ATTACK: with a squad advancing on a picket it lays quick turrets on cleared ground behind the
  * lead and never inside the threat radius of the enemy. {@code defend} gives it DEFEND over a held
- * point with an enemy still far off: it raises a heavy turret on the side the enemy will come
- * from, before the enemy gets there.
+ * point with an enemy still far off and unseen: knowing nothing, it raises a heavy turret on the
+ * held ground before the enemy gets there, and once the enemy is seen coming its next one goes
+ * out on their approach.
  */
 public final class TenderStanceScene implements BehaviorScene {
 
@@ -48,7 +49,7 @@ public final class TenderStanceScene implements BehaviorScene {
 
     @Override public String label() {
         return "Drone tender on a stance: held to HOLD it builds nothing, on ATTACK it raises turrets behind the advance "
-                + "on cleared ground, on DEFEND it raises a heavy turret on the enemy's approach before they arrive";
+                + "on cleared ground, on DEFEND it raises heavy turrets on the held ground and, once the enemy is seen, on their approach";
     }
 
     @Override
@@ -128,10 +129,18 @@ public final class TenderStanceScene implements BehaviorScene {
             default -> {
                 verdicts.add(Verdict.of("a-heavy-turret-is-built", tender.built() >= 1 && t.allMortar && !t.laid.isEmpty(),
                         tender.built() + " built, options laid: " + t.optionNames));
-                float approach = t.firstSiteX - HELD_X;
-                verdicts.add(Verdict.of("it-stands-on-the-enemys-approach-side", !t.laid.isEmpty() && approach > 2f,
-                        String.format(Locale.ROOT, "first site %.1f cells %s of the held point (enemy comes from the east)",
-                                Math.abs(approach), approach > 0 ? "east" : "west")));
+                // The tender knows only what its side has seen: with no enemy known it builds on the
+                // held ground, and once the enemy is seen coming its next site goes out on their approach.
+                float first = t.firstSiteX - HELD_X;
+                verdicts.add(Verdict.of("with-nothing-known-it-builds-on-the-held-ground",
+                        !t.laid.isEmpty() && Math.abs(first) <= 2f,
+                        String.format(Locale.ROOT, "first site %.1f cells %s of the held point, laid at tick %d",
+                                Math.abs(first), first >= 0 ? "east" : "west", t.firstLay)));
+                float approach = t.maxSiteX - HELD_X;
+                verdicts.add(Verdict.of("once-the-enemy-is-known-it-builds-on-their-approach",
+                        t.laid.size() >= 2 && approach > 2f,
+                        String.format(Locale.ROOT, "sites laid at x %s; the furthest %.1f cells east of the held point "
+                                + "(enemy comes from the east)", t.siteXs, approach)));
                 verdicts.add(Verdict.of("it-stands-before-the-enemy-arrives",
                         t.firstComplete >= 0 && t.enemyDistAtComplete > 20f
                                 && (t.enemyArrival < 0 || t.firstComplete < t.enemyArrival),
@@ -159,6 +168,7 @@ public final class TenderStanceScene implements BehaviorScene {
         private final Tender tender;
         final Map<ConstructionOrder, Integer> laid = new IdentityHashMap<>();
         final List<String> optionNames = new ArrayList<>();
+        final List<Float> siteXs = new ArrayList<>();
         int firstLay = -1;
         int firstComplete = -1;
         int enemyArrival = -1;
@@ -191,6 +201,7 @@ public final class TenderStanceScene implements BehaviorScene {
                     firstSiteX = o.siteX();
                 }
                 optionNames.add(o.option().id());
+                siteXs.add(o.siteX());
                 allVulcan &= o.option() == BuildOption.VULCAN_TURRET;
                 allMortar &= o.option() == BuildOption.MORTAR_TURRET;
                 maxSiteX = Math.max(maxSiteX, o.siteX());

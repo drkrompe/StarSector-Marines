@@ -10,6 +10,7 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,6 +73,11 @@ public final class Tender implements DroneAnchor {
     float launchClock;
     float builderClock;
     float directorClock;
+    /** Builder hit points last tick, to tell when one is shot. */
+    final Map<Long, Float> builderHp = new HashMap<>();
+    /** Seconds the current site stays blocked after a builder was hit. */
+    float blockedSeconds;
+    private int buildersLostSeen;
     final TenderFlight flight = new TenderFlight();
     private boolean helmed;
     private boolean defenceOutBeforeHelm = true;
@@ -254,6 +260,21 @@ public final class Tender implements DroneAnchor {
         return builderLost + defenceLost;
     }
 
+    /**
+     * Whether a builder was hit (or shot down) within {@link TenderThreat#BLOCK_SECONDS}: the site
+     * is blocked and its builders are home.
+     */
+    public boolean underFire() {
+        return blockedSeconds > 0f;
+    }
+
+    /** Whether a builder has been shot down since the last call. */
+    boolean builderLostSinceLastLook() {
+        boolean lost = builderLost > buildersLostSeen;
+        buildersLostSeen = builderLost;
+        return lost;
+    }
+
     /** Builders shot down. */
     public int buildersLost() {
         return builderLost;
@@ -414,7 +435,7 @@ public final class Tender implements DroneAnchor {
     public String statusLine() {
         ConstructionOrder o = current();
         String work = o == null ? "idle" : String.format(Locale.ROOT, "%s %s %d%%%s",
-                o.option().label(), o.phase(), Math.round(o.fraction() * 100f), o.contested() ? " CONTESTED" : "");
+                o.option().label(), o.phase(), Math.round(o.fraction() * 100f), o.underFire() ? " UNDER FIRE" : o.contested() ? " CONTESTED" : "");
         return String.format(Locale.ROOT,
                 "TENDER %s  %s  hull %d%%  shield %s  %s  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
                 ship.faction == Faction.MARINE ? "[friendly]" : "[hostile]", ship.stance(),

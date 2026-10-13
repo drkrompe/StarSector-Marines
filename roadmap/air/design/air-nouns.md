@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — an unpiloted tender builds from its hull's mission stance.
+Updated: 2026-10-13 — a tender knows what its side knows; an unpiloted one builds from its hull's mission stance.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1879,9 +1879,12 @@ nothing is spent. The tender keeps an optional cap on build charges that default
 unlimited, so a cost is a number to set rather than a rule to build. The tender holds station a few cells short of it, the builders fly out and
 work a ring around it, and progress is linear in the builders present against a
 full crew, so one builder takes three times as long and none take forever. A
-site is stood down, with the builders sent home into the bay, while hostile units
-are inside a threat radius wider than any rifle's reach, and resumes when the
-ground is clear. A lost drone is gone for the battle.
+site is stood down, with the builders sent home into the bay, while a hostile its
+side knows of is inside a threat radius wider than any rifle's reach, or for a few
+seconds after a builder is hit, and resumes when the ground is clear. **A tender knows
+what its side knows, not where every enemy is:** the contacts its squads remember and
+what the hull and its drones see from the air. An enemy nobody has seen is found by
+being shot at. A lost drone is gone for the battle.
 
 **The wing flies; it does not teleport.** Drones leave through the bay's mouth in a
 staggered line, and recall, a stood-down build and a retreat are flights home to a
@@ -1924,7 +1927,7 @@ A tender may be flown by the player through the direct-control carrier seam (`di
 `MissionStance` a warship's doctrine reads, and the ground it cares about is the same
 objective ground. Under ATTACK it raises the quickest position on the most forward
 cleared ground behind the advance and keeps close to it; under DEFEND it raises the
-heaviest it can pay for on the threatened approach to held ground; under HOLD, the
+heaviest it can pay for on the known approach to held ground; under HOLD, the
 default, it waits to be told. The AI lays the same site a pilot or the debug panel
 would, so building, stand-down and failure are one model whoever chose the site. What
 bounds a free tender is ground already covered by its side's turrets, not a count.
