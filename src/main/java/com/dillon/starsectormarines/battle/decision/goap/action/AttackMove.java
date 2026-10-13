@@ -144,6 +144,16 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         return !squad.hasPlayerOrder(AssignmentKind.ATTACK_MOVE);
     }
 
+    /**
+     * The same squad, the same reason: a player's click is not defeated by the
+     * memory of an enemy nobody has seen for over a second. Fresh contact still
+     * plants it, as does the hard hold.
+     */
+    @Override
+    protected boolean yieldsStaleCommitToOrder(Squad squad) {
+        return squad.hasPlayerOrder(AssignmentKind.ATTACK_MOVE);
+    }
+
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
