@@ -1,8 +1,10 @@
 # Fighting positions
 
-Status: IN PROGRESS — slice 1 (substrate) next
+Status: IN PROGRESS — slice 1 (substrate) built; slice 2 (digging in) next
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — substrate built: `fightingPosition` doodad property and `FightingPositionIndex` behind `BattleView.fightingPositions()`; fort sandbags and trenches are not yet destructible, so only plain sandbag runs dissolve under fire.
 
 ## Intent
 

@@ -31,6 +31,7 @@ DEFAULT_MANIFEST = MOD_ROOT / "data" / "tilesets" / "doodads.tileset.json"
 DEFAULT_SHEET_PATH = "graphics/doodads/doodads.png"
 VALID_COVER = {"none", "light", "med", "heavy"}
 VALID_WALL_SIDES = {"N", "S", "E", "W"}
+VALID_FIGHTING_POSITIONS = {"trench", "parapet"}
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,7 @@ class AssetSpec:
     footprint_y: int
     preferred_wall_side: str | None
     preserve_canvas: bool = False
+    fighting_position: str | None = None
 
 
 @dataclass(frozen=True)
@@ -173,6 +175,14 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                     f"{path.name}: preferredWallSide must be one of "
                     f"{sorted(VALID_WALL_SIDES)}"
                 )
+        fighting_position = item.get("fightingPosition")
+        if fighting_position is not None:
+            fighting_position = str(fighting_position).lower()
+            if fighting_position not in VALID_FIGHTING_POSITIONS:
+                raise ValueError(
+                    f"{path.name}: fightingPosition must be one of "
+                    f"{sorted(VALID_FIGHTING_POSITIONS)}"
+                )
         specs.append(
             AssetSpec(
                 source=path,
@@ -190,6 +200,7 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                 footprint_y=footprint_y,
                 preferred_wall_side=preferred_wall_side,
                 preserve_canvas=preserve_canvas,
+                fighting_position=fighting_position,
             )
         )
 
@@ -328,6 +339,8 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
             doodad["footprintCells"] = [spec.footprint_x, spec.footprint_y]
         if spec.preferred_wall_side is not None:
             doodad["preferredWallSide"] = spec.preferred_wall_side
+        if spec.fighting_position is not None:
+            doodad["fightingPosition"] = spec.fighting_position
         doodads.append(doodad)
         cell: dict[str, Any] = {"col": col, "row": row, "name": spec.name}
         if spec.description:
