@@ -4,6 +4,8 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
+Updated: 2026-10-13 — follow-on route now uses the direct Thunder Run freight sequence.
+
 ## Premise, place and cast
 
 On Asharu, the Basin Reclamation Cooperative pays the company to reopen its
@@ -28,7 +30,7 @@ temporary work documents in its stories folder are folded and deleted on shippin
 ## Entry and chapter sequence
 
 A Cold Account victory and acknowledgement of its aftermath unlock the optional
-offer. The earlier rescue/freight choice and Hound survival do not gate it.
+offer. The freight outcome and Hound survival do not gate it.
 The company can replenish before accepting; the opportunity has no hidden expiry.
 
 | Chapter | Tactical objective | Accepted victory reward | Delivery state |

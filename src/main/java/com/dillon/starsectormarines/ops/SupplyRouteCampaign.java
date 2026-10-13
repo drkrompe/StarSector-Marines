@@ -14,10 +14,8 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import java.util.List;
 import java.util.Set;
 
-/** Campaign boundary for the authored route; projection never commits a choice or an attempt. */
+/** Campaign boundary for the authored route; projection never advances a chapter or starts an attempt. */
 public final class SupplyRouteCampaign {
-    public static final String IONA_PORTRAIT = "graphics/portraits/portrait33.png";
-    private static final String CHOICE = "supply_route_choice_";
     private SupplyRouteCampaign() { }
 
     public static BrokenSupplyRouteProgress current() {
@@ -29,29 +27,11 @@ public final class SupplyRouteCampaign {
         return m != null && m.id != null && m.id.startsWith(BrokenSupplyRouteProgress.PREFIX)
                 && (m.source == MissionSource.STORY || m.source == MissionSource.RECURRING);
     }
-    public static boolean recovery(Mission m) {
-        return m != null && m.id != null && (m.id.equals(CHOICE + BrokenSupplyRouteProgress.LIFT)
-                || m.id.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.LIFT + "_"));
-    }
     public static boolean freight(Mission m) {
-        return m != null && m.id != null && (m.id.equals(CHOICE + BrokenSupplyRouteProgress.RELAY)
-                || m.id.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.THUNDER + "_"));
+        return m != null && m.id != null && m.id.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.THUNDER + "_");
     }
     public static String operationLabel(Mission m) {
-        return m != null && owns(m.id) ? recovery(m) ? "ESCORT / BOARDING" : freight(m) ? "CONVOY / BREAKTHROUGH" : "CAPTURE / HOLD" : m == null ? "OPERATION" : m.type.name();
-    }
-    public static int choice(Mission m) {
-        if (m == null) return 0;
-        if ((CHOICE + BrokenSupplyRouteProgress.LIFT).equals(m.id)) return BrokenSupplyRouteProgress.LIFT;
-        if ((CHOICE + BrokenSupplyRouteProgress.RELAY).equals(m.id)) return BrokenSupplyRouteProgress.RELAY;
-        return 0;
-    }
-    public static String choiceSummary(Mission mission) {
-        return switch (choice(mission)) {
-            case BrokenSupplyRouteProgress.LIFT -> "RILL: Last Lift ends this story branch. Successful rescue opens recurring Crew Recovery. Thunder Run is forgone; the freight route stays closed. Orders are permanent.";
-            case BrokenSupplyRouteProgress.RELAY -> "FREIGHT: Thunder Run is next: escort the freight convoy, then unlock recurring Route Security after a delivery. Last Lift is forgone; Rill loses its escort and its people remain unaccounted for. Orders are permanent.";
-            default -> "";
-        };
+        return m != null && owns(m.id) ? freight(m) ? "CONVOY / BREAKTHROUGH" : "CAPTURE / HOLD" : m == null ? "OPERATION" : m.type.name();
     }
     public static OpeningBroker.Destination destination() {
         BrokenSupplyRouteProgress p = current();
@@ -73,7 +53,7 @@ public final class SupplyRouteCampaign {
         OpeningBroker.Destination destination = destination();
         return planet != null && destination != null && planet.getId().equals(destination.planetId());
     }
-    /** Explicitly opening the route dossier freezes the site, before any launch or branch decision. */
+    /** Explicitly opening the route dossier freezes the site, before any launch. */
     static boolean introduce(PlanetAPI planet) {
         if (!atSite(planet)) return false;
         CampaignStateScript script = CampaignStateScript.getInstance();
@@ -97,33 +77,22 @@ public final class SupplyRouteCampaign {
     }
     public static List<Mission> offers(BrokenSupplyRouteProgress p) {
         if (p == null || !p.readable()) return List.of();
-        if (p.choicePending()) return List.of(build(p, BrokenSupplyRouteProgress.LIFT, true), build(p, BrokenSupplyRouteProgress.RELAY, true));
-        return p.available() ? List.of(build(p, p.operation(), false)) : List.of();
+        return p.available() ? List.of(build(p, p.operation())) : List.of();
     }
-    private static Mission build(BrokenSupplyRouteProgress p, int kind, boolean choice) {
-        int supportChoice = kind;
-        if (choice && kind == BrokenSupplyRouteProgress.RELAY) kind = BrokenSupplyRouteProgress.THUNDER;
+    private static Mission build(BrokenSupplyRouteProgress p, int kind) {
         boolean repeat = p.job() > 0;
         String name = kind == BrokenSupplyRouteProgress.JUNCTION ? "Open the Junction"
-                : kind == BrokenSupplyRouteProgress.LIFT ? (repeat ? "Crew Recovery" : "Last Lift")
-                : kind == BrokenSupplyRouteProgress.THUNDER ? "Thunder Run" : repeat ? "Route Security" : "Relay Nine";
+                : kind == BrokenSupplyRouteProgress.THUNDER ? "Thunder Run" : "Route Security";
         String terms = kind == BrokenSupplyRouteProgress.JUNCTION
-                ? "Mara Venn: Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Kestrel, a Mudskipper gunship and crew. Both outlying roads are still cut. Iona Serr, our dispatch coordinator, needs the junction opened. Capture Weigh Station, Freight Yard and Junction Dispatch together. Six militia hold your gains while the company advances. Wayline directs Kestrel over your company's advance and the militia settling in behind it. Cr. 12,000 on success; then choose which recovery mobilization we authorize."
-                : kind == BrokenSupplyRouteProgress.LIFT
-                ? "Iona Serr: Reach the stranded crew, escort them through the crossing and cover them until everyone is aboard. Six militia support you; our pickup has twelve seats reserved for civilians, separate from your insertion boats. Cr. 4,000 + 500 per person recovered across this job, up to 10,000, settled when the rescue is complete. We keep a manifest of everyone recovered or confirmed lost. If you have to pull out, we return for those still stranded."
+                ? "Mara Venn: Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Kestrel, a Mudskipper gunship and crew. Both outlying roads are still cut. Iona Serr, our dispatch coordinator, needs the junction opened. Capture Weigh Station, Freight Yard and Junction Dispatch together. Six militia hold your gains while the company advances. Wayline directs Kestrel over your company's advance and the militia settling in behind it. Cr. 12,000 on success; then escort our freight through the corridor on Thunder Run."
                 : kind == BrokenSupplyRouteProgress.THUNDER
                 ? "Mara Venn: The junction is open. Now we put freight through the corridor. Land at the staging apron, clear the roadside strongpoints at Dispatch Post, East Crossing and Outbound Gate. On our first arrival, an earlier unescorted hauler is already under attack; its local camera feed shows the danger. Our contracted loads wait at staging. Kestrel returns to give your company close air support after Dispatch is secured. We've hired more ground muscle for the final breakthrough: a twin-cannon heavy tank and two reinforced APCs. Clear Dispatch, then defend for 90 seconds; take East Crossing and defend for 120 seconds while small raider groups enter along the cross streets. Select an infantry squad and use DEFEND AREA to cover an approach. Eight militia anchor the gains and assemble two roadside machine guns if their crews reach the posts. Give your squads a new order when the dispatch window ends. Our three loads move in stages, with freight released at 45-second intervals during the final breakthrough. Beyond Outbound Gate, raiders hold a fenced inspection checkpoint with dug-in machine guns and rifle bays. The tank breaks that gun line; the APCs screen the crossing while the freight passes between them. Keep the road open for the convoy; raiders will try to cut off the column. Wayline is paying for the armored crews and vehicles; your company leads the advance. Cr. 6,000 + 4,000 per carrier delivered across the job, up to 18,000, settled when the run is complete. Dispatch tracks every delivery and loss; if we have to pull back, we return for the remaining loads. Get at least one through and we can fund regular Route Security contracts."
-                : "Mara Venn: Capture Power Yard, Freight Gate and Relay Hall, retaining the landing apron. Eight militia hold secured ground while your company pushes forward. A limited raider reserve will try to retake your gains. " + (repeat ? "Cr. 12,000 for this new security job." : "Cr. 16,000 on success; secure the relay and we can send our freight convoy through on Thunder Run. Once a load gets through, we can offer regular Route Security contracts.");
-        if (!repeat && (kind == BrokenSupplyRouteProgress.LIFT || kind == BrokenSupplyRouteProgress.RELAY || kind == BrokenSupplyRouteProgress.THUNDER)) terms += kind == BrokenSupplyRouteProgress.LIFT
-                ? " If we send support to Rill, the freight convoy stands down and the commercial route stays closed. Last Lift is our final operation at Rill. Bring Rill's people home, and Iona can offer recurring Crew Recovery contracts. Thunder Run will not be undertaken."
-                : " If we commit support to the freight convoy, Rill loses its escort. We cannot promise those people a way out. Iona will keep us informed.";
-        if (choice) terms += " We can fund only one mobilization. Review both requests before you commit support; dispatch will wait for your decision. Once issued, those orders stand. Take the time you need. Neither crew will hold your choice against your company.";
-        if (kind == BrokenSupplyRouteProgress.LIFT && p.crew() != null) terms += " Crew ledger: " + p.crew().summary() + ".";
+                : "Mara Venn: Capture Power Yard, Freight Gate and Relay Hall, retaining the landing apron. Eight militia hold secured ground while your company pushes forward. A limited raider reserve will try to retake your gains. Cr. 12,000 for this new security job.";
         if (kind == BrokenSupplyRouteProgress.THUNDER && p.freight() != null) terms += " Freight ledger: " + p.freight().summary() + ".";
-        return Mission.builder().id(choice ? CHOICE + supportChoice : p.missionId()).name(name)
-                .source(repeat ? MissionSource.RECURRING : MissionSource.STORY).type(kind == BrokenSupplyRouteProgress.LIFT ? MissionType.EXTRACTION : MissionType.ASSAULT)
+        return Mission.builder().id(p.missionId()).name(name)
+                .source(repeat ? MissionSource.RECURRING : MissionSource.STORY).type(MissionType.ASSAULT)
                 .tier(OperationTier.FIRST_CONTRACT).risk(RiskLevel.LOW)
-                .payout(kind == BrokenSupplyRouteProgress.THUNDER ? 18000 : kind == BrokenSupplyRouteProgress.JUNCTION ? 12000 : kind == BrokenSupplyRouteProgress.LIFT ? 10000 : repeat ? 12000 : 16000)
+                .payout(kind == BrokenSupplyRouteProgress.THUNDER ? 18000 : 12000)
                 .flavor(terms).requirements("2 squads recommended; at least 2 squads with 4 ready marines each. Up to 4 fitted company boats. Wayline provides heavy lift for your active mech lance; select Mech Support and call it onto clear ground. No fighter cover.")
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).targetPlanetName(p.planetName())
@@ -142,12 +111,10 @@ public final class SupplyRouteCampaign {
     static String recoveryDebrief(MissionOutcome outcome) {
         if (outcome == null || !outcome.victory || outcome.missionSource != MissionSource.STORY
                 || !owns(outcome.missionId)) return "";
-        if (outcome.lastLiftOutcome != null)
-            return " The people you recovered have a way home. The freight route stays suspended; that does not diminish the rescue. Take time to see to your company. Iona's Crew Recovery work will be here when you are ready.";
         if (outcome.freightOutcome != null)
-            return " The delivered loads are real work on Wayline's books again. We can fund regular Route Security. Rill's rescue was not undertaken; I will keep that on the account too. Take time to see to your company before we talk about the next contract.";
+            return " The delivered loads are real work on Wayline's books again. We can fund regular Route Security. Take time to see to your company before we talk about the next contract.";
         if (outcome.missionId.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.JUNCTION + "_"))
-            return " You have opened the junction. We have ground to organize from and a choice about where to send support. I have two requests for you to consider once your company is ready.";
+            return " You have opened the junction. We have ground to organize from. Thunder Run will put our freight through the corridor once your company is ready.";
         return "";
     }
 

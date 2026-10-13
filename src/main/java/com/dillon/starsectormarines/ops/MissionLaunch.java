@@ -24,7 +24,6 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
-import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.DevConfig;
@@ -423,12 +422,10 @@ public final class MissionLaunch {
     static Supplier<BattleSimulation> supplyRouteBuilder(BrokenSupplyRouteProgress route, long seed,
                                                         List<ShuttleAssignment> manifest, TargetProfile profile) {
         int operation = route.operation();
-        LastLiftProgress.Attempt attempt = operation == BrokenSupplyRouteProgress.LIFT ? route.crew().previewAttempt() : null;
         FreightRunProgress.Attempt cargo = operation == BrokenSupplyRouteProgress.THUNDER ? route.freight().previewAttempt() : null;
         int delivered = operation == BrokenSupplyRouteProgress.THUNDER ? route.freight().deliveredCount() : 0;
         return switch (operation) {
             case BrokenSupplyRouteProgress.JUNCTION -> () -> BattleSetup.createJunction(seed, manifest, profile);
-            case BrokenSupplyRouteProgress.LIFT -> () -> BattleSetup.createLastLift(seed, manifest, profile, attempt);
             case BrokenSupplyRouteProgress.THUNDER -> () -> BattleSetup.createThunderRun(seed, manifest, profile, cargo, delivered);
             case BrokenSupplyRouteProgress.RELAY -> () -> BattleSetup.createRelayNine(seed, manifest, profile);
             default -> throw new IllegalStateException("Unknown supply-route operation");

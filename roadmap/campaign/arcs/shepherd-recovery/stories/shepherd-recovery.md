@@ -4,12 +4,12 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Character-led written exchanges and disputed salvage claims; live campaign and audio-mix acceptance remain.
+Updated: 2026-10-13 — follow-on route now uses the direct Thunder Run freight sequence.
 
 ## Placement and employer
 
 Unlock after **A Cold Account** is won and its aftermath has been acknowledged,
-regardless of the earlier evacuation/freight choice. This is an optional new
+regardless of the earlier freight outcome. This is an optional new
 contract, not an automatic launch or a timed demand while the company is depleted.
 Mara makes the introduction. Wayline remains a trusted former employer; this
 contract belongs to someone with a different business and a different stake.

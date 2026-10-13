@@ -63,12 +63,7 @@ public final class CorvusWaylineCampaign {
         if (route == null) return "Our dispatch records point beyond Jangala.";
         if (!route.readable() || !route.closed()) return route.status();
         String recovery;
-        if (route.branch() == BrokenSupplyRouteProgress.LIFT) {
-            int rescued = route.storyCrew().rescuedCount();
-            recovery = rescued > 0
-                    ? "Iona's manifest records people brought home: " + rescued + ". The freight route remains suspended, but those lives are part of what we have kept."
-                    : "Rill's manifest is closed without a recovery. I will not dress that up as a victory.";
-        } else if (route.freight() != null) {
+        if (route.freight() != null) {
             int delivered = route.freight().deliveredCount();
             recovery = delivered > 0
                     ? "Dispatch has receipts for delivered loads: " + delivered + ". That is work Wayline can build on."

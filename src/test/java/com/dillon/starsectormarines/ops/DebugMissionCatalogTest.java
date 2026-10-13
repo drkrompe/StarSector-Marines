@@ -93,17 +93,17 @@ class DebugMissionCatalogTest {
         context.finishOperation(false);
         assertEquals(ScreenId.DEBUG_MISSIONS, context.getCurrentScreen());
     }
-    @Test void locationGroupsKeepStoryOrderAndSeparateBranchesFromRepeatables() {
+    @Test void locationGroupsKeepStoryOrderAndSeparateShelvedConcepts() {
         var catalog = DebugMissionCatalog.missions(null);
-        assertEquals(List.of("Jangala", "Asharu", "Warion", "Garnir", "Unfixed site"), DebugMissionScreen.locations(catalog, 0));
+        assertEquals(List.of("Jangala", "Unfixed site", "Asharu", "Warion", "Garnir"), DebugMissionScreen.locations(catalog, 0));
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
-        assertEquals(List.of("01", "02", "03", "04A", "04B", "05", "R1", "R2", "R3", "R4"),
+        assertEquals(List.of("01", "02", "03", "MAP", "04", "R1", "R2", "R3"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         assertEquals(List.of("01", "02", "03", "04"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
                 .map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         var grouped = DebugMissionScreen.visible(catalog, 0, "All locations");
         assertEquals(jangala, grouped.subList(0, jangala.size()));
-        assertEquals("Asharu", DebugMissionScreen.locationOf(grouped.get(jangala.size())));
+        assertEquals("Unfixed site", DebugMissionScreen.locationOf(grouped.get(jangala.size())));
     }
     @Test void recoveredHoundIsItsCampaignChaingunFit() {
         var support = (MechSupport) DebugMechRoster.recoveredHound().applyTo(List.of()).get(0);

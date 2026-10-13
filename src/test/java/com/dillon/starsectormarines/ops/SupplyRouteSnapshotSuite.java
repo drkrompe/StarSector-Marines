@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
-import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
@@ -31,15 +30,11 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
         var frames=new ArrayList<SnapshotArtifact>();
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");
         frames.add(board(context,renderer,p,0,"01-junction"));
-        win(p);frames.add(board(context,renderer,p,0,"02-inspect-rill"));frames.add(board(context,renderer,p,1,"03-inspect-freight"));
-        p.commit(2);frames.add(board(context,renderer,p,0,"04-rill-committed"));
-        String first=p.missionId();p.begin(first);p.settle(first,false,new LastLiftProgress.Outcome(p.crew().previewAttempt(),List.of(0,1),List.of(2),false));
-        frames.add(board(context,renderer,p,0,"05-rill-retry-nine"));
-        String retry=p.missionId();p.begin(retry);p.settle(retry,true,new LastLiftProgress.Outcome(p.crew().previewAttempt(),p.crew().stranded(),List.of(),true));
-        frames.add(board(context,renderer,p,0,"06-crew-recovery-new-job"));
+        win(p);
+        frames.add(board(context,renderer,p,0,"02-thunder-run-direct"));
+        var freight=p;
         var hq=CompanyHqViewModel.supplyRoutePreview(p,new OpeningBroker.Destination("jangala","Jangala","Corvus",null));
-        frames.add(new SnapshotArtifact("07-hq-rescue-record.png",UiSnapshotSuite.renderCompanyHq(context,renderer,1920,1080,1f,hq)));
-        var freight=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");win(freight);freight.commit(3);frames.add(board(context,renderer,freight,0,"08-freight-committed"));
+        frames.add(new SnapshotArtifact("03-hq-thunder-run.png",UiSnapshotSuite.renderCompanyHq(context,renderer,1920,1080,1f,hq)));
         frames.add(board(context,renderer,freight,0,"09-thunder-run-available"));
         String column=freight.missionId();freight.begin(column);
         freight.settle(column,true,null,new FreightRunProgress.Outcome(freight.freight().previewAttempt(),List.of(0,1),List.of(2),true));
@@ -47,19 +42,16 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
         hq=CompanyHqViewModel.supplyRoutePreview(freight,null);
         frames.add(new SnapshotArtifact("10-hq-frozen-site-unavailable.png",UiSnapshotSuite.renderCompanyHq(context,renderer,1920,1080,1f,hq)));
         frames.add(debrief(context, renderer, 1, true, "11-junction-debrief"));
-        frames.add(debrief(context, renderer, 2, false, "12-rill-partial-retreat"));
         frames.add(debrief(context, renderer, 4, true, "15-freight-debrief"));
         return frames;
     }
     private SnapshotArtifact debrief(SnapshotContext context, HeadlessUiRenderer renderer,
                                       int kind, boolean victory, String name) throws Exception {
         var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-        if (kind != BrokenSupplyRouteProgress.JUNCTION) { win(route); route.commit(kind == 4 ? 3 : kind); }
+        if (kind != BrokenSupplyRouteProgress.JUNCTION) { win(route); }
         var mission = SupplyRouteCampaign.offers(route).get(0);
         var result = MissionOutcome.builder().mission(mission).victory(victory)
                 .payoutEarned(victory ? mission.payout : 0).marinesEngaged(24).marinesLost(2);
-        if (kind == BrokenSupplyRouteProgress.LIFT) result.lastLiftOutcome(new LastLiftProgress.Outcome(
-                route.crew().previewAttempt(), List.of(0, 1), List.of(2), false));
         if (kind == 4) result.payoutEarned(14000).freightOutcome(new FreightRunProgress.Outcome(
                 route.freight().previewAttempt(),List.of(0,1),List.of(2),true));
         var outcome = result.build();

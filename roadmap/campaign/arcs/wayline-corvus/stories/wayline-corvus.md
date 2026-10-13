@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — execution repaired; intervention implemented; live balance acceptance remains.
 Written: 2026-10-11
-Updated: 2026-10-11 — recommended-force playback completed; balance acceptance remains blocked by the findings below.
+Updated: 2026-10-13 — follow-on route now uses the direct Thunder Run freight sequence.
 
 Read `early-operation-nouns.md` for the enduring model, `mission-tier-nouns.md`
 for force scale, and `campaign-battle-bridge-nouns.md` for target authority.
@@ -24,8 +24,8 @@ free replacement troops or chassis.
 
 ## Acceptance
 
-- [x] Both closed supply-route branches, including exhausted failures, unlock
-  the arc without rewriting their historical outcomes or recurring work.
+- [x] The closed freight account, including exhausted failure, unlocks
+  the arc without rewriting its historical outcome or recurring work.
 - [x] Fixed planet identities, ordered chapters, retries and a persistent
   accepted-attempt receipt gate payment and casualty writeback.
 - [x] HQ course guidance and the local broker expose the current destination;

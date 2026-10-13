@@ -7,28 +7,24 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 record SupplyRouteWorkGuide(BrokenSupplyRouteProgress progress, OpeningBroker.Destination destination,
                             Runnable plotCourse) implements MarkupPropertySource {
     @Override public Object markupProperty(String property) {
-        boolean recovery = progress != null && progress.readable() && progress.branch() == BrokenSupplyRouteProgress.LIFT;
-        String mission = progress == null ? "Open the Junction" : progress.choicePending() ? "Choose local support"
-                : progress.closed() ? progress.successful() ? recovery ? "Crew Recovery" : "Route Security" : recovery ? "Last Lift / closed" : "Thunder Run / closed"
-                : progress.operation() == BrokenSupplyRouteProgress.THUNDER ? "Thunder Run" : recovery ? "Last Lift" : progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Relay Nine" : "Open the Junction";
+        String mission = progress == null || !progress.junctionWon() ? "Open the Junction"
+                : progress.closed() ? progress.successful() ? "Route Security" : "Thunder Run / closed"
+                : "Thunder Run";
         return switch (property) {
             case "classes" -> "opening-guide console-readout" + (destination == null ? " opening-unavailable" : "");
             case "crest" -> OpeningBroker.CREST;
-            case "portrait" -> recovery ? SupplyRouteCampaign.IONA_PORTRAIT : OpeningBroker.PORTRAIT;
-            case "broker" -> recovery ? "Iona Serr" : OpeningBroker.NAME;
+            case "portrait" -> OpeningBroker.PORTRAIT;
+            case "broker" -> OpeningBroker.NAME;
             case "affiliation" -> "Wayline cooperative";
             case "heading" -> "BROKEN SUPPLY ROUTE";
             case "mission" -> mission;
             case "payment" -> progress != null && progress.closed() ? "Contract payments: " + progress.storyPayment() + " cr"
-                    : progress != null && progress.operation() == BrokenSupplyRouteProgress.THUNDER ? "6,000 + 4,000 / delivered" : recovery ? "4,000 + 500 / recovered" : progress != null && progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Cr. 16,000" : "Cr. 12,000 / Junction";
+                    : progress != null && progress.operation() == BrokenSupplyRouteProgress.THUNDER ? "6,000 + 4,000 / delivered" : "Cr. 12,000 / Junction";
             case "location" -> progress != null ? progress.planetName() + " / " + progress.systemName()
                     : destination == null ? "CONTACT UNAVAILABLE" : destination.label();
             case "route" -> destination == null ? "Access unavailable. Accepted work stays at its original site."
                     : "Marine operations > " + OpeningBroker.NAME;
             case "preparation" -> progress == null ? "Venn introduces dispatch coordinator Iona Serr. Open their dossier to begin."
-                    : progress.closed() && recovery ? "Rill: " + progress.storyCrew().rescuedCount() + " rescued / "
-                            + progress.storyCrew().deadCount() + " dead / " + progress.storyCrew().stranded().size()
-                            + " stranded. Freight convoy not undertaken; route suspended."
                     : progress.status();
             case "courseDisabled" -> destination == null;
             case "courseAction" -> plotCourse;

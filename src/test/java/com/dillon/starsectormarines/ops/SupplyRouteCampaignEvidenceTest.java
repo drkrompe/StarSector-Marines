@@ -35,14 +35,14 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Production construction/roster overlay seam, not a live Starsector campaign. */
 @Tag("supply-route-campaign-evidence")
 class SupplyRouteCampaignEvidenceTest {
-    @Test void launchesAllFourFactoriesWithNamedSeatsAndFittedBoatsWithoutTouchingEmployerLift() throws Exception {
+    @Test void launchesCampaignFactoriesWithNamedSeatsAndFittedBoatsWithoutTouchingEmployerLift() throws Exception {
         Path output=Path.of(System.getProperty("supplyroute.command.evidence.outputDir","build/reports/commander/supply-route"));
         Files.createDirectories(output);JSONArray reports=new JSONArray();
         var renderer=new BattleReviewFrameRenderer(Path.of("mod"),1920,1080);
-        for(int kind : new int[]{1,2,3,4}) for(int strength : new int[]{8,24})
+        for(int kind : new int[]{1,3,4}) for(int strength : new int[]{8,24})
                 for(String liftCase : strength == 8 ? List.of("mixed") : List.of("paired-six", "single-ferry", "mixed")) {
             var route=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");
-            if(kind!=1){String id=route.missionId();route.begin(id);route.settle(id,true,null);route.commit(kind == 4 ? 3 : kind);}
+            if(kind!=1){String id=route.missionId();route.begin(id);route.settle(id,true,null);}
             if(kind==3){
                 String id=route.missionId();route.begin(id);
                 route.settle(id,true,null,new FreightRunProgress.Outcome(route.freight().previewAttempt(),List.of(0,1,2),List.of(),true));

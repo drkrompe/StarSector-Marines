@@ -46,7 +46,7 @@ public final class CorvusWaylineSnapshotSuite implements SnapshotSuite {
         var battlefield = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080);
         var artifacts = new ArrayList<SnapshotArtifact>();
         var progress = new CorvusWaylineProgress();
-        var route = CorvusWaylineCampaignTest.closedRoute(2, true);
+        var route = CorvusWaylineCampaignTest.closedRoute(true);
         var report = new StringBuilder("Production chapter construction; named roster overlay; bounded 60-second observation.\n");
         for (CorvusChapter chapter : CorvusChapter.values()) {
             Mission mission = CorvusWaylineCampaign.offer(progress, chapter.planetName, route);
