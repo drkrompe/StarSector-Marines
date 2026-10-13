@@ -2491,7 +2491,16 @@ public class BriefingScreen implements Screen {
 
     private WaylineNarration.Line briefingNarration() {
         Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.coldStart(mission.id)
+                && !recordedBriefingApplies(mission, ShepherdRecoveryCampaign.current())) return null;
         return WaylineNarration.builtins().find(WaylineNarration.storyMissionId(mission), "briefing");
+    }
+
+    /** The recorded escort opening cannot describe work already completed on a prior sortie. */
+    static boolean recordedBriefingApplies(Mission mission, ShepherdRecoveryProgress progress) {
+        return mission == null || !ShepherdRecoveryCampaign.isBattle(mission)
+                || !ShepherdRecoveryProgress.coldStart(mission.id) || progress == null
+                || !progress.matches(mission.id) || !progress.cargoDelivered() && !progress.shorePower();
     }
 
     private void renderFlavor(float alphaMult) {

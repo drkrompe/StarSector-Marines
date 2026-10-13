@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Colossus yard stakes and Cold Start's finite assault on vulnerable outer pickets; live campaign and audio-mix acceptance remain.
+Updated: 2026-10-13 — Mercenary bargain and cooperative neutrality in Hegemony space; live campaign and audio-mix acceptance remain.
 
 ## Placement and employer
 
@@ -22,6 +22,18 @@ counts useful machinery before saleable scrap and dislikes promises that leave
 her crews exposed. She can arrange permission for this recovery operation; she
 does not speak for Asharu's government or the Independent faction as a whole.
 The cooperative, Vale, basin and ship are mod-authored local fiction.
+
+Corvus is Hegemony space. The cooperative works within that order but does not
+work for the government or seek a confrontation with it. Vale wants the cargo
+moving before an official inspection, levy or competing claim can take a share
+of the return. This is her concern about the deal's margin, not an authored
+Hegemony law or a statement about every official. Pirates and rival salvage
+outfits have their own incentive to notice a freighter full of stranded stock.
+The current armed scrappers are one such outfit; they are not Hegemony proxies.
+The contract buys local security while Vale handles the cooperative's claims.
+It does not make the company a rebel force, grant wider orbital strike authority,
+alter diplomacy or start a hidden government-intervention clock. The offer stays
+open while the captain replenishes a depleted company.
 
 The basin was a working **shipbreaking and reclamation yard** before the fighting.
 Sorted hull sections, cutting beds, machinery stores and a rear haul loop made
@@ -54,6 +66,13 @@ supplies engineers and replacement machinery, gets its corridor reopened and
 retains the fixed installations; the company keeps the repaired Shepherd and its
 drone workshop. The agreement is explicit before the first drop. Securing the
 wreck alone grants a protected claim, not a functioning ship in the fleet.
+The cash terms are 18,000 credits for the accepted inspection and 22,000 for the
+completed repair. Morrow is the final payment in kind after physical departure;
+there is no additional departure fee. Castle negotiates for company income and
+a useful asset, not a charitable salvage expedition. Vale commits her own people,
+tools and holders because reopening the yard is worth more to her than keeping
+the tender. Concern for casualties remains personal and practical, with no new
+casualty bonus or penalty.
 
 A much larger broken **Colossus** rests against the northern rear canyon wall.
 Its grounded holds serve as a cargo and equipment depot, with valuable hull scrap
@@ -76,7 +95,8 @@ company through Mara to Baronet Rusk on existing Agreus in nearby Arcadia.
 `a-small-war.md` owns that optional five-chapter follow-on and its recovered suit
 rewards; `agreus-latchkey.md` owns the local setting and cast under Ko Combine
 administration. The referral requires completed departure, not the
-claim or Cold Start repair settlement, and remains unimplemented with that arc.
+claim or Cold Start repair settlement. The referral and first North Weir contract
+are available; the remaining follow-on chapters stay with that arc's open work.
 
 ## The basin
 
@@ -138,13 +158,12 @@ remote and piloted travel. Repair completion does not shrink her to overhead sca
 **Promise:** take a useful wreck, not a pile of loot. Teach clearing the ground
 around an asset and handing a secured position to allied holders.
 
-**Briefing — Vale:** “Those marked rows were our stock before the shooting started
-overhead. The scattered pieces came later. Morrow's crew got her back to the
-cradle and got out. Then the scrappers moved in. The engines are cold; the workshop
-is not a total loss. Clear the receiving stores, get my
-people into the repair shop, and hold the hull access while they inspect it. The
-road to the pumps is still occupied. We are recovering a ship, not conquering the
-basin in an afternoon.”
+The written offer introduces the hired job and cash terms before the tactical
+instructions. Vale explains that her crews work in Hegemony space without working
+for the government. Her concern about official scrutiny and opportunistic outfits
+explains why she is paying for security. The Colossus stores stay hers; Morrow is
+the company's earned asset once all three contracts are complete. The immediate
+instructions remain receiving store, workshop, then a protected hull inspection.
 
 Beat order:
 
@@ -163,8 +182,9 @@ Beat order:
 **Castle, hull secured:** “Put the registry number in the agreement. We bring your
    crews back to work; when this ship flies, it flies with us.”
 
-**Vale:** “When it flies. I need the pump road open before either of us owns a
-   working future.”
+**Vale:** “The Colossus holds more work than our shops can handle. We keep her
+stores and the yard; you earn Morrow by finishing the repairs and departure.
+That's why I'm willing to part with her.”
 
 **Vale, first sight of the hull:** “Her crew put her down there with half the
 controls dead. Some of them are on the repair team. They know what can be saved.”
@@ -216,6 +236,11 @@ Beat order:
 **Vale, repairs complete:** “Drone bay answers. Pumps hold pressure. Tomorrow we
    find out whether she still remembers how to leave the ground.”
 
+The written debrief accounts for the repair fee and remaining bargain. Castle
+prioritizes company pay, supplies and losses; Vale supplies holders for the route
+her shops need. Retained delivery and power milestones are respected by returning
+briefings, including withholding an obsolete recorded delivery instruction.
+
 ## 3 — Working Passage
 
 **Promise:** carry your own means of holding ground. The payoff is a coordinated
@@ -247,8 +272,9 @@ Beat order:
 **Castle, departure:** “Registry accepted. Morrow is ours. Hull, workshop, and a
    very long list of maintenance jobs.”
 
-**Vale:** “The corridor is ours again. Keep her working, Castle. That is what
-   those ships were built for.”
+**Vale:** “The Colossus stores, yard and haul road stay with us. Morrow is your
+final payment, as agreed. Now I can put our crews back to work. If the Hegemony
+comes asking about the salvage, I'll answer for our claims.”
 
 The transfer includes an explicit berth offer to willing working crew sufficient
 for the awarded member's actual minimum complement. They join fleet crew, not marine
