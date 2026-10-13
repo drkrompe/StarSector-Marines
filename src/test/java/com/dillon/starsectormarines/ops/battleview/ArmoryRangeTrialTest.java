@@ -34,6 +34,7 @@ class ArmoryRangeTrialTest {
         assertEquals(7, copy.grid.getWidth());
         assertFalse(copy.grid.isWalkable(0, 2));
         assertFalse(copy.grid.isDoorway(0, 2));
+        assertEquals(-1, copy.topology.getNatureOverlayIndex(0, 2));
         assertTrue(source.grid.isDoorway(2, 4));
         assertEquals("ship_test_surface", copy.topology.getSurfaceId(2, 2));
         assertEquals(90, copy.grid.getWallHp(2, 2));

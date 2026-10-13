@@ -105,7 +105,7 @@ public final class ArmoryRangeTrial implements AutoCloseable {
                 topology.setGroundKind(x, y, boundary ? GroundKind.INDOOR : GroundKind.VOID);
                 topology.setSurface(x, y, boundary ? topology.surfaceIndex("ship.neutral-bulkhead") : 0);
                 topology.setRoomPurpose(x, y, null);
-                topology.setNatureOverlayIndex(x, y, 0);
+                topology.setNatureOverlayIndex(x, y, -1);
                 topology.setWallGroundSurface(x, y, null);
                 topology.setWallRemnant(x, y, null);
             }
