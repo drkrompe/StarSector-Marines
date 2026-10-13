@@ -57,6 +57,7 @@ public final class Tender implements DroneAnchor {
 
     private final Warship ship;
     private boolean grounded;
+    private boolean lowHover;
     /** Authored static-host footprint, independent of the metadata airframe's scale. */
     public record GroundDisplay(float centerX, float centerY, float width, float height) {
         public GroundDisplay {
@@ -67,7 +68,10 @@ public final class Tender implements DroneAnchor {
         public float enclosingRadius() { return (float) Math.hypot(width, height) * 0.5f; }
     }
     private GroundDisplay groundDisplay;
-    public GroundDisplay groundDisplay() { return groundDisplay; }
+    public GroundDisplay groundDisplay() {
+        return lowHover && groundDisplay != null
+                ? new GroundDisplay(ship.x, ship.y, groundDisplay.width(), groundDisplay.height()) : groundDisplay;
+    }
     public void groundDisplay(GroundDisplay display) {
         if (!grounded) throw new IllegalStateException("Only a grounded host has a static display footprint");
         groundDisplay = display;
@@ -91,6 +95,28 @@ public final class Tender implements DroneAnchor {
 
     public boolean grounded() { return grounded; }
 
+    /** Live recovering hull: ordinary tender durability and drones, with a full low-hover footprint. */
+    public static Tender lowHover(Faction faction, float x, float y, float width, float height) throws Exception {
+        Tender tender = fit(faction, x, y, -90f);
+        tender.lowHover = true;
+        tender.groundDisplay = new GroundDisplay(x, y, width, height);
+        tender.ship.lowHoverFootprint(width, height);
+        return tender;
+    }
+
+    public boolean lowHover() { return lowHover && !ship.departing(); }
+
+    /** Starts the ordinary physical climb-out; its completion witness excludes departure timeouts. */
+    public void requestDeparture(float mapWidth, float mapHeight) {
+        cancelAll();
+        defenceOut(false);
+        ship.departForward(mapWidth, mapHeight);
+    }
+
+    public boolean departed() { return ship.physicallyDeparted(); }
+    public boolean disabled() { return ship.destroyed() || ship.departed() && !ship.physicallyDeparted(); }
+    public List<ConstructionOrder> completedSites() { return Collections.unmodifiableList(completedSites); }
+
     /** Loss of a static host fails its construction and loses its deployed wing on the next tick. */
     public void loseGroundHost() {
         if (grounded) groundHostAlive = false;
@@ -98,6 +124,9 @@ public final class Tender implements DroneAnchor {
 
     /** Grounded construction uses a straight, clear sortie corridor from the exterior bay. */
     public boolean groundSiteReachable(float x, float y, NavigationGrid grid) {
+        if (lowHover) return !ship.departing() && Math.hypot(x - ship.x, y - ship.y) <= TenderSystem.PILOT_REACH_CELLS
+                && !(Math.abs(x - ship.x) < ship.lowHoverWidth() / 2f
+                && Math.abs(y - ship.y) < ship.lowHoverHeight() / 2f);
         if (!grounded) return true;
         float dx = x - bayX();
         float dy = y - bayY();
@@ -417,7 +446,7 @@ public final class Tender implements DroneAnchor {
 
     /** Completed grounded structures keep their plot reserved for the mission. */
     public boolean groundPlotReserved(float x, float y) {
-        if (!grounded) return false;
+        if (!grounded && !lowHover) return false;
         for (ConstructionOrder order : orders) {
             if (order.phase() == ConstructionOrder.Phase.COMPLETE
                     && Math.hypot(order.siteX() - x, order.siteY() - y) < SITE_SPACING) return true;
@@ -439,7 +468,7 @@ public final class Tender implements DroneAnchor {
      * already there. Whether the player may see the ground is the caller's rule.
      */
     public ConstructionOrder lay(BuildOption option, float x, float y, NavigationGrid grid) {
-        if (!anchorAlive() || option == null || (metered() && option.cost() > stock)) return null;
+        if (!anchorAlive() || ship.departing() || option == null || (metered() && option.cost() > stock)) return null;
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
@@ -480,7 +509,7 @@ public final class Tender implements DroneAnchor {
             if (!order.phase().terminal()) continue;
             if (order.phase() == ConstructionOrder.Phase.COMPLETE) {
                 built++;
-                if (grounded) completedSites.add(order);
+                if (grounded || lowHover) completedSites.add(order);
             }
             orders.remove(i);
         }

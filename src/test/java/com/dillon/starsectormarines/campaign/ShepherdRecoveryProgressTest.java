@@ -50,7 +50,40 @@ class ShepherdRecoveryProgressTest {
         var retry=p.missionId();assertTrue(p.begin(retry,"Asharu"));
         assertEquals(-1,p.settleColdStart(retry,"Asharu",true,22000,0,true,true,false,true));
         assertEquals(22000,p.settleColdStart(retry,"Asharu",true,22000,0,true,true,true,true));
-        assertTrue(p.repaired());assertNull(p.missionId());assertEquals(2,p.repairLosses());
+        assertTrue(p.repaired());assertTrue(ShepherdRecoveryProgress.workingPassage(p.missionId()));assertEquals(2,p.repairLosses());
         assertEquals(-1,p.settleColdStart(retry,"Asharu",true,22000,0,true,true,true,true));
+    }
+
+    private ShepherdRecoveryProgress repaired() {
+        var p=new ShepherdRecoveryProgress();var id=p.missionId();
+        p.begin(id,"Asharu");p.settle(id,"Asharu",true,18000,0,true);
+        id=p.missionId();p.begin(id,"Asharu");p.settleColdStart(id,"Asharu",true,22000,0,true,true,true,true);
+        return p;
+    }
+    @Test void disabledDepartureRetainsRepairAndLossesThenAwardsOneIdentityAcrossLoad() throws Exception {
+        var p=repaired();var id=p.missionId();assertTrue(p.begin(id,"Asharu"));
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",true,0,1,true,true,false,"ship",15));
+        assertEquals(-1,p.settleWorkingPassage(id,"Garnir",false,0,1,false,true,true,null,0));
+        assertEquals(0,p.settleWorkingPassage(id,"Asharu",false,0,3,false,true,true,null,0));
+        assertTrue(p.claimSecured());assertTrue(p.repaired());assertEquals(3,p.departureLosses());
+        assertEquals(1,p.departureFailures());assertTrue(p.lastDepartureDisabled());
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",false,0,3,false,true,true,null,0));
+        id=p.missionId();assertTrue(p.begin(id,"Asharu"));
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",true,0,0,true,false,false,"ship",0));
+        assertEquals(0,p.settleWorkingPassage(id,"Asharu",true,0,0,true,false,false,"ship",15));
+        var bytes=new ByteArrayOutputStream();try(var out=new ObjectOutputStream(bytes)){out.writeObject(p);}
+        try(var in=new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))){p=(ShepherdRecoveryProgress)in.readObject();}
+        assertTrue(p.departed());assertEquals("ship",p.awardedMemberId());assertEquals(15,p.willingCrewTransferred());
+        assertNull(p.missionId());assertFalse(p.begin(id,"Asharu"));
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",true,0,0,true,false,false,"replacement",15));
+    }
+    @Test void abortedAndForgedDepartureCannotAward() {
+        var p=repaired();var id=p.missionId();p.begin(id,"Asharu");
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",false,0,0,true,false,false,"ship",15));
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",true,0,0,true,false,true,"ship",15));
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",true,10,0,true,false,false,"ship",15));
+        assertEquals(-1,p.settleWorkingPassage(id,"Asharu",true,0,9,true,false,false,"ship",15));
+        assertEquals(0,p.settleWorkingPassage(id,"Asharu",false,0,0,false,false,true,null,0));
+        assertFalse(p.departed());assertTrue(p.lastDepartureAborted());assertTrue(p.repaired());
     }
 }

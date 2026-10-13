@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
+import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
+import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.power.YardConstruction;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -1505,6 +1508,61 @@ public final class BattleSetup {
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new ColdStartCommand(faction,engineers),ColdStartCommand.disclosure(sim.getColdStart()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company support joins recovery"));
+        return sim;
+    }
+
+    /** Departure operation with ordinary company lift and one real low-hover Shepherd. */
+    public static BattleSimulation createWorkingPassage(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
+        if(manifest==null || manifest.isEmpty() || manifest.size()>4)
+            throw new IllegalArgumentException("Working Passage requires one to four company boats");
+        MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.WORKING_PASSAGE);
+        BattleSimulation sim=buildMap(map,List.of(),List.of(),List.of(),seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
+        Random rng=new Random(seed);
+        var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
+        stampLzPads(sim,pads);
+        for(int i=0;i<manifest.size();i++){
+            var assignment=manifest.get(i);var pad=pads.get(i);
+            float x=pad.centerX+.5f,y=pad.centerY+.5f;
+            float[] entry=shuttleEntryFor(x,y,map.grid.getWidth(),map.grid.getHeight(),pad.approach);
+            long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
+                    entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
+            var mission=sim.world().mission(air);
+            mission.totalCycles=assignment.cycles;mission.manifestOrdinal=i;
+            mission.commandClaim=SquadCommandClaim.mission(WorkingPassageCommand.issuer(Faction.MARINE),"Company recovery lift");
+            mission.cycleLoadouts=new MarineLoadout[assignment.cycles][];
+            for(int cycle=0;cycle<assignment.cycles;cycle++)
+                mission.cycleLoadouts[cycle]=InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle),rng);
+            mission.marineLoadout=mission.cycleLoadouts[0];
+        }
+        for(int[] guard:new int[][]{{214,123},{258,108},{283,80}}) {
+            var post=openingDefenseNode(guard[0],guard[1],Faction.DEFENDER,map.grid);
+            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,guard[0],guard[1],4),Faction.DEFENDER,"passage-scrapper-watch",post,rng);
+        }
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,25,80,8),Faction.ALLY,"basin-militia",null,rng);
+        for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
+            if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
+                    WorkingPassageCommand.issuer(Faction.ALLY),null,"Vale's militia waits for company gains"))
+                throw new IllegalStateException("Basin militia handoff failed");
+        List<Integer> militia=new ArrayList<>();
+        for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)militia.add(squad.id);
+        List<EntitySpec> reserve=new ArrayList<>();
+        for(int batch=0;batch<4;batch++) {
+            int roadX=batch==1?301:194,roadY=batch==1?145:2,size=batch==0||batch==2?4:6;
+            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,size))
+                reserve.add(makeOpeningMilitia("passage-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
+        }
+        Tender tender;
+        try { tender=Tender.lowHover(Faction.MARINE,131,115,24,20); }
+        catch(Exception ex) { throw new IllegalStateException("Unable to launch Morrow",ex); }
+        sim.tenders().add(sim,tender);
+        sim.getCommandPowerService().register(new YardConstruction(tender));
+        sim.installWorkingPassage(tender,militia,reserve);
+        for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
+            sim.setAutonomousCommander(faction,new WorkingPassageCommand(faction),WorkingPassageCommand.disclosure(sim.getWorkingPassage()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(WorkingPassageCommand.issuer(Faction.MARINE),"Company support joins recovery"));
         return sim;
     }
 

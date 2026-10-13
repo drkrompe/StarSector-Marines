@@ -71,6 +71,7 @@ public final class CompanyHqScreen implements Screen {
         if (ShepherdRecoveryCampaign.current() != null) {
             CompanyNotices.Notice.SHEPHERD_RECOVERY.review(CompanyPreparationGuide.roster());
             CompanyNotices.Notice.COLD_START.review(CompanyPreparationGuide.roster());
+            CompanyNotices.Notice.WORKING_PASSAGE.review(CompanyPreparationGuide.roster());
         }
         input = new StarsectorUiInputAdapter(document, viewport);
     }

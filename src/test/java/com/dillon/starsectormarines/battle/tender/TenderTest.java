@@ -73,6 +73,29 @@ class TenderTest {
     }
 
     @Test
+    void lowHoverBuildReturnsMissionTravelAfterCompletionOrCancellation() throws Exception {
+        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 8f, 8f);
+        for (boolean cancel : new boolean[]{false, true}) {
+            ConstructionOrder order = hover.lay(BuildOption.VULCAN_TURRET, cancel ? 30.5f : 28.5f,
+                    cancel ? 29.5f : 20.5f, grid);
+            assertNotNull(order);
+            hover.ship().remoteOrder(Warship.RemoteOrder.BUILD, 20f, 20f);
+            TenderSystem.releaseCompletedBuildHelm(hover);
+            assertEquals(Warship.RemoteOrder.BUILD, hover.ship().remoteOrder());
+            if (cancel) hover.cancelAll();
+            else { order.begin(); order.startWork(); assertTrue(order.work(100f, 3, 3, false)); }
+            hover.sweep();
+            TenderSystem.releaseCompletedBuildHelm(hover);
+            assertEquals(Warship.RemoteOrder.NONE, hover.ship().remoteOrder());
+        }
+        for (Warship.RemoteOrder override : new Warship.RemoteOrder[]{Warship.RemoteOrder.HOLD, Warship.RemoteOrder.MOVE}) {
+            hover.ship().remoteOrder(override, 22f, 22f);
+            TenderSystem.releaseCompletedBuildHelm(hover);
+            assertEquals(override, hover.ship().remoteOrder());
+        }
+    }
+
+    @Test
     void groundedConstructionUsesExteriorBayAndRefusesHullCrossingsAndDistantSites() throws Exception {
         Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
         assertEquals(25.5f, yard.bayX());
