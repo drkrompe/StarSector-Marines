@@ -1,0 +1,144 @@
+{
+  "date": "2026-10-13",
+  "command": ".\\gradlew.bat sceneEvidence -Pscene=power-suit",
+  "scope": "Four deterministic open-ground exchanges. Same Service weapons and Regular/Steady profile except the marksman opposition control; integral systems, special equipment, and officers disabled. Each squad has twelve infantry. These are observations, not mission or campaign balance acceptance.",
+  "limits": "Single fixed layout and seed, no cover, no objective capture, no campaign save. Two-squad formation uses two starting groups. Timeout is unresolved. Marksman control changes the whole weapon, not penetration alone.",
+  "reports": [
+    {
+      "sceneId": "power-suit",
+      "loopId": "one-regular",
+      "ticks": 361,
+      "passed": true,
+      "verdicts": [
+        {
+          "name": "both-sides-fired",
+          "pass": true,
+          "detail": "73 friendly shots; 218 defender shots"
+        },
+        {
+          "name": "casualties-observed",
+          "pass": true,
+          "detail": "Outcomes are observations; a passed scene does not certify victory or two-squad equivalence."
+        }
+      ],
+      "metrics": {
+        "friendlySquads": 1,
+        "friendlyStarting": 12,
+        "friendlySurvivors": 0,
+        "defenderStarting": 24,
+        "defenderSurvivors": 20,
+        "armorCapacityPerMarine": 10.0,
+        "armorRating": 8.0,
+        "friendlyShots": 73,
+        "defenderShots": 218,
+        "firstFriendlyLossTick": 21,
+        "defendersClearedTick": -1,
+        "friendliesWipedTick": 361,
+        "friendlyRemainingArmor": 0.0,
+        "defenderPenetration": 7.0
+      }
+    },
+    {
+      "sceneId": "power-suit",
+      "loopId": "one-xiv",
+      "ticks": 1800,
+      "passed": true,
+      "verdicts": [
+        {
+          "name": "both-sides-fired",
+          "pass": true,
+          "detail": "282 friendly shots; 603 defender shots"
+        },
+        {
+          "name": "casualties-observed",
+          "pass": true,
+          "detail": "Outcomes are observations; a passed scene does not certify victory or two-squad equivalence."
+        }
+      ],
+      "metrics": {
+        "friendlySquads": 1,
+        "friendlyStarting": 12,
+        "friendlySurvivors": 1,
+        "defenderStarting": 24,
+        "defenderSurvivors": 9,
+        "armorCapacityPerMarine": 60.0,
+        "armorRating": 12.0,
+        "friendlyShots": 282,
+        "defenderShots": 603,
+        "firstFriendlyLossTick": 124,
+        "defendersClearedTick": -1,
+        "friendliesWipedTick": -1,
+        "friendlyRemainingArmor": 7.5,
+        "defenderPenetration": 7.0
+      }
+    },
+    {
+      "sceneId": "power-suit",
+      "loopId": "two-regular",
+      "ticks": 1515,
+      "passed": true,
+      "verdicts": [
+        {
+          "name": "both-sides-fired",
+          "pass": true,
+          "detail": "338 friendly shots; 462 defender shots"
+        },
+        {
+          "name": "casualties-observed",
+          "pass": true,
+          "detail": "Outcomes are observations; a passed scene does not certify victory or two-squad equivalence."
+        }
+      ],
+      "metrics": {
+        "friendlySquads": 2,
+        "friendlyStarting": 24,
+        "friendlySurvivors": 0,
+        "defenderStarting": 24,
+        "defenderSurvivors": 5,
+        "armorCapacityPerMarine": 10.0,
+        "armorRating": 8.0,
+        "friendlyShots": 338,
+        "defenderShots": 462,
+        "firstFriendlyLossTick": 53,
+        "defendersClearedTick": -1,
+        "friendliesWipedTick": 1515,
+        "friendlyRemainingArmor": 0.0,
+        "defenderPenetration": 7.0
+      }
+    },
+    {
+      "sceneId": "power-suit",
+      "loopId": "xiv-vs-marksmen",
+      "ticks": 248,
+      "passed": true,
+      "verdicts": [
+        {
+          "name": "both-sides-fired",
+          "pass": true,
+          "detail": "45 friendly shots; 179 defender shots"
+        },
+        {
+          "name": "casualties-observed",
+          "pass": true,
+          "detail": "Outcomes are observations; a passed scene does not certify victory or two-squad equivalence."
+        }
+      ],
+      "metrics": {
+        "friendlySquads": 1,
+        "friendlyStarting": 12,
+        "friendlySurvivors": 0,
+        "defenderStarting": 24,
+        "defenderSurvivors": 22,
+        "armorCapacityPerMarine": 60.0,
+        "armorRating": 12.0,
+        "friendlyShots": 45,
+        "defenderShots": 179,
+        "firstFriendlyLossTick": 15,
+        "defendersClearedTick": -1,
+        "friendliesWipedTick": 248,
+        "friendlyRemainingArmor": 0.0,
+        "defenderPenetration": 11.0
+      }
+    }
+  ]
+}

@@ -17,6 +17,7 @@ public record MarineArmorCatalogDef(
         String id,
         String displayName,
         ArmorRole role,
+        ArmorClass armorClass,
         ArmorTradition tradition,
         String description,
         int tier,
@@ -27,6 +28,16 @@ public record MarineArmorCatalogDef(
         float moveSpeedMult,
         float incomingAccuracyMult,
         IntegralSystemDef integralSystem) {
+
+    /** Compatibility for callers predating explicit protection classes. */
+    public MarineArmorCatalogDef(String id, String displayName, ArmorRole role,
+            ArmorTradition tradition, String description, int tier, String iconPath,
+            LayeredArmorFamily appearanceFamily, float armorCapacity, float armorRating,
+            float moveSpeedMult, float incomingAccuracyMult, IntegralSystemDef integralSystem) {
+        this(id, displayName, role, ArmorClass.STANDARD, tradition, description, tier,
+                iconPath, appearanceFamily, armorCapacity, armorRating, moveSpeedMult,
+                incomingAccuracyMult, integralSystem);
+    }
 
     public static MarineArmorCatalogDef parse(JSONObject json) throws JSONException {
         String id = requireText(json, "id", "armor catalog entry");
@@ -46,6 +57,9 @@ public record MarineArmorCatalogDef(
                 id,
                 requireText(catalog, "displayName", id),
                 ArmorRole.parse(catalog.optString("role", null), id),
+                catalog.has("armorClass")
+                        ? ArmorClass.parse(catalog.optString("armorClass", null), id)
+                        : ArmorClass.STANDARD,
                 ArmorTradition.parse(catalog.optString("tradition", null), id),
                 requireText(catalog, "description", id),
                 tier,

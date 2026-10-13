@@ -99,7 +99,7 @@ public final class CampaignMarineDeployment {
                     seat.armorCapacity, seat.armorRating, seat.armorMoveSpeedMult,
                     seat.armorIncomingAccuracyMult * (tag != null && tag.commandGroupIdentity != null
                             && tag.commandGroupIdentity.profile() != null
-                            ? tag.commandGroupIdentity.profile().incomingAccuracyMultiplier() : 1f), tag, seat.integralSystem));
+                            ? tag.commandGroupIdentity.profile().incomingAccuracyMultiplier() : 1f), tag, seat.integralSystem, seat.armorClass));
         }
         return new CampaignMarineDeployment(seats);
     }
@@ -156,7 +156,7 @@ public final class CampaignMarineDeployment {
                     armor.armorCapacity(), armor.armorRating(),
                     armor.moveSpeedMult(), armor.incomingAccuracyMult(),
                     tag(roster, owners.get(i), soldier, strengths),
-                    armor.integralSystem()));
+                    armor.integralSystem()).withArmorClass(armor.armorClass()));
         }
         return new CampaignMarineDeployment(frozen);
     }
@@ -437,7 +437,7 @@ public final class CampaignMarineDeployment {
                 allocation.campaignSoldierId, allocation.armorFamily,
                 allocation.armorCapacity, allocation.armorRating,
                 allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
-                allocation.campaignSquad, allocation.integralSystem);
+                allocation.campaignSquad, allocation.integralSystem, allocation.armorClass);
     }
 
     /**

@@ -149,9 +149,19 @@ public final class MarineArmory implements Serializable {
     public List<SquadArmorDoctrine> armorDoctrines() {
         List<SquadArmorDoctrine> result = new ArrayList<>();
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
-            result.add(issue(plan));
+            if (canIssue(plan)) result.add(issue(plan));
         }
         return Collections.unmodifiableList(result);
+    }
+
+    /** Whether this stock can issue the plan without crossing protection classes. */
+    public boolean canIssue(SquadArmorPlan plan) {
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        if (plan == null || catalog == null) return false;
+        for (MarineArmorCatalogDef pattern : catalog.all()) {
+            if (pattern.armorClass() == plan.armorClass() && ownsArmorTemplate(pattern.id())) return true;
+        }
+        return false;
     }
 
     /** Issues one plan from this armoury's own stock. */
@@ -169,7 +179,7 @@ public final class MarineArmory implements Serializable {
     }
     public SquadArmorDoctrine armorDoctrineById(String id) {
         SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(id);
-        return plan != null ? issue(plan) : null;
+        return canIssue(plan) ? issue(plan) : null;
     }
 
     public SquadWeaponDoctrine createWeaponDoctrine(

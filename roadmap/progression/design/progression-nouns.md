@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Wayline relief introduces Castle's optional two-path squad equipment lesson.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 ## Purpose
 
@@ -101,10 +101,14 @@ legibility.
 - **Breach point** — a map cell authored as a legal place to cut an opening. A
   breaching tool considers only authored breach points, which is what separates
   a boarding tool from map-wide wall demolition.
-- **Assault-armor role** — the suit's battlefield weight and purpose: light
-  infiltration/recon, standard line combat, or heavy mechanized battlesuit.
-  Unpowered field kit remains outside those three powered roles. Role expresses
-  a protection/mobility silhouette, not a vertical quality tier.
+- **Armor role** — the suit's battlefield job: recon, line, assault, or support,
+  with UNPOWERED identifying unpowered field kit. Assault means breaching, not
+  a carrier class. Role stays independent of armor class and vertical quality.
+- **Armor class** — the pattern's explicit STANDARD or POWER_SUIT carrier category,
+  independent of role, tier, and provenance. STANDARD includes advanced powered
+  line and recon equipment; POWER_SUIT is a wearable mechanized infantry shell
+  whose armor provides a substantial endurance step. Neither class creates a new
+  personnel identity or a mech chassis.
 - **Armor pattern** — a concrete, player-owned infantry protection and
   appearance package. A pattern realizes one assault-armor role and may carry
   equipment provenance. Unlike weapon grade, it changes survivability and
@@ -284,26 +288,28 @@ like a different species of soldier. That is an intent about the *compound*, not
 about any single lever: band, equipment grade, and armour all move together
 because the armour pattern is what sets the band to begin with. Measured as the
 exchange between the two ends — an endgame marine killing an opening one against
-an opening marine killing an endgame one — the asymmetry is roughly fifteen to
-one with the weapon family held constant, so upgrading families across the arc
-widens it further. `TtkReportTest` publishes that matchup and fails if the arc
-flattens into a linear ladder.
+an opening marine killing an endgame one — the exchange should remain strongly asymmetric with the weapon family held
+constant, and different families can widen or narrow that advantage.
+`TtkReportTest` publishes the current matchup; the power-suit capacity step
+requires fresh measurement rather than retaining the former approximate
+fifteen-to-one figure as a current outcome.
 
-**The arc is bought with capability, not durability.** Roughly 5.7x of that
-asymmetry is shooter-side and only about 2.6x is target armour, and that ordering
-is deliberate: the design wants firefights to stay lethal, so late equipment
-should get more interesting rather than harder to kill. Armour patterns already
-express themselves as a four-lever tradeoff — the tier-1 field kit is faster and
-harder to hit than the tier-4 walking tank that pays a fifth of its speed for
-plate — and that tradeoff shape is the thing to extend. A late-game suit earns
-its place through what it can do, so growth belongs in authored capability
-rather than in a wider capacity. That is what an **integral system** is for, and
-the rule is enforced where an author will meet it: the armour catalog refuses a
-system that declares added capacity, rating, or hit points by name, and refuses
-a cooldown that never expires, a resistance of 1, or an all-round arc. A
-capability that cannot be turned aside, waited out, or flanked is a durability
-increase wearing a costume. `integral-armor-systems.md` carries the remaining
-direction.
+**The arc grows through readable capability and protection.** Regular infantry
+improves through equipment, issued quality, and bounded integral systems. Power
+suits add an explicit armor-endurance step so fewer infantry formations can do
+more work. Their protection is authored armor capacity and rating, not hidden
+health or a faction multiplier. Biological structure remains infantry structure;
+when the shell breaks, the named wearer is exposed. High-penetration weapons,
+concentrated fire, mobility costs, and the suit's conspicuous silhouette preserve
+counterplay. `power-suit-infantry.md` owns the category's direction and field
+acceptance; synthetic exchange rates do not establish squad-level equivalence.
+
+Integral systems remain capabilities rather than permanent durability upgrades.
+The armor catalog refuses a system that declares added capacity, rating, or hit
+points, a cooldown that never expires, a resistance of 1, or an all-round arc.
+A bounded directional screen remains combat durability's finite mitigation;
+changing a pattern's base armor and running its temporary system are distinct
+choices and distinct authorities.
 
 That compound is why no individual lever needs to be dramatic:
 
@@ -512,7 +518,7 @@ Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and faction
 acquisition source, and the catalog audit preserves that coverage as content is
 added.
-The pattern owns the deployed armor capacity, rating, movement modifier, and
+The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
 capacity; armor no longer adds health or applies a permanent damage-reduction
@@ -1125,6 +1131,12 @@ The following are direction, not current behavior:
   A defender-only tuning field, a second catalog, or a faction branch in the
   sweep is a defect: a recovered suit must behave identically to the one it was
   taken from, in both directions.
+- Armor class is explicit pattern data, never inferred from role, tier, color,
+  system, or faction. STANDARD and POWER_SUIT issue plans never silently substitute
+  for one another. A missing class on legacy external pattern data means STANDARD.
+- Refitting a marine into a power suit preserves identity, career, organization,
+  twelve-person squad capacity, and ordinary named lift seats. No new roster or
+  battle unit type is implied.
 - A heavy battlesuit remains a one-person infantry billet using infantry
   weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
   lances, and support delivery remain Mechs authority.

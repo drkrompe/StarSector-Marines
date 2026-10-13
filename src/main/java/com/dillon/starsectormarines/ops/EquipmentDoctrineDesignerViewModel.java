@@ -130,6 +130,13 @@ public final class EquipmentDoctrineDesignerViewModel {
         SquadArmorDoctrine issued = roster.armory().armorDoctrineById(
                 sheetId != null ? sheetId : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         if (issued == null) {
+            if (squad != null) {
+                List<String> members = roster.manningMemberIds(squad);
+                if (index < members.size()) {
+                    var soldier = roster.soldierById(members.get(index));
+                    if (soldier != null) return soldier.armorId();
+                }
+            }
             issued = roster.armory().armorDoctrineById(
                     SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         }

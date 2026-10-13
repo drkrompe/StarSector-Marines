@@ -1106,6 +1106,7 @@ The discovered suite ids and default output directories are:
 | `squad-selection` | Selected and hovered infantry circles, unmarked enemy bodies, and the group command plate at 1920x1080, 100% scale | `build/snapshots/squad-selection/` |
 | `field-salvage` | Optional material caches: production placement checks, controlled discovery/collection/contest/secured frames and cargo claim rows at 1920x1080, 100% scale; not a full mission replay | `build/snapshots/field-salvage/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
+| `power-suit` | One regular squad, one XIV squad, and two regular squads against fixed rifle opposition, plus a marksman control at 1920x1080; matched training and grade, no suit systems. Casualties and endurance observations, not mission-balance acceptance | `build/snapshots/power-suit/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `ships-boats` | One hull's own boats: a bay with its rank of shuttles, every bay ringed with the door it launches through, and an animated turnaround — a boat leaving its berth, the berth standing empty, and the boat home again | `build/snapshots/ships-boats/` |
