@@ -41,6 +41,9 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
             FleetMemberAPI ship = selected(local);
             String failure = CompanyYard.install(ship, CompanyYard.dockedMarket());
             portrait(dialog);
+            if (failure == null && personalYard(ship))
+                dialog.getTextPanel().addPara("Nessa says she'll keep the old pressure seals on her wall. Apparently I have a reputation to maintain. "
+                        + "She stayed for the pressure test herself. Didn't put that on the bill.");
             dialog.getTextPanel().addPara(failure != null ? failure
                     : "The yard has finished. Eighteen more places to sleep, a proper command fit, and a workshop gantry. "
                     + "We gave up twenty-five units of hold for them. This is permanent work.");
@@ -76,11 +79,19 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         dialog.getTextPanel().addImage(CompanyManagementGuide.portrait());
         dialog.getTextPanel().addPara("CASTLE / COMPANY OFFICER");
     }
+    private static boolean personalYard(FleetMemberAPI ship) {
+        var market = CompanyYard.dockedMarket();
+        return ship != null && ship.getId().equals(CerberusCompanyStart.startingShipId())
+                && market != null && "jangala".equals(market.getPlanetEntity().getId());
+    }
     private static void review(InteractionDialogAPI dialog, FleetMemberAPI ship) {
         portrait(dialog);
         if (CerberusCompanyStart.conversionRequired())
-            dialog.getTextPanel().addPara("Before we call her home, Commander, we need bunks for our people and a place to work. "
-                    + "This is the required yard conversion. Review the bill, then choose Install conversion below.");
+            dialog.getTextPanel().addPara(personalYard(ship)
+                    ? "Nessa Venn met us at the berth. Took one look at the patch under the collar and asked if I'd done it myself. "
+                    + "I told her I'd supervised. She remembers what that means. Here's her estimate, Captain. She's kept to her word."
+                    : "The yard can make room for bunks and a workshop. I've asked them to leave the sound compartments alone. "
+                    + "Have a look at the estimate, Captain. We need to get this right.");
         dialog.getTextPanel().addPara("Mercenary Company Conversion" + (ship == null ? "" : " - " + ship.getShipName()));
         dialog.getTextPanel().addPara("Permanent installation: +18 personnel capacity, -25 cargo capacity, expanded barracks, "
                 + "company command eligibility and one workshop gantry. The existing single boat berth remains; the hullmod includes no boat or mech.");
@@ -90,8 +101,8 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         dialog.getTextPanel().addPara("Yard cost: 5,000 credits / Castle's reserved payment: " + reserved
                 + " / Due from fleet: " + cash + " / Fleet funds: " + credits + " / Short by: "
                 + Math.max(0, cash - Math.max(0, credits)));
-        if (reserved > 0) dialog.getTextPanel().addPara("That payment is held for Second Wind's conversion. "
-                + "It cannot be spent on trade or other repairs. The first Hermes and first squad also have separate prepaid stores.");
+        if (reserved > 0) dialog.getTextPanel().addPara("I've kept this payment aside since we left the Claim. "
+                + "We won't have to touch what's left in the ship's account. The shuttle parts and first squad's stores are paid for too.");
         String failure = CompanyYard.refusal(ship, CompanyYard.dockedMarket());
         if (failure != null) dialog.getTextPanel().addPara(failure);
         dialog.getOptionPanel().clearOptions();

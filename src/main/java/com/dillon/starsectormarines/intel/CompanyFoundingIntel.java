@@ -27,9 +27,13 @@ public final class CompanyFoundingIntel extends BaseIntelPlugin {
     @Override public void createSmallDescription(TooltipMakerAPI info, float width, float height) {
         info.addImage(CompanyManagementGuide.portrait(), 96, 96, 0);
         info.addPara("CASTLE / COMPANY OFFICER", 8);
-        info.addPara("Second Wind carried your crew away from an abandoned mining colony. "
-                + "You got her flying; Castle kept the crew supplied. Now the pooled money must "
-                + "turn a patched freighter into a livelihood. Ship repairs and trained recruits come first.", 8);
+        info.addPara("Second Wind carried your crew off Harker's Claim, an independent mining asteroid abandoned by its operator. "
+                + "The departure roster still has Castle's additions in the margin. Everyone on it is counting on this ship lasting "
+                + "long enough to earn a living.", 8);
+        var destination = CerberusCompanyStart.destination();
+        if (destination != null && "jangala".equals(destination.getId()))
+            info.addPara("Castle's contact on Jangala is Nessa Venn, a yard forewoman from her old ore runs. "
+                    + "Nessa has agreed to take on the conversion and hold your prepaid stores.", 8);
         info.addPara(CerberusCompanyStart.instructions(), 8);
         int reserved = CompanyYard.reservedCredits(CerberusCompanyStart.startingShip());
         if (reserved > 0) info.addPara("Castle's conversion reserve: " + reserved
