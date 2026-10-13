@@ -41,7 +41,27 @@ public final class TurretSlotResolver {
     private static final Map<String, float[][]> CACHE_BY_HULL =
             new ConcurrentHashMap<>();
 
+    /**
+     * Where a hull's {@code .ship} specification comes from when no game is loaded.
+     *
+     * <p>Consulted only after the game has failed to answer, exactly as
+     * {@link HullFootprintResolver.HullDimensions} is: outside a game every hull would otherwise
+     * resolve to no slots, so an armed craft would fly unarmed and say nothing.
+     */
+    public interface HullSpecSource {
+        /** The parsed {@code .ship} for {@code hullId}; throws when there is none. */
+        JSONObject spec(String hullId) throws Exception;
+    }
+
+    private static volatile HullSpecSource fallbackSource;
+
     private TurretSlotResolver() {}
+
+    /** Points the resolver at a stand-in for the loaded game's hull specs, and drops what it resolved without one. Pass {@code null} to go back to the game alone. */
+    public static synchronized void useHullSpecs(HullSpecSource source) {
+        fallbackSource = source;
+        CACHE_BY_HULL.clear();
+    }
 
     /**
      * Returns the mountable weapon-slot positions for {@code hullId}, each a
@@ -58,7 +78,7 @@ public final class TurretSlotResolver {
     private static float[][] doResolve(String hullId) {
         String path = "data/hulls/" + hullId + ".ship";
         try {
-            JSONObject spec = Global.getSettings().loadJSON(path);
+            JSONObject spec = loadSpec(hullId, path);
             List<float[]> out = new ArrayList<>();
             for (WeaponSlot slot : WeaponSlotParser.parse(spec)) {
                 if (MOUNTABLE.contains(slot.type())) {
@@ -70,6 +90,16 @@ public final class TurretSlotResolver {
             LOG.warn("TurretSlotResolver: " + hullId + " (" + path + ") — "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
             return EMPTY;
+        }
+    }
+
+    private static JSONObject loadSpec(String hullId, String path) throws Exception {
+        try {
+            return Global.getSettings().loadJSON(path);
+        } catch (Exception game) {
+            HullSpecSource source = fallbackSource;
+            if (source == null) throw game;
+            return source.spec(hullId);
         }
     }
 }
