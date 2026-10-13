@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.HostileShipIntel;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
@@ -557,6 +558,11 @@ public class BriefingScreen implements Screen {
                 MissionForceEnvelope.oppositionExpectation(mission.risk), ""));
         rows.add(BriefingViewModel.info("enemy-air", "Enemy air",
                 summarizeWings(mission.enemyFighterSupport, Faction.DEFENDER), ""));
+        String hostileShip = surveyPlan == null ? null
+                : HostileShipIntel.line(surveyPlan.hostileShip(), Strings::get);
+        if (hostileShip != null) {
+            rows.add(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
+        }
         return List.copyOf(rows);
     }
 
