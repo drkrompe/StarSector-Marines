@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -19,6 +20,87 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MarineArmoryTest {
+
+    @Test
+    void namedRegularSquadExplicitlyRefitsIntoPowerSuitsWithoutLosingItsPeopleOrHistory() {
+        MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
+        MarineSquad squad = roster.createSquad();
+        roster.renameSquad(squad.id(), "Rooks");
+        List<MarineSoldier> people = roster.recruitToSquad(squad.id(), MarineSquad.CAPACITY);
+        String weapons = SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS;
+        String regularPlan = SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR;
+        assertEquals(SquadEquipmentResult.APPLIED,
+                roster.applySquadEquipment(squad.id(), weapons, regularPlan));
+        List<String> ids = List.copyOf(squad.memberIds());
+        List<String> names = people.stream().map(MarineSoldier::name).toList();
+        for (MarineSoldier person : people) {
+            person.career().recordDeployment(true, false, 19, 7, 12f, 1f, 2f, 3);
+        }
+        squad.career().recordMission(true);
+        SquadCareer formationHistory = squad.career();
+        CampaignMarineDeployment before = CampaignMarineDeployment.freezeSelection(
+                roster, Set.of(squad.id()), MarineSquad.CAPACITY);
+
+        roster.armory().unlockArmor(MarineArmorPattern.RED_ELITE);
+        assertEquals(SquadEquipmentResult.APPLIED,
+                roster.applySquadEquipment(squad.id(), weapons, regularPlan));
+        CampaignMarineDeployment stillRegular = CampaignMarineDeployment.freezeSelection(
+                roster, Set.of(squad.id()), MarineSquad.CAPACITY);
+        assertTrue(stillRegular.commitments().stream().allMatch(
+                seat -> seat.armorClass() == ArmorClass.STANDARD));
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
+                squad.id(), weapons, SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR));
+        CampaignMarineDeployment upgraded = CampaignMarineDeployment.freezeSelection(
+                roster, Set.of(squad.id()), MarineSquad.CAPACITY);
+
+        assertSame(squad, roster.squadById(squad.id()));
+        assertEquals("Rooks", squad.name());
+        assertEquals(ids, squad.memberIds());
+        assertSame(formationHistory, squad.career());
+        assertEquals(1, squad.career().missionsDeployed());
+        assertEquals(1, squad.career().missionsWon());
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            MarineSoldier person = roster.soldierById(ids.get(billet));
+            assertSame(people.get(billet), person);
+            assertEquals(names.get(billet), person.name());
+            assertEquals(1, person.career().missionsDeployed());
+            assertEquals(1, person.career().missionsWon());
+            assertEquals(19, person.career().roundsFired());
+            assertEquals(7, person.career().roundsHit());
+            assertEquals(12f, person.career().damageDealt());
+            assertEquals(1f, person.career().friendlyFireDamage());
+            assertEquals(2f, person.career().damageTaken());
+            assertEquals(3, person.career().kills());
+            assertEquals(0, person.career().timesWounded());
+            var seat = upgraded.commitments().get(billet);
+            assertEquals(before.commitments().get(billet).campaignSoldierId(), seat.campaignSoldierId());
+            assertEquals(before.commitments().get(billet).campaignSquadId(), seat.campaignSquadId());
+            assertEquals(before.commitments().get(billet).campaignFireTeamIndex(), seat.campaignFireTeamIndex());
+            assertEquals(60f, seat.armorCapacity());
+            assertEquals(ArmorClass.POWER_SUIT, seat.armorClass());
+        }
+    }
+
+    @Test
+    void heavyPlansAreUnavailableUntilOwnedAndRegularPlansNeverConvert() {
+        MarineArmory armory = new MarineArmory();
+        SquadArmorPlan heavy = SquadEquipmentDoctrines.armorPlanById(
+                SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR);
+        assertFalse(armory.canIssue(heavy));
+        assertNull(armory.armorDoctrineById(heavy.id()));
+        assertTrue(armory.armorDoctrines().stream().noneMatch(d -> d.id().equals(heavy.id())));
+        armory.unlockArmor(MarineArmorPattern.RED_ELITE);
+        assertTrue(armory.canIssue(heavy));
+        assertTrue(armory.issue(heavy).issueIds().stream().allMatch(
+                id -> MarineArmorCatalogRegistry.require(id).armorClass() == ArmorClass.POWER_SUIT));
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            if (plan.armorClass() == ArmorClass.STANDARD) {
+                assertTrue(armory.issue(plan).issueIds().stream().allMatch(
+                        id -> MarineArmorCatalogRegistry.require(id).armorClass() == ArmorClass.STANDARD));
+            }
+        }
+    }
 
     @Test
     void newCompanyKeepsOnlyBaselineTechnologyAcrossLoadAndFirstVictory() throws Exception {

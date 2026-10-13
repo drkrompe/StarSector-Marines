@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.marine.ArmorClass;
+
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
@@ -529,6 +531,7 @@ public final class BattleFixtureJson {
             encoded.put("armorCapacity", seat.armorCapacity());
             encoded.put("armorRating", seat.armorRating());
             encoded.put("armorMoveSpeedMult", seat.armorMoveSpeedMult());
+            encoded.put("armorClass", seat.armorClass().key);
             encoded.put("armorIncomingAccuracyMult",
                     seat.armorIncomingAccuracyMult());
             if (seat.campaignSquadId() != null) {
@@ -602,7 +605,9 @@ public final class BattleFixtureJson {
                     squad != null && squad.getBoolean("leader"),
                     squad != null ? squad.getInt("strength") : 0,
                     squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
-                    squad != null ? (float) squad.optDouble("moraleRecoveryMultiplier", 1d) : 1f));
+                    squad != null ? (float) squad.optDouble("moraleRecoveryMultiplier", 1d) : 1f,
+                    encoded.has("armorClass") ? ArmorClass.parse(encoded.optString("armorClass", null), "committed seat")
+                            : ArmorClass.STANDARD));
         }
         return List.copyOf(seats);
     }

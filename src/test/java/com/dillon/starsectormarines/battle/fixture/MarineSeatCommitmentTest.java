@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +41,7 @@ class MarineSeatCommitmentTest {
                 4.5f,
                 0.92f,
                 0.81f,
-                new CampaignSquadTag("squad-3", "Harrier", true, 9, 2));
+                new CampaignSquadTag("squad-3", "Harrier", true, 9, 2)).withArmorClass(ArmorClass.POWER_SUIT);
 
         MarineSeatCommitment commitment = MarineSeatCommitment.capture(loadout);
         MarineLoadout restored = commitment.toLoadout();
@@ -52,6 +53,7 @@ class MarineSeatCommitmentTest {
         assertEquals(SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
                 restored.specialDef().id());
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, restored.armorFamily);
+        assertEquals(ArmorClass.POWER_SUIT, restored.armorClass);
         assertEquals(63f, restored.armorCapacity);
         assertEquals(4.5f, restored.armorRating);
         assertEquals(0.92f, restored.armorMoveSpeedMult);
@@ -87,6 +89,7 @@ class MarineSeatCommitmentTest {
                 CampaignMarineDeployment.fromCommitments(commitments);
 
         assertEquals(commitments, deployment.commitments());
+        assertEquals(ArmorClass.STANDARD, deployment.seat(0).armorClass);
         assertEquals("marine-a", deployment.seat(0).campaignSoldierId);
         assertEquals("marine-b", deployment.seat(1).campaignSoldierId);
     }

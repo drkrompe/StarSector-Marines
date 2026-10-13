@@ -1,14 +1,13 @@
 # Integral armor systems
 
-> Late equipment should get *fun*, not thick. A breacher that boosts through a
-> doorway behind a shield is a different soldier; a breacher with more hit
-> points is the same soldier taking longer to kill.
+Integral systems make equipment interesting through bounded behavior. Base
+power-suit protection is a separate armor-pattern choice under
+`power-suit-infantry.md`; a system never supplies permanent capacity.
 
-Status: IN PROGRESS — declared, carried into battle, running with both halves,
-legible in the Armory before issue, exercising both resource modes, spent on an
-authored use policy, and worn by defenders. Battle presentation remains.
+Status: IN PROGRESS — systems and running presentation are established;
+hostile capability readability and special-item coordination remain open.
 Written: 2026-08-27
-Updated: 2026-08-28 — the authored use policy and defender adoption landed; what is left is battle presentation.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -23,13 +22,13 @@ that pays a fifth of its speed for plate — but it is not enough to make a
 late-game suit *interesting*. Every lever it has is a number that makes a
 firefight last longer.
 
-The measured arc does not need help. An endgame marine kills an opening one in
-1.30s while the reverse takes 19.04s, and only about 2.6x of that ~15x asymmetry
-comes from target armor; the rest is shooter capability. So there is no gap that
-more protection should close, and widening capacity would buy the arc nothing
-except the bullet-sponge feel the design is trying to avoid.
+Earlier synthetic end-to-end exchanges demonstrated a strong quality arc,
+but do not settle endurance per squad or the number of formations the player
+needs to manage. `power-suit-infantry.md` deliberately introduces greater base
+armor endurance. This story still owns behavior a suit can spend, not that
+pattern-level durability choice.
 
-The setting already supplies the better answer. Faction lore carries
+The setting also supplies distinct capability choices. Faction lore carries
 micro-missile support across Hegemony, League, and Tri-Tachyon traditions, the
 weapon model already anticipates micro-missile as a delivery mechanism, and the
 battle compositor already renders shoulder pods.
@@ -201,9 +200,9 @@ support, is direction rather than scope: see `integral-system-slate.md`.
   special item free.
 - The breacher's temporary protection has an explicit duration and expiry, and
   is visible in telemetry as its own mitigation rather than as inflated capacity.
-- The measured arc asymmetry does not grow through armor capacity: the
-  `TtkReportTest` band-versus-grade and arc bounds still hold, and the armor
-  contribution to the arc is reported alongside them.
+- Integral-system activation never increases base armor capacity or biological
+  structure. TTK evidence reports the armor contribution separately; power-suit
+  pattern tuning is accepted under `power-suit-field-acceptance.md`.
 - A suit's integral system is legible in the Armory before issue, per the
   standing visibility law — a player must be able to see what a suit does.
 

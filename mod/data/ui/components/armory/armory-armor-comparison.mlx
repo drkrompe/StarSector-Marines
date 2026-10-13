@@ -83,7 +83,7 @@
   .comparison-header { flex-direction: row; height: 22px; gap: 5px; }
   .comparison-name { width: 0px; flex-grow: 1; padding: 3px 2px; }
   .comparison-badge { height: 20px; padding: 2px 6px; border-width: 1px; text-align: center; }
-  .class-badge { width: 96px; background-color: #172b3b; border-color: #a5c6bc; }
+  .class-badge { width: 122px; background-color: #172b3b; border-color: #a5c6bc; }
   .tier-badge { width: 70px; background-color: #2b2718; border-color: #dfb84d; }
 
   .comparison-stat-group { flex-direction: column; height: 66px; gap: 2px; }

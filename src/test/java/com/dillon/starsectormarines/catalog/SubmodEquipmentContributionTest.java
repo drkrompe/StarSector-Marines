@@ -139,7 +139,7 @@ class SubmodEquipmentContributionTest {
             assertEquals("example.special-signal-smoke",
                     sim.world().specialEquipment(carrier).id());
             sim.throwSmoke(carrier, 4.5f, 1.5f);
-            assertEquals(1, sim.world().secondaryAmmo(carrier));
+            assertEquals(loadout.specialDef().startingAmmo() - 1, sim.world().secondaryAmmo(carrier));
             assertEquals(1, sim.smokeFields().throwsInFlight().size(),
                     "the contributed utility must execute through its typed activation");
 
@@ -336,8 +336,16 @@ class SubmodEquipmentContributionTest {
 
     private static JSONObject externalSpecial() throws Exception {
         JSONObject source = read("marine-special-equipment.equipment.json");
-        JSONObject special = new JSONObject(source.getJSONArray("equipment")
-                .getJSONObject(2).toString());
+        JSONArray equipment = source.getJSONArray("equipment");
+        JSONObject special = null;
+        for (int i = 0; i < equipment.length(); i++) {
+            JSONObject candidate = equipment.getJSONObject(i);
+            if (SpecialEquipmentRegistry.SMOKE_GRENADE_ID.equals(candidate.getString("id"))) {
+                special = new JSONObject(candidate.toString());
+                break;
+            }
+        }
+        if (special == null) throw new IllegalStateException("Core smoke fixture is missing");
         special.put("id", "example.special-signal-smoke");
         special.getJSONObject("catalog").put("displayName", "Signal Smoke");
         return new JSONObject().put("equipment", new JSONArray().put(special));

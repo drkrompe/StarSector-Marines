@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.marine.ArmorClass;
+
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
@@ -28,6 +30,7 @@ public final class MarineLoadout {
     public final String campaignSoldierId;
     public final CampaignSquadTag campaignSquad;
     public final LayeredArmorFamily armorFamily;
+    public final ArmorClass armorClass;
     public final float armorCapacity;
     public final float armorRating;
     public final float armorMoveSpeedMult;
@@ -95,6 +98,19 @@ public final class MarineLoadout {
                          float armorCapacity, float armorRating,
                          float armorMoveSpeedMult, float armorIncomingAccuracyMult,
                          CampaignSquadTag campaignSquad, IntegralSystemDef integralSystem) {
+        this(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, secondaryAmmo, campaignSoldierId, armorFamily,
+                armorCapacity, armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult,
+                campaignSquad, integralSystem, ArmorClass.STANDARD);
+    }
+
+    public MarineLoadout(UnitRole role, Objective objective, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, int secondaryAmmo, String campaignSoldierId,
+            LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
+            float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+            CampaignSquadTag campaignSquad, IntegralSystemDef integralSystem, ArmorClass armorClass) {
+        this.armorClass = armorClass != null ? armorClass : ArmorClass.STANDARD;
         this.integralSystem = integralSystem;
         this.campaignSquad = campaignSquad;
         this.role = role;
@@ -150,6 +166,14 @@ public final class MarineLoadout {
                 armorIncomingAccuracyMult, campaignSquad, integralSystem);
     }
 
+    /** Copies exact protection identity without consulting presentation or live catalogs. */
+    public MarineLoadout withArmorClass(ArmorClass armorClass) {
+        return new MarineLoadout(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, secondaryAmmo, campaignSoldierId, armorFamily, armorCapacity,
+                armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad,
+                integralSystem, armorClass);
+    }
+
     public WeaponDef primaryDef() {
         return primaryWeaponId != null ? WeaponRegistry.require(primaryWeaponId) : null;
     }
@@ -160,6 +184,7 @@ public final class MarineLoadout {
 
     /** Applies this issued loadout to one deboarding marine construction spec. */
     public void seedInto(EntitySpec marine) {
+        marine.armorClass(armorClass);
         marine.role(role);
         marine.assignedObjective(objective);
         WeaponDef primary = primaryDef();

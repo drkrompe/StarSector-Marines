@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
@@ -168,7 +169,10 @@ class CanonicalConquestLaunchFixtureTest {
                     "%s-squad-%02d".formatted(prefix, squad),
                     seat.campaignSquadLabel(),
                     i % MarineSquad.CAPACITY == 0,
-                    MarineSquad.CAPACITY, seat.campaignFireTeamIndex()));
+                    MarineSquad.CAPACITY, seat.campaignFireTeamIndex(),
+                    CommandGroupIdentity.actingNco(
+                            "%s-squad-%02d".formatted(prefix, squad), seat.campaignSquadLabel()),
+                    seat.moraleRecoveryMultiplier(), seat.armorClass()));
         }
         return List.copyOf(stable);
     }

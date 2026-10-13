@@ -713,6 +713,7 @@ public final class UnitRosterService {
                     BattleComponents.MECH_LAYERED_RIGHT_SHOULDER,
                     variant.rightShoulder != null ? variant.rightShoulder.appearanceSelector : 0);
         }
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_ARMOR_CLASS, spec.armorClass);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, spec.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, spec.faction);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, spec.name);

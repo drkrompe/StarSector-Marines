@@ -719,7 +719,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 soldier.id(), soldier.armorDef().appearanceFamily(),
                 soldier.armorDef().armorCapacity(), soldier.armorDef().armorRating(),
                 soldier.armorDef().moveSpeedMult(),
-                soldier.armorDef().incomingAccuracyMult(), null).seedInto(spec);
+                soldier.armorDef().incomingAccuracyMult(), null)
+                .withArmorClass(soldier.armorDef().armorClass()).seedInto(spec);
         return spec;
     }
 

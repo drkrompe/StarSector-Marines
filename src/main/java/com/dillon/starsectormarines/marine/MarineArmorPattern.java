@@ -11,7 +11,7 @@ public enum MarineArmorPattern {
     BLUE_SCOUT("armor.scout", "Janus scout suit", 2, "graphics/ui/armory/armor-tier-2-scout.png",
             4f, 4f, 1.06f, 0.88f),
     RED_ELITE("armor.heavy", "XIV heavy battlesuit", 4, "graphics/ui/armory/armor-tier-4-heavy.png",
-            20f, 12f, 0.86f, 0.98f),
+            60f, 12f, 0.86f, 0.98f),
     OUTLAW("armor.outlaw", "Blackforge patchwork rig", 2, "graphics/ui/armory/armor-tier-2-scout.png",
             7f, 4f, 1.02f, 0.94f),
     ARMY_GREEN("armor.line", "Legionary line suit", 3, "graphics/ui/armory/armor-tier-3-combat.png",

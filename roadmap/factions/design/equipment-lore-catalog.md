@@ -4,7 +4,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — added the common-market Muster autogun, Quarry breaker
+Updated: 2026-10-13 — heavy shells declare power-suit infantry class while advanced regular equipment remains distinct.
 cannon, and Pioneer utility rocket cradle as lower-performance mech components
 whose circulation does not make them faction defaults.
 
@@ -70,6 +70,16 @@ All three are valid future subsystem-inventory or market stock. None belongs in
 maintain one; an authored doctrine must choose that weaker fit explicitly.
 
 ## Armor patterns
+
+The XIV, Specter, coalition Bulwark, Reliquary, Lion's Mantle, Foundry-breaker,
+and Arbalest are explicitly POWER_SUIT infantry equipment. This is mod direction
+about wearable mechanized shells, not a vanilla-canon claim or a faction-wide
+bonus. The named wearer remains an infantry marine. Advanced Redoubt, Outrider,
+and Corpsman equipment remains STANDARD; powered assistance and high tier alone
+do not imply this category. `power-suit-infantry.md` owns the shared direction
+and the distinct XIV, Specter, and Foundry-breaker visual concepts. Existing
+patterns retain their credible acquisition channels; classification adds no new
+license, fabrication, upkeep, or repair authority.
 
 | Stable id | Shipped identity and origin | Credible circulation | Deliberate limits |
 | --- | --- | --- | --- |

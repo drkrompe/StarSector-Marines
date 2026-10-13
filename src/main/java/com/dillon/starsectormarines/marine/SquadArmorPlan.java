@@ -24,9 +24,17 @@ public record SquadArmorPlan(
         String displayName,
         String description,
         ArmorTradition tradition,
-        SquadRoleMix mix) implements Serializable {
+        SquadRoleMix mix,
+        ArmorClass armorClass) implements Serializable {
+
+    public SquadArmorPlan(String id, String displayName, String description,
+            ArmorTradition tradition, SquadRoleMix mix) {
+        this(id, displayName, description, tradition, mix, ArmorClass.STANDARD);
+    }
 
     public SquadArmorPlan {
+        // Older serialized record components arrive as null.
+        if (armorClass == null) armorClass = ArmorClass.STANDARD;
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Armour plan id is required");
         }

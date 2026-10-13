@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -237,7 +238,7 @@ final class BattleSquadOverlayModel {
                 systemStatus(systems, system, unit),
                 profile.experienceTier().displayName,
                 profile.aptitude().displayName,
-                sim.role().role(unit));
+                sim.role().role(unit), sim.identity().armorClass(unit));
     }
 
     private static MemberTile tile(String id, int team, int slot, MemberState member) {
@@ -262,6 +263,7 @@ final class BattleSquadOverlayModel {
                         + color(hpColor) + ";",
                 fullName + (member.leader() ? " · SQUAD LEADER" : ""),
                 "FIRETEAM " + (char) ('A' + team) + " · "
+                        + member.armorClass().displayName() + "\n"
                         + number(member.hp()) + "/" + number(member.maxHp()) + " HP" + armor,
                 "PRIMARY · " + member.primaryName(),
                 member.specialName() != null
@@ -352,7 +354,8 @@ final class BattleSquadOverlayModel {
                        String primaryName, String primaryAbbrev, Color primaryColor,
                        String specialName, String specialAbbrev, String specialStatus,
                        String systemName, String systemStatus,
-                       String experience, String aptitude, UnitRole role) { }
+                       String experience, String aptitude, UnitRole role,
+                       ArmorClass armorClass) { }
 
     record FireTeamView(String id, String headerId, String labelId, String strengthId,
                         String membersId, String label, String strength,

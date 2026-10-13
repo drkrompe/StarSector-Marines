@@ -6,9 +6,7 @@ data, doctrine as a role mix resolved against access, and the Armory surface
 that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-08-30 — a role's billets now spread across the patterns at the
-top of its band instead of all taking the single best one, and the Armory rates
-and ranks what it lists.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -101,8 +99,9 @@ doctrine's business and the kit quality is the company's, so:
 
 **A role with several billets does not put all of them in one suit.** For each
 role the resolver takes the best tier it can reach and deals *every* pattern
-available at that tier across that role's billets. A section with two weapons
-carriers, offered a missile pod and a corpsman's satchel, fields one of each.
+available at that tier and in the plan's armor class across that role's billets.
+Distinct same-class support capabilities can therefore both be issued; the
+STANDARD Corpsman and POWER_SUIT Arbalest belong to different sections.
 
 Only the top band spreads. A tier is a price band, so patterns inside one are
 comparable by construction and choosing between them is a matter of what the
@@ -114,9 +113,10 @@ as obviously right and hides two real defects:
 
 - **A shipped suit can be unwearable.** Two patterns in the same role, tradition
   and tier are separated only by the tie-break, which was the alphabet. The
-  Hegemony's corpsman rig and its Arbalest support battlesuit share that cell, so
-  no company owning both ever fielded a corpsman, and the field-aid capability
-  quietly did not exist at the top of its ladder.
+  Hegemony's corpsman rig and its Arbalest support battlesuit shared that cell
+  before the armor-class split, so issuing only one made the corpsman
+  unreachable. They now belong to different classes; the general same-class
+  spreading law still keeps other worthwhile peer patterns reachable.
 - **A contributed pattern can be unreachable.** The submod contract is add-only
   by design, so an author cannot replace a core id — and if their pattern occupies
   a cell a core one already holds, it can never be issued either. There was no
@@ -191,6 +191,22 @@ and the ladder between them becomes the thing that expresses access:
   covers, a shove is priced in soak-equivalents, and the total is scaled by how
   much of the time the system is up. It is a shape check and the game never
   reads it.
+
+## Armor class beside role and access
+
+Role answers the infantry job, tier answers the issued quality band, and armor
+class answers whether the pattern is STANDARD equipment or a POWER_SUIT. Class
+is explicit data; none of those axes is derived from another. A Kestrel riot
+shell remains STANDARD ASSAULT equipment, while an Arbalest is POWER_SUIT SUPPORT.
+Redoubt, Outrider, and Corpsman remain advanced STANDARD equipment.
+
+A tactic sheet declares the class it equips. Its resolver considers only that
+class, including fallback within it; learning a power-suit pattern does not turn
+a regular sheet into a mechanized formation. The six heavy faction sheets ask
+for POWER_SUIT issue. A sheet with no acquired pattern in its required class is
+unavailable rather than advertised with a silently different issue. Existing
+role and tradition preferences apply inside that boundary. Refitting preserves
+the twelve named billets, and `power-suit-infantry.md` owns the category direction.
 
 ## The role set
 
@@ -360,8 +376,9 @@ nothing says so rather than rendering blank.
   understood. Nothing about persistence changed.
 - `DebugCompany`'s `bestArmorTier(doctrine) == plan.maxArmorTier()` exact match
   is deleted rather than relaxed. It existed only because doctrines carried
-  tier; a company now applies its ceiling to whatever plan it is running, and
-  every plan is admissible at every stage.
+  tier. A company applies its ceiling to patterns, then selects only plans whose
+  required armor class it can issue. POWER_SUIT plans are unavailable before
+  that class enters stock; regular plans retain their progression inside STANDARD.
 - `DebugCompanyStage`'s ladder was non-monotonic — Reinforced dropped back to
   SEASONED between two HARDENED stages, so a company lost its battlesuits by
   growing. Fixed alongside this work.

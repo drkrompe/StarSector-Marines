@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -112,6 +113,8 @@ class BattleSquadOverlayModelTest {
                     .hasClass("squad-tooltip-hidden"));
             assertEquals("Arden Vale · SQUAD LEADER",
                     instance.requireElement("battle-squad-tooltip-title").text());
+            assertTrue(instance.requireElement("battle-squad-tooltip-team").text()
+                    .contains("Power suit"));
             assertEquals("PRIMARY · PLS-3 Lancer",
                     instance.requireElement("battle-squad-tooltip-primary").text());
             assertEquals("SPECIAL · Smoke Grenade · 2 LEFT",
@@ -161,7 +164,7 @@ class BattleSquadOverlayModelTest {
                         leader ? "SMK" : null, leader ? "2 LEFT" : "",
                         leader ? "Kestrel Sweep" : null,
                         leader ? "READY" : "", "Veteran", "Gifted",
-                        UnitRole.COMBATANT));
+                        UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD));
             }
         }
         return members;

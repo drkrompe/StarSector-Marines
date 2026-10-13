@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — trees and multi-cell mineral formations share whole-object structural damage with matching remnants.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 ## Purpose
 
@@ -229,10 +229,14 @@ vocabulary, but it is never damage authority.
 
 ## Platform identities
 
-Infantry armor patterns remain composable equipment rather than new unit
-types. Armorless troops omit the armor capability. Scout, combat, and elite
-patterns may differ in capacity and rating as well as their movement and incoming-
-accuracy tradeoffs.
+Infantry armor patterns remain composable equipment. Their explicit STANDARD or
+POWER_SUIT class identifies the wearer's equipment category without creating a
+new roster or battle unit type. A power suit supplies substantially more authored
+armor endurance while the wearer retains biological infantry structure. Armor
+break exposes that same named wearer; it never creates a second actor. Armorless
+troops omit the armor capability. Recon, line, assault, and support roles remain
+independent of class and may differ in capacity and rating as well as movement
+and incoming-accuracy tradeoffs. `power-suit-infantry.md` owns the category direction.
 
 Mech variants own distinct durability profiles. The Bulwark is the high-capacity,
 high-rating anchor; the Hound gives up armor endurance for mobility; the
