@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -118,12 +119,20 @@ public final class TenderThreat {
      * no longer listed is forgotten.
      */
     static boolean anyHit(List<Long> builders, World world, Map<Long, Float> lastHp) {
+        return hits(builders, world, lastHp, new ArrayList<>());
+    }
+
+    /** As {@link #anyHit}, appending each builder that lost hit points to {@code struck}. */
+    static boolean hits(List<Long> builders, World world, Map<Long, Float> lastHp, List<Long> struck) {
         boolean hit = false;
         lastHp.keySet().retainAll(new HashSet<>(builders));
         for (Long id : builders) {
             float hp = world.hp(id);
             Float before = lastHp.put(id, hp);
-            if (before != null && hp < before) hit = true;
+            if (before != null && hp < before) {
+                hit = true;
+                struck.add(id);
+            }
         }
         return hit;
     }

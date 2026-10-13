@@ -141,6 +141,11 @@ public final class TenderBuildScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         switch (loop) {
             case "build" -> {
+                verdicts.add(Verdict.of("the-work-is-heard-once-not-per-builder",
+                        t.cueCount(TenderCues.Kind.WELD) > 0 && t.cueCount(TenderCues.Kind.WELD) <= t.workTicksSeen / TenderCues.WELD_GAP_TICKS + 1,
+                        t.cueCount(TenderCues.Kind.WELD) + " weld sounds over " + t.workTicksSeen + " working ticks"));
+                verdicts.add(Verdict.of("completion-is-cued-once",
+                        t.cueCount(TenderCues.Kind.COMPLETE) == 1, t.cueCount(TenderCues.Kind.COMPLETE) + " completion cues"));
                 verdicts.add(Verdict.of("arrives-and-starts-work", t.workStart >= 0,
                         "work began at tick " + t.workStart));
                 verdicts.add(Verdict.of("builders-fly-out-and-reach-the-site",
@@ -205,6 +210,9 @@ public final class TenderBuildScene implements BehaviorScene {
                         "order " + t.order.phase() + ", " + tender.orders().size() + " still on the line"));
             }
             case "ambush" -> {
+                verdicts.add(Verdict.of("the-stand-down-is-cued",
+                        t.cueCount(TenderCues.Kind.ALERT) >= 1,
+                        t.cueCount(TenderCues.Kind.ALERT) + " stand-down pings, " + t.cueCount(TenderCues.Kind.STUN) + " stun bursts"));
                 int blockTicks = Math.round(TenderThreat.BLOCK_SECONDS / BattleSimulation.TICK_DT);
                 verdicts.add(Verdict.of("builders-are-shot-by-someone-unseen", t.firstHit >= 0 && t.firstRaiderSeen < 0,
                         "first builder hit at tick " + t.firstHit + ", " + t.builderDamage + " HP of builder damage, marksman "
@@ -270,6 +278,7 @@ public final class TenderBuildScene implements BehaviorScene {
         metrics.put("raidersAlive", t.raidersAlive());
         metrics.put("firstRaiderHurtTick", t.firstRaiderHurt);
         metrics.put("firstBuilderHitTick", t.firstHit);
+        for (TenderCues.Kind kind : TenderCues.Kind.values()) metrics.put("cue" + kind, t.cueCount(kind));
         metrics.put("builderDamage", t.builderDamage);
         metrics.put("buildersLost", tender.buildersLost());
         metrics.put("underFireTicks", t.underFireTicks);
@@ -291,6 +300,8 @@ public final class TenderBuildScene implements BehaviorScene {
         int defenceEverOut;
         int firstRaiderHurt = -1;
         int firstHit = -1;
+        int workTicksSeen;
+        private final int[] cues = new int[TenderCues.Kind.values().length];
         final List<Integer> lossTicks = new ArrayList<>();
         int relaunch = -1;
         int lastHit = -1;
@@ -324,8 +335,14 @@ public final class TenderBuildScene implements BehaviorScene {
             this.order = order;
         }
 
+        int cueCount(TenderCues.Kind kind) {
+            return cues[kind.ordinal()];
+        }
+
         @Override public void observe(BattleSimulation sim, int tick) {
             ConstructionOrder.Phase phase = order.phase();
+            for (TenderCues.Cue cue : sim.tenders().cues().cuesThisFrame()) cues[cue.kind().ordinal()]++;
+            if (phase == ConstructionOrder.Phase.WORKING) workTicksSeen++;
             if (phase == ConstructionOrder.Phase.WORKING) {
                 if (workStart < 0) workStart = tick;
                 workTicks++;
