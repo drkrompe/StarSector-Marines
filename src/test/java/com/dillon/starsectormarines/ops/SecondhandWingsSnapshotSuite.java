@@ -68,6 +68,12 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         frames.add(frame(context, hull, reactor, boats, model, null, "01-repair-first-hermes.png"));
         model.fabricateAction().run();
         frames.add(frame(context, hull, reactor, boats, model, null, "01b-first-hermes-repaired.png"));
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
+        roster.mechBay().beginLabLesson();
+        frames.add(frame(context, hull, reactor, boats, model, null, BoatBayRestorationModel.Row.hidden(), 0,
+                CompanyNotices.unread(roster, BoatBayState.DAMAGED), "01c-unread-room-opportunities.png"));
+        frames.add(missionNews(context, CompanyNotices.unread(roster, BoatBayState.DAMAGED)));
         AtomicInteger credits = new AtomicInteger(15000);
         boolean[] restored = {false};
         var wings = new SecondhandWingsModel(reactor, boats,
@@ -82,6 +88,9 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         wings.row().get().action().run();
         frames.add(frame(context, hull, reactor, boats, model, wings, "03-separate-bay-required.png"));
         wings.dismiss();
+        CompanyNotices.Notice.SECONDHAND_WINGS.review(roster);
+        frames.add(frame(context, hull, reactor, boats, model, null, BoatBayRestorationModel.Row.hidden(), 0,
+                CompanyNotices.unread(roster, BoatBayState.DAMAGED), "03a-other-news-remains.png"));
         model.backToDeckAction().run();
         frames.add(frame(context, hull, reactor, boats, model, null,
                 new BoatBayRestorationModel.Row(true, true, credits.get(), null, () -> { }),
@@ -116,6 +125,13 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
     private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
                                    BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
                                    BoatBayRestorationModel.Row restoration, int selected, String name) throws Exception {
+        return frame(context, hull, reactor, boats, model, wings, restoration, selected, List.of(), name);
+    }
+
+    private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
+                                   BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
+                                   BoatBayRestorationModel.Row restoration, int selected,
+                                   List<CompanyNotices.Notice> notices, String name) throws Exception {
         var ship = CompanyDeck.home(hull, 42, null, List::of, List::of, () -> {
             boolean[] occupied = new boolean[boats.berths()];
             for (int i = 0; i < occupied.length; i++) occupied[i] = boats.boats().get(i) != null;
@@ -153,6 +169,7 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
                 var document = new UiDocument(markup.root());
                 markup.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard());
+                MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.BOAT_DECK, MarineOpsPageNav.ANY_SHIP, notices);
                 document.canvases().set(markup.requireElement("boat-deck-canvas"), new BoatDeckCanvas(ship, () -> bay,
                         model::selectedBerthIndex, () -> selected,
                         n -> n >= 0 && n < boats.berths() && boats.boats().get(n) != null));
@@ -164,5 +181,19 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
                         MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT));
             }
         } finally { ship.dismiss(); }
+    }
+
+    private SnapshotArtifact missionNews(SnapshotContext context, List<CompanyNotices.Notice> notices) throws Exception {
+        var props = MissionSelectScreen.previewProps();
+        MissionSelectScreen.putCompanyNews(props, notices, () -> { });
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), MissionSelectScreen.COMPONENT_PATHS);
+        try (var markup = loader.reloadAndBuild(new Reactor(), MissionSelectScreen.ROOT_COMPONENT, props)) {
+            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+            markup.styles().forEach(document::addStyleSheet);
+            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            return new SnapshotArtifact("01d-contract-board-news.png", renderer.renderRelative(document, 1920, 1080, 1f,
+                    MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT));
+        }
     }
 }

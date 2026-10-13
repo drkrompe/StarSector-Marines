@@ -194,7 +194,7 @@ public final class BarracksScreen implements Screen {
             viewModel.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BARRACKS, context::roomAboard);
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BARRACKS, context::roomAboard, CompanyNotices.current());
         if (cardBindings != null) cardBindings.update(document, markupInstance, viewModel, specSheets);
         if (document != null) document.advance(dt);
         if (guide != null) guide.update();
