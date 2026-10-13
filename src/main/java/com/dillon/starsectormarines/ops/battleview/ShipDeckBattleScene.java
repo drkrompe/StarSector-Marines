@@ -1002,6 +1002,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (view == null) throw new IllegalArgumentException("a room framing is required");
         EnumSet<RenderLayer> selected = EnumSet.copyOf(layers);
         if (selected.contains(RenderLayer.GROUND)) selected.add(RenderLayer.DECK_LIGHTING);
+        if (selected.contains(RenderLayer.GROUND)) selected.add(RenderLayer.NIGHT_LIGHTING);
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
@@ -1043,6 +1044,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (view == null) throw new IllegalArgumentException("a camera framing is required");
         EnumSet<RenderLayer> selected = EnumSet.copyOf(layers);
         if (selected.contains(RenderLayer.GROUND)) selected.add(RenderLayer.DECK_LIGHTING);
+        if (selected.contains(RenderLayer.GROUND)) selected.add(RenderLayer.NIGHT_LIGHTING);
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {

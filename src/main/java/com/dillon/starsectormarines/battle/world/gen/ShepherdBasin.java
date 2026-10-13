@@ -17,11 +17,13 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 
 /** The same Asharu recovery basin on three visits. Battle progression belongs to its future host. */
 public final class ShepherdBasin {
@@ -63,7 +65,30 @@ public final class ShepherdBasin {
         for (var poi : map.pointsOfInterest) requireRoute(map, poi.interiorAnchorX, poi.interiorAnchorY);
         requireRoute(map, 194, 2);
         requireRoute(map, 301, 145);
+        if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting());
         return map;
+    }
+
+    /** Emergency and portable lights survive the outage; Cold Start restores the yard circuit. */
+    private static NightLighting nightLighting() {
+        return new NightLighting(.76f, List.of(
+                light(12,79,9,"emergency"), light(12,103,9,"emergency"),
+                light(13,51,8,"emergency"), light(35,94,12,"emergency"),
+                light(52,108,11,"emergency"), light(78,118,13,"emergency"),
+                light(92,104,11,"emergency"), light(113,128,11,"emergency"),
+                light(117,104,10,"emergency"), light(144,105,10,"emergency"),
+                light(144,125,8,"emergency"), light(124,151,10,"emergency"),
+                light(161,111,8,"emergency"), light(220,59,9,"emergency"),
+                light(37,66,16,"yard"), light(81,94,16,"yard"),
+                light(100,121,17,"yard"), light(132,100,18,"yard"),
+                light(132,130,18,"yard"), light(174,118,18,"yard"),
+                light(184,136,16,"yard"), light(204,106,17,"yard")), Set.of("emergency"));
+    }
+
+    private static NightLighting.Lamp light(float x, float y, float radius, String circuit) {
+        return new NightLighting.Lamp(x,y,radius,1f,
+                circuit.equals("yard") ? .91f : .62f,
+                circuit.equals("yard") ? .75f : .26f, circuit);
     }
 
     private static void requireRoute(MapResult map, int x, int y) {

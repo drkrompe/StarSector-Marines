@@ -14,6 +14,7 @@ Updated: 2026-10-12 — persistent terrain scars and retained impact decals appe
 - A **render layer** is one named stratum in the world stack. Its ordinal is paint order; it is an occlusion contract, not a depth-sort hint.
 - A **prop** is scenery: authored, placed at generation, drawn from a sheet, and never a simulation actor. Size and subject do not promote one — a parked truck draws in the same layer, from the same registry, and with the same cover model as a crate. A second render path for scenery that merely looks important is duplication, and it drifts: the one this replaced had grown its own list, its own sheet cache, its own footprint stamp, and a cover rule nothing else in the game used.
 - A **render system** is a GL-free, per-frame producer. It reads the frame context and appends commands for its one layer without putting render data on simulation entities.
+- A **field-cache marker** reads the battle's optional salvage ledger. Unknown caches emit no commands; discovered caches retain a last-seen marker, while current recovery progress requires current visibility. Its pickup art is a nonblocking interaction cue, not a new scenery or cover authority. Bitmap world labels carry the same text and font metrics into live and headless drains.
 - The **frame context** is the current simulation view plus camera, layout, alpha, selection/highlight state, and host-owned frame inputs. It is temporary and is not retained as gameplay state.
 - The **draw list** is the pooled, per-frame command buffer. A **draw command** describes one presentational operation: a sheet quad, whole sprite, solid geometry, line, ribbon, polygon, or a bounded own-GL escape.
 - The **drain** replays each layer's commands in strict submission order while coalescing only adjacent compatible work. It turns a deferred command stream into GL calls without changing the painter's meaning.
@@ -79,6 +80,11 @@ Updated: 2026-10-12 — persistent terrain scars and retained impact decals appe
 - A **map battle scene** promotes a generated `MapResult` through ordinary battle
   setup and exposes its production render systems without mission HUD or input.
   Authoring previews frame this scene; they do not own a parallel tile painter.
+- **Outdoor night lighting** is an authored map atmosphere with named power
+  circuits and local fixture pools. It retains readable ambient terrain and
+  shares the ordinary world-render path across live and headless hosts. Circuit
+  restoration replaces its presentation state; it never grants observation,
+  alters targeting or changes navigation. Ship-compartment lighting is separate.
 
 ## Ownership and flow
 
