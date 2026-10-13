@@ -112,8 +112,11 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             var mess = ship.rooms().largest(RoomPurpose.MESS_HALL);
             UiElement marker = markup.requireElement("survey-room-" + mess.id());
             require(marker.opacity() == 1f, "Room marker is invisible");
+            require(marker.background().getAlpha() == 0 && marker.backgroundImage() == null,
+                    "Shared button theme restored an opaque tile behind the room glyph");
             Rect anchor = marker.box().borderBox();
-            document.pointerMoved(anchor.x() + 17f, anchor.y() + 17f);
+            require(anchor.width() <= 22.1f, "Room glyph grew into an obstructive tile");
+            document.pointerMoved(anchor.x() + anchor.width() / 2f, anchor.y() + anchor.height() / 2f);
             overlay.update(0.1f, ship, canvas);
             UiElement card = markup.requireElement("ship-condition");
             require(card.opacity() > 0f && model.selectedRoomId() == mess.id(), "Hover did not inspect the mess");
