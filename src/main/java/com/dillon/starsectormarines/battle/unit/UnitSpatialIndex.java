@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.fort.FortRestraint;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -251,6 +252,8 @@ public final class UnitSpatialIndex {
      * not need per-entry registry or entity-world liveness probes.
      */
     private UnitRosterService roster;
+    /** Fort cores no squad shoots at in passing; see {@link FortRestraint}. Empty unless a fort is built. */
+    private FortRestraint restraint = new FortRestraint();
 
     public UnitSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + BUCKET - 1) / BUCKET);
@@ -316,7 +319,7 @@ public final class UnitSpatialIndex {
                 scratchFactionOrdinals[denseIndex] =
                         (byte) ((Faction) factions[row]).ordinal();
                 scratchCombatants[denseIndex] =
-                        (byte) (((UnitType) types[row]).combatant ? 1 : 0);
+                        (byte) (((UnitType) types[row]).combatant && !restraint.restrains(id) ? 1 : 0);
             }
         }
 
@@ -419,8 +422,29 @@ public final class UnitSpatialIndex {
         if (bucket != null) {
             bucket.add(id, x, y,
                     (byte) roster.identity().faction(id).ordinal(),
-                    roster.identity().type(id).combatant);
+                    roster.identity().type(id).combatant && !restraint.restrains(id));
         }
+    }
+
+    /**
+     * Takes {@code id} out of the hostile-combatant slice while leaving it in every other query, so a body that can be
+     * hit, seen and gathered is no longer offered to a scan for something to shoot at. Used when a fort core is
+     * recorded after it has already been added; {@link #rebuild} keeps it out thereafter.
+     */
+    public void withdrawFromHostileScans(long id) {
+        for (Bucket bucket : buckets) {
+            if (bucket != null) bucket.combatants.removeStable(id);
+        }
+    }
+
+    /** The fort cores that hostile-combatant queries leave out unless a squad has been told to wreck them. */
+    public FortRestraint restraint() {
+        return restraint;
+    }
+
+    /** Replaces the restraint, once, as the battle is assembled. */
+    public void restraint(FortRestraint restraint) {
+        this.restraint = restraint;
     }
 
     /**

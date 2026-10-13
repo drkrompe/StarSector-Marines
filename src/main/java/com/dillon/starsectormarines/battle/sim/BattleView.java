@@ -70,6 +70,16 @@ public interface BattleView {
      */
     default List<DefenceStructureFact> defenceStructures() { return List.of(); }
 
+    /**
+     * Whether the company has ever had the cell in view while a command was being told what it knows. A structure a
+     * side did not build is disclosed by being sighted, and a sighting is remembered: a commander does not forget a fort
+     * the moment its squad walks out of sight of it.
+     */
+    default boolean structureSighted(int x, int y) { return false; }
+
+    /** Records that the cell was in view when a command was disclosed its structures; see {@link #structureSighted}. */
+    default void noteStructureSighted(int x, int y) { }
+
     /** Whether this structure has changed hands: held ground, which is not a person and so is not forces in play. */
     default boolean isCapturedStructure(long id) { return false; }
 

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.satchel.DemolitionKit;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
@@ -78,6 +79,7 @@ public class CommandFrame {
                     && contact.primaryCellY() >= 0;
             int coveredFromPrimaryMembers = primaryKnown ? 0 : -1;
             int coolingDownMembers = 0;
+            boolean demolition = false;
             int[] memberZoneIds = new int[memberCount];
             int[] memberCellXs = new int[memberCount];
             int[] memberCellYs = new int[memberCount];
@@ -111,6 +113,8 @@ public class CommandFrame {
                         && sim.combat().cooldownTimer(member) > 0f) {
                     coolingDownMembers++;
                 }
+                // Own-force knowledge: the kit the squad was issued, never anything about an enemy.
+                demolition |= DemolitionKit.carried(sim.world(), member);
             }
             if (detail) {
                 long now = System.nanoTime();
@@ -146,7 +150,7 @@ public class CommandFrame {
                     contact.doctrine().name(),
                     contact.contactInitiative().name(), coolingDownMembers,
                     memberZoneIds, memberCellXs, memberCellYs,
-                    squad.commandGroupIdentity));
+                    squad.commandGroupIdentity, demolition));
             if (detail) publicationNanos += System.nanoTime() - rowStageStarted;
         }
         long sortStarted = detail ? System.nanoTime() : 0L;

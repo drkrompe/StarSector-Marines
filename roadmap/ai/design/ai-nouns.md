@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
+Updated: 2026-10-13 — fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -2113,7 +2113,10 @@ of the same kind: each Conquest commander is disclosed the structures its side b
 has seen, and may detach a few squads to take, retake or stand to at them with ordinary attack-move and area-defence
 orders. No hostile identity or unseen structure is disclosed, and the extension is inert on a map with none
 (`ground-defences.md`, *Command awareness*). A fort is chosen between aspect by aspect from what was disclosed of it
-(`forts.md`).
+(`forts.md`). A sighting of a fort is remembered by the side that made it. A commander knows whether its own squads can
+wreck a building (their issued kit), never an enemy's; the wreck order is the ordinary attack move carrying a permission to
+fire on the aspect at its destination, with no hostile identity, and squads otherwise leave a fort's aspect cores alone
+(`forts.md`, *Built: fort restraint*).
 
 Target-faction doctrine is likewise a bounded mission-command extension, not a
 new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`
