@@ -23,7 +23,7 @@ import java.util.Locale;
 public final class DebugWarship {
 
     /** How far in from its starting point the ship hovers, in cells. */
-    public static final float STATION_INSET_CELLS = 20f;
+    public static final float STATION_INSET_CELLS = ShipStationing.STATION_INSET_CELLS;
     /** Area radius used by the director and by manual fire orders, in cells. */
     public static final float AREA_RADIUS_CELLS = 10f;
 
@@ -51,6 +51,12 @@ public final class DebugWarship {
             this.label = label;
             this.hullId = hullId;
             this.variantId = variantId;
+        }
+
+        /** The stock ship the Ship on Station power calls for this pick; null for {@link #OFF}. */
+        public ShipSupportSource source() {
+            if (hullId == null) return null;
+            return ShipSupportSource.stock(hullId, variantId, label.replace(" (tender)", ""), hullId.equals(Tender.HULL_ID));
         }
 
         /** The next hull in the briefing's cycle, wrapping; {@code step} may be negative. */
@@ -120,27 +126,13 @@ public final class DebugWarship {
      * the convention every warship scene uses.
      */
     public static Placement place(Faction side, TraversalAxis axis, int gridW, int gridH, float lengthCells) {
-        boolean defender = side == Faction.DEFENDER;
-        float half = lengthCells / 2f;
-        float cx = gridW / 2f;
-        float cy = gridH / 2f;
-        if (axis == TraversalAxis.WEST_TO_EAST) {
-            float x = defender ? gridW - half : half;
-            float inward = defender ? -1f : 1f;
-            return new Placement(x, cy, defender ? 90f : -90f, x + inward * STATION_INSET_CELLS, cy);
-        }
-        float y = defender ? gridH - half : half;
-        float inward = defender ? -1f : 1f;
-        return new Placement(cx, y, defender ? 180f : 0f, cx, y + inward * STATION_INSET_CELLS);
+        ShipStationing.Placement p = ShipStationing.place(side, axis, gridW, gridH, lengthCells);
+        return new Placement(p.x(), p.y(), p.facingDegrees(), p.stationX(), p.stationY());
     }
 
     /** The map's axis when the simulation knows it, else the longer dimension. */
     public static TraversalAxis axisOf(BattleSimulation sim) {
-        if (sim.getWorksCrews() != null && sim.getWorksCrews().axis() != null) {
-            return sim.getWorksCrews().axis();
-        }
-        return sim.getGrid().getWidth() >= sim.getGrid().getHeight()
-                ? TraversalAxis.WEST_TO_EAST : TraversalAxis.SOUTH_TO_NORTH;
+        return ShipStationing.axisOf(sim);
     }
 
     /**
