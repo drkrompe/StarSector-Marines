@@ -1,0 +1,14 @@
+{
+  "sheetName": "shepherd-recovery",
+  "sheet": "art-source/tilesets/shepherd-recovery.raw.png",
+  "cellPx": 32,
+  "idPrefix": "shepherd-recovery",
+  "outputSheet": "graphics/tilesets/shepherd-recovery.png",
+  "note": "Unmodified Starsector 0.98a-RC8 graphics/ships/drone_tender.png from the installed game. Inert grounded hull, packed through tileset_export. User-directed grounded scale: 20 beam x 24 length cells, rotated to 24x20 in the basin. The hull supports 15 minimum/30 maximum crew, 100 cargo and a drone bay in installed ship_data.csv. This is deliberately larger than compressed overhead flight scale. The future live low-hover recovery ship must match this presence until climb-out; it is not implemented by this scenery prop. Quarter-turn belongs to placement.",
+  "entries": [{
+    "id": "doodad.shepherd-recovery-hull", "rect": [0,0,78,92],
+    "included": true, "cover": "heavy", "ballisticHalfHeight": 1.5,
+    "footprintCells": [20,24],
+    "note": "Grounded Shepherd in a recovery cradle. Preserve the whole vanilla hull; not a live fleet ship or automatic construction source."
+  }]
+}
