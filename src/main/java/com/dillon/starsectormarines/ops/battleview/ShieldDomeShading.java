@@ -102,11 +102,11 @@ final class ShieldDomeShading {
 
         // Interior: a faint cover tint, hex outlines that strengthen toward the rim,
         // and a share of cells glowing that tracks how full the pool is.
-        float fillA = (0.028f + 0.030f * level + 0.17f * fres + 0.10f * glowIn) * shimmer * uIn;
+        float fillA = (0.034f + 0.045f * level + 0.17f * fres + 0.10f * glowIn) * shimmer * uIn;
         cr += baseR * fillA; cg += baseG * fillA; cb += baseB * fillA; ca += fillA;
-        float lineA = hexEdge * (0.045f + 0.20f * fres + 0.07f * level) * shimmer * uIn;
+        float lineA = hexEdge * (0.004f + 0.20f * fres * fres * fres + 0.010f * level) * shimmer * uIn;
         float twinkle = 0.5f + 0.5f * (float) Math.sin(time * 2.3f + ch * 40f);
-        float litA = (ch <= level * 0.55f ? 1f : 0f) * twinkle * (1f - hexEdge) * 0.055f * uIn;
+        float litA = (ch <= level * 0.55f ? 1f : 0f) * twinkle * (1f - hexEdge) * 0.016f * uIn;
         float cellGlow = lineA + litA;
         cr += brightR * cellGlow; cg += brightG * cellGlow; cb += brightB * cellGlow; ca += cellGlow * 0.4f;
 
@@ -167,12 +167,12 @@ final class ShieldDomeShading {
             float ringW = 0.55f + 0.9f * age;
             float atten = life * life / (1f + 0.10f * ringRadius);
             float ring = (float) Math.exp(-sq((dist - ringRadius) / ringW)) * s * atten;
-            float ringCell = (float) Math.exp(-sq((dc - ringRadius) / (ringW * 1.7f))) * s * atten;
+            float ringCell = (float) Math.exp(-sq((dc - ringRadius) / (ringW * 1.2f))) * s * atten;
             float flash = s * (float) Math.exp(-dist * dist / (1f + 2.4f * s)) * (float) Math.exp(-age * 5.5f);
             float cellFlash = s * (float) Math.exp(-dc * dc / (2f + 4f * s)) * (float) Math.exp(-age * 3.2f);
-            flashGlow += ring * 0.35f + flash * 0.80f;
-            cellFill += (ringCell * 0.7f + cellFlash * 0.7f) * (1f - hexEdge * 0.6f);
-            lineBoost += ring + ringCell + cellFlash;
+            flashGlow = screen(flashGlow, ring * 0.35f + flash * 0.80f);
+            cellFill = screen(cellFill, (ringCell * 0.7f + cellFlash * 0.7f) * (1f - hexEdge * 0.6f) * 0.8f);
+            lineBoost = screen(lineBoost, ring + ringCell + cellFlash);
         }
         if (d.impactCount > 0) {
             float within = 1f - smoothstep(0.97f, 1.0f, r);
@@ -215,6 +215,12 @@ final class ShieldDomeShading {
 
     private static float mod(float x, float y) {
         return x - y * (float) Math.floor(x / y);
+    }
+
+    /** Soft-saturating union of two light amounts in 0..1, so overlapping ripples combine instead of piling up. */
+    private static float screen(float acc, float v) {
+        float c = clamp01(v);
+        return acc + c - acc * c;
     }
 
     private static float sq(float v) { return v * v; }
