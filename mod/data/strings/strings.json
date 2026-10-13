@@ -6,6 +6,7 @@
 	# Starsector merges later JSONs on top.
 
 	"marineOps": {
+    "openingCompanyNoticesColdStart": "Tamsin Vale / Cold Start",
     "openingShipWordSTARBOARD": "Starboard",
     "openingShipWordAFT": "Aft",
 

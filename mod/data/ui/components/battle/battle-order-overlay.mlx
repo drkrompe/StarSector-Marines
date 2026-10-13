@@ -1,0 +1,28 @@
+<template props="scope,hint,attackClasses,defendClasses,attackScope,defendScope,attack,defend">
+  <div id="battle-order-overlay" class="order-bar">
+    <div id="battle-order-header" class="order-header">
+      <div id="battle-order-scope" class="scope">{scope}</div>
+      <div id="battle-order-hint" class="hint">{hint}</div>
+    </div>
+    <div id="battle-order-cards" class="order-cards">
+      <button id="battle-order-attack" class="{attackClasses}" onclick="{attack}">
+        <div id="battle-order-attack-name" class="order-name">[A] ATTACK MOVE</div>
+        <div id="battle-order-attack-scope" class="order-detail">{attackScope}</div>
+      </button>
+      <button id="battle-order-defend" class="{defendClasses}" onclick="{defend}">
+        <div id="battle-order-defend-name" class="order-name">[F] DEFEND AREA</div>
+        <div id="battle-order-defend-scope" class="order-detail">{defendScope}</div>
+      </button>
+    </div>
+  </div>
+</template>
+<style>
+  .order-bar { width: 406px; height: 56px; padding: 6px; gap: 4px; border-width: 1px; border-color: #727b79; background-color: #141e19f2; }
+  .order-header { height: 12px; flex-direction: row; gap: 6px; }
+  .scope { width: 112px; font-family: compact; color: #c5d6cb; white-space: nowrap; }
+  .hint { flex-grow: 1; font-family: compact; text-align: right; color: #a0ada8; white-space: nowrap; }
+  .order-cards { height: 40px; flex-direction: row; gap: 6px; }
+  .order-card { width: 0px; flex-grow: 1; height: 30px; padding: 4px; gap: 2px; border-width: 1px; }
+  .order-name { height: 14px; font-family: heading; white-space: nowrap; }
+  .order-detail { height: 12px; font-family: compact; color: #a0ada8; white-space: nowrap; }
+</style>

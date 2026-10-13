@@ -1,4 +1,4 @@
-<template props="tacticalScope,squadTitle,squadStrength,moraleLabel,moraleStyle,defendAreaLabel,defendAreaClasses,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction,defendAreaAction">
+<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction">
   <div id="battle-squad-overlay" class="battle-squad-overlay" style="background-color: transparent">
     <div id="battle-squad-panel" class="squad-panel">
       <div id="battle-squad-header" class="squad-header">
@@ -13,11 +13,6 @@
             </div>
           </div>
         </div>
-        <div id="battle-squad-orders" class="squad-orders">
-          <div id="battle-squad-order-label" class="label heading squad-order-label">{tacticalScope}</div>
-          <div id="battle-squad-order-spacer" class="squad-order-spacer" />
-          <button id="battle-squad-defend-area" class="{defendAreaClasses}" onclick="{defendAreaAction}">{defendAreaLabel}</button>
-        </div>
       </div>
 
       <div id="battle-squad-fireteams" class="fireteam-grid">
@@ -27,7 +22,7 @@
             <div id="{team.strengthId}" class="label fireteam-strength">{team.strength}</div>
           </div>
           <div id="{team.membersId}" class="fireteam-members">
-            <div each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}">
+            <button each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}" disabled="{member.disabled}" onclick="{member.selectAction}">
               <div id="{member.lineId}" class="member-line">
                 <div id="{member.nameId}" class="label member-name">{member.name}</div>
                 <div id="{member.primaryId}" class="label member-primary">{member.primary}</div>
@@ -36,7 +31,7 @@
               <div id="{member.hpTrackId}" class="member-hp-track">
                 <div id="{member.hpId}" class="member-hp-fill" style="{member.hpStyle}" />
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -65,7 +60,7 @@
 
   .squad-panel {
     width: 414px;
-    height: 214px;
+    height: 178px;
     flex-direction: column;
     padding: 7px;
     gap: 6px;
@@ -77,7 +72,7 @@
 
   .squad-header {
     width: 100%;
-    height: 66px;
+    height: 30px;
     flex-direction: column;
     gap: 6px;
   }
@@ -113,23 +108,6 @@
     color: #c5d6cb;
   }
 
-  .squad-defend-area {
-    width: 126px;
-    height: 18px;
-    padding: 5px;
-    border-width: 1px;
-    border-color: #727b79;
-    font-family: heading;
-    text-align: center;
-    color: #a7ccc4;
-  }
-
-  .squad-defend-area-active {
-    border-color: #ffd464;
-    background-color: #3a3018;
-    color: #ffd464;
-  }
-
   .squad-morale {
     width: 102px;
     height: 25px;
@@ -141,22 +119,6 @@
   .morale-label { width: 100%; height: 13px; text-align: right; color: #a0ada8; }
   .morale-track { width: 100%; height: 3px; background-color: #101713; }
   .morale-fill { height: 100%; background-color: #78d494; }
-
-  .squad-orders {
-    width: 100%;
-    height: 30px;
-    flex-direction: row;
-    gap: 8px;
-  }
-
-  .squad-order-label {
-    width: 128px;
-    height: 18px;
-    padding: 6px 0px;
-    color: #a0ada8;
-  }
-
-  .squad-order-spacer { width: 0px; height: 1px; flex-grow: 1; }
 
   .fireteam-grid {
     width: 100%;

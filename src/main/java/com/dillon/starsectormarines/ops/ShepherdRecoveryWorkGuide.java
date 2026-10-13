@@ -10,10 +10,10 @@ record ShepherdRecoveryWorkGuide(ShepherdRecoveryProgress progress,OpeningBroker
         case "broker"->ShepherdRecoveryCampaign.NAME;
         case "affiliation"->"Basin Reclamation Cooperative";
         case "heading"->ShepherdRecoveryCampaign.TITLE;
-        case "mission"->progress.claimSecured()?"Morrow's claim secured":"NEW / Salvage Rights";
-        case "payment"->progress.claimSecured()?"18,000 cr paid / hull not flightworthy":"18,000 cr + protected recovery claim";
+        case "mission"->progress.repaired()?"Morrow repaired / departure pending":progress.claimSecured()?"NEW / Cold Start":"NEW / Salvage Rights";
+        case "payment"->progress.repaired()?"22,000 cr paid / hull remains grounded":progress.claimSecured()?"22,000 cr / repair contract":"18,000 cr + protected recovery claim";
         case "location"->destination==null?"Asharu / Corvus":destination.label();
-        case "route"->progress.claimSecured()?"Claim protected. Vale is arranging the repair mobilization.":"Mara's introduction: Marine operations > Tamsin Vale";
+        case "route"->progress.repaired()?"Repairs signed off. Working Passage is not yet available.":"Marine operations > Tamsin Vale";
         case "preparation"->"Two squads recommended. Optional owned Hound. Replenish first; this work can wait.";
         case "courseDisabled"->destination==null;
         case "courseAction"->plotCourse;
