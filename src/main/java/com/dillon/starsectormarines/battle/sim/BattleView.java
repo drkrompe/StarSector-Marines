@@ -65,6 +65,12 @@ public interface BattleView {
 
     NavigationGrid getGrid();
 
+    /**
+     * Why Orbital Barrage cannot be committed right now, or {@code null} when it can: a hostile fortress battery
+     * standing intact holds the fleet at standoff.
+     */
+    default String orbitalBarrageLock() { return null; }
+
     /** Whether the player can see this cell now; a power that works unseen ground asks this. */
     default boolean playerSeesCell(int x, int y) { return true; }
 
