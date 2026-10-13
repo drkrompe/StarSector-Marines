@@ -970,6 +970,17 @@ public class BattleRenderer {
                 drawObjectiveText(recovery.displayName(),cx,cy,tint,.8f,alphaMult);
             });
         }
+        if (sim.getColdStart() != null && !sim.getColdStart().progress().terminal()) {
+            var repair = sim.getColdStart();
+            float cx = rc.camera.cellToScreenX(repair.targetX() + .5f);
+            float cy = rc.camera.cellToScreenY(repair.targetY() + .5f);
+            Color tint = BattlefieldMarkerPresentation.PROGRESS;
+            appendObjectiveAnnulus(cx, cy, cellPx * 2, cellPx * 2 + 2, tint, .9f * alphaMult);
+            out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                objectiveMarkerFont.ensureLoaded();
+                drawObjectiveText(repair.displayName(), cx, cy, tint, .8f, alphaMult);
+            });
+        }
         if (sim.getColdAccount() != null) {
             var intervention = sim.getColdAccount();
             for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout(), intervention.companyRecovered())) {

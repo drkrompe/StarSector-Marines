@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
+import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
@@ -477,6 +478,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private DepotHoldSequence depotHold;
     private SalvageRightsSequence salvageRights;
+    private ColdStartSequence coldStart;
+    public ColdStartSequence getColdStart() { return coldStart; }
+    public void installColdStart(int engineers, long carrier, List<EntitySpec> reserve, boolean delivered, boolean powered) {
+        if (simTickIndex != 0 || coldStart != null) throw new IllegalStateException("Install Cold Start once at setup");
+        coldStart = new ColdStartSequence(engineers, carrier, reserve, delivered, powered, storyBeats);
+        addObjective(coldStart);
+    }
     public SalvageRightsSequence getSalvageRights() { return salvageRights; }
     public void installSalvageRights(PointOfInterest receiving,PointOfInterest workshop,int engineers,List<EntitySpec> reserve) {
         if(simTickIndex!=0 || salvageRights!=null)throw new IllegalStateException("Install recovery once at setup");
@@ -564,7 +572,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (relayNineSequence == null ? 0 : relayNineSequence.pendingMembers())
                 + (thunderRun == null ? 0 : thunderRun.pendingMembers())
                 + (depotHold == null ? 0 : depotHold.pendingMembers())
-                + (salvageRights == null ? 0 : salvageRights.pendingMembers());
+                + (salvageRights == null ? 0 : salvageRights.pendingMembers())
+                + (coldStart == null ? 0 : coldStart.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2615,6 +2624,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldSalvage.tick(this);
         if (depotHold != null) depotHold.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
+        if (coldStart != null) coldStart.advance(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall

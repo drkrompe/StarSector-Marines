@@ -1,0 +1,15 @@
+{
+  "canvas": [1672, 941],
+  "measurement": "Accepted source alpha components at threshold 24; half-open bounds. Original guide remains in geometry.json.",
+  "parts": {
+    "body": {"region": [80, 245, 770, 695], "material_bounds": [75, 242, 851, 730], "target_width": 150,
+      "protected_regions": [
+        {"id": "rear-left-vent-mesh", "bounds": [324, 607, 388, 651]},
+        {"id": "rear-right-vent-mesh", "bounds": [451, 607, 515, 651]}
+      ]},
+    "head": {"region": [890, 285, 1170, 555], "material_bounds": [957, 318, 1237, 581], "target_width": 72},
+    "foot": {"region": [1350, 305, 1570, 620], "material_bounds": [1375, 327, 1589, 655], "target_size": [38, 52]}
+  },
+  "body_socket_bounds": [307, 307, 530, 513],
+  "body_socket_center": [418.5, 410.0]
+}

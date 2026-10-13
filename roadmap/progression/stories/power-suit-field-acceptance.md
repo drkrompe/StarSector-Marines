@@ -9,8 +9,8 @@ Read `progression-nouns.md`, `personnel-nouns.md`, `combat-durability-nouns.md`,
 ## Scope
 
 Validate the explicit equipment category on real named squads, then contract
-only the tuning or visual work the evidence requires. The first code slice
-preserves existing sprites, infantry structure, systems, and formation size.
+only the tuning or visual work the evidence requires. The equipment category
+preserves infantry structure, systems, and formation size.
 It does not establish a two-squad equivalence or a final campaign pacing target.
 
 ## Controlled exchange evidence
@@ -39,6 +39,12 @@ player won. Mission outcomes below remain the acceptance question.
 The retained `power-suit-armor-comparison.png` and `power-suit-battle-hover.png`
 show class, role, tier, and live protection at 1920x1080 and 100% UI scale.
 They use existing infantry art and do not satisfy the final silhouette requirement.
+
+The Specter layered review in `art-source/marine-modular-topdown/specter-v1/`
+provides a separate body, helmet, boot, and shared weapon, with four casing
+colors. Its retained 1920x1080 production-compositor preview shows weapon
+clearance, independent head look, walking feet, and a 24px shoulder-unit sample.
+This establishes a first art pass, not crowded-field or live campaign acceptance.
 
 ## Acceptance
 

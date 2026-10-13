@@ -234,13 +234,24 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);
         }
+        if(outcome!=null && outcome.coldStart!=null) {
+            var repair=outcome.coldStart;
+            props.put("storyClasses","story-dispatch console-readout");
+            props.put("storyPortrait",OpeningBroker.CREST);
+            props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
+            props.put("storyProgress",outcome.victory?"REPAIRS COMPLETE / SHIP STILL GROUNDED":"REPAIR MOBILIZATION UNFINISHED");
+            props.put("storyMessage",(outcome.victory?
+                    "The drone bay answers and the pumps hold pressure. "+(outcome.missionSource.isDebug()?"Training record only; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow remains grounded; Working Passage is not yet available and no fleet ship is awarded.":
+                    "Bring your company home. No repair payment is awarded. Vale will assign replacement cooperative personnel. Completed delivery and shore power remain on record; unfinished work needs another mobilization.")
+                    +" Cargo delivered: "+repair.cargoDelivered()+". Shore power restored: "+repair.shorePower()+". Turret constructed this sortie: "+repair.turretConstructed()+". Repair technicians lost: "+repair.crewLost()+".");
+        }
         if(outcome!=null && outcome.salvageRights!=null) {
             props.put("storyClasses","story-dispatch console-readout");
             props.put("storyPortrait",OpeningBroker.CREST);
             props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
             props.put("storyProgress",outcome.victory?"RECOVERY CLAIM SECURED / SHIP STILL GROUNDED":"INSPECTION UNFINISHED / RETRY AVAILABLE");
             props.put("storyMessage",(outcome.victory?
-                    "The drone workshop can be saved. Your payment is released and the recovery claim is protected. Our militia will hold the workshop. Morrow still needs shore power, repairs and a clear departure corridor; no ship has entered your fleet. Vale is arranging the repair mobilization.":
+                    "The drone workshop can be saved. "+(outcome.missionSource.isDebug()?"Training record only; no campaign claim or payment is issued. ":"Your payment is released and the recovery claim is protected. ")+"Our militia will hold the workshop. Morrow still needs shore power, repairs and a clear departure corridor; no ship has entered your fleet. Cold Start is available from Vale when your company is ready.":
                     "Bring your company home. No claim or payment is awarded. Confirmed company and inspection losses remain on record; Vale will assign a new party for another attempt.")
                     +" Inspection technicians lost: "+outcome.salvageRights.crewLost()+".");
         }
