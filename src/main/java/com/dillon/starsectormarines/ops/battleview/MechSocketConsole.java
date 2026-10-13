@@ -74,7 +74,7 @@ final class MechSocketConsole {
             }
             String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
                     : socket.type() == SocketType.UTILITY ? "SELECT TO REFIT"
-                    : installed != null ? installed.displayName : socket.type().label() + " / "
+                    : installed != null ? installed.displayName() : socket.type().label() + " / "
                     + socket.gridColumns() + "x" + socket.gridRows();
             c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 23), x + 12, y + h - 20f + (20f - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
                     draggingHere ? accent : installed != null ? SILVER : AMBER);

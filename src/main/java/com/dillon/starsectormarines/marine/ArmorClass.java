@@ -1,16 +1,17 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import org.json.JSONException;
 import java.util.Locale;
 
 /** Protection chassis, independent of infantry role and equipment quality. */
 public enum ArmorClass {
-    STANDARD("standard", "Regular infantry"),
-    POWER_SUIT("power-suit", "Power suit");
+    STANDARD("standard", "@gearArmorClassSTANDARD"),
+    POWER_SUIT("power-suit", "@gearArmorClassPOWERSUIT");
     public final String key;
     private final String label;
     ArmorClass(String key, String label) { this.key = key; this.label = label; }
-    public String displayName() { return label; }
+    public String displayName() { return Strings.resolve(label); }
     public static ArmorClass parse(String key, String armorId) throws JSONException {
         if (key != null) {
             String normalized = key.trim().toLowerCase(Locale.ROOT);

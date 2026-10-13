@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops.spec;
 
-import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.FieldAidSpec;
@@ -48,9 +48,9 @@ public final class IntegralSystemCopy {
      * are separate issues, and the screen should not imply one costs the other.
      */
     public static String summary(MarineArmorCatalogDef armor) {
-        if (!carried(armor)) return "No integral system";
+        if (!carried(armor)) return Strings.get("gearSystemNone");
         IntegralSystemDef system = armor.integralSystem();
-        return system.familyName() + SEPARATOR + system.grade().displayName
+        return system.familyName() + SEPARATOR + system.grade().displayName()
                 + SEPARATOR + clock(system);
     }
 
@@ -79,7 +79,7 @@ public final class IntegralSystemCopy {
         if (!carried(armor)) return summary(armor);
         String effect = effect(armor.integralSystem());
         return effect.isEmpty() ? summary(armor)
-                : summary(armor) + SEPARATOR + effect + ".";
+                : summary(armor) + SEPARATOR + effect;
     }
 
     /** The hover copy: the authored description, then what it does and its clock. */
@@ -95,22 +95,13 @@ public final class IntegralSystemCopy {
      */
     public static List<String> detailParagraphs(MarineArmorCatalogDef armor) {
         if (!carried(armor)) {
-            return List.of("This pattern carries no integral system. It fights on its plate, its"
-                    + " balance, and whatever the billet is carrying.");
+            return List.of(Strings.get("gearSystemNoneDetail"));
         }
         IntegralSystemDef system = armor.integralSystem();
         List<String> parts = new ArrayList<>();
         parts.add(system.description());
         String effect = effectDetail(system);
-        if (!effect.isEmpty()) {
-            // Only a reverting effect (a temporary stat boost) is honestly
-            // described as "the suit is exactly the suit it was" afterward —
-            // a spent salvo doesn't revert anything, it's just gone.
-            parts.add(system.breacherAssist() != null || system.perceptionSweep() != null
-                    || system.brace() != null
-                    ? effect + ", then the suit is exactly the suit it was."
-                    : effect + ".");
-        }
+        if (!effect.isEmpty()) parts.add(effect);
         parts.add(availability(system));
         return List.copyOf(parts);
     }
@@ -123,111 +114,43 @@ public final class IntegralSystemCopy {
      * that.
      */
     private static String effect(IntegralSystemDef system) {
-        BreacherAssistSpec breacher = system.breacherAssist();
-        if (breacher != null) {
-            String movement = percent(breacher.moveSpeedMult() - 1f) + " faster";
-            return system.grantsMitigation()
-                    ? movement + ", " + Math.round(breacher.screenSoak()) + " soak over "
-                            + degrees(breacher.shieldedArcDegrees())
-                    : movement;
-        }
-        MissilePodSpec pod = system.missilePod();
-        if (pod != null) {
-            int salvo = Math.max(1, pod.weaponDef().projectilesPerShot());
-            return "Fires " + salvo + (salvo == 1 ? " missile" : " missiles") + " on its own";
-        }
-        PerceptionSweepSpec sweep = system.perceptionSweep();
-        if (sweep != null) {
-            return "Reads " + cells(sweep.revealRangeCells()) + " out"
-                    + (sweep.wallReadRadiusCells() > 0f
-                            ? ", " + cells(sweep.wallReadRadiusCells()) + " of it through walls"
-                            : "");
-        }
-        BraceSpec brace = system.brace();
-        if (brace != null) {
-            // Both halves or neither. A stance quoted only for what it buys is
-            // the brochure this class exists not to be, and the cost is the
-            // part a player has to weigh.
-            return percent(brace.accuracyMult() - 1f) + " steadier, "
-                    + percent(1f - brace.moveSpeedMult()) + " slower";
-        }
-        FieldAidSpec aid = system.fieldAid();
-        if (aid != null) {
-            return "Puts " + damage(aid.restoredHealth()) + " back, "
-                    + cells(aid.reachCells()) + " reach";
-        }
-        return "";
+        return effectCopy(system, false);
     }
 
-    /**
-     * The same effects with room to say them properly. The arc is spelled out
-     * rather than implied: the screen faces one way, and a player who reads it
-     * as all-round will walk a heavy suit into a flanking gun.
-     */
     private static String effectDetail(IntegralSystemDef system) {
+        return effectCopy(system, true);
+    }
+
+    /** Complete messages keep word order, units and tradeoffs under translator control. */
+    private static String effectCopy(IntegralSystemDef system, boolean detail) {
+        String suffix = detail ? "Detail" : "";
         BreacherAssistSpec breacher = system.breacherAssist();
         if (breacher != null) {
-            String movement = "Moves " + percent(breacher.moveSpeedMult() - 1f)
-                    + " faster while it runs";
-            return system.grantsMitigation()
-                    ? movement + " and raises a screen that soaks "
-                            + damage(breacher.screenSoak())
-                            + " of damage across its " + degrees(breacher.shieldedArcDegrees())
-                            + " front before it breaks, leaving the flanks exactly as exposed"
-                            + " as they were"
-                    : movement;
+            return Strings.format("gearSystemBreach" + (system.grantsMitigation() ? "Screen" : "") + suffix,
+                    percent(breacher.moveSpeedMult() - 1f), Math.round(breacher.screenSoak()),
+                    degrees(breacher.shieldedArcDegrees()));
         }
         MissilePodSpec pod = system.missilePod();
         if (pod != null) {
-            WeaponDef weapon = pod.weaponDef();
-            int salvo = Math.max(1, weapon.projectilesPerShot());
-            return "Looses a salvo of " + salvo
-                    + (salvo == 1 ? " micro-missile" : " micro-missiles")
-                    + " at a target the pod picks for itself, with the ordinary blast and the"
-                    + " ordinary consequences for anyone standing near it";
+            return Strings.format("gearSystemMissiles" + suffix,
+                    Math.max(1, pod.weaponDef().projectilesPerShot()));
         }
         PerceptionSweepSpec sweep = system.perceptionSweep();
         if (sweep != null) {
-            String read = "Opens " + cells(sweep.revealRangeCells())
-                    + " of ground around the wearer to your own picture";
-            // The wall read is the half worth spelling out, because it is the
-            // half that is bounded: a reader who takes it for an x-ray will
-            // walk a scout up to a block expecting the far side of it.
-            return sweep.wallReadRadiusCells() > 0f
-                    ? read + ", carrying through walls within "
-                            + cells(sweep.wallReadRadiusCells()) + " of them and no further"
-                    : read + ", stopped by every wall in the way";
+            return Strings.format("gearSystemSweep" + (sweep.wallReadRadiusCells() > 0f ? "Walls" : "") + suffix,
+                    Math.round(sweep.revealRangeCells()), Math.round(sweep.wallReadRadiusCells()));
         }
         BraceSpec brace = system.brace();
         if (brace != null) {
-            return "Plants: while it holds, the wearer's fire is "
-                    + percent(brace.accuracyMult() - 1f) + " steadier and they move "
-                    + percent(1f - brace.moveSpeedMult()) + " slower. The cost is the"
-                    + " whole point -- a marine braced in the wrong place is committed"
-                    + " to being there";
+            return Strings.format("gearSystemBrace" + suffix,
+                    percent(brace.accuracyMult() - 1f), percent(1f - brace.moveSpeedMult()));
         }
         FieldAidSpec aid = system.fieldAid();
         if (aid != null) {
-            return "Kneels beside a squadmate within " + cells(aid.reachCells())
-                    + " who is below " + percent(aid.treatBelowHealthFraction())
-                    + " of their health and puts " + damage(aid.restoredHealth())
-                    + " back on their feet, out of a satchel that does not refill."
-                    + " The wearer never treats themselves";
+            return Strings.format("gearSystemAid" + suffix, Math.round(aid.restoredHealth()),
+                    Math.round(aid.reachCells()), percent(aid.treatBelowHealthFraction()));
         }
         return "";
-    }
-
-    /** Whole cells; a range is authored to the cell and read as a distance. */
-    private static String cells(float value) {
-        return Math.round(value) + " cells";
-    }
-
-    /**
-     * The screen's pool, in damage. Whole numbers: a player is judging whether
-     * a rush survives the doorway, not auditing a decimal.
-     */
-    private static String damage(float value) {
-        return Math.round(value) + " damage";
     }
 
     /** Whole degrees with the sign; an arc is authored to the degree and read at a glance. */
@@ -236,22 +159,20 @@ public final class IntegralSystemCopy {
     }
 
     private static String availability(IntegralSystemDef system) {
-        String active = "Runs for " + seconds(system.durationSeconds()) + " seconds";
         return system.usesAmmunition()
-                ? active + ", and the suit carries " + uses(system.startingAmmo()) + "."
-                : active + ", then " + seconds(system.cooldownSeconds())
-                        + " before it can be spent again.";
+                ? Strings.format("gearSystemAvailabilityAmmo", seconds(system.durationSeconds()), system.startingAmmo())
+                : Strings.format("gearSystemAvailabilityCooldown", seconds(system.durationSeconds()), seconds(system.cooldownSeconds()));
     }
 
     /** The compact availability clock: {@code 3.0s / 22s}, or {@code 2 uses}. */
     private static String clock(IntegralSystemDef system) {
         return system.usesAmmunition()
                 ? uses(system.startingAmmo())
-                : seconds(system.durationSeconds()) + "s / " + seconds(system.cooldownSeconds()) + "s";
+                : Strings.format("gearSystemClock", seconds(system.durationSeconds()), seconds(system.cooldownSeconds()));
     }
 
     private static String uses(int ammo) {
-        return ammo + (ammo == 1 ? " use" : " uses");
+        return Strings.format("gearUses", ammo);
     }
 
     private static String percent(float fraction) {

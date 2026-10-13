@@ -1,6 +1,6 @@
 # Alpha player-facing localization
 
-Status: IN PROGRESS — opening tutorials and company screen copy migrated
+Status: IN PROGRESS â€” opening tutorials, company copy and shared equipment catalogs migrated
 Written: 2026-10-12
 Updated: 2026-10-13
 
@@ -36,8 +36,24 @@ Opening slice implemented:
   the snapshot CLI load the shipped catalog. `opening-localization` exercises
   production opening controls in English and expanded copy at 1920x1080 / 100%.
 
-Remaining Alpha gate: migrate authored equipment/weapon/armor/mech catalog prose
-and enum-derived labels in shared spec sheets, historical saved commendation text,
+Shared catalog slice implemented:
+
+- Weapon, armor, special-equipment, integral-system and mech catalog names and
+  prose use translation references; grade, role, tradition, fitting socket and
+  fabrication labels resolve at display time. Derived template/recipe names
+  follow their equipment without caching a language at startup.
+- Shared sheets translate stat labels, ability explanations, units and quantities.
+  Stable stat identities preserve comparisons and icons even when translated
+  labels coincide. Equipment ids, numerical behavior and literal addon copy remain intact.
+- `equipment-localization` exercises first-refit choices, all twelve billet
+  controls and shared weapon, suit-system, mech-component and chassis hover sheets
+  in English and expanded copy at 1920x1080 / 100%.
+
+Remaining Alpha gate: built-in/saved squad-definition names and role copy,
+historical saved commendation text,
 mission briefing/results and battle guidance, and the remaining story radio/UI.
+Expanded-copy layout still needs room for compact rarity/firepower badges,
+long claim buttons and Mech Lab header/socket labels. Shared hover sheets wrap;
+the surrounding compact controls need a separate layout pass.
 Translation review and live opening/re-entry acceptance remain required. The
 expanded-copy fixture checks layout and interaction, not a shipped translation.

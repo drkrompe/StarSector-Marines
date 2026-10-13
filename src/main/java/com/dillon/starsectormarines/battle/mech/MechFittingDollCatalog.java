@@ -94,7 +94,7 @@ public final class MechFittingDollCatalog {
                     throw new IllegalArgumentException("Duplicate socket " + id + " on chassis " + variant);
                 }
 
-                String label = sockObj.optString("label", id.label());
+                String label = sockObj.optString("label", null);
                 String typeStr = sockObj.getString("type").toUpperCase(Locale.ROOT);
                 SocketType type = SocketType.valueOf(typeStr);
 

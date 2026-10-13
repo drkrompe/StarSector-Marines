@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import org.json.JSONException;
 
 import java.util.Locale;
@@ -49,18 +50,7 @@ public enum ArmorTradition {
      * with their own spelling, not underscores with a capital in front.
      */
     public String displayName() {
-        return switch (this) {
-            case INDEPENDENT -> "Independent";
-            case HEGEMONY -> "Hegemony";
-            case TRITACHYON -> "Tri-Tachyon";
-            case PERSEAN -> "Persean League";
-            case LUDDIC_CHURCH -> "Luddic Church";
-            case KNIGHTS_OF_LUDD -> "Knights of Ludd";
-            case LUDDIC_PATH -> "Luddic Path";
-            case SINDRIAN_DIKTAT -> "Sindrian Diktat";
-            case LIONS_GUARD -> "Lion's Guard";
-            case PIRATES -> "Pirates";
-        };
+        return Strings.get("gearArmorTradition" + name());
     }
 
     /** Vanilla faction-definition logo used when this tradition appears in inspection UI. */

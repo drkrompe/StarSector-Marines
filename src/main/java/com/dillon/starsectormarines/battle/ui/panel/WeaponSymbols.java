@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.awt.Color;
+import java.util.Locale;
 
 /**
  * 3-letter HUD abbreviations for a marine's gear, plus their tracer color.
@@ -30,8 +31,7 @@ public final class WeaponSymbols {
         if (WeaponRegistry.SMG_ID.equals(w.id)) return "SHD";
         if (WeaponRegistry.SQUAD_AUTOMATIC_ID.equals(w.id)) return "SAW";
         if (WeaponRegistry.DMR_ID.equals(w.id)) return "DMR";
-        String compact = w.displayName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        return compact.substring(0, Math.min(3, compact.length()));
+        return abbreviation(w.displayName());
     }
 
     public static String primaryAbbrev(WeaponDef w, EquipmentGrade grade) {
@@ -53,8 +53,14 @@ public final class WeaponSymbols {
         if (SpecialEquipmentRegistry.BREACHING_CUTTER_ID.equals(special.id())) return "CUT";
         if (SpecialEquipmentRegistry.VIBRO_BLADE_ID.equals(special.id())) return "VBL";
         if (SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID.equals(special.id())) return "PDE";
-        String compact = special.displayName().replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        return compact.substring(0, Math.min(3, compact.length()));
+        return abbreviation(special.displayName());
+    }
+
+    /** Preserve translated letters, including names outside the Latin alphabet. */
+    private static String abbreviation(String name) {
+        String compact = name.replaceAll("[^\\p{L}\\p{N}]", "").toUpperCase(Locale.ROOT);
+        int letters = Math.min(3, compact.codePointCount(0, compact.length()));
+        return compact.substring(0, compact.offsetByCodePoints(0, letters));
     }
 
     /** Returns null for COMBATANT (no badge) so callers can skip the draw cheaply. */

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.weapon;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
@@ -32,17 +33,17 @@ public final class WeaponDef {
     public final MountClass mount;
 
     // ---- catalog (player-facing naming) ----
-    public final String displayName;
+    private final String displayName;
     /** In-universe model name — the "Lancer" in "PLS-2 Lancer". */
-    public final String modelName;
+    private final String modelName;
     /** Fleet catalog prefix. Combined with the equipment tier when {@link #designationTiered}. */
     public final String designation;
     /** Whether {@link #designation} takes a {@code -<tier>} suffix. Recruit issue is always "FR-1"; a pulse rifle is "PLS-1" through "PLS-4". */
     public final boolean designationTiered;
     /** Compact player-facing battlefield role, such as LINE or SUPPORT. */
-    public final String catalogRole;
+    private final String catalogRole;
     /** In-universe catalog copy authored in data for inspection surfaces. */
-    public final String catalogDescription;
+    private final String catalogDescription;
     /** Representative vanilla faction-definition logo for marine-primary provenance. */
     public final String catalogFactionLogo;
 
@@ -210,7 +211,7 @@ public final class WeaponDef {
 
     /** Catalog designation plus model name, e.g. "PLS-2 Lancer". */
     public String catalogName(int tier) {
-        return designation(tier) + " " + modelName;
+        return Strings.format("gearWeaponName", designation(tier), modelName());
     }
 
     public String designation(EquipmentGrade grade) {
@@ -223,8 +224,10 @@ public final class WeaponDef {
 
     // Record-style accessors keep definition consumers terse without reintroducing
     // carrier-specific enum handles.
-    public String displayName() { return displayName; }
-    public String modelName() { return modelName; }
+    public String catalogRole() { return Strings.resolve(catalogRole); }
+    public String catalogDescription() { return Strings.resolve(catalogDescription); }
+    public String displayName() { return Strings.resolve(displayName); }
+    public String modelName() { return Strings.resolve(modelName); }
     public float range() { return range; }
     public float damage() { return damage; }
     public float accuracy() { return accuracy; }
