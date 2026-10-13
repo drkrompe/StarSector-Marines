@@ -195,6 +195,13 @@ Do not run builds or leave generated task files there.
   1920x1080 PNGs at the final arrival.
   It is not a live campaign save or a full-mission balance replay. Broker/HQ flow
   evidence uses `createSnapshots -Psnapshot=supply-route` at 100% scale.
+  `-Pmission=power-suit-campaign` checks a detached twelve-person mixed section:
+  explicit recovered-template acquisition, ordinary fitting, two six-seat ferry
+  trips, real combat, personnel writeback and Java roster serialization. It
+  writes `build/reports/commander/power-suit-campaign/summary.json` and explicitly
+  leaves live Starsector save/reload and host settlement receipts unverified.
+  Default observation is 9000 ticks; an unresolved fight ends with controlled
+  retreat. This is equipment-loop evidence, not acceptance of a story reward.
   `-Pmission=corvus` plays the three fixed Corvus chapters with their recommended
   named companies, starter squad equipment and recovered chaingun-only Hound.
   It requests normal Mech Support at the first legal pad, then leaves command

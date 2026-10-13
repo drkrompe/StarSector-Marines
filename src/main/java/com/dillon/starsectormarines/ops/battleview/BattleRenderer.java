@@ -97,6 +97,8 @@ public class BattleRenderer {
     private static final Color  RESUPPLY_TINT         = new Color(0x70, 0xD8, 0x78);
     private static final Color  RESUPPLY_CONTESTED    = new Color(0xF0, 0x70, 0x50);
     private static final Color  ORBITAL_WARNING        = new Color(0xFF, 0x48, 0x38);
+    /** A fort aspect that has been wrecked: grey, whoever it belonged to. */
+    private static final Color  FORT_WRECKED           = new Color(0x90, 0x90, 0x90);
     private static final float  KIT_DROP_SIZE        = 1.0f;
     private static final float  RESUPPLY_SIZE         = 1.25f;
     private static final float  KIT_DROP_PULSE_AMP   = 0.10f;
@@ -955,6 +957,21 @@ public class BattleRenderer {
             Color tint = marker.hostile() ? ORBITAL_WARNING : BattlefieldMarkerPresentation.PROGRESS;
             float alpha = (marker.kind() == FortressBatteryMarkers.Kind.ENVELOPE ? .45f : .9f) * alphaMult;
             appendObjectiveAnnulus(cx, cy, radius - 2f, radius, tint, alpha);
+            out.addCustom(RenderLayer.OBJECTIVES, () -> {
+                objectiveMarkerFont.ensureLoaded();
+                drawObjectiveText(marker.label(), cx, cy, tint, .8f, alphaMult);
+            });
+        }
+
+        for (var marker : FortMarkers.forForts(sim.forts(), Faction.MARINE)) {
+            float cx = rc.camera.cellToScreenX(marker.x());
+            float cy = rc.camera.cellToScreenY(marker.y());
+            Color tint = marker.kind() == FortMarkers.Kind.WRECKED ? FORT_WRECKED
+                    : marker.hostile() ? ORBITAL_WARNING : BattlefieldMarkerPresentation.PROGRESS;
+            if (marker.radius() > 0f) {
+                float radius = cellPx * marker.radius();
+                appendObjectiveAnnulus(cx, cy, radius - 2f, radius, tint, .7f * alphaMult);
+            }
             out.addCustom(RenderLayer.OBJECTIVES, () -> {
                 objectiveMarkerFont.ensureLoaded();
                 drawObjectiveText(marker.label(), cx, cy, tint, .8f, alphaMult);

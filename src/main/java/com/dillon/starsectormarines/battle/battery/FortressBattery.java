@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.battery;
 
+import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
@@ -57,6 +58,7 @@ public final class FortressBattery {
     private final List<Gun> gunsView = Collections.unmodifiableList(guns);
     private final float envelopeCells;
     private boolean destroyed;
+    private Fort fort;
 
     FortressBattery(long structureId, StructureDef structure, float x, float y, Faction owner, BatteryLoadout loadout) {
         this.structureId = structureId;
@@ -123,8 +125,23 @@ public final class FortressBattery {
         destroyed = true;
     }
 
-    /** Whether the guns can fire now: the structure stands, the fire control is held and nobody is contesting it. */
+    /** The fort this battery is the guns of, or {@code null} for a bare structure. */
+    public Fort fort() {
+        return fort;
+    }
+
+    /** Joins the battery to its fort; called once, as the fort's parts are tagged. */
+    public void attachFort(Fort fort) {
+        this.fort = fort;
+    }
+
+    /**
+     * Whether the guns can fire now: the structure stands, the fire control is held and nobody is contesting it. In a
+     * fort the fire-control bunker must also stand and the guns must have a round, from the magazine or the ready
+     * pool; power only slows them and does not appear here.
+     */
     public boolean operational() {
-        return !destroyed && fireControl.operational() && envelopeCells > 0f;
+        if (destroyed || !fireControl.operational() || envelopeCells <= 0f) return false;
+        return fort == null || (fort.fireControlIntact() && fort.hasRounds(owner()));
     }
 }

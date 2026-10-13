@@ -4,13 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — the disjoint families share one named body concept behind
-one carrier-agnostic surface; engagement is a relation between a shooter and a
-body rather than a property of the body, with presence and reach owned
-separately; a body's own geometry is one decision read two ways, the by-id
-and columnar accesses differing in cost but never in answer; and the spawn seam
-places rather than merely creates, so an arrival that will never move gets the
-cell it was given and the incumbent steps aside.
+Updated: 2026-10-13 — late impact and objective deaths publish before terminal settlement.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -91,8 +85,10 @@ would hide.
 
 **Leaving is not dying, and the two remove different things.** Dropping a unit
 from the dense roster is only half of a death: it is deliberately paired with
-the death drain, which transmutes the row a tick later, so the components stay
-put in between. A unit that leaves the battlefield *alive* — a marine walking
+the serial death drain, which transmutes the row, so the components stay
+put in between. Every tick also publishes late impact and objective deaths before
+completion, so terminal settlement never requires another tick to find a corpse.
+A unit that leaves the battlefield *alive* — a marine walking
 up a shuttle's ramp, a civilian boarding a rescue craft, an airframe leaving
 its hardstand to become an air entity — has no drain coming, so releasing it
 alone leaves a complete live row in the world forever.

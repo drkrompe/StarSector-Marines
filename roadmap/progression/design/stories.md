@@ -11,7 +11,7 @@ rather than settled.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
-| `power-suit-field-acceptance.md` | In progress | Bounded fixed-kit exchanges show an endurance step; mission equivalence, live named refit/save/reload, and distinct suit art remain against `power-suit-infantry.md`. |
+| `power-suit-field-acceptance.md` | In progress | Recovered/military Specter and layered Arbalest plus explicit mixed issue are available for development testing. Full live named refit/save/reload and mission balance remain; the story introduction is reserved for an expedition after actual Shepherd acquisition. |
 | `s1-lethality-feel-pass.md` | Ready | Verify the shipped lethality and grade pass through the TTK harness and mission evidence. Its original play-acceptance wording is stale: tuning is settled from measured output, not from a described play impression. |
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |

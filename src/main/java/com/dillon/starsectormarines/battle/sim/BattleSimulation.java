@@ -37,6 +37,11 @@ import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.battery.FortressBatteryService;
 import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
+import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortService;
+import com.dillon.starsectormarines.battle.fort.FortSystem;
+import com.dillon.starsectormarines.battle.fort.FortTag;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -580,10 +585,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
     public ReliefAssault getReliefAssault() { return reliefAssault; }
     /** The battle's ground-defence structures as they truly are; a command sees only what its disclosure lets it. */
+    /** How near a squad must stand to a fort's bunker core to count as at it: the bunker is a room about this wide. */
+    private static final int FORT_BUNKER_REACH_CELLS = 4;
+
     @Override public List<DefenceStructureFact> defenceStructures() {
         List<DefenceStructureFact> out = new ArrayList<>();
         for (FortressBattery battery : fortressBatteries.batteries()) {
             if (battery.destroyed()) continue;
+            Fort.Place bunker = battery.fort() == null ? null : battery.fort().place(FortAspect.FIRE_CONTROL);
+            if (bunker != null) {
+                // A fort's fire control is its bunker, not the ground round the guns: that is where a commander
+                // sends a squad, and a bunker already wrecked is nothing to take.
+                if (bunker.wrecked() || !rosterService.isAliveById(bunker.coreId())) continue;
+                out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
+                        (int) Math.floor(rosterService.world().x(bunker.coreId())),
+                        (int) Math.floor(rosterService.world().y(bunker.coreId())),
+                        battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
+                        FORT_BUNKER_REACH_CELLS,
+                        (int) Math.floor(battery.x()), (int) Math.floor(battery.y())));
+                continue;
+            }
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
                     (int) Math.floor(battery.x()), (int) Math.floor(battery.y()),
                     battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
@@ -653,6 +674,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Capital ships hanging over the battle; each mount lays its weapon's rounds as ordinary detonations. */
     private final WarshipSystem warships = new WarshipSystem();
     private final FortressBatteryService fortressBatteries = new FortressBatteryService();
+    private final FortService forts = new FortService();
+    private final FortSystem fortSystem = new FortSystem();
     private final FortressBatterySystem fortressBatterySystem = new FortressBatterySystem();
     private final TenderSystem tenders = new TenderSystem();
     private final AirStrikeSystem airStrikeSystem =
@@ -1645,6 +1668,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The battle's fortress batteries: whose they are, whether they fire, and what they withhold. */
     public FortressBatteryService fortressBatteries() { return fortressBatteries; }
 
+    /** The battle's forts: the walled compounds built round a battery, and the aspects housed in them. */
+    public FortService forts() { return forts; }
+
+    /** Records that the spawned structure {@code id} is a part of a fort: its platform, an aspect core or a nest. */
+    public void tagFortPart(FortTag tag, long id, StructureDef structure, Faction holder) {
+        if (structure.isBattery()) {
+            FortressBattery battery = fortressBatteries.byStructure(id);
+            if (battery != null) forts.tagPlatform(tag.fortId(), battery);
+        } else if (structure.isFortAspectCore()) {
+            forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder);
+        } else {
+            forts.tagNest(tag.fortId(), id);
+        }
+    }
+
     @Override
     public String orbitalBarrageLock() {
         return fortressBatteries.orbitalBarrageLock(Faction.MARINE);
@@ -2539,6 +2577,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         survivorPickup.tick(this);
         if (coldAccount != null) coldAccount.advance(this);
         if (hostileShip != null) hostileShip.advance(this);
+        fortSystem.tick(TICK_DT, this);
         fortressBatterySystem.tick(TICK_DT, this);
         warships.tick(TICK_DT, this);
         detonations.tick();
@@ -2693,6 +2732,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
         objectivesService.tick(o -> o.tick(this));
+        // Delayed impacts and objective callbacks run after DEMOLISH and may
+        // kill a body on the final tick. Publish their corpse/cascade reactions
+        // before topology and completion: settlement must never see a released
+        // named marine waiting for a next tick that a terminal battle cannot run.
+        deathDispatcher.drain();
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall
         // breaches or turret demolishes that happened this tick, rebuilds the

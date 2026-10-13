@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-13 — independent shoulder articulation joins the layered suit contract.
+Updated: 2026-10-13 — recovered suit entry, explicit mixed sections, and layered Arbalest support the reserved post-Shepherd progression.
 
 ## Purpose
 
@@ -50,12 +50,38 @@ advertised as an attainable refit. Role and tradition preferences still operate
 within the class. Explicit class on collected patterns means that upgrading
 company stock does not silently mechanize every regular sheet.
 
+An explicitly mixed tactic sheet may declare class per billet. The
+Salvage-assisted Section keeps eight STANDARD billets and requires two
+POWER_SUIT assault billets plus two POWER_SUIT support billets. Each suit role
+must actually be owned; a missing support shell cannot become an assault shell
+or ordinary equipment. Better acquired patterns improve those same jobs when
+the player refits. Existing regular and full-suit sheets retain their uniform
+class requirement.
+
 Missing class on older external pattern data means STANDARD. Existing named kit
 keeps its concrete pattern identity; classification is a property of the catalog
 pattern rather than a second saved identity. Live save/reload acceptance must
 confirm those relationships rather than assume them from a unit test.
 
 ## Protection and counterplay
+
+The first introduction belongs after the Shepherd has completed its recovery
+and joined the player's fleet. A follow-on expedition on a new world, preferably
+in another system, should use that construction capability to recover worn suit
+technology. Completing A Cold Account, securing the grounded hull, or finishing
+Cold Start repairs is not this milestone. Working Passage and the subsequent
+expedition remain separate unfinished story work; no suit reward is attached to
+those earlier victories.
+
+Recovered Specter and Arbalest patterns form the initial tier-III step, with
+lower protection and weaker or shorter-lived systems than the tier-IV military
+patterns. A mixed section is an available transition before a full suit section;
+it is a composition choice, not a finite inventory of four shells. Collected
+technology still permits ordinary free fitting. The exact expedition destination
+and reward sequence are reserved for the story pass. These recovered templates
+declare that future story owner and remain outside random faction acquisition.
+Explicit development controls can teach them for campaign-loop testing without
+completing a story or automatically changing anyone's issued kit.
 
 Suit armor supplies the endurance step. Infantry biological structure stays
 unchanged, and armor break exposes the same wearer rather than ejecting or
@@ -76,6 +102,8 @@ and issued tiers retain their existing tradeoffs.
 | Lion's Mantle guard battlesuit | 60 | Conspicuous prestige shell and a long bounded advance |
 | Foundry-breaker industrial rig | 85 | Huge crude reserve with poor material resistance |
 | Arbalest support battlesuit | 50 | Mechanized support carrying finite shoulder ordnance |
+| Recovered Specter frame | 36 | Early recovered assault shell with a slower, weaker breach system |
+| Recovered Arbalest frame | 34 | Early support shell with two salvos and slower movement |
 
 Concentrated high-penetration fire must remain an answer. A suit is slower or
 more conspicuous according to its authored pattern, and it still needs cover,
@@ -132,6 +160,15 @@ provide the first casing palette; campaign cosmetic selection remains a separate
 design decision. Source plates, material masks, geometry, and export recipes
 belong together under `art-source/marine-modular-topdown/specter-v2/`, retaining
 the v1 source art and material masks.
+
+Arbalest's first playable layered body uses the accepted shell in its olive
+palette, with independent shoulders, helmet and feet and an authored left-pod
+mount. Its appearance family is distinct from ordinary Legionary equipment.
+The shared shell registration keeps weapons and joints aligned; the pod supplies
+its support silhouette. This is a shared first-pass body, not final unique
+Hegemony support-suit artwork. Recovered and military patterns share their
+family's silhouette; their issued tier, protection and capability remain visible
+in equipment inspection.
 
 The Foundry-breaker needs a more grounded revision: mismatched welded ship plate over
 a visible cargo exoframe, irregular shoulder mass, load-bearing struts, guarded

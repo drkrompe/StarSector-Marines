@@ -133,6 +133,15 @@ public final class FortressInterior {
 
     /** Finish explicitly arranged buildings through the same shell and fitting rules as packed rooms. */
     public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms) {
+        return author(ctx, rooms, List.of());
+    }
+
+    /**
+     * As {@link #author(GenContext, List)}, except that the rooms in {@code bare} are shelled and dressed but left
+     * unfurnished. A fort's aspect buildings are bare because their one fixture, the core structure, is placed by
+     * the host and must stand on floor no fitting has already taken.
+     */
+    public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms, List<RoomPacker.Placed> bare) {
         for (var room : rooms) {
             for (int[] cell : room.shape().wall()) {
                 int x = room.originX() + cell[0], y = room.originY() + cell[1];
@@ -154,7 +163,7 @@ public final class FortressInterior {
             }
         }
         stampWalls(ctx, rooms);
-        furnish(ctx, rooms, true);
+        furnish(ctx, rooms.stream().filter(room -> !bare.contains(room)).toList(), true);
         stampWindows(ctx, rooms);
         InstallationFloors.dress(ctx, rooms);
         InstallationWalls.dress(ctx, rooms);

@@ -54,7 +54,7 @@ public final class ConquestCommandFacts {
         for (DefenceStructureFact structure : sim.defenceStructures()) {
             boolean ours = perspective.friendlyTo(structure.holder())
                     || perspective.friendlyTo(structure.originalHolder());
-            if (ours || seesCell(sim, perspective, structure.cellX(), structure.cellY())) {
+            if (ours || seesCell(sim, perspective, structure.seenCellX(), structure.seenCellY())) {
                 known.add(structure);
             }
         }

@@ -1,8 +1,10 @@
 # Forts — defences you have to take apart
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-14
+
+Updated: 2026-10-13 — slices 1 and 2 built (battery fort and its aspects); shield fort, redoubt/citadel, command awareness and art remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -86,6 +88,28 @@ missions that want one.
   using the existing wall-health machinery.
 - **Aspects do not respawn.** A wrecked aspect stays wrecked for the battle; a taken one can
   be retaken.
+
+## Built: battery fort and aspects (slices 1 and 2)
+
+- **Layout.** `BatteryFort` is a 48x36 authored `CompoundLayout`: a wall ring with two gates, a main street and a
+  postern lane, a fire-control bunker, a magazine and a power building (each a walled building with one door), the
+  battery platform in the rear gun court and a nest in each inner corner. `BatteryFortStage` stamps it at one of four
+  cardinal turns on ground the city has left free (city is prior; roads and precinct claims are respected), turns the
+  main gate to face the map centre where it can, and paves a lane from each gate toward the nearest road. The lane is
+  ground paint only; it is not in the road graph. Fort walls carry wall-health, so they can be breached.
+- **Declaration.** `GroundDefences` carries declared forts by `FortKind` (BATTERY_FORT today). `MissionDefencePolicy`
+  stays the only decider; Conquest's untuned first pass converts its declared batteries into forts
+  (`CONQUEST_BATTERIES_AS_FORTS`, one line to turn off). Bare structures remain for scenes and debug, the DEBUG dial
+  has a fort option, and fixtures round-trip forts (a legacy fixture reads as none).
+- **Aspects.** Each aspect is a 3x3 core structure inside its building, captured by presence like fire control was.
+  Fire control lives in the bunker: the guns are silent while the bunker is not the holder's, and a wrecked bunker
+  silences them for good. A wrecked magazine leaves a ready-round pool the guns fire out and then stop, and the
+  magazine explodes through the existing blast machinery. Power taken, contested or wrecked slows traverse and fire
+  to a quarter. Power is local to a fort. Either side may hold any aspect and a captured aspect serves its new
+  holder; wrecked stays wrecked, taken can be retaken. State is drawn on the map beside the battery markers.
+- **Commanders.** `DefenceStructureTactics` still works: a fort's fact points the squad at the bunker, disclosed when
+  the platform is sighted.
+- **Tuning is untuned.** Numbers (12 ready rounds, 0.25 unpowered rate, core hit points) are first passes.
 
 ## Slices
 

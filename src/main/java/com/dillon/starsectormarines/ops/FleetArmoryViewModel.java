@@ -835,7 +835,7 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClass().displayName(), titleCase(plan.tradition().key.replace('_', ' ')), tierMark(maximumArmorTier(issued)));
+            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), titleCase(plan.tradition().key.replace('_', ' ')), tierMark(maximumArmorTier(issued)));
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
@@ -1418,20 +1418,20 @@ public final class FleetArmoryViewModel {
      * line beneath it ({@code role-and-access.md}).
      */
     private String roleComposition(SquadArmorPlan plan) {
-        Map<ArmorRole, Integer> counts = new EnumMap<>(ArmorRole.class);
-        for (ArmorRole role : plan.mix().billets()) counts.merge(role, 1, Integer::sum);
         List<String> parts = new ArrayList<>();
-        for (ArmorRole role : ArmorRole.values()) {
-            Integer count = counts.get(role);
-            if (count == null) continue;
-            String part = count + " " + role.displayName().toLowerCase(Locale.ROOT);
-            // A role this company owns nothing for is filled with line kit by the
-            // resolver, silently. Saying so here is what turns a sheet the player
-            // cannot yet field into a reason to buy something: the ISSUED line
-            // below would otherwise just show twelve of the wrong suit and no
-            // explanation ({@code role-and-access.md}).
-            if (!ownsAnyPatternFor(role, plan.armorClass())) part += Strings.get("openingFleetArmoryNoKit");
-            parts.add(part);
+        for (ArmorClass armorClass : ArmorClass.values()) {
+            Map<ArmorRole, Integer> counts = new EnumMap<>(ArmorRole.class);
+            for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+                if (plan.armorClassAt(billet) == armorClass) counts.merge(plan.roleAt(billet), 1, Integer::sum);
+            }
+            for (ArmorRole role : ArmorRole.values()) {
+                Integer count = counts.get(role);
+                if (count == null) continue;
+                String part = count + " " + role.displayName().toLowerCase(Locale.ROOT);
+                if (plan.isMixedClass()) part += " (" + armorClass.displayName() + ")";
+                if (!ownsAnyPatternFor(role, armorClass)) part += Strings.get("openingFleetArmoryNoKit");
+                parts.add(part);
+            }
         }
         return String.join("  ·  ", parts);
     }

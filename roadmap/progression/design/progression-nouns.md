@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — squads rotate eligible pod carriers and space their salvos through an authored use policy.
+Updated: 2026-10-13 — explicit mixed-class issue and reserved story acquisition join the power-suit progression model.
 
 ## Purpose
 
@@ -178,6 +178,10 @@ legibility.
   may make a template card available: ordinary market stock, licensed access,
   patron reward, or operational recovery. A source declares eligibility and
   relative selection weight; it does not itself grant, sell, or recover a card.
+- **Story equipment source** — a named authored acquisition owner reserved for
+  a template outside ordinary faction channels. Its declaration identifies who
+  must implement the reward; it does not certify a playable mission or a completed
+  reward path, and never grants technology by itself.
 - **Equipment access tier** — a card's authored Common, Advanced, or Prestige
   campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret it
   through shared company-history and reputation gates.
@@ -505,9 +509,12 @@ quietly producing an empty or unreachable catalog. The four channel weights are
 inputs for later acquisition consumers, never loot rolls performed during
 application loading and never a hidden combat modifier.
 
-The merged catalogs enforce the standing reachability law at application load:
-every collectible card must be starter-owned or appear in at least one faction
-pool through a channel that can eventually admit its access tier. An Advanced
+The merged catalogs enforce acquisition ownership at application load:
+every collectible card must be starter-owned, appear in at least one faction
+pool through a channel that can eventually admit its access tier, or reserve an
+explicit named story source. A story-only armor template declares that owner
+through `storySource`; it cannot also enter a faction pool or starter issue.
+The declaration does not prove that the story reward is implemented. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
 still stranded. This is global reachability, not universal faction availability.
 It lets add-ons keep faction identity while ensuring that a newly collectible
@@ -515,9 +522,14 @@ family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.
 
 Armor patterns are authored player kit with distinct defensive and mobility
-tradeoffs. Every currently authored pattern has a collectible card and faction
-acquisition source, and the catalog audit preserves that coverage as content is
-added.
+tradeoffs. Every currently authored pattern has a collectible card and an
+acquisition owner, and the catalog audit preserves that coverage as content is
+added. Recovered Specter and Arbalest patterns reserve their future acquisition
+for an authored expedition after the Shepherd actually joins the fleet.
+Their declared story owner supplies no live reward yet; explicit developer test
+controls are currently their only acquisition route. Neither A Cold Account
+completion nor the grounded Shepherd's repair automatically learns them.
+Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
