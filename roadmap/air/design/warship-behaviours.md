@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-12 — ship class bias (threat weights by class) built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
+Updated: 2026-10-12 — carrier flux and standoff biases built (owner: carriers hang back and save flux); support-ship no-bombardment decided but deferred; ship class threat weights built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -161,12 +161,12 @@ The weight table scales the base weights in `AirThreatPicture` (hostile ship 1.0
 | Carrier, any size | 1.0 | 1.0 | 2.0 |
 | Support, any size | 1.0 | 1.0 | 1.5 |
 
-So one armed craft (0.5) reaches the air-superiority entry level (1.0) for a frigate or any carrier, and does not for a capital. The score has no ground-clutter term, so a carrier's near-zero weight on ground is already true of every class. A class changes only the threat score and thereby when the ship enters the air fight; no damage, flux, station or director parameter reads it.
+So one armed craft (0.5) reaches the air-superiority entry level (1.0) for a frigate or any carrier, and does not for a capital. The score has no ground-clutter term, so a carrier's near-zero weight on ground is already true of every class. A class changes the threat score, and a carrier additionally biases its flux pair and standoff margin (Decided below); no damage parameter reads it.
 
-The rest of the original class intent is **not built** and is listed here as it was drafted, to be revisited with the open questions below. It changes weights and parameters:
+The rest of the original class intent (support ships, escort) is **not built** and is listed here as it was drafted, to be revisited with the open questions below. It changes weights and parameters:
 
-- **Carrier.** Its main contribution is its wings. Existing air cover already flies a player's committed carriers' wings in on a corridor (`FlybyRoster`, `AirCoverSystem`; origin is a corridor, not the deck). A carrier on station therefore does not launch from its hull in v1: it is the *reason* a wing exists, stays back (standoff weight high), conserves flux, and treats hostile fighters as the dominant threat. A deck-launch origin (a third origin beside berth and corridor) is deferred; `air-nouns.md` is explicit that origin is a property of a sortie.
-- **Support ship** (Mora, and the Shepherd as a drone tender, whose own model is `tender-ship.md`; tender-style hulls where `hints` or designation says so): no ground bombardment at all in its default; contributes point defence, spotting (`WarshipSpotting`) and later repair/jam effects. Its posture set is {AIR_SUPERIORITY-like, WITHDRAW}.
+- **Carrier** (flux and standoff biases built, see Decided below). Its main contribution is its wings. Existing air cover already flies a player's committed carriers' wings in on a corridor (`FlybyRoster`, `AirCoverSystem`; origin is a corridor, not the deck). A carrier on station therefore does not launch from its hull in v1: it is the *reason* a wing exists, stays back (standoff weight high), conserves flux, and treats hostile fighters as the dominant threat. A deck-launch origin (a third origin beside berth and corridor) is deferred; `air-nouns.md` is explicit that origin is a property of a sortie.
+- **Support ship** (decided, deferred: see Decided below) (Mora, and the Shepherd as a drone tender, whose own model is `tender-ship.md`; tender-style hulls where `hints` or designation says so): no ground bombardment at all in its default; contributes point defence, spotting (`WarshipSpotting`) and later repair/jam effects. Its posture set is {AIR_SUPERIORITY-like, WITHDRAW}.
 - **Escort** (frigate, destroyer): follows a lead ship's station at an offset, point-defence priority, interposes between the threat and the lead. Needs the lead-ship relation and ships as bodies; v2.
 - **Phase**: a phase hull has its own cloak behaviour; out of scope until a phase ship is fitted.
 
@@ -261,9 +261,27 @@ Slice 1 (posture and readout), slice 2 (objective-aware, friendly-aware fire, st
 
 - **Intercept timing is per gun.** The zone is taken up to ten seconds before the slowest gun's first round could land at touchdown, so the hull can swing and the turrets traverse; each barrel then waits on the zone until a round fired now would land as the boat touches down. The touchdown estimate is the boat's remaining run plus half a second, or 0.9 s in its settle; both are measured, not derived, and the scene asserts the estimate holds within a second. A boat that is not visible until it is inbound cannot be pre-aimed on earlier than that, so a ship that must swing a long way is late. The scene starts the defender already lying on a bearing heading.
 
+## Decided: ship class parameter biases
+
+Owner decisions of 2026-10-12.
+
+**Carriers hang back and save flux in a fight (built).** "Should carriers hang back and save flux in a fight? Yes, they are carriers." The bias is on the posture's parameters (`PostureProfile.of(posture, shipClass)`); the class is still not a posture and nothing changes how hard anything hits. A `CARRIER` hull gets:
+
+| Posture | Flux soft / resume | Standoff |
+| --- | --- | --- |
+| AIR_SUPERIORITY | 40 / 25 (combat hull 50 / 30) | on, margin x3 |
+| SUPPORT, INTERCEPT | 60 / 40 (combat hull 85 / 55) | on, margin x3 |
+| BOMBARD (no fight to save for) | 85 / 55 | on, margin x3 |
+| WITHDRAW | 85 / 55 | as the posture (off) |
+
+Standoff is the existing machinery (`WarshipSystem.standoffStation`, declared capital hazards hostile to the ship): a carrier keeps 15 cells (3 x the standard 5) plus half its hull beyond a hazard's radius, in every posture but withdraw, where a combat hull keeps 5 and only in air superiority. Least invasive mechanism: no new station logic, one scale on a margin that already exists, and it inherits decision 2 (the hazard is the only input). It does not leave the battle and point defence is not a profile parameter, so it stays on. Hostile ships and hostile density do not yet push the station (the standoff has only ever read declared hazards); a carrier hanging back from a fight without a declared hazard is not built, because that needs ships as targets or a threat axis (G4).
+
+**Support hulls do not hunt ground (decided, deferred).** A `SUPPORT` hull (CIVILIAN hint or tender designation) does not run the BOMBARD density director: it keeps point defence and returns fire on what threatens it, but does not seek ground targets. Not built: no mission puts a gunned support hull over a battle yet (the Shepherd tender carries no guns), so there is nothing to observe. Build it with the first such hull, as `maxAreas` 0 outside point defence for the SUPPORT role.
+
+**Shield type will count in the threat weights (decided, deferred).** An unshielded hull fears aircraft more, a front shield leaves it exposed to a flank attack, an omni shield fears less. Not built: until aircraft can hurt ships (G3), ground defences can (G5) and ships are targets (G4), the threat channel the weights scale is inert, so a shield column would weight nothing observable. The shield type is already carried on `ShipClass`.
+
+**Escort is wanted (decided, deferred).** A role with a lead-ship relation that follows the lead at an offset and intercepts threats aimed at it. Not built, on the same dependency: it needs ships as targets (G4) and something that aims at a lead (G3, G5). Until then a frigate or destroyer is a small combat ship.
+
 ## Open questions: ship class
 
-1. **Parameter biases are not built.** The classes section calls for a carrier that stays back, conserves flux and weights standoff high, and a support ship with no ground bombardment in its default. Each would change what an existing hull does in a battle (a Mora would fall silent), so the slice stops at threat weights. Candidate next step: a per-role `PostureProfile` adjustment (carrier: air-superiority standoff on at lower threat; support: `maxAreas` 0 under every posture but point defence), owner to confirm the support ship should not bombard at all.
-2. **Shield type is carried but not weighted.** The doc says a shielded battleship does not fear a fighter; the size column already makes that so. Whether an unshielded hull (Doom's phase cloak, a freighter) should add a further fighter multiplier is undecided, and the phase hull's cloak is out of scope until one is fitted.
-3. **Escort is not a role.** It needs a lead-ship relation and ships as bodies (G4); until then a frigate or destroyer is a small combat ship, not an escort. The escort weight on anything targeting its lead has no input to read.
-4. **The multipliers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
+1. **The multipliers and carrier numbers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
