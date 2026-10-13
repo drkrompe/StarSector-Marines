@@ -1190,6 +1190,12 @@ public class AirSystem {
 
                 case INCOMING:
                     if (mission.gunship) {
+                        if (mission.gunshipIngress != null && mission.gunshipIngress.steer(body, flight, dt)) {
+                            world.setAltitudeT(id, 1f);
+                            world.setFlightPhase(id, world.flightPhase(id)
+                                    + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                            break;
+                        }
                         // Not coming to a point at all: joining a ring about it. The carrot is the
                         // tangent point while the craft is still outside, so it arrives on the ring
                         // already heading round it rather than at the centre and then out again.

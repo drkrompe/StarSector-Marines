@@ -91,6 +91,7 @@ public final class GroundAntiAirSystem {
         state.setRecoilTimer(id, 0f);
         var muzzle = TurretMountGeometry.muzzle(sim.world().x(id), sim.world().y(id), facing, structure.mount, release);
         if (weapon.guidance != null) {
+            sim.world().mission(target).lastMissileLaunchTick = sim.getSimTickIndex();
             var flight = new GuidedMissile(muzzle.x(), muzzle.y(), facing, weapon.roundVelocity, weapon.guidance);
             var shot = new ShotEvent(muzzle.x(), muzzle.y(), 0f, muzzle.x(), muzzle.y(), 0f,
                     false, sim.identity().faction(id), weapon.guidance.lifetime(), structure, null, null, null,

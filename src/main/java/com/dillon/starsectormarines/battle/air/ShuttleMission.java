@@ -292,6 +292,10 @@ public final class ShuttleMission {
      * Set by {@link GunshipOrbit#begin}; a craft with this set never has a payload to put down.
      */
     public boolean gunship;
+    /** Optional mission-authored approach, flown before joining the ordinary station circle. */
+    public GunshipIngress gunshipIngress;
+    /** Last actual guided-AA launch against this craft, for observed threat responses. */
+    public int lastMissileLaunchTick = -1;
     /** Radius of the ring a gunship holds about its target, in cells. */
     public float orbitRadius;
     /** Whether the ring is flown clockwise (target to the right of the heading) or counter-clockwise. */
