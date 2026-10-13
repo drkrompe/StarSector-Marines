@@ -1301,7 +1301,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (Display.isCreated() && Display.isActive() && Keyboard.isCreated()) {
             directControlInput.reconcileToggleKeyRelease(Keyboard.isKeyDown(Keyboard.KEY_TAB));
             directControlInput.reconcileAbilityKeyReleases(
-                    Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G));
+                    Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G),
+                    Keyboard.isKeyDown(Keyboard.KEY_X));
             directControlInput.reconcileShiftKeyReleases(
                     Keyboard.isKeyDown(Keyboard.KEY_LSHIFT), Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
         }

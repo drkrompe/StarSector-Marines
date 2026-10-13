@@ -1,10 +1,10 @@
 # Direct control nouns
 
-Status: ACTIVE — Marine, Mech, deployed APC, and friendly Warship control are implemented; live acceptance remains open.
+Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tender control are implemented; live acceptance remains open.
 
 Written: 2026-09-23
 
-Updated: 2026-10-12 — hover-only help tab explains each carrier's controls; a friendly Warship is a fourth carrier.
+Updated: 2026-10-12 — a drone Tender is flown through the warship seam with build and drone buttons; hover-only help tab explains each carrier's controls.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -101,7 +101,7 @@ over the tab opens a panel of this carrier's bindings and what its cards mean, a
 both the tab and the panel closes it. It takes no click and no focus, and nothing opens
 by itself on entry. The tab is chrome like the buttons, so world fire is suspended
 while the pointer is over it; the open panel is chrome only while open, and a collapsed
-panel captures no pointer. The content is per carrier (Marine, Mech, APC, Warship) and
+panel captures no pointer. The content is per carrier (Marine, Mech, APC, Warship, Tender) and
 lists only that carrier's real bindings; with nothing controlled there is no tab.
 
 A faint aim lane connects the current firing origin toward the cursor. Its
@@ -175,7 +175,7 @@ strategic and action views. Action zoom preserves the body’s screen framing;
 strategic zoom retains its cursor anchor. Camera projection remains shared
 with point aiming and the crosshair. Right-click issues no world order while
 controlling. It is a second trigger for the carriers that have a second battery: a
-Warship's missiles (see Warship carrier), a Mech's secondary weapon group, and a
+Warship's missiles (see Warship carrier), a Tender's drone recall (see Tender), a Mech's secondary weapon group, and a
 Marine's secondary equipment (see Mouse buttons). A carrier with nothing to put on
 it, such as the APC turret, lets the press fall on the floor; the press never
 reaches the world, the camera, or the command layer, and releasing input clears it
@@ -493,6 +493,44 @@ the cursor can lead beyond the bow. The hull outline, the two laid rings and a
 crosshair are drawn in the world; there is no aim lane, since a ship fires on ground
 and not along a line. The F6-F11 debug keys of the debug mission still work outside
 control and are hidden during it.
+
+### Tender
+
+A friendly drone tender (`tender-ship.md`) is the Warship carrier with different hands, not a
+fifth input mode. It is selected by clicking its hull, entered with Tab through the same
+`enterWarship` seam, and flown with WASD on the hull's own hover handling; the session
+recognises the hull as a tender and routes the buttons to the tender instead of to batteries
+it does not have. The shield (E) is the warship's.
+
+- **Left button, held: lay a build site** at the cursor cell for the selected option. It is the
+  same `Tender.lay` the debug panel calls: the cell must be ground the player has observed
+  (the fog rule a warship's laid area uses), open and walkable, and clear of other sites. One
+  site per cell per press (holding on a cell does not re-lay), at most four live sites, so a
+  held button can paint a short line but not flood it. A metered tender that cannot pay refuses.
+  A reticle at the cursor cell is blue where a site can go and red where it cannot, and the
+  site card says why when a click is refused.
+- **Right button, press: recall or deploy the defence drones.** The press toggles; holding does
+  not repeat. The drone swarm has no order to "go to the cursor", and one is not invented here:
+  the defence drones keep the screening behaviour they already have.
+- **Number keys select what to build.** They are the tender's real option list in order (today
+  one: [1] the vulcan turret); a slot with no option behind it is refused and shown as
+  "soon". Choosing is not a handback and changes no running build.
+- **X cancels every unfinished site**; each returns its charge on a metered tender.
+- **A piloted tender does not station itself at a site**, because the hands are what move it.
+  A laid site waits until the pilot has flown within 16 cells of it ("fly closer"), then the
+  builders launch. If the pilot flies farther than 26 cells from a working site the builders
+  go home and the work stops ("out of range"), as a threat stands it down. Everything else
+  about the work is the tender's: the clock, the crew, the threat stand-down.
+- **Handback** is the warship's, plus the tender's own: the hull returns to its prior director,
+  station or route; every site the pilot laid is withdrawn (a hand order does not outlive the
+  hand; builders already out fly home); and the defence drones return to whatever they were
+  told before entry. Death of the hull, departure, battle end, Tab and Escape release it.
+
+The equipment strip shows hull above armour, the hull's flux in the heat row, and read-only
+cards: helm; the selected option with the other slots marked "soon"; the site card (the
+current site, its phase and progress, a refusal notice, the live-site count, and the cancel
+key); builders (ready, out or working, lost); defence drones (ready, out, lost, deployed or
+recalled); and the shield. Its help panel lists exactly these bindings.
 
 ## Boundaries
 

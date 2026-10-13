@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.tender.TenderPilot;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import com.dillon.starsectormarines.battle.warship.WarshipPilot;
@@ -79,7 +81,25 @@ public final class DirectControlPanel implements HudPanel {
         if (!Float.isFinite(aim.aimX()) || !Float.isFinite(aim.aimY())) return;
         float aimX = camera.cellToScreenX(aim.aimX());
         float aimY = camera.cellToScreenY(aim.aimY());
-        if (camera.containsScreen(aimX, aimY)) crosshair(aimX, aimY, alpha);
+        if (!camera.containsScreen(aimX, aimY)) return;
+        crosshair(aimX, aimY, alpha);
+        Tender tender = sim.directControl().controlledTender();
+        if (tender != null && sim.directControl().selectedBuildOption() != null) {
+            siteReticle(sim, camera, tender, aim.aimX(), aim.aimY(), alpha);
+        }
+    }
+
+    /** The cell a left click would lay a site on: the controlled blue where it can be built, red where it cannot. */
+    private static void siteReticle(BattleSimulation sim, BattleCamera camera, Tender tender,
+                                    float x, float y, float alpha) {
+        var where = TenderPilot.placement(tender, x, y, sim.getGrid(), sim.getFogOfWar()::isCellRevealed);
+        if (where == TenderPilot.Placement.OFF_MAP) return;
+        float px = camera.cellPxSize();
+        float left = camera.cellToScreenX((float) Math.floor(x));
+        float top = camera.cellToScreenY((float) Math.floor(y));
+        Color color = where == TenderPilot.Placement.OPEN ? CONTROLLED : DANGER_AREA;
+        HudDraw.borderRect(Math.min(left, camera.cellToScreenX((float) Math.floor(x) + 1f)),
+                Math.min(top, camera.cellToScreenY((float) Math.floor(y) + 1f)), px, px, color, alpha);
     }
 
     private static void ring(BattleSimulation sim, BattleCamera camera, Warship ship,
