@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -826,6 +827,30 @@ public class AirSystem {
     }
 
     /**
+     * Places the frozen company at a secured opening position using the ordinary
+     * infantry realization (issued kit, squad identity, fire teams and NCO).
+     * No aircraft boards, flies, or reports these personnel as passengers.
+     */
+    public void deployCompanyOnGround(GroundMarineArrival arrival, List<MarineSeatCommitment> seats) {
+        ShuttleMission ground = new ShuttleMission(arrival.x, arrival.y, 0, 0, 0, 0, 0, 0);
+        ground.commandClaim = arrival.commandClaim;
+        arrival.deploy(seats, loadout -> {
+            // Setup runs without a simulation tick between bodies. Publish occupancy
+            // before selecting the next cell rather than stacking the whole force.
+            navigation.rebuildOccupancyMap(roster);
+            ground.squadId = Squad.NO_SQUAD;
+            ground.marineLoadout = new MarineLoadout[]{loadout};
+            ground.deboardedThisSortie = 0;
+            AirDeliveryContext context = new AirDeliveryContext(ground, ShuttleType.AEROSHUTTLE,
+                    Faction.MARINE, navigation, roster, addUnitSink, resupply, commandControl,
+                    Math.max(10, (int) Math.ceil(Math.sqrt(seats.size())) * 2));
+            if (!InfantryPayload.INSTANCE.tryDeploy(context))
+                throw new IllegalStateException("Secured ground arrival has no free infantry position");
+        });
+        navigation.rebuildOccupancyMap(roster);
+    }
+
+    /**
      * Advances each shuttle's state machine by one tick. PENDING burns down
      * the stagger delay; INCOMING/DEPARTING steer the {@link AirBody} toward
      * their LZ / exit waypoint under the shuttle's {@link ShuttleType}
@@ -1190,6 +1215,12 @@ public class AirSystem {
 
                 case INCOMING:
                     if (mission.gunship) {
+                        if (mission.gunshipIngress != null && mission.gunshipIngress.steer(body, flight, dt)) {
+                            world.setAltitudeT(id, 1f);
+                            world.setFlightPhase(id, world.flightPhase(id)
+                                    + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                            break;
+                        }
                         // Not coming to a point at all: joining a ring about it. The carrot is the
                         // tangent point while the craft is still outside, so it arrives on the ring
                         // already heading round it rather than at the centre and then out again.

@@ -134,6 +134,14 @@ public final class FortBuildingArt {
     }
 
     /**
+     * Whether a power plant is running. A captured aspect works for its new holder, so the holder is deliberately not
+     * an input: a plant is stopped only while its point is contested or its battery is destroyed.
+     */
+    public static boolean plantRuns(boolean contested, boolean batteryDestroyed) {
+        return !contested && !batteryDestroyed;
+    }
+
+    /**
      * How fast the building's machinery runs, 0 to 1. A wrecked building runs nothing, and a building whose power is
      * not its holder's (cut, contested or taken from the plant that feeds it) runs nothing either; a hurt one runs at
      * half speed.

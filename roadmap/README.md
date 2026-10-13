@@ -87,9 +87,11 @@ discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 After A Cold Account, Basin Reclamation offers Salvage Rights on Asharu: a night
 recovery contract with actual company lift, allied holders, an inspection party
 and a persistent claim on the grounded Shepherd. `shepherd-recovery.md` covers
-Cold Start's playable cargo escort, shore power and grounded construction.
-Working Passage's departure and fleet transfer remain open, alongside the live
-campaign pass through recovery and repair. The three visits share authored geography.
+Cold Start's company already ashore, cargo escort, shore power and grounded construction, followed
+by Working Passage's full-size low-hover advance, constructed holds and physical
+departure. Accepted departure awards the actual named Morrow and her minimum
+willing crew once. The live campaign pass through all three chapters, save/reload
+and later owned construction support remains open. The visits share authored geography.
 Actual fleet handover gates the optional Agreus referral; Cold Start alone
 does not grant it or any power-suit reward.
 

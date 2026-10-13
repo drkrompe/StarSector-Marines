@@ -139,3 +139,4 @@ com.dillon.starsectormarines.battle.fort.ShieldFortSceneSnapshotSuite
 com.dillon.starsectormarines.ops.BatteryFortMapSnapshotSuite
 com.dillon.starsectormarines.ops.ShieldFortMapSnapshotSuite
 com.dillon.starsectormarines.battle.air.RidgeAirDefenceSceneSnapshotSuite
+com.dillon.starsectormarines.ops.WorkingPassageSnapshotSuite

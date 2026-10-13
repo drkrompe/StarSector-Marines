@@ -62,7 +62,7 @@ public final class TenderSystem {
      * waits to be shot at from outside the old radius is a builder lost for
      * nothing; the screen's job is to clear the ground so the work can resume.
      */
-    static final float THREAT_CELLS = 30f;
+    public static final float THREAT_CELLS = 30f;
     /** Seconds between one defence drone leaving the bay and the next. */
     static final float LAUNCH_INTERVAL = 0.8f;
     /** Seconds between one builder leaving the bay and the next. */
@@ -130,6 +130,15 @@ public final class TenderSystem {
             TenderDirector.direct(t, sim, dt);
             tickOrders(t, dt, sim);
             tickBuilders(t, dt, sim);
+            releaseCompletedBuildHelm(t);
+        }
+    }
+
+    /** A recovery build owns travel only while its construction queue is active. */
+    static void releaseCompletedBuildHelm(Tender tender) {
+        if (tender.lowHover() && tender.current() == null
+                && tender.ship().remoteOrder() == Warship.RemoteOrder.BUILD) {
+            tender.ship().remoteAutonomous();
         }
     }
 
@@ -178,6 +187,7 @@ public final class TenderSystem {
             if (sortie.damaged) flight.repairing(clock);
             sim.takeOffTheField(id);
             t.dockedDefender(id);
+            cues.flight(TenderCues.Kind.DOCK, t.faction(), t.bayX(), t.bayY(), id, sim.getSimTickIndex());
         }
         flight.publishEscort(t.defenders, world);
         t.launchClock += dt;
@@ -220,6 +230,7 @@ public final class TenderSystem {
             body.teleport(bx, by, t.bayMouthDegrees());
             sim.world().setPos(id, bx, by);
         }
+        cues.flight(TenderCues.Kind.LAUNCH, t.faction(), bx, by, id, sim.getSimTickIndex());
         return id;
     }
 
@@ -261,7 +272,7 @@ public final class TenderSystem {
                     o.standoff(t.bayX(), t.bayY());
                     return;
                 }
-                if (t.piloted()) {
+                if (t.piloted() || t.lowHover()) {
                     o.standoff(t.ship().x, t.ship().y);
                     return;
                 }
@@ -276,7 +287,7 @@ public final class TenderSystem {
             }
             case TRANSIT -> {
                 Warship ship = t.ship();
-                boolean there = t.grounded() ? t.groundSiteReachable(o.siteX(), o.siteY(), grid) : t.piloted()
+                boolean there = t.grounded() ? t.groundSiteReachable(o.siteX(), o.siteY(), grid) : t.piloted() || t.lowHover()
                         ? Math.hypot(ship.x - o.siteX(), ship.y - o.siteY()) <= PILOT_REACH_CELLS
                         : Math.hypot(ship.x - o.standoffX(), ship.y - o.standoffY()) <= ARRIVE_CELLS
                                 && ship.speed() <= ARRIVE_SPEED;
@@ -361,7 +372,7 @@ public final class TenderSystem {
 
     /** Whether a pilot has flown the tender too far from {@code o}'s site for its builders to keep working. */
     public static boolean outOfReach(Tender t, ConstructionOrder o) {
-        return t.piloted() && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
+        return (t.piloted() || t.lowHover()) && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
     }
 
 
@@ -404,6 +415,7 @@ public final class TenderSystem {
             if (flight.step(sortie, body.x, body.y, t.bayX(), t.bayY(), t.bayMouthDegrees(), clock, dt)) {
                 sim.takeOffTheField(id);
                 t.dockedBuilder(id);
+                cues.flight(TenderCues.Kind.DOCK, t.faction(), t.bayX(), t.bayY(), id, sim.getSimTickIndex());
                 continue;
             }
             float[] push = DroneSeparation.push(id, body.x, body.y, mateIds, xs, ys, n, BUILDER_SEPARATION);

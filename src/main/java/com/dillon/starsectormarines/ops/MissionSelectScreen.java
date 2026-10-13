@@ -138,7 +138,7 @@ public final class MissionSelectScreen implements Screen {
             props.put("brokerName",ShepherdRecoveryCampaign.NAME);
             props.put("brokerRole","BASIN RECLAMATION COOPERATIVE / INDEPENDENT");
             props.put("brokerIntroduction","Mara made the introduction. This contract is with our cooperative: recover Morrow and reopen our corridor. The repaired ship is payment in kind after all three operations; the fixed yard remains ours.");
-            props.put("brokerProgress",progress!=null && progress.repaired()?"REPAIRED / WORKING PASSAGE NOT YET AVAILABLE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
+            props.put("brokerProgress",progress!=null && progress.departed()?"COMPLETE / MORROW REGISTRY TRANSFERRED":progress!=null && progress.repaired()?"WORKING PASSAGE / DEPARTURE CLEARANCE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
     }
 
     static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {
@@ -276,7 +276,8 @@ public final class MissionSelectScreen implements Screen {
                             : mission.source == MissionSource.STORY ? "Story" : mission.tier.displayName)
                             + "  ·  " + recommended
                             + (recommended == 1 ? " squad" : " squads") + active,
-                    (SupplyRouteCampaign.recovery(mission) || SupplyRouteCampaign.freight(mission)) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
+                    ShepherdRecoveryProgress.workingPassage(mission.id) ? "MORROW"
+                            : (SupplyRouteCampaign.recovery(mission) || SupplyRouteCampaign.freight(mission)) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -359,6 +360,11 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if(ShepherdRecoveryCampaign.isBattle(mission)&&ShepherdRecoveryProgress.workingPassage(mission.id))return List.of(
+                detailRow("force","Company","2 squads / your fitted boats / optional owned mech"),
+                detailRow("support","Cooperative","8 militia hold captured positions; Morrow builds the guns"),
+                detailRow("claim","Departure","Pump bend > Narrows > Defended climb-out"),
+                detailRow("payout","Payment in kind","Morrow / Shepherd construction tender / willing minimum crew"));
         if(ShepherdRecoveryCampaign.isBattle(mission))return List.of(
                 detailRow("force","Company","2 squads recommended / optional owned mech"),
                 detailRow("support","Cooperative","8 militia / 2 inspection technicians"),

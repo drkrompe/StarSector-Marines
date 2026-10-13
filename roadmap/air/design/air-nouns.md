@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks. Campaign overhaul retains damage across servicing.
+Updated: 2026-10-13 - employer gunship and crash aftermath, retained campaign overhaul, recovery low hover and physical departure boundaries.
 
 Earlier 2026-09-01 â€” an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1368,6 +1368,10 @@ gunship in the sense that law forbids, because nothing was delivered to get it.
 An employer may instead supply and direct a mission gunship. It remains an
 ordinary vulnerable aircraft with the same weapons, damage and crash rules;
 its ownership grants no player card, cost, crew seats or campaign airframe.
+A mission may give its incoming gunship a committed waypoint pass before it
+joins the station. Ordinary steering flies each leg; it grants no immunity,
+teleportation or predetermined damage. Actual guided-AA launches against the
+craft publish its missile-warning fact for observed story responses.
 Its controller may move the orbit center from friendly progress and public
 mission state. Retasking preserves the remaining station time and the chosen
 orbit direction. See Kestrel in `early-operation-nouns.md`.
@@ -2017,8 +2021,11 @@ orders. Nothing in it is a second flight, drone or turret model.
 **The body is a warship; the drones are drones; the product is a turret.** The
 hull is fitted from the same `.ship`, hull table and sprite as any capital, with
 the vanilla variant's guns left off, and is flown by the warship helm to a station.
-It can be fitted from a campaign Shepherd as a warship is from its fleet member,
-and from the stock hull otherwise. Its complement is the hull's built-in wing, half
+It can be fitted from a campaign Shepherd as a warship is from its fleet member.
+An explicit mission or debug fixture may supply a stock hull; ordinary campaign
+support instead requires a currently owned eligible committed member. Losing or
+selling a rewarded ship neither reopens its story award nor summons another tender.
+Its complement is the hull's built-in wing, half
 defence drones and half builders, drawn as the Shepherd's own wing is in fleet
 combat (the Borer sprite, at hull scale), which is a look and nothing else.
 A defence drone is the shipped armed drone whose squad is anchored to the tender
@@ -2095,6 +2102,17 @@ default, it waits to be told. The AI lays the same site a pilot or the debug pan
 would, so building, stand-down and failure are one model whoever chose the site. What
 bounds a free tender is ground already covered by its side's turrets, not a count.
 `tender-ship.md` has the rules.
+
+A recovering mission hull may instead use a **low hover** with the same full-size
+body as its grounded appearance. It remains a live warship and tender, with a
+fixed attitude and swept terrain clearance rather than a second movement model.
+Its builders work within reach of the moving hull and outside its footprint;
+completed or cancelled remote construction returns mission travel, while explicit
+Move or Hold retains helm authority. The whole body keeps its scale until ascent.
+Physical departure means propulsion carried that whole hull beyond the map;
+timeout removal is a separate ending and cannot satisfy a mission's departure
+award. `early-operation-nouns.md` owns Working Passage's company gates, militia
+holds, critical abort, recovery and once-only fleet transfer.
 
 ### Authored structural bombardment
 

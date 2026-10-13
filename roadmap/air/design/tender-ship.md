@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-14 — builders have audio and VFX (weld crackle, stun burst, stand-down ping, completion chime and flourish); the interceptor pod is a fifth build option (key 5).
+Updated: 2026-10-14 — builder cues and interceptor pod retained; Working Passage low hover, physical departure and owned campaign support boundaries documented.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
 
@@ -21,7 +21,7 @@ The boat Shepherd and the tender Shepherd share a sprite and a hull id and nothi
 
 A tender is therefore one more thing that can be put over a battle by the same hands that put a capital there (a mission, a scene, the debug picker, a campaign fleet member). It never competes with the boat for a lift slot.
 
-**A campaign Shepherd is usable as a tender.** `Tender.fit` takes a `FleetMemberAPI` the way `Warship.fit` does and reads the hull from the member's own variant; a member that is absent or is some other hull falls back to the stock Shepherd, and the debug and mission-supplied paths fit the stock hull directly. The owner's intent is that the story hands the player a Shepherd if they lack one. **That hand-out is a dependency of this feature, not part of it:** the story must grant the ship, and nothing here does. Hull condition and the member's built-in mods are not read yet.
+**A campaign Shepherd is usable as a tender.** `Tender.fit` takes a `FleetMemberAPI` the way `Warship.fit` does and reads the hull from the member's own variant. Stock fitting remains available for explicit debug and mission-supplied hosts. Ordinary campaign support validates the committed source against current fleet ownership before construction; stock fitting cannot replace a member sold or lost after commitment. `shepherd-recovery.md` owns Working Passage's implemented award of the actual named Morrow and willing minimum crew after physical departure, including its permanent once-only receipt. Live campaign handover and subsequent support acceptance remain open. Hull condition and the member's built-in mods are not read yet.
 
 Rejected: a role flag on the shuttle mission. The shuttle machinery is built around pads, a mission state machine and a payload, none of which a tender has, and the tender would have inherited the shuttle's `AirBody` flight (no shadow, no hull table, no hover station) to lose the warship body's.
 
@@ -69,7 +69,9 @@ An option never restates what the structure is. Durability, weapon, magazine and
 
 The cost is real and is the context gate the owner wants: a tender builds on ground its side holds or its screen can clear, and cannot throw a turret up in the middle of an enemy compound.
 
-**Cues** (owner decision: the earlier "no new audio" is reversed). Builders are heard in the game's own sounds, positionally, and shown with presentation-only effects, all driven by events the serial tender tick records (`TenderCues`) and never read back, so nothing presented can reach the simulation. A *weld* crackle (`mote_attractor_impact_emp_arc`, quiet) sounds at the site while any builder's deterministic torch burst is lit, at most once per nine ticks per site so a crew of three is one crackle. A *hit* on a builder, the moment the hp drop is seen, throws a short burst of jagged blue-white arcs from it (hashed from the builder id and tick) with a zap (`shock_repeater_emp_impact`). A builder killed outright by one hit is simply lost (its wreck is its own effect); the stun shows on hits it survives. The first hit that stands a site down also gives one soft ping (`mine_ping`) at the site, then the red pulse. A finished turret gives a chime (`ui_build_industry`) and a ring of green with sparks. A hostile tender's cues are heard and drawn only where the map has been revealed, as its torch arcs are. Which sounds read well is a live-listen judgement; the ids are one-line swaps in `TenderAudio`.
+**Cues** are presentation-owned machine sounds and effects driven by events the serial tender tick records and never reads back. A drone's physical departure sounds at the bay; physical recovery seats it with a docking latch. Lit builder torches ask for textured electrical welding bursts at the site, with one crew sharing a site cadence. A surviving builder hit gives a brief electrical splutter and blue-white stun arcs; the first hit that stands down the site gives a falling alert tone. Completion seats the structure with a mechanical confirmation and a green spark ring. The retained original sound-design masters live outside the shipped mod and enter through the ordinary positional audio pipeline.
+
+Sound cadence and work cadence are separate. Presentation bounds repeated requests in real time across the swarm so accelerated simulation cannot pile welding clips into a continuous wall of noise; damage and completion have independent admission. Each effect is a short finite clip, so stopping work, pausing, cancelling, recovery and hull loss leave no held machinery loop. Repeated presentation of the same simulation frame cannot replay it. A new battle or rewound clock begins a fresh mix. Ordinary spatial playback owns distance, panning and host sound-volume settings. Friendly cues are heard on the player's side; hostile cues are heard only where the cell has been revealed, matching tender visual effects. Sound never reveals ground or changes work, threat or flight.
 
 **Knowledge, not omniscience** (owner decision). The first version stood a site down for any hostile inside the radius, seen or not, so builders fled from enemies nobody had spotted and the AI never laid a site an unseen picket would contest. That read as cheating. A tender knows what its side knows: the contacts its squads remember, at the cell each was last seen, and whatever its own eyes see from the air (the hull and every drone it has out, 20 cells round each). What it does not know can surprise it, and being surprised is a hit on a builder: stunned and blocked, rather than warned in advance. An unseen marksman therefore keeps a site blocked for as long as it keeps shooting, and costs a builder each time the work resumes into its sights; clearing it is the screen's job, or the squads'. The site marker pulses red and the pilot's site card reads UNDER FIRE while a site is blocked. `-Dbattle.tender.fairThreat=false` is the control run with the old rule.
 
@@ -107,6 +109,17 @@ As in the game, the Shepherd's drones are its point defence, and the tender fits
 The mining laser's mount arc in its `.ship` slot (30 degrees) is not applied: the drone body turns with its motion and the mount is treated as a turret at its table turn rate. Mount arc and the drone's own heading are the open refinement.
 
 ## Vulnerability
+
+**A recovering tender can use a full-size low hover.** Working Passage supplies
+Morrow at the same 24 by 20-cell scale as her grounded body. Her fixed attitude
+and swept footprint must clear terrain through mission travel, remote movement
+and direct control. Construction stays within the moving hull's working reach,
+outside its footprint, and ordinary builders, threat stand-down and turret damage
+still own the job. Completed or cancelled remote build work releases mission
+travel; explicit Hold and Move continue to own the helm. Climb-out uses ordinary
+propulsion and cloud-deck presentation, but the mission accepts only the whole
+hull physically leaving the map. Timeout removal is a failed departure, never
+proof of transfer. The story owns critical abort, recovery and fleet ownership.
 
 A tender is a warship body, so it is exactly as hittable as one: **only by ordnance**, through the armour rule, and never by infantry fire. It is a weak ship, not a combatant, pressed into the role haphazardly like its vanilla counterpart: the hull table's 1200 hit points and 200 armour, and the Shepherd's omni shield (arc, upkeep and efficiency from the hull table) on the hull's own flux through the existing shield model. The shield raises itself under the ordinary automatic policy when ordnance threatens the hull and nothing else is added: no buff, no regeneration, no extra flux. With no guns, the only flux on the pool is what the shield absorbs, so a determined raid collapses it and then the hull. Its drones are the targetable thing. Marines shoot the drones, and a builder shot at a site is a builder gone, which is why they stand down rather than work under fire. A tender takes no weapons of its own: the vanilla variant's missile rack and machine gun are deliberately left off, because a gun it could fire would make the drones decoration. Its point defence is its drones' (next section).
 
@@ -149,7 +162,7 @@ No tender weapon exists, so there is no friendly fire to design. A friendly turr
 
 1. **Resupply and cost.** Building is free and drones are finite for the battle. If a cost is added later, should a build charge be a fabricated item the company carries, a number from the mission, or both?
 2. **Point defence strength.** The wing is faithful to the laser and therefore weak against fast, fire-and-forget missiles. If a tender should reliably answer a light Locust volley, the lever is more drones or a stronger wing refit, not a boosted laser.
-3. **Campaign hull condition.** A campaign Shepherd's damage and built-in mods are not yet read into the tender; whether they should be waits on the story that hands the ship over.
+3. **Campaign hull condition.** A campaign Shepherd's damage and built-in mods are not yet read into the tender; their adaptation remains a separate decision from the story's fleet handover.
 
 ## What is built, and what is not
 
@@ -157,4 +170,4 @@ Built: point defence by the defence drones' mining lasers (the `tender-point-def
 
 Since added: launch and recovery as real flight (staggered, through the bay's mouth, docking on arrival, leading a moving bay), the escort ring, the leash and break-off, retreat and repair of hurt defenders, builder stations with a welding arc, and separation, with unit tests and the `tender-sortie` scene beside `tender-build`.
 
-Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). AI by stance is built (`TenderDirector`, unit tests and the `tender-stance` scene). Open: the remaining non-turret build option (revetment), the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.
+Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). AI by stance is built (`TenderDirector`, unit tests and the `tender-stance` scene). Working Passage implements the story handover and full-size recovery hover; its live campaign/save and subsequent support acceptance remain in `shepherd-recovery.md`. Open tender work includes the remaining non-turret build option (revetment) and live choreography acceptance, on the board in `stories.md`.
