@@ -10,6 +10,28 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MissionDebriefConversationTest {
+    @Test void firstWaylinePaymentHasWrittenCorrespondenceWithAnHonestLossBranch() throws Exception {
+        var catalog = catalog();
+        for (int lost : List.of(0, 2, 12)) {
+            var outcome = MissionOutcome.builder().missionId(OpeningOperationKind.RELIEF.missionId)
+                    .missionSource(MissionSource.STORY).victory(true).marinesEngaged(12).marinesLost(lost).build();
+            var lines = MissionDebriefConversation.lines(outcome, catalog);
+            assertEquals(4, lines.size());
+            assertTrue(lines.get(0).speaker().startsWith("CASTLE"));
+            assertTrue(lines.get(1).speaker().startsWith("MARA"));
+            assertEquals(lost > 0, lines.get(2).text().contains("names to take off the roll"));
+            assertTrue(MissionDebriefConversation.recordings(outcome, catalog).isEmpty());
+            var props = ResultsScreen.previewProps(true, false);
+            ResultsScreen.putStoryDebrief(props, outcome);
+            assertEquals("hidden", props.get("salvagePlaybackClasses"));
+            assertFalse(props.get("salvageClasses").equals("hidden"));
+        }
+        assertTrue(MissionDebriefConversation.lines(outcome(OpeningOperationKind.RELIEF.missionId,
+                MissionSource.STORY, false), catalog).isEmpty());
+        assertTrue(MissionDebriefConversation.lines(outcome(OpeningOperationKind.RELIEF.missionId,
+                MissionSource.RECURRING, true), catalog).isEmpty());
+    }
+
     private static WaylineNarration catalog() throws Exception {
         return WaylineNarration.parse(new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH))));
     }

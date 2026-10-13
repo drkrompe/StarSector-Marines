@@ -27,8 +27,9 @@ public final class WaylineArc {
 
     public static String introduction(MarineRoster roster) {
         return switch (stage(roster)) {
-            case RELIEF -> "Wayline is a freight cooperative, not a government. Our drivers pooled their savings "
-                    + "for militia; the raiders took our depot anyway. Without it, there is little left to pay the drivers or keep the cooperative together. Help break their assault, then help us take it back.";
+            case RELIEF -> "Mara Venn. Castle sent your particulars. I handle contracts for Wayline: drivers who pooled their money "
+                    + "to keep hauling without selling their trucks to someone bigger. The raiders took our depot. Now they're after the checkpoint. "
+                    + "I need a company willing to answer the call. You need someone willing to put a contract in front of you. Let's start there.";
             case DEPOT -> "The assault is broken. Recovered traffic logs put the raiders at our freight depot. "
                     + "You have bought us breathing room. Now clear the depot, so our drivers can go back to earning a living.";
             case COMPLETE -> "The depot is ours again. Dispatch can start moving freight. I've passed your name "
@@ -39,10 +40,12 @@ public final class WaylineArc {
     public static String briefing(OpeningOperationKind kind, String planet) {
         String location = planet != null ? " on " + planet : "";
         return OpeningBroker.NAME + ": " + switch (kind) {
-            case RELIEF -> "The raiders have our depot; now they're hitting our freight checkpoint" + location
+            case RELIEF -> "For our first job together, I need you at the freight checkpoint" + location
+                    + ". The watch there is paid out of the same collection as your fee. I know some of them from the loading shifts. "
+                    + "The raiders already have our depot; this is where we stop them taking the road as well"
                     + ". Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. "
                     + "Eliminate the bandit force to win. Bring as many people home as you can. "
-                    + "Cr. 6,000 on success; then we can deal with the depot.";
+                    + "Cr. 6,000 on success, agreed in writing. Break the assault and I'll come to your company first about the depot. One job at a time, Captain.";
             case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
                     + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
                     + "Our Hound, Wayward, is offline in the maintenance berth just beyond the gate. Secure the berth and keep a squad there while they bring its chaingun online. "
@@ -67,12 +70,15 @@ public final class WaylineArc {
         String report;
         if (!outcome.victory) {
             report = kind == OpeningOperationKind.RELIEF
-                    ? "The assault is still a threat. Refit before you try again; I can keep this job open."
+                    ? "Castle sent the report. This isn't how either of us wanted our first contract to go. The assault is still a threat, "
+                        + "so I can't authorize the fee. Get your company in order before you try again; I can keep this job open."
                     : "The depot is still in raider hands. Get your company ready. The contract remains open.";
         } else {
             report = kind == OpeningOperationKind.RELIEF
                     ? "The assault is broken. Recovered traffic logs point to our occupied depot. "
-                        + "Your payment is cleared. I have offered Castle a technology transfer: choose our line-support or scout-screen package. Meet her in Barracks Equipment before the depot job; your Machine Shop can fit the specs for free. For the first time since we lost the depot, I can plan something beyond the next alarm. Come back when your company is ready."
+                        + "Your first Wayline payment is cleared. I put your company's name on the authorization myself. "
+                        + "Castle has our line-support and scout-screen specs; choose one transfer in Barracks Equipment, with free fitting in your Machine Shop. "
+                        + "We can talk about the depot when you're ready. I'd rather keep working with the people who answered this call."
                     : "The depot is ours again. Dispatch can start moving freight. Your payment is cleared, "
                         + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
         }
