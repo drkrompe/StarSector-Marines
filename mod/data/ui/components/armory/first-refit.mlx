@@ -76,7 +76,7 @@
       <div id="refit-status" class="refit-status tone-edge">{lesson.status}</div>
       <div id="refit-actions" class="refit-actions">
       <button id="refit-claim" class="{lesson.claimClasses}" disabled="{lesson.claimDisabled}" onclick="{lesson.claim}">{lesson.claimLabel}</button>
-      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">{i18n.openingUiFirstRefitFitSquadFree}</button>
+      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">{i18n.openingUiLoadoutFitSquad}</button>
       </div>
     </div>
     <div id="refit-footer" class="refit-actions">
@@ -96,7 +96,7 @@
   .refit-hint { height: 18px; }
   .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
   .refit-squad { width: 180px; height: 24px; padding: 4px; border-width: 1px; }
-  .refit-paths { flex-direction: row; height: 190px; gap: 12px; }
+  .refit-paths { flex-direction: row; height: 254px; gap: 12px; }
   .refit-squad.refit-selected, .refit-billet.refit-selected { border-color: #73cfc9; background-color: #163a40; }
   .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
   .refit-comparison { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }

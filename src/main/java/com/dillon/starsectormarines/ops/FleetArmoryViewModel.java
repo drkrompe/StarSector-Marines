@@ -110,6 +110,8 @@ public final class FleetArmoryViewModel {
     private final SquadFoundingWorkshop squadFoundingWorkshop;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
+    private final MutableSignal<Integer> inspectedBillet;
+    private final ComputedSignal<Map<String, Object>> inspection;
     private final MutableSignal<String> selectedWeaponDoctrineId;
     private final MutableSignal<String> selectedArmorDoctrineId;
     private final MutableSignal<EquipmentPickerKind> equipmentPickerKind;
@@ -214,6 +216,7 @@ public final class FleetArmoryViewModel {
         MarineSquad initialSquad = firstLineSquad(roster);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedTeamIndex = reactor.signal(0);
+        inspectedBillet = reactor.signal(0);
         selectedWeaponDoctrineId = reactor.signal(initialSquad != null
                 && initialSquad.weaponDoctrineId() != null
                 ? initialSquad.weaponDoctrineId()
@@ -295,10 +298,15 @@ public final class FleetArmoryViewModel {
         squadRows = reactor.computed(this::buildSquadRows);
         teamRows = reactor.computed(this::buildTeamRows);
         marineCards = reactor.computed(this::buildMarineCards);
+        squadEquipmentPreview = reactor.computed(this::buildSquadEquipmentPreview);
+        inspection = reactor.computed(() -> {
+            domainRevision.get();
+            return LoadoutInspection.project(roster, roster.squadById(selectedSquadId.get()),
+                    squadEquipmentPreview.get(), inspectedBillet.get(), inspectedBillet::set);
+        });
         targetSummary = reactor.computed(this::buildTargetSummary);
         candidateSummary = reactor.computed(this::buildCandidateSummary);
         applyLabel = reactor.computed(this::buildApplyLabel);
-        squadEquipmentPreview = reactor.computed(this::buildSquadEquipmentPreview);
         issueCargoRows = reactor.computed(this::buildIssueCargoRows);
         issueCargoClasses = reactor.computed(() -> issueCargoRows.get().isEmpty()
                 ? "cargo-costs empty" : "cargo-costs");
@@ -369,6 +377,8 @@ public final class FleetArmoryViewModel {
     public Signal<List<FireTeamOverview>> fireTeamOverviews() { return fireTeamOverviews; }
     public Signal<List<SelectionRow>> squadRows() { return squadRows; }
     public Signal<List<SelectionRow>> teamRows() { return teamRows; }
+    public Signal<Map<String, Object>> inspection() { return inspection; }
+
     public Signal<List<MarineViewerCard>> marineCards() { return marineCards; }
     public Signal<String> targetSummary() { return targetSummary; }
     public Signal<String> candidateSummary() { return candidateSummary; }
@@ -833,9 +843,8 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         String selected = selectedArmorDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
-        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
-            if (!roster.armory().canIssue(plan)) continue;
-            SquadArmorDoctrine issued = roster.armory().issue(plan);
+        for (SquadArmorDoctrine issued : distinctArmorIssues()) {
+            SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(issued.id());
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
                     maximumArmorTier(issued), plan.description());
@@ -889,7 +898,7 @@ public final class FleetArmoryViewModel {
                 "doctrine-rarity label " + rarityClass, ratingClasses(rating),
                 factionLogoClasses(presentation.factionLogo()),
                 name, presentation.rarity().displayName(), rating,
-                Strings.format("openingFleetArmoryRating", rating), presentation.factionLogo(), metadata,
+                Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
                 carries, carriesSpans, select);
     }
@@ -947,7 +956,19 @@ public final class FleetArmoryViewModel {
 
     /** Sheets whose carrier class the company can field, before rarity filtering. */
     private int knownArmorLoadouts() {
-        return roster.armory().armorDoctrines().size();
+        return distinctArmorIssues().size();
+    }
+
+    /** Same issued kit is one choice, not thirteen faction names over the starting vest. */
+    private List<SquadArmorDoctrine> distinctArmorIssues() {
+        Map<List<String>, SquadArmorDoctrine> choices = new LinkedHashMap<>();
+        for (SquadArmorDoctrine issue : roster.armory().armorDoctrines())
+            choices.putIfAbsent(issue.issueIds(), issue);
+        // Keep an existing assigned alias visible when it resolves to the same kit.
+        String selected = selectedArmorDoctrineId.get();
+        for (SquadArmorDoctrine issue : roster.armory().armorDoctrines())
+            if (issue.id().equals(selected)) choices.put(issue.issueIds(), issue);
+        return List.copyOf(choices.values());
     }
 
     /**
@@ -1080,7 +1101,7 @@ public final class FleetArmoryViewModel {
         SquadArmorDoctrine doctrine = roster.armory().armorDoctrineById(
                 selectedArmorDoctrineId.get());
         return doctrine != null
-                ? Strings.format("openingFleetArmoryAssigned", doctrine.displayName())
+                ? Strings.format("openingFleetArmorySelected", doctrine.displayName())
                 : ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get());
     }
 
@@ -1180,7 +1201,7 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildApplyLabel() {
-        return Strings.get("openingFleetArmoryFitToSquadFree");
+        return Strings.get("openingLoadoutFitSquad");
     }
 
     private List<CargoCostRow> buildIssueCargoRows() {
@@ -1233,6 +1254,7 @@ public final class FleetArmoryViewModel {
         if (squad == null || squad.reserve()) return;
         selectedSquadId.set(squadId);
         selectedTeamIndex.set(0);
+        inspectedBillet.set(0);
         selectedWeaponDoctrineId.set(squad.weaponDoctrineId() != null
                 ? squad.weaponDoctrineId() : SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
         selectedArmorDoctrineId.set(squad.armorDoctrineId() != null
@@ -1359,7 +1381,8 @@ public final class FleetArmoryViewModel {
             }
             if (count == 0) continue;
             spans.add(span(tileId, "distribution", spans.size(),
-                    count + " " + weapon.modelName, weaponSheet(weapon, grades)));
+                    count + " " + weapon.modelName, weaponSheet(weapon, grades),
+                    EquipmentIcons.primary(weapon, quotedGrade(grades))));
         }
         int specials = 0;
         String only = null;
@@ -1374,7 +1397,8 @@ public final class FleetArmoryViewModel {
         if (specials > 0) {
             SpecialEquipmentDef def = mixed ? null : SpecialEquipmentRegistry.get(only);
             spans.add(span(tileId, "distribution", spans.size(),
-                    Strings.format("openingFleetArmorySpecial", specials), def == null ? null : SpecSheets.special(def)));
+                    Strings.format("openingFleetArmorySpecial", specials), def == null ? null : SpecSheets.special(def),
+                    def == null ? "graphics/ui/equipment/firepower.svg" : def.armoryIconPath()));
         }
         return last(spans);
     }
@@ -1393,18 +1417,11 @@ public final class FleetArmoryViewModel {
      */
     private static SpecSheet weaponSheet(WeaponDef weapon,
                                          Map<EquipmentGrade, Integer> grades) {
-        EquipmentGrade quoted = null;
+        EquipmentGrade quoted = quotedGrade(grades);
         EquipmentGrade lowest = null;
         EquipmentGrade highest = null;
-        int best = 0;
         for (Map.Entry<EquipmentGrade, Integer> issued : grades.entrySet()) {
             EquipmentGrade grade = issued.getKey();
-            int count = issued.getValue();
-            if (quoted == null || count > best
-                    || (count == best && grade.tier > quoted.tier)) {
-                quoted = grade;
-                best = count;
-            }
             if (lowest == null || grade.tier < lowest.tier) lowest = grade;
             if (highest == null || grade.tier > highest.tier) highest = grade;
         }
@@ -1413,6 +1430,12 @@ public final class FleetArmoryViewModel {
         return new SpecSheet(sheet.title(),
                 Strings.format("openingFleetArmoryIssuedHere", sheet.subtitle(), lowest.displayName, highest.displayName),
                 sheet.crestPath(), sheet.accent(), sheet.stats(), sheet.notes());
+    }
+
+    private static EquipmentGrade quotedGrade(Map<EquipmentGrade, Integer> grades) {
+        return grades.entrySet().stream().max(Comparator
+                .<Map.Entry<EquipmentGrade, Integer>>comparingInt(Map.Entry::getValue)
+                .thenComparingInt(entry -> entry.getKey().tier)).orElseThrow().getKey();
     }
 
     /**
@@ -1521,14 +1544,19 @@ public final class FleetArmoryViewModel {
             }
             if (count == 0) continue;
             spans.add(span(tileId, "distribution", spans.size(),
-                    count + " " + pattern.displayName(), SpecSheets.armor(pattern)));
+                    count + " " + pattern.displayName(), SpecSheets.armor(pattern), pattern.iconPath()));
         }
         return last(spans);
     }
 
     private static DoctrineSpan span(String tileId, String line, int index,
                                      String text, SpecSheet sheet) {
-        return new DoctrineSpan(tileId + ":" + line + "-span:" + index, text, false, sheet);
+        return new DoctrineSpan(tileId + ":" + line + "-span:" + index, text, false, sheet, "");
+    }
+
+    private static DoctrineSpan span(String tileId, String line, int index,
+                                     String text, SpecSheet sheet, String icon) {
+        return new DoctrineSpan(tileId + ":" + line + "-span:" + index, text, false, sheet, icon);
     }
 
     /**
@@ -1540,7 +1568,7 @@ public final class FleetArmoryViewModel {
         if (spans.isEmpty()) return List.of();
         DoctrineSpan closing = spans.get(spans.size() - 1);
         spans.set(spans.size() - 1,
-                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet()));
+                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet(), closing.icon()));
         return List.copyOf(spans);
     }
 
@@ -1826,12 +1854,12 @@ public final class FleetArmoryViewModel {
 
     private static String squadEquipmentMessage(SquadEquipmentPreview preview) {
         return switch (preview.result()) {
-            case APPLIED -> Strings.get("openingFleetArmoryMachineShopFittingIsFreeTryAnd");
-            case INVALID_SQUAD -> Strings.get("openingFleetArmorySelectALineSquad2");
-            case SQUAD_NOT_READY -> Strings.get("openingFleetArmoryTheSquadChangedReviewItsCurrentRoll");
-            case STATIONED -> Strings.get("openingFleetArmoryUnavailableThisSquadIsStationedAway");
-            case UNKNOWN_WEAPON_DOCTRINE -> Strings.get("openingFleetArmoryChooseWeaponEquipment2");
-            case UNKNOWN_ARMOR_DOCTRINE -> Strings.get("openingFleetArmoryChooseArmorEquipment");
+            case APPLIED -> Strings.get("openingLoadoutReadyToFitAllBillets");
+            case INVALID_SQUAD -> Strings.get("openingLoadoutSelectALineSquad");
+            case SQUAD_NOT_READY -> Strings.get("openingLoadoutTheSquadChangedReviewItsCurrentRoll");
+            case STATIONED -> Strings.get("openingLoadoutUnavailableThisSquadIsStationedAway");
+            case UNKNOWN_WEAPON_DOCTRINE -> Strings.get("openingLoadoutChooseWeaponEquipment");
+            case UNKNOWN_ARMOR_DOCTRINE -> Strings.get("openingLoadoutChooseArmorEquipment");
             case MISSING_TEMPLATE ->
                     Strings.get("openingFleetArmoryBlockedOneOrMoreRequiredEquipmentTemplates");
             case INSUFFICIENT_CARGO ->
@@ -1887,6 +1915,8 @@ public final class FleetArmoryViewModel {
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
                 case "weaponClasses" -> "weapon-tech-card " + classes;
+                case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)) + "px;";
+                case "distributionStyle" -> "height: " + (48 * ((distributionSpans.size() + 1) / 2)) + "px;";
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
                 case "factionLogoClasses" -> factionLogoClasses;
@@ -1928,13 +1958,16 @@ public final class FleetArmoryViewModel {
      * specialty count over mixed items, a capability family filled from two
      * patterns — and a binding on it then opens nothing.
      */
-    public record DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet)
+    public record DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet, String icon)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
                 case "label" -> closing ? text : text + "  ·";
+                case "icon" -> icon;
+                case "iconId" -> id + ":icon";
+                case "textId" -> id + ":text";
                 case "text" -> text;
                 default -> throw new IllegalArgumentException("Unknown doctrine-span property");
             };

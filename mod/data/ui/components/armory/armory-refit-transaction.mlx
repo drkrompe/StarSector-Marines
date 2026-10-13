@@ -1,172 +1,100 @@
-<template props="fireTeamOverviews,targetSummary,candidateSummary,marineCards,feedbackText,feedbackClasses">
-  <div id="refit-transaction" class="panel fireteam-viewer">
-    <div id="viewer-context">
-      <div id="viewer-heading" class="label heading tone-edge">{i18n.openingUiArmoryRefitTransactionFireTeam}</div>
-      <div id="fireteam-tabs">
-        <button each="team in fireTeamOverviews" key="{team.id}" id="{team.id}" class="{team.classes}" onclick="{team.select}">{team.name}</button>
-      </div>
-      <div id="target-summary" class="label surface-dark tone-edge">{targetSummary}</div>
-      <div id="candidate-summary" class="label surface-dark tone-accent">{candidateSummary}</div>
-    </div>
-
-    <div id="marine-card-grid" class="marine-card-grid">
-      <div each="marine in marineCards" key="{marine.id}" id="{marine.id}" class="{marine.classes}">
-        <div id="{marine.contentId}" class="marine-card-content">
-          <div id="{marine.headerId}" class="marine-header">
-            <div id="{marine.nameId}" class="marine-name label tone-edge">{marine.name}</div>
-            <div id="{marine.badgesId}" class="marine-badges">
-              <div id="{marine.classBadgeId}" class="marine-badge class-badge label tone-edge">{marine.unitClass}</div>
-              <div id="{marine.weaponBadgeId}" class="marine-badge weapon-badge label tone-edge">{marine.weaponBadge}</div>
-              <div id="{marine.armorBadgeId}" class="marine-badge armor-badge label tone-accent">{marine.armorBadge}</div>
-            </div>
-          </div>
-          <div id="{marine.heroId}" class="marine-hero">
-            <div id="{marine.identityId}" class="marine-identity">
-              <div id="{marine.roleId}" class="marine-role label tone-muted">{marine.role}</div>
-              <div id="{marine.statusId}" class="{marine.statusClasses}">{marine.status}</div>
-              <div id="{marine.serviceId}" class="marine-service label">{marine.service}</div>
-              <div id="{marine.personnelId}" class="marine-personnel label tone-muted">{marine.personnel}</div>
-            </div>
-            <canvas id="{marine.canvasId}" class="marine-canvas" width="320" height="240" />
-          </div>
-
-          <div id="{marine.equipmentId}" class="marine-equipment-columns">
-            <div id="{marine.weaponColumnId}" class="marine-equipment-column">
-              <div id="{marine.primaryId}" class="marine-equipment-title equipment-note-target surface-dark tone-edge">
-                <img id="{marine.primaryFactionLogoId}" class="{marine.primaryFactionLogoClasses}" src="{marine.primaryFactionLogo}" />
-                <div id="{marine.primaryTextId}" class="marine-equipment-title-text label tone-edge">{marine.primary}</div>
-              </div>
-              <div id="{marine.weaponDetailId}" class="marine-equipment-detail">
-                <div id="{marine.weaponStatsId}" class="marine-stat-group weapon-stat-group">
-                  <div each="stat in marine.weaponStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
-                    <div id="{stat.labelId}" class="marine-stat-label label tone-muted">{stat.label}</div>
-                    <div id="{stat.trackId}" class="marine-stat-track">
-                      <div id="{stat.fillId}" class="marine-stat-fill weapon-stat-fill" style="{stat.fillStyle}" />
-                    </div>
-                    <div id="{stat.valueId}" class="marine-stat-value label tone-edge">{stat.value}</div>
-                  </div>
-                </div>
-              </div>
-              <div id="{marine.weaponDeltaId}" class="{marine.deltaClasses}">{marine.weaponDelta}</div>
-              <div id="{marine.specialId}" class="marine-equipment-title equipment-note-target surface-dark tone-accent">
-                <img id="{marine.specialFactionLogoId}" class="{marine.specialFactionLogoClasses}" src="{marine.specialFactionLogo}" />
-                <div id="{marine.specialTextId}" class="marine-equipment-title-text label tone-accent">{marine.special}</div>
-              </div>
-            </div>
-            <div id="{marine.armorColumnId}" class="marine-equipment-column">
-              <div id="{marine.armorId}" class="marine-equipment-title equipment-note-target surface-dark">
-                <img id="{marine.armorFactionLogoId}" class="{marine.armorFactionLogoClasses}" src="{marine.armorFactionLogo}" />
-                <div id="{marine.armorTextId}" class="marine-equipment-title-text label">{marine.armor}</div>
-              </div>
-              <div id="{marine.armorDetailId}" class="marine-equipment-detail">
-                <div id="{marine.armorStatsId}" class="marine-stat-group armor-stat-group">
-                  <div each="stat in marine.armorStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
-                    <div id="{stat.labelId}" class="marine-stat-label label tone-muted">{stat.label}</div>
-                    <div id="{stat.trackId}" class="marine-stat-track">
-                      <div id="{stat.fillId}" class="marine-stat-fill armor-stat-fill" style="{stat.fillStyle}" />
-                    </div>
-                    <div id="{stat.valueId}" class="marine-stat-value label tone-edge">{stat.value}</div>
-                  </div>
-                </div>
-              </div>
-              <div id="{marine.armorDeltaId}" class="{marine.deltaClasses}">{marine.armorDelta}</div>
-              <div id="{marine.systemId}" class="{marine.systemClasses}">
-                <img id="{marine.systemFactionLogoId}" class="{marine.systemFactionLogoClasses}" src="{marine.systemFactionLogo}" />
-                <div id="{marine.systemTextId}" class="marine-equipment-title-text label">{marine.system}</div>
-              </div>
-              <div id="{marine.careerId}" class="marine-career label surface-dark tone-muted">{marine.career}</div>
+<template props="inspection,feedbackText,feedbackClasses">
+  <div id="refit-transaction" class="loadout-workspace">
+    <div id="loadout-summary" class="panel loadout-summary">{inspection.summary}</div>
+    <div id="loadout-workspace-body" class="loadout-workspace-body">
+      <div id="loadout-roll" class="panel loadout-roll">
+        <div class="heading loadout-heading" id="loadout-roll-heading">{i18n.openingUiLoadoutSquadCurrentEquipment}</div>
+        <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
+        <div id="loadout-billets" class="loadout-billets">
+          <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
+            <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
+            <div class="loadout-team-billets" id="{team.membersId}">
+            <button each="billet in team.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
+              <div class="loadout-name" id="{billet.nameId}">{billet.name}</div>
+              <div class="loadout-billet-art" id="{billet.artId}"><img class="loadout-billet-icon" src="{billet.armor}" id="{billet.armorIconId}" /><img class="loadout-billet-icon" src="{billet.weapon}" id="{billet.weaponIconId}" /></div>
+              <div class="loadout-state tone-edge" id="{billet.statusId}">{billet.status}</div>
+              <div class="loadout-state tone-muted" id="{billet.changeId}">{billet.change}</div>
+            </button>
             </div>
           </div>
         </div>
       </div>
+      <div id="loadout-inspection" class="loadout-inspection">
+        <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
+        <div class="loadout-column-headings" id="loadout-column-headings"><div class="tone-edge" id="loadout-current-heading">{i18n.openingUiLoadoutCurrentIssue}</div><div class="tone-accent" id="loadout-proposed-heading">{i18n.openingUiLoadoutProposedIssue}</div></div>
+        <div id="loadout-item-list" class="loadout-item-list">
+          <div each="item in inspection.items" key="{item.id}" id="{item.id}" class="{item.classes}" style="{item.style}">
+            <div class="loadout-item-heading" id="{item.headingRowId}"><div class="heading" id="{item.kindId}">{item.kind}</div><div class="tone-accent" id="{item.changeId}">{item.change}</div></div>
+            <div class="loadout-pair" id="{item.pairId}">
+              <div id="{item.current.id}" class="loadout-subject">
+                <div class="loadout-subject-top" id="{item.current.topId}"><img class="loadout-item-art" src="{item.current.icon}" id="{item.current.iconId}" /><div class="loadout-subject-text" id="{item.current.textId}"><div class="loadout-title tone-edge" id="{item.current.titleId}">{item.current.title}</div><div class="loadout-subtitle tone-muted" id="{item.current.subtitleId}">{item.current.subtitle}</div></div></div>
+                <div class="{item.current.systemClasses}" id="{item.current.systemId}">{item.current.system}</div>
+              </div>
+              <div id="{item.proposed.id}" class="loadout-subject proposed">
+                <div class="loadout-subject-top" id="{item.proposed.topId}"><img class="loadout-item-art" src="{item.proposed.icon}" id="{item.proposed.iconId}" /><div class="loadout-subject-text" id="{item.proposed.textId}"><div class="loadout-title tone-accent" id="{item.proposed.titleId}">{item.proposed.title}</div><div class="loadout-subtitle tone-muted" id="{item.proposed.subtitleId}">{item.proposed.subtitle}</div></div></div>
+                <div class="{item.proposed.systemClasses}" id="{item.proposed.systemId}">{item.proposed.system}</div>
+              </div>
+            </div>
+            <div class="loadout-stats" id="{item.statsId}" style="{item.statsStyle}">
+              <div each="stat in item.stats" key="{stat.id}" id="{stat.id}" class="loadout-stat">
+                <img class="loadout-stat-icon" src="{stat.icon}" id="{stat.iconId}" /><div class="loadout-stat-label tone-muted" id="{stat.labelId}">{stat.label}</div>
+                <div class="loadout-stat-track" id="{stat.oldTrackId}"><div class="loadout-stat-fill current-fill" style="{stat.oldStyle}" id="{stat.oldFillId}" /></div><div class="loadout-stat-value tone-edge" id="{stat.oldValueId}">{stat.before}</div>
+                <div class="loadout-stat-arrow tone-muted" id="{stat.arrowId}">{stat.change}</div>
+                <div class="loadout-stat-track" id="{stat.newTrackId}"><div class="loadout-stat-fill proposed-fill" style="{stat.newStyle}" id="{stat.newFillId}" /></div><div class="loadout-stat-value tone-accent" id="{stat.newValueId}">{stat.after}</div>
+              </div>
+            </div>
+            <div class="loadout-note tone-muted" id="{item.noteId}">{item.notes}</div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div id="transaction-feedback" class="{feedbackClasses}">{feedbackText}</div>
+    <div id="transaction-feedback" class="loadout-feedback tone-muted">{feedbackText}</div>
   </div>
 </template>
-
 <style>
-  .fireteam-viewer { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 8px; gap: 6px; overflow: hidden; }
-  .label { overflow: hidden; }
-  .heading { font-family: heading; }
-  #viewer-heading { width: 90px; padding: 5px 1px; }
-
-  #viewer-context { flex-direction: row; height: 30px; gap: 6px; }
-  #fireteam-tabs { flex-direction: row; width: 296px; height: 28px; gap: 4px; }
-  .fire-team-tab { width: 80px; height: 28px; padding: 4px 7px; border-width: 1px; font-family: body; text-align: center; }
-  .fire-team-tab.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
-  #target-summary { width: 240px; padding: 5px 7px; }
-  #candidate-summary { width: 0px; flex-grow: 1; padding: 5px 7px; }
-
-  .marine-card-grid {
-    display: grid;
-    height: 0px;
-    flex-grow: 1;
-    gap: 8px;
-    padding: 1px;
-    overflow: scroll;
-  }
-
-  .marine-viewer-card {
-    width: 620px;
-    height: 400px;
-    border-width: 1px;
-    overflow: hidden;
-    background-color: #191e20;
-    border-color: #505c60;
-  }
-
-  .marine-card-content { flex-direction: column; width: 100%; height: 100%; padding: 8px; gap: 3px; overflow: hidden; }
-
-  .marine-viewer-card.status-ready { border-color: #4ccf7a; }
-  .marine-viewer-card.status-wia { border-color: #dfb84d; }
-  .marine-viewer-card.status-missing, .marine-viewer-card.status-killed { border-color: #e06b64; }
-  .marine-viewer-card.status-vacant { border-color: #607188; opacity: 0.55; }
-  .marine-header { flex-direction: row; height: 24px; gap: 5px; }
-  .marine-name { width: 0px; height: 24px; flex-grow: 1; padding: 3px 1px; font-family: body; }
-  .marine-badges { flex-direction: row; width: 224px; height: 24px; gap: 3px; }
-  .marine-badge { height: 22px; padding: 3px 5px; border-width: 1px; text-align: center; }
-  .class-badge { width: 118px; background-color: #172b3b; border-color: #a5c6bc; }
-  .weapon-badge { width: 32px; background-color: #102633; border-color: #a5c6bc; }
-  .armor-badge { width: 32px; background-color: #2b2718; border-color: #dfb84d; }
-  .marine-hero { flex-direction: row; height: 100px; gap: 7px; overflow: hidden; }
-  .marine-identity { flex-direction: column; width: 0px; height: 100px; flex-grow: 1; gap: 2px; }
-  .marine-role { height: 18px; }
-  .marine-status { height: 18px; }
-  .marine-service { height: 18px; }
-  .marine-personnel { height: 40px; white-space: normal; }
-  .marine-canvas { width: 100px; height: 100px; border-width: 1px; overflow: hidden; }
-
-  .marine-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .marine-equipment-column { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; gap: 3px; overflow: hidden; }
-  .marine-equipment-title { flex-direction: row; height: 22px; padding: 3px 5px; border-width: 1px; gap: 5px; overflow: hidden; }
-  .marine-equipment-title-text { width: 0px; height: 16px; flex-grow: 1; overflow: hidden; }
-  .equipment-faction-logo { width: 28px; height: 14px; }
-  .equipment-note-target:hover { background-color: #173044; border-color: #c0dbcf; color: #e8f5ff; }
-  .marine-equipment-detail { flex-direction: row; height: 62px; overflow: hidden; }
-  .marine-stat-group { flex-direction: column; gap: 2px; }
-  .weapon-stat-group, .armor-stat-group { width: 100%; height: 58px; }
-  .marine-stat-row { flex-direction: row; height: 13px; gap: 4px; }
-  .marine-stat-label { width: 58px; }
-  .marine-stat-track {
-    flex-direction: row;
-    width: 0px;
-    height: 9px;
-    flex-grow: 1;
-    border-width: 1px;
-    overflow: hidden;
-    background-color: #101a25;
-    border-color: #505c60;
-  }
-  .marine-stat-fill { height: 100%; }
-  .weapon-stat-fill { background-color: #a5c6bc; }
-  .armor-stat-fill { background-color: #dfb84d; }
-  .marine-stat-value { width: 34px; text-align: right; }
-  .marine-delta { height: 18px; }
-  .picker-closed-line { height: 0px; opacity: 0; }
-  .marine-career { height: 22px; padding: 3px 5px; border-width: 1px; }
-
-  .equipment-faction-logo.faction-logo-hidden { width: 0px; height: 0px; opacity: 0; }
-
-  .feedback { height: 22px; padding: 3px 6px; overflow: hidden; }
+  .loadout-workspace { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .loadout-summary { height: 26px; padding: 5px 8px; }
+  .loadout-workspace-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 10px; }
+  .loadout-roll { flex-direction: column; width: 344px; padding: 8px; gap: 7px; overflow: hidden; }
+  .loadout-heading { height: 22px; padding: 3px 0px; }
+  .loadout-hint { height: 34px; white-space: normal; }
+  .loadout-billets { flex-direction: row; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
+  .loadout-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .loadout-team-billets { flex-direction: column; gap: 6px; }
+  .loadout-team-heading { height: 22px; text-align: center; }
+  .loadout-billet { flex-direction: column; height: 140px; padding: 5px; gap: 5px; border-width: 1px; text-align: left; background-color: #171d1e; }
+  .loadout-billet.selected { border-color: #e0b957; background-color: #34362c; }
+  .loadout-name { height: 31px; white-space: normal; }
+  .loadout-billet-art { flex-direction: row; height: 44px; gap: 3px; }
+  .loadout-billet-icon { width: 0px; flex-grow: 1; height: 44px; pointer-events: none; }
+  .loadout-state { height: 24px; white-space: normal; }
+  .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
+  .loadout-column-headings { flex-direction: row; height: 20px; gap: 8px; }
+  .loadout-column-headings div { width: 0px; flex-grow: 1; padding: 2px 8px; }
+  .loadout-item-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
+  .loadout-item { flex-direction: column; padding: 8px; gap: 6px; border-width: 1px; background-color: #171d1e; }
+  .loadout-armor .loadout-pair { height: 140px; }
+  .loadout-item-heading { flex-direction: row; height: 20px; gap: 8px; }
+  .loadout-item-heading .heading { width: 0px; flex-grow: 1; }
+  .loadout-pair { height: 94px; flex-direction: row; gap: 8px; }
+  .loadout-subject { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; padding: 5px; background-color: #101617; }
+  .loadout-subject-top { flex-direction: row; height: 80px; gap: 7px; }
+  .loadout-item-art { width: 76px; height: 76px; }
+  .loadout-subject-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
+  .loadout-title { height: 34px; white-space: normal; }
+  .loadout-subtitle { height: 42px; white-space: normal; }
+  .loadout-system { height: 46px; white-space: normal; color: #a5c6bc; }
+  .loadout-stats { flex-direction: column; gap: 3px; }
+  .loadout-stat { flex-direction: row; height: 21px; align-items: center; gap: 5px; }
+  .loadout-stat-icon { width: 17px; height: 17px; }
+  .loadout-stat-label { width: 91px; }
+  .loadout-stat-track { flex-direction: row; overflow: hidden; width: 0px; flex-grow: 1; height: 7px; background-color: #0c1213; border-width: 1px; border-color: #424c48; }
+  .loadout-stat-fill { height: 100%; }
+  .current-fill { background-color: #a5c6bc; }
+  .proposed-fill { background-color: #dfb84d; }
+  .loadout-stat-value { width: 42px; text-align: right; }
+  .loadout-stat-arrow { width: 13px; text-align: center; }
+  .loadout-note { height: 30px; white-space: normal; }
+  .loadout-feedback { height: 20px; overflow: hidden; }
+  .loadout-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
 </style>
