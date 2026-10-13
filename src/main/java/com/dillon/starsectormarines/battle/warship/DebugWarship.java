@@ -168,6 +168,18 @@ public final class DebugWarship {
         return ship;
     }
 
+    /**
+     * The briefing's mode and flux choices on a ship the Ship on Station mechanism has just fitted:
+     * manual holds fire until {@link #fireAt}, and flux off puts the ship on unlimited flux.
+     */
+    public static void applyPick(Warship ship, Spec spec) {
+        if (spec.mode() == Mode.MANUAL) {
+            ship.stopDirecting();
+            ship.order(WarshipOrder.HoldFire.INSTANCE);
+        }
+        if (!spec.flux()) ship.unlimitedFlux();
+    }
+
     /** Takes targeting from any director and fires on the cell, bringing the guns to bear. */
     public static void fireAt(Warship ship, float cellX, float cellY) {
         ship.stopDirecting();

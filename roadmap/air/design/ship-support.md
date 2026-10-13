@@ -108,8 +108,8 @@ In the order they are worth building:
    hidden by its climb well before it leaves the map. Needs a live look for how the
    cloud, glow and dust read over real terrain and under the live camera, and for the
    audio levels.
-4. **Hostile ship support:** the defender's ship on the same mechanism, offered by the
-   target profile, with a warning beat.
+4. **Hostile ship support** (built): the defender's ship on the same mechanism, offered by
+   the target profile, with a warning beat and a ground marker. See *Slice 4 as built*.
 5. **Low pass.**
 
 ## Open questions for the owner
@@ -128,7 +128,7 @@ The `ship_on_station` power (`ShipOnStation`) holds a frozen `ShipSupportSource`
 each committed cruiser, capital (with a gun that reaches the ground) or Shepherd is one
 charge on one card, spent in order. Debug (the briefing picker's friendly pick) and
 employer offers (`ship_on_station:<hull>` in the offer ids) feed the same list; a hostile
-debug pick stays a launch-time install until slice 4. Activation needs a cell the player
+debug pick is the defender's source (slice 4). Activation needs a cell the player
 currently sees, fits the next source at the company's edge (`ShipStationing`), stations it
 on the cell, takes the stance from the company's side (ATTACK, or DEFEND for a stationed
 detachment), turns on the director and doctrine, and bounds its visit at 90 s for every
@@ -139,3 +139,59 @@ A capital's own hover speed made a map-edge approach long: an Onslaught entering
 edge took about 74 s to reach a cell 80 cells in. A called ship therefore comes out of the
 clouds a short glide from its station instead (`ShipStationing.callIn`), and the same
 Onslaught settles in about 21 s. Station time is counted on station, as before.
+
+## Slice 4 as built
+
+The same `ShipOnStation.call`, with the side generalised: `call(source, side, x, y, battle)`
+(the company's overload is unchanged). A `DEFENDER` call descends on the defender's edge of
+the station, takes `MissionStance.DEFEND` whatever the company's stance is, and is otherwise
+the company's ship: director, doctrine, brawler flux, 90 s on station, departs. Nothing
+about the ship differs; only who supplies it and who decides when.
+
+**Who gets one.** `HostileShipSupport.sourceFor(TargetProfile)` at launch (`MissionLaunch`):
+a world whose `defenseLevel` is at least 4 (about 0 to 7; a battle station with ground
+defences or heavy batteries clears it) fields a frozen stock hull by owning faction:
+Tri-Tachyon and Persean League send a Paragon, every other owner an Onslaught, and pirates
+and the Luddic Path send none. The company's own `stationedStrength` is not counted (it is
+the company's contribution to the colony, not the world's). No ship for a stationed
+company's colony, a Corvus chapter (it scripts its own), or a mission with no named defender
+(supply routes, the opening operations, silent colony, civilian rescue).
+
+**When.** A battle-level observer, `HostileShipSupport`, ticked next to the other mission
+observers, rather than a hook in each mission's command strategy: strategies plan squad
+assignments from frozen frames and have no ship seam, and the call needs nothing the
+defender cannot see. Every second it looks for the first of: a marine within 30 cells of a
+defender-held `mustHold` node, or 180 s since the first marine was on the ground. It calls
+once, at the held node nearest the marines' centre of mass (the marines' centre of mass if
+the map has no such node).
+
+**Warning.** The decision raises the story beat `ship_support.hostile_inbound` (a danger
+notice, "HOSTILE CAPITAL INBOUND", through `HostileShipCommsPresenter` on the comms feed) and
+a ground ring labelled the same way over the station (`HostileShipMarkers`, drawn on the
+objectives layer). The ship is called six seconds later and the ring stays up until it has
+settled, so the player has the warning, the descent and the glide to move.
+
+**Debug.** The briefing's hostile pick is the same call from a debug source, taken at the first
+look instead of waiting for the trigger (a debug battle wants to see the ship), over the
+default defender station when no marine is on the map yet. Manual mode and flux off are applied
+to the fitted hull by `DebugWarship.applyPick`. `DebugWarship.install` remains only for the
+older scenes that place a ship directly.
+
+**Evidence.** `hostile-ship-support` (low-defence, high-defence, both-ships, strike) and unit
+tests for source selection and the trigger. In the high-defence loop a company that wins its
+control fight is wiped out once the ship is on station: a capital over a keep is the moment the
+battle turns, as designed. With the company's own ship over the same ground the two do not
+fight (ship guns do not take hulls as targets, G4), though ground ordnance landing under a hull
+is absorbed by its shield as ever; strike craft go for the hostile hull and are shot down by its
+flak (G3).
+
+### Open questions (slice 4)
+
+1. The thresholds are drafts: defence level 4, threat radius 30 cells, 180 s contact timeout,
+   six seconds of warning. A live look should say whether six seconds is enough to react to.
+2. Does a defender's ship want a counter besides aircraft? Today the company's answers are its
+   own ship's tender flak, strike craft, or leaving the ground; the ship cannot be shot by
+   ground weapons.
+3. Should a lost hostile ship count for the battle (a morale or score beat)? Not built.
+4. Mission types whose defender is not the market owner (relief, counterattack) take the same
+   profile-based ship; whether some missions should opt out is undecided.

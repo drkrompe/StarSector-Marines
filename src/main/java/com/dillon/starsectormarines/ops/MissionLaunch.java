@@ -31,7 +31,9 @@ import com.dillon.starsectormarines.DevConfig;
 import com.fs.starfarer.api.Global;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import com.dillon.starsectormarines.battle.warship.DebugWarship;
+import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
@@ -194,7 +196,7 @@ public final class MissionLaunch {
             Detachment frozen = det;
             return new ScenarioPlan(Arrays.asList(m.id, seed, manifest), det,
                     debugScenario.opening() ? 1 : 0, null,
-                    () -> DebugMissionCatalog.build(debugScenario, seed, frozen.shuttleManifest), "pirates");
+                    () -> DebugMissionCatalog.build(debugScenario, seed, frozen.shuttleManifest), "pirates", null);
         }
         if (SupplyRouteCampaign.owns(m.id)) {
             SupplyRouteCampaign.requireCurrent(m);
@@ -360,9 +362,25 @@ public final class MissionLaunch {
                 m.alliedGarrisonStrengthMult, constructionDetachment.shuttleManifest,
                 FighterWingCommitment.captureRoster(constructionDetachment.marineWings),
                 FighterWingCommitment.captureRoster(m.enemyFighterSupport));
-        return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder,
-                SupplyRouteCampaign.isBattle(m) || openingOperation != null || isSilentColonyBattle(m) || isCivilianRescueBattle(m)
-                        ? "" : profile.factionId());
+        String defenderFactionId = SupplyRouteCampaign.isBattle(m) || openingOperation != null || isSilentColonyBattle(m)
+                || isCivilianRescueBattle(m) ? "" : profile.factionId();
+        return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder, defenderFactionId,
+                hostileShipFor(m, profile, defenderFactionId));
+    }
+
+    /**
+     * The ship the defending world answers with, frozen at launch: only a defended world with a named
+     * owner, never a stationed company's own colony or a scripted chapter that supplies its own ship.
+     */
+    static ShipSupportSource hostileShipFor(Mission m, TargetProfile profile, String defenderFactionId) {
+        if (defenderFactionId == null || defenderFactionId.isEmpty() || m.source == MissionSource.STATIONING
+                || CorvusWaylineCampaign.isBattle(m)) return null;
+        try {
+            return HostileShipSupport.sourceFor(profile);
+        } catch (RuntimeException e) {
+            Global.getLogger(MissionLaunch.class).warn("MarineOps: hostile ship could not be sourced", e);
+            return null;
+        }
     }
 
     /** Shared campaign/evidence construction boundary; capture all save inputs before worker execution. */
@@ -384,7 +402,7 @@ public final class MissionLaunch {
     /** Pure construction input; contains no campaign API handles. */
     record ScenarioPlan(Object key, Detachment detachment, int firstPlayerShuttle,
                         BattleFixture fixture, Supplier<BattleSimulation> builder,
-                        String defenderFactionId) { }
+                        String defenderFactionId, ShipSupportSource hostileShip) { }
 
     /** Applies campaign state only after the player explicitly accepts deployment. */
     static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
@@ -448,7 +466,7 @@ public final class MissionLaunch {
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
-            installDebugWarship(m, debugWarship, sim);
+            installHostileShip(m, debugWarship, plan.hostileShip(), sim);
             sim.setCompanyStance(m.source == MissionSource.STATIONING ? MissionStance.DEFEND : MissionStance.ATTACK);
             sim.setOperationOfficer(OfficerCommandProfile.capture(m.source.isDebug() ? null : ctx.getSelectedCaptain()));
             if (fixture != null) {
@@ -467,7 +485,7 @@ public final class MissionLaunch {
     /**
      * The briefing's WARSHIP DEBUG pick as a stock source for the Ship on Station power: the
      * same mechanism a committed fleet member uses, with the stock variant and no cost. A
-     * hostile pick is not a call the company can make, so it stays a launch-time install.
+     * hostile pick is not a call the company can make; it is the defender's source ({@link #installHostileShip}).
      */
     static List<CommandPower> debugShipPowers(Mission m, DebugWarship.Spec spec, List<CommandPower> powers) {
         if (!debugShipIsSource(m, spec)) return powers;
@@ -479,15 +497,20 @@ public final class MissionLaunch {
                 && spec.side() == Faction.MARINE;
     }
 
-    /** Debug missions only; a failure to fit the ship costs the ship, never the battle. */
-    private static void installDebugWarship(Mission m, DebugWarship.Spec spec, BattleSimulation sim) {
-        if (!DevConfig.DEBUG_WARSHIP_PICKER || !m.source.isDebug() || spec == null || !spec.active()
-                || debugShipIsSource(m, spec)) return;
-        try {
-            DebugWarship.install(sim, spec);
-        } catch (Exception e) {
-            Global.getLogger(MissionLaunch.class).warn("MarineOps: debug warship " + spec.hull() + " could not be fitted", e);
-        }
+    /**
+     * The defending side's ship, on the same mechanism as the company's. A world that warrants one
+     * hands the sim its frozen source and the defender's commander calls it at the trigger; the
+     * briefing's hostile debug pick (debug missions only) replaces that source and is called at the
+     * first look instead of waiting for the trigger. A friendly debug pick is a company source
+     * ({@link #debugShipPowers}) and installs nothing here.
+     */
+    private static void installHostileShip(Mission m, DebugWarship.Spec spec, ShipSupportSource worldShip,
+                                           BattleSimulation sim) {
+        boolean debugPick = DevConfig.DEBUG_WARSHIP_PICKER && m.source.isDebug() && spec != null && spec.active()
+                && spec.side() == Faction.DEFENDER;
+        ShipSupportSource source = debugPick ? spec.hull().source() : worldShip;
+        if (source == null) return;
+        sim.installHostileShipSupport(source, debugPick, debugPick ? ship -> DebugWarship.applyPick(ship, spec) : null);
     }
 
     /** Frozen result published only after the caller's launch transaction succeeds. */
