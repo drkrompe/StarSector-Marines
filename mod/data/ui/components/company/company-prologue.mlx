@@ -1,13 +1,13 @@
 <template props="title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,backDisabled,next,back,skip">
   <div id="prologue-root" class="prologue-root">
     <div id="prologue-header" class="prologue-header console-header">
-      <div id="prologue-heading" class="label title">SECOND WIND / PROLOGUE</div>
+      <div id="prologue-heading" class="label title">{i18n.openingUiCompanyPrologueSecondWindPrologue}</div>
       <div id="prologue-page" class="label tone-muted">{page}</div>
     </div>
     <div id="prologue-body" class="prologue-body">
       <div id="prologue-left" class="prologue-left">
         <img id="prologue-art" class="prologue-art" src="{image}" />
-        <div id="prologue-caption" class="label tone-muted prologue-caption">THE SECOND WIND / FLIGHT DECK</div>
+        <div id="prologue-caption" class="label tone-muted prologue-caption">{i18n.openingUiCompanyPrologueTheSecondWindFlightDeck}</div>
         <div id="prologue-manifest" class="label prologue-copy">{manifest}</div>
         <div id="prologue-reserve" class="label prologue-copy tone-muted">{reserve}</div>
         <div id="prologue-objective" class="label tone-accent prologue-copy">{destination}</div>
@@ -18,17 +18,17 @@
           <div id="prologue-narrative" class="label prologue-copy">{narrative}</div>
           <div id="prologue-contact" class="prologue-contact">
             <img id="prologue-portrait" class="prologue-portrait" src="{portrait}" />
-            <div id="prologue-identity" class="prologue-identity"><div id="prologue-speaker" class="label heading">CASTLE</div><div id="prologue-role" class="label tone-muted prologue-copy">Shipboard operations</div></div>
+            <div id="prologue-identity" class="prologue-identity"><div id="prologue-speaker" class="label heading">{i18n.openingUiCompanyPrologueCastle}</div><div id="prologue-role" class="label tone-muted prologue-copy">{i18n.openingUiCompanyPrologueShipboardOperations}</div></div>
           </div>
           <div id="prologue-dialogue" class="label prologue-copy prologue-dialogue">{dialogue}</div>
         </div>
         <div id="prologue-controls" class="prologue-controls console-rail">
-          <button id="prologue-back" class="prologue-back" disabled="{backDisabled}" onclick="{back}">Back</button>
+          <button id="prologue-back" class="prologue-back" disabled="{backDisabled}" onclick="{back}">{i18n.openingUiCompanyPrologueBack}</button>
           <button id="prologue-next" class="prologue-next" onclick="{next}">{nextLabel}</button>
         </div>
       </div>
     </div>
-    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">At port: Marine operations / Mercenary Company Conversion. Directions remain in your Intel log.</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">Skip introduction</button></div>
+    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">{i18n.openingUiCompanyPrologueAtPortMarineOperationsMercenaryCompanyConversion}</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">{i18n.openingUiCompanyPrologueSkipIntroduction}</button></div>
   </div>
 </template>
 <style>
@@ -50,9 +50,9 @@
 .prologue-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 10px; }
 .prologue-dialogue { color: #eee5d5; }
 .prologue-controls { flex-direction: row; height: 52px; padding: 4px; gap: 12px; }
-.prologue-back { width: 88px; border-width: 2px; text-align: center; }
+.prologue-back { white-space: normal; width: 88px; border-width: 2px; text-align: center; }
 .prologue-next { width: 0px; flex-grow: 1; border-width: 2px; text-align: center; white-space: normal; }
 .prologue-footer { flex-direction: row; height: 42px; align-items: center; gap: 16px; }
 .prologue-note { flex-grow: 1; white-space: normal; }
-.prologue-skip { width: 200px; height: 38px; text-align: center; border-width: 1px; }
+.prologue-skip { white-space: normal; width: 200px; height: 38px; text-align: center; border-width: 1px; }
 </style>

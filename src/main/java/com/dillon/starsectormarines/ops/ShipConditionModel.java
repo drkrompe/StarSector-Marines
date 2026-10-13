@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph.Compartment;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
@@ -56,11 +57,11 @@ public final class ShipConditionModel {
     public static Map<String, Object> workshopOnly() {
         var m = new LinkedHashMap<String, Object>();
         m.put("classes", "condition-panel"); m.put("rooms", List.of()); m.put("portrait", CompanyManagementGuide.portrait());
-        m.put("title", "SHIP CONDITION"); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("reason", "");
-        m.put("action", (Runnable) () -> {}); m.put("actionLabel", "REVIEW REPAIR"); m.put("disabled", true);
+        m.put("title", Strings.get("openingShipConditionShipCondition")); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("reason", "");
+        m.put("action", (Runnable) () -> {}); m.put("actionLabel", Strings.get("openingShipConditionReviewRepair")); m.put("disabled", true);
         m.put("actionClasses", "hidden"); m.put("detailClasses", "hidden"); m.put("workshopClasses", "restoration-panel");
-        m.put("feedback", ""); m.put("summary", "ROOM SURVEY");
-        m.put("powerClasses", "hidden"); m.put("powerLabel", "DISTRIBUTION CIRCUITS");
+        m.put("feedback", ""); m.put("summary", Strings.get("openingShipConditionRoomSurvey"));
+        m.put("powerClasses", "hidden"); m.put("powerLabel", Strings.get("openingShipConditionDistributionCircuits"));
         m.put("powerAction", (Runnable) () -> {});
         m.put("status", "");
         return m;
@@ -75,10 +76,10 @@ public final class ShipConditionModel {
             boolean sealed = ShipConditionStage.sealed(graph, room, state)
                     || room.purpose() == RoomPurpose.HANGAR && graph.damaged(room.id())
                     || room.equals(graph.largest(RoomPurpose.PARTS_CAGE)) && ship.ship().workshop() == WorkshopState.BURIED;
-            String status = sealed ? "SEALED / DAMAGED" : graph.damaged(room.id()) ? "DAMAGED / ACCESSIBLE"
-                    : graph.emergencyLighting(room.id()) ? "FAULTY POWER" : "WORKING";
+            String status = sealed ? Strings.get("openingShipConditionSealedDamaged") : graph.damaged(room.id()) ? Strings.get("openingShipConditionDamagedAccessible")
+                    : graph.emergencyLighting(room.id()) ? Strings.get("openingShipConditionFaultyPower") : Strings.get("openingShipConditionWorking");
             if (state.applies() && room.purpose() == RoomPurpose.VEHICLE_BAY && state.mechBay())
-                status = state.workingMechBerths() + " / 4 BERTHS WORKING";
+                status = Strings.format("openingShipConditionBerthsWorking", state.workingMechBerths());
             String condition = sealed ? "sealed" : graph.damaged(room.id()) ? "repair" : graph.emergencyLighting(room.id()) ? "power" : "";
             String classes = condition.isEmpty() ? "survey-room healthy" : "survey-room";
             rooms.add(Map.of("roomId", room.id(), "icon", condition.isEmpty() ? "" : "graphics/ui/company/condition-" + condition + ".svg",
@@ -90,60 +91,60 @@ public final class ShipConditionModel {
         boolean workshop = selectedRoom != null && selectedRoom.equals(graph.largest(RoomPurpose.PARTS_CAGE)) && ship.ship().workshop() != WorkshopState.NONE;
         var m = workshopOnly();
         m.put("status", rooms.stream().filter(r -> ((Integer) r.get("roomId")) == selected)
-                .map(r -> r.get("status")).findFirst().orElse(state.applies() ? (state.power() ? "RESTORED" : "FAULTY POWER") : "SHIPBOARD SERVICES"));
+                .map(r -> r.get("status")).findFirst().orElse(state.applies() ? (state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")) : Strings.get("openingShipConditionShipboardServices")));
         m.put("powerClasses", state.applies() ? "survey-power console-action" : "hidden");
-        m.put("powerLabel", "DISTRIBUTION / " + (state.power() ? "RESTORED" : "FAULTY POWER"));
+        m.put("powerLabel", Strings.format("openingShipConditionPowerStatus", state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")));
         m.put("powerAction", selection(-1));
         m.put("rooms", List.copyOf(rooms));
-        m.put("summary", graph.compartments().stream().filter(r -> graph.damaged(r.id())).count() + " DAMAGED ROOMS / HOVER TO INSPECT / CLICK TO PIN");
+        m.put("summary", Strings.format("openingShipConditionDamageInspectionSummary", graph.compartments().stream().filter(r -> graph.damaged(r.id())).count()));
         m.put("workshopClasses", workshop ? "restoration-panel" : "hidden");
         m.put("detailClasses", workshop ? "hidden" : "condition-detail");
-        m.put("title", selectedRoom == null ? (state.applies() ? "DISTRIBUTION CIRCUITS" : "SHIP CONDITION") : name(selectedRoom));
-        String copy = "She's been through hard service. The scars stay, but this room is safe to use.";
-        String benefit = "IN SERVICE: " + function(selectedRoom == null ? null : selectedRoom.purpose());
-        String reason = "No structural work required here.";
+        m.put("title", selectedRoom == null ? (state.applies() ? Strings.get("openingShipConditionDistributionCircuits") : Strings.get("openingShipConditionShipCondition")) : name(selectedRoom));
+        String copy = Strings.get("openingShipConditionSheSBeenThroughHardServiceThe");
+        String benefit = Strings.format("openingShipConditionInService", function(selectedRoom == null ? null : selectedRoom.purpose()));
+        String reason = Strings.get("openingShipConditionNoStructuralWorkRequiredHere");
         String bill = "";
         Work work = null;
         boolean bay = false;
         if (state.applies() && selectedRoom == null) {
-            copy = state.power() ? "Steady lights again. We have replaced the tired distribution runs. Sealed rooms still need their own repairs."
-                    : "We are nursing old cable and scorched breakers. The working rooms are safe, but too many watches are being stood under emergency lamps.";
-            benefit = "Restore steady lights throughout the working compartments. Sealed rooms need separate structural repairs.";
+            copy = state.power() ? Strings.get("openingShipConditionSteadyLightsAgainWeHaveReplacedThe")
+                    : Strings.get("openingShipConditionWeAreNursingOldCableAndScorched");
+            benefit = Strings.get("openingShipConditionRestoreSteadyLightsThroughoutTheWorkingCompartments");
             if (!state.power()) work = Work.POWER;
         } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.VEHICLE_BAY) {
             int berths = state.workingMechBerths();
-            copy = !state.mechBay() ? "There is room for a full lance, but the pressure skin is torn and all four gantries are wrecked. Nobody goes through that hatch until the recovery crew makes it safe."
-                    : berths < 4 ? "Wayward has a home. The recovery crew sealed the breach and restored berth one. The remaining gantries need their own rails, power and servicing equipment repaired. We can bring them back one at a time."
-                    : "Four working gantries. We have earned back a home for a full lance, with a clear service aisle between the machines.";
-            benefit = !state.mechBay() ? "MISSION 2: Take Back the Depot restores berth one with Wayward's recovery. No separate bill for the first berth."
-                    : "WORKING: " + berths + " / 4 mech berths. " + (berths < 4
-                    ? "NEXT: Restore berth " + (berths + 1) + " for one additional mech. Acquire its chassis separately."
-                    : "Visit Mech Lab to fabricate or fit the lance.");
-            reason = state.mechBay() ? "The first berth was restored with the depot recovery." : "Locked until the second story mission is complete.";
+            copy = !state.mechBay() ? Strings.get("openingShipConditionThereIsRoomForAFullLance")
+                    : berths < 4 ? Strings.get("openingShipConditionWaywardHasAHomeTheRecoveryCrew")
+                    : Strings.get("openingShipConditionFourWorkingGantriesWeHaveEarnedBack");
+            benefit = !state.mechBay() ? Strings.get("openingShipConditionMissionTakeBackTheDepotRestoresBerth")
+                    : Strings.format("openingShipConditionWorkingMechBerths", berths, (berths < 4
+                    ? Strings.format("openingShipConditionNextRestoreBerthForOneAdditionalMech", (berths + 1))
+                    : Strings.get("openingShipConditionVisitMechLabToFabricateOrFit")));
+            reason = state.mechBay() ? Strings.get("openingShipConditionTheFirstBerthWasRestoredWithThe") : Strings.get("openingShipConditionLockedUntilTheSecondStoryMissionIs");
             if (state.mechBay() && berths < 4) work = switch (berths) {
                 case 1 -> Work.MECH_BERTH_2;
                 case 2 -> Work.MECH_BERTH_3;
                 default -> Work.MECH_BERTH_4;
             };
         } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.MESS_HALL) {
-            copy = state.messHall() ? "Hot meals and a table together. You can hear the difference already. They have somewhere to be a company again."
-                    : "The mess took a hit. We are feeding everyone from field rations in the working quarters, but they deserve better. The yard can seal the breach and put the galley and tables right.";
-            benefit = (state.messHall() ? "RESTORED: " : "NEXT: ") + "Company infantry recover morale 25% faster once incoming fire stops. Applies to future deployments from this active company home.";
-            reason = state.messHall() ? "Morale limits and recovery delay are unchanged. No additional food upkeep." : "Field rations keep the company ready for its first mission.";
+            copy = state.messHall() ? Strings.get("openingShipConditionHotMealsAndATableTogetherYou")
+                    : Strings.get("openingShipConditionTheMessTookAHitWeAre");
+            benefit = Strings.format("openingShipConditionCompanyInfantryRecoverMoraleFasterOnceIncoming", (state.messHall() ? Strings.get("openingShipConditionRestored2") : Strings.get("openingShipConditionNext")));
+            reason = state.messHall() ? Strings.get("openingShipConditionMoraleLimitsAndRecoveryDelayAreUnchanged") : Strings.get("openingShipConditionFieldRationsKeepTheCompanyReadyFor");
             if (!state.messHall()) work = Work.MESS_HALL;
         } else if (selectedRoom != null && state.applies() && ShipConditionStage.spareBillets(graph).contains(selectedRoom)) {
-            copy = state.billets() ? "Fresh racks, sealed plating and room for the company to grow. Let us keep these quarters fit for the people who sleep here."
-                    : "These two bunkrooms took the same hit. Racks are crushed and the pressure seals are gone. The yard can reopen both as one job.";
+            copy = state.billets() ? Strings.get("openingShipConditionFreshRacksSealedPlatingAndRoomFor")
+                    : Strings.get("openingShipConditionTheseTwoBunkroomsTookTheSameHit");
             int bunks = ShipConditionStage.spareBillets(graph).size() * RoomRecipe.TROOP_BERTHING.provides();
-            benefit = (state.billets() ? "RESTORED: " : "NEXT: Restore ") + bunks + " usable company billets in the reserved bunkrooms. Existing quarters remain available.";
+            benefit = Strings.format("openingShipConditionUsableCompanyBilletsInTheReservedBunkrooms", (state.billets() ? Strings.get("openingShipConditionRestored2") : Strings.get("openingShipConditionNextRestore")) + bunks);
             if (!state.billets()) work = Work.BILLETS;
         } else if (selectedRoom != null && selectedRoom.purpose() == RoomPurpose.HANGAR && graph.damaged(selectedRoom.id())) {
-            copy = "A second boat belongs here once the yard makes the pressure door and launch rails safe. We kept the space; now we can earn it back.";
-            benefit = "Restore the second shuttle berth and launch opening. Commission its boat separately.";
+            copy = Strings.get("openingShipConditionASecondBoatBelongsHereOnceThe");
+            benefit = Strings.get("openingShipConditionRestoreTheSecondShuttleBerthAndLaunch");
             bay = true;
         } else if (selectedRoom != null && graph.emergencyLighting(selectedRoom.id())) {
-            copy = "The fittings still do their job, but this room is running on tired circuits. We can mend the distribution without moving anyone out.";
-            reason = "Select DISTRIBUTION CIRCUITS to review the ship's lighting repair.";
+            copy = Strings.get("openingShipConditionTheFittingsStillDoTheirJobBut");
+            reason = Strings.get("openingShipConditionSelectDistributionCircuitsToReviewTheShip");
         }
         if (work != null || bay) {
             var offer = work == null ? null : offers.apply(work);
@@ -152,10 +153,10 @@ public final class ShipConditionModel {
             int credits = bay ? boat.credits() : offer.credits();
             String refusal = bay ? boat.refusal() : offer.refusal();
             String key = bay ? "bay" : work.name();
-            bill = String.format(Locale.ROOT, "CREDITS  COST %,d / AVAILABLE %,d / SHORT BY %,d", price, credits, Math.max(0, price - credits));
-            reason = refusal == null ? "Planetary yard labor and materials included." : refusal;
+            bill = String.format(Locale.ROOT, Strings.get("openingShipConditionCreditsCostDAvailableDShortBy"), price, credits, Math.max(0, price - credits));
+            reason = refusal == null ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded") : refusal;
             m.put("actionClasses", "restoration-action console-action");
-            m.put("actionLabel", key.equals(reviewed) ? String.format(Locale.ROOT, "AUTHORIZE - %,d", price) : "REVIEW REPAIR");
+            m.put("actionLabel", key.equals(reviewed) ? String.format(Locale.ROOT, Strings.get("openingShipConditionAuthorizeD"), price) : Strings.get("openingShipConditionReviewRepair"));
             m.put("disabled", refusal != null && key.equals(reviewed));
             m.put("order", key);
         }
@@ -167,10 +168,10 @@ public final class ShipConditionModel {
         refresh();
         String key = (String) row.get().get("order");
         if (key == null) return;
-        if (!key.equals(reviewed)) { reviewed = key; feedback = "Review the cost and restored facilities before authorizing."; }
+        if (!key.equals(reviewed)) { reviewed = key; feedback = Strings.get("openingShipConditionReviewTheCostAndRestoredFacilitiesBefore"); }
         else {
             String refusal = key.equals("bay") ? repairBay.get() : repair.apply(Work.valueOf(key));
-            feedback = refusal == null ? "Yard work complete." : refusal;
+            feedback = refusal == null ? Strings.get("openingShipConditionYardWorkComplete") : refusal;
             reviewed = null;
             if (refusal == null) changed.run();
         }
@@ -178,26 +179,26 @@ public final class ShipConditionModel {
     }
     private static String name(Compartment room) {
         return switch (room.purpose()) {
-            case VEHICLE_BAY -> "MECH LAB";
-            case BARRACKS -> "COMPANY QUARTERS";
-            case PARTS_CAGE -> "WORKSHOP / PARTS";
-            case HANGAR -> "SHUTTLE BAY";
+            case VEHICLE_BAY -> Strings.get("openingShipConditionMechLab");
+            case BARRACKS -> Strings.get("openingShipConditionCompanyQuarters");
+            case PARTS_CAGE -> Strings.get("openingShipConditionWorkshopParts");
+            case HANGAR -> Strings.get("openingShipConditionShuttleBay");
             default -> room.purpose().name().replace('_', ' ');
         };
     }
     private static String function(RoomPurpose purpose) {
-        if (purpose == null) return "Shipboard services.";
+        if (purpose == null) return Strings.get("openingShipConditionShipboardServices");
         return switch (purpose) {
-            case BARRACKS -> "Company billets and rest stations.";
-            case CREW_QUARTERS -> "Quarters for the ship's crew.";
-            case ARMORY -> "Equipment issue and company loadouts.";
-            case HANGAR -> "Boat berthing, commissioning and fitting.";
-            case VEHICLE_BAY -> "Mech berthing, fabrication and fitting.";
-            case BRIDGE -> "Navigation and the company command watch.";
-            case ENGINE_ROOM -> "Engine watch and machinery service.";
-            case MESS_HALL -> "Meals and off-watch crew routines.";
-            case STOCKROOM -> "Cargo stowage and stores duties.";
-            default -> "Reachable fittings and crew work stations.";
+            case BARRACKS -> Strings.get("openingShipConditionCompanyBilletsAndRestStations");
+            case CREW_QUARTERS -> Strings.get("openingShipConditionQuartersForTheShipSCrew");
+            case ARMORY -> Strings.get("openingShipConditionEquipmentIssueAndCompanyLoadouts");
+            case HANGAR -> Strings.get("openingShipConditionBoatBerthingCommissioningAndFitting");
+            case VEHICLE_BAY -> Strings.get("openingShipConditionMechBerthingFabricationAndFitting");
+            case BRIDGE -> Strings.get("openingShipConditionNavigationAndTheCompanyCommandWatch");
+            case ENGINE_ROOM -> Strings.get("openingShipConditionEngineWatchAndMachineryService");
+            case MESS_HALL -> Strings.get("openingShipConditionMealsAndOffWatchCrewRoutines");
+            case STOCKROOM -> Strings.get("openingShipConditionCargoStowageAndStoresDuties");
+            default -> Strings.get("openingShipConditionReachableFittingsAndCrewWorkStations");
         };
     }
 }

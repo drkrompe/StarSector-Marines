@@ -248,6 +248,25 @@ public final class ShieldDomeService {
         markSnapshot = List.copyOf(hits);
     }
 
+    /**
+     * The dome that would meet ship-grade fire from {@code shooter} landing at
+     * {@code (x, y)}, as of the last tick: an up dome first (it absorbs the round),
+     * else a dome that covers the point but is down, else null. For targeting
+     * previews; the authority on absorption remains {@link #absorbs}.
+     */
+    public DomeView coverageAt(float x, float y, Faction shooter) {
+        DomeView down = null;
+        for (DomeView d : snapshot) {
+            if (!d.holder().hostileTo(shooter)) continue;
+            float dx = x - d.x();
+            float dy = y - d.y();
+            if (dx * dx + dy * dy > d.radius() * d.radius()) continue;
+            if (!d.overloaded()) return d;
+            if (down == null) down = d;
+        }
+        return down;
+    }
+
     /** Live domes as of the last tick, for the renderer and for evidence. */
     public List<DomeView> domes() { return snapshot; }
 

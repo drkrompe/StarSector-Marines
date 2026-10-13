@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.battleview.MechReplenisherArt;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
@@ -61,12 +62,12 @@ final class MechLabSpecSheets {
     }
 
     private static SpecSheet replenisherSheet(MissileReplenisherComponent component) {
-        return new SpecSheet(component.displayName(), "MISSILE MINI-FAB",
+        return new SpecSheet(component.displayName(), Strings.get("openingMechLabSpecSheetsMissileMiniFab"),
                 MechReplenisherArt.icon(component), "item", List.of(
-                        SpecSheet.Stat.of("SRM cycle", component.srmReplenishmentSeconds() + " s"),
-                        SpecSheet.Stat.of("LRM cycle", component.lrmReplenishmentSeconds() + " s")),
-                List.of("Builds one missile trigger pack per cycle until the magazine is full.",
-                        "Install from fleet spares; this system cannot be fabricated in the lab."));
+                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsSrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.srmReplenishmentSeconds())),
+                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.lrmReplenishmentSeconds()))),
+                List.of(Strings.get("openingMechLabSpecSheetsBuildsOneMissileTriggerPackPerCycle"),
+                        Strings.get("openingMechLabSpecSheetsInstallFromFleetSparesThisSystemCannot")));
     }
 
     static void bindMaterials(SpecSheetBinder binder, MarkupInstance markup,
@@ -96,15 +97,15 @@ final class MechLabSpecSheets {
 
     static SpecSheet materialSheet(MechLabViewModel.MaterialRow material) {
         boolean cost = material.required() > 0;
-        return new SpecSheet(material.name(), cost ? "MANUFACTURING COST" : "FLEET MATERIALS",
+        return new SpecSheet(material.name(), cost ? Strings.get("openingMechLabSpecSheetsManufacturingCost") : Strings.get("openingMechLabSpecSheetsFleetMaterials"),
                 material.icon(), "item", cost ? List.of(
-                        SpecSheet.Stat.of("Required", Integer.toString(material.required())),
-                        SpecSheet.Stat.of("In cargo", Integer.toString(material.available())))
-                        : List.of(SpecSheet.Stat.of("In cargo", Integer.toString(material.available()))),
+                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsRequired"), Integer.toString(material.required())),
+                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsInCargo"), Integer.toString(material.available())))
+                        : List.of(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsInCargo"), Integer.toString(material.available()))),
                 List.of(cost ? material.available() >= material.required()
-                        ? "Enough in cargo for this material cost."
-                        : "Short by " + (material.required() - material.available()) + "."
-                        : "Shared fleet cargo used by fabrication."));
+                        ? Strings.get("openingMechLabSpecSheetsEnoughInCargoForThisMaterialCost")
+                        : Strings.format("openingMechLabSpecSheetsShortBy", (material.required() - material.available()))
+                        : Strings.get("openingMechLabSpecSheetsSharedFleetCargoUsedByFabrication")));
     }
 
     /** The first row this binds, for headless evidence. */

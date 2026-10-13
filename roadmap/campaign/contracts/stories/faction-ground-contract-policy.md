@@ -147,7 +147,7 @@ mission-policy axis with contradictory eligibility.
 - Faction-specific tactical decisions — `target-faction-command-doctrine.md`.
 - Facility geometry or fire-support denial —
   `hard-installation-first-map-feature.md` and
-  `shielded-fire-support-zones.md`.
+  `ground-defences.md`.
 - Moral-compass writeback for violating terms. A later story must name an
   explicit attributable choice and exactly-once source before conduct becomes a
   moral fact.

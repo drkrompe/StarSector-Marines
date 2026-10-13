@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration.Offer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -40,16 +41,16 @@ public final class WorkshopRestorationModel {
         if (reviewed != offer.state()) { reviewed = offer.state(); feedback = ""; inspect.run(); }
         else {
             String refused = purchase.apply(reviewed);
-            feedback = refused == null ? "Work complete. The next stage is yours to choose." : refused;
+            feedback = refused == null ? Strings.get("openingWorkshopRestorationWorkCompleteTheNextStageIsYours") : refused;
             if (refused == null) { reviewed = null; changed.run(); }
         }
         refresh();
     }
     private void reclaim() {
-        if (!reclaimReviewed) { reclaimReviewed = true; feedback = "Review: consume 1 heavy machinery and recover 4 metals."; }
+        if (!reclaimReviewed) { reclaimReviewed = true; feedback = Strings.get("openingWorkshopRestorationReviewConsumeHeavyMachineryAndRecoverMetals"); }
         else {
             String refused = reclaim.get();
-            feedback = refused == null ? "Recovered 4 metals from 1 heavy machinery." : refused;
+            feedback = refused == null ? Strings.get("openingWorkshopRestorationRecoveredMetalsFromHeavyMachinery") : refused;
             reclaimReviewed = false;
         }
         refresh();
@@ -66,39 +67,39 @@ public final class WorkshopRestorationModel {
                 case "classes" -> state == WorkshopState.NONE ? "restoration-panel hidden" : "restoration-panel";
                 case "portrait" -> CompanyManagementGuide.portrait();
                 case "title" -> switch (state) {
-                    case BURIED -> "WORKSHOP / BURIED";
-                    case CLEARED -> "WORKSHOP / CLEARED";
-                    case REPAIRED -> "WORKSHOP / REPAIRED";
-                    default -> "WORKSHOP / EQUIPPED";
+                    case BURIED -> Strings.get("openingWorkshopRestorationWorkshopBuried");
+                    case CLEARED -> Strings.get("openingWorkshopRestorationWorkshopCleared");
+                    case REPAIRED -> Strings.get("openingWorkshopRestorationWorkshopRepaired");
+                    default -> Strings.get("openingWorkshopRestorationWorkshopEquipped");
                 };
                 case "progress" -> "graphics/ui/company/workshop-stage-" + Math.max(0, state.ordinal() - 1) + ".svg";
                 case "copy" -> switch (state) {
-                    case BURIED -> "That hatch stays shut. The yard can clear the fallen ribs and plate the breach. Then we can see what the machines need.";
-                    case CLEARED -> "The patch is holding and the floor is ours again. Now we can mend those broken machines and put this room back to work.";
-                    case REPAIRED -> "She works. Give the hands proper tooling and they will waste fewer supplies keeping our boats and machines ready.";
-                    default -> "A proper shop, built back by our own company. The tools stay here. Our boat and Mech Lab jobs now need fewer supplies.";
+                    case BURIED -> Strings.get("openingWorkshopRestorationThatHatchStaysShutTheYardCan");
+                    case CLEARED -> Strings.get("openingWorkshopRestorationThePatchIsHoldingAndTheFloor");
+                    case REPAIRED -> Strings.get("openingWorkshopRestorationSheWorksGiveTheHandsProperTooling");
+                    default -> Strings.get("openingWorkshopRestorationAProperShopBuiltBackByOur");
                 };
                 case "benefit" -> switch (state) {
-                    case BURIED -> "NEXT: Clear wreckage and seal the breach. Recover 10 metals once; reopen the workshop safely.";
-                    case CLEARED -> "NEXT: Restore machinery. Unlock reclamation: 1 heavy machinery becomes 4 metals.";
-                    case REPAIRED -> "NEXT: Install tooling. Boat and Mech Lab fabrication/fittings use 20% fewer supplies, rounded up.";
-                    default -> "ACTIVE: Reclamation and 20% fewer supplies for boat and Mech Lab jobs. Other materials and pattern requirements stay the same.";
+                    case BURIED -> Strings.get("openingWorkshopRestorationNextClearWreckageAndSealTheBreach");
+                    case CLEARED -> Strings.get("openingWorkshopRestorationNextRestoreMachineryUnlockReclamationHeavyMachinery");
+                    case REPAIRED -> Strings.get("openingWorkshopRestorationNextInstallToolingBoatAndMechLab");
+                    default -> Strings.get("openingWorkshopRestorationActiveReclamationAndFewerSuppliesForBoat");
                 };
-                case "bill" -> complete ? "INSTALLED ABOARD THIS HULL" : String.format(Locale.ROOT,
-                        "CREDITS  COST %,d / AVAILABLE %,d / SHORT BY %,d", state.price(), offer.credits(), Math.max(0, state.price() - offer.credits()));
-                case "reason" -> offer.refusal() == null ? "Planetary yard labor and installation included." : offer.refusal();
-                case "actionLabel" -> !reviewed ? "INSPECT WORKSHOP" : String.format(Locale.ROOT, "%s - %,d", switch (state) {
-                    case BURIED -> "CLEAR"; case CLEARED -> "REPAIR"; default -> "INSTALL TOOLS";
+                case "bill" -> complete ? Strings.get("openingWorkshopRestorationInstalledAboardThisHull") : String.format(Locale.ROOT,
+                        Strings.get("openingWorkshopRestorationCreditsCostDAvailableDShortBy"), state.price(), offer.credits(), Math.max(0, state.price() - offer.credits()));
+                case "reason" -> offer.refusal() == null ? Strings.get("openingWorkshopRestorationPlanetaryYardLaborAndInstallationIncluded") : offer.refusal();
+                case "actionLabel" -> !reviewed ? Strings.get("openingWorkshopRestorationInspectWorkshop") : String.format(Locale.ROOT, "%s - %,d", switch (state) {
+                    case BURIED -> Strings.get("openingWorkshopRestorationClear"); case CLEARED -> Strings.get("openingWorkshopRestorationRepair"); default -> Strings.get("openingWorkshopRestorationInstallTools");
                 }, state.price());
                 case "actionClasses" -> complete ? "restoration-action hidden" : "restoration-action console-action";
                 case "disabled" -> reviewed && offer.refusal() != null;
                 case "action" -> action;
                 case "inspect" -> inspect;
                 case "reclaimClasses" -> state.operational() ? "reclaim-block" : "reclaim-block hidden";
-                case "reclaimCopy" -> "RECLAIM: 1 MACHINERY -> 4 METALS. Cargo: " + offer.machinery() + " machinery / " + offer.metals() + " metals.";
-                case "reclaimReason" -> offer.reclaimRefusal() == null ? "Uses fleet cargo. Starting-depot stores are excluded." : offer.reclaimRefusal();
+                case "reclaimCopy" -> Strings.format("openingWorkshopRestorationReclaimMachineryMetalsCargoMachineryMetals", offer.machinery(), offer.metals());
+                case "reclaimReason" -> offer.reclaimRefusal() == null ? Strings.get("openingWorkshopRestorationUsesFleetCargoStartingDepotStoresAre") : offer.reclaimRefusal();
                 case "reclaimDisabled" -> offer.reclaimRefusal() != null;
-                case "reclaimLabel" -> reclaimReviewed ? "CONFIRM RECLAMATION" : "RECLAIM MACHINERY";
+                case "reclaimLabel" -> reclaimReviewed ? Strings.get("openingWorkshopRestorationConfirmReclamation") : Strings.get("openingWorkshopRestorationReclaimMachinery");
                 case "reclaim" -> reclaim;
                 case "feedback" -> feedback;
                 default -> throw new IllegalArgumentException("Unknown workshop property " + key);
