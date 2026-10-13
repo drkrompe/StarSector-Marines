@@ -15,10 +15,7 @@
         <button each="squad in lesson.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">{squad.label}</button>
       </div>
       <div id="refit-paths" class="refit-paths">
-        <button each="path in lesson.paths" key="{path.id}" id="{path.id}" class="{path.classes}" onclick="{path.select}">
-          <div id="{path.headingId}" class="refit-heading tone-accent">{path.label}</div>
-          <div id="{path.copyId}" class="refit-path-copy">{path.copy}</div>
-        </button>
+        <armory-weapon-tech-card each="tile in lesson.paths" key="{tile.id}" tile="{tile}" />
       </div>
       <div id="refit-empty" class="{lesson.emptyClasses}">Select a squad and one of the two plans above. Compare equipment before choosing your one free technology transfer.</div>
       <div id="refit-comparison" class="{lesson.comparisonClasses}">
@@ -99,10 +96,8 @@
   .refit-hint { height: 18px; }
   .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
   .refit-squad { width: 180px; height: 24px; padding: 4px; border-width: 1px; }
-  .refit-paths { flex-direction: row; height: 68px; gap: 12px; }
-  .refit-path { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 5px; border-width: 2px; text-align: left; }
-  .refit-path-copy { height: 40px; white-space: normal; font-family: body; }
-  .refit-path.refit-selected, .refit-squad.refit-selected, .refit-billet.refit-selected { border-color: #73cfc9; background-color: #163a40; }
+  .refit-paths { flex-direction: row; height: 190px; gap: 12px; }
+  .refit-squad.refit-selected, .refit-billet.refit-selected { border-color: #73cfc9; background-color: #163a40; }
   .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
   .refit-comparison { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }
   .refit-roll { flex-direction: column; width: 348px; padding: 6px; gap: 4px; }
@@ -111,11 +106,11 @@
   .refit-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-team-heading { height: 18px; text-align: center; font-family: heading; }
   .refit-team-members { flex-direction: column; gap: 6px; }
-  .refit-billet { flex-direction: column; height: 108px; padding: 4px; gap: 4px; border-width: 1px; text-align: left; }
+  .refit-billet { flex-direction: column; height: 88px; padding: 4px; gap: 4px; border-width: 1px; text-align: left; }
   .refit-name { height: 18px; overflow: hidden; }
   .refit-billet-kit { flex-direction: row; height: 34px; gap: 6px; align-items: center; }
   .refit-billet-icon { width: 34px; height: 34px; pointer-events: none; }
-  .refit-detail { height: 48px; white-space: normal; font-family: body; }
+  .refit-detail { height: 28px; white-space: normal; font-family: body; }
   .refit-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-selected-name { height: 22px; }
   .refit-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }

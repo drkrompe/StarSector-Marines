@@ -105,10 +105,10 @@ class EquipmentTemplateCatalogTest {
     void newArmoryOwnsStarterCardsButAdvancedCardsRemainCollectible() {
         MarineArmory armory = new MarineArmory();
 
-        assertTrue(armory.ownsPrimaryTemplate(
+        assertFalse(armory.ownsPrimaryTemplate(
                 WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE));
-        assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.CHARCOAL));
-        assertTrue(armory.ownsSpecialTemplate(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)));
+        assertFalse(armory.ownsArmorTemplate(MarineArmorPattern.CHARCOAL));
+        assertFalse(armory.ownsSpecialTemplate(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)));
         assertFalse(armory.ownsPrimaryTemplate(
                 WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
         assertFalse(armory.ownsArmorTemplate(MarineArmorPattern.RED_ELITE));
@@ -123,6 +123,7 @@ class EquipmentTemplateCatalogTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> armory.createWeaponDoctrine("Premature Assault", assault));
+        EquipmentTestFixtures.learnServiceKit(armory);
         armory.unlockSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID));
         assertEquals("Collected Assault",
                 armory.createWeaponDoctrine("Collected Assault", assault).displayName());

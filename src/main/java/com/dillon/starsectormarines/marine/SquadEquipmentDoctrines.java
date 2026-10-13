@@ -50,19 +50,19 @@ public final class SquadEquipmentDoctrines {
 
     private static final List<SquadWeaponDoctrine> WEAPONS = List.of(
             weaponDoctrine(FIELD_SECURITY_WEAPONS, "Frontier Security Equipment",
-                    "Reliable field rifles with one trained pulse-rifle lead in each team.",
+                    "Twelve basic field rifles. Specialist weapons must be learned before fitting.",
                     team(
-                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),

@@ -266,6 +266,10 @@ fallback without choosing an operation commander in advance.
 **A Proper Issue** is Castle's optional first squad-refit lesson after the story
 victory in Hold Until Relieved. The debrief opens the equipment lesson directly and HQ points to Barracks; its
 opening conversation and gallery resume action keep the offer discoverable.
+A new company knows only the Service Rook, field fatigues, and Ward security kit.
+Other weapon families, specialist suits, and special equipment must be learned.
+Existing saves keep every previously acquired spec.
+
 Wayline offers one free technology transfer: Steady Line permanently teaches
 Milspec Stalwart; Forward Screen teaches Milspec Lancer and Janus scout suits.
 Acceptance grants reusable plan intent for both paths, but only the chosen path's
@@ -360,8 +364,10 @@ browser. Weapon and Armor are mutually exclusive tabs over that browser, and rar
 filters bound a growing list without reducing the dossier detail. The browser contains
 only definitions the company actually knows; unknown definitions have no placeholder,
 silhouette, name, tier, rarity, provenance, or lore to spoil future discovery. Each
-known entry leads with an authored power tier, campaign rarity, provenance, substantial
-setting paragraph, and deterministic twelve-billet distribution. That distribution reads
+weapon entry leads with counted battlefield roles, followed by named weapon quantities.
+The lesson choices and learned Armory kits use the same card component. Tier, rarity,
+provenance and setting copy remain supporting details alongside the exact twelve-billet
+distribution. That distribution reads
 as one joined line and is built from one entry per named thing, so each entry opens that
 item's spec sheet (`ui-nouns.md`) on hover: a weapon at the grade the loadout issues it,
 an armour pattern, a carried integral system. An entry that counts items which need not

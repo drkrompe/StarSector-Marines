@@ -1400,38 +1400,13 @@ public class MarineRoster implements Serializable {
                 String.format("Marine %03d", number), aptitudeFor(number));
         soldiers.add(recruit);
         if (soldierIndex != null) soldierIndex.put(recruit.id(), recruit);
-        autoIssueRecruit(recruit, number);
+        autoIssueRecruit(recruit);
         return recruit;
     }
 
-    /**
-     * Gives a new campaign a readable mixed roster before the player reaches the
-     * armory. Keyed to squad structure so the pattern holds as the roster grows:
-     * one anti-armor billet per squad, and the first two squads issued distinct
-     * armor so they read apart on sight.
-     *
-     * <p><b>Armour tier here is load-bearing, not decoration.</b> It sets the
-     * band a marine deploys at ({@code SquadExperienceStandard}), so the two
-     * founding squads are deliberately given <em>different tier-2 patterns</em>
-     * rather than different-looking better ones: they read apart on sight and
-     * still field as regulars. Green is reserved for the cargo replacements a
-     * player has not kitted out yet, which is what makes losses cost something.
-     */
-    private void autoIssueRecruit(MarineSoldier recruit, int number) {
-        int billet = Math.floorMod(number - 1, MarineSquad.CAPACITY) + 1;
-        if (billet % 6 == 2) {
-            recruit.setPrimary(WeaponRegistry.SMG_ID, EquipmentGrade.SERVICE);
-        } else if (billet % 6 == 4) {
-            recruit.setPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE);
-        }
-        if (number <= MarineSquad.CAPACITY) {
-            recruit.setArmor(MarineArmorPattern.MILITIA);
-        } else if (number <= 2 * MarineSquad.CAPACITY) {
-            recruit.setArmor(MarineArmorPattern.BLUE_SCOUT);
-        }
-        if (billet == MarineSquad.CAPACITY) {
-            recruit.setSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
-        }
+    /** New personnel receive only the company's entry-level equipment. */
+    private void autoIssueRecruit(MarineSoldier recruit) {
+        recruit.setArmor(MarineArmorPattern.MILITIA);
     }
 
     /**

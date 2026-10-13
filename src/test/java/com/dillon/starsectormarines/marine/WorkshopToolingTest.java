@@ -33,7 +33,7 @@ class WorkshopToolingTest {
                 return true;
             }
         };
-        var deck = new BoatDeck(); deck.reconcile("ship", ShuttleType.HERMES, 1);
+        var deck = new BoatDeck(); deck.reconcile("ship", ShuttleType.AEROSHUTTLE, 1);
         var model = new BoatDeckViewModel(new Reactor(), deck, resources, "Second Wind");
         model.selectBoatAction(0).run();
         var row = model.catalogRows().get().stream().filter(r -> r.id().endsWith("reinforced_plating")).findFirst().orElseThrow();
