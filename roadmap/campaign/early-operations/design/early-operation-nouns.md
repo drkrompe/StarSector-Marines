@@ -15,6 +15,19 @@ withdrawing the work.
 
 ## Story arcs, chapters, and recurring work
 
+**A Working Ship** is the planned post-**A Cold Account** recovery arc on Asharu.
+Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
+Cooperative**, an authored local Independent employer. Castle's bargain exchanges
+reopening the recovery corridor for the repaired Shepherd **Morrow**. The
+cooperative's local permit is not planetary government authority. Completion of
+the Corvus arc and acknowledgement of its aftermath precede the proposed offer;
+neither Broken Supply Route branch changes eligibility. Hound survival is optional.
+The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
+**Working Passage**. Their authored geography and serviced-yard variants exist;
+chapter battles, campaign unlocks, partial-repair persistence and exactly-once
+fleet transfer remain open in `shepherd-recovery.md`. The map slice grants no
+fleet member or construction capability by itself.
+
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
 one operation within it. Victory closes that chapter; defeat or Retreat leaves

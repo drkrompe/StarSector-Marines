@@ -6,6 +6,7 @@ Written: 2026-08-23
 
 | Story | Status | Outcome |
 |---|---|---|
+| `shepherd-recovery.md` | IN PROGRESS | Post-Cold Independent employer and three authored basin visits; repair battles, campaign progression and Shepherd ownership handoff next. |
 | `wayline-corvus.md` | IN PROGRESS | Combat playback finds Raid/Assault execution stalls and severe Sabotage losses; fixes, balance and live campaign acceptance remain. |
 | `first-contract-discovery.md` | READY FOR LIVE ACCEPTANCE | Jangala broker, linked opening sequence and HQ course guidance are implemented; verify campaign navigation, fallback and save/reload. |
 | `opening-ladder-live-acceptance.md` | READY | Both chapters have authored maps and headless fitted-boat controls; live-check the linked sequence, lift, losses, and retry. |
