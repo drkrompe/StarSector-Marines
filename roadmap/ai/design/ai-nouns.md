@@ -2110,7 +2110,8 @@ Ground-defence structures (a fortress battery's fire control, a shield generator
 of the same kind: each Conquest commander is disclosed the structures its side built, holds, or (for the company)
 has seen, and may detach a few squads to take, retake or stand to at them with ordinary attack-move and area-defence
 orders. No hostile identity or unseen structure is disclosed, and the extension is inert on a map with none
-(`ground-defences.md`, *Command awareness*).
+(`ground-defences.md`, *Command awareness*). A fort is chosen between aspect by aspect from what was disclosed of it
+(`forts.md`).
 
 Target-faction doctrine is likewise a bounded mission-command extension, not a
 new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`
