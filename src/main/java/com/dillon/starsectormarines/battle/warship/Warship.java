@@ -1474,7 +1474,8 @@ public final class Warship {
                 fluxFigures(hullId), WarshipShield.read(hull, row));
         if (row != null) {
             ship.shipClass = ShipClass.classify(hull.optString("hullSize", null), row.get("designation"),
-                    row.get("hints"), row.get("fighter bays"), row.get("shield type"));
+                    row.get("hints"), row.get("fighter bays"), row.get("shield type"),
+                    row.get("shield arc"), row.get("shield efficiency"));
             ship.applyClassToProfile();
         }
         return ship;
