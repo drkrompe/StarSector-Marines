@@ -271,4 +271,28 @@ class ShieldDomeServiceTest {
         assertEquals(GEN_X - 8f + 6 * 0.5f, hits.get(0).x(), 1e-4f, "the six oldest were dropped");
         assertEquals(GEN_X - 8f + (rounds - 1) * 0.5f, hits.get(hits.size() - 1).x(), 1e-4f);
     }
+
+    @Test
+    void aDomeCanBeDeclaredToCoverMoreGroundWithoutChangingItsFluxBudget() {
+        BattleSimulation sim = arena();
+        long id = sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        run(sim, 0.1f);
+        ShieldDomeService.DomeView before = only(sim);
+        sim.shieldDomes().cover(id, before.radius() * 2.5f);
+        ShieldDomeService.DomeView after = only(sim);
+        assertEquals(before.radius() * 2.5f, after.radius(), 0.001f);
+        // A fort declares what it covers; how much a dome can take is a separate, untuned number and is not scaled by area.
+        assertEquals(before.capacity(), after.capacity(), 0.001f);
+        // Ground that used to be outside it is now under it, for the side hostile to its holder.
+        float farX = GEN_X + before.radius() * 1.5f;
+        assertNull(sim.shieldDomes().coverageAt(farX, GEN_Y, Faction.DEFENDER));
+        assertNotNull(sim.shieldDomes().coverageAt(farX, GEN_Y, Faction.MARINE));
+    }
+
+    @Test
+    void aDomeThatIsNotRegisteredIgnoresACoverageDeclaration() {
+        BattleSimulation sim = arena();
+        sim.shieldDomes().cover(424242L, 50f);
+        assertEquals(0, sim.shieldDomes().domes().size());
+    }
 }

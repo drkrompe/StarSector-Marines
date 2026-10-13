@@ -15,8 +15,11 @@ package com.dillon.starsectormarines.battle.fort;
  * @param originY      world row of the footprint's local origin, as {@code Placement#y}
  * @param quarterTurns the cardinal turn the fort was placed with, 0 to 3, or {@link #UNPLACED} for a tag made without
  *                     a placement (a test), in which case no frame exists and nothing is drawn from it
+ * @param domeRadius   the reach, in cells, a shield fort's emitter was declared to cover (its works at least, and the
+ *                     keep it was sited to protect); {@code 0} for every other part, and for an emitter that keeps its
+ *                     structure's own dome
  */
-public record FortTag(int fortId, FortAspect aspect, int originX, int originY, int quarterTurns) {
+public record FortTag(int fortId, FortAspect aspect, int originX, int originY, int quarterTurns, float domeRadius) {
 
     /** The turn of a tag that carries no placement. */
     public static final int UNPLACED = -1;
@@ -26,11 +29,19 @@ public record FortTag(int fortId, FortAspect aspect, int originX, int originY, i
         if (quarterTurns < UNPLACED || quarterTurns > 3) {
             throw new IllegalArgumentException("quarterTurns must be 0..3 or UNPLACED");
         }
+        if (!(domeRadius >= 0f) || Float.isInfinite(domeRadius)) {
+            throw new IllegalArgumentException("domeRadius must be finite and non-negative");
+        }
+    }
+
+    /** A placed part that declares no dome reach of its own. */
+    public FortTag(int fortId, FortAspect aspect, int originX, int originY, int quarterTurns) {
+        this(fortId, aspect, originX, originY, quarterTurns, 0f);
     }
 
     /** A tag with no placement, for callers that only need the fort and the aspect. */
     public FortTag(int fortId, FortAspect aspect) {
-        this(fortId, aspect, 0, 0, UNPLACED);
+        this(fortId, aspect, 0, 0, UNPLACED, 0f);
     }
 
     /** Whether this tag knows where its fort was stamped. */

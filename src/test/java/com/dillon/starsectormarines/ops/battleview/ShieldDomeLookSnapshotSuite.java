@@ -47,6 +47,8 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
     private static final long SEED = 11L;
     private static final TraversalAxis AXIS = TraversalAxis.SOUTH_TO_NORTH;
     private static final float DOME_RADIUS_CELLS = 16f;
+    /** A shield fort declares the ground it covers, so its dome is several times the bare generator's. */
+    private static final float FORT_DOME_RADIUS_CELLS = 60f;
     private static final float CAPACITY = 1500f;
 
     @Override
@@ -68,6 +70,9 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         out.add(new SnapshotArtifact("steady-state.png", steady(renderer.render(map, SEED, 20))));
         out.add(new SnapshotArtifact("fill-ladder.png", ladder(renderer.render(map, SEED, 14))));
+        // A fort-sized dome is wider than the small map the other sheets use, so it gets a map large enough to fill the frame.
+        MapResult wide = new BspCityGenerator().generate(280, 170, SEED, AXIS);
+        out.add(new SnapshotArtifact("fort-scale.png", fortScale(renderer.render(wide, SEED, 7))));
         BufferedImage large = renderer.render(map, SEED, 28);
         out.add(new SnapshotArtifact("impact-stills.png", impactStills(large)));
         out.add(SnapshotArtifact.colorAnimation("impacts.gif", impactFrames(large), 100));
@@ -82,6 +87,24 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         composite(frame, dome(WIDTH * 0.27f, HEIGHT * 0.5f, 20f, Faction.MARINE, 0.18f), 2.4f);
         composite(frame, dome(WIDTH * 0.73f, HEIGHT * 0.5f, 20f, Faction.DEFENDER, 0.80f), 2.4f);
         caption(frame, "Steady state at game scale (20 px a cell). Friendly dome, pool at 18%; hostile dome, pool at 80%.");
+        return frame;
+    }
+
+    private static BufferedImage fortScale(BufferedImage ground) {
+        BufferedImage frame = crop(ground, WIDTH, HEIGHT);
+        composite(frame, dome(WIDTH * 0.25f, HEIGHT * 0.5f, 7f, FORT_DOME_RADIUS_CELLS, Faction.MARINE, 0.18f), 2.4f);
+        ShieldDomeDraw struck = dome(WIDTH * 0.75f, HEIGHT * 0.5f, 7f, FORT_DOME_RADIUS_CELLS, Faction.DEFENDER, 0.5f);
+        struck.impactCount = 2;
+        struck.impacts[0] = -0.4f;
+        struck.impacts[1] = 0.3f;
+        struck.impacts[2] = 0.3f;
+        struck.impacts[3] = 0.9f;
+        struck.impacts[4] = 0.55f;
+        struck.impacts[5] = -0.2f;
+        struck.impacts[6] = 0.9f;
+        struck.impacts[7] = 0.6f;
+        composite(frame, struck, 2.7f);
+        caption(frame, "A shield fort's dome at 7 px a cell, 60 cells of reach (a bare generator's is 16): the same rim, hexes and ripples, scaled with the radius.");
         return frame;
     }
 
@@ -207,11 +230,15 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
     }
 
     private static ShieldDomeDraw dome(float cx, float cy, float cellPx, Faction holder, float level) {
+        return dome(cx, cy, cellPx, DOME_RADIUS_CELLS, holder, level);
+    }
+
+    private static ShieldDomeDraw dome(float cx, float cy, float cellPx, float radiusCells, Faction holder, float level) {
         ShieldDomeDraw d = new ShieldDomeDraw();
         d.sx = cx;
         d.sy = cy;
-        d.radiusCells = DOME_RADIUS_CELLS;
-        d.radiusPx = DOME_RADIUS_CELLS * cellPx;
+        d.radiusCells = radiusCells;
+        d.radiusPx = radiusCells * cellPx;
         float[] tint = ShieldDomeRenderSystem.tintFor(holder);
         System.arraycopy(tint, 0, d.tint, 0, 3);
         d.level = level;

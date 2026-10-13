@@ -94,4 +94,19 @@ public interface FortPlan {
 
     /** The aspect the centrepiece is, or {@code null} when it is not one (the battery platform). */
     FortAspect centrepieceAspect();
+
+    /**
+     * How far the centrepiece is from the farthest cell of the main works, in cells and rounded up: the least reach a
+     * dome standing on the centrepiece needs to cover the fort's own works, wall included.
+     */
+    default float worksRadius() {
+        int[] centre = centrepiece();
+        double farthest = 0;
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                if (isWorks(x, y)) farthest = Math.max(farthest, Math.hypot(x - centre[0], y - centre[1]));
+            }
+        }
+        return (float) Math.ceil(farthest + 1);
+    }
 }

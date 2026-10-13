@@ -223,6 +223,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new FortressBatteryStage(),                 // taxonomy consumer — declared heavy batteries only
                 new DefenceNestStage(),                     // taxonomy consumer — declared defence nests only
+                new FortStage(),                            // taxonomy consumer — declared forts of every kind only (inert otherwise)
                 new SpawnAnchorStage(),                     // spawn anchors
                 new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
                 new OutdoorLandscapeStage(),                // finished access owns its clear ground
@@ -481,7 +482,8 @@ public final class BspCityGenerator implements MapGenerator {
      * is the tooling and comparison path — it is how a render ladder asks for a
      * density the campaign would never choose.
      */
-    private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile, PrecinctPlan precincts) {
+    /** The recipe a generation will run for these inputs; package-visible so a test can say what it carries. */
+    GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile, PrecinctPlan precincts) {
         if (precincts != null) return precinctRecipe(precincts);
         if (axis != null) {
             return grownOverride == null ? conquestRecipe : grownConquestRecipe(grownOverride);

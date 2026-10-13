@@ -189,4 +189,35 @@ class FortSitingStageTest {
         }
         assertTrue(seen[KEEP_X][MID_Y], "the approach is cut");
     }
+
+    @Test
+    void aSitedShieldFortsDomeReachesOverTheKeepsWholeFootprint() {
+        List<FortStage.Placed> placed = run(field(declared(FortSitingPolicy.COVER_THE_APPROACH), true));
+        FortStage.Placed shield = placed.stream().filter(p -> p.plan().kind() == FortKind.SHIELD_FORT).findFirst().orElseThrow();
+        int[] g = shield.placement().cell(ShieldFort.GENERATOR[0], ShieldFort.GENERATOR[1]);
+        // The keep's box is 17 cells across, centred on (KEEP_X, MID_Y): every corner is under the dome.
+        for (int x : new int[]{KEEP_X - 8, KEEP_X + 9}) {
+            for (int y : new int[]{MID_Y - 8, MID_Y + 9}) {
+                assertTrue(Math.hypot(x - g[0], y - g[1]) <= shield.domeRadius(),
+                        "corner " + x + "," + y + " outside a dome of " + shield.domeRadius());
+            }
+        }
+        assertTrue(shield.domeRadius() > shield.plan().worksRadius(), "sized to the works only, not to the keep");
+    }
+
+    @Test
+    void aShieldFortOnLeftoverGroundStillCoversItsOwnWorks() {
+        List<FortStage.Placed> placed = run(field(declared(FortSitingPolicy.LEFTOVER_GROUND), true));
+        FortStage.Placed shield = placed.stream().filter(p -> p.plan().kind() == FortKind.SHIELD_FORT).findFirst().orElseThrow();
+        assertEquals(shield.plan().worksRadius(), shield.domeRadius(), 0.001f);
+        // Every works cell, wall included, is within the dome.
+        int[] g = shield.placement().cell(ShieldFort.GENERATOR[0], ShieldFort.GENERATOR[1]);
+        for (int lx = 0; lx < ShieldFort.WIDTH; lx++) {
+            for (int ly = 0; ly < ShieldFort.HEIGHT; ly++) {
+                if (!ShieldFort.isWorks(lx, ly)) continue;
+                int[] cell = shield.placement().cell(lx, ly);
+                assertTrue(Math.hypot(cell[0] - g[0], cell[1] - g[1]) <= shield.domeRadius(), "works cell outside the dome");
+            }
+        }
+    }
 }

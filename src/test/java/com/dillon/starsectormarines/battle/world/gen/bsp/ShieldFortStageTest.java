@@ -300,4 +300,19 @@ class ShieldFortStageTest {
         }
         return seen;
     }
+
+    @Test
+    void theEmittersTagDeclaresTheDomeReachAndNoOtherPartDoes() {
+        GenContext ctx = field(declared(1, 0));
+        var at = PLAN.layout().at(60, 40, 0);
+        FortStage.stamp(ctx, PLAN, at, 0);
+        for (DefensePost post : ctx.defensePosts) {
+            if (post.fort.aspect() == FortAspect.EMITTER) {
+                assertEquals(PLAN.worksRadius(), post.fort.domeRadius(), 0.001f);
+                assertTrue(post.fort.domeRadius() > 16f, "no wider than the bare generator's dome");
+            } else {
+                assertEquals(0f, post.fort.domeRadius(), "only the emitter declares coverage");
+            }
+        }
+    }
 }

@@ -10,10 +10,12 @@ import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -67,6 +69,7 @@ public final class ShieldFortMapSnapshotSuite implements SnapshotSuite {
                     Fort.Place emitter = fort.place(FortAspect.EMITTER);
                     overview.label(Math.round(sim.world().x(emitter.coreId())), Math.round(sim.world().y(emitter.coreId())) + 4, "SHIELD FORT " + n,
                             ReviewStyle.NOTE);
+                    overview.polyline(domeRing(sim, emitter.coreId()), "dome", ReviewStyle.LANDING);
                     n++;
                 }
                 var whole = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT);
@@ -87,13 +90,31 @@ public final class ShieldFortMapSnapshotSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact(String.format(Locale.ROOT, "seed-%d-fort-%d-close.png", seed, i),
                             close.render(sim, "Shield fort " + i + " / seed " + seed, labels.build())));
                     var around = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT, cx, cy, 150);
+                    ReviewAnnotations.Builder dome = ReviewAnnotations.builder();
+                    dome.polyline(domeRing(sim, emitter.coreId()), "dome", ReviewStyle.LANDING);
                     out.add(new SnapshotArtifact(String.format(Locale.ROOT, "seed-%d-fort-%d-surroundings.png", seed, i),
-                            around.render(sim, "Shield fort " + i + " in its surroundings / seed " + seed)));
+                            around.render(sim, "Shield fort " + i + " in its surroundings / seed " + seed, dome.build())));
                     i++;
                 }
             }
         }
         return out;
+    }
+
+    /** The reach of the fort's dome as it stands in the battle, drawn as a ring about the generator. */
+    private static List<ReviewAnnotation.Point> domeRing(BattleSimulation sim, long emitter) {
+        float cx = sim.world().x(emitter);
+        float cy = sim.world().y(emitter);
+        float radius = 0f;
+        for (ShieldDomeService.DomeView dome : sim.shieldDomes().domes()) {
+            if (dome.entityId() == emitter) radius = dome.radius();
+        }
+        List<ReviewAnnotation.Point> points = new ArrayList<>();
+        for (int k = 0; k <= 64; k++) {
+            double a = k * Math.PI * 2 / 64;
+            points.add(new ReviewAnnotation.Point(Math.round(cx + radius * Math.cos(a)), Math.round(cy + radius * Math.sin(a))));
+        }
+        return points;
     }
 
     /** The market a real Conquest is generated against: without one the stock dense crossroad is used instead. */

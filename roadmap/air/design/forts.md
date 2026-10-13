@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated:  2026-10-13 - Conquest sites its declared forts as barriers on the approach (`FortSitingPolicy`, `FortSiting`, reserved ground); fort aspect cores are not opportunity targets (fort restraint), commanders read demolition capability from their live squads and remember forts they have sighted; commanders choose which aspect to take, wreck or stand to at for the effect wanted (battery and shield forts); fort buildings drawn by function with intact, damaged, wrecked and taken states, bolder wire, a taken plant keeps running; shield fort built (slice 3), folding in the local shield relay; redoubt/citadel remain.
+Updated: 2026-10-13 - a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -253,19 +253,34 @@ turn off): a fort is a barrier on the way in.
   A fort that cannot have its exact ground slides along the line of advance before it leaves it, and a site behind the
   landing or past the keep is taken only when nothing on the approach fits. All figures are untuned first passes.
 - **Reserved ground.** The middle of a Conquest map is a grid of roads and claimed places by the time forts are stamped, and
-  no pocket is left to fit a fort in (measured: the claim map and a bad-ground map of the west fixture both showed it). So a
-  sited mission reserves the ground round each target while the precinct skeleton grows, before the town: road arms do not
-  grow into it (`GrownTrunkPlan.grow` takes a keep-clear mask) and zoned town claims give it up (`FortReservations`).
-  Programmed places (keep installation, landing, lane compounds) are prior and keep their ground, and a reservation never
-  lands on a place's seed.
+  no pocket is left to fit a fort in. So a sited mission reserves ground for **every** declared fort while the precinct
+  skeleton grows, before the town: road arms do not grow into it (`GrownTrunkPlan.grow` takes a keep-clear mask) and zoned
+  town claims give it up (`FortReservations`). Programmed places (keep installation, landing, lane compounds) are prior
+  and never give ground up, and they are not known until growth has run, so the reservation first estimates their ground
+  from their programs and slides each target off it (`FortSiting.slide`): a battery fort along the line of advance before
+  it leaves it, a shield fort to the nearest free ground to the keep. The slid targets are published on the context
+  (`BspKeys.FORT_TARGETS`) and both the reservation and the stage read the battle's two ends from the plan's own seeds
+  (`FortReservations.anchors`), so the ground kept clear is the ground the fort is aimed at. (An earlier version aimed the
+  stage at the keep's building, tens of cells from the seed the reservation used, and the second battery fort fell back to
+  the rear field.)
 - **Placement rules.** Prior claims, roads, doorways, landing berths, posts and the one-fort-one-footprint margin all still
   bind. A sited fort lets a road cross its glacis (the belt simply is not drawn there) but never its works, and its main
-  gate faces the landing rather than the map centre. The declared count stands: a fort whose intended ground is gone falls
-  back to leftover order and records no target.
-- **What it does not do.** A dome is 16 cells across and a fort's works are wider than that, so a shield fort beside the
-  keep cannot put its dome over the keep: measured 66 to 115 cells from the keep on the two fixtures, covering none of the
-  garrison. Dome reach is the missing lever, a number for play. Battery guns fire at warships only, so ground marines are
-  not shot by them; a sited battery fort matters to the ground battle as a place to take, and to a ship overhead as a hazard.
+  gate faces the landing rather than the map centre. The declared count stands where ground allows: a fort whose reserved
+  ground is gone slides along the approach in the stage too, then falls back to leftover order and records no target. A
+  declaration the map cannot meet (no open ground of a fort's size) is logged as a warning, never dropped quietly.
+- **Dome reach.** A shield fort's dome is sized from what it covers rather than one fixed figure: over its own works at
+  least (`FortPlan.worksRadius`) and, when sited to protect the keep, over the whole of the keep's footprint, measured from
+  the generator to its farthest corner and capped at `FortSiting.MAX_DOME_RADIUS` (untuned). The fort declares it on the
+  emitter's `FortTag`; the simulation sizes the governed dome to it (`ShieldDomeService.cover`). A bare generator keeps the
+  structure's own 16-cell dome. Flux capacity, dissipation and overload time are **not** scaled with the area: a wider dome
+  has the same pool, so it covers more ground and is no harder to overload per square cell. That is a number for play, not
+  settled here. Measured on the two Conquest fixtures the fort stands 68 and 79 cells from the keep and its dome now
+  reaches over it (previously 66 to 115 cells off with a 16-cell dome, covering none of the garrison).
+- **What it does not do.** Battery guns fire at warships only, so ground marines are not shot by them; a sited battery fort
+  matters to the ground battle as a place to take, and to a ship overhead as a hazard. A shield fort cannot stand on a
+  programmed place's ground, so it stands beside the keep's installation, not within it. The axis-only Conquest recipe
+  (an axis and no precinct plan) carries the fort stage, but that city leaves no open ground of a fort's size on the
+  generator seeds tried, so a declaration there is logged as unmet; siting is meaningful on precinct-planned maps.
 - **Evidence.** `createSnapshots -Psnapshot=fort-siting` draws both Conquest fixtures, forts declared, leftover against
   sited, with landing, keep, lanes, batteries' envelopes and domes marked (1920x1080). `commanderEvidence -Pmission=conquest`
   with a fixture declaring `declaredForts` and `declaredFortSiting` replays them; `FortOutcomes` reports nearest marine,

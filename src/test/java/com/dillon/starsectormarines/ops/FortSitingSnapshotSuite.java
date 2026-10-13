@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -111,11 +112,19 @@ public final class FortSitingSnapshotSuite implements SnapshotSuite {
             float[] c = centre(sim, fort);
             String label = fort.kind() == FortKind.BATTERY_FORT ? "BATTERY FORT " + battery++ : "SHIELD FORT";
             marks.label(c[0], c[1] + 5, label, ReviewStyle.NOTE);
-            float radius = fort.kind() == FortKind.BATTERY_FORT ? fort.battery().envelopeCells() : 16f;
+            float radius = fort.kind() == FortKind.BATTERY_FORT ? fort.battery().envelopeCells() : domeRadius(sim, fort);
             marks.polyline(circle(c[0], c[1], radius), fort.kind() == FortKind.BATTERY_FORT ? "envelope" : "dome",
                     fort.kind() == FortKind.BATTERY_FORT ? ReviewStyle.NOTE : ReviewStyle.LANDING);
         }
         return marks.build();
+    }
+
+    /** The reach the fort's dome actually has in the battle, not a nominal figure. */
+    private static float domeRadius(BattleSimulation sim, Fort fort) {
+        for (ShieldDomeService.DomeView dome : sim.shieldDomes().domes()) {
+            if (dome.entityId() == fort.emitterId()) return dome.radius();
+        }
+        return 0f;
     }
 
     private static List<ReviewAnnotation.Point> circle(float cx, float cy, float radius) {
