@@ -72,6 +72,16 @@ public final class HullStrike {
         return out;
     }
 
+    /**
+     * Whether a strike sortie that still has its attack ahead of it or in hand is aimed at the hull centred on
+     * {@code (x, y)} with the given radius: its target point lies within the hull's footprint and the strike margin.
+     * The same test {@link #attackers} counts by, so an escort and a dispatcher agree on what "working this hull" means.
+     */
+    public static boolean aimedAt(ShuttleMission mission, float x, float y, float radius) {
+        if (mission == null || !mission.strikeSortie || !working(mission.state)) return false;
+        return Math.hypot(mission.lzX - x, mission.lzY - y) <= radius + ATTACK_MARGIN_CELLS;
+    }
+
     /** Whether a sortie in this state still has its attack ahead of it or in hand. */
     private static boolean working(ShuttleState state) {
         return switch (state) {
