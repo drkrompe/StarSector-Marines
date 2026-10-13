@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * First-pass command reasoning about ground-defence structures: a fortress battery's fire control and a shield
@@ -22,6 +25,9 @@ import java.util.Set;
  *       attack move, so it takes the structure by standing there or wrecks it by shooting it, whichever the fight
  *       allows.</li>
  * </ul>
+ *
+ * <p>The aspects of one fort are not each a task: {@link FortTactics} chooses which of them is work, in what order, and
+ * whether the aim is to hold or to wreck, and every task carries its reason as a sentence for the command trace.
  *
  * <p>Deliberately modest. At most {@link #MAX_TASKS} squads are detached at once, one per structure, most pressing
  * first, and a squad that already carries a task for a structure keeps it for as long as the work stands. The orders are
@@ -39,11 +45,29 @@ public final class DefenceStructureTactics {
     /** Why a structure is work for this side. Declared in priority order. */
     public enum Role { DEFEND, RETAKE, TAKE }
 
-    /** A squad the caller is willing to detach, with the assignment it carries now. */
-    public record Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent) {}
+    /**
+     * A squad the caller is willing to detach, with the assignment it carries now.
+     *
+     * @param demolition whether the squad carries the means to destroy a building outright; commands do not read this
+     *                   from the live squad yet, so it is false in play and is how the choice is shown to be able to wreck
+     */
+    public record Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent,
+                            boolean demolition) {
+        public Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent) {
+            this(squadId, anchorCellX, anchorCellY, incumbent, false);
+        }
+    }
 
-    /** One squad's structure task. */
-    public record Task(int squadId, ObjectiveAssignment assignment, Role role, DefenceStructureFact structure) {}
+    /**
+     * One squad's structure task. {@code reason} says in a sentence why this structure and not another of the same
+     * fort; {@code wreck} is true where the aim is to destroy it rather than hold it.
+     */
+    public record Task(int squadId, ObjectiveAssignment assignment, Role role, DefenceStructureFact structure,
+                       String reason, boolean wreck) {
+        public Task(int squadId, ObjectiveAssignment assignment, Role role, DefenceStructureFact structure) {
+            this(squadId, assignment, role, structure, "structure work", false);
+        }
+    }
 
     /** Whether an assignment is one of this class's orders: an attack move or area defence ending within a known structure's reach. */
     public static boolean isTask(ObjectiveAssignment assignment, List<DefenceStructureFact> structures) {
@@ -69,26 +93,43 @@ public final class DefenceStructureTactics {
         List<Task> tasks = new ArrayList<>();
         if (structures.isEmpty() || candidates.isEmpty()) return tasks;
         List<Wanted> wanted = new ArrayList<>();
+        Map<Integer, List<DefenceStructureFact>> forts = new TreeMap<>();
         for (DefenceStructureFact structure : structures) {
+            if (structure.ofFort()) {
+                forts.computeIfAbsent(structure.fortId(), id -> new ArrayList<>()).add(structure);
+                continue;
+            }
             Role role = roleFor(perspective, structure);
-            if (role != null) wanted.add(new Wanted(role, structure));
+            if (role != null) wanted.add(new Wanted(role, structure, 0, 1, false, role.name() + " structure"));
+        }
+        // A fort is one defence with several aspects: which of them is work, and in what order, is a choice made for
+        // the effect wanted rather than one task per structure.
+        for (List<DefenceStructureFact> fort : forts.values()) {
+            for (FortTactics.Pick pick : FortTactics.choose(perspective, fort, candidates)) {
+                wanted.add(new Wanted(pick.role(), pick.structure(), pick.rank(), pick.squads(), pick.wreck(),
+                        "fort " + pick.structure().fortId() + " " + pick.structure().family().name().toLowerCase(Locale.ROOT)
+                                + ": " + pick.reason()));
+            }
         }
         wanted.sort(Comparator.<Wanted>comparingInt(w -> w.role.ordinal())
+                .thenComparingInt(w -> w.rank)
                 .thenComparingInt(w -> w.structure.cellX())
                 .thenComparingInt(w -> w.structure.cellY()));
         Set<Integer> used = new HashSet<>();
         for (Wanted want : wanted) {
-            if (tasks.size() >= MAX_TASKS) break;
-            Task task = incumbentTask(want, candidates, used, topology);
-            if (task == null) task = nearestTask(want, candidates, used, topology);
-            if (task == null) continue;
-            used.add(task.squadId());
-            tasks.add(task);
+            for (int copy = 0; copy < want.squads && tasks.size() < MAX_TASKS; copy++) {
+                Task task = incumbentTask(want, candidates, used, topology);
+                if (task == null) task = nearestTask(want, candidates, used, topology);
+                if (task == null) break;
+                used.add(task.squadId());
+                tasks.add(task);
+            }
         }
         return tasks;
     }
 
-    private record Wanted(Role role, DefenceStructureFact structure) {}
+    private record Wanted(Role role, DefenceStructureFact structure, int rank, int squads, boolean wreck,
+                          String reason) {}
 
     private static Role roleFor(Faction perspective, DefenceStructureFact structure) {
         if (perspective.friendlyTo(structure.holder())) {
@@ -107,7 +148,7 @@ public final class DefenceStructureTactics {
                     || !near(held.targetCellX(), held.targetCellY(), want.structure)) continue;
             if (!topology.reachable(candidate.anchorCellX(), candidate.anchorCellY(),
                     held.targetCellX(), held.targetCellY())) continue;
-            return new Task(candidate.squadId(), held, want.role, want.structure);
+            return new Task(candidate.squadId(), held, want.role, want.structure, want.reason, want.wreck);
         }
         return null;
     }
@@ -118,7 +159,7 @@ public final class DefenceStructureTactics {
         int[] bestCell = null;
         long bestGap = Long.MAX_VALUE;
         for (Candidate candidate : candidates) {
-            if (used.contains(candidate.squadId())) continue;
+            if (used.contains(candidate.squadId()) || (want.wreck && !candidate.demolition())) continue;
             long dx = candidate.anchorCellX() - want.structure.cellX();
             long dy = candidate.anchorCellY() - want.structure.cellY();
             long gap = dx * dx + dy * dy;
@@ -134,7 +175,7 @@ public final class DefenceStructureTactics {
                 ? ObjectiveAssignment.defendArea(best.squadId(), bestCell[0], bestCell[1],
                         Math.max(2, want.structure.reachCells()))
                 : ObjectiveAssignment.attackMove(best.squadId(), bestCell[0], bestCell[1]);
-        return new Task(best.squadId(), assignment, want.role, want.structure);
+        return new Task(best.squadId(), assignment, want.role, want.structure, want.reason, want.wreck);
     }
 
     private static AssignmentKind kindFor(Role role) {

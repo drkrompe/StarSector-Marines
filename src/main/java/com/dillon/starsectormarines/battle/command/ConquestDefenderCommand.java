@@ -312,7 +312,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             }
         }
 
-        assignDefenceStructureTasks(frame, candidates, selected, directives);
+        List<String> structureNotes = assignDefenceStructureTasks(frame, candidates, selected, directives);
 
         for (PlanningSquad squad : candidates) {
             if (selected.contains(squad.id)) continue;
@@ -330,10 +330,17 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 influence != null ? influence.updatedTick() : -1,
                 candidates.size(), candidates.size() - selected.size(),
-                List.of("active threat tracks=" + activeThreats.size(),
-                        "response budget=" + responseBudget,
-                        "held reserve=" + mobileReserve),
+                summaries(activeThreats.size(), responseBudget, mobileReserve, structureNotes),
                 proposals, detail);
+    }
+
+    private static List<String> summaries(Object threats, Object budget, Object reserve, List<String> structureNotes) {
+        List<String> out = new ArrayList<>();
+        out.add("active threat tracks=" + threats);
+        out.add("response budget=" + budget);
+        out.add("held reserve=" + reserve);
+        out.addAll(structureNotes);
+        return out;
     }
 
     /**
@@ -605,8 +612,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * response to a threatened track has already chosen, so structure work only ever spends the reserve. A squad left
      * holding an order for a structure that no longer needs it is released.
      */
-    private void assignDefenceStructureTasks(ConquestCommandFrame frame, List<PlanningSquad> candidates,
-                                             Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+    private List<String> assignDefenceStructureTasks(ConquestCommandFrame frame, List<PlanningSquad> candidates,
+                                                     Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+        List<String> notes = new ArrayList<>();
         List<DefenceStructureTactics.Candidate> offered = new ArrayList<>();
         for (PlanningSquad squad : candidates) {
             if (selected.contains(squad.id)) continue;
@@ -626,11 +634,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             }));
             tasked.add(squad.id);
             selected.add(squad.id);
+            notes.add("squad " + squad.id + " " + task.role() + (task.wreck() ? " (wreck) " : " ") + task.reason());
         }
         for (PlanningSquad squad : candidates) {
             if (tasked.contains(squad.id) || selected.contains(squad.id)) continue;
             if (DefenceStructureTactics.isTask(squad.assignedObjective, structures)) squad.assignedObjective = null;
         }
+        return notes;
     }
 
     private static PlanningSquad candidateById(List<PlanningSquad> squads, int id) {
