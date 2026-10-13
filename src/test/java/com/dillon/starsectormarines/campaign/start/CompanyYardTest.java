@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration.Work;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignUIAPI;
@@ -50,6 +52,73 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyYardTest {
+    @Test void lanceBerthsArePaidOncePersistAcrossReloadAndRequireTheOriginalHome() throws Exception {
+        SectorAPI previous = Global.getSector();
+        MutableValue credits = new MutableValue(20000);
+        var ship = stub(FleetMemberAPI.class, Map.of("getId", "starter",
+                "getVariant", stub(ShipVariantAPI.class, Map.of("hasHullMod", true)),
+                "getHullSpec", stub(ShipHullSpecAPI.class, Map.of("getBaseHullId", "cerberus"))));
+        var owned = new ArrayList<>(List.of(ship));
+        var fleet = stub(CampaignFleetAPI.class, Map.of("getCargo", stub(CargoAPI.class, Map.of("getCredits", credits)),
+                "getFleetData", stub(FleetDataAPI.class, Map.of("getMembersListCopy", owned))));
+        var faction = stub(FactionAPI.class, Map.of("isHostileTo", false));
+        Map<String, Object> planetData = new HashMap<>();
+        var planet = stub(PlanetAPI.class, planetData);
+        var industry = stub(Industry.class, Map.of("isFunctional", true,
+                "getSpec", stub(IndustrySpecAPI.class, Map.of("hasTag", true))));
+        planetData.put("getMarket", stub(MarketAPI.class, Map.of("getPlanetEntity", planet,
+                "getFaction", faction, "getIndustries", List.of(industry))));
+        Map<String, Object> ui = new HashMap<>();
+        ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
+        Map<String, Object> saved = new HashMap<>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter"));
+        var script = new MarineRosterScript();
+        var roster = script.roster();
+        roster.setCompanyShip("starter", "Second Wind", 75);
+        try {
+            Global.setSector(stub(SectorAPI.class, Map.of("getPersistentData", saved, "getPlayerFleet", fleet,
+                    "getScripts", List.of(script), "getPlayerFaction", faction, "getCampaignUI", stub(CampaignUIAPI.class, ui))));
+            assertEquals(0, CompanyShipRestoration.state(ship).workingMechBerths());
+            roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            assertEquals(20000, credits.get());
+            roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
+            assertEquals(1, CompanyShipRestoration.state(ship).workingMechBerths());
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_3));
+            credits.set(4999);
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            credits.set(20000);
+            ui.clear();
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
+            owned.clear();
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            owned.add(ship);
+            int working = 1;
+            for (var work : new Work[]{Work.MECH_BERTH_2, Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
+                assertNull(CompanyShipRestoration.repair(ship, roster, work));
+                working++;
+                assertEquals(working, CompanyShipRestoration.state(ship).workingMechBerths());
+                float remaining = credits.get();
+                assertNotNull(CompanyShipRestoration.repair(ship, roster, work), "Repeated authorization must not charge");
+                assertEquals(remaining, credits.get());
+                roster.setCompanyShip("elsewhere", "Other ship", 100);
+                assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_4));
+                assertEquals(working, CompanyShipRestoration.state(ship).workingMechBerths());
+                roster.setCompanyShip("starter", "Second Wind", 75);
+                var bytes = new ByteArrayOutputStream();
+                try (var out = new ObjectOutputStream(bytes)) { out.writeObject(saved); }
+                saved.clear();
+                try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+                    ((Map<?, ?>) in.readObject()).forEach((k, v) -> saved.put((String) k, v));
+                }
+                assertEquals(working, CompanyShipRestoration.state(ship).workingMechBerths());
+                assertEquals(0, CompanyShipRestoration.paidMechBerths(saved, "other-hull"));
+            }
+            assertEquals(5000, credits.get());
+            assertTrue(roster.mechBay().activeSquad().mechs().isEmpty(), "Yard repairs award no chassis");
+        } finally { Global.setSector(previous); }
+    }
+
     @ParameterizedTest @ValueSource(booleans = {false, true})
     void installRequiresActualPlanetInteractionAndIssuesTheDepotOnlyOnce(boolean protectedStart) {
         SectorAPI previous = Global.getSector();

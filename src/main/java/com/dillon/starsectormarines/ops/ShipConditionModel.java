@@ -73,6 +73,8 @@ public final class ShipConditionModel {
                     || room.equals(graph.largest(RoomPurpose.PARTS_CAGE)) && ship.ship().workshop() == WorkshopState.BURIED;
             String status = sealed ? "SEALED / DAMAGED" : graph.damaged(room.id()) ? "DAMAGED / ACCESSIBLE"
                     : graph.emergencyLighting(room.id()) ? "FAULTY POWER" : "WORKING";
+            if (state.applies() && room.purpose() == RoomPurpose.VEHICLE_BAY && state.mechBay())
+                status = state.workingMechBerths() + " / 4 BERTHS WORKING";
             rooms.add(Map.of("nameId", "survey-name-" + room.id(), "statusId", "survey-status-" + room.id(), "id", "survey-room-" + room.id(), "label", name(room) + " / " + (room.id() + 1),
                     "status", status, "classes", room.id() == selected ? "survey-room selected" : "survey-room",
                     "select", selection(room.id())));
@@ -100,11 +102,20 @@ public final class ShipConditionModel {
             benefit = "Restore steady lights throughout the working compartments. Sealed rooms need separate structural repairs.";
             if (!state.power()) work = Work.POWER;
         } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.VEHICLE_BAY) {
-            copy = state.mechBay() ? "Wayward has a home. The recovery crew has plated the breach, restored the gantry and made the bay ready for her."
-                    : "The pressure skin is torn and the gantry is wrecked. Nobody goes through that hatch. We will need a safe berth before we bring our first mech aboard.";
-            benefit = state.mechBay() ? "RESTORED: One working mech gantry. Visit Mech Lab to fit Wayward."
-                    : "MISSION 2: Complete Take Back the Depot. Mech Lab restoration is included with Wayward's recovery; no separate credit bill.";
-            reason = state.mechBay() ? "Restored with the depot recovery." : "Locked until the second story mission is complete.";
+            int berths = state.workingMechBerths();
+            copy = !state.mechBay() ? "There is room for a full lance, but the pressure skin is torn and all four gantries are wrecked. Nobody goes through that hatch until the recovery crew makes it safe."
+                    : berths < 4 ? "Wayward has a home. The recovery crew sealed the breach and restored berth one. The remaining gantries need their own rails, power and servicing equipment repaired. We can bring them back one at a time."
+                    : "Four working gantries. We have earned back a home for a full lance, with a clear service aisle between the machines.";
+            benefit = !state.mechBay() ? "MISSION 2: Take Back the Depot restores berth one with Wayward's recovery. No separate bill for the first berth."
+                    : "WORKING: " + berths + " / 4 mech berths. " + (berths < 4
+                    ? "NEXT: Restore berth " + (berths + 1) + " for one additional mech. Acquire its chassis separately."
+                    : "Visit Mech Lab to fabricate or fit the lance.");
+            reason = state.mechBay() ? "The first berth was restored with the depot recovery." : "Locked until the second story mission is complete.";
+            if (state.mechBay() && berths < 4) work = switch (berths) {
+                case 1 -> Work.MECH_BERTH_2;
+                case 2 -> Work.MECH_BERTH_3;
+                default -> Work.MECH_BERTH_4;
+            };
         } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.MESS_HALL) {
             copy = state.messHall() ? "Hot meals and a table together. You can hear the difference already. They have somewhere to be a company again."
                     : "The mess took a hit. We are feeding everyone from field rations in the working quarters, but they deserve better. The yard can seal the breach and put the galley and tables right.";

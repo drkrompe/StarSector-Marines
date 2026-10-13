@@ -43,6 +43,7 @@ public final class ThunderRunSequence {
     private final long advanceHauler;
     private int finalRunTick;
     private final long heavyLead;
+    private final long technical;
     private boolean heavyExitOrdered;
     private FreightRunProgress.Outcome outcome;
 
@@ -56,6 +57,7 @@ public final class ThunderRunSequence {
         escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 70));
         escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 80));
         heavyLead = spawn(sim, VehicleType.BREAKTHROUGH_TANK, 35, 75);
+        technical = spawn(sim, VehicleType.MILITIA_TECHNICAL, 34, 83);
         // This earlier load is outside the newly contracted three-load manifest.
         // Its actual fate is witnessed, never scripted or charged to the player's freight award.
         advanceHauler = attempt.ordinal() == 1 ? spawn(sim, VehicleType.CARGO_CARRIER, 117, 75) : 0L;
@@ -67,6 +69,7 @@ public final class ThunderRunSequence {
         sim.convoy().body(id).teleport(x, y, -90f);
         return id;
     }
+    public long technical() { return technical; }
     public long heavyLead() { return heavyLead; }
     public long advanceHauler() { return advanceHauler; }
     public List<Long> supportGuns() { return List.copyOf(supportGuns); }
@@ -110,6 +113,7 @@ public final class ThunderRunSequence {
                 armorStaged[phase] = true;
                 for (long id : escorts) order(sim, id);
                 order(sim, heavyLead);
+                order(sim, technical);
             }
         }
         releaseBatches(sim);
@@ -205,6 +209,7 @@ public final class ThunderRunSequence {
         float offset = id == advanceHauler ? 16 : id == heavyLead ? 20 : escorts.contains(id) ? 8
                 : -8 * new ArrayList<>(cargo.values()).indexOf(id);
         float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 40 + offset;
+        if (id == technical) goal = phase == 1 ? 135 : 193;
         if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = 273;
         if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = 294;
         mission.authoredRouteX = new float[]{body.x, goal};
@@ -219,11 +224,15 @@ public final class ThunderRunSequence {
             int start = batch * ThunderRunPacing.RAIDERS_PER_BATCH;
             for (int i = start; i < start + ThunderRunPacing.RAIDERS_PER_BATCH; i++) sim.spawn(reserve.get(i).squad(squad));
             sim.getSquad(squad).originalSize = ThunderRunPacing.RAIDERS_PER_BATCH;
+            int rearPost = ThunderRunPacing.rearPost(batch);
             int attackPhase = ThunderRunPacing.batchPhase(batch);
             int targetX = attackPhase == 0 ? 117 : attackPhase == 1 ? 133
                     : attackPhase == 2 ? (ThunderRunPacing.usesOutboundRoad(batch) ? 245 : 172) : 275;
-            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, targetX, 75, 18),
-                    CommandAuthority.SCRIPTED, "thunder-run-road-raiders", "interdict the authored freight crossing");
+            var post = rearPost >= 0 ? ThunderRunCompound.SUPPORT_POSTS.get(rearPost) : null;
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad,
+                            post != null ? post.x() : targetX, post != null ? post.y() : 75, post != null ? 6 : 18),
+                    CommandAuthority.SCRIPTED, "thunder-run-road-raiders",
+                    post != null ? "attack the militia rear post" : "interdict the authored freight crossing");
             log.emitOnce(currentTick, "supply_route.thunder_run.road_batch_" + batch,
                     StoryBeatLog.Audience.OBSERVER_ONLY);
         }
