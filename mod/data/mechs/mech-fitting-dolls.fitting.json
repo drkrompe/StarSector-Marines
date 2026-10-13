@@ -7,7 +7,7 @@
       "sockets": [
         {
           "id": "CORE",
-          "label": "ENGINE CORE",
+          "label": "@gearSocketEngineCore",
           "type": "CORE",
           "gridColumns": 2,
           "gridRows": 2,
@@ -18,7 +18,7 @@
         },
         {
           "id": "ARMS",
-          "label": "NOSE MOUNT",
+          "label": "@gearSocketNoseMount",
           "type": "BALLISTIC",
           "gridColumns": 2,
           "gridRows": 2,
@@ -29,7 +29,7 @@
         },
         {
           "id": "LEFT_SHOULDER",
-          "label": "SHOULDER",
+          "label": "@gearSocketShoulder",
           "type": "MISSILE",
           "gridColumns": 2,
           "gridRows": 2,
@@ -40,7 +40,7 @@
         },
         {
           "id": "AMMO_RESERVE",
-          "label": "AMMO RESERVE",
+          "label": "@gearSocketAmmoReserve",
           "type": "AMMO",
           "gridColumns": 2,
           "gridRows": 1,
@@ -57,7 +57,7 @@
       "sockets": [
         {
           "id": "CORE",
-          "label": "ENGINE CORE",
+          "label": "@gearSocketEngineCore",
           "type": "CORE",
           "gridColumns": 2,
           "gridRows": 2,
@@ -68,7 +68,7 @@
         },
         {
           "id": "ARMS",
-          "label": "NOSE CANNON",
+          "label": "@gearSocketNoseCannon",
           "type": "BALLISTIC",
           "gridColumns": 3,
           "gridRows": 2,
@@ -79,7 +79,7 @@
         },
         {
           "id": "LEFT_SHOULDER",
-          "label": "L. SHOULDER",
+          "label": "@gearSocketLShoulder",
           "type": "MISSILE",
           "gridColumns": 2,
           "gridRows": 3,
@@ -90,7 +90,7 @@
         },
         {
           "id": "RIGHT_SHOULDER",
-          "label": "R. SHOULDER",
+          "label": "@gearSocketRShoulder",
           "type": "OMNI",
           "gridColumns": 2,
           "gridRows": 3,
@@ -101,7 +101,7 @@
         },
         {
           "id": "AMMO_RESERVE",
-          "label": "AMMO RESERVE",
+          "label": "@gearSocketAmmoReserve",
           "type": "AMMO",
           "gridColumns": 2,
           "gridRows": 2,
@@ -112,7 +112,7 @@
         },
         {
           "id": "MINI_FAB",
-          "label": "MINI-FAB",
+          "label": "@gearSocketMiniFab",
           "type": "UTILITY",
           "gridColumns": 1,
           "gridRows": 1,
@@ -129,7 +129,7 @@
       "sockets": [
         {
           "id": "CORE",
-          "label": "ENGINE CORE",
+          "label": "@gearSocketEngineCore",
           "type": "CORE",
           "gridColumns": 2,
           "gridRows": 2,
@@ -140,7 +140,7 @@
         },
         {
           "id": "ARMS",
-          "label": "ARM ASSEMBLY",
+          "label": "@gearSocketArmAssembly",
           "type": "OMNI",
           "gridColumns": 3,
           "gridRows": 2,
@@ -151,7 +151,7 @@
         },
         {
           "id": "LEFT_SHOULDER",
-          "label": "L. SHOULDER",
+          "label": "@gearSocketLShoulder",
           "type": "MISSILE",
           "gridColumns": 2,
           "gridRows": 3,
@@ -162,7 +162,7 @@
         },
         {
           "id": "RIGHT_SHOULDER",
-          "label": "R. SHOULDER",
+          "label": "@gearSocketRShoulder",
           "type": "OMNI",
           "gridColumns": 2,
           "gridRows": 3,
@@ -173,7 +173,7 @@
         },
         {
           "id": "AMMO_RESERVE",
-          "label": "AMMO RESERVE",
+          "label": "@gearSocketAmmoReserve",
           "type": "AMMO",
           "gridColumns": 3,
           "gridRows": 1,
@@ -184,7 +184,7 @@
         },
         {
           "id": "MINI_FAB",
-          "label": "MINI-FAB",
+          "label": "@gearSocketMiniFab",
           "type": "UTILITY",
           "gridColumns": 1,
           "gridRows": 1,

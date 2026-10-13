@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 5 built; captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -110,7 +110,7 @@ capital that is not another ship.
    restatable by a mission (`Mission.defences`, the DEBUG "Ground defences" dial on
    Conquest). Map generation does not read them; a mission definition may (see slice 3, *Placement authority*). `DetachmentResolver.planetHasHeavyArmaments`
    is left as it is: it also counts heavy industry, so it is not the same question.
-2. **Multi-cell structures** (built, art outstanding): the turret catalog takes odd
+2. **Multi-cell structures** (built): the turret catalog takes odd
    footprints larger than one cell, centred on the anchor cell. As built: `StructureDef`
    validates odd positive `footprintCells`; `StructureFootprint` owns placement validity
    and sealing; `BattleSimulation.spawn` seals a multi-cell structure's footprint and
@@ -118,9 +118,10 @@ capital that is not another ship.
    `radius` circle; the ground pad is drawn at the full footprint. One-cell structures
    are unchanged, and defence-post layouts still require one-cell turrets.
    `structure.fortress-battery-placeholder` (3x3, heavy-mortar mount) is a stand-in for
-   slice 3. Battery and generator art is still to do: the mount sprite is drawn at its own
-   `visualCells`, not the footprint.
-3. **Fortress battery** (built, art outstanding): placement where a mission declares heavy
+   slice 3. A structure's painted body is its optional `art` block (`StructureArt`): a static base
+   drawn over the whole footprint in place of the flat pad, plus centre-pivoted overlay layers that
+   may spin or pulse. A rotating gun stays the mount's own `sprite` / `recoilSprite` pair.
+3. **Fortress battery** (built): placement where a mission declares heavy
    batteries, vanilla station-module guns, ground-to-ship aim at a hull in the envelope, the
    envelope as a hazard warship AI keeps out of, fire control and its capture rules, and the
    Orbital Barrage lock. As built:
@@ -142,8 +143,9 @@ capital that is not another ship.
      battery when spawned, held by the side that spawned it. Its `BatteryLoadout` is a set of
      vanilla weapon ids taken from station modules (`citadel`: Gauss, Mjolnir, Heavy Mauler from
      `module_citadel1_lowtech`; `hellbore-pair` from `module_large1_lowtech`); every figure is
-     the game's. The structure keeps its placeholder heavy-mortar mount, so it also shells
-     ground units as an ordinary emplacement.
+     the game's. The structure mounts `mount.fortress-battery` (the heavy-mortar weapon on its own gun-house art), so it also
+     shells ground units as an ordinary emplacement. The gun house turns toward the hull the citadel guns are
+     settling on or firing at (presentation only) and its barrel layer recoils on each ship round.
    - *Aim and damage.* A gun settles on the nearest hostile hull in reach for 1.5 seconds, then
      fires a ship's shell from the ground (`WarshipSystem.fireFromGround`): it flies, point
      defence can stop it, the shield then the armour rule take it, and it lands on hulls only
@@ -165,10 +167,12 @@ capital that is not another ship.
      remain in `orbital-battery-fire-support-lock.md`.
    - *Untuned.* A single battery kills an undefended capital in well under two minutes; envelope
      reach, lock time, capture times and counts are first-pass figures for play to settle.
-   - *Not built.* The battery sprite (the footprint is a placeholder pad), faction tech choice of
-     loadout, gun traverse and ammunition, a per-gun art mount, and a ship's hazard-aware
+   - *Art.* Static hardened base, one rotating gun house and a recoiling three-barrel layer, geometry-first
+     (see `geometry-first-imagegen.md`). The id keeps its `-placeholder` suffix to spare every reference; there
+     is no per-structure wreck sprite, a destroyed structure becomes ordinary rubble cells and a smoking wreck.
+   - *Not built.* Faction tech choice of loadout, gun traverse and ammunition, a per-gun art mount, and a ship's hazard-aware
      station choice for the player's own calls (the player may still place a ship inside).
-4. **Shield generator** (built, art outstanding): the dome, its pool and overload, absorption of ship-grade
+4. **Shield generator** (built): the dome, its pool and overload, absorption of ship-grade
    ordnance and barrage, the dome's look, and its capture rules. As built: the catalog's
    `structure.shield-generator` (3x3, role STRUCTURE, no gun) carries an optional `dome` block
    (`DomeSpec`: radius, flux capacity, dissipation, overload seconds, capture radius and time),
@@ -192,10 +196,8 @@ capital that is not another ship.
    overload, 16 cells). Evidence: `ShieldDomeServiceTest` and the `shield-dome` scene (control,
    dome, destroyed). Barrage is not denied by a dome: it fires and an up dome absorbs it. The barrage
    targeting preview outlines each hostile dome the player has seen (reach, up or down, pool share) and
-   marks an aim point under one "absorbed by dome" while leaving it legal. Still to do: generator art
-   (a placeholder pad and the dome's core glow stand in), AI awareness (no squad is sent to take or wreck a
-   generator and nothing orders a defender to retake one), and a campaign mission that places one for a
-   market-held shield.
+   marks an aim point under one "absorbed by dome" while leaving it legal. Still to do: a campaign mission
+   that places one for a market-held shield.
 5. **Defence nests** (built): the dispersed posts, sized by the mission's declaration. As built:
    - *Declaration.* `GroundDefences.nests` is the count; zero is none, and a fixture that predates it reads as none
      (`declaredNests` in fixture JSON). `MissionDefencePolicy` is still the one place it is decided: Conquest reads the
@@ -219,6 +221,33 @@ capital that is not another ship.
      a capital over the field loses nothing.
    - *Still to do.* Nest art (they use the light post's vent ring), manning, faction-specific gun choice, and tuning of
      count, spacing and guns against play.
+
+## Command awareness
+
+Both Conquest commanders treat a structure they know of as work (`DefenceStructureTactics`, shared by `ConquestCommand`
+and `ConquestDefenderCommand`; nothing in it is special to attacker or defender). Three roles, in priority order:
+**defend** (its own structure is pressed: a contested fire control, a capture under way), **retake** (a structure built
+for this side that an enemy now holds) and **take** (an enemy structure this side has seen). The order is the ordinary
+attack move to the structure's doorstep (area defence for *defend*): an own-force destination naming no hostile identity or
+position, so a squad takes the structure by standing there or wrecks it by shooting it, whichever the fight allows.
+
+*Knowledge.* The structure facts a commander is given are disclosed by perspective (`ConquestCommandFacts.structures`):
+a side is told of a structure it built, one it holds, and, for the company, one the player's fog has revealed. The other
+side is never told of an enemy structure it has not built or held, so a commander cannot be sent to ground it has no
+reason to know exists. Pressure on an own structure is own-side knowledge.
+
+*Timing.* A commander acts on a structure only once it knows of it, so the company's first order trails the first sighting by at most one command pulse (2.5 s); how late the sighting itself comes is the walk across the map, not the commander. Squads that cannot yet reach the contact walk on toward the doorstep (see the prosecution refusal rule in `ai-nouns.md`).
+
+*Budget.* Modest and untuned: at most two squads (`DefenceStructureTactics.MAX_TASKS`) are detached at once, one per
+structure, nearest first, and a squad that already carries the order keeps it. The attacker offers only lane work (not
+squads committed to a compound capture or in a command group) and only while the lane phases are running, never during
+the keep or final-compound convergence; the defender draws on its unselected reserve after the track response has
+chosen. Directive reasons `DEFENCE_STRUCTURE_TAKE/RETAKE/DEFEND` explain the order in selected-squad UI, dumps and traces.
+A battle with no structures plans exactly as before.
+
+*Evidence.* The `defence-structure-command` scene (take, no-commander control, own-structure control, retake) and
+`DefenceStructureTacticsTest`. Not built: coordinating more than one squad per structure, escorting a ship's call on a
+dome, using a taken structure's own effect (a held battery's lock) as a reason to prioritise, and tuning.
 
 ## Captured structures
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import org.json.JSONException;
 
 /**
@@ -28,7 +29,7 @@ public enum IntegralSystemEffect {
      * cooldown. Answers how a heavy suit crosses the doorway it exists to cross
      * without widening anyone's armour capacity.
      */
-    BREACHER_ASSIST("breacher-assist", "Breach assist",
+    BREACHER_ASSIST("breacher-assist", "@gearIntegralSystemEffectBREACHERASSIST",
             "graphics/ui/armory/system-breach-assist.png"),
 
     /**
@@ -37,7 +38,7 @@ public enum IntegralSystemEffect {
      * suit can put something downrange on its own, the opposite half of the
      * model from {@link #BREACHER_ASSIST} ({@code integral-armor-systems.md}).
      */
-    MISSILE_POD("missile-pod", "Missile pod",
+    MISSILE_POD("missile-pod", "@gearIntegralSystemEffectMISSILEPOD",
             "graphics/ui/armory/system-missile-pod.png"),
 
     /**
@@ -49,7 +50,7 @@ public enum IntegralSystemEffect {
      * see of it — a sweep that were worth damage would have stopped being
      * perception.
      */
-    PERCEPTION_SWEEP("perception-sweep", "Sensor sweep",
+    PERCEPTION_SWEEP("perception-sweep", "@gearIntegralSystemEffectPERCEPTIONSWEEP",
             "graphics/ui/armory/system-sensor-sweep.png"),
 
     /**
@@ -65,7 +66,7 @@ public enum IntegralSystemEffect {
      * third of their health needs nothing new at all, and that trooper is
      * already there in every battle ({@code integral-system-slate.md}).
      */
-    FIELD_AID("field-aid", "Field aid",
+    FIELD_AID("field-aid", "@gearIntegralSystemEffectFIELDAID",
             "graphics/ui/armory/system-field-aid.png"),
 
     /**
@@ -81,7 +82,7 @@ public enum IntegralSystemEffect {
      * refused incoming fire would be mitigation with a posture's name on it, and
      * the concept that owns bounded directional absorption already exists.
      */
-    BRACE("brace", "Firing brace",
+    BRACE("brace", "@gearIntegralSystemEffectBRACE",
             "graphics/ui/armory/system-firing-brace.png");
 
     public final String key;
@@ -92,7 +93,9 @@ public enum IntegralSystemEffect {
      * family is what lets a player see they are the same capability rather than
      * six unrelated tricks ({@code integral-system-slate.md}).
      */
-    public final String displayName;
+    private final String displayName;
+
+    public String displayName() { return Strings.resolve(displayName); }
 
     /** One icon per family. A pattern's own version is told apart by name and grade, not by art. */
     public final String iconPath;

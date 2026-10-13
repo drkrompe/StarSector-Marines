@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.spec;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -93,24 +94,24 @@ public final class SpecSheets {
     /** Deck capacity and activation costs are distinct, both read from the actual power. */
     public static SpecSheet commandPower(CommandPower power) {
         String effect = switch (power.id) {
-            case ReconPing.ID -> "Temporarily reveals an area of the battlefield.";
-            case MechSupport.ID -> "Calls a heavy transport to land supporting mechs.";
-            case EmergencyResupply.ID -> "Calls a utility shuttle to deliver a supply cache.";
-            case OrbitalBarrage.ID -> "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.";
-            case MarineInsertion.ID -> "Calls a Valkyrie to insert an infantry squad near the selected location.";
-            case VehicleSupport.ID -> "Calls a transport to deliver armoured support.";
-            case CloseAirSupport.ID -> "Calls a Mudskipper gunship to circle overhead of the selected ground and fire on it, then depart.";
-            case ShipOnStation.ID -> "Calls a committed ship in from your map edge to hold station over the targeted ground and work it, then depart. One ship per charge.";
-            default -> "A support capability available from the committed fleet or employer.";
+            case ReconPing.ID -> Strings.get("gearPowerEffectReconPing");
+            case MechSupport.ID -> Strings.get("gearPowerEffectMechSupport");
+            case EmergencyResupply.ID -> Strings.get("gearPowerEffectEmergencyResupply");
+            case OrbitalBarrage.ID -> Strings.get("gearPowerEffectOrbitalBarrage");
+            case MarineInsertion.ID -> Strings.get("gearPowerEffectMarineInsertion");
+            case VehicleSupport.ID -> Strings.get("gearPowerEffectVehicleSupport");
+            case CloseAirSupport.ID -> Strings.get("gearPowerEffectCloseAirSupport");
+            case ShipOnStation.ID -> Strings.get("gearPowerEffectShipOnStation");
+            default -> Strings.get("gearPowerEffectDefault");
         };
-        return new SpecSheet(power.displayName, "Command power", commandPowerIcon(power), "command",
-                List.of(Stat.of("Deck capacity", power.slotWeight + (power.slotWeight == 1 ? " slot" : " slots")),
-                        Stat.of("Command points / use", oneDecimal(power.cpCost)),
-                        Stat.of("Supplies / use", Integer.toString(power.supplyCost)),
-                        Stat.of("Cooldown", oneDecimal(power.cooldownSeconds) + " s"),
-                        Stat.of("Uses per battle", power.maxCharges == 0
-                                ? "Unlimited" : Integer.toString(power.maxCharges))),
-                List.of(effect, "Command points and supplies are spent on activation, not when selecting the deck."));
+        return new SpecSheet(power.displayName, Strings.get("gearCommandPower"), commandPowerIcon(power), "command",
+                List.of(stat("Deck capacity", Strings.format("gearDeckSlots", power.slotWeight)),
+                        stat("Command points / use", oneDecimal(power.cpCost)),
+                        stat("Supplies / use", Integer.toString(power.supplyCost)),
+                        stat("Cooldown", Strings.format("gearSeconds", oneDecimal(power.cooldownSeconds))),
+                        stat("Uses per battle", power.maxCharges == 0
+                                ? Strings.get("gearUnlimited") : Integer.toString(power.maxCharges))),
+                List.of(effect, Strings.get("gearPowerActivation")));
     }
 
     /**
@@ -126,16 +127,16 @@ public final class SpecSheets {
         EquipmentGrade issued = grade != null ? grade : EquipmentGrade.SERVICE;
         return new SpecSheet(
                 def.catalogName(issued),
-                joined(def.designation(issued), def.catalogRole, issued.displayName),
+                joined(def.designation(issued), def.catalogRole(), issued.displayName()),
                 def.catalogFactionLogo,
                 ACCENT_WEAPON,
                 weaponStats(def, issued, CATALOG_SHOOTER),
-                paragraphs(def.catalogDescription));
+                paragraphs(def.catalogDescription()));
     }
 
     /** The primary's ability to overcome armor resistance, on a catalog-wide scale. */
     public static Stat weaponPenetration(WeaponDef def) {
-        return new Stat("PEN", oneDecimal(def.penetration),
+        return stat("PEN", oneDecimal(def.penetration),
                 StatMeter.fraction(def.penetration, CatalogCeilings.weaponPenetration()));
     }
 
@@ -154,12 +155,12 @@ public final class SpecSheets {
         float accuracy = InfantryCombatStats.accuracy(def, grade, shooter);
         float dps = InfantryCombatStats.estimatedDps(def, grade, shooter);
         return List.of(
-                new Stat("DMG", oneDecimal(damage),
+                stat("DMG", oneDecimal(damage),
                         StatMeter.fraction(damage, CatalogCeilings.weaponDamage())),
-                new Stat("RNG", oneDecimal(range),
+                stat("RNG", oneDecimal(range),
                         StatMeter.fraction(range, CatalogCeilings.weaponRange())),
-                new Stat("ACC", percent(accuracy), StatMeter.fraction(accuracy, 1f)),
-                new Stat("DPS", oneDecimal(dps),
+                stat("ACC", percent(accuracy), StatMeter.fraction(accuracy, 1f)),
+                stat("DPS", oneDecimal(dps),
                         StatMeter.fraction(dps, CatalogCeilings.weaponDps(shooter))));
     }
 
@@ -176,11 +177,11 @@ public final class SpecSheets {
         if (def == null) throw new IllegalArgumentException("An armour sheet needs a pattern");
         List<String> notes = new ArrayList<>(paragraphs(def.description()));
         if (IntegralSystemCopy.carried(def)) {
-            notes.add(IntegralSystemCopy.flavorName(def) + " — " + IntegralSystemCopy.summary(def));
+            notes.add(Strings.format("gearNamedDescription", IntegralSystemCopy.flavorName(def), IntegralSystemCopy.summary(def)));
         }
         return new SpecSheet(
                 def.displayName(),
-                joined(def.armorClass().displayName(), "TIER " + def.tier(),
+                joined(def.armorClass().displayName(), Strings.format("gearTier", def.tier()),
                         def.role().displayName(), def.tradition().displayName()),
                 def.tradition().factionLogo(),
                 ACCENT_ARMOR,
@@ -193,15 +194,15 @@ public final class SpecSheets {
         float move = UnitType.MARINE.moveSpeed * def.moveSpeedMult();
         float evasion = CatalogCeilings.evasionOf(def);
         return List.of(
-                new Stat("ARMOR", whole(def.armorCapacity()),
+                stat("ARMOR", whole(def.armorCapacity()),
                         StatMeter.fraction(def.armorCapacity(), CatalogCeilings.armorCapacity())),
-                new Stat("RESIST", whole(def.armorRating()),
+                stat("RESIST", whole(def.armorRating()),
                         StatMeter.fraction(def.armorRating(), CatalogCeilings.armorRating())),
-                new Stat("MOVE", oneDecimal(move),
+                stat("MOVE", oneDecimal(move),
                         StatMeter.fraction(def.moveSpeedMult(), CatalogCeilings.moveSpeedMult())),
                 // Signed: three shipped patterns are easier to hit than a bare
                 // marine, and a sheet that hid that would be recommending them.
-                new Stat("EVASION", signedPercent(evasion),
+                stat("EVASION", signedPercent(evasion),
                         StatMeter.fraction(evasion, CatalogCeilings.armorEvasion())));
     }
 
@@ -221,13 +222,13 @@ public final class SpecSheets {
         if (def == null) throw new IllegalArgumentException("A special sheet needs an item");
         List<Stat> stats = new ArrayList<>();
         if (def.weaponId() != null && !def.weaponId().isBlank()) {
-            stats.add(new Stat("DMG", oneDecimal(def.damage()),
+            stats.add(stat("DMG", oneDecimal(def.damage()),
                     StatMeter.fraction(def.damage(), CatalogCeilings.specialDamage())));
-            stats.add(new Stat("RNG", oneDecimal(def.range()),
+            stats.add(stat("RNG", oneDecimal(def.range()),
                     StatMeter.fraction(def.range(), CatalogCeilings.specialRange())));
         }
         if (def.usesAmmunition()) {
-            stats.add(Stat.of("AMMO", uses(def.startingAmmo())));
+            stats.add(stat("AMMO", uses(def.startingAmmo())));
         }
         return new SpecSheet(
                 def.displayName(),
@@ -273,11 +274,10 @@ public final class SpecSheets {
         MechCatalog.ChassisEntry entry = MechCatalog.require(variant);
         List<String> notes = new ArrayList<>(paragraphs(entry.description()));
         for (MechWeaponComponent fitted : fittedComponents(variant)) {
-            notes.add(fitted.displayName + " — "
-                    + MechCatalog.require(fitted).description());
+            notes.add(Strings.format("gearNamedDescription", fitted.displayName(), MechCatalog.require(fitted).description()));
         }
         return new SpecSheet(
-                variant.displayName,
+                variant.displayName(),
                 joined(entry.designation(), entry.role()),
                 null,
                 ACCENT_MECH,
@@ -288,16 +288,16 @@ public final class SpecSheets {
     /** The five axes a chassis is chosen on. */
     public static List<Stat> mechStats(MechVariant variant) {
         return List.of(
-                new Stat("STRUCTURE", whole(variant.maxStructure),
+                stat("STRUCTURE", whole(variant.maxStructure),
                         StatMeter.fraction(variant.maxStructure, CatalogCeilings.mechStructure())),
-                new Stat("ARMOR", whole(variant.armorCapacity),
+                stat("ARMOR", whole(variant.armorCapacity),
                         StatMeter.fraction(variant.armorCapacity,
                                 CatalogCeilings.mechArmorCapacity())),
-                new Stat("SPEED", oneDecimal(variant.moveSpeed),
+                stat("SPEED", oneDecimal(variant.moveSpeed),
                         StatMeter.fraction(variant.moveSpeed, CatalogCeilings.mechMoveSpeed())),
-                new Stat("ACCURACY", percent(variant.accuracy),
+                stat("ACCURACY", percent(variant.accuracy),
                         StatMeter.fraction(variant.accuracy, CatalogCeilings.mechAccuracy())),
-                new Stat("VISION", whole(variant.visionRange),
+                stat("VISION", whole(variant.visionRange),
                         StatMeter.fraction(variant.visionRange,
                                 CatalogCeilings.mechVisionRange())));
     }
@@ -309,16 +309,15 @@ public final class SpecSheets {
         }
         MechCatalog.ComponentEntry entry = MechCatalog.require(component);
         return new SpecSheet(
-                component.displayName,
+                component.displayName(),
                 joined(entry.designation(), mountLabel(component),
-                        titleCase(component.hardpointType.name())),
+                        Strings.get("gearHardpoint" + component.hardpointType.name())),
                 null,
                 ACCENT_MECH,
-                List.of(Stat.of(component.cycleLabel(), component.cycleSeconds() + " s"),
-                        Stat.of("Heat / burst", whole(component.heatPerTrigger()) + " / 100"),
-                        Stat.of("Cooling / burst", (component.heatPerTrigger() / MechHeat.COOLING_PER_SECOND) + " s alone")),
-                paragraphs(entry.description() + " Mechanical cycling and shared chassis heat both limit fire. "
-                        + "Missile pack replenishment is separate; combining weapons shares the same cooling."));
+                List.of(new Stat("cycle", component.cycleLabel(), Strings.format("gearSeconds", Float.toString(component.cycleSeconds())), Stat.NO_METER),
+                        stat("Heat / burst", whole(component.heatPerTrigger()) + " / 100"),
+                        stat("Cooling / burst", Strings.format("gearCoolingAlone", Float.toString(component.heatPerTrigger() / MechHeat.COOLING_PER_SECOND)))),
+                List.of(entry.description(), Strings.get("gearHeatExplanation")));
     }
 
     /**
@@ -336,9 +335,9 @@ public final class SpecSheets {
             case ARMOR -> armor(MarineArmorCatalogRegistry.require(card.equipmentId()));
             case SPECIAL -> special(requireSpecial(card.equipmentId()));
         };
-        String access = titleCase(card.accessTier().name());
+        String access = Strings.get("gearAccess" + card.accessTier().name());
         String lead = card.grade() != null
-                ? access + SEPARATOR + card.grade().displayName + " issue"
+                ? Strings.format("gearGradeIssue", access, card.grade().displayName())
                 : access;
         return new SpecSheet(resolved.title(), joined(lead, resolved.subtitle()),
                 resolved.crestPath(), resolved.accent(), resolved.stats(), resolved.notes());
@@ -364,14 +363,9 @@ public final class SpecSheets {
         return fitted;
     }
 
-    /** An enum constant as a word: {@code MISSILE} reads Missile, not MISSILE. */
-    private static String titleCase(String constant) {
-        return constant.charAt(0) + constant.substring(1).toLowerCase(Locale.ROOT);
-    }
-
     private static String mountLabel(MechWeaponComponent component) {
         return component.mountFamily == MechWeaponComponent.MountFamily.ARMS
-                ? "Arm mount" : "Shoulder mount";
+                ? Strings.get("gearArmMount") : Strings.get("gearShoulderMount");
     }
 
     /**
@@ -419,7 +413,15 @@ public final class SpecSheets {
         return String.format(Locale.ROOT, "%.0f%%", fraction * 100f);
     }
 
+    private static Stat stat(String id, String value) {
+        return stat(id, value, Stat.NO_METER);
+    }
+
+    private static Stat stat(String id, String value, float fill) {
+        return new Stat(id, Strings.get("gearStat" + id.replaceAll("[^A-Za-z0-9]", "")), value, fill);
+    }
+
     private static String uses(int ammo) {
-        return ammo + (ammo == 1 ? " use" : " uses");
+        return Strings.format("gearUses", ammo);
     }
 }

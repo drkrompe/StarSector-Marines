@@ -52,6 +52,7 @@ public final class FortressBattery {
     private final float x;
     private final float y;
     private final FireControl fireControl;
+    private final Faction originalOwner;
     private final List<Gun> guns = new ArrayList<>();
     private final List<Gun> gunsView = Collections.unmodifiableList(guns);
     private final float envelopeCells;
@@ -63,6 +64,7 @@ public final class FortressBattery {
         this.x = x;
         this.y = y;
         this.fireControl = new FireControl(owner);
+        this.originalOwner = owner;
         float reach = 0f;
         for (VanillaWeapon w : loadout.guns()) {
             guns.add(new Gun(w));
@@ -94,6 +96,11 @@ public final class FortressBattery {
 
     public List<Gun> guns() {
         return gunsView;
+    }
+
+    /** The side the battery was built for; it keeps knowing where it is after it is taken. */
+    public Faction originalOwner() {
+        return originalOwner;
     }
 
     /** The side whose guns these are now. */

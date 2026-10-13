@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -21,33 +22,33 @@ public final class MechFittingLayout {
     public static final int MAX_GRID_ROWS = 3;
 
     public enum SocketId {
-        CORE("ENGINE CORE"),
-        ARMS("ARM ASSEMBLY"),
-        LEFT_SHOULDER("L. SHOULDER"),
-        RIGHT_SHOULDER("R. SHOULDER"),
-        AMMO_RESERVE("AMMO RESERVE"),
-        MINI_FAB("MINI-FAB");
+        CORE("@gearSocketEngineCore"),
+        ARMS("@gearSocketArmAssembly"),
+        LEFT_SHOULDER("@gearSocketLShoulder"),
+        RIGHT_SHOULDER("@gearSocketRShoulder"),
+        AMMO_RESERVE("@gearSocketAmmoReserve"),
+        MINI_FAB("@gearSocketMiniFab");
 
         private final String label;
 
         SocketId(String label) { this.label = label; }
 
-        public String label() { return label; }
+        public String label() { return Strings.resolve(label); }
     }
 
     public enum SocketType {
-        CORE("CORE"),
-        BALLISTIC("BALLISTIC"),
-        MISSILE("MISSILE"),
-        OMNI("OMNI"),
-        AMMO("AMMO"),
-        UTILITY("UTILITY");
+        CORE("@gearSocketCore"),
+        BALLISTIC("@gearSocketBallistic"),
+        MISSILE("@gearSocketMissile"),
+        OMNI("@gearSocketOmni"),
+        AMMO("@gearSocketAmmo"),
+        UTILITY("@gearSocketUtility");
 
         private final String label;
 
         SocketType(String label) { this.label = label; }
 
-        public String label() { return label; }
+        public String label() { return Strings.resolve(label); }
     }
 
     public record SocketDef(SocketId id, SocketType type,
@@ -76,11 +77,11 @@ public final class MechFittingLayout {
                          boolean factoryLocked) {
             this(id, type, gridColumns, gridRows, anchorRight, anchorForward,
                     dockRight, dockForward, footprintWidthHull, footprintHeightHull,
-                    factoryLocked, id.label());
+                    factoryLocked, null);
         }
 
         public String label() {
-            return customLabel != null && !customLabel.isBlank() ? customLabel : id.label();
+            return customLabel != null && !customLabel.isBlank() ? Strings.resolve(customLabel) : id.label();
         }
 
         public int capacity() { return gridColumns * gridRows; }

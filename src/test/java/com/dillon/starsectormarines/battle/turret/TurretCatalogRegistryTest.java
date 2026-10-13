@@ -214,7 +214,7 @@ class TurretCatalogRegistryTest {
             String sprite, String recoilSprite, String projectileSprite, String fireSound) {
         TurretMountDef mount = structure.mount;
         WeaponDef weapon = mount.weapon;
-        assertEquals(displayName, weapon.displayName);
+        assertEquals(displayName, weapon.displayName());
         assertEquals(range, weapon.range, EPS);
         assertEquals(damage, weapon.damage, EPS);
         assertEquals(penetration, weapon.penetration, EPS);
