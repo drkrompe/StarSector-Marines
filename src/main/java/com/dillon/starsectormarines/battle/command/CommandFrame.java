@@ -80,6 +80,8 @@ public class CommandFrame {
             int coveredFromPrimaryMembers = primaryKnown ? 0 : -1;
             int coolingDownMembers = 0;
             boolean demolition = false;
+            boolean crew = memberCount > 0;
+            boolean machine = squad.isMechSquad() || squad.isDroneSquad();
             int[] memberZoneIds = new int[memberCount];
             int[] memberCellXs = new int[memberCount];
             int[] memberCellYs = new int[memberCount];
@@ -115,6 +117,7 @@ public class CommandFrame {
                 }
                 // Own-force knowledge: the kit the squad was issued, never anything about an enemy.
                 demolition |= DemolitionKit.carried(sim.world(), member);
+                crew &= sim.ambientHeld(member);
             }
             if (detail) {
                 long now = System.nanoTime();
@@ -150,7 +153,7 @@ public class CommandFrame {
                     contact.doctrine().name(),
                     contact.contactInitiative().name(), coolingDownMembers,
                     memberZoneIds, memberCellXs, memberCellYs,
-                    squad.commandGroupIdentity, demolition));
+                    squad.commandGroupIdentity, demolition, crew, machine));
             if (detail) publicationNanos += System.nanoTime() - rowStageStarted;
         }
         long sortStarted = detail ? System.nanoTime() : 0L;

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 - a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
+Updated: 2026-10-13 - structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -129,7 +129,7 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
   magazine explodes through the existing blast machinery. Power taken, contested or wrecked slows traverse and fire
   to a quarter. Power is local to a fort. Either side may hold any aspect and a captured aspect serves its new
   holder; wrecked stays wrecked, taken can be retaken. State is drawn on the map beside the battery markers.
-- **Commanders.** A fort's aspects are disclosed together when the platform is sighted (bunker, magazine, power); see
+- **Commanders.** A fort's aspects are disclosed together when the platform or any of the works is sighted (bunker, magazine, power); see
   "Built: command awareness".
 - **Tuning is untuned.** Numbers (12 ready rounds, 0.25 unpowered rate, core hit points) are first passes.
 
@@ -154,7 +154,7 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
   declared shield generator into one shield fort (`CONQUEST_SHIELD_AS_FORT`, one line to turn off); the DEBUG dial has a
   shield-fort option; fixtures round-trip the declaration and a legacy fixture reads as none. A bare generator beside the
   keep remains for scenes and the old dial option.
-- **Commanders.** A shield fort discloses two facts, both on sighting the generator: the control room (where the dome
+- **Commanders.** A shield fort discloses two facts, both on sighting the generator or the works: the control room (where the dome
   is taken, held or retaken, the existing take/retake/defend roles) and the power plant (a `FORT_POWER` fact, work for the
   side that does not hold it). Fair knowledge only.
 - **Map.** Aspect rings and labels draw as for the battery fort, with a "DOME UNPOWERED" line over the generator.
@@ -187,11 +187,23 @@ follow from who holds an aspect and who built it, relative to the side choosing.
   read of an enemy. A wreck pick is only ever given to such a squad, and the order it receives is the ordinary attack
   move to the aspect's doorstep carrying a wreck permission (`ObjectiveAssignment.wreckAuthorised`), a flag and not a
   named target, so the knowledge laws are untouched. Where the choice is a take, no permission is given.
-- **What a lane discloses.** Sighting the platform (battery) or generator (shield) discloses every aspect of the fort,
-  so a commander only reasons about a fort the company has actually looked at. A lane that never comes within sight of
-  it, or that stops at a wall, leaves the fort undisclosed, and the commander has nothing to choose. This, not a failure
-  to commit, is what an earlier autonomous attempt in the small scene arena was seeing; the commander scenes come in on
-  the lane that reaches the fort's gate.
+- **What discloses a fort.** Any one of the fort's exterior cells in the company's view (the works' wall with its gatehouses,
+  the gates, the bastion nests) or the platform (battery) or generator (shield) discloses every aspect of the fort, so a
+  commander only reasons about a fort the company has actually looked at. The platform and the buildings stand inside a
+  wall nobody outside can see over, so the works are the part of a fort a company beside it really sees; a rule that
+  waited for the platform left a fort a marine stood against for thousands of ticks undisclosed. The outer belt is not
+  among the disclosing cells: the stage drops a belt cell wherever the city holds the ground, so a belt cell in view may
+  be a city wall. A lane that never comes within sight of the works still leaves the fort undisclosed, and the commander
+  has nothing to choose.
+- **Who is sent.** A squad the ambient work service holds (a works crew at its bench, or stood down by trouble and due
+  back) is never offered structure work, by either commander: the unit dispatcher does not run it while the work holds
+  it, so an order to it is never carried out, and as the nearest candidate it would otherwise keep the task for good.
+  Mech and drone squads are not offered it either (a mech cannot enter a bunker's interior), and only a group a named
+  officer leads is excluded, not the acting-NCO group every campaign squad has. A squad on a fort task is not drafted
+  into an uncontested compound capture, which used to swap the task's squad every few hundred ticks before it arrived.
+  A squad that closes no ground on its task for 3000 ticks is benched from structure work for 9000 (the lane planner
+  has it back), and a squad maneuvering on a flank against one contact gives the maneuver up after 1800 ticks and
+  carries out its order, because a nest nobody can reach never dies.
 - **Memory of a sighting.** A fort a company has once had in view stays disclosed to its commander when the squad looks
   away. Disclosure by sight alone made the control-room task appear and vanish as the squad walked in and out of view of
   the generator, and a squad whose order flickered between the task and the lane never arrived.

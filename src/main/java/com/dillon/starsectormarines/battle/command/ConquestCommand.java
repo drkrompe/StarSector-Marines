@@ -403,6 +403,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
+    /** Cells a structure-task squad must close on its destination to count as making progress. */
+    static final int STRUCTURE_PROGRESS_CELLS = 3;
+    /** Ticks a structure-task squad may go without closing {@link #STRUCTURE_PROGRESS_CELLS} before it is benched. */
+    static final int STRUCTURE_STALL_TICKS = 3000;
+    /** Ticks a benched squad is not offered structure work again. */
+    static final int STRUCTURE_BENCH_TICKS = 9000;
+    /** Per structure-task squad: destination x, destination y, best distance reached, tick it was reached. */
+    private final Map<Integer, int[]> structureProgress = new TreeMap<>();
+    /** Squad id to the tick until which it is not offered structure work. */
+    private final Map<Integer, Integer> structureBench = new TreeMap<>();
     /** Shared production geometry; lazily synthesized only by the legacy axis constructor used in tests. */
     private ConquestTrackLayout trackLayout;
 
@@ -575,6 +585,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final ObjectiveAssignment originalAssignment;
         final CommandGroupIdentity commandGroup;
         final boolean demolition;
+        final boolean crew;
+        final boolean machine;
         ObjectiveAssignment assignedObjective;
 
         PlanningSquad(CommandSquadState state) {
@@ -608,6 +620,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             originalAssignment = state.assignment();
             commandGroup = state.commandGroup();
             demolition = state.demolition();
+            crew = state.crew();
+            machine = state.machine();
             assignedObjective = state.assignment();
         }
     }
@@ -939,9 +953,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (structures.isEmpty()) return notes;
         List<DefenceStructureTactics.Candidate> candidates = new ArrayList<>();
         for (PlanningSquad squad : squads) {
-            if (committed.contains(squad.id) || squad.commandGroup != null
+            if (committed.contains(squad.id) || inNamedGroup(squad) || squad.crew || squad.machine
                     || (squad.assignedObjective != null
                     && squad.assignedObjective.kind() == AssignmentKind.SECURE_COMPOUND)) continue;
+            if (benchedFromStructureWork(squad, structures, frame.tick(), notes)) continue;
             candidates.add(new DefenceStructureTactics.Candidate(squad.id, squad.anchorCellX, squad.anchorCellY,
                     squad.originalAssignment, squad.demolition));
         }
@@ -958,6 +973,54 @@ public final class ConquestCommand implements ConquestFrontCommand,
             notes.add("squad " + squad.id + " " + task.role() + (task.wreck() ? " (wreck) " : " ") + task.reason());
         }
         return notes;
+    }
+
+    /**
+     * Whether the squad is kept off structure work: it was benched and the bench has not run out, or it holds a
+     * structure task it has made no headway on for {@link #STRUCTURE_STALL_TICKS} ticks, in which case it is benched
+     * now. A squad that cannot get closer to a fort in a minute and a half of trying is beyond the task as it stands
+     * (pinned under the fort's guns, or held off by something it cannot answer), and holding it there only spends the
+     * company; the lane planner has it back and the structure goes to a fresh squad once the bench is served.
+     */
+    private boolean benchedFromStructureWork(PlanningSquad squad, List<DefenceStructureFact> structures, int tick,
+                                             List<String> notes) {
+        Integer until = structureBench.get(squad.id);
+        if (until != null) {
+            if (tick < until) return true;
+            structureBench.remove(squad.id);
+        }
+        ObjectiveAssignment held = squad.originalAssignment;
+        if (!DefenceStructureTactics.isTask(held, structures)) {
+            structureProgress.remove(squad.id);
+            return false;
+        }
+        int gap = (int) Math.hypot(squad.anchorCellX - held.targetCellX(), squad.anchorCellY - held.targetCellY());
+        int[] seen = structureProgress.get(squad.id);
+        if (seen == null || seen[0] != held.targetCellX() || seen[1] != held.targetCellY()) {
+            structureProgress.put(squad.id, new int[] {held.targetCellX(), held.targetCellY(), gap, tick});
+            return false;
+        }
+        if (gap <= seen[2] - STRUCTURE_PROGRESS_CELLS) {
+            seen[2] = gap;
+            seen[3] = tick;
+            return false;
+        }
+        if (tick - seen[3] < STRUCTURE_STALL_TICKS) return false;
+        structureProgress.remove(squad.id);
+        structureBench.put(squad.id, tick + STRUCTURE_BENCH_TICKS);
+        notes.add("squad " + squad.id + " benched from structure work: no headway on ("
+                + held.targetCellX() + "," + held.targetCellY() + ") for " + (tick - seen[3]) + " ticks, best "
+                + seen[2] + " cells");
+        return true;
+    }
+
+    /**
+     * Whether the squad belongs to a group a named officer leads, whose members the group keeps together on one task.
+     * A squad of an acting NCO is a group of itself alone, so there is no group task for detaching it to break, and
+     * structure work may take it like any other lane squad.
+     */
+    private static boolean inNamedGroup(PlanningSquad squad) {
+        return squad.commandGroup != null && squad.commandGroup.namedOfficer();
     }
 
     @Override
@@ -1091,6 +1154,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             float bestDist = Float.MAX_VALUE;
             for (PlanningSquad squad : squads) {
                 if (committed.contains(squad.id)) continue;
+                if (DefenceStructureTactics.isTask(squad.assignedObjective, frame.facts().structures())) continue;
                 boolean actionable = actionableFrontSquads.contains(squad.id);
                 if (actionable
                         && actionableRemaining <= MIN_FRONT_RESERVE_SQUADS) {
