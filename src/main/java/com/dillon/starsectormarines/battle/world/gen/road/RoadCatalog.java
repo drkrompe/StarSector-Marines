@@ -16,7 +16,8 @@ public final class RoadCatalog {
     public static final String JUNCTION = "data/world/roads/junction.road.json";
     public static final String LAST_LIFT = "data/world/roads/last-lift.road.json";
     public static final String RELAY_NINE = "data/world/roads/relay-nine.road.json";
-    public static final List<String> BUILTINS = List.of(THUNDER_RUN, RELIEF, COUNTERATTACK, JUNCTION, LAST_LIFT, RELAY_NINE);
+    public static final String SHEPHERD_BASIN = "data/world/roads/shepherd-basin.road.json";
+    public static final List<String> BUILTINS = List.of(THUNDER_RUN, RELIEF, COUNTERATTACK, JUNCTION, LAST_LIFT, RELAY_NINE, SHEPHERD_BASIN);
     private static volatile Map<String, RoadPlan> plans = Map.of();
     private RoadCatalog() {}
     @FunctionalInterface public interface Source { JSONObject read(String path) throws Exception; }
@@ -45,6 +46,7 @@ public final class RoadCatalog {
             case JUNCTION -> new int[]{192,112};
             case LAST_LIFT -> new int[]{192,128};
             case RELAY_NINE -> new int[]{208,128};
+            case SHEPHERD_BASIN -> new int[]{304,176};
             default -> throw new IllegalArgumentException("Unknown mission road plan: " + path);
         };
         if (plan.width() != size[0] || plan.height() != size[1])
