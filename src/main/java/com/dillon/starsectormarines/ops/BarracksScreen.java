@@ -159,7 +159,7 @@ public final class BarracksScreen implements Screen {
                 viewModel.command()::showOverview,
                 () -> context.openCompanyArmoryFrom(ScreenId.BARRACKS),
                 () -> context.goTo(ScreenId.MECH_LAB),
-                () -> context.goTo(ScreenId.BOAT_DECK));
+                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
         return props;
     }
 

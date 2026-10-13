@@ -30,7 +30,8 @@ public record MarineSeatCommitment(
         boolean campaignSquadLeader,
         int campaignSquadStrength,
         int campaignFireTeamIndex,
-        CommandGroupIdentity commandGroupIdentity) {
+        CommandGroupIdentity commandGroupIdentity,
+        float moraleRecoveryMultiplier) {
 
     public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
             EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
@@ -47,12 +48,26 @@ public record MarineSeatCommitment(
                         ? CommandGroupIdentity.actingNco(campaignSquadId, campaignSquadLabel) : null);
     }
 
+    public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, LayeredArmorFamily armorFamily,
+            float armorCapacity, float armorRating, float armorMoveSpeedMult,
+            float armorIncomingAccuracyMult, String campaignSquadId,
+            String campaignSquadLabel, boolean campaignSquadLeader,
+            int campaignSquadStrength, int campaignFireTeamIndex, CommandGroupIdentity commandGroupIdentity) {
+        this(campaignSoldierId, primaryWeaponId, equipmentGrade, soldierProfile, specialEquipmentId,
+                armorFamily, armorCapacity, armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult,
+                campaignSquadId, campaignSquadLabel, campaignSquadLeader, campaignSquadStrength,
+                campaignFireTeamIndex, commandGroupIdentity, 1f);
+    }
+
     public MarineSeatCommitment {
         if (primaryWeaponId == null || primaryWeaponId.isBlank()) {
             throw new IllegalArgumentException("A primary weapon id is required");
         }
         equipmentGrade = Objects.requireNonNull(equipmentGrade, "equipmentGrade");
         soldierProfile = Objects.requireNonNull(soldierProfile, "soldierProfile");
+        requireFinitePositive(moraleRecoveryMultiplier, "moraleRecoveryMultiplier");
         requireFiniteNonNegative(armorCapacity, "armorCapacity");
         requireFiniteNonNegative(armorRating, "armorRating");
         requireFinitePositive(armorMoveSpeedMult, "armorMoveSpeedMult");
@@ -106,7 +121,8 @@ public record MarineSeatCommitment(
                 squad != null && squad.leader,
                 squad != null ? squad.strength : 0,
                 squad != null ? squad.fireTeamIndex : Squad.NO_FIRE_TEAM,
-                squad != null ? squad.commandGroupIdentity : null);
+                squad != null ? squad.commandGroupIdentity : null,
+                squad != null ? squad.moraleRecoveryMultiplier : 1f);
     }
 
     /**
@@ -117,7 +133,7 @@ public record MarineSeatCommitment(
     public MarineLoadout toLoadout() {
         CampaignSquadTag squad = campaignSquadId != null
                 ? new CampaignSquadTag(campaignSquadId, campaignSquadLabel,
-                campaignSquadLeader, campaignSquadStrength, campaignFireTeamIndex, commandGroupIdentity)
+                campaignSquadLeader, campaignSquadStrength, campaignFireTeamIndex, commandGroupIdentity, moraleRecoveryMultiplier)
                 : null;
         return MarineLoadout.fromCatalog(
                 UnitRole.COMBATANT,

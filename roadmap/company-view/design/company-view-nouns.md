@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- room-condition restoration and persistent unread room opportunities.
+Updated: 2026-10-12 — Engineering navigation, mess welfare restoration and persistent unread room opportunities.
 
 ## Purpose
 
@@ -1244,7 +1244,9 @@ and commits use the same current installed-tool quote. A company that changes
 ships receives the new home's benefits, never a discount left over from an old
 screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
-**Walk the Ship** is also the room-condition survey. Selecting a compartment on
+**Engineering** is the persistent ship-condition navigation tab, reached from
+every company room and Armory subview. It contains the former Walk the Ship
+room-condition survey. Selecting a compartment on
 the actual deck or its list entry focuses that room and shows Castle's portrait,
 a condition blurb, its working benefit and any next repair. Sealed structural
 rooms are distinct from accessible damaged rooms and usable rooms on faulty
@@ -1256,6 +1258,21 @@ Depot**, the second story mission. Completion supplies restoration of the single
 mech gantry with Wayward's recovery, so the first-mech fitting lesson opens into
 a working bay without another bill. The completed chapter is the durable repair
 fact, including on older saves. Ordinary ships are unaffected.
+
+The original hull's mess hall starts sealed. Field rations in working quarters
+keep the first mission available. A 2,500-credit yard order after Relief restores
+its pressure skin, galley and tables, crew meal routines, and a company welfare
+benefit: infantry morale recovers 25% faster once the normal incoming-fire delay
+has elapsed. Morale still starts full, retains casualty ceilings and break/clear
+thresholds, and has no additional food upkeep. Castle explains both the temporary
+arrangement and the exact benefit beside her portrait in Engineering.
+
+The benefit belongs to the active converted original company home and freezes
+with the selected personnel at launch. Later shuttle trips and split landings
+retain it; allies, enemies, mechs and detached debug companies receive none.
+Changing homes affects future deployments, not battles already underway. Other
+hulls remain on their existing baseline. Hull welfare is distinct from officer
+specialties, wound recovery and a future persistent company morale economy.
 
 Two spare company bunkrooms start sealed, leaving 36 of the converted hull's
 54 billets usable. A 4,000-credit yard order after Relief restores both rooms and

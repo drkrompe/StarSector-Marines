@@ -3162,9 +3162,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("survey", model.row());
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
-        props.put("roomTitle", "SECOND WIND / WALK THE SHIP");
+        props.put("roomTitle", "SECOND WIND / ENGINEERING");
         props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "COMPANY SHIP / CONDITION");
+        props.put("contextLabel", "SHIP SERVICES");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 purpose -> ship.has(purpose) ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO,
                 () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});

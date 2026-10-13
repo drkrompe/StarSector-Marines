@@ -28,6 +28,7 @@ public final class ShipConditionStage implements GenStage {
     }
     public static boolean sealed(DeckGraph graph, DeckGraph.Compartment room, ShipRestoration state) {
         return state.applies() && (room.purpose() == RoomPurpose.VEHICLE_BAY && !state.mechBay()
+                || room.purpose() == RoomPurpose.MESS_HALL && !state.messHall()
                 || !state.billets() && spareBillets(graph).contains(room));
     }
     @Override public void run(GenContext ctx) {
@@ -43,7 +44,7 @@ public final class ShipConditionStage implements GenStage {
                     && room.purpose() != RoomPurpose.HANGAR && room.purpose() != RoomPurpose.PARTS_CAGE
                     && (room.id() % 3 != 0 || room.purpose() == RoomPurpose.ENGINE_ROOM)) faults.add(room.id());
             if (!sealed(graph, room, state)) {
-                if (room.purpose() == RoomPurpose.VEHICLE_BAY || spareBillets(graph).contains(room))
+                if (room.purpose() == RoomPurpose.VEHICLE_BAY || room.purpose() == RoomPurpose.MESS_HALL || spareBillets(graph).contains(room))
                     WorkshopConditionStage.overlay(ctx, room, new RoomFloor(ctx, room, RoomFit.STANDARD), room.purpose() == RoomPurpose.VEHICLE_BAY ? 5 : 1,
                             room.purpose() == RoomPurpose.VEHICLE_BAY ? 5 : 1, "patch", true, false);
                 continue;
@@ -60,6 +61,11 @@ public final class ShipConditionStage implements GenStage {
             if (room.purpose() == RoomPurpose.VEHICLE_BAY) {
                 WorkshopConditionStage.overlay(ctx, room, floor, 10, 1, "mill", false, true);
                 WorkshopConditionStage.overlay(ctx, room, floor, 9, 1, "collapse", false, true);
+            }
+            if (room.purpose() == RoomPurpose.MESS_HALL) {
+                WorkshopConditionStage.overlay(ctx, room, floor, 12, 3, "scorch", true, true);
+                WorkshopConditionStage.overlay(ctx, room, floor, 13, 6, "collapse", false, true);
+                WorkshopConditionStage.overlay(ctx, room, floor, 7, 7, "collapse", false, false);
             }
             SealedShipHatches.seal(ctx, room);
         }

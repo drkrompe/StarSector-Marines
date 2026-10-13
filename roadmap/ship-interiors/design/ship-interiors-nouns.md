@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 -- sealed spare billets, mission-two Mech Lab and independent distribution faults.
+Updated: 2026-10-12 — sealed mess hall and Engineering survey alongside reserved facilities and distribution faults.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1542,8 +1542,8 @@ its lights with its other facilities. Room masks confine the shading; space and
 management controls retain their own appearance. Lighting follows the shared
 deck clock across views, and has no combat visibility or simulation effect.
 
-The starting hull's converted Mech Lab and two spare troop bunkrooms are also
-sealed wrecks. Their permanent compartments carry breached plating, collapsed
+The starting hull's converted Mech Lab, mess hall and two spare troop bunkrooms
+are also sealed wrecks. Their permanent compartments carry breached plating, collapsed
 structure and broken fittings; their floors, work stations and gantries are out
 of service. Three or more troop bunkrooms remain available for the opening force.
 Restoration returns the original furniture, pressure-safe access and capacities,
@@ -1553,7 +1553,7 @@ and berth capacity. Removing a gantry rebinds all surviving work-station berth
 references, so the first shuttle keeps its own servicing crew.
 
 Campaign owns the milestones: mission two restores the Mech Lab with the first
-Hound's recovery, while spare billets and distribution repairs are explicit yard
+Hound's recovery, while the mess, spare billets and distribution repairs are explicit yard
 orders after mission one. The room program, placement RNG and compartment
 footprints never change because those repairs were completed.
 
@@ -1567,7 +1567,10 @@ Condition is applied after the whole room is furnished, preserving placement and
 other rooms' random sequence. Every view and cached deck includes the same saved
 condition. Restoring the shop leaves the Mech Lab, both boat bays, passage plan
 and all compartment footprints in place. Installed machinery and tools stay with
-the hull. Ship interiors publishes these physical facts; campaign restoration
+the hull. The mess publishes no meal capacity or crew work while sealed; restoring it
+reinstates its ordinary tables and galley without moving the room. Engineering
+presents its physical condition and the campaign-owned welfare benefit described
+in `company-view-nouns.md`. Ship interiors publishes these physical facts; campaign restoration
 owns orders and rewards, and workshop transactions consume their enabled benefits.
 Future bunkroom, infirmary, galley and stores chains use this same distinction
 between the reserved space, its condition and its installed equipment. Their

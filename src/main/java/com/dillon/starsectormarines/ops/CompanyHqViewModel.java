@@ -152,7 +152,7 @@ final class CompanyHqViewModel {
         props.put("shipViewAction", openShipView);
         props.put("shipView", shipView);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
-                () -> { }, openBarracks, openArmory, openMechLab, openBoatDeck);
+                () -> { }, openBarracks, openArmory, openMechLab, openBoatDeck, openShipView);
         return new CompanyHqViewModel(props);
     }
 
@@ -213,7 +213,7 @@ final class CompanyHqViewModel {
 
     /** She is aboard-able, and the tile is an ordinary way in. */
     static ShipView shipViewReady() {
-        return new ShipView("WALK THE SHIP", "hq-ship-button",
+        return new ShipView("ENGINEERING", "hq-ship-button",
                 "label heading hq-ship-label", "hq-ship-track-idle", "width: 0%;");
     }
 

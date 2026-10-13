@@ -533,6 +533,7 @@ public final class BattleFixtureJson {
                 squad.put("leader", seat.campaignSquadLeader());
                 squad.put("strength", seat.campaignSquadStrength());
                 squad.put("fireTeamIndex", seat.campaignFireTeamIndex());
+                squad.put("moraleRecoveryMultiplier", seat.moraleRecoveryMultiplier());
                 CommandGroupIdentity identity = seat.commandGroupIdentity();
                 if (identity != null) {
                     JSONObject group = new JSONObject();
@@ -595,7 +596,8 @@ public final class BattleFixtureJson {
                     squad != null ? squad.getString("label") : null,
                     squad != null && squad.getBoolean("leader"),
                     squad != null ? squad.getInt("strength") : 0,
-                    squad != null ? squad.getInt("fireTeamIndex") : -1, identity));
+                    squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
+                    squad != null ? (float) squad.optDouble("moraleRecoveryMultiplier", 1d) : 1f));
         }
         return List.copyOf(seats);
     }

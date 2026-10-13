@@ -402,6 +402,9 @@ public final class Squad {
      * <p>Recomputed each tick by {@link SquadMoraleSystem#tick}.
      */
     public float morale = 1.0f;
+
+    /** Frozen at campaign squad landing; never reads the live company ship. */
+    public float moraleRecoveryMultiplier = 1f;
     /**
      * True when <em>every</em> live fire team has broken — a derived
      * aggregate over {@link FireTeamMorale#broken}, and the point at which

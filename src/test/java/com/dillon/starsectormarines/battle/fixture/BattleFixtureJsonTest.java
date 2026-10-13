@@ -69,15 +69,22 @@ class BattleFixtureJsonTest {
         assertEquals(base, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(base)));
     }
 
-    @Test void launchRoundTripPreservesOfficerSpecialtiesAndAlreadyModifiedArmor() throws Exception {
+    @Test void launchRoundTripPreservesOfficerSpecialtiesWelfareAndAlreadyModifiedArmor() throws Exception {
         var roster = new MarineRoster(); roster.bootstrapInitialComplement(12);
         var officer = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f); roster.add(officer);
         officer.train(OfficerSpecialty.TACTICAL_COVER); officer.train(OfficerSpecialty.RECOVERY_PLANNING);
         var ids = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
-        var deployment = CampaignMarineDeployment.freezeSelection(roster, ids, 12, officer);
+        var deployment = CampaignMarineDeployment.freezeSelection(roster, ids, 12, officer, 1.25f);
         var fixture = new BattleLaunchFixture(canonicalFixture(), new BattleLaunchOverlay(0,
                 deployment.commitments(), List.of(), List.of(), List.of(), 0));
         assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
+        assertEquals(1.25f, CampaignMarineDeployment.fromCommitments(deployment.commitments()).seat(0).campaignSquad.moraleRecoveryMultiplier);
+        var legacy = BattleFixtureJson.toJson(fixture);
+        var legacySeats = legacy.getJSONObject("launch").getJSONArray("marineSeats");
+        for (int i = 0; i < legacySeats.length(); i++) legacySeats.getJSONObject(i).getJSONObject("campaignSquad").remove("moraleRecoveryMultiplier");
+        var reloaded = (BattleLaunchFixture) BattleFixtureJson.fromJson(legacy);
+        assertTrue(reloaded.launch().marineSeats().stream().allMatch(seat -> seat.moraleRecoveryMultiplier() == 1f));
+        assertEquals(1f, CampaignMarineDeployment.freezeSelection(roster, ids, 12, officer).seat(0).campaignSquad.moraleRecoveryMultiplier);
         assertEquals(deployment.seat(0).armorIncomingAccuracyMult,
                 CampaignMarineDeployment.fromCommitments(deployment.commitments()).seat(0).armorIncomingAccuracyMult);
     }
