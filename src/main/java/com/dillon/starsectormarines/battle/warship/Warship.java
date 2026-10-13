@@ -1064,6 +1064,7 @@ public final class Warship {
     private MissionStance stance = MissionStance.HOLD;
     private boolean dangerClose;
     private float declaredThreat;
+    private ShipClass shipClass = ShipClass.DEFAULT;
     private float declaredThreatSeconds;
     private final List<float[]> focusPoints = new ArrayList<>();
     private final List<float[]> protectedGround = new ArrayList<>();
@@ -1235,6 +1236,11 @@ public final class Warship {
     public void clearAirThreat() {
         declaredThreat = 0f;
         declaredThreatSeconds = 0f;
+    }
+
+    /** What kind of hull this is, read at fit time; a combat capital when the hull had no data to read. */
+    public ShipClass shipClass() {
+        return shipClass;
     }
 
     public float declaredAirThreat() {
@@ -1418,9 +1424,15 @@ public final class Warship {
         float pivotY = c == null ? 0f : (h / 2f - (float) c.optDouble(1)) * k;
         Handling handling = handling(hullId);
         float[] toughness = toughness(hullId);
-        return new Warship(hullId, hull.optString("spriteName"), h * k, pivotX, pivotY,
+        Map<String, String> row = hullRow(hullId);
+        Warship ship = new Warship(hullId, hull.optString("spriteName"), h * k, pivotX, pivotY,
                 handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts,
-                fluxFigures(hullId), WarshipShield.read(hull, hullRow(hullId)));
+                fluxFigures(hullId), WarshipShield.read(hull, row));
+        if (row != null) {
+            ship.shipClass = ShipClass.classify(hull.optString("hullSize", null), row.get("designation"),
+                    row.get("hints"), row.get("fighter bays"), row.get("shield type"));
+        }
+        return ship;
     }
 
     /** The hull's row of the hull table, or {@code null} when it has none. */

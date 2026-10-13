@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class WarshipFittingTest {
 
     private static final String HULL = """
-            {"hullId":"test","spriteName":"graphics/ships/test.png",
+            {"hullId":"test","hullSize":"DESTROYER","spriteName":"graphics/ships/test.png",
              "weaponSlots":[
               {"id":"WS 001","type":"BUILT_IN","size":"LARGE","mount":"HARDPOINT","locations":[100,10],"angle":0,"arc":5},
               {"id":"WS 002","type":"BALLISTIC","size":"LARGE","mount":"TURRET","locations":[0,-50],"angle":-80,"arc":220},
@@ -46,6 +46,8 @@ class WarshipFittingTest {
 
             @Override public List<Map<String, String>> csv(String path) {
                 return List.of(
+                        Map.of("id", "test", "designation", "Light Carrier", "hints", "CARRIER",
+                                "fighter bays", "2", "shield type", "FRONT"),
                         Map.of("id", "tpc", "damage/shot", "250", "type", "ENERGY", "range", "1000",
                                 "burst size", "1", "chargedown", "0.2", "proj speed", "1000", "hints", "SYSTEM"),
                         Map.of("id", "devastator", "damage/shot", "150", "type", "HIGH_EXPLOSIVE",
@@ -80,6 +82,14 @@ class WarshipFittingTest {
         assertEquals("flak", ship.mounts().get(2).weapon.id());
         assertFalse(ship.mounts().get(1).pointDefence());
         assertTrue(ship.mounts().get(2).pointDefence());
+    }
+
+    @Test
+    void fittingReadsTheShipClassFromTheHullAndItsTableRow() throws Exception {
+        install();
+        Warship ship = Warship.fit("test", "test_Standard", Faction.MARINE, 10f, 10f, 0f);
+        assertEquals(new ShipClass(ShipClass.HullSize.DESTROYER, ShipClass.Role.CARRIER, 2, ShipClass.Shield.FRONT),
+                ship.shipClass());
     }
 
     @Test
