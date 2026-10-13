@@ -1,0 +1,47 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Open recovery skid containing metals. Field salvage pickup art only; battle ledger owns discovery and collection. Not ordinary storage scenery.",
+      "name": "doodad.field-salvage-metals",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Open recovery skid containing machinery. Field salvage pickup art only; battle ledger owns discovery and collection. Not ordinary storage scenery.",
+      "name": "doodad.field-salvage-machinery",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Open recovery skid containing supplies. Field salvage pickup art only; battle ledger owns discovery and collection. Not ordinary storage scenery.",
+      "name": "doodad.field-salvage-supplies",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "doodad.field-salvage-metals",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "doodad.field-salvage-machinery",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "doodad.field-salvage-supplies",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/field-salvage.png"
+}

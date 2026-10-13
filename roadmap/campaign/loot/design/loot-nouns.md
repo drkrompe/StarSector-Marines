@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — optional field caches feed full material finds into ordinary cargo settlement.
+Updated: 2026-10-13 — dedicated open recovery skids distinguish field finds from storage scenery.
 
 Campaign loot turns a victorious operation's already-negotiated salvage right
 into one visible choice: which recovered items to claim, carry, or fence. It
@@ -44,6 +44,11 @@ with unobstructed walking reach, for five uninterrupted seconds to secure it.
 Aircraft, mechs, allies and sight alone cannot collect it. Nearby hostile
 combatants with line of fire contest recovery; leaving, losing visibility or
 being contested resets progress. Securing is terminal and cannot award twice.
+
+Pickup art uses open recovery skids with amber lifting rails and exposed metal,
+machinery or supply bundles. This shared silhouette is reserved for collectible
+finds; ordinary storage crates remain scenery. The artwork supplies no cover,
+collision or reward authority, and the existing marker reports recovery state.
 
 Current bundles are 40 metals, 8 heavy machinery, and 12 supplies. The battle
 owns only identities, quantities and recovery state. Resolution freezes secured
