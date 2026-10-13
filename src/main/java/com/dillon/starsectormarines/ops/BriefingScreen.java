@@ -674,6 +674,10 @@ public class BriefingScreen implements Screen {
                     mission.standoff != null ? mission.standoff.name() : "default",
                     false, false,
                     () -> cycleDebugStandoff(-1), () -> cycleDebugStandoff(1)));
+            controls.add(conquestControl("debug-map-defences", "Ground defences",
+                    mission.defences != null ? mission.defences.name() : "market",
+                    false, false,
+                    () -> cycleDebugDefences(-1), () -> cycleDebugDefences(1)));
             controls.add(conquestControl("debug-map-landing", "Landing place",
                     mission.landing != null ? mission.landing.name() : "derived",
                     false, false,
@@ -818,6 +822,20 @@ public class BriefingScreen implements Screen {
         int current = mission.landing != null ? mission.landing.ordinal() + 1 : 0;
         int next = Math.floorMod(current + step, values.length + 1);
         Mission adjusted = DebugMissionDifficulty.atLanding(mission,
+                next == 0 ? null : values[next - 1]);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    /** Steps the DEBUG briefing through the market's own answer and the stated ground defences. */
+    private void cycleDebugDefences(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        DebugDefences[] values = DebugDefences.values();
+        int current = mission.defences != null ? mission.defences.ordinal() + 1 : 0;
+        int next = Math.floorMod(current + step, values.length + 1);
+        Mission adjusted = DebugMissionDifficulty.atDefences(mission,
                 next == 0 ? null : values[next - 1]);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);

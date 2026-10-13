@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — the Wayline depot awards a repaired light walker once and supplies its later mission lift.
+Updated: 2026-10-12 — Second Wind's repaired physical berths bound chassis fabrication below the four-mech lance ceiling.
 
 ## Purpose
 
@@ -443,6 +443,12 @@ determines the payload, not the entitlement to call it.
 The Wayline depot chapter introduces a recovered Hound named Wayward, fitted
 with a nose chaingun and empty missile mounts. It is a normal owned chassis
 after victory, including when Wayline must recover and repair its wreck.
+On Second Wind, this recovery also makes the reserved Mech Lab accessible and
+restores its first berth. The other three gantries require separate paid repairs
+owned by company campaign restoration; `company-view-nouns.md` owns those orders.
+Mech fabrication consumes only working physical capacity, rechecked before a
+material debit. Restoring a berth grants no chassis or component, and a smaller
+working bay never deletes an already-owned mech.
 The transfer is once-only and adds its installed parts to owned inventory.
 The award also supplies one loose SRM-5 and Castle's optional, text-only gantry
 induction. Return from debrief (including salvage settlement) leads to the lab.

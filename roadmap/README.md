@@ -167,6 +167,9 @@ owns its hull program, working fixtures and saved condition. Second Wind's
 restoration begins with the reserved second bay and the staged machine shop in
 `machine-shop-restoration.md`: clearing, machinery repairs and installed tooling.
 Wider capacity upgrades and hostile boarding decks remain separate open work.
+Second Wind's reserved Mech Lab supports one four-mech lance within the existing
+hull: Wayward's recovery restores the first berth, with three paid berth repairs
+in Engineering. `ship-condition-survey.md` retains the live acceptance.
 
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's

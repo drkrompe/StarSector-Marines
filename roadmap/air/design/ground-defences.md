@@ -1,8 +1,10 @@
 # Ground defences — fortresses that hold the sky
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-14
+
+Updated: 2026-10-14 — slices 1 and 2 built (profile signals; multi-cell structures); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
@@ -28,10 +30,12 @@ The market's own industries name them, and each does a different job:
 | Heavy Batteries | armoured subsurface batteries; no captain would get within their firing envelopes | **Fortress battery**: a few large structures carrying ship-grade guns whose envelope a ship must respect. The barrier. |
 | Planetary Shield | a plasma envelope that disrupts long-range bombardment | **Shield generator**: a structure projecting a dome with its own flux pool that soaks ship-grade ordnance landing inside it until it overloads. |
 
-So the target profile needs three signals rather than one `defenseLevel` number: whether
-the market has ground defences, heavy batteries, and a planetary shield. The two
-command-power stories already ask for the battery and shield signals; this is the same
-boundary change, made once.
+So the target profile carries three signals rather than one `defenseLevel` number:
+whether the market has ground defences, heavy batteries, and a planetary shield. They are
+inputs a mission may read when it decides what its map carries, not the decision itself;
+any mission may also declare its defences directly. The two command-power stories
+already ask for the battery and shield signals; this is the same boundary change, made
+once.
 
 ## Fortress battery
 
@@ -69,9 +73,8 @@ boundary change, made once.
   to overload it and land rounds in the gap, or send marines to take or wreck the
   generator (the relay of `shielded-fire-support-zones.md` is this structure).
 - **Vanilla figures.** Vanilla gives the planetary shield no combat numbers, so the
-  dome's capacity and dissipation are authored, sized against a capital's sustained
-  output so that one ship alone overloads it slowly and two ships quickly. This is the
-  one place the law's "numbers from vanilla" has nothing to read.
+  dome's capacity and dissipation are authored starting figures, tuned in play. This is
+  the one place the law's "numbers from vanilla" has nothing to read.
 
 ## Defence nests
 
@@ -92,35 +95,50 @@ The fun is a combined-arms loop that the battle does not have yet:
 3. The ship's job is to cover that assault from outside the envelopes, then move in
    once they are down, and finish what its guns are for.
 
-It also gives the hostile capital's counters a ground half: a company defending a world
-with its own batteries has an answer to an enemy ship that is not another ship.
+It works the same in either direction: whichever side holds the world has the batteries
+and the generator, so a company fighting on its own side's world has an answer to an enemy
+capital that is not another ship.
 
 ## Slices
 
-1. **Profile signals**: ground defences, heavy batteries and planetary shield on the
-   target profile, read once from the market (shared with both command-power stories).
-2. **Multi-cell structures**: the turret catalog takes footprints larger than one cell
-   (today every structure is 1x1 by validation), with art for a battery and a generator.
+1. **Profile signals** (built): ground defences, heavy batteries and planetary shield on
+   the target profile, read once from the market (shared with both command-power
+   stories), as inputs to mission design. As built: three booleans on `TargetProfile`,
+   read in `TargetProfileResolver` (ground defences is true for Ground Defenses *or* its
+   Heavy Batteries upgrade, which keeps the network), carried through fixture JSON, and
+   restatable by a mission (`Mission.defences`, the DEBUG "Ground defences" dial on
+   Conquest). Nothing in map generation reads them yet. `DetachmentResolver.planetHasHeavyArmaments`
+   is left as it is: it also counts heavy industry, so it is not the same question.
+2. **Multi-cell structures** (built, art outstanding): the turret catalog takes odd
+   footprints larger than one cell, centred on the anchor cell. As built: `StructureDef`
+   validates odd positive `footprintCells`; `StructureFootprint` owns placement validity
+   and sealing; `BattleSimulation.spawn` seals a multi-cell structure's footprint and
+   `TurretDemolitionSystem` opens it as rubble on death; the body radius is the authored
+   `radius` circle; the ground pad is drawn at the full footprint. One-cell structures
+   are unchanged, and defence-post layouts still require one-cell turrets.
+   `structure.fortress-battery-placeholder` (3x3, heavy-mortar mount) is a stand-in for
+   slice 3. Battery and generator art is still to do: the mount sprite is drawn at its own
+   `visualCells`, not the footprint.
 3. **Fortress battery**: placement in the fortress ward, vanilla station-module guns,
    ground-to-air aim at a hull in the envelope, the envelope registered as a capital
    hazard, fire control and its capture rules, and the Orbital Barrage lock.
 4. **Shield generator**: the dome, its pool and overload, absorption of ship-grade
    ordnance and barrage, the dome's look, and its capture rules.
-5. **Defence nests**: the profile signal sizing the dispersed posts; anti-air already
-   exists.
+5. **Defence nests**: the dispersed posts, sized by the mission; anti-air already exists.
 
-## Open questions for the owner
+## Decided
 
-1. **Can a ship destroy a battery alone?** The draft says yes, slowly and at real cost,
-   because the battery fights at ship balance. The alternative is that only marines can
-   silence one, which makes the ground assault mandatory.
-2. **Does the dome stop the company's own ship from firing out, or only hostile fire
-   coming in?** The draft says it stops hostile fire coming in; its own side's ship and
-   batteries fire out freely.
-3. **Should a defending company ever get a battery or generator of its own** (relief,
-   counterattack, garrison missions on a world it holds)? The draft says yes, through the
-   same profile signal, which makes them a counter to hostile capitals.
-4. **How rare are they?** Heavy Batteries and a Planetary Shield are late, expensive
-   industries in vanilla, which matches hostile capitals being a late-campaign threat.
-   The draft keeps the vanilla rarity rather than adding batteries to every defended
-   world.
+- **Either side may have them.** There is nothing special about attacker or defender: a
+  battery or generator belongs to whoever holds the world, and a company fighting on a
+  world its side holds has them exactly as an enemy garrison would. Every rule here is
+  written for "its side" and "hostile", never for marines or defenders.
+- **The dome stops incoming hostile fire only.** Its own side fires out freely, as every
+  shield already behaves.
+- **Balance is gameplay's to decide.** Whether a ship can grind a battery down alone, how
+  big a dome's pool is, how far an envelope reaches: these are tuned in play, not settled
+  here. The structure's figures start from vanilla's where vanilla has them.
+- **How often a battle has them is a mission design question,** in the campaign and in
+  ordinary battles alike, and its numbers come from play and balancing. A mission
+  decides what defences its map carries (a Conquest map would likely have batteries); the
+  market's industries are one input a campaign mission may read, not the rule. This doc
+  defines what the structures are, not how many there are.

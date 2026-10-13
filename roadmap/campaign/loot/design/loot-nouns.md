@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — added the objective-conditioned installation-recovery extension boundary.
+Updated: 2026-10-12 — optional field caches feed full material finds into ordinary cargo settlement.
 
 Campaign loot turns a victorious operation's already-negotiated salvage right
 into one visible choice: which recovered items to claim, carry, or fence. It
@@ -21,12 +21,50 @@ recovery modifiers; later UI or fleet changes cannot rewrite that decision.
 A **recovery manifest** is the deterministic, immutable pool generated from
 those frozen facts. Its total value is the haul that exists; its **selection
 budget** is the entitlement's share of that haul. The player claims complete
-stacks within the budget. A manifest is a session-local recovery record, not a
+negotiated stacks within the budget; secured field finds cost no claim budget.
+A manifest is a session-local recovery record, not a
 new source of truth for mission or cargo state.
 
 Determinism protects the decision: canonical candidate ordering plus the frozen
 request means reopening the picker cannot reroll a different haul. Mutable
 selection intentionally remains separate from the immutable manifest.
+
+## Optional field caches
+
+A **field cache** is a finite exploration pickup, separate from arbitrary scenery
+or employer stock. Battle launch places up to three caches on existing clear,
+reachable ground away from landing zones and tactical centers. Placement uses
+its own seeded random stream, never carves terrain, and permits fewer caches
+when legal sites are scarce. These are optional detours, not objectives or
+automatic commander assignments.
+
+An unknown cache remains hidden by the player's actual fog of war. Discovery
+leaves a remembered marker. Company infantry must remain within three cells,
+with unobstructed walking reach, for five uninterrupted seconds to secure it.
+Aircraft, mechs, allies and sight alone cannot collect it. Nearby hostile
+combatants with line of fire contest recovery; leaving, losing visibility or
+being contested resets progress. Securing is terminal and cannot award twice.
+
+Current bundles are 40 metals, 8 heavy machinery, and 12 supplies. The battle
+owns only identities, quantities and recovery state. Resolution freezes secured
+finds into the outcome; victory permits their claim, defeat/withdrawal leaves
+them behind, and debug missions never grant campaign cargo. Secured means tagged
+for post-victory recovery, not physically carried by a soldier or an extraction
+shuttle. These materials are campaign commodities, not battlefield ammunition.
+
+Field finds enter the existing manifest preselected, retaining their real value
+and cargo footprint but costing zero contract claim budget. They neither raise
+the negotiated budget nor refund budget when deselected. The normal capacity
+preview, overflow fencing and exactly-once settlement apply, even when contract
+entitlement is zero. The commodity catalog remains the authority for prices,
+icons and cargo use. Equipment caches are a future, explicitly gated content
+extension; current caches contain only these three materials.
+
+`createSnapshots -Psnapshot=field-salvage` checks placement on the two opening
+mission factories and Thunder Run geometry, then records controlled discovery,
+collection, contest and secured states plus the real salvage row projection at
+1920x1080, 100% scale. This is bounded interaction evidence, not a full campaign
+playthrough or economy balance verdict.
 
 ## Recovery catalog
 

@@ -1,0 +1,150 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 32,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "doodad.basin-scrap-plate-stack",
+      "included": true,
+      "note": "Inert salvaged ship plate-stack. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        8,
+        8
+      ],
+      "id": "doodad.basin-scrap-hull-shell",
+      "included": true,
+      "note": "Inert salvaged ship hull-shell. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        32,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        7,
+        7
+      ],
+      "id": "doodad.basin-scrap-drive-section",
+      "included": true,
+      "note": "Inert salvaged ship drive-section. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        64,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        10,
+        10
+      ],
+      "id": "doodad.basin-scrap-shattered-hull",
+      "included": true,
+      "note": "Inert salvaged ship shattered-hull. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        32,
+        32,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        7,
+        7
+      ],
+      "id": "doodad.basin-scrap-engine-break",
+      "included": true,
+      "note": "Inert salvaged ship engine-break. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        64,
+        64,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "id": "doodad.basin-scrap-rib-section",
+      "included": true,
+      "note": "Inert salvaged ship rib-section. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        0,
+        96,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "doodad.basin-scrap-intake-section",
+      "included": true,
+      "note": "Inert salvaged ship intake-section. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        32,
+        96,
+        32,
+        32
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "cover": "heavy",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "id": "doodad.basin-scrap-wreck-frame",
+      "included": true,
+      "note": "Inert salvaged ship wreck-frame. Ground placement reserves the full footprint; no ship recovery reward.",
+      "rect": [
+        96,
+        96,
+        32,
+        32
+      ]
+    }
+  ],
+  "gridCols": 4,
+  "gridRows": 4,
+  "idPrefix": "doodad.basin-scrap",
+  "note": "Unmodified vanilla Starsector 0.98a-RC8 graphics/debris/debris_sheet0.png. Measured 128x128 alpha sheet, sixteen separated pieces at thresholds 16 through 160; authored 4x4 cells at 32px pitch. Eight full source cells are retained as torn hull, drive and rib scenery for Asharu shipbreaking bays and fresh impact sites. Original low-resolution art is deliberately reused; footprint defines ground scale, not a recoverable hull. No existing sheet or mappings replaced.",
+  "outputSheet": "graphics/tilesets/basin-ship-scrap.png",
+  "sheet": "art-source/tilesets/basin-ship-scrap.raw.png",
+  "sheetName": "basin-ship-scrap"
+}

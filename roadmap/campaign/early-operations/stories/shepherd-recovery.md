@@ -4,7 +4,7 @@ Status: IN PROGRESS — employer, mission briefs and authored map visits; battle
 
 Written: 2026-10-12
 
-Updated: 2026-10-12
+Updated: 2026-10-12 — Salvage Rights and Cold Start take place at night, with authored emergency and yard-power circuits.
 
 ## Placement and employer
 
@@ -23,11 +23,30 @@ her crews exposed. She can arrange permission for this recovery operation; she
 does not speak for Asharu's government or the Independent faction as a whole.
 The cooperative, Vale, basin and ship are mod-authored local fiction.
 
-The Shepherd **Morrow** made a forced landing at an abandoned receiving cradle.
+The basin was a working **shipbreaking and reclamation yard** before the fighting.
+Sorted hull sections, cutting beds, machinery stores and a rear haul loop made
+it a place where damaged ships became useful parts. Recent fighting overhead
+scattered fresh wreckage across those older work sites. Torn sections and shallow
+impact trails interrupt the organized stock; they are not more recoverable ships.
+The overhead engagement is mod-authored local history, not a named vanilla battle
+or a claim that the player's campaign simulation caused it.
+
+The Shepherd **Morrow** was the cooperative's working salvage tender. Caught in
+that fighting, its crew brought the damaged ship back down to its own receiving
+cradle. It made a controlled emergency landing, not an intact fall from orbit.
 Its workshop survived, but flight controls, power distribution and drone servicing
-need work. Opportunistic raiders now occupy the workshop and strip machinery from
-the route. They are local scavengers exploiting the gap, not another secret arm
-of Sable Wake. There is no capital-ship rescue waiting offscreen.
+need work. The crew shut down the damaged systems and evacuated through the
+receiving apron. Surviving crew members return with Vale's repair party; recovering
+the ship is not a search for people sealed inside it. The exact original complement
+and casualty count are not yet authored and must not be invented by dialogue.
+
+Armed **scrappers** moved in after the evacuation and began stripping machinery
+from the yard and route. The familiar salvage livelihood is shared with Vale's
+legitimate crews; the opposition is this armed outfit occupying her claimed yard,
+not all scavengers or the Independent faction. Their presence reads through
+cutting stations, parked collection vehicles and removed components rather than
+another generic military base. They are opportunists exploiting the gap, not
+another secret arm of Sable Wake. There is no capital-ship rescue waiting offscreen.
 
 The cooperative already holds the hull's recovery claim. Castle negotiates its
 transfer as payment in kind for completing all three operations: the cooperative
@@ -47,12 +66,31 @@ being gifted another escalation in firepower.
 visits. Its production roads and terrain are editable catalog plans. Asharu uses
 the actual world's captured palette at campaign launch; the review uses ARID.
 
+**Salvage Rights and Cold Start are night operations.** Low ambient light retains
+terrain readability. Portable apron and workshop lamps, isolated scrap-yard work
+lights and Morrow's warm emergency lamps break up the darkness. They are authored
+site fixtures, not automatic lamps on every building wall. Cold Start begins on
+those surviving circuits; restoring pump power should visibly restore the broader
+yard floodlights without changing the time of day. Working Passage is the following
+day's departure. Environmental lighting is presentation, not a new stealth rule:
+it does not change either side's sight, targeting or navigation.
+
 The west receiving apron contains four elongated berths on connected concrete,
 with clear western approaches. The worn road curls around the recovery cradle,
 past the pump bend, through the eastern narrows and into a climb-out yard. Northern
 cliffs and southern spurs explain the bends without making a single corridor for
 infantry. A secondary service loop passes behind the wreck and workshop. Southern
 haul and eastern quarry roads provide legible enemy approaches from beyond view.
+
+The northern salvage racks face the rear service road, with working aisles
+between torn hull and drive sections. Southern cutting beds feed the receiving
+yard. Fresh wreck fragments lie along diagonal impact trails east of the cradle
+and below the machine store, outside the road and suggested construction plots.
+Scraped concrete and failed shore equipment lead into Morrow's cradle; medical
+supplies and an abandoned muster point sit beside the receiving store. These
+signs persist between visits, including after the ship leaves. Larger wreck
+sections are ordinary solid scenery with cover; surface scars alone are shallow
+visual damage, not a hidden movement blocker or extra salvage economy.
 
 Varied workshop, depot and dispatch stamps have actual doors and usable interiors.
 Parked haulers, spare machinery and cargo sit in working yards, outside circulation.
@@ -76,8 +114,10 @@ map slice does **not** animate repairs or claim that the final ship already move
 **Promise:** take a useful wreck, not a pile of loot. Teach clearing the ground
 around an asset and handing a secured position to allied holders.
 
-**Briefing — Vale:** “Morrow is the Shepherd in the receiving cradle. The engines
-are cold; the workshop is not a total loss. Clear the receiving stores, get my
+**Briefing — Vale:** “Those marked rows were our stock before the shooting started
+overhead. The scattered pieces came later. Morrow's crew got her back to the
+cradle and got out. Then the scrappers moved in. The engines are cold; the workshop
+is not a total loss. Clear the receiving stores, get my
 people into the repair shop, and hold the hull access while they inspect it. The
 road to the pumps is still occupied. We are recovering a ship, not conquering the
 basin in an afternoon.”
@@ -102,13 +142,22 @@ Beat order:
 **Vale:** “When it flies. I need the pump road open before either of us owns a
    working future.”
 
+**Vale, first sight of the hull:** “Her crew put her down there with half the
+controls dead. Some of them are on the repair team. They know what can be saved.”
+
+**Castle:** “Then we keep the cutters away from her until they get a look.”
+
+These are proposed text beats for the future battle host; no recordings or
+sighting triggers are implemented by map dressing.
+
 ## 2 — Cold Start
 
 **Promise:** restore the tool under pressure. Teach defending a work site and
 covering fragile builders; avoid an idle repair countdown.
 
 **Briefing — Vale:** “Our replacement distribution rig is at the receiving apron.
-Escort it to the workshop, then reconnect the pump station. We can wake the drone
+Morrow's surviving hands will meet it at their old workshop. Escort it there,
+then reconnect the pump station. We can wake the drone
 bay on shore power. I will not send repair crews into a running firefight. Give
 them room to work, and we can put the first gun on the road before the raiders
 come back in strength.”
@@ -120,6 +169,9 @@ Beat order:
 2. Clear and hold the pump station while an engineer connects power. Raiders
    approach in small finite detachments from the south road and eastern quarry.
    Trigger them from escort progress and power work, not a long fixed silence.
+   Successful connection restores the yard-light circuit around the pumps and
+   cradle; emergency lights remain on throughout. The authored powered review is
+   a lighting-state preview until this chapter's repair sequence is implemented.
 3. The first builder deployment uses the real Tender construction path, limited
    to the grounded ship's safe working reach. A suggested gun position protects
    the cradle approach. Contact interrupts unsafe work under ordinary tender rules;
@@ -166,6 +218,10 @@ Beat order:
 
 **Vale:** “The corridor is ours again. Keep her working, Castle. That is what
    those ships were built for.”
+
+The transfer includes an explicit berth offer to willing surviving Morrow crew,
+not ownership of people or an automatic new marine squad. Fleet crew accounting
+and any named engineer handoff must be resolved with the campaign reward.
 
 ## Battle and campaign acceptance still to implement
 

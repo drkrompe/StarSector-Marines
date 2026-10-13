@@ -21,7 +21,9 @@ The first two stories are sequenced and the second depends on the first.
 | `boarding-deck-missions.md` | PARKED | Generate hostile prize decks for boarding once a mission model owns objectives and extraction. |
 
 `cerberus-company-start.md` implements the optional permanent frigate conversion and
-compact single-gantry room program; its company-view story owns live acceptance.
+compact conversion room program; its company-view story owns live acceptance.
+Second Wind's original hull reserves a larger four-berth bay within its existing
+envelope; `ship-condition-survey.md` owns the Hound recovery and paid berth repairs.
 
 `machine-shop-restoration.md` owns the first staged facility restoration in the
 company-view board: clearance, machinery repair and installed tooling. Its spaces

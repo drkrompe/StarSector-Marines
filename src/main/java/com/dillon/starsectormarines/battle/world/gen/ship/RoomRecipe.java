@@ -86,6 +86,10 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
     public static final RoomRecipe COMPACT_VEHICLE_BAY = new RoomRecipe(
             RoomPurpose.VEHICLE_BAY, RoomShape.rectangle(16, 10), DeckZone.MIDSHIPS, 1);
 
+    /** Second Wind's reserved lance: two facing pairs with the ordinary service lane and shop. */
+    public static final RoomRecipe LANCE_VEHICLE_BAY = new RoomRecipe(
+            RoomPurpose.VEHICLE_BAY, RoomShape.rectangle(24, 16), DeckZone.MIDSHIPS, 4);
+
     public static final RoomRecipe CONVERTED_HOLD = new RoomRecipe(
             RoomPurpose.STOCKROOM, RoomShape.rectangle(12, 8), DeckZone.MIDSHIPS, 250);
 

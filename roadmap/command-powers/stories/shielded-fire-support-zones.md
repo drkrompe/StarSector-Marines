@@ -4,6 +4,8 @@ Status: PLANNED — depends on `hard-installation-first-map-feature.md` publishi
 
 Written: 2026-08-24
 
+Updated: 2026-10-14 — the planetary-shield profile signal it relies on now exists (`TargetProfile.planetaryShield`); the relay and footprint are still the dependency.
+
 Read `command-powers-nouns.md` and `campaign-battle-bridge-nouns.md` before
 implementing this story.
 

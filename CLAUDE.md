@@ -137,18 +137,22 @@ Do not run builds or leave generated task files there.
   simulation rather than evidence about the battle, so it does not need to ride
   along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
   restores the double replay here when a particular balance run wants it.
-  Relief's default matrix is three verdant-surface production maps with one
-  six-seat player sortie, repeated with +30s player delay and no player arrival
+  Relief's default matrix is three verdant-surface production maps with twelve
+  named starter recruits (Rooks and Ward security kit) aboard one standard Hermes
+  making three four-seat trips, repeated with +30s player delay and no player arrival
   within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
   with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
   (additional seconds). Optional `surface` selects the terrain palette (custom
-  fixtures default to `ROCK`). Reports include committed road-arrival times and
-  pending raider counts. Player lift is a fitted boat; optional `playerBoatId`,
+  fixtures default to `ROCK`). Optional `starterCompany: true` applies a detached
+  new-company roster through the campaign deployment overlay; omitted/false keeps
+  the factory loadout. Reports include each recruit landing, surviving company
+  strength at that moment, committed road-arrival times and pending raider counts.
+  Player lift is a fitted boat; optional `playerBoatId`,
   `playerPlating`, and `playerDrive` pin its identity and catalog fitting ids
   (default: `relief-boat` and standard fit). Employer lift remains one six-seat
   Aeroshuttle. Reports
   separate original militia from arriving allies; timeout is not defeat. This
-  is controlled construction evidence, not a Jangala campaign/loadout capture.
+  is controlled construction with a detached roster, not a live Jangala save capture.
   The Relief task also writes `campaign-lift.json`: both opening chapters,
   two seeds, and standard/upgraded Hermes fittings run through production scenario
   capture with a twelve-person named company. It verifies three physical trips,
@@ -1099,6 +1103,7 @@ The discovered suite ids and default output directories are:
 |-------|----------|--------|
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, outdoor daylight, enlarged grounded Shepherd, cargo/infantry access and clear construction plots across palettes and seeds; no battle or campaign simulation | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
+| `field-salvage` | Optional material caches: production placement checks, controlled discovery/collection/contest/secured frames and cargo claim rows at 1920x1080, 100% scale; not a full mission replay | `build/snapshots/field-salvage/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |

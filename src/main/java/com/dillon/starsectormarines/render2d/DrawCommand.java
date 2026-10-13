@@ -75,6 +75,7 @@ public final class DrawCommand {
     Runnable custom;
 
     public Kind kind() { return kind; }
+    public Runnable customDraw() { return custom; }
     public SpriteAPI sprite() { return sprite; }
     public int sourceX() { return srcX; }
     public int sourceY() { return srcY; }
