@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress;
+import com.dillon.starsectormarines.battle.story.ColdStartPicket;
 import com.dillon.starsectormarines.battle.story.DepotHoldProgress;
 import com.dillon.starsectormarines.battle.story.SalvageRightsProgress;
 import java.util.List;
@@ -148,6 +149,25 @@ public final class MissionObjectiveFamilies {
                 duration > 0 ? timed("Work", p.work(), duration) : p.phase() == ColdStartProgress.Phase.CONSTRUCTION
                         ? "Awaiting completed Vulcan turret" : sequence.displayName(),
                 duration > 0 ? p.work() / duration : -1, blocker, sequence.targetX(), sequence.targetY());
+    }
+
+    public static Item coldStartPicket(ColdStartPicket.Report post) {
+        String name = post.key().equals("south_haul") ? "South haul picket" : "Quarry picket";
+        String status = switch (post.state()) {
+            case HOLDING -> post.contacted() ? "UNDER FIRE" : "OUTER WATCH";
+            case WITHDRAWING -> "FALLING BACK";
+            case INNER_HOLD -> "INNER LINE";
+            case LOST -> "POST LOST";
+        };
+        // Strength is a report, not a capture meter or an additional victory requirement.
+        return at("cold-start-picket-" + post.key(), name,
+                post.aliveMembers() == 0 ? State.FAILED : State.ACTIVE, status,
+                "Optional support / outer watch > inner defense",
+                "Support the picket if you can. Survivors fall back when its position is breached; protect the repair crew and build the yard defenses.",
+                post.aliveMembers() + "/" + post.initialMembers() + " militia alive"
+                        + (post.overrun() ? " / outer post overrun" : ""), -1, "",
+                post.withdrawing() ? post.innerX() : post.outerX(),
+                post.withdrawing() ? post.innerY() : post.outerY());
     }
 
     public static Item depot(DepotHoldSequence sequence) {

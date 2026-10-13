@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Cold Start ground mobilization and the first Castle/Vale recording batch; live campaign and audio-mix acceptance remain.
+Updated: 2026-10-13 — Colossus yard stakes and Cold Start's finite assault on vulnerable outer pickets; live campaign and audio-mix acceptance remain.
 
 ## Placement and employer
 
@@ -55,6 +55,17 @@ retains the fixed installations; the company keeps the repaired Shepherd and its
 drone workshop. The agreement is explicit before the first drop. Securing the
 wreck alone grants a protected claim, not a functioning ship in the fleet.
 
+A much larger broken **Colossus** rests against the northern rear canyon wall.
+Its grounded holds serve as a cargo and equipment depot, with valuable hull scrap
+around the damaged freighter. Those stores and the yard's working machinery are
+the scrappers' prize and the cooperative's reason to buy outside protection.
+The cooperative retains the Colossus and its contents. Paying with its smaller
+salvage tender Morrow trades one repaired vessel for access to that larger working
+asset and the yard around it. The Colossus is fixed damaged scenery, not another
+recoverable fleet award. No exact cargo value, manifest or original crew losses
+are inferred from its silhouette. The offer and settled agreement explain this
+exchange without making salvage inventory a new objective or economy.
+
 The emotional turn after Garnir is practical independence. We cannot match an
 Onslaught, but we can stop asking a larger power to hold every position for us.
 This should feel like acquiring a workshop and crew through work together, not
@@ -69,7 +80,7 @@ claim or Cold Start repair settlement, and remains unimplemented with that arc.
 
 ## The basin
 
-`ShepherdBasin` authors a **304 × 176** map with one persistent geography and three
+`ShepherdBasin` authors a **304 × 224** map with one persistent geography and three
 visits. Its production roads and terrain are editable catalog plans. Asharu uses
 the actual world's captured palette at campaign launch; the review uses ARID.
 
@@ -98,6 +109,11 @@ supplies and an abandoned muster point sit beside the receiving store. These
 signs persist between visits, including after the ship leaves. Larger wreck
 sections are ordinary solid scenery with cover; surface scars alone are shallow
 visual damage, not a hidden movement blocker or extra salvage economy.
+The broken Colossus anchors the northern rear wall across all three visits,
+larger than Morrow and outside the recovery road, infantry aisles and build plots.
+Its retained source plate is 48 by 60 cells; the horizontal world placement uses
+a 60 by 48-cell frame against that wall. The large damaged hull establishes the
+cargo depot's scale without awarding its stores or another fleet ship.
 
 Varied workshop, depot and dispatch stamps have actual doors and usable interiors.
 Parked haulers, spare machinery and cargo sit in working yards, outside circulation.
@@ -248,10 +264,26 @@ or loss. Campaign support still requires a currently owned eligible source.
 Cold Start is a **6–8 minute target**, subject to playback. Start with the earlier
 workshop held and the receiving store clear. The repair carrier waits at the apron
 until the company advances; it stops before hostile contact rather than charging
-through it. Escort arrival commits one four-person road team. Beginning the pump
-connection commits two four-person teams, staggered between the south haul and
+through it. Two three-person cooperative pickets hold the south haul and quarry
+approaches outside the repair line; eight separate militia holders defend the
+inner positions. Cold Start therefore fields fourteen cooperative militia and
+two technicians. The other chapters retain their eight militia. Escort progress
+commits one six-person road team. Beginning the pump
+connection commits two six-person teams, staggered between the south haul and
 quarry approaches. These are finite authored commitments, not an endless spawn timer.
-The cooperative's militia keep separate workshop and carrier holds.
+The first completed gun commits the fourth six-person team. These twenty-four
+raiders move and fight ordinarily; no trigger kills a picket or awards a victory.
+Actual hostile breach of an outer post or its first casualty orders living members
+back toward its own inner hold using ordinary withdrawal travel through contact.
+A lost post is distinct from a dead detachment;
+survivors count at the inner hold only after physically arriving. Company support
+can help a post or deny a road entry. Visible entries delay commitment; eight
+continuous seconds of physical friendly screening refuses that road team rather
+than spawning it among visible company troops. Refused personnel are reported
+separately from combat casualties. The built road gun supports this tighter
+defense with its ordinary weapon and durability. Contact, withdrawal, breach,
+survivor arrival and fortification reports state only their confirmed facts;
+terminal reports retire obsolete instructions.
 
 The connection requires a technician physically at the pump and company cover.
 Interruption pauses the current task. Completing it permanently records shore power

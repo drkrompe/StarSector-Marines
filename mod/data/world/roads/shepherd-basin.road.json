@@ -1,5 +1,5 @@
 {
-  "version": 1, "width": 304, "height": 176,
+  "version": 1, "width": 304, "height": 224,
   "roads": [
     {"id":"arrival", "points":[[0,68],[27,68],[49,70],[66,72]], "width":11,"shoulder":1,"wear":0.75,"seed":14100,"material":"ASPHALT","autoEdge":true},
     {"id":"cradle-access", "points":[[66,72],[92,70],[121,68],[151,76]], "width":11,"shoulder":1,"wear":0.8,"seed":14101,"material":"ASPHALT","autoEdge":true},
