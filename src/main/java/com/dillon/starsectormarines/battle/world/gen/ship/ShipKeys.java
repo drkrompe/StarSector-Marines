@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 
 import java.util.List;
 
@@ -29,4 +30,7 @@ public final class ShipKeys {
 
     /** Placed compartments and the rooms that could not be fitted. Produced by {@code RoomPlacementStage}. */
     public static final GenKey<DeckGraph> DECK_GRAPH = GenKey.of("deckGraph");
+
+    /** Removed working berths retained only until finalization closes their debris-covered pads. */
+    public static final GenKey<List<Gantry>> OFFLINE_MACHINE_BERTHS = GenKey.of("offlineMachineBerths");
 }

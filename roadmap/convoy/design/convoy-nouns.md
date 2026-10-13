@@ -27,7 +27,12 @@ treating roads as kinematic rails.
 The ordinary reinforcement variant is the `HEAVY_APC`: a defender delivery carries
 four faction-rostered infantry passengers and a roof weapon; a deployed Marine
 APC uses the same chassis and may receive orders or direct control. The old `MILITIA_TRUCK`
-is retired. Parked map vehicles are separate static scenery and obstacles, not
+is retired. The `MILITIA_TECHNICAL` is a separate light pickup with a pintle
+machine gun: faster and much less durable than an APC, with finite mount
+ammunition, no troop capacity, and no faction-specific combat exceptions.
+Authored missions may field it for local forces; its first use is Wayline's
+rear-route support in Thunder Run, not player ownership or a reinforcement-pool
+change. Parked map vehicles are separate static scenery and obstacles, not
 convoy actors.
 
 ## Delivery authority and lifecycle
@@ -208,7 +213,10 @@ marine rockets and mech LRMs defeat it in a few committed hits or one strong
 salvo. HP zero is once-only. Any passengers still onboard die except for one
 or two faction-rostered infantry who eject into nearby free cells at 25% HP.
 The live mission becomes `WRECKED`, its turret and body stop, and stacked or
-late impacts cannot repeat wreck or passenger effects.
+late impacts cannot repeat wreck or passenger effects. The transition also
+queues one hull-sized visual blast, a short fire phase and three minutes of
+cooling smoke through the shared effect service. This is presentation only: no
+secondary damage, navigation obstruction or smoke concealment is manufactured.
 
 ## Route, corridor, and motion
 
