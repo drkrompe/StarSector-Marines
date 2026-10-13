@@ -30,6 +30,9 @@ Design: `conquest-command.md`
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
+| `phased-assault.md` (design) slice 1 | IN PROGRESS | Foothold and muster: hold the beachhead, form assault companies at the drop zone, commit at critical mass. |
+| `phased-assault.md` (design) slice 2 | IN PROGRESS | Commander-called mech lance drop to the drop zone from the mission allowance. |
+| `phased-assault.md` (design) slice 3 | PLANNED | Per-stamp fort assault plans and a plan executor for a company. |
 
 ## Sabotage
 

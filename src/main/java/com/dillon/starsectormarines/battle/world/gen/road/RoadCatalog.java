@@ -41,7 +41,7 @@ public final class RoadCatalog {
     public static void validate(String path, RoadPlan plan) {
         int[] size = switch (path) {
             case THUNDER_RUN -> new int[]{320,144};
-            case RELIEF -> new int[]{112,64};
+            case RELIEF -> new int[]{144,64};
             case COUNTERATTACK -> new int[]{160,96};
             case JUNCTION -> new int[]{192,112};
             case LAST_LIFT -> new int[]{192,128};
