@@ -148,7 +148,7 @@ final class FirstRefitModel {
                     soldier.primaryDef().id, soldier.primaryGrade(),
                     soldier.specialEquipmentDef() == null ? null : soldier.specialEquipmentDef().id(), soldier.armorDef().id());
             FireTeamBillet next = new FireTeamBillet(kit.role(), kit.primaryId(), kit.grade(), kit.specialEquipmentId(), kit.armorId());
-            String change = current == null ? Strings.get("openingFirstRefitPlanOnlyNoCharge") : changes(current, next);
+            String change = current == null ? Strings.get("openingLoadoutPlanOnly") : changes(current, next);
             Map<String, Object> billet = new LinkedHashMap<>();
             billet.put("id", "refit-billet:" + i); billet.put("nameId", "refit-name:" + i);
             billet.put("detailId", "refit-detail:" + i); billet.put("name", name);
@@ -164,7 +164,7 @@ final class FirstRefitModel {
             billets.add(billet);
             if (i == selectedBillet) {
                 currentKit = current; proposedKit = next;
-                selectedName = name + " / " + kit.role() + (soldier == null ? Strings.get("openingFirstRefitVacantPlanOnlyNoCharge") : " / " + soldier.status());
+                selectedName = name + " / " + kit.role() + (soldier == null ? Strings.get("openingLoadoutVacantPlanOnly") : " / " + soldier.status());
             }
         }
         props.put("billets", billets);
@@ -184,7 +184,7 @@ final class FirstRefitModel {
         props.put("status", !feedback.isEmpty() ? feedback
                 : !claimed ? LessonCopy.text("refitChooseTransfer")
                 : reviewed == null ? LessonCopy.text("refitChooseLearned")
-                : reviewed.canApply() ? Strings.format("openingFirstRefitReadyToFitCurrentMarinesInFree", reviewedMembers.size(), squad.name())
+                : reviewed.canApply() ? Strings.format("openingLoadoutReadyToFit", reviewedMembers.size(), squad.name())
                 : blocker(reviewed.result()));
         props.put("disabled", !claimed || complete || reviewed == null || !reviewed.canApply());
         row.set(props);
@@ -222,7 +222,7 @@ final class FirstRefitModel {
             item.put("kind", kind + change);
             item.put("title", sheet != null ? sheet.title() : kit == null ? Strings.get("openingFirstRefitNoCurrentEquipment") : Strings.get("openingFirstRefitNoSpecialEquipment"));
             item.put("subtitle", sheet != null ? sheet.subtitle() : proposed && before != null
-                    ? LessonCopy.text("refitSpecialRemoved") : kit == null ? Strings.get("openingFirstRefitVacantBilletNoCharge") : Strings.get("openingFirstRefitThisSlotCarriesNoSpecialItem"));
+                    ? LessonCopy.text("refitSpecialRemoved") : kit == null ? Strings.get("openingLoadoutVacantBillet") : Strings.get("openingLoadoutThisSlotCarriesNoSpecialItem"));
             item.put("stats", sheet == null ? "" : sheet.stats().stream()
                     .map(stat -> stat.label() + "  " + stat.value()).collect(Collectors.joining("     ")));
             item.put("system", i == 1 && kit != null ? IntegralSystemCopy.tile(kit.armorDef()) : "");

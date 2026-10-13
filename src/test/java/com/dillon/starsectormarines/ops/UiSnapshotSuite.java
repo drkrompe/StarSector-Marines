@@ -30,6 +30,8 @@ import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -1667,15 +1669,52 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             try (var editorMarkup = editorLoader.reloadAndBuild(reactor, "fleet-armory-fireteam", editorProps)) {
                 var editorDocument = new UiDocument(editorMarkup.root()).theme(MarineOpsThemes.standard());
                 editorMarkup.styles().forEach(editorDocument::addStyleSheet);
-                var previews = new HeadlessArmoryPreviewRenderer(context.modRoot());
-                for (int i = 0; i < MarineSquad.TEAM_SIZE; i++) {
-                    int billet = i;
-                    editorDocument.canvases().set(editorMarkup.requireElement("marine-preview:" + i),
-                            new ArmoryMarinePreviewCanvas(() -> editor.viewerBilletAt(billet), previews.assets()));
-                }
                 MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
                         List.of(CompanyNotices.Notice.FIRST_REFIT));
                 frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                editor.showArmorPickerAction().run();
+                editorMarkup.flush();
+                frames.add(new SnapshotArtifact("03a-starter-tactics.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                roster.firstRefit().claim(roster, FirstRefit.Path.FORWARD_SCREEN);
+                editor.refresh();
+                editor.showWeaponPickerAction().run();
+                editor.weaponDoctrineTiles().get().get(0).select().run();
+                editorMarkup.flush();
+                frames.add(new SnapshotArtifact("03b-earned-weapon-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                collectArmorTemplates(roster);
+                editor.refresh();
+                editor.showArmorPickerAction().run();
+                editor.armorDoctrineTiles().get().get(0).select().run();
+                editorMarkup.flush();
+                frames.add(new SnapshotArtifact("03c-earned-armor-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                // Production pointer targets remain visible at the player's review scale.
+                var grid = editorMarkup.requireElement("loadout-billets").box().borderBox();
+                for (int i = 0; i < 12; i++) {
+                    var box = editorMarkup.requireElement("loadout-billet:" + i).box().borderBox();
+                    if (box.width() < 90 || box.height() < 120 || box.bottom() > grid.bottom())
+                        throw new AssertionError("Billet is clipped: " + i);
+                }
+                if (editorMarkup.requireElement("apply-squad-equipment").box().borderBox().width() > 200)
+                    throw new AssertionError("Fit action must stay compact");
+                var members = roster.manningMemberIds(squad);
+                EquipmentTestFixtures.issueLauncher(roster.soldierById(members.get(0)));
+                roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
+                        members.get(11), MarineSoldierStatus.KIA), 100f, 2f);
+                editor.refresh(); editorMarkup.flush();
+                frames.add(new SnapshotArtifact("03d-wounded-special-removal.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:11");
+                frames.add(new SnapshotArtifact("03e-vacant-billet-plan.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                if (editor.applyDisabled().get()) throw new AssertionError("Wounds or vacancies blocked fitting");
+                clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:0");
+                var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
+                ArmorySpecSheets.bindInspection(sheets, editorMarkup, editor.inspection());
+                var target = editorMarkup.requireElement("loadout-item:1:proposed");
+                var targetBox = target.box().borderBox();
+                editorDocument.pointerMoved(targetBox.x() + targetBox.width()/2, targetBox.y() + targetBox.height()/2);
+                sheets.update(); editorDocument.advance(0.3f);
+                if (sheets.openTarget() != target) throw new AssertionError("Proposed equipment lost its spec sheet");
+                frames.add(new SnapshotArtifact("03f-equipment-spec-sheet.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                sheets.clear();
                 clickBarracksFlow(editorDocument, editorMarkup, "page-nav-return");
                 if (routes.get(routes.size() - 1) != ScreenId.BARRACKS) throw new AssertionError("Editor return missed Barracks");
             }
@@ -2419,24 +2458,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            if (fireteam) {
-                for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
-                    int billet = index;
-                    document.canvases().set(instance.requireElement("marine-preview:" + index),
-                            new ArmoryMarinePreviewCanvas(
-                                    () -> viewModel.viewerBilletAt(billet),
-                                    armoryPreview.assets()));
-                }
-            } else {
-                FleetArmoryScreen.bindGalleryCanvases(document, instance, viewModel);
-            }
+            if (!fireteam) FleetArmoryScreen.bindGalleryCanvases(document, instance, viewModel);
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
-                ArmorySpecSheets.bindMarineCards(binder, instance, viewModel.marineCards());
+                ArmorySpecSheets.bindInspection(binder, instance, viewModel.inspection());
                 openSpecSheet(document, binder, width, height,
                         instance.requireElement(
-                                viewModel.marineCards().get().get(0).systemId()));
+                                "loadout-item:1:current"));
             }
             if (loadoutSpecSheet) {
                 SpecSheetBinder binder = new SpecSheetBinder(
@@ -3191,6 +3220,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
         props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
+        props.put("inspection", viewModel.inspection());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());

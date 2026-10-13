@@ -153,14 +153,6 @@ public final class FleetArmoryScreen implements Screen {
             });
             if (view == View.SQUADS) {
                 bindGalleryCanvases(built, candidate, viewModel);
-            } else if (view == View.FIRETEAMS) {
-                for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
-                    int slot = index;
-                    built.canvases().set(candidate.requireElement("marine-preview:" + index),
-                            new ArmoryMarinePreviewCanvas(
-                                    () -> viewModel.viewerBilletAt(slot), previewAssets,
-                                    () -> previewAnimationSeconds + slot * 0.31d));
-                }
             } else if (view == View.DESIGNER) {
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int slot = index;
@@ -173,8 +165,7 @@ public final class FleetArmoryScreen implements Screen {
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             if (view == View.FIRST_REFIT) bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
             if (view == View.FIRETEAMS) {
-                ArmorySpecSheets.bindMarineCards(
-                        candidateSheets, candidate, viewModel.marineCards());
+                ArmorySpecSheets.bindInspection(candidateSheets, candidate, viewModel.inspection());
                 // A new document holds new elements even where the projection
                 // behind them is the one already bound, so the guard is cleared.
                 boundWeaponTiles = null;
@@ -300,6 +291,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
         props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
+        props.put("inspection", viewModel.inspection());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
@@ -357,11 +349,8 @@ public final class FleetArmoryScreen implements Screen {
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
-                "viewer-context", "fireteam-tabs", "target-summary",
-                "candidate-summary", "marine-card-grid", "squad-equip-row",
-                "transaction-result", "apply-squad-equipment", "transaction-feedback",
-                "marine-preview:0", "marine-preview:1",
-                "marine-preview:2", "marine-preview:3")
+                "loadout-roll", "loadout-billets", "loadout-inspection", "squad-equip-row",
+                "transaction-result", "apply-squad-equipment", "transaction-feedback")
                 : view == View.DESIGNER
                 ? List.of("equipment-designer-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
