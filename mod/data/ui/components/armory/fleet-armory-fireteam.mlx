@@ -1,4 +1,4 @@
-<template props="companySummary,selectedSquadName,cargoStockRows,fireTeamOverviews,targetSummary,candidateSummary,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="companySummary,selectedSquadName,inspection,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / SQUAD ISSUE" />
 
@@ -9,21 +9,11 @@
       <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
       <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
       <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
-    </div>
-
-    <div id="fireteam-cargo-stock" class="cargo-stock-strip panel">
-      <div id="fireteam-cargo-stock-title" class="label heading tone-muted">AVAILABLE STORES</div>
-      <div id="fireteam-cargo-stock-rows" class="cargo-stock-rows">
-        <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
-          <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />
-          <div id="{stock.labelId}" class="label cargo-stock-label">{stock.label}</div>
-        </div>
-      </div>
+      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Loadout</div>
     </div>
 
     <div id="fireteam-body">
-      <armory-refit-transaction fireTeamOverviews="{fireTeamOverviews}" targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" marineCards="{marineCards}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction inspection="{inspection}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
       <armory-squad-doctrine weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" weaponPickerTabClasses="{weaponPickerTabClasses}" armorPickerTabClasses="{armorPickerTabClasses}" weaponPickerPanelClasses="{weaponPickerPanelClasses}" armorPickerPanelClasses="{armorPickerPanelClasses}" showWeaponPicker="{showWeaponPicker}" showArmorPicker="{showArmorPicker}" loadoutFilters="{loadoutFilters}" loadoutBrowserSummary="{loadoutBrowserSummary}" showArmorComparison="{showArmorComparison}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" issueCargoRows="{issueCargoRows}" issueCargoClasses="{issueCargoClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
     </div>
 
@@ -50,13 +40,6 @@
   #fireteam-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
   .breadcrumb-separator { width: 10px; text-align: center; }
   .breadcrumb-current { padding: 3px 4px; }
-
-  .cargo-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
-  #fireteam-cargo-stock-title { width: 92px; height: 18px; }
-  .cargo-stock-rows { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 8px; }
-  .cargo-stock-row { flex-direction: row; align-items: center; width: 0px; height: 22px; flex-grow: 1; gap: 5px; padding: 2px 4px; background-color: #121719; border-width: 1px; border-color: #39423a; }
-  .cargo-stock-icon { width: 16px; height: 16px; }
-  .cargo-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
 
   #fireteam-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
 

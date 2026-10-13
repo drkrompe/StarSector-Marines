@@ -49,7 +49,7 @@ public final class SquadEquipmentDoctrines {
     private static final String FOUNDRY_BREAKER = "armor.foundry-breaker";
 
     private static final List<SquadWeaponDoctrine> WEAPONS = List.of(
-            weaponDoctrine(FIELD_SECURITY_WEAPONS, "Frontier Security Equipment",
+            weaponDoctrine(FIELD_SECURITY_WEAPONS, "First Loadout",
                     "Twelve basic field rifles. Specialist weapons must be learned before fitting.",
                     team(
                             weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
@@ -157,7 +157,7 @@ public final class SquadEquipmentDoctrines {
      * doctrine, and at the top of the ladder every doctrine was an assault one.
      */
     private static final List<SquadArmorPlan> ARMOR_PLANS = List.of(
-            plan(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
+            plan(FIELD_FATIGUES_ARMOR, "First Loadout",
                     "Whatever the station had, organised the way a band organises itself.",
                     ArmorTradition.INDEPENDENT, SquadRoleMix.IRREGULAR),
             plan(SINDRIAN_SECURITY_ARMOR, "Sindrian Civilian Security Equipment",

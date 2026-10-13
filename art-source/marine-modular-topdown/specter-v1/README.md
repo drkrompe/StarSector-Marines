@@ -63,3 +63,21 @@ Y=0.046375sw with centered pivots. The socket is 60.5/637 of body width ahead
 of its center; multiplying by 1.12 preserves that registration. Moving the
 pair forward clears the shared walking-foot trajectories beneath the rear pack.
 These cosmetic transforms do not change collision, targeting, or armor values.
+
+## Moving battle comparison
+
+`gradlew.bat createSnapshots -Psnapshot=specter-battle` records the real
+`SpecterBattleScene` at normal camera zoom and four wheel notches closer.
+`gradlew.bat sceneEvidence -Pscene=specter-battle` verifies actual movement,
+catalog identities, and shots without rendering. Both operate on disposable
+battle state; no campaign save is loaded.
+
+Retained videos, full-color stills, and verdicts are under
+`roadmap/progression/assets/specter-battle-*` and `specter-battle.json`.
+The source GIFs remain in `build/snapshots/specter-battle/`; the compact MP4s
+preserve their 1920x1080 dimensions, 151 frames, and 100ms frame cadence.
+Encoding uses FFmpeg with `-an -c:v libx264 -preset slow -crf 12 -pix_fmt yuv420p
+-movflags +faststart`, with no resizing or playback-speed adjustment.
+The default view's 17.14px/cell corresponds to a Relief-sized 112x64 map, not
+every campaign map: normal zoom fits each map to the viewport. The lane labels
+identify the Hound above, Legionaries in the middle, and Specters below.

@@ -133,6 +133,12 @@ public final class SpecSheets {
                 paragraphs(def.catalogDescription));
     }
 
+    /** The primary's ability to overcome armor resistance, on a catalog-wide scale. */
+    public static Stat weaponPenetration(WeaponDef def) {
+        return new Stat("PEN", oneDecimal(def.penetration),
+                StatMeter.fraction(def.penetration, CatalogCeilings.weaponPenetration()));
+    }
+
     /**
      * The four rows the Armory's weapon block shows, as stat rows.
      *

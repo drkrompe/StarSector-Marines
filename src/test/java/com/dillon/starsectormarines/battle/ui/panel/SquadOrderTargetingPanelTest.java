@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDef
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
-import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
+import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -25,12 +25,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-class SquadDefendTargetingPanelTest {
+class SquadOrderTargetingPanelTest {
 
     @Test
     void armedSquadClaimsTheNextWorldClickAndQueuesItsArea() {
         Fixture fixture = fixture();
-        SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
+        SquadOrderTargetingPanel panel = new SquadOrderTargetingPanel(fixture);
         panel.toggle(fixture.squad.id);
 
         int screenX = Math.round(fixture.camera.cellToScreenX(30.5f));
@@ -48,7 +48,7 @@ class SquadDefendTargetingPanelTest {
     @Test
     void selectedMechArmsOneAreaForItsWholeLance() {
         Fixture fixture = fixture(UnitType.HEAVY_MECH);
-        SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
+        SquadOrderTargetingPanel panel = new SquadOrderTargetingPanel(fixture);
         panel.toggle(fixture.squad.id);
 
         int screenX = Math.round(fixture.camera.cellToScreenX(36.5f));
@@ -68,7 +68,7 @@ class SquadDefendTargetingPanelTest {
     void rescuePickupInfantryCanArmTheSamePlayerAreaOrder() {
         Fixture fixture = fixture();
         fixture.squad.rescuePickupGuard = true;
-        SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
+        SquadOrderTargetingPanel panel = new SquadOrderTargetingPanel(fixture);
 
         panel.toggle(fixture.squad.id);
 
@@ -87,12 +87,15 @@ class SquadDefendTargetingPanelTest {
             sim.getSquad(other).leaderId = member;
             fixture.selection.selectSquads(List.of(fixture.squad.id, other),
                     fixture.squad.id, fixture.squad.leaderId, false);
-            SelectionOrders.requestMove(sim, fixture.selection, 30, 20);
+            SquadOrderTargetingPanel panel = new SquadOrderTargetingPanel(fixture);
+            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
+            panel.handleInput(List.of(leftClick(
+                    Math.round(fixture.camera.cellToScreenX(30.5f)),
+                    Math.round(fixture.camera.cellToScreenY(20.5f)))));
             sim.getSquadMoveOrderSystem().tick(sim);
             for (int id : fixture.selection.getSelectedSquadIds()) {
                 assertEquals(30, sim.getSquadMoveOrderService().activeOrder(id).requestedX());
             }
-            SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
             panel.toggle(fixture.squad.id);
             panel.handleInput(List.of(leftClick(
                     Math.round(fixture.camera.cellToScreenX(30.5f)),
@@ -110,13 +113,37 @@ class SquadDefendTargetingPanelTest {
         }
     }
 
+    @Test
+    void switchingModesAndRightClickCancelWithoutSubmittingAnOrder() {
+        Fixture fixture = fixture();
+        try (BattleSimulation sim = fixture.sim) {
+            var panel = new SquadOrderTargetingPanel(fixture);
+            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
+            panel.toggle(fixture.squad.id, Mode.DEFEND_AREA);
+            assertEquals(Mode.DEFEND_AREA, panel.mode());
+            var cancel = mouseEvent(300, 200, "isRMBDownEvent");
+            panel.handleInput(List.of(cancel));
+            assertEquals(Mode.NONE, panel.mode());
+            assertEquals(true, cancel.isConsumed());
+            sim.getSquadMoveOrderSystem().tick(sim);
+            assertEquals(null, sim.getSquadMoveOrderService().activeOrder(fixture.squad.id));
+            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
+            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
+            assertEquals(Mode.NONE, panel.mode());
+        }
+    }
+
     private static InputEventAPI leftClick(int x, int y) {
+        return mouseEvent(x, y, "isLMBDownEvent");
+    }
+
+    private static InputEventAPI mouseEvent(int x, int y, String eventType) {
         boolean[] consumed = {false};
         return (InputEventAPI) Proxy.newProxyInstance(
                 InputEventAPI.class.getClassLoader(),
                 new Class<?>[]{InputEventAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {
-                    case "isLMBDownEvent" -> true;
+                    case "isLMBDownEvent", "isRMBDownEvent" -> method.getName().equals(eventType);
                     case "getX" -> x;
                     case "getY" -> y;
                     case "isConsumed" -> consumed[0];
