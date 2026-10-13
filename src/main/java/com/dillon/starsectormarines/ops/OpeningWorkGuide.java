@@ -22,11 +22,11 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
         String preparation = !hasSquad
                 ? "Found and equip your first squad in Armory before deployment."
                 : reliefWon ? "The assault is broken. Return to Venn for the depot job."
-                : "Bring ready marines and ship's boats. Venn provides militia support.";
+                : "Castle has put us forward. Bring marines and lift; Mara provides militia.";
         if (roster.officerInduction() != null && roster.officerInduction().companyPreparation()) {
             preparation = roster.officerInductionRequired()
                     ? "Complete Castle's preparation: company ship, shuttle, Mira's specialty and her first squad."
-                    : !reliefWon ? "Preparation complete: your shuttle and Mira's squad are ready. Plot course, then open Marine operations > Mara Venn for Hold Until Relieved."
+                    : !reliefWon ? "First paid job: your shuttle and Mira's squad are ready. Meet Mara at her office."
                     : preparation;
         }
         return new OpeningWorkGuide(true, reliefWon ? OpeningOperationKind.COUNTERATTACK
@@ -39,7 +39,7 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
             case "crest" -> OpeningBroker.CREST;
             case "portrait" -> OpeningBroker.PORTRAIT;
             case "broker" -> OpeningBroker.NAME;
-            case "affiliation" -> "Independent broker";
+            case "affiliation" -> "Wayline / Independent";
             case "heading" -> kind == OpeningOperationKind.RELIEF ? "FIRST CONTRACT" : "THE DEPOT JOB";
             case "mission" -> kind.displayName;
             case "payment" -> "Cr. " + NumberFormat.getIntegerInstance().format(kind.payout);

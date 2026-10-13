@@ -55,7 +55,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     private void startDebriefNarration() {
         if (presentedOutcome != narratedOutcome) {
             narratedOutcome = presentedOutcome;
-            debriefNarration.start(MissionDebriefConversation.lines(presentedOutcome, WaylineNarration.builtins()));
+            debriefNarration.start(MissionDebriefConversation.recordings(presentedOutcome, WaylineNarration.builtins()));
         }
     }
 
@@ -102,7 +102,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
         props.put("preparationAction", (Runnable) this::prepareCompany);
         props.put("salvageReplay", (Runnable) () -> debriefNarration.start(
-                MissionDebriefConversation.lines(outcome, WaylineNarration.builtins())));
+                MissionDebriefConversation.recordings(outcome, WaylineNarration.builtins())));
         props.put("salvageStop", (Runnable) debriefNarration::stop);
         props.put("personnelHeader", personnelHeader(outcome));
         List<PersonnelRow> personnel = personnelRows(outcome);
@@ -230,6 +230,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
 
     static void putSalvageConversation(Map<String, Object> props, List<WaylineNarration.Line> lines) {
         props.put("salvageClasses", lines.isEmpty() ? "hidden" : "salvage-conversation console-readout");
+        props.put("salvagePlaybackClasses", lines.stream().anyMatch(WaylineNarration.Line::voiced)
+                ? "salvage-play console-action" : "hidden");
         props.put("salvageTurns", lines.stream().map(line -> new DialogueTurn(
                 line.id(), line.speaker(), line.portrait(), line.text())).toList());
         props.put("salvageReplay", (Runnable) () -> { });
