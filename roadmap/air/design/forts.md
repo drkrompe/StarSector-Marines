@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — bolder wire, taken plant keeps running; fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort built (slice 3: octagonal works, inner keep, power plant and control room, dome held at the control room), folding in the local shield relay; redoubt/citadel and richer command awareness remain.
+Updated: 2026-10-13 — commanders choose which aspect to take, wreck or stand to at for the effect wanted (battery and shield forts); fort buildings drawn by function with intact, damaged, wrecked and taken states, bolder wire, a taken plant keeps running; shield fort built (slice 3), folding in the local shield relay; redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -129,8 +129,8 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
   magazine explodes through the existing blast machinery. Power taken, contested or wrecked slows traverse and fire
   to a quarter. Power is local to a fort. Either side may hold any aspect and a captured aspect serves its new
   holder; wrecked stays wrecked, taken can be retaken. State is drawn on the map beside the battery markers.
-- **Commanders.** `DefenceStructureTactics` still works: a fort's fact points the squad at the bunker, disclosed when
-  the platform is sighted.
+- **Commanders.** A fort's aspects are disclosed together when the platform is sighted (bunker, magazine, power); see
+  "Built: command awareness".
 - **Tuning is untuned.** Numbers (12 ready rounds, 0.25 unpowered rate, core hit points) are first passes.
 
 ## Built: shield fort (slice 3)
@@ -161,6 +161,39 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
 - **Untuned.** A control room that is merely contested does not drop the dome (only the plant does); the tower and
   keep sizes, wall hit points and the whole conversion are first passes.
 
+## Built: command awareness (slice 5)
+
+A fort is one defence with several aspects, so a commander does not treat each building as a separate task. For every
+fort a side has been disclosed, `FortTactics` chooses which aspects are work, in what order, and whether the aim is to
+hold or to wreck, from only the aspects that side knows of (wrecked aspects are not disclosed, so they are never
+offered). `DefenceStructureTactics` merges that choice with bare-structure work under the same cap, and every task
+carries a sentence of reason into the command plan summary. Nothing in it is special to attacker or defender: the picks
+follow from who holds an aspect and who built it, relative to the side choosing.
+
+- **Battery fort, against it.** Take the bunker: it silences the guns and keeps them. Once the guns are the side's own,
+  the power plant (full traverse) and then the magazine (sustained fire) are taken to make them shoot properly. Where
+  a demolition squad stands far nearer the magazine than the bunker, the magazine is wrecked instead, which rations the
+  guns to a ready-round pool and then stops them.
+- **Shield fort, against it.** Cut the plant first: one building, and the quickest way to drop the dome. The control
+  room, which hands the dome over, follows once the plant is the side's own, or goes alongside it when two squads can
+  be spared to hold both. A lone demolition squad wrecks the plant instead, because a plant taken and left is simply
+  taken back, while a wrecked one is gone for both sides. Capture is preferred wherever the capturer can use the aspect.
+- **Defence.** A pressed aspect is stood to at, the most critical first (bunker, power, magazine for a battery; plant,
+  control room for a shield fort), and a single axis of assault draws a second squad. A lost aspect built for the
+  side is retaken in the same order: the bunker restores the guns, the plant restores a dome.
+- **Law.** Demolition capability is an input to the choice (`Candidate.demolition`); the commanders do not yet read it
+  from live squads, so in play every pick is a take and the wreck branch is exercised by unit tests only.
+- **What a lane discloses.** Sighting the platform (battery) or generator (shield) discloses every aspect of the fort,
+  so a commander only reasons about a fort the company has actually looked at. A lane that never comes within sight of
+  it, or that stops at a wall, leaves the fort undisclosed, and the commander has nothing to choose. This, not a failure
+  to commit, is what an earlier autonomous attempt in the small scene arena was seeing; the commander scenes come in on
+  the lane that reaches the fort's gate.
+- **A hostile emitter is shot in passing.** A squad that sees the generator holds and fires on it as on any hostile
+  contact, and the emitter can be destroyed this way (900 hit points; eight SMGs in the scene took it to a third in about
+  a minute). Wrecking the emitter ends the dome for good and leaves the plant and control room with nothing to do. The
+  shield scene's commander loop therefore comes in by the postern nearest the plant, away from the keep; a lane past
+  the keep ends with the emitter wrecked instead.
+
 ## Built: building art by function
 
 A fort building is drawn from art authored per aspect kind on the aspect's core structure (`buildingArt` in the turret
@@ -185,6 +218,5 @@ The belt wire is a bold coil on a dark contact shadow. A taken plant keeps runni
    sustained fire; each aspect's state is readable on the map.
 3. **Shield fort** (built) — see above; it folded the local shield relay story in.
 4. **Redoubt and citadel.**
-5. **Command awareness** — `DefenceStructureTactics` reasons about aspects (which one to take
-   or wreck first for the effect wanted) using only what a side knows.
+5. **Command awareness** (built) — see below.
 6. **Art** — earthworks and the fort's buildings with their aspect states and animated parts are done; the shield fort's own buildings follow the same data.

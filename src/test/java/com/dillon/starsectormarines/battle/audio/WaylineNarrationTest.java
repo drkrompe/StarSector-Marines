@@ -24,19 +24,75 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
-    @Test void coldStartRetriesShareTheirOwnTextOnlyConstructionGuidance() throws Exception {
+    @Test void shepherdLinesRetainCastingAndConfirmedPassageReports() throws Exception {
+        JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));
+        var entries = root.getJSONArray("lines");
+        for (int i = 0; i < entries.length(); i++) {
+            var entry = entries.getJSONObject(i);
+            if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
+            boolean recorded = List.of("basin_briefing", "basin_cold_start_turret_ready", "basin_passage_underway",
+                    "basin_cold_start_power_restored", "basin_cold_start_complete", "basin_passage_briefing",
+                    "basin_passage_bend_build", "basin_passage_militia_hold_0", "basin_passage_narrows_build",
+                    "basin_passage_militia_hold_1", "basin_passage_departure", "basin_passage_complete")
+                    .contains(entry.getString("id"));
+            assertEquals(recorded, entry.getBoolean("voiced"), "Only recorded takes may be voiced");
+            assertTrue(entry.getString("synthesisText").contains(entry.getString("text")));
+            assertEquals(entry.getString("speaker").startsWith("CASTLE") ? "cuwCdnt9CKAB9XrTA1j0" : "cZH6erlGkOyAQheipyno",
+                    entry.getString("voiceId"), "Retain each chosen character voice, including unrecorded drafts");
+        }
+        var catalog = catalog();
+        assertTrue(catalog.find("story_shepherd_cold_start", "briefing").text().contains("already ashore"));
+        assertTrue(catalog.find("story_shepherd_cold_start", "cold_start.turret_ready").speaker().startsWith("CASTLE"));
+        for (String event : List.of("underway", "militia_hold_0", "militia_hold_1"))
+            assertNotNull(catalog.find("story_shepherd_working_passage", "working_passage." + event));
+    }
+
+    @Test void shepherdLaterFactsRetireInstructionsAndTerminalReportsSurviveCompletion() throws Exception {
+        var catalog = catalog();
+        String chapter = "story_shepherd_cold_start";
+        var log = new StoryBeatLog();
+        var queue = new StoryNarrationQueue(catalog, chapter);
+        log.emitOnce(1, "cold_start.power_restored", StoryBeatLog.Audience.PLAYER);
+        queue.advance(0, log.events(), false);
+        log.emitOnce(2, "cold_start.turret_ready", StoryBeatLog.Audience.PLAYER);
+        queue.advance(0, log.events(), false);
+        assertEquals("cold_start.turret_ready", queue.poll().event());
+        assertNull(queue.poll(), "Do not ask for a road gun after it was built");
+
+        for (String terminal : List.of("complete", "company_lost", "builders_lost", "crew_lost", "carrier_lost")) {
+            log = new StoryBeatLog();
+            queue = new StoryNarrationQueue(catalog, chapter);
+            log.emitOnce(1, "cold_start.approach", StoryBeatLog.Audience.PLAYER);
+            queue.advance(0, log.events(), false);
+            log.emitOnce(2, "cold_start." + terminal, StoryBeatLog.Audience.PLAYER);
+            queue.advance(0, log.events(), true);
+            assertEquals("cold_start." + terminal, queue.poll().event());
+            assertNull(queue.poll(), "No tactical chatter after a terminal fact");
+        }
+        chapter = "story_shepherd_working_passage";
+        log = new StoryBeatLog();
+        queue = new StoryNarrationQueue(catalog, chapter);
+        log.emitOnce(1, "working_passage.bend_build", StoryBeatLog.Audience.PLAYER);
+        queue.advance(0, log.events(), false);
+        log.emitOnce(2, "working_passage.narrows", StoryBeatLog.Audience.PLAYER);
+        queue.advance(0, log.events(), false);
+        assertEquals("working_passage.narrows", queue.poll().event());
+        assertNull(queue.poll(), "No pump-bend construction instruction after the gun exists");
+    }
+
+    @Test void coldStartRetriesShareTheirOwnConstructionGuidance() throws Exception {
         String chapter = "story_shepherd_cold_start";
         assertEquals(chapter, WaylineNarration.storyMissionId(Mission.builder()
                 .id("basin_cold_start_v1_2").source(MissionSource.STORY).build()));
         assertEquals(chapter, WaylineNarration.storyMissionId(
                 DebugMissionCatalog.Scenario.COLD_START.mission()));
         var catalog = catalog();
-        assertFalse(catalog.find(chapter, "briefing").voiced());
+        assertTrue(catalog.find(chapter, "briefing").voiced());
         for (String event : List.of("convoy_arrived", "workshop", "pump_started", "power_restored",
                 "turret_ready", "complete", "crew_lost", "carrier_lost", "approach")) {
             var line = catalog.find(chapter, "cold_start." + event);
             assertNotNull(line);
-            assertFalse(line.voiced());
+            assertEquals(List.of("power_restored", "turret_ready", "complete").contains(event), line.voiced());
         }
         assertTrue(catalog.find(chapter, "cold_start.power_restored").text().contains("Build Vulcan Turret"));
     }
@@ -78,7 +134,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(104, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(116, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 

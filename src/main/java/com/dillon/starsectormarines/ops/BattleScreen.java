@@ -463,13 +463,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         layout = new BattleLayout(position, gridW, gridH);
         // Camera survives rebuilds so the player's pan/zoom is not lost. Only
         // construct it the first time, then refresh the viewport rect later.
-        if (camera == null || camera.worldCellsW() != gridW || camera.worldCellsH() != gridH) {
-            camera = new BattleCamera(gridW, gridH);
-        }
+        boolean openingCamera = camera == null || camera.worldCellsW() != gridW || camera.worldCellsH() != gridH;
+        if (openingCamera) camera = new BattleCamera(gridW, gridH);
         // A small indoor range must frame both shooter and targets at entry.
         float cellSize = rangeTrial == null ? layout.cellSize
                 : Math.min(layout.gridW / gridW, (layout.gridH - 180f) / gridH);
         camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, Math.max(1f, cellSize));
+        if (openingCamera && sim != null && sim.companyStartsOnGround())
+            camera.centerOn(sim.companyGroundStartX(), sim.companyGroundStartY());
         ensureHud();
         ensureRetainedOverlay(sim);
     }

@@ -107,6 +107,8 @@ class ConquestCommandBalanceTest {
                         StandardCharsets.UTF_8);
                 Files.writeString(staging.resolve("density-" + runId + ".md"),
                         first.density, StandardCharsets.UTF_8);
+                Files.writeString(staging.resolve("forts-" + runId + ".md"),
+                        first.forts, StandardCharsets.UTF_8);
                 rows.add(new ReportRow(runId, loaded.sha256,
                         loaded.construction, loaded.launchSeats,
                         loaded.launchSquads, first.analysis));
@@ -139,19 +141,21 @@ class ConquestCommandBalanceTest {
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
                      visualRoot, runId, sim)) {
             SquadDensityProbe density = new SquadDensityProbe();
+            FortOutcomes forts = new FortOutcomes();
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
                 density.sample(sim);
+                forts.sample(sim);
                 assertEquals(before + 1, sim.getSimTickIndex(),
                         "headless runner must advance exactly one fixed tick");
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             String trace = sim.getCommandTraceJsonLines();
             return new RunResult(trace, CommandTraceAnalyzer.analyze(trace),
-                    density.markdown(runId));
+                    density.markdown(runId), forts.describe(sim) + fortOrders(trace));
         }
     }
 
@@ -736,7 +740,25 @@ class ConquestCommandBalanceTest {
             BattleFixture fixture, ConquestBattleFixture construction,
             int launchSeats, int launchSquads, String sha256) { }
 
-    private record RunResult(String trace, Analysis analysis, String density) { }
+    private record RunResult(String trace, Analysis analysis, String density, String forts) { }
+
+    /** How many structure orders each commander gave, by role, counted in the published trace. */
+    private static String fortOrders(String trace) {
+        StringBuilder out = new StringBuilder("- structure orders in the command trace:");
+        for (String perspective : List.of("MARINE", "DEFENDER")) {
+            for (String role : List.of("TAKE", "RETAKE", "DEFEND")) {
+                int count = 0;
+                for (String line : trace.split("\n")) {
+                    if (line.contains("\"perspective\":\"" + perspective + "\"")
+                            && line.contains("DEFENCE_STRUCTURE_" + role + "\"")) {
+                        count++;
+                    }
+                }
+                out.append(' ').append(perspective).append(' ').append(role).append('=').append(count);
+            }
+        }
+        return out.append('\n').toString();
+    }
 
     record ReportRow(
             String id, String sha256, ConquestBattleFixture fixture,

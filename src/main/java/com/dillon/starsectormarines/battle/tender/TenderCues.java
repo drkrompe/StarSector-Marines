@@ -22,6 +22,10 @@ public final class TenderCues {
 
     /** What happened. */
     public enum Kind {
+        /** A drone physically left the bay. */
+        LAUNCH,
+        /** A drone physically recovered into the bay. */
+        DOCK,
         /** A torch is striking at a site (rate-limited per site). */
         WELD,
         /** A builder was hit and shocked. */
@@ -33,7 +37,7 @@ public final class TenderCues {
     }
 
     /**
-     * One event at a place, in cells. {@code id} is the builder for a stun, else 0.
+     * One event at a place, in cells. {@code id} is the drone for flight or stun, else 0.
      * {@code tick} is the simulation tick it happened on.
      */
     public record Cue(Kind kind, Faction faction, float x, float y, long id, int tick) { }
@@ -41,7 +45,7 @@ public final class TenderCues {
     /** Ticks a visual event stays available to draw. */
     public static final int EFFECT_TICKS = 18;
     /** Fewest ticks between two weld sounds for one site, so a crew of three is one crackle. */
-    public static final int WELD_GAP_TICKS = 9;
+    public static final int WELD_GAP_TICKS = 12;
 
     private final List<Cue> frame = new ArrayList<>();
     private final List<Cue> frameView = Collections.unmodifiableList(frame);
@@ -74,6 +78,11 @@ public final class TenderCues {
         Cue c = new Cue(Kind.STUN, faction, x, y, builder, tick);
         frame.add(c);
         recent.add(c);
+    }
+
+    void flight(Kind kind, Faction faction, float x, float y, long drone, int tick) {
+        if (kind != Kind.LAUNCH && kind != Kind.DOCK) throw new IllegalArgumentException("Not a flight cue");
+        frame.add(new Cue(kind, faction, x, y, drone, tick));
     }
 
     void alert(Faction faction, float x, float y, int tick) {
