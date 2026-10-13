@@ -61,6 +61,16 @@ public class MarineRoster implements Serializable {
     /** Optional company-management introduction; absent legacy values mean not yet dismissed. */
     private boolean managementGuideDismissed;
     private boolean secondSquadPreparationSeen;
+    /** Read receipts only; opportunity availability remains with its owning feature. */
+    private Set<String> reviewedCompanyNotices;
+    public boolean hasReviewedCompanyNotice(String id) {
+        return reviewedCompanyNotices != null && reviewedCompanyNotices.contains(id);
+    }
+    public void reviewCompanyNotice(String id) {
+        if (id == null || id.isBlank()) return;
+        if (reviewedCompanyNotices == null) reviewedCompanyNotices = new HashSet<>();
+        reviewedCompanyNotices.add(id);
+    }
     public boolean secondSquadPreparationSeen() { return secondSquadPreparationSeen; }
     public void acknowledgeSecondSquadPreparation() { secondSquadPreparationSeen = true; }
     private FirstRefit firstRefit;

@@ -94,6 +94,13 @@ public final class MissionSelectScreen implements Screen {
         props.put("planetImage", context != null ? context.planetTexture : null);
         props.put("backAction", (Runnable) this::onBack);
         props.put("armoryAction", (Runnable) this::onArmory);
+        putCompanyNews(props, CompanyNotices.current(), () -> {
+            var notices = CompanyNotices.current();
+            if (context == null || notices.isEmpty()) return;
+            var notice = notices.get(0);
+            if (notice.page == MarineOpsPageNav.Page.ARMORY) context.openFleetArmoryWorkspaceFrom(ScreenId.MISSION_SELECT);
+            else context.goTo(notice.screen);
+        });
         props.put("clients", clientRows(selectedClient));
         props.put("clientEmpty", context == null || context.clients.isEmpty()
                 ? "No clients have work at this market." : "");
@@ -376,6 +383,7 @@ public final class MissionSelectScreen implements Screen {
 
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
+        putCompanyNews(props, List.of(), () -> { });
         putBroker(props, null);
         props.put("choiceSummary", "");
         props.put("choiceClasses", "choice-consequence choice-hidden");
@@ -387,6 +395,12 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailImageClasses", "mission-detail-image-wrap surface-dark");
         props.put("detailImage", null);
         return props;
+    }
+
+    static void putCompanyNews(Map<String, Object> props, List<CompanyNotices.Notice> notices, Runnable open) {
+        props.put("companyNewsClasses", notices.isEmpty() ? "company-news hidden" : "company-news console-action");
+        props.put("companyNewsLabel", CompanyNotices.summary(notices));
+        props.put("companyNewsAction", open);
     }
 
     static void putReferral(Map<String, Object> props, OpeningBroker.Destination office, String referral) {
