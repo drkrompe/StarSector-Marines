@@ -5,9 +5,11 @@ import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -53,6 +55,8 @@ public final class SceneBuilder {
     private final int width;
     private final int height;
     private final NavigationGrid grid;
+    private final CellTopology topology;
+    private final List<DefensePost> posts = new ArrayList<>();
     private final List<Object> spawnOrder = new ArrayList<>();
     private final Map<String, SquadSpec> squads = new LinkedHashMap<>();
     private final Map<String, UnitEntry> units = new LinkedHashMap<>();
@@ -67,9 +71,32 @@ public final class SceneBuilder {
         this.width = width;
         this.height = height;
         this.grid = new NavigationGrid(width, height);
+        this.topology = new CellTopology(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
+    }
+
+    private SceneBuilder(NavigationGrid grid, CellTopology topology) {
+        this.width = grid.getWidth();
+        this.height = grid.getHeight();
+        this.grid = grid;
+        this.topology = topology;
+    }
+
+    /**
+     * A scene over terrain a generator stage has already stamped, rather than over open floor: the fort scene stands
+     * the production battery fort on a bare field and plays the battle on the grid and topology it produced.
+     */
+    public static SceneBuilder over(NavigationGrid grid, CellTopology topology) {
+        return new SceneBuilder(grid, topology);
+    }
+
+    /** Defence posts the generator stamped, spawned through the production path when the scene is built. */
+    public SceneBuilder posts(List<DefensePost> stamped) {
+        checkOpen();
+        posts.addAll(stamped);
+        return this;
     }
 
     /** An arena of walkable floor, which every scene then cuts walls into. */
@@ -192,8 +219,12 @@ public final class SceneBuilder {
     public SceneWorld build() {
         checkOpen();
         built = true;
-        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(width, height));
+        BattleSimulation sim = new BattleSimulation(grid, topology);
         sim.setMissionCompletionEnabled(missionCompletion);
+        if (!posts.isEmpty()) {
+            sim.setDefensePosts(posts);
+            BattleSetup.spawnDefensePostTurrets(sim, posts);
+        }
 
         Map<String, Integer> squadIds = new LinkedHashMap<>();
         Map<String, long[]> members = new LinkedHashMap<>();
