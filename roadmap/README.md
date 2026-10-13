@@ -65,7 +65,9 @@ introduction is `a-small-war.md`: five operations on existing Agreus in nearby A
 Shepherd actually joins the fleet, with recovered suit patterns and a crude
 pirate boarding rig. `agreus-latchkey.md` develops Baronet Rusk's local concession
 under Ko Combine administration, the Greyhook flotilla and the yard workers caught
-between them. The authored arc remains unimplemented; its planet already exists.
+between them. The referral and first North Weir contract are implemented; test
+the live transition from Corvus, owned tender support and settlement before
+extending the warrant and equipment-reward chapters.
 
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the

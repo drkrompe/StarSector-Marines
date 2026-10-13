@@ -46,6 +46,7 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+import com.dillon.starsectormarines.ops.detachment.AgreusConstructionSupport;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -240,6 +241,11 @@ public final class MissionLaunch {
             ShepherdRecoveryCampaign.requireCurrent(m);
             if(!ShepherdRecoveryCampaign.atSite(ctx.planet))throw new IllegalStateException("Travel to Asharu before deploying.");
         }
+        if (AgreusArcCampaign.owns(m.id)) {
+            AgreusArcCampaign.requireCurrent(m);
+            if (!AgreusArcCampaign.atSite(ctx.planet))
+                throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
+        }
         boolean detachedDebugWorld = m.source.isDebug() && (ctx == null || ctx.planet == null);
         boolean enemyHasHeavyArmor = !detachedDebugWorld && !CorvusWaylineCampaign.isBattle(m)
                 && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
@@ -251,7 +257,7 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile marketProfile = (detachedDebugWorld ? TargetProfile.NEUTRAL : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+        TargetProfile marketProfile = (detachedDebugWorld ? TargetProfile.NEUTRAL : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m) : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
@@ -288,7 +294,9 @@ public final class MissionLaunch {
         Detachment constructionDetachment = det;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
-        if (ShepherdRecoveryCampaign.isBattle(m)) {
+        if (AgreusArcCampaign.isBattle(m)) {
+            builder = () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
+        } else if (ShepherdRecoveryCampaign.isBattle(m)) {
             var recovery=ShepherdRecoveryCampaign.requireCurrent(m);
             boolean departureChapter=recovery.repaired(), repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();
             builder=()->departureChapter?BattleSetup.createWorkingPassage(seed,constructionDetachment.shuttleManifest,profile):repairChapter?BattleSetup.createColdStart(seed,constructionDetachment.shuttleManifest,profile,delivered,powered)
@@ -398,7 +406,8 @@ public final class MissionLaunch {
     static HostileShipReport hostileShipFor(Mission m, TargetProfile profile, String defenderFactionId,
                                             ShipSupportSource declared) {
         if (defenderFactionId == null || defenderFactionId.isEmpty() || m.source == MissionSource.STATIONING
-                || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)) return HostileShipReport.declared(declared);
+                || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
+                || AgreusArcCampaign.isBattle(m)) return HostileShipReport.declared(declared);
         try {
             boolean campaign = !m.source.isDebug();
             return HostileShipSelection.resolve(declared, campaign, profile,
@@ -475,11 +484,18 @@ public final class MissionLaunch {
                     : new CampaignCommandPowerResources();
             boolean supplyRoute = SupplyRouteCampaign.isBattle(m);
             boolean shepherd = ShepherdRecoveryCampaign.isBattle(m);
-            if ((CorvusWaylineCampaign.isBattle(m) || shepherd)
+            boolean agreus = AgreusArcCampaign.isBattle(m);
+            if (agreus) {
+                AgreusArcCampaign.requireCurrent(m);
+                if (!AgreusArcCampaign.atSite(ctx.planet))
+                    throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
+                AgreusConstructionSupport.requireLive(det.powers, liveResources.availableSupplies());
+            }
+            if ((CorvusWaylineCampaign.isBattle(m) || shepherd || agreus)
                     && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                 throw new IllegalStateException("Select at least two squads with four ready marines each.");
             BrokenSupplyRouteProgress route = supplyRoute ? SupplyRouteCampaign.requireCurrent(m) : null;
-            if (supplyRoute || shepherd) {
+            if (supplyRoute || shepherd || agreus) {
                 if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                     throw new IllegalStateException("Select at least two squads with four ready marines each.");
                 deployment.applyToAuthoredPlayerLift(sim);
@@ -490,7 +506,7 @@ public final class MissionLaunch {
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
             if (authoredDebugLift) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, supplyRoute || shepherd || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, supplyRoute || shepherd || agreus || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
@@ -504,6 +520,7 @@ public final class MissionLaunch {
             if (route != null && !route.begin(m.id)) throw new IllegalStateException("This supply-route attempt has already launched.");
             if (CorvusWaylineCampaign.isBattle(m)) CorvusWaylineCampaign.begin(m);
             if (shepherd) ShepherdRecoveryCampaign.begin(m);
+            if (agreus) AgreusArcCampaign.begin(m);
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();

@@ -302,7 +302,7 @@ public final class MissionResolver {
         int payoutEarned = SupplyRouteCampaign.isBattle(mission)
                 ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome(),
                         sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
-                : CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
+                : CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
                 : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
@@ -370,6 +370,7 @@ public final class MissionResolver {
 
         return MissionOutcome.builder()
                 .workingPassage(sim.getWorkingPassage()==null?null:sim.getWorkingPassage().report(sim))
+                .waterUnderSeal(sim.getWaterUnderSeal()==null?null:sim.getWaterUnderSeal().report(sim))
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .officers(sim.officerAttemptId(), officers)
@@ -477,6 +478,10 @@ public final class MissionResolver {
         }
         if (ShepherdRecoveryCampaign.owns(outcome.missionId) && (cargo==null || ShepherdRecoveryCampaign.settle(outcome)<0)) {
             LOG.info("MarineOps: refused stale or invalid recovery outcome "+outcome.missionId);
+            return;
+        }
+        if (AgreusArcCampaign.owns(outcome.missionId) && (cargo == null || AgreusArcCampaign.settle(outcome) < 0)) {
+            LOG.info("MarineOps: refused stale or invalid North Weir outcome " + outcome.missionId);
             return;
         }
         if (cargo != null) {

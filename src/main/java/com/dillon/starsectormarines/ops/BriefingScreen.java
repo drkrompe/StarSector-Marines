@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+import com.dillon.starsectormarines.ops.detachment.AgreusConstructionSupport;
+import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 
 import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -999,6 +1001,10 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (AgreusArcCampaign.isBattle(mission)) return List.of(
+                BriefingViewModel.info("weir-constables", "Rusk's constables", "Eight militia / hold restored switching rooms", ""),
+                BriefingViewModel.info("weir-technicians", "Edek's repair party", "Two technicians and one repair load / protect both", ""),
+                BriefingViewModel.info("weir-construction", "Company tender", "Commit your working Shepherd in Support / build a Vulcan road gun", ""));
         if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.workingPassage(mission.id)) return List.of(
                 BriefingViewModel.info("basin-tender", "Morrow", "Live repaired Shepherd / escort to eastern climb-out yard", ""),
                 BriefingViewModel.info("basin-build", "Construction", "Build road guns behind company gains", ""),
@@ -1049,7 +1055,7 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;
@@ -1098,6 +1104,16 @@ public class BriefingScreen implements Screen {
             props.put("deployLabel", failed ? "RETRY SURVEY" : "PREPARING");
             props.put("deploymentStatus", failed ? "Terrain survey failed" : "Preparing deployment area...");
             props.put("deployAction", (Runnable) this::retrySurvey);
+        }
+        String constructionBlocker = AgreusArcCampaign.isBattle(mission)
+                ? AgreusConstructionSupport.blocker(cachedAvailablePowers, selectedPowerIds,
+                        new CampaignCommandPowerResources().availableSupplies()) : null;
+        if (constructionBlocker != null && personnelOk && transportOk && commandOk) {
+            props.put("deploymentStatus", constructionBlocker);
+            props.put("deployLabel", "CHECK CONSTRUCTION SUPPORT");
+            props.put("deployDisabled", true);
+            props.put("deployClasses", "briefing-deploy danger-surface briefing-blocked");
+            props.put("deployAction", (Runnable) () -> { });
         }
         if (MissionLaunch.requiresOfficerInduction(mission)) {
             props.put("deploymentStatus", "First command: complete Castle's officer lesson in Barracks");

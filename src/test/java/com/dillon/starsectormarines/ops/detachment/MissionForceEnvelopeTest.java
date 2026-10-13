@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -15,6 +17,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MissionForceEnvelopeTest {
+
+    @Test
+    void northWeirSeparatesEightPersonFloorFromTwoFullSquadRecommendation() {
+        Mission mission = AgreusArcCampaign.offer(new AgreusArcProgress(), "Agreus");
+        assertTrue(MissionForceEnvelope.allowsUnderstrength(mission));
+        assertEquals(8, MissionForceEnvelope.minimumPersonnel(mission, 24));
+        assertEquals(24, MissionForceEnvelope.recommendedPersonnel(mission));
+    }
 
     @Test
     void ordinaryGeneratedWorkSeparatesMinimumFromRecommendation() {

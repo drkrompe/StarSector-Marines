@@ -68,6 +68,8 @@ public final class CompanyHqScreen implements Screen {
             document.layout(viewport.documentWidth(), viewport.documentHeight());
         }
         if (preparationGuide != null) preparationGuide.update();
+        if (AgreusArcCampaign.current() != null)
+            CompanyNotices.Notice.AGREUS_REFERRAL.review(CompanyPreparationGuide.roster());
         if (ShepherdRecoveryCampaign.current() != null) {
             CompanyNotices.Notice.SHEPHERD_RECOVERY.review(CompanyPreparationGuide.roster());
             CompanyNotices.Notice.COLD_START.review(CompanyPreparationGuide.roster());
@@ -144,7 +146,7 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void onOpeningCourse() {
-        OpeningBroker.Destination destination = ShepherdRecoveryCampaign.current()!=null ? ShepherdRecoveryCampaign.destination() : CorvusWaylineCampaign.current() != null
+        OpeningBroker.Destination destination = AgreusArcCampaign.current() != null ? AgreusArcCampaign.destination() : ShepherdRecoveryCampaign.current()!=null ? ShepherdRecoveryCampaign.destination() : CorvusWaylineCampaign.current() != null
                 ? CorvusWaylineCampaign.destination() : SupplyRouteCampaign.destination();
         if (destination == null || destination.planet() == null) return;
         Global.getSector().getCampaignUI().layInCourseForNextStep(destination.planet());
