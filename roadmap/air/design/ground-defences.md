@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-13 — planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -186,9 +186,19 @@ capital that is not another ship.
    within the capture radius and none of the holder's friends take it after the capture time, the
    holder's friends alone wind it back, and a taken dome reboots for 4 s; the structure
    changes sides with its holder (see *Captured structures* below). Destroying the generator drops the dome.
-   Look: `ShieldDomeRenderSystem` (HAZARDS) in the warship shield's cyan for the player's side and
-   red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
-   an enemy dome draws only where the map has been seen. Sounds are the game's own
+   Look: `ShieldDomeRenderSystem` (HAZARDS) draws the dome as a shader (`ShieldDomeShader`), an
+   energy bubble seen from above in the warship shield's cyan for the player's side and red for the
+   enemy's: a bright fresnel-like rim over a faint interior, a drifting hex field with a slow shimmer
+   and wobble, a share of cells alight and a warming toward amber that track the pool, a collapse
+   that goes out cell by cell, and a rim that re-forms round the circle as it recovers. Each absorbed
+   round is an **impact** (the service keeps up to 24 per dome for 1.8 s with their flux cost): a flash
+   where it landed, a ripple ring crossing the dome and the hex cells it passes lighting, scaled by
+   the share of the pool the round cost. A thin pool gauge arc, the generator core glow and the
+   capture arc stay as poly. Where the shader is off (`-Dbattle.render.domeShader=false`) or fails to
+   build, the flat fill, rim and hit marks draw instead. An enemy dome draws only where the map has
+   been seen. `ShieldDomeShading` is the CPU model of the fragment shader (the pattern the sun-shadow
+   suite uses): `shield-dome-look` renders it at 1920x1080 and `gradlew.bat shaderEvidence` compares
+   the driver against it pixel for pixel. Sounds are the game's own
    `hit_shield_heavy_gun`, `shield_burnout` and `shield_raise` through the warship cue path.
    A mission that declares a shield generator gets one beside the keep, held by the
    garrison (`ShieldGeneratorPlacement.nearKeep`); which missions declare one is
