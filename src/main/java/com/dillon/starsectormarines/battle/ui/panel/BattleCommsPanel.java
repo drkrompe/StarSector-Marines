@@ -52,7 +52,7 @@ public final class BattleCommsPanel implements HudPanel {
     private static final Color STATUS = new Color(0x80, 0xB8, 0xE8);
 
     private final BattleUiContext ctx;
-    private final BattleCommsFeed feed = new BattleCommsFeed();
+    private final BattleCommsFeed feed;
     private final CounterattackCommsPresenter counterattackPresenter = new CounterattackCommsPresenter();
     private final WaylineHoundCommsPresenter houndPresenter = new WaylineHoundCommsPresenter();
     private final HostileShipCommsPresenter hostileShipPresenter = new HostileShipCommsPresenter();
@@ -62,7 +62,12 @@ public final class BattleCommsPanel implements HudPanel {
     private float wallClock;
 
     public BattleCommsPanel(BattleUiContext ctx) {
+        this(ctx, new BattleCommsFeed());
+    }
+
+    BattleCommsPanel(BattleUiContext ctx, BattleCommsFeed feed) {
         this.ctx = ctx;
+        this.feed = feed;
     }
 
     @Override
@@ -101,10 +106,9 @@ public final class BattleCommsPanel implements HudPanel {
         BattleLayout layout = ctx.getLayout();
         if (layout == null) return;
 
-        float width = Math.min(PANEL_MAX_W, Math.max(240f, layout.gridW - PANEL_INSET * 2f));
-        float height = Math.max(PANEL_H, 40f + font.measureWrappedHeight(notice.body(), width - PAD * 2f - 4f));
-        float x = layout.gridX + (layout.gridW - width) * 0.5f;
-        float y = layout.controlsY - BattleLayout.CONTROLS_GAP - height;
+        Rect bounds = noticeBounds();
+        float width = bounds.width(), height = bounds.height();
+        float x = bounds.x(), y = bounds.y();
         float fade = Math.min(1f, feed.remainingSec());
         float alpha = alphaMult * fade;
         Color accent = toneColor(notice.tone());
@@ -233,8 +237,42 @@ public final class BattleCommsPanel implements HudPanel {
         };
     }
 
-    @Override
-    public void handleInput(List<InputEventAPI> events) { /* read-only presentation */ }
+    public record Rect(float x, float y, float width, float height) {
+        public boolean contains(float px, float py) {
+            return px >= x && px < x + width && py >= y && py < y + height;
+        }
+    }
+
+    /** Exact opaque notice bounds; world beacons have no panel hit region. */
+    public Rect noticeBounds() {
+        BattleLayout layout = ctx.getLayout();
+        BattleCommsFeed.Notice notice = feed.activeNotice();
+        if (layout == null || notice == null) return new Rect(0, 0, 0, 0);
+        float width = Math.min(PANEL_MAX_W, Math.max(240f, layout.gridW - PANEL_INSET * 2f));
+        float height = Math.max(PANEL_H, 40f + font.measureWrappedHeight(notice.body(), width - PAD * 2f - 4f));
+        float top = ctx.topCenterContentBottom() - BattleLayout.CONTROLS_GAP;
+        return new Rect(layout.gridX + (layout.gridW - width) * .5f, top - height, width, height);
+    }
+
+    public float noticeBottom() {
+        Rect bounds = noticeBounds();
+        return bounds.height() > 0f ? bounds.y() : ctx.topCenterContentBottom();
+    }
+
+    @Override public boolean blocksWorldPointer(float x, float y) {
+        return noticeBounds().contains(x, y);
+    }
+
+    @Override public void handleInput(List<InputEventAPI> events) {
+        if (events == null) return;
+        Rect bounds = noticeBounds();
+        for (InputEventAPI event : events) {
+            if (event.isConsumed()) continue;
+            if ((event.isLMBDownEvent() || event.isLMBUpEvent() || event.isRMBDownEvent()
+                    || event.isRMBUpEvent() || event.isMouseScrollEvent())
+                    && bounds.contains(event.getX(), event.getY())) event.consume();
+        }
+    }
 
     @Override
     public boolean isVisible() {

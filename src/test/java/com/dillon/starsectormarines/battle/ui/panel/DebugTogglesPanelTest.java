@@ -7,6 +7,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationHandler;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,26 +19,28 @@ class DebugTogglesPanelTest {
         PositionAPI position = (PositionAPI) Proxy.newProxyInstance(PositionAPI.class.getClassLoader(),
                 new Class<?>[]{PositionAPI.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "getX", "getY" -> 0f;
-                    case "getWidth" -> 1744f;
-                    case "getHeight" -> 938f;
+                    case "getWidth" -> 1920f;
+                    case "getHeight" -> 1080f;
                     default -> throw new AssertionError(method.getName());
                 });
         BattleLayout layout = new BattleLayout(position, 100, 100);
         BattleUiContext context = (BattleUiContext) Proxy.newProxyInstance(BattleUiContext.class.getClassLoader(),
                 new Class<?>[]{BattleUiContext.class}, (proxy, method, args) -> {
                     if (method.getName().equals("getLayout")) return layout;
+                    if (method.isDefault()) return InvocationHandler.invokeDefault(proxy, method,
+                            args == null ? new Object[0] : args);
                     throw new AssertionError(method.getName());
                 });
         double[] value = {0};
         DebugTogglesPanel panel = new DebugTogglesPanel(context)
                 .addDial("Test", () -> value[0], next -> value[0] = next, 0, 1);
-        // No GL paint is required: the initial cached panel origin is (0, 0).
-        panel.handleInput(List.of(pointer("down", 162, 12))); // Expand header.
-        panel.handleInput(List.of(pointer("down", 162, 12))); // Begin dragging first dial.
+        // Input uses the production centered cluster geometry without needing a GL paint.
+        panel.handleInput(List.of(pointer("down", 1146, 1044))); // Expand header.
+        panel.handleInput(List.of(pointer("down", 1146, 1021))); // Begin dragging first dial.
         assertEquals(.5, value[0], 1e-9);
 
         panel.deactivateInput();
-        panel.handleInput(List.of(pointer("move", 218, 12), pointer("up", 218, 12)));
+        panel.handleInput(List.of(pointer("move", 1202, 1021), pointer("up", 1202, 1021)));
         assertEquals(.5, value[0], 1e-9);
     }
 
@@ -52,7 +55,10 @@ class DebugTogglesPanelTest {
                     case "isLMBDownEvent" -> kind.equals("down");
                     case "isLMBUpEvent" -> kind.equals("up");
                     case "isMouseMoveEvent" -> kind.equals("move");
-                    default -> throw new AssertionError(method.getName());
+                    default -> {
+                        if (method.getReturnType() == boolean.class) yield false;
+                        throw new AssertionError(method.getName());
+                    }
                 });
     }
 
