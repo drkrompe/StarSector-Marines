@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.tender.TenderPilot;
 import com.dillon.starsectormarines.battle.tender.TenderPilot.Notice;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
@@ -56,13 +57,13 @@ class BattleDirectTenderStatusTest {
 
     @Test
     void theOptionCardListsTheRealOptionAndCallsTheEmptySlotsSoon() {
-        assertEquals(1, BuildOption.ALL.size(), "the text below assumes one option; update it with the list");
+        assertEquals(4, BuildOption.ALL.size(), "the text below assumes four options; update it with the list");
         ShipCard option = card("OPTION", Notice.NONE);
         assertEquals("[1] VULCAN TURRET", option.detail());
         assertEquals("SELECTED", option.state());
-        assertEquals("[2]SOON [3]SOON [4]SOON", option.resource());
-        ShipCard empty = BattleDirectTenderStatus.optionCard(2);
-        assertEquals("[3] EMPTY", empty.detail());
+        assertEquals("[2]OK [3]OK [4]OK", option.resource());
+        ShipCard empty = BattleDirectTenderStatus.optionCard(TenderPilot.OPTION_SLOTS);
+        assertEquals("[5] EMPTY", empty.detail());
         assertEquals("SOON", empty.state());
         assertEquals(Tone.WARN, empty.tone());
     }

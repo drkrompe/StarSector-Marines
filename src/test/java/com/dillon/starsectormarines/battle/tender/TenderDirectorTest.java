@@ -3,13 +3,17 @@ package com.dillon.starsectormarines.battle.tender;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tender.TenderDirector.Picture;
 import com.dillon.starsectormarines.battle.tender.TenderDirector.Plan;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** What an unpiloted tender chooses to build from its stance, on a frozen picture of open ground. */
@@ -131,5 +135,18 @@ class TenderDirectorTest {
                 NONE, new float[]{100f, 50f}, NONE), grid);
         assertTrue(plan.hasSite());
         assertTrue(grid.isWalkable((int) plan.siteX(), (int) plan.siteY()));
+    }
+
+    @Test
+    void anAttackingTenderBuildsTheQuickestOptionAndADefendingOneTheHeaviestItCanPayFor() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        Tender t = Tender.fit(Faction.MARINE, 20f, 20f, 0f);
+        assertEquals(BuildOption.VULCAN_TURRET, TenderDirector.option(MissionStance.ATTACK, t));
+        assertEquals(BuildOption.MORTAR_TURRET, TenderDirector.option(MissionStance.DEFEND, t));
+        t.stock(2);
+        assertTrue(TenderDirector.option(MissionStance.DEFEND, t).cost() <= 2, "a metered stock bounds the choice");
+        t.stock(0);
+        assertNull(TenderDirector.option(MissionStance.DEFEND, t), "nothing it can pay for");
     }
 }
