@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
+Updated: 2026-10-13 — suit-mounted ordnance shares a physical muzzle with its visible firing pose.
 
 ## Purpose
 
@@ -688,8 +688,11 @@ of the carried special item. It stays visible after ammunition is spent and
 during cooldown, does not replace the primary, and does not infer a shot from
 the duration of an active effect. Aegis Predictive Volley and Arbalest Battery
 Volley carry left-pauldron missile pods; Specter Predictive Breach carries a
-small screen emitter. These are presentation choices, not additional capabilities
-or changes to projectile origins.
+small screen emitter. Those art choices do not grant capabilities. A missile
+system may separately declare its physical shoulder mount and muzzle geometry.
+Both the resolved round and its visual shot start at that muzzle, and a committed
+launch drives the short firing pose. The muzzle cannot reach through a blocking
+wall or edge to authorize a shot the wearer could not physically launch.
 
 The anti-materiel rifle is a four-round precision answer to visible hardened
 targets. Its long brace locks one target and cancels when the target or direct

@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — equipped suit hardware follows modular infantry shoulder articulation.
+Updated: 2026-10-13 — shoulder-pod firing presentation follows committed physical launches.
 
 ## Vocabulary
 
@@ -124,11 +124,17 @@ Offsets remain local to the selected attachment. Live battle and Armory compose
 the same equipped definition through the same layer helper.
 
 Carried hardware remains present while idle, active, recharging, or empty. A
-running-system timer is not a firing animation clock. Under-body hardware paints
+running-system timer is not a firing animation clock. A committed missile launch
+supplies a separate short firing pulse and independent pod bearing. The pod
+braces at the physical muzzle, kicks, and settles back onto its carried joint;
+its authored sprite muzzle registers to that same launch point. The firing
+hardware continues to travel with its wearer while the released round follows
+its own committed flight. Under-body hardware paints
 before the torso; over-body hardware paints after its shoulder shells and before
 foreground handheld equipment and the helmet. The suit mount neither consumes
 the carried special slot nor hides the primary. Capability effects, shots, and
-projectile origins continue to come from the simulation.
+projectile origins continue to come from the simulation. An absent firing pulse
+leaves the carried pose intact; recharging does not repeatedly play a launch.
 
 The direct-control aim lane is read-only world presentation derived from current
 firing origins, pointer aim, and deterministic structural terrain. Live and
