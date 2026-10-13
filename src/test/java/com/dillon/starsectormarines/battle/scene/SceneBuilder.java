@@ -269,6 +269,8 @@ public final class SceneBuilder {
         private boolean armed = true;
         private long kitSeed = DEFAULT_KIT_SEED;
         private String primaryWeaponId;
+        private String specialEquipmentId;
+        private int specialSeats;
         private boolean stationary;
         private IntFunction<ObjectiveAssignment> assignment;
         private MechVariant mechVariant;
@@ -354,6 +356,17 @@ public final class SceneBuilder {
         }
 
         /**
+         * Issues one piece of special equipment (a satchel kit, say) to the first {@code seats} members of a squad whose
+         * primaries are named with {@link #primary}; the rest carry nothing special. A squad's demolition capability is
+         * read from exactly this kit.
+         */
+        public SquadSpec special(String specialId, int seats) {
+            this.specialEquipmentId = Objects.requireNonNull(specialId, "specialId");
+            this.specialSeats = seats;
+            return this;
+        }
+
+        /**
          * Spawns without primaries. Only for a scene whose question is about
          * something other than fire — an unarmed squad cannot contest anything.
          */
@@ -398,8 +411,8 @@ public final class SceneBuilder {
         private MarineLoadout[] uniformKit() {
             MarineLoadout[] kit = new MarineLoadout[size];
             for (int i = 0; i < size; i++) {
-                kit[i] = new MarineLoadout(UnitRole.COMBATANT, null,
-                        primaryWeaponId, null, 0);
+                kit[i] = new MarineLoadout(UnitRole.COMBATANT, null, primaryWeaponId,
+                        i < specialSeats ? specialEquipmentId : null, 0);
             }
             return kit;
         }

@@ -12,7 +12,7 @@ final class CommandFrameCopies {
         return new ObjectiveAssignment(source.squadId(), source.kind(),
                 source.targetZoneId(), node(source.targetNode()),
                 source.objectiveId(), source.targetCellX(), source.targetCellY(),
-                source.targetRadiusCells());
+                source.targetRadiusCells(), source.wreckAuthorised());
     }
 
     static CommandDirective directive(CommandDirective source) {

@@ -54,7 +54,11 @@ public final class ConquestCommandFacts {
         for (DefenceStructureFact structure : sim.defenceStructures()) {
             boolean ours = perspective.friendlyTo(structure.holder())
                     || perspective.friendlyTo(structure.originalHolder());
-            if (ours || seesCell(sim, perspective, structure.seenCellX(), structure.seenCellY())) {
+            boolean seen = ours || seesCell(sim, perspective, structure.seenCellX(), structure.seenCellY());
+            if (seen && !ours) sim.noteStructureSighted(structure.seenCellX(), structure.seenCellY());
+            // A sighting is kept: the company that has looked at a fort still knows it is there when it looks away.
+            if (seen || (Faction.MARINE.friendlyTo(perspective)
+                    && sim.structureSighted(structure.seenCellX(), structure.seenCellY()))) {
                 known.add(structure);
             }
         }
