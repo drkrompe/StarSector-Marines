@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Raid objectives expose seizure, return and camera location through the persistent battle rail.
+Updated: 2026-10-12 — Barracks contains the equipment workspace and its unread opportunities.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -92,10 +92,12 @@ them.
   lifecycle. Fleet Armory, Company HQ, Mech Lab, Boat Deck, and the UI workbench
   are surfaces.
 - A **shipboard room** is the fiction and navigation identity of a player-facing
-  company surface. The bridge Company HQ, Fleet Armory, Barracks, Mech Lab, and
+  company surface. The bridge Company HQ, Barracks, Mech Lab, and
   Boat Deck are current
   rooms; the retained document remains the implementation surface underneath that
-  spatial frame.
+  spatial frame. Fleet Armory is the Equipment workspace within Barracks, reached
+  from Equipment or a squad inspection rather than its own top-level tab. Equipment
+  notices belong to Barracks and clear only when the relevant offer is reviewed.
 - A **page route** is one button on the shell's persistent navigation, and a
   route that names a compartment is answered by the ship rather than by the page:
   a hull that has no such place shows the button greyed and unreachable, and one

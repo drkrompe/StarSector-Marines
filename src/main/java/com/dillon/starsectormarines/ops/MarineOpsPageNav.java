@@ -41,7 +41,7 @@ final class MarineOpsPageNav {
     enum Page {
         HQ(null, "hq"),
         BARRACKS(RoomPurpose.BARRACKS, "barracks"),
-        ARMORY(RoomPurpose.ARMORY, "armory"),
+        ARMORY(RoomPurpose.ARMORY, null),
         MECH_LAB(RoomPurpose.VEHICLE_BAY, "mechLab"),
         BOAT_DECK(RoomPurpose.HANGAR, "boats"),
         /**
@@ -111,7 +111,9 @@ final class MarineOpsPageNav {
         props.put("returnAction", required(returnAction, "returnAction"));
         put(props, Page.HQ, current, aboard, hqAction);
         put(props, Page.BARRACKS, current, aboard, barracksAction);
-        put(props, Page.ARMORY, current, aboard, armoryAction);
+        // Legacy template properties; equipment is a workspace within Barracks.
+        props.put("armoryAction", required(armoryAction, "armoryAction"));
+        props.put("armoryClasses", "");
         put(props, Page.MECH_LAB, current, aboard, mechLabAction);
         put(props, Page.BOAT_DECK, current, aboard, boatsAction);
     }
@@ -136,7 +138,7 @@ final class MarineOpsPageNav {
         props.put(name + "Action", (Runnable) () -> {
             if (page.availableAboard(aboard) != Aboard.NO) wired.run();
         });
-        props.put(name + "Classes", classes(page == current, available));
+        props.put(name + "Classes", classes(page == navigationPage(current), available));
     }
 
     /** Update existing controls after designation or asynchronous deck preparation. */
@@ -151,7 +153,7 @@ final class MarineOpsPageNav {
             if (page.button() == null) continue;
             String id = "page-nav-" + (page == Page.MECH_LAB ? "mech-lab" : page.button());
             Aboard available = page.availableAboard(aboard);
-            boolean selected = page == current && available == Aboard.YES;
+            boolean selected = page == navigationPage(current) && available == Aboard.YES;
             markup.requireElement(id)
                     .classed("page-nav-absent", available == Aboard.NO)
                     .classed("page-nav-waiting", available == Aboard.UNKNOWN)
@@ -160,6 +162,10 @@ final class MarineOpsPageNav {
                     .classed("selected", selected)
                     .classed("page-nav-current", selected);
         }
+    }
+
+    private static Page navigationPage(Page page) {
+        return page == Page.ARMORY ? Page.BARRACKS : page;
     }
 
     private static Runnable required(Runnable action, String name) {
