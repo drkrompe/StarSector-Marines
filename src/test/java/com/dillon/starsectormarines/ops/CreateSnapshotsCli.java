@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotCatalog;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotRunner;
@@ -31,10 +32,12 @@ public final class CreateSnapshotsCli {
 
         SnapshotCatalog catalog = SnapshotCatalog.discover();
         List<SnapshotSuite> suites = catalog.select(selector);
-        List<Path> outputs = new SnapshotRunner().create(
-                new SnapshotContext(projectRoot, starsectorCore),
-                suites, outputRoot, true);
-        System.out.println("Created " + outputs.size() + " visual snapshots from "
-                + suites.size() + " suite(s) under " + outputRoot.toAbsolutePath());
+        try (var strings = new HeadlessStrings(projectRoot.resolve("mod"))) {
+            List<Path> outputs = new SnapshotRunner().create(
+                    new SnapshotContext(projectRoot, starsectorCore),
+                    suites, outputRoot, true);
+            System.out.println("Created " + outputs.size() + " visual snapshots from "
+                    + suites.size() + " suite(s) under " + outputRoot.toAbsolutePath());
+        }
     }
 }

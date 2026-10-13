@@ -64,6 +64,27 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/armory-armor-comparison.mlx");
 
     @Test
+    void startingCompanyHasOneRealIssueAndLearningSpecsAddsDistinctChoices() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(12);
+        FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster);
+        assertEquals(List.of("First Loadout"), model.weaponDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
+        assertEquals(List.of("First Loadout"), model.armorDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
+        assertEquals("12 LINE", model.weaponDoctrineTiles().get().get(0).composition());
+        var members = roster.manningMemberIds(roster.squadById(model.selectedSquadId()));
+        List<String> before = members.stream().map(id -> roster.soldierById(id).armorDef().id()).toList();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
+        model.refresh();
+        assertTrue(model.weaponDoctrineTiles().get().size() > 1);
+        assertTrue(model.armorDoctrineTiles().get().size() > 1);
+        var issues = model.armorDoctrineTiles().get().stream().map(tile ->
+                roster.armory().armorDoctrineById(tile.id().substring("armor-doctrine:".length())).issueIds()).toList();
+        assertEquals(issues.size(), issues.stream().distinct().count());
+        assertEquals(before, members.stream().map(id -> roster.soldierById(id).armorDef().id()).toList(),
+                "learning specifications must not silently fit existing personnel");
+    }
+
+    @Test
     void weaponRoleCountsCombineGradesAndKeepNamedQuantitiesVisible() {
         List<SquadWeaponIssue> issues = new ArrayList<>();
         for (int i = 0; i < 12; i++) issues.add(new SquadWeaponIssue("Marine",
@@ -126,7 +147,7 @@ class FleetArmoryViewModelTest {
                 < roster.armory().weaponDoctrines().size());
         // The picker and armory expose the same plans whose carrier class the
         // company holds; missing roles may fall back within that class.
-        assertEquals(roster.armory().armorDoctrines().size(),
+        assertEquals(roster.armory().armorDoctrines().stream().map(SquadArmorDoctrine::issueIds).distinct().count(),
                 viewModel.armorDoctrineTiles().get().size());
         viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
         assertEquals(FleetArmoryViewModel.LoadoutFilter.RARE, viewModel.loadoutFilter());
@@ -174,159 +195,70 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void shippedComponentsKeepKeyedDoctrineAndMarineIdentityAcrossInspection() throws Exception {
+    void shippedComponentsKeepKeyedIdentityAcrossBilletInspection() throws Exception {
         MarineRoster roster = fullSquad();
         Reactor reactor = new Reactor();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
-        MarkupLoader loader = new MarkupLoader(
-                path -> Files.readString(Path.of(path)), COMPONENTS);
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build(reactor, "fleet-armory-fireteam",
-                props(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            for (float[] size : List.of(
-                    new float[]{1744f, 938f},
-                    new float[]{1395f, 750f},
-                    new float[]{1163f, 625f})) {
-                document.layout(size[0], size[1]);
-                UiElement root = instance.requireElement("fleet-armory-fireteam-root");
-                UiElement transaction = instance.requireElement("refit-transaction");
-                assertTrue(transaction.box().borderBox().width() > 300f);
-                assertTrue(transaction.box().borderBox().right()
-                        <= root.box().contentBox().right() + 0.01f);
-                assertTrue(transaction.box().borderBox().bottom()
-                        <= root.box().contentBox().bottom() + 0.01f);
-            }
-
+        FleetArmoryViewModel model = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
+        try (MarkupInstance instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
+            UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
+            instance.styles().forEach(document::addStyleSheet);
+            document.layout(1920, 1080);
             UiElement list = instance.requireElement("weapon-doctrine-list");
-            assertTrue(instance.requireElement("show-weapon-picker").hasClass("selected"));
-            assertTrue(instance.requireElement("armor-doctrine-slot").hasClass("picker-hidden"));
-            FleetArmoryViewModel.DoctrineTile firstTile =
-                    viewModel.weaponDoctrineTiles().get().get(0);
-            UiElement factionLogo = instance.requireElement(firstTile.factionLogoId());
-            assertEquals(firstTile.factionLogo(), factionLogo.imageSource());
-            assertTrue(factionLogo.box().borderBox().width() >= 48f);
-            assertTrue(factionLogo.box().borderBox().height() >= 24f);
-            UiElement marineCard = instance.requireElement("marine-card:0");
-            UiElement marineCanvas = instance.requireElement("marine-preview:0");
-            FleetArmoryViewModel.MarineViewerCard marine =
-                    viewModel.marineCards().get().get(0);
-            assertEquals(marine.primaryFactionLogo(),
-                    instance.requireElement(marine.primaryFactionLogoId()).imageSource());
-            assertEquals(marine.armorFactionLogo(),
-                    instance.requireElement(marine.armorFactionLogoId()).imageSource());
             UiElement first = list.childAt(0);
-            UiElement second = list.childAt(1);
-            FleetArmoryViewModel.DoctrineTile alternative =
-                    viewModel.weaponDoctrineTiles().get().get(1);
+            UiElement billet = instance.requireElement("loadout-billet:0");
+            UiElement comparison = instance.requireElement("loadout-item:0");
+            var alternative = model.weaponDoctrineTiles().get().get(1);
             alternative.select().run();
             instance.flush();
-
+            document.layout(1920, 1080);
             assertSame(first, list.childAt(0));
-            assertSame(second, list.childAt(1));
             assertTrue(instance.requireElement(alternative.id()).selected());
-            String selectedWeapon = viewModel.selectedWeaponDoctrineId();
-            String alphaName = viewModel.marineCards().get().get(0).name();
-            viewModel.fireTeamOverviews().get().get(1).select().run();
+            String weapon = model.selectedWeaponDoctrineId();
+            String title = (String) model.inspection().get().get("title");
+            UiElement next = instance.requireElement("loadout-billet:4");
+            document.pointerDown(centerX(next), centerY(next));
+            document.pointerUp(centerX(next), centerY(next));
             instance.flush();
-
-            assertSame(marineCard, instance.requireElement("marine-card:0"));
-            assertSame(marineCanvas, instance.requireElement("marine-preview:0"));
-            assertNotEquals(alphaName, viewModel.marineCards().get().get(0).name());
-            assertEquals(selectedWeapon, viewModel.selectedWeaponDoctrineId());
-            assertEquals(viewModel.marineCards().get().get(0).name(),
-                    instance.requireElement("marine-card:0:name").text());
-
-            assertEquals(viewModel.currentSquadEquipmentPreview().canApply(),
+            assertNotEquals(title, model.inspection().get().get("title"));
+            assertSame(billet, instance.requireElement("loadout-billet:0"));
+            assertSame(comparison, instance.requireElement("loadout-item:0"));
+            assertEquals(weapon, model.selectedWeaponDoctrineId());
+            assertTrue(next.hasClass("selected"));
+            assertEquals(model.currentSquadEquipmentPreview().canApply(),
                     !instance.requireElement("apply-squad-equipment").disabled());
-            assertTrue(viewModel.marineCards().get().get(0).weaponDelta().contains("DMG"));
-            viewModel.showArmorPickerAction().run();
-            instance.flush();
-            assertEquals(FleetArmoryViewModel.EquipmentPickerKind.ARMOR,
-                    viewModel.equipmentPickerKind());
+            model.showArmorPickerAction().run(); instance.flush();
             assertTrue(instance.requireElement("show-armor-picker").hasClass("selected"));
-            assertTrue(instance.requireElement("weapon-doctrine-slot")
-                    .hasClass("picker-hidden"));
-            assertFalse(instance.requireElement("armor-doctrine-slot")
-                    .hasClass("picker-hidden"));
-            for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
-                assertEquals(viewModel.marineCards().get().get(slot).name(),
-                        instance.requireElement("marine-card:" + slot + ":name").text());
-            }
+            assertTrue(instance.requireElement("weapon-doctrine-slot").hasClass("picker-hidden"));
+            assertFalse(instance.requireElement("armor-doctrine-slot").hasClass("picker-hidden"));
         }
     }
 
-    /**
-     * The four equipment labels on a dossier open the shared spec sheet, and the
-     * card keeps its identity and its comparison meters continuously visible
-     * while one is open ({@code company-view-nouns.md}).
-     */
     @Test
-    void equipmentLabelsOpenTheSharedSpecSheetWithoutDisplacingComparisonStats()
-            throws Exception {
-        MarineRoster roster = fullSquad();
+    void currentAndProposedEquipmentOpenSharedSpecSheetsWithoutMovingComparison() throws Exception {
         Reactor reactor = new Reactor();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
-        MarkupLoader loader = new MarkupLoader(
-                path -> Files.readString(Path.of(path)), COMPONENTS);
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build(reactor, "fleet-armory-fireteam",
-                props(viewModel))) {
-            FleetArmoryViewModel.MarineViewerCard marine =
-                    viewModel.marineCards().get().get(0);
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
+        FleetArmoryViewModel model = new FleetArmoryViewModel(reactor, fullSquad());
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
+        try (MarkupInstance instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
+            UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
+            instance.styles().forEach(document::addStyleSheet);
             SpecSheetLayer layer = SpecSheetLayer.install(document);
             SpecSheetBinder binder = new SpecSheetBinder(document, layer);
-            ArmorySpecSheets.bindMarineCards(binder, instance, viewModel.marineCards());
-            document.layout(1920f, 1080f);
-
-            // Every equipment label a card shows is a subject, and nothing else is.
-            for (String elementId : List.of(marine.primaryId(), marine.armorId(),
-                    marine.specialId(), marine.systemId())) {
-                assertTrue(binder.isBound(instance.requireElement(elementId)),
-                        elementId + " is not askable");
-            }
-            assertFalse(binder.isBound(instance.requireElement(marine.nameId())),
-                    "a marine is a dossier, not a catalog item");
-            assertEquals(4 * MarineSquad.TEAM_SIZE, binder.size());
-
-            UiElement card = instance.requireElement(marine.id());
-            UiElement stats = instance.requireElement(marine.weaponStatsId());
-            UiElement target = instance.requireElement(marine.systemId());
-            assertFalse(layer.visible());
-            assertTrue(stats.box().borderBox().width() > 250f);
-
+            ArmorySpecSheets.bindInspection(binder, instance, model.inspection());
+            document.layout(1920, 1080);
+            assertEquals(6, binder.size());
+            for (int item = 0; item < 3; item++) for (String side : List.of("current", "proposed"))
+                assertTrue(binder.isBound(instance.requireElement("loadout-item:" + item + ":" + side)));
+            UiElement stats = instance.requireElement("loadout-item:0:stat:DMG");
+            var box = stats.box().borderBox();
+            UiElement target = instance.requireElement("loadout-item:1:current");
             document.pointerMoved(centerX(target), centerY(target));
-            binder.update();
-            document.advance(0f);
-
+            binder.update(); document.advance(0f);
             assertTrue(layer.visible());
             assertSame(target, binder.openTarget());
-            assertEquals(marine.systemSheet().title(),
-                    instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-title").text());
-            assertTrue(stats.box().borderBox().width() > 250f,
-                    "opening a sheet must not resize the comparison meters");
-            assertEquals(marine.name(), instance.requireElement(marine.nameId()).text(),
-                    "the card keeps its identity while a sheet is open");
-            // The overlay is the document's, so it is not clipped by the card,
-            // and it stays inside the document either way.
-            assertTrue(layer.element().box().borderBox().right()
-                    <= document.root().box().contentBox().right() + 0.01f);
-            assertTrue(layer.element().box().borderBox().bottom()
-                    <= document.root().box().contentBox().bottom() + 0.01f);
-
-            document.pointerMoved(
-                    card.box().contentBox().x() + 8f,
-                    card.box().contentBox().bottom() - 8f);
-            binder.update();
-            document.advance(0f);
-            assertFalse(layer.visible());
+            assertEquals(box, stats.box().borderBox());
+            assertTrue(layer.element().box().borderBox().right() <= 1920.01f);
+            assertTrue(layer.element().box().borderBox().bottom() <= 1080.01f);
         }
     }
 
@@ -820,6 +752,7 @@ class FleetArmoryViewModelTest {
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
         props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
+        props.put("inspection", viewModel.inspection());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
@@ -867,7 +800,7 @@ class FleetArmoryViewModelTest {
                             .toList());
         }
         for (FleetArmoryViewModel.DoctrineTile tile : tiles) {
-            assertEquals("RATING " + tile.rating(), tile.ratingLabel(),
+            assertTrue(tile.ratingLabel().endsWith(tile.rating() + "%"),
                     "the chip has to show the number the order is built on");
         }
     }

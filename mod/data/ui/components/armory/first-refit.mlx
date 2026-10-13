@@ -17,10 +17,10 @@
       <div id="refit-paths" class="refit-paths">
         <armory-weapon-tech-card each="tile in lesson.paths" key="{tile.id}" tile="{tile}" />
       </div>
-      <div id="refit-empty" class="{lesson.emptyClasses}">Select a squad and one of the two plans above. Compare equipment before choosing your one free technology transfer.</div>
+      <div id="refit-empty" class="{lesson.emptyClasses}">{i18n.openingUiFirstRefitSelectASquadAndOneOfThe}</div>
       <div id="refit-comparison" class="{lesson.comparisonClasses}">
         <div id="refit-roll" class="refit-roll panel">
-          <div id="refit-roll-heading" class="refit-roll-heading tone-edge">CURRENT KIT / Select a square</div>
+          <div id="refit-roll-heading" class="refit-roll-heading tone-edge">{i18n.openingUiFirstRefitCurrentKitSelectASquare}</div>
           <div id="refit-billets" class="refit-billets">
             <div each="team in lesson.fireTeams" key="{team.id}" id="{team.id}" class="refit-team">
               <div id="{team.headingId}" class="refit-team-heading tone-edge">{team.label}</div>
@@ -41,7 +41,7 @@
           <div id="refit-selected-name" class="refit-selected-name tone-accent">{lesson.selectedName}</div>
           <div id="refit-equipment-columns" class="refit-equipment-columns">
             <div id="refit-current-equipment" class="refit-equipment-column">
-              <div id="refit-current-heading" class="refit-column-heading panel">CURRENT ISSUE</div>
+              <div id="refit-current-heading" class="refit-column-heading panel">{i18n.openingUiFirstRefitCurrentIssue}</div>
             <div id="refit-current-items" class="refit-items">
             <div each="item in lesson.currentItems" key="{item.id}" id="{item.id}" class="{item.classes}">
               <img id="{item.iconId}" class="refit-equipment-art" src="{item.icon}" />
@@ -56,7 +56,7 @@
             </div>
             </div>
             <div id="refit-proposed-equipment" class="refit-equipment-column">
-              <div id="refit-proposed-heading" class="refit-column-heading panel tone-accent">PROPOSED ISSUE / Hover equipment for full specs</div>
+              <div id="refit-proposed-heading" class="refit-column-heading panel tone-accent">{i18n.openingUiFirstRefitProposedIssueHoverEquipmentForFullSpecs}</div>
             <div id="refit-proposed-items" class="refit-items">
             <div each="item in lesson.proposedItems" key="{item.id}" id="{item.id}" class="{item.classes}">
               <img id="{item.iconId}" class="refit-equipment-art" src="{item.icon}" />
@@ -76,11 +76,11 @@
       <div id="refit-status" class="refit-status tone-edge">{lesson.status}</div>
       <div id="refit-actions" class="refit-actions">
       <button id="refit-claim" class="{lesson.claimClasses}" disabled="{lesson.claimDisabled}" onclick="{lesson.claim}">{lesson.claimLabel}</button>
-      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">FIT SQUAD / FREE</button>
+      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">{i18n.openingUiLoadoutFitSquad}</button>
       </div>
     </div>
     <div id="refit-footer" class="refit-actions">
-    <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">INSPECT SQUAD</button>
+    <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">{i18n.openingUiFirstRefitInspectSquad}</button>
     </div>
   </div>
 </template>
@@ -96,7 +96,7 @@
   .refit-hint { height: 18px; }
   .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
   .refit-squad { width: 180px; height: 24px; padding: 4px; border-width: 1px; }
-  .refit-paths { flex-direction: row; height: 190px; gap: 12px; }
+  .refit-paths { flex-direction: row; height: 254px; gap: 12px; }
   .refit-squad.refit-selected, .refit-billet.refit-selected { border-color: #73cfc9; background-color: #163a40; }
   .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
   .refit-comparison { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
@@ -368,7 +369,7 @@ public final class BoatDeckScreen implements Screen {
     private void refreshBayPresentation() {
         List<DeckGraph.Compartment> bays = hangars();
         if (bays.isEmpty()) {
-            activeBayLabel.set("NO HANGAR");
+            activeBayLabel.set(Strings.get("openingBoatDeckNoHangar"));
             bayNavigatorClasses.set("bay-navigator hidden");
             bayContextLabel.set(deck == null ? "" : ShipBreadcrumb.of(deck.ship(), null));
             return;
@@ -377,7 +378,7 @@ public final class BoatDeckScreen implements Screen {
         selectedBayIndex.set(index);
         activeBayLabel.set(String.format(Locale.ROOT,
                 "%02d/%02d%s", index + 1, bays.size(),
-                deck.rooms().damaged(bays.get(index).id()) ? " SEALED" : ""));
+                deck.rooms().damaged(bays.get(index).id()) ? Strings.get("openingBoatDeckSealed") : ""));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
     }

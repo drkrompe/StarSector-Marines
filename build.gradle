@@ -182,6 +182,8 @@ test {
     // `mod/jars` and `mod/sounds` are outputs of shadowJar and deployMod, so
     // including them would make `:test` stale on every single build.
     inputs.dir('mod/data')
+    // Opening localization checks catalog references in production code.
+    inputs.dir('src/main/java')
     inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
     inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
     inputs.dir('asset-pipeline/src/tool/resources/audio/operation-radio/live')

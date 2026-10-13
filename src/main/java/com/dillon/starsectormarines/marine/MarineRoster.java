@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -602,21 +603,21 @@ public class MarineRoster implements Serializable {
                 ? Collections.emptySet() : new LinkedHashSet<>(squadIds);
         int selectedCount = selectedIds.size();
         if (selectedIds.isEmpty()) {
-            return refusedCaptainAssignment("Select at least one line squad.",
+            return refusedCaptainAssignment(Strings.get("openingMarineRosterSelectAtLeastOneLineSquad"),
                     selectedCount, 0, currentCommandCount, commandCapacity);
         }
         if (captainId != null && captain == null) {
-            return refusedCaptainAssignment("The selected officer no longer exists.",
+            return refusedCaptainAssignment(Strings.get("openingMarineRosterTheSelectedOfficerNoLongerExists"),
                     selectedCount, 0, currentCommandCount, commandCapacity);
         }
         if (captain != null && captain.status() != Status.ACTIVE) {
-            return refusedCaptainAssignment("Only active officers can receive squads.",
+            return refusedCaptainAssignment(Strings.get("openingMarineRosterOnlyActiveOfficersCanReceiveSquads"),
                     selectedCount, 0, currentCommandCount, commandCapacity);
         }
         for (String squadId : selectedIds) {
             if (squadById(squadId) == null) {
                 return refusedCaptainAssignment(
-                        "A selected squad no longer exists. Refresh the selection.",
+                        Strings.get("openingMarineRosterASelectedSquadNoLongerExistsRefresh"),
                         selectedCount, 0, currentCommandCount, commandCapacity);
             }
         }
@@ -627,12 +628,12 @@ public class MarineRoster implements Serializable {
             if (!selectedIds.contains(squad.id())) continue;
             selectedSquads.add(squad);
             if (squad.reserve()) {
-                refusal = "The reserve pool cannot be assigned to an officer.";
+                refusal = Strings.get("openingMarineRosterTheReservePoolCannotBeAssignedTo");
             }
             if (Objects.equals(captainId, squad.homeCaptainId())) continue;
             changedCount++;
             if (squad.stationed() && refusal == null) {
-                refusal = "A stationed squad cannot change its home officer.";
+                refusal = Strings.get("openingMarineRosterAStationedSquadCannotChangeItsHome");
             }
         }
         if (refusal != null) {
@@ -643,15 +644,12 @@ public class MarineRoster implements Serializable {
         if (captain != null && changedCount > 0
                 && resultingCommandCount > commandCapacity) {
             return refusedCaptainAssignment(
-                    "This assignment would give " + captain.name() + " "
-                            + resultingCommandCount + " squads, exceeding the "
-                            + commandCapacity + "-squad command limit.",
+                    Strings.format("openingMarineRosterThisAssignmentWouldGiveSquadsExceedingThe", captain.name(), resultingCommandCount, commandCapacity),
                     selectedCount, changedCount, currentCommandCount, commandCapacity);
         }
         String reason = captain == null
-                ? "Unassigned: " + resultingCommandCount + " squads. They follow the operation commander."
-                : captain.name() + ": " + resultingCommandCount + "/" + commandCapacity
-                        + " squads assigned.";
+                ? Strings.format("openingMarineRosterUnassignedSquadsTheyFollowTheOperationCommander", resultingCommandCount)
+                : Strings.format("openingMarineRosterSquadsAssigned", captain.name(), resultingCommandCount, commandCapacity);
         SquadCaptainAssignmentResult result = new SquadCaptainAssignmentResult(
                 true, reason, selectedCount, changedCount, currentCommandCount,
                 resultingCommandCount, commandCapacity);

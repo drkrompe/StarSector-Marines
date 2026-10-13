@@ -3,17 +3,17 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / ARMOR COMPARISON" />
 
     <div id="comparison-breadcrumb" class="panel">
-      <button id="comparison-breadcrumb-companies" onclick="{back}">Back</button>
+      <button id="comparison-breadcrumb-companies" onclick="{back}">{i18n.openingUiArmoryArmorComparisonBack}</button>
       <div id="comparison-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
       <button id="back-to-fireteams" onclick="{backToFireTeams}">{selectedSquadName}</button>
       <div id="comparison-separator-current" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="comparison-current" class="breadcrumb-current label tone-accent">Compare Armor Patterns</div>
+      <div id="comparison-current" class="breadcrumb-current label tone-accent">{i18n.openingUiArmoryArmorComparisonCompareArmorPatterns}</div>
     </div>
 
     <div id="comparison-intro" class="panel">
-      <div id="comparison-heading" class="label heading tone-edge">ARMOR PATTERN COMPARISON</div>
+      <div id="comparison-heading" class="label heading tone-edge">{i18n.openingUiArmoryArmorComparisonArmorPatternComparison}</div>
       <div id="comparison-summary" class="label surface-dark tone-muted">{armorComparisonSummary}</div>
-      <div id="comparison-copy" class="label tone-muted">Every pattern the company holds, side by side: protection, mobility, class, tier, integral system, and provenance.</div>
+      <div id="comparison-copy" class="label tone-muted">{i18n.openingUiArmoryArmorComparisonEveryPatternTheCompanyHoldsSideBy}</div>
     </div>
 
     <div id="comparison-list" class="comparison-list">

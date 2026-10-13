@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
@@ -98,6 +99,7 @@ public final class SpecSheets {
             case OrbitalBarrage.ID -> "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.";
             case MarineInsertion.ID -> "Calls a Valkyrie to insert an infantry squad near the selected location.";
             case VehicleSupport.ID -> "Calls a transport to deliver armoured support.";
+            case CloseAirSupport.ID -> "Calls a Mudskipper gunship to circle overhead of the selected ground and fire on it, then depart.";
             case ShipOnStation.ID -> "Calls a committed ship in from your map edge to hold station over the targeted ground and work it, then depart. One ship per charge.";
             default -> "A support capability available from the committed fleet or employer.";
         };
@@ -129,6 +131,12 @@ public final class SpecSheets {
                 ACCENT_WEAPON,
                 weaponStats(def, issued, CATALOG_SHOOTER),
                 paragraphs(def.catalogDescription));
+    }
+
+    /** The primary's ability to overcome armor resistance, on a catalog-wide scale. */
+    public static Stat weaponPenetration(WeaponDef def) {
+        return new Stat("PEN", oneDecimal(def.penetration),
+                StatMeter.fraction(def.penetration, CatalogCeilings.weaponPenetration()));
     }
 
     /**

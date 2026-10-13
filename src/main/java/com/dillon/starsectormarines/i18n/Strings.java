@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.i18n;
 
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
+import java.text.MessageFormat;
 
 /**
  * Central lookup for Starsector Marines display strings. All user-facing
@@ -24,6 +25,16 @@ public final class Strings {
     public static final String NS = "marineOps";
 
     private Strings() {}
+
+    /** Complete translated message; arguments may be reordered by the translation. */
+    public static String format(String key, Object... arguments) {
+        return arguments.length == 0 ? get(key) : MessageFormat.format(get(key), arguments);
+    }
+
+    /** Catalog display fields may reference {@code @key}; addon-authored literal text stays valid. */
+    public static String resolve(String text) {
+        return text != null && text.startsWith("@") ? get(text.substring(1)) : text;
+    }
 
     public static String get(String key) {
         try {

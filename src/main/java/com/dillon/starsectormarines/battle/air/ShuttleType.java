@@ -38,8 +38,8 @@ import java.util.Locale;
  * </ul>
  *
  * <p>Combat capability is orthogonal to handling: Valkyrie is a heavy bus
- * AND fully armed (4 hardpoints, 150 HP, 60s loiter), while a Mudskipper is
- * nimble with a single hardpoint and 25s of fire-support fuel.
+ * AND fully armed (4 hardpoints, 150 HP), while a Mudskipper is nimble with a single
+ * hardpoint, which the Close Air Support gunship sortie circles overhead with.
  * {@link #kitFor} maps {@code (role, hardpoints)} to a turret loadout (which
  * turret structure ids) — the default A2G role expands to a mix of Arbalests + a
  * Hephaestus on larger hulls, and a single Heavy MG on a one-hardpoint tugboat.

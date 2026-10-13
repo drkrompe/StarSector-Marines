@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
@@ -40,51 +41,41 @@ public record BoatFitting(
         String provenance) {
 
     public static final BoatFitting STANDARD_PLATING = new BoatFitting(
-            "standard_plating", "Yard-standard plating", BoatFittingSlot.PLATING, 1,
+            "standard_plating", "@openingBoatFittingYardStandardPlating", BoatFittingSlot.PLATING, 1,
             1.00f, 1f, 1f, null,
-            "What a boat leaves the yard with: enough hull to hold pressure and "
-                    + "take the knocks a crowded bay hands out. It is not armour "
-                    + "and was never sold as any.");
+            "@openingBoatFittingWhatABoatLeavesTheYardWith");
 
     public static final BoatFitting REINFORCED_PLATING = new BoatFitting(
-            "reinforced_plating", "Reinforced belly plate", BoatFittingSlot.PLATING, 2,
+            "reinforced_plating", "@openingBoatFittingReinforcedBellyPlate", BoatFittingSlot.PLATING, 2,
             1.35f, 1f, 1f, cost(10, 0, 20, 0),
-            "A second skin laid over the belly and the cheeks, which is where a "
-                    + "lander is hit on the way down. Every yard in the sector cuts "
-                    + "these out of surplus plate; none of them will warrant the seams.");
+            "@openingBoatFittingASecondSkinLaidOverTheBelly");
 
     public static final BoatFitting ARMOURED_PLATING = new BoatFitting(
-            "armoured_plating", "Armoured lander shell", BoatFittingSlot.PLATING, 3,
+            "armoured_plating", "@openingBoatFittingArmouredLanderShell", BoatFittingSlot.PLATING, 3,
             1.75f, 1f, 1f, cost(20, 5, 40, 0),
-            "Assault-lander plate, laminate over the crew spaces and the tanks. It "
-                    + "costs the boat nothing but mass, and mass is the one thing a "
-                    + "landing craft has least of — which is why it is bought by "
-                    + "companies that expect to be shot at and nobody else.");
+            "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
 
     public static final BoatFitting STANDARD_DRIVE = new BoatFitting(
-            "standard_drive", "Yard-standard drive", BoatFittingSlot.DRIVE, 1,
+            "standard_drive", "@openingBoatFittingYardStandardDrive", BoatFittingSlot.DRIVE, 1,
             1f, 1.00f, 1.00f, null,
-            "The plant the hull was rated for. It lifts a full hold off the deck "
-                    + "and puts it down again, at the pace the deck was built around.");
+            "@openingBoatFittingThePlantTheHullWasRatedFor");
 
     public static final BoatFitting TUNED_DRIVE = new BoatFitting(
-            "tuned_drive", "Tuned drive", BoatFittingSlot.DRIVE, 2,
+            "tuned_drive", "@openingBoatFittingTunedDrive", BoatFittingSlot.DRIVE, 2,
             1f, 1.20f, 1.20f, cost(15, 5, 0, 0),
-            "A refit crew's week: clean feed lines, re-cut nozzles, and the "
-                    + "governor moved off the yard's cautious setting. Nothing "
-                    + "exotic, and every hour of it shows on the descent.");
+            "@openingBoatFittingARefitCrewSWeekCleanFeed");
 
     public static final BoatFitting UPRATED_DRIVE = new BoatFitting(
-            "uprated_drive", "Uprated drive", BoatFittingSlot.DRIVE, 3,
+            "uprated_drive", "@openingBoatFittingUpratedDrive", BoatFittingSlot.DRIVE, 3,
             1f, 1.45f, 1.45f, cost(30, 10, 0, 5),
-            "A bigger plant than the hull was drawn for, on mounts rebuilt to take "
-                    + "it. It makes the boat quick enough to be somewhere else by "
-                    + "the time the guns have settled, and it is not kind to the "
-                    + "airframe.");
+            "@openingBoatFittingABiggerPlantThanTheHullWas");
 
     private static final List<BoatFitting> CATALOG = List.of(
             STANDARD_PLATING, REINFORCED_PLATING, ARMOURED_PLATING,
             STANDARD_DRIVE, TUNED_DRIVE, UPRATED_DRIVE);
+
+    public String displayName() { return Strings.resolve(displayName); }
+    public String provenance() { return Strings.resolve(provenance); }
 
     public BoatFitting {
         if (id == null || id.isBlank()) {

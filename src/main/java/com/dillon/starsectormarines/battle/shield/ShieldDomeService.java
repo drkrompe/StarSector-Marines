@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.warship.WarshipSoundCue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Data owner for planetary shield domes: one per live shield generator, each a
@@ -61,6 +62,9 @@ public final class ShieldDomeService {
     public static final String DROP_SOUND_ID = "shield_burnout";
     public static final String RISE_SOUND_ID = "shield_raise";
 
+    /** Told when a taken generator's entity should change sides; set by the simulation. */
+    private BiConsumer<Long, Faction> holderListener = (id, holder) -> { };
+
     private final List<Dome> domes = new ArrayList<>();
     private final List<HitMark> marks = new ArrayList<>();
     private final List<WarshipSoundCue> cues = new ArrayList<>();
@@ -76,6 +80,11 @@ public final class ShieldDomeService {
     public synchronized void register(long entityId, Faction holder, float x, float y, DomeSpec spec) {
         domes.add(new Dome(entityId, holder, x, y, spec));
         publish();
+    }
+
+    /** Sets who is told, with the generator's entity id and its new holder, when a capture completes. */
+    public synchronized void setHolderListener(BiConsumer<Long, Faction> listener) {
+        this.holderListener = listener;
     }
 
     /** Drops the previous frame's cues. Called at the top of every advance. */
@@ -224,6 +233,7 @@ public final class ShieldDomeService {
                 dome.captureProgress = 0f;
                 dome.captures++;
                 startDown(dome, REBOOT_SECONDS);
+                holderListener.accept(dome.entityId, dome.holder);
             }
         } else if (raider == null && holderPresent && dome.captureProgress > 0f) {
             dome.captureProgress = Math.max(0f, dome.captureProgress - step);
@@ -246,6 +256,25 @@ public final class ShieldDomeService {
             hits.add(new HitView(m.holder, m.x, m.y, Math.max(0f, m.remaining / HIT_MARK_SECONDS)));
         }
         markSnapshot = List.copyOf(hits);
+    }
+
+    /**
+     * The dome that would meet ship-grade fire from {@code shooter} landing at
+     * {@code (x, y)}, as of the last tick: an up dome first (it absorbs the round),
+     * else a dome that covers the point but is down, else null. For targeting
+     * previews; the authority on absorption remains {@link #absorbs}.
+     */
+    public DomeView coverageAt(float x, float y, Faction shooter) {
+        DomeView down = null;
+        for (DomeView d : snapshot) {
+            if (!d.holder().hostileTo(shooter)) continue;
+            float dx = x - d.x();
+            float dy = y - d.y();
+            if (dx * dx + dy * dy > d.radius() * d.radius()) continue;
+            if (!d.overloaded()) return d;
+            if (down == null) down = d;
+        }
+        return down;
     }
 
     /** Live domes as of the last tick, for the renderer and for evidence. */

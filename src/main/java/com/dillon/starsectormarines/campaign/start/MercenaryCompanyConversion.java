@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.combat.BaseHullMod;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;
@@ -38,6 +39,6 @@ public final class MercenaryCompanyConversion extends BaseHullMod {
     @Override public boolean isApplicableToShip(ShipAPI ship) { return false; }
     @Override public boolean showInRefitScreenModPickerFor(ShipAPI ship) { return false; }
     @Override public String getUnapplicableReason(ShipAPI ship) {
-        return "Permanent yard conversion. Arrange installation through Mercenary conversion at a planetary spaceport.";
+        return Strings.get("openingMercenaryCompanyConversionPermanentYardConversionArrangeInstallationThroughMercenary");
     }
 }

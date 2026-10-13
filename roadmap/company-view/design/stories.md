@@ -9,7 +9,7 @@ Read `company-view-nouns.md` before changing a company-view story.
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
 | `castle-campaign-lessons.md` | Implemented; live acceptance open | Resumable post-Relief issue, Counterattack fitting, optional investments, Junction preparation and first heavy-support landing. |
-| `alpha-localization.md` | Planned; Alpha gate | New lessons use the catalog; sweep remaining player-facing Java/MLX literals and validate translated layouts. |
+| `alpha-localization.md` | In progress; Alpha gate | Opening tutorials and company Java/MLX copy migrated; catalog references, quantities and expanded layouts checked. Shared equipment catalogs, mission/results, battle and live translation acceptance remain. |
 | `ship-condition-survey.md` | Implemented; live acceptance open | Engineering survey, mess welfare, billets, circuits, and four mech berths: first with Wayward, three paid restorations. |
 | `machine-shop-restoration.md` | Implemented; live acceptance open | Clear the fixed workshop, restore reclamation, then install efficient fabrication tools. |
 | `cerberus-bay-restoration.md` | Implemented; live acceptance open | Reserved damaged second bay; optional paid restoration after Hold Until Relieved. |

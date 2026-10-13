@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — campaign lessons end at preparation; battle presentation leaves room for mission dialogue.
+Updated: 2026-10-13 — Engineering uses wall-anchored condition glyphs and expandable inspection cards; campaign lessons end at preparation so battle presentation leaves room for mission dialogue.
 
 ## Purpose
 
@@ -331,49 +331,38 @@ optional `specialEquipmentId`; armor doctrine owns only protection. A smoke gren
 or satchel therefore follows the Weapon slot without being reclassified as a
 ballistic `WeaponDef`.
 
-The two selected definitions compose into one exact twelve-billet preview. Alpha,
-Bravo, and Charlie remain four-billet inspection slices: selecting a team changes
-which four named marine cards are visible but does not reset or narrow the squad
-transaction. Each card combines the persistent marine's rank, status, aptitude,
-experience and career with the projected role and equipment. Weapon and armor
-figures use the same catalog and individual-profile rules as battle, while exact
-values remain legible beside comparative capability meters. Live portraits cycle
-the authored idle clip with stable per-slot phase offsets; headless evidence fixes
-the phase for deterministic comparison.
+The two selected definitions compose into one exact twelve-billet preview. Routine
+fitting shows all twelve current billets in three fire-team columns of four. Each
+square names its occupant, readiness, actual weapon and armor sprites, and whether
+the proposed issue changes that billet. Selection inspects one billet without
+changing the squad-wide transaction. Personnel careers and recovery management
+remain in Barracks.
 
-The three fire teams occupy compact Alpha, Bravo, and Charlie tabs directly on the
-FIRE TEAM context line rather than consuming another status row or side column.
-Readiness and recovery stay with the affected marine: ready, wounded, missing, killed,
-and vacant dossiers use distinct border treatments while explicit status and RTD time
-remain readable inside. A dossier's upper-right
-portrait sits beside identity and service history; compact class, weapon-tier, and
-armor-tier badges replace implementation terms with formation-readable language.
-Weapon, armor, and specialty descriptions come from their owning data catalogs, not
-from Fleet Armory markup. Those descriptions open as the shared spec sheet
-(`ui-nouns.md`) when the corresponding equipment label is hovered; the normal card keeps
-identity, comparison meters, and exact values continuously visible instead of clipping
-lore into the comparison surface. Each issued weapon, armor pattern, specialty item, and
-carried integral system pairs its equipment label and sheet heading with the
-representative vanilla faction flag authored by its owning catalog or armor tradition. Health, armor, resistance, and actual movement speed share
-the durability-and-mobility meter block; damage, range, accuracy, and sustained output
-share the weapon block. Catalog-wide ceilings keep every comparison stable across
-team selection and equipment changes.
+The adjacent comparison pairs current and proposed primary weapon, armor and suit
+system, and special equipment. Real equipment sprites, catalog names, exact values,
+and SVG-marked paired meters make the tradeoff visible. Weapon penetration is shown
+alongside damage, range, accuracy, and sustained output. Both sides use the same
+catalog-wide scales and the selected marine's profile for weapon accuracy and output.
+Hovering either item opens its shared spec sheet; changing billets preserves those
+bindings. A vacancy shows the planned issue without inventing an equipped soldier.
 
-The selected team's four dossiers form a two-by-two viewer beside a vertical loadout
-browser. Weapon and Armor are mutually exclusive tabs over that browser, and rarity
-filters bound a growing list without reducing the dossier detail. The browser contains
-only definitions the company actually knows; unknown definitions have no placeholder,
-silhouette, name, tier, rarity, provenance, or lore to spoil future discovery. Each
-weapon entry leads with counted battlefield roles, followed by named weapon quantities.
-The lesson choices and learned Armory kits use the same card component. Tier, rarity,
-provenance and setting copy remain supporting details alongside the exact twelve-billet
-distribution. That distribution reads
-as one joined line and is built from one entry per named thing, so each entry opens that
-item's spec sheet (`ui-nouns.md`) on hover: a weapon at the grade the loadout issues it,
-an armour pattern, a carried integral system. An entry that counts items which need not
-be the same item — a specialty count over a mixed issue, a capability family filled from
-two patterns — names no single catalog item and opens nothing, and a role count is a
-count rather than a catalog item at all. Tier describes
+Weapon Loadouts and Tactic Sheets share the right-hand browser. A new company's
+only choice in each is **First Loadout**: twelve Service Rooks and twelve Ward
+security kits over field fatigues. Starting specifications remain Rook, field
+fatigues, and Ward; no specialist weapon or suit is granted. Armor plans that resolve
+to the same ordered twelve issued patterns appear as one choice. As learned suits
+make their issues differ, those choices appear. Deduplication is presentation only:
+existing plans, saved profiles, collected specifications, and issued equipment remain
+intact. Unknown equipment has no revealing placeholder.
+
+Each weapon card leads with counted battlefield categories and shows each named
+weapon quantity with its equipment sprite. Tactic cards show the resolved armor
+quantities, sprites, and carried suit capabilities. The technology lesson and routine
+browser use the same weapon card component. Tier, rarity, provenance, and setting
+copy are supporting details. Each named catalog item opens its own spec sheet;
+counts over mixed items and role totals do not invent a catalog subject. No fleet
+inventory strip or repeated zero-cost message belongs on routine fitting; a compact
+**Fit Squad** control applies the whole reviewed issue. Tier describes
 expected capability while rarity describes acquisition scarcity and presentation.
 Rarity is never a random-roll weight, and selection never rolls equipment from a pool.
 Faction-authored entries pair that provenance with the owning faction's vanilla flag,
@@ -1320,9 +1309,16 @@ screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
 **Engineering** is the persistent ship-condition navigation tab, reached from
 every company room and Armory subview. It contains the former Walk the Ship
-room-condition survey. Selecting a compartment on
-the actual deck or its list entry focuses that room and shows Castle's portrait,
-a condition blurb, its working benefit and any next repair. Sealed structural
+room-condition survey. Small SVG glyphs straddle compartment walls with sealed,
+damaged or faulty-power status. Healthy rooms have no glyph, keeping attention on
+outstanding work. Glyphs have no opaque tiles and shrink for small rooms so
+furnishings remain visible. Hovering any room or glyph opens a bounded
+inspection card beside it; selecting pins that card for interaction without changing
+the camera. The card retains Castle's portrait, condition, working benefit, bill and
+reviewed repair action. Moving into its controls keeps it open; Close, Escape or
+empty-deck selection dismisses it. Cards stay inside the viewport and scroll when
+needed; badges follow the same camera as the rooms. A separate compact distribution
+control represents the ship-wide circuits order. Sealed structural
 rooms are distinct from accessible damaged rooms and usable rooms on faulty
 power. Workshop stages retain their own reviewed orders; the second boat bay can
 also be repaired here through its existing yard authority.
@@ -1513,8 +1509,16 @@ story dialogue unobstructed by preparation popovers or command-tray spotlights.
 Mech Support remains available through its ordinary command card and landing
 controls, without a field-tutorial acknowledgement or a reminder on later contracts.
 
-New lesson prose and labels use `Strings` through `LessonCopy`; complete variable
-sentences live in the marineOps catalog. `alpha-localization.md` owns the remaining
+Opening and company-screen prose and labels use `Strings`; `LessonCopy` delegates
+its complete variable messages to `Strings.format`. The marineOps catalog owns
+copy, including markup labels through `{i18n.key}`. Formatting uses MessageFormat
+numbered arguments (and choice patterns for quantities); plain `get` preserves
+literal apostrophes. Existing printf-based cost displays retain printf patterns.
+Rank/specialty labels and `@key` boat catalog display fields resolve when read,
+not during static initialization. The management guide stores titleKey/textKey
+beside stable narration IDs; synthesis text is recording direction, not UI copy.
+Saved identifiers, authored/player names and resource transactions are independent
+of translated display text. `alpha-localization.md` owns the remaining
 project-wide migration. `castle-campaign-lessons.md` retains live acceptance;
 `campaign-learning-curve.md` records the wider progression gaps without silently
 changing economy or officer thresholds.

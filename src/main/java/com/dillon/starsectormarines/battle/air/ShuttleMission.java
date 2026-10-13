@@ -282,6 +282,19 @@ public final class ShuttleMission {
     /** Passes this sortie has left before it turns for home. */
     public int passesLeft;
 
+    /**
+     * Whether this sortie is a gunship's: it circles {@link #lzX}/{@link #lzY}
+     * until {@link #orbitSecondsLeft} runs out, rather than landing or running in at the point.
+     * Set by {@link GunshipOrbit#begin}; a craft with this set never has a payload to put down.
+     */
+    public boolean gunship;
+    /** Radius of the ring a gunship holds about its target, in cells. */
+    public float orbitRadius;
+    /** Whether the ring is flown clockwise (target to the right of the heading) or counter-clockwise. */
+    public boolean orbitClockwise;
+    /** Seconds on the ring before the craft turns for the exit; counted only while it is circling. */
+    public float orbitSecondsLeft;
+
     /** Counts down to the next round while the aircraft is firing. */
     public float fireCooldown;
 
@@ -529,7 +542,7 @@ public final class ShuttleMission {
                  TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL,
                  LANDING_ROLL, TAXI_IN -> false;
             case SHIP_DEPARTURE, SHIP_RETURN, INCOMING, PAD_DESCENT, ATTACK_RUN, REPOSITION,
-                 LANDED, DEPARTING, RETURNING -> true;
+                 ORBIT, LANDED, DEPARTING, RETURNING -> true;
         };
     }
 

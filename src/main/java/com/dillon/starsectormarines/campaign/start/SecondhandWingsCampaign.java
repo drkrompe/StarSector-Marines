@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -29,7 +30,7 @@ public final class SecondhandWingsCampaign {
 
     public static Offer offer(MarineRoster roster) {
         if (roster == null || Global.getSector() == null || Global.getSector().getPlayerFleet() == null)
-            return new Offer(false, "No company fleet.", 0);
+            return new Offer(false, Strings.get("openingSecondhandWingsCampaignNoCompanyFleet"), 0);
         var fleet = Global.getSector().getPlayerFleet();
         var ship = CompanyShipDesignation.aboard();
         int credits = (int) fleet.getCargo().getCredits().get();

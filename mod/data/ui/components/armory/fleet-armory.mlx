@@ -3,23 +3,23 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / FLEET MARINE COMPANY" />
 
     <div id="squad-breadcrumb" class="panel">
-      <button id="squad-breadcrumb-companies" onclick="{back}">Back</button>
+      <button id="squad-breadcrumb-companies" onclick="{back}">{i18n.openingUiFleetArmoryBack}</button>
       <div id="squad-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="squad-breadcrumb-company" class="breadcrumb-current label tone-edge">Fleet Marine Company</div>
+      <div id="squad-breadcrumb-company" class="breadcrumb-current label tone-edge">{i18n.openingUiFleetArmoryFleetMarineCompany}</div>
       <div id="squad-breadcrumb-separator-squads" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="squad-breadcrumb-current" class="breadcrumb-current label tone-accent">Squads</div>
+      <div id="squad-breadcrumb-current" class="breadcrumb-current label tone-accent">{i18n.openingUiFleetArmorySquads}</div>
     </div>
 
     <div id="squad-overview-intro" class="panel">
-      <div id="squad-overview-heading" class="label heading tone-edge">EQUIPMENT WORKSPACE</div>
+      <div id="squad-overview-heading" class="label heading tone-edge">{i18n.openingUiFleetArmoryEquipmentWorkspace}</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
       <div id="squad-overview-copy" class="label tone-muted">{organization.galleryCopy}</div>
     </div>
 
-    <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">A PROPER ISSUE / Resume Castle's two-path equipment lesson</button>
+    <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">{i18n.openingUiFleetArmoryAProperIssueResumeCastleSTwo}</button>
 
     <div id="armory-cargo-stock" class="cargo-stock-strip panel">
-      <div id="armory-cargo-stock-title" class="label heading tone-muted">AVAILABLE STORES</div>
+      <div id="armory-cargo-stock-title" class="label heading tone-muted">{i18n.openingUiFleetArmoryAvailableStores}</div>
       <div id="armory-cargo-stock-rows" class="cargo-stock-rows">
         <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
           <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />
@@ -29,21 +29,21 @@
     </div>
 
     <div id="organization-toolbar" class="organization-toolbar panel">
-      <button id="begin-squad-organization" class="{organization.startClasses}" disabled="{organization.active}" onclick="{organization.startAction}">Organize squads</button>
-      <button id="cancel-squad-organization" class="{organization.cancelClasses}" disabled="{organization.inactive}" onclick="{organization.cancelAction}">Cancel organization</button>
+      <button id="begin-squad-organization" class="{organization.startClasses}" disabled="{organization.active}" onclick="{organization.startAction}">{i18n.openingUiFleetArmoryOrganizeSquads}</button>
+      <button id="cancel-squad-organization" class="{organization.cancelClasses}" disabled="{organization.inactive}" onclick="{organization.cancelAction}">{i18n.openingUiFleetArmoryCancelOrganization}</button>
       <div id="organization-toolbar-copy" class="{organization.toolbarCopyClasses}">{organization.toolbarCopy}</div>
     </div>
 
     <div id="squad-organization-panel" class="{organization.panelClasses}">
       <div id="organization-heading" class="organization-heading">
         <div id="organization-selected-count" class="organization-selected-count label heading tone-accent">{organization.selectedCount}</div>
-        <div id="organization-target-heading" class="organization-target-heading label tone-edge">HOME OFFICER</div>
+        <div id="organization-target-heading" class="organization-target-heading label tone-edge">{i18n.openingUiFleetArmoryHomeOfficer}</div>
       </div>
       <div id="organization-target-list" class="organization-target-list">
         <button each="target in organization.targetRows" key="{target.id}" id="{target.id}" class="{target.classes}" style="{target.style}" disabled="{organization.inactive}" onclick="{target.select}">
           <div id="{target.identityId}" class="organization-target-identity">
             <img id="{target.portraitId}" class="{target.portraitClasses}" src="{target.portrait}" />
-            <div id="{target.fallbackId}" class="{target.fallbackClasses}">OP</div>
+            <div id="{target.fallbackId}" class="{target.fallbackClasses}">{i18n.openingUiFleetArmoryOp}</div>
             <div id="{target.dossierId}" class="organization-target-dossier">
               <div id="{target.rankRowId}" class="organization-target-rank-row">
                 <canvas id="{target.rankId}" class="{target.rankClasses}" width="24" height="24" />

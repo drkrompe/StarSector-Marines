@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 /**
  * An officer's rank, which caps how many {@link MarineSquad}s they can command.
  * Squads are led by their own NCOs; this ladder is the officer above them.
@@ -16,12 +17,12 @@ package com.dillon.starsectormarines.marine;
  */
 public enum Rank {
     /** A platoon, and the rank the player's company starts under. */
-    LIEUTENANT("Lieutenant", 3, 1000),
+    LIEUTENANT("openingRankLieutenant", 3, 1000),
     /** A merc-sized company. */
-    CAPTAIN("Captain", 6, 2000),
-    MAJOR("Major", 10, 4000),
-    LT_COLONEL("Lt. Colonel", 16, 8000),
-    COLONEL("Colonel", 24, Integer.MAX_VALUE);
+    CAPTAIN("openingRankCaptain", 6, 2000),
+    MAJOR("openingRankMajor", 10, 4000),
+    LT_COLONEL("openingRankLtColonel", 16, 8000),
+    COLONEL("openingRankColonel", 24, Integer.MAX_VALUE);
 
     private final String displayName;
     private final int squadCommandCap;
@@ -34,7 +35,7 @@ public enum Rank {
     }
 
     public String displayName() {
-        return displayName;
+        return Strings.get(displayName);
     }
 
     /** Whole squads this rank can command at once. */
