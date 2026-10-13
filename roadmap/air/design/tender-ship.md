@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — the wing now flies as a living swarm: staggered launch, recall and retreat as flights home, a loose escort ring, builder stations; player control through direct control is built; AI stance and more options are open.
+Updated: 2026-10-13 — the wing now flies as a living swarm: staggered launch, recall and retreat as flights home, a loose escort ring, builder stations; player control through direct control is built; four catalog-turret build options; AI stance and the non-turret options are open.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
 
@@ -39,13 +39,13 @@ Rejected: a role flag on the shuttle mission. The shuttle machinery is built aro
 
 ## What a tender can build
 
-Only deployables that already exist, through the paths they already have. Slice 1 builds a **vulcan turret**: a `TurretCatalogRegistry` structure placed through `MapTurret.create`, exactly the entity a defence post stamps, so it fires, takes fire, shows a durability bar and dies through the ordinary pipelines.
+Only deployables that already exist, through the paths they already have. It builds four **catalog turrets** (vulcan, arbalest, dual flak, heavy mortar): each a `TurretCatalogRegistry` structure placed through `MapTurret.create`, exactly the entity a defence post stamps, so it fires, takes fire, shows a durability bar and dies through the ordinary pipelines.
 
 Candidates, in the order they cost least to add (each is a `BuildOption` plus, where noted, a placement path):
 
 | Candidate | Path it would use | Note |
 | --- | --- | --- |
-| Other catalog turrets (arbalest, flak, mortar) | the same structure path | data only |
+| Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher, locust, heavy MG and hephaestus are further data-only candidates once a fifth slot or a selector exists |
 | Point-defence emplacement | `PointDefenseService.queuePlacement` | already bounded by lifetime and magazine |
 | Revetment / cover screen | `DeployedCoverService.queuePlacement` | a boundary feature, not an entity, and needs a facing |
 | Sensor, repair, supply | none yet | wait on the systems that would use them |
@@ -102,7 +102,7 @@ A tender is a warship body, so it is exactly as hittable as one: **only by ordna
 ## Who steers
 
 - **Slice 1:** the debug path. The briefing's WARSHIP DEBUG picker offers "Shepherd (tender)"; the debug panel's keys order a build at the cursor, cancel builds, and recall or deploy the defence drones, and its status line reports hull, shield, builds ("builds free", or the charges left on a metered tender), drones and the current order.
-- **Player (built):** the existing direct-control carrier seam (`DirectControlSession`, with `TenderPilot` for the hands; `direct-control-nouns.md` Tender owns the bindings and handback). Click the hull, Tab to pilot, WASD flies it, the left button lays a site at the cursor for the selected option, the right button recalls or deploys the defence drones on the press, 1-4 select the option (only slot 1 is filled), X cancels every unfinished site, E is the shield. Fog is the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
+- **Player (built):** the existing direct-control carrier seam (`DirectControlSession`, with `TenderPilot` for the hands; `direct-control-nouns.md` Tender owns the bindings and handback). Click the hull, Tab to pilot, WASD flies it, the left button lays a site at the cursor for the selected option, the right button recalls or deploys the defence drones on the press, 1-4 select the option (all four slots are filled), X cancels every unfinished site, E is the shield. Fog is the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
 - **AI by stance:** a tender with a mission stance and no pilot: ATTACK builds forward positions on cleared ground and keeps close to the advance; DEFEND builds on the held ground's approaches. Both are a director over `Tender.lay`, never a second order model.
 
 ### Decisions made for the pilot
@@ -136,4 +136,4 @@ Built: point defence by the defence drones' mining lasers (the `tender-point-def
 
 Since added: launch and recovery as real flight (staggered, through the bay's mouth, docking on arrival, leading a moving bay), the escort ring, the leash and break-off, retreat and repair of hurt defenders, builder stations with a welding arc, and separation, with unit tests and the `tender-sortie` scene beside `tender-build`.
 
-Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). Open: AI by stance, more build options, the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.
+Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). Open: AI by stance, the non-turret build options (point defence, revetment), the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.
