@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-14 — the Warship pilot has a low pass on F (see Warship carrier); a drone Tender is flown through the warship seam with build and drone buttons; hover-only help tab explains each carrier's controls.
+Updated: 2026-10-13 — manual control retains mission instructions, progress and world locators; individual ground presence remains objective-owned.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -71,7 +71,7 @@ retained UI focus traversal, and holding it never repeatedly switches modes. A b
 crosshair shows its point aim. The battle screen owns the mode indicator and
 routes input before ordinary
 world picking, contextual orders, and camera keys. During control, strategic
-chrome is hidden: commander/objective rails, squad and Mech panels, command
+chrome is hidden: commander rails, squad and Mech panels, command
 powers, retreat, communications, and developer panels. Their hidden bounds
 cannot capture input or suppress movement and fire. Entry clears old UI focus,
 pointer capture, and retreat confirmation. A thin bottom-center equipment strip
@@ -86,8 +86,21 @@ pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or
 clear. Infantry primaries have no ammunition counter; finite Mech stores count
 trigger packs, while the APC turret counts individual rounds. Indirect mounts
-remain visible as unavailable for manual fire. The world retains health bars, the controlled bracket, and aim
-crosshair. Selection and command/debug cell overlays are suppressed while
+remain visible as unavailable for manual fire.
+
+A bounded, scrollable objective list stays at the top left, showing the same
+public mission steps, instructions, measured progress and blockers as command
+mode. It has no squad commands or camera-jump action; the action camera continues
+following the controlled body. Pointer input over the list scrolls it and suspends
+world fire, while movement and ability bindings retain their existing routing.
+The world retains public objective locators, capture footprints, off-screen
+objective directions, health bars, the controlled bracket, and aim crosshair.
+A lone controlled ground body counts through the ordinary objective's physical
+presence rules. Capture and recovery do not require the rest of its squad to be
+nearby; contesting enemies, required rooms, dwell times, equipment and specialist
+roles still belong to each objective. The readout grants no progress itself.
+
+Selection and command/debug cell overlays are suppressed while
 controlling. Exit restores the strategic view and current selection. In the world, WASD supplies movement and
 the mouse supplies aim; a primary press starts held fire and its release ends
 it, even if the pointer has since crossed UI chrome. World fire is suspended
