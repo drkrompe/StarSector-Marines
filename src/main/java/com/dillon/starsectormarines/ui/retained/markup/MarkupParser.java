@@ -277,6 +277,7 @@ public final class MarkupParser {
     }
 
     private void requireVisible(MarkupExpression expression, List<String> visible) {
+        if ("i18n".equals(expression.rootName())) return;
         if (visible.contains(expression.rootName())) return;
         throw error(expression.line(), expression.column(), expression + " reads \""
                 + expression.rootName() + "\", which is not in scope here. In scope: "

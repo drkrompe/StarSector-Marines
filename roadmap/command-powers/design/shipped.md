@@ -15,3 +15,4 @@ Written: 2026-08-23
 | `s4-marine-insertion.md` | 2026-08-12 | `88e04e15` | `command-powers-nouns.md` |
 | `s8-slice1-revive-canonical.md` | 2026-05-30 | `0752c37f` | `command-powers-nouns.md` |
 | `s8-slice2-action-layout.md` | 2026-05-30 | `c935bd73`, `4a24f6f2`, `6a6aecd6`, `796cf4b4` | `command-powers-nouns.md` |
+| `shielded-fire-support-zones.md` | 2026-10-14 | `2470ba960` | `command-powers-nouns.md`, `ground-defences.md` (dome absorbs barrage instead of denying its targeting; owner decision) |

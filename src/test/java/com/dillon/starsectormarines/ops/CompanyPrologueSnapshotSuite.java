@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -17,6 +18,11 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
     public String id() { return "company-prologue"; }
     public String label() { return "Second Wind / campaign opening"; }
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        try (var strings = new HeadlessStrings(context.modRoot())) {
+            return renderPages(context);
+        }
+    }
+    List<SnapshotArtifact> renderPages(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), CompanyPrologueScreen.COMPONENTS);
         loader.reload();

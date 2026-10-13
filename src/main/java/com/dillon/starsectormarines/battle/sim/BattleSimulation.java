@@ -566,6 +566,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
     public ReliefAssault getReliefAssault() { return reliefAssault; }
+    @Override public boolean isCapturedStructure(long id) { return rosterService.isCapturedStructure(id); }
+
+    /**
+     * A captured structure's allegiance follows its holder: the entity changes
+     * sides, so its own side's enemies stop shooting it and the new holder's
+     * enemies start, and it joins or leaves the fog contributors with its side.
+     * Called by whatever decides a structure changed hands (a dome's capture, a
+     * battery's fire control).
+     */
+    public void followStructureHolder(long id, Faction holder) {
+        if (!rosterService.isAliveById(id)) return;
+        Faction before = rosterService.identity().faction(id);
+        if (before == holder) return;
+        boolean wasContributor = fogOfWar.getVisionState().isContributor(before);
+        rosterService.reassignFaction(id, holder);
+        boolean isContributor = fogOfWar.getVisionState().isContributor(holder);
+        if (wasContributor && !isContributor) fogOfWar.removeContributor(id);
+        else if (!wasContributor && isContributor) fogOfWar.addContributor(id, rosterService);
+    }
+
     @Override public int pendingGroundArrivals(Faction faction) {
         return faction != Faction.DEFENDER ? 0 : (reliefAssault == null ? 0 : reliefAssault.pendingMembers())
                 + (lastLiftSequence == null ? 0 : lastLiftSequence.pendingMembers())
@@ -792,6 +812,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.satchelCharges = new SatchelChargeService();
         this.pointDefense = new PointDefenseService(rng);
         this.shieldDomes = new ShieldDomeService();
+        this.shieldDomes.setHolderListener(this::followStructureHolder);
         this.deployedCover = new DeployedCoverService(mapEditor, this.grid);
         this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
@@ -1678,6 +1699,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         requireInternalAir("spawnSortie");
         return airSystem.spawnSortie(frame, faction, lzX, lzY, entryX, entryY,
                 exitX, exitY, pendingDelay);
+    }
+
+    @Override
+    public long spawnGunship(ShuttleType type, Faction faction,
+                             float centreX, float centreY, float entryX, float entryY,
+                             float exitX, float exitY) {
+        requireInternalAir("spawnGunship");
+        return airSystem.spawnGunship(type, faction, centreX, centreY, entryX, entryY, exitX, exitY);
     }
 
     public void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission) {

@@ -47,21 +47,32 @@ public final class AirArmament {
         if (mission.assignedRole == null) {
             mission.assignedRole = role != null ? role : TurretRole.A2G;
         }
+        MountedTurret[] turrets = mounts(airframe, mission.assignedRole,
+                world.kinematics(craftId).facingDegrees);
+        if (turrets.length == 0) return 0;
+        // A presence component, so the entity id must already be minted.
+        sim.attachAirTurrets(craftId, turrets);
+        return turrets.length;
+    }
+
+    /**
+     * The mounts {@code airframe} carries for {@code role}, each at its hull slot and aligned
+     * to {@code noseFacing}; empty when the airframe has no mounts or its hull publishes no slots.
+     *
+     * <p>Aligned to the nose so the first tick on station does not snap every turret through a
+     * ninety-degree swing.
+     */
+    public static MountedTurret[] mounts(Airframe airframe, TurretRole role, float noseFacing) {
+        if (airframe == null || airframe.hardpoints() <= 0) return new MountedTurret[0];
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        String[] kit = ShuttleType.kitFor(mission.assignedRole, airframe.hardpoints());
+        String[] kit = ShuttleType.kitFor(role, airframe.hardpoints());
         float[][] slots = TurretSlotResolver.resolve(airframe.renderHullId());
         int fitted = Math.min(kit.length, slots.length);
-        if (fitted <= 0) return 0;
-        // Mounts start aligned to the nose so the first tick on station does
-        // not snap every turret through a ninety-degree swing.
-        float noseFacing = world.kinematics(craftId).facingDegrees;
-        MountedTurret[] turrets = new MountedTurret[fitted];
-        for (int i = 0; i < fitted; i++) {
+        MountedTurret[] turrets = new MountedTurret[Math.max(0, fitted)];
+        for (int i = 0; i < turrets.length; i++) {
             turrets[i] = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
             turrets[i].facingDegrees = noseFacing;
         }
-        // A presence component, so the entity id must already be minted.
-        sim.attachAirTurrets(craftId, turrets);
-        return fitted;
+        return turrets;
     }
 }

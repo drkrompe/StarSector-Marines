@@ -1,14 +1,14 @@
 <template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
-      <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
-      <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">Weapon Loadouts</button>
-      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">Tactic Sheets</button>
+      <div id="equipment-picker-heading" class="label heading tone-edge">{i18n.openingUiArmorySquadDoctrineLoadouts}</div>
+      <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">{i18n.openingUiArmorySquadDoctrineWeaponLoadouts}</button>
+      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">{i18n.openingUiArmorySquadDoctrineTacticSheets}</button>
     </div>
 
     <div id="loadout-browser-tools">
       <div id="loadout-browser-summary" class="label tone-edge">{loadoutBrowserSummary}</div>
-      <div id="loadout-browser-order" class="label tone-muted">Strongest first</div>
+      <div id="loadout-browser-order" class="label tone-muted">{i18n.openingUiLoadoutCatalogRelativeFirepowerProtection}</div>
     </div>
 
     <div id="loadout-filter-list">
@@ -25,10 +25,10 @@
     <div id="armor-doctrine-slot" class="{armorPickerPanelClasses}">
       <div id="armor-doctrine-summary-row">
         <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
-        <button id="compare-armor-patterns" onclick="{showArmorComparison}">Compare Patterns</button>
+        <button id="compare-armor-patterns" onclick="{showArmorComparison}">{i18n.openingUiArmorySquadDoctrineComparePatterns}</button>
       </div>
       <div id="armor-doctrine-list" class="doctrine-list">
-        <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+        <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}" style="{tile.cardStyle}">
           <div id="{tile.headerId}" class="doctrine-header">
             <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
             <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
@@ -41,15 +41,15 @@
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
           <div id="{tile.compositionId}" class="doctrine-composition label">SECTION  ·  {tile.composition}</div>
           <div id="{tile.distributionId}" class="{tile.distributionClasses}">ISSUED  ·  {tile.distribution}</div>
-          <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}">
-            <div id="{tile.distributionTagId}" class="doctrine-line-tag label">ISSUED</div>
+          <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}" style="{tile.distributionStyle}">
+
             <div id="{tile.distributionGridId}" class="doctrine-span-grid">
-              <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span label">{span.label}</div>
+              <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
             </div>
           </div>
           <div id="{tile.carriesId}" class="{tile.carriesClasses}">CARRIES  ·  {tile.carries}</div>
           <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
-            <div id="{tile.carriesTagId}" class="doctrine-line-tag label">CARRIES</div>
+            <div id="{tile.carriesTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineCarries}</div>
             <div id="{tile.carriesGridId}" class="doctrine-span-grid">
               <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
             </div>
@@ -73,7 +73,7 @@
 </template>
 
 <style>
-  .squad-doctrine-strip { flex-direction: column; width: 520px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
+  .squad-doctrine-strip { flex-direction: column; width: 566px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   #equipment-picker-tabs { flex-direction: row; height: 30px; gap: 6px; }
@@ -97,7 +97,7 @@
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
   #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 476px; height: 214px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #191e20; }
+  .doctrine-tile { flex-direction: column; width: 530px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #191e20; }
   .doctrine-tile.rarity-common { border-color: #607188; }
   .doctrine-tile.rarity-uncommon { border-color: #a5c6bc; background-color: #10202c; }
   .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
@@ -119,7 +119,7 @@
   .doctrine-rarity.rarity-rare { color: #f2cf68; border-color: #dfb84d; }
   .doctrine-rarity.rarity-exotic { color: #dda8ff; border-color: #c77dff; }
   .doctrine-lore { height: 64px; white-space: normal; }
-  .doctrine-composition { height: 18px; color: #7fb2d8; }
+  .doctrine-composition { height: 22px; white-space: normal; color: #7fb2d8; }
   .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
   .doctrine-carries { height: 18px; color: #8fd6a6; }
 
@@ -128,12 +128,14 @@
      label above stays as the fallback for a line with nothing to list, and
      exactly one of the two is ever laid out. */
   .doctrine-span-row { flex-direction: row; gap: 6px; overflow: hidden; }
-  .doctrine-distribution-row { height: 40px; }
+  .doctrine-distribution-row { height: 96px; }
   .doctrine-carries-row { height: 18px; }
   .doctrine-line-tag { width: 58px; padding: 1px 0px; color: #7d8ea1; }
-  .doctrine-span-grid { display: grid; width: 0px; flex-grow: 1; gap: 3px; overflow: hidden; }
+  .doctrine-span-grid { display: grid; width: 0px; flex-grow: 1; gap: 4px; }
   .doctrine-span { height: 17px; padding: 1px 2px; }
-  .doctrine-issue-span { color: #d8bd67; }
+  .doctrine-issue-span { flex-direction: row; width: 230px; height: 44px; gap: 7px; align-items: center; color: #d8bd67; background-color: #111719; }
+  .doctrine-equipment-icon { width: 50px; height: 42px; }
+  .doctrine-equipment-name { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
   .doctrine-carries-span { color: #8fd6a6; }
   .doctrine-line-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
   .cargo-costs { display: grid; height: 54px; gap: 4px; overflow: hidden; }

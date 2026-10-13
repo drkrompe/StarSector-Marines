@@ -82,7 +82,8 @@ abstract class AirDeliveryPower extends CommandPower {
                 .bestNear(cellX, cellY, LZ_SEARCH_RADIUS, minimumClearance);
     }
 
-    private static float[] routeFromNearestEdge(float lzX, float lzY, NavigationGrid grid) {
+    /** Entry and exit points just off the map edge nearest the landing point: {@code {entryX, entryY, exitX, exitY}}. */
+    static float[] routeFromNearestEdge(float lzX, float lzY, NavigationGrid grid) {
         float left = lzX;
         float right = grid.getWidth() - lzX;
         float bottom = lzY;

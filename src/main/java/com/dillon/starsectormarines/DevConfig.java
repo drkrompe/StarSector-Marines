@@ -185,6 +185,10 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean DEBUG_GRANT_MARINE_INSERTION = false;
 
+    /** Expose Close Air Support without requiring a committed Mudskipper. */
+    @DebugOnly
+    public static final boolean DEBUG_GRANT_CLOSE_AIR_SUPPORT = false;
+
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
      * probe</b> — a campaign-map hotkey (<b>Ctrl+Shift+B</b>) that launches a real

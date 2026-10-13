@@ -174,6 +174,15 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay);
 
+    /**
+     * Spawn a gunship: an armed {@code type} craft that flies in from {@code (entryX, entryY)}, circles
+     * {@code (centreX, centreY)} overhead while its turret works the ground beneath it, then
+     * leaves by {@code (exitX, exitY)}. Returns its world entity id; nothing needs configuring afterwards.
+     */
+    long spawnGunship(ShuttleType type, Faction faction,
+                      float centreX, float centreY, float entryX, float entryY,
+                      float exitX, float exitY);
+
     /** Spawn a convoy vehicle (convoy reinforcement): builds its world entity from the
      *  variant + faction, seeding the caller-built {@link VehicleMission} as its
      *  {@code VEHICLE_MISSION} column. Configure the mission (route inputs, loadout) before calling. */

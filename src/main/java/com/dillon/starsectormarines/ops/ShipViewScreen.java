@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -67,6 +68,7 @@ public final class ShipViewScreen implements Screen {
     private CompanyDeck shownDeck;
     private WorkshopRestorationModel workshop;
     private ShipConditionModel survey;
+    private ShipConditionOverlay overlay;
     private boolean deckChanged, refocusPending;
 
     @Override
@@ -93,7 +95,7 @@ public final class ShipViewScreen implements Screen {
                 work -> CompanyShipRestoration.offer(ship, roster, work),
                 work -> CompanyShipRestoration.repair(ship, roster, work),
                 () -> CompanyBayRestoration.offer(ship, roster), () -> CompanyBayRestoration.repair(ship, roster),
-                room -> { if (deck != null) deck.focus(room); }, () -> deckChanged = true);
+                room -> { if (deck != null) deck.select(room); }, () -> deckChanged = true);
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -110,11 +112,14 @@ public final class ShipViewScreen implements Screen {
             }
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            built.theme(MarineOpsThemes.standard()).onCancel(() -> {
+                if (overlay == null || !overlay.dismiss()) close();
+            });
             shownDeck = context.companyDeck();
             deck = new ShipViewCanvas(shownDeck);
             deckElement = candidate.requireElement("ship-view-deck");
             built.canvases().set(deckElement, deck);
+            overlay = new ShipConditionOverlay(built, candidate, survey);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -136,9 +141,9 @@ public final class ShipViewScreen implements Screen {
         props.put("equipmentAction", equipmentAction(context));
         props.put("workshop", workshop.row());
         props.put("survey", survey.row());
-        props.put("roomTitle", "ENGINEERING  //  SHIP CONDITION");
-        props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "SHIP SERVICES");
+        props.put("roomTitle", Strings.get("openingShipViewEngineeringShipCondition"));
+        props.put("roomCopy", Strings.get("openingShipViewHoverToInspect"));
+        props.put("contextLabel", Strings.get("openingShipViewShipServices"));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 context::roomAboard,
                 this::close,
@@ -155,7 +160,10 @@ public final class ShipViewScreen implements Screen {
     }
 
     private void inspectWorkshop() {
-        if (deck != null) deck.focus(RoomPurpose.PARTS_CAGE);
+        if (shownDeck != null && shownDeck.ready() && overlay != null) {
+            var room = shownDeck.rooms().largest(RoomPurpose.PARTS_CAGE);
+            if (room != null) { overlay.select(room.id()); deck.focus(room); }
+        }
     }
 
     private void close() {
@@ -180,17 +188,20 @@ public final class ShipViewScreen implements Screen {
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (deck != null) controls.advance(dt, deck.camera());
+        if (overlay != null) overlay.update(dt, shownDeck, deck);
     }
 
     @Override
     public void render(float alphaMult) {
-        if (document != null && viewport != null) document.render(viewport, alphaMult);
+        if (document != null && viewport != null) {
+            overlay.update(0f, shownDeck, deck);
+            document.render(viewport, alphaMult);
+        }
     }
 
     /**
-     * The camera is flown from raw events rather than from pointer callbacks,
-     * because the wheel is not a gesture the retained layer carries and a zoom
-     * that only worked with a button held would be a strange one. The controls
+     * The camera receives raw events after retained controls claim their input,
+     * so scrolling a repair card cannot also zoom the deck. The controls
      * are told how to read a pointer into the camera's own pixels rather than
      * being handed translated events, so nothing has to impersonate an
      * {@code InputEventAPI}.
@@ -203,15 +214,15 @@ public final class ShipViewScreen implements Screen {
      */
     @Override
     public void processInput(List<InputEventAPI> events) {
+        if (input != null && events != null) input.process(events.stream()
+                .filter(event -> !event.isConsumed() && !event.isRMBDownEvent() && !event.isRMBUpEvent()).toList());
         BattleCamera camera = deck == null ? null : deck.camera();
         if (camera != null && document != null && deckElement != null
                 && viewport != null && events != null) {
             CanvasMetrics metrics = document.canvasMetrics(deckElement, 1f);
-            for (var event : events) if (!event.isConsumed() && event.isLMBDownEvent()) {
-                var room = deck.roomAt(deck.toCameraX(metrics.toCanvasX(viewport.documentX(event.getX()))),
-                        deck.toCameraY(metrics.toCanvasY(viewport.documentY(event.getY()))));
-                if (room != null) { survey.select(room.id()); event.consume(); }
-            }
+            for (var event : events) if (!event.isConsumed()
+                    && (event.isMouseScrollEvent() || event.isRMBDownEvent())
+                    && overlay.blocksCamera(viewport.documentX(event.getX()), viewport.documentY(event.getY()))) event.consume();
             controls.process(events, camera, new CameraControls.PointerSpace() {
                 @Override
                 public float x(float screenX) {
@@ -224,7 +235,6 @@ public final class ShipViewScreen implements Screen {
                 }
             });
         }
-        if (input != null) input.process(events);
     }
 
     @Override

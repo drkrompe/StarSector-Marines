@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -23,20 +24,20 @@ public final class CompanyBayRestoration {
 
     public static String refusal(boolean owned, BoatBayState state, boolean converted,
                                  boolean firstMissionComplete, boolean mothballed, boolean docked, int credits) {
-        if (!owned || state == BoatBayState.NONE) return "Select Second Wind's original hull for this repair.";
-        if (state == BoatBayState.RESTORED) return "The second bay is already restored.";
-        if (!converted) return "Complete the Mercenary Company Conversion first.";
-        if (!firstMissionComplete) return "Complete Hold Until Relieved to unlock this repair.";
-        if (mothballed) return "Reactivate the ship before ordering yard work.";
-        if (!docked) return "Dock at an accessible planetary spaceport for structural repairs.";
-        if (credits < CREDIT_COST) return "Insufficient credits for the repair.";
+        if (!owned || state == BoatBayState.NONE) return Strings.get("openingCompanyBayRestorationSelectSecondWindSOriginalHullFor");
+        if (state == BoatBayState.RESTORED) return Strings.get("openingCompanyBayRestorationTheSecondBayIsAlreadyRestored");
+        if (!converted) return Strings.get("openingCompanyBayRestorationCompleteTheMercenaryCompanyConversionFirst");
+        if (!firstMissionComplete) return Strings.get("openingCompanyBayRestorationCompleteHoldUntilRelievedToUnlockThis");
+        if (mothballed) return Strings.get("openingCompanyBayRestorationReactivateTheShipBeforeOrderingYardWork");
+        if (!docked) return Strings.get("openingCompanyBayRestorationDockAtAnAccessiblePlanetarySpaceportFor");
+        if (credits < CREDIT_COST) return Strings.get("openingCompanyBayRestorationInsufficientCreditsForTheRepair");
         return null;
     }
 
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster) {
         BoatBayState state = state(ship);
         if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null)
-            return new Offer(false, 0, "No player fleet.");
+            return new Offer(false, 0, Strings.get("openingCompanyBayRestorationNoPlayerFleet"));
         var fleet = Global.getSector().getPlayerFleet();
         int credits = (int) fleet.getCargo().getCredits().get();
         boolean owned = ship != null && fleet.getFleetData().getMembersListCopy().contains(ship);

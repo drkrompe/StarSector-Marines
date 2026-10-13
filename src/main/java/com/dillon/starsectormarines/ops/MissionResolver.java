@@ -206,6 +206,7 @@ public final class MissionResolver {
         Set<String> survivingSoldierIds = new HashSet<>();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
+            if (roster.isCapturedStructure(unit)) continue; // held ground is not a person
             Faction faction = roster.identity().faction(unit);
             if (faction == Faction.MARINE) {
                 marinesAlive++;
@@ -224,6 +225,7 @@ public final class MissionResolver {
             Object[] soldierIds = t.objects(c.IDENTITY,
                     BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
+                if (roster.isCapturedStructure(t.entityAt(r))) continue;
                 if (factions[r] == Faction.MARINE) {
                     rawMarinesLost++;
                     String id = (String) soldierIds[r];

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 
 import java.awt.Color;
 import java.util.Locale;
@@ -73,6 +74,32 @@ public final class BattlefieldMarkerPresentation {
         }
         return new ObjectiveMarker(siteCode(siteId), "SABOTAGE", SABOTAGE,
                 0.58f, 0f, false);
+    }
+
+    /** A hostile dome seen from a ship-grade targeting preview: what it will do to the shot. */
+    public record DomeMarker(String status, Color tone, float radiusCells, boolean up) { }
+
+    /**
+     * How a dome reads on the targeting preview of fire it would meet. Ship-grade
+     * fire is not refused inside a dome: an up dome absorbs it as flux, a down
+     * one lets it land.
+     */
+    public static DomeMarker dome(ShieldDomeService.DomeView dome) {
+        if (dome.overloaded()) {
+            return new DomeMarker("DOWN", VALID, dome.radius(), false);
+        }
+        int pool = Math.round(dome.level() * 100f);
+        return new DomeMarker("ABSORBS / POOL " + pool + "%", CONTESTED, dome.radius(), true);
+    }
+
+    /** As {@link #target(String, boolean, float)}, noting a dome over the aim point, which stays a legal target. */
+    public static TargetMarker target(String displayName, boolean valid, float radiusCells,
+                                      ShieldDomeService.DomeView coveringDome) {
+        TargetMarker base = target(displayName, valid, radiusCells);
+        if (coveringDome == null || !valid) return base;
+        DomeMarker dome = dome(coveringDome);
+        return new TargetMarker(base.label(), dome.up() ? "ABSORBED BY DOME" : "DOME DOWN",
+                dome.tone(), base.radiusCells(), true);
     }
 
     public static TargetMarker target(String displayName, boolean valid,

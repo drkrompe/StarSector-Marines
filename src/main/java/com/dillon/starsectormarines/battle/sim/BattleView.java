@@ -63,6 +63,9 @@ public interface BattleView {
     /** Committed ground forces whose authored arrival is still pending. */
     default int pendingGroundArrivals(Faction faction) { return 0; }
 
+    /** Whether this structure has changed hands: held ground, which is not a person and so is not forces in play. */
+    default boolean isCapturedStructure(long id) { return false; }
+
     NavigationGrid getGrid();
 
     /**

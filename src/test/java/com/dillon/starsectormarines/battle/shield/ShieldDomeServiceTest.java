@@ -101,6 +101,22 @@ class ShieldDomeServiceTest {
     }
 
     @Test
+    void coverageForAPreviewFindsAnUpDomeOverThePointAndNoneForItsOwnSideOrOutside() {
+        BattleSimulation sim = arena();
+        sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        run(sim, 0.1f);
+        ShieldDomeService domes = sim.shieldDomes();
+        assertNotNull(domes.coverageAt(GEN_X + 5f, GEN_Y, Faction.MARINE));
+        assertNull(domes.coverageAt(GEN_X + 5f, GEN_Y, Faction.DEFENDER), "its holder is not stopped");
+        assertNull(domes.coverageAt(GEN_X + spec().radiusCells() + 2f, GEN_Y, Faction.MARINE));
+        domes.absorbs(ship(Faction.MARINE, GEN_X, GEN_Y, spec().fluxCapacity() + 1f));
+        run(sim, 0.1f);
+        ShieldDomeService.DomeView down = domes.coverageAt(GEN_X, GEN_Y, Faction.MARINE);
+        assertNotNull(down, "a dome that is down still covers the point");
+        assertTrue(down.overloaded());
+    }
+
+    @Test
     void anAlliedShipsRoundIsNotStoppedByTheMarinesDomeEither() {
         BattleSimulation sim = arena();
         sim.spawn(ShieldGenerator.create("g", Faction.MARINE, GEN_X, GEN_Y));
@@ -174,6 +190,24 @@ class ShieldDomeServiceTest {
         assertTrue(sim.shieldDomes().absorbs(ship(Faction.DEFENDER, GEN_X, GEN_Y, 50f)),
                 "now it stops the old holder's ships");
         assertFalse(sim.shieldDomes().absorbs(ship(Faction.MARINE, GEN_X, GEN_Y, 50f)));
+    }
+
+    @Test
+    void aTakenGeneratorChangesSidesSoItsOldSidesEnemiesStopShootingItAndItIsNotAPerson() {
+        BattleSimulation sim = arena();
+        long gen = sim.spawn(ShieldGenerator.create("g", Faction.DEFENDER, GEN_X, GEN_Y));
+        sim.spawn(new EntitySpec("raider", Faction.MARINE, UnitType.MARINE, GEN_X + 3, GEN_Y).moveSpeed(0f));
+        assertEquals(Faction.DEFENDER, sim.identity().faction(gen));
+        assertFalse(sim.isCapturedStructure(gen));
+        int marinesBefore = sim.getRoster().factionLiveCount(Faction.MARINE);
+
+        run(sim, spec().captureSeconds() * 1.5f);
+
+        assertEquals(Faction.MARINE, sim.identity().faction(gen), "the entity follows its holder");
+        assertEquals(Faction.MARINE, only(sim).holder());
+        assertTrue(sim.isCapturedStructure(gen));
+        assertEquals(marinesBefore + 1, sim.getRoster().factionLiveCount(Faction.MARINE));
+        assertEquals(1, sim.getRoster().factionLiveCount(Faction.DEFENDER), "only the far defender is left");
     }
 
     @Test

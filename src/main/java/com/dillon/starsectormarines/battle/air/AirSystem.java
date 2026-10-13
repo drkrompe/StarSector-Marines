@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -419,6 +420,26 @@ public class AirSystem {
         world.setAltitudeT(id, 1f);
         world.setFlightPhase(id, 0f);
         air.add(id);
+        return id;
+    }
+
+    /**
+     * Puts a gunship into the air: a {@code type} hull that flies in from {@code (entryX, entryY)},
+     * circles overhead of {@code (centreX, centreY)} for
+     * {@link GunshipOrbit#STATION_SECONDS}, and leaves by {@code (exitX, exitY)}.
+     *
+     * <p>Armed as any armed craft is, with the hull's own turret at the hull's own slot, and given
+     * no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down.
+     */
+    public long spawnGunship(ShuttleType type, Faction faction,
+                             float centreX, float centreY, float entryX, float entryY,
+                             float exitX, float exitY) {
+        long id = spawnSortie(type, faction, centreX, centreY, entryX, entryY, exitX, exitY, 0f);
+        ShuttleMission mission = world.mission(id);
+        AirBody body = world.kinematics(id);
+        GunshipOrbit.begin(mission, body.x, body.y, body.facingDegrees);
+        mission.assignedRole = TurretRole.A2G;
+        attachTurrets(id, AirArmament.mounts(type, mission.assignedRole, body.facingDegrees));
         return id;
     }
 
@@ -983,6 +1004,21 @@ public class AirSystem {
                     }
                     break;
 
+                case ORBIT: {
+                    // Round the ring at the ring's pace. The clock runs only here, so the visit
+                    // is the time the guns actually had the ground and not the glide in.
+                    float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.lzX, mission.lzY,
+                            mission.orbitRadius, mission.orbitClockwise);
+                    AirSteeringSystem.steer(body, ahead[0], ahead[1], SteeringMode.CRUISE,
+                            GunshipOrbit.paced(flight, body.speed(), dt), dt);
+                    world.setAltitudeT(id, 1f);
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    mission.orbitSecondsLeft -= dt;
+                    if (mission.orbitSecondsLeft <= 0f) beginEgress(mission, body);
+                    break;
+                }
+
                 case RETURNING: {
                     // An approach, and it is flown. The path from where the
                     // aircraft is to the threshold pointing down the strip is
@@ -1101,6 +1137,22 @@ public class AirSystem {
                     break;
 
                 case INCOMING:
+                    if (mission.gunship) {
+                        // Not coming to a point at all: joining a ring about it. The carrot is the
+                        // tangent point while the craft is still outside, so it arrives on the ring
+                        // already heading round it rather than at the centre and then out again.
+                        float[] join = GunshipOrbit.carrot(body.x, body.y, mission.lzX, mission.lzY,
+                                mission.orbitRadius, mission.orbitClockwise);
+                        AirSteeringSystem.steer(body, join[0], join[1], SteeringMode.CRUISE, flight, dt);
+                        world.setAltitudeT(id, 1f);
+                        world.setFlightPhase(id, world.flightPhase(id)
+                                + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                        if (GunshipOrbit.onTheRing(body.x, body.y, mission.lzX, mission.lzY,
+                                mission.orbitRadius)) {
+                            mission.state = ShuttleState.ORBIT;
+                        }
+                        break;
+                    }
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, flight, dt);
                     if (mission.strikeSortie) {
                         // A strike is not descending to anything. The approach

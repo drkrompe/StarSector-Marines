@@ -10,8 +10,8 @@
 
     <div id="transfer-body" class="transfer-body">
       <div id="transfer-fleet-rail" class="panel fleet-rail console-section">
-        <div id="transfer-fleet-heading" class="label heading tone-edge section-heading">THE FLEET</div>
-        <div id="transfer-fleet-copy" class="label tone-muted rail-copy">Select a hull to see her deck.</div>
+        <div id="transfer-fleet-heading" class="label heading tone-edge section-heading">{i18n.openingUiShipTransferTheFleet}</div>
+        <div id="transfer-fleet-copy" class="label tone-muted rail-copy">{i18n.openingUiShipTransferSelectAHullToSeeHerDeck}</div>
         <div id="transfer-fleet-list" class="fleet-list">
           <button each="ship in candidateRows" key="{ship.id}" id="{ship.id}" class="{ship.classes}" onclick="{ship.select}">
             <img id="{ship.imageId}" class="transfer-hull-image" src="{ship.image}" />
@@ -44,7 +44,7 @@
         </div>
 
         <div id="transfer-facilities" class="facilities-panel console-well">
-          <div id="transfer-facilities-heading" class="label heading tone-edge section-heading">WHAT WOULD BE ABOARD</div>
+          <div id="transfer-facilities-heading" class="label heading tone-edge section-heading">{i18n.openingUiShipTransferWhatWouldBeAboard}</div>
           <div id="transfer-facility-cells" class="facility-cells">
             <div each="cell in facilityCells" key="{cell.id}" id="{cell.id}" class="{cell.classes}">
               <div id="{cell.labelId}" class="label tone-muted facility-label">{cell.label}</div>

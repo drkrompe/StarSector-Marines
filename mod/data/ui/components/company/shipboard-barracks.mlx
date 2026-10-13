@@ -5,17 +5,17 @@
 
     <div id="barracks-room-bar" class="panel barracks-room-bar console-header">
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
-      <div id="barracks-room-title" class="label heading tone-edge">BARRACKS  //  PERSONNEL COMMAND</div>
+      <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksBarracksPersonnelCommand}</div>
       <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
       <div id="barracks-recruit-stock" class="recruit-stock console-readout">
         <img id="barracks-recruit-stock-icon" class="recruit-icon" src="{command.recruitIcon}" />
         <div id="barracks-recruit-stock-count" class="label heading warm recruit-count">{command.recruitStock}</div>
-        <div id="barracks-recruit-stock-label" class="label muted recruit-label">AVAILABLE RECRUITS</div>
+        <div id="barracks-recruit-stock-label" class="label muted recruit-label">{i18n.openingUiShipboardBarracksAvailableRecruits}</div>
       </div>
     </div>
 
     <div id="barracks-issue-stock" class="issue-stock-strip panel">
-      <div id="barracks-issue-stock-title" class="label heading tone-muted">FLEET CARGO</div>
+      <div id="barracks-issue-stock-title" class="label heading tone-muted">{i18n.openingUiShipboardBarracksFleetCargo}</div>
       <div id="barracks-issue-stock-rows" class="issue-stock-rows">
         <div each="stock in command.issueCargoStock" key="{stock.id}" id="{stock.id}" class="issue-stock-row">
           <img id="{stock.iconId}" class="issue-stock-icon" src="{stock.icon}" />
@@ -25,16 +25,16 @@
     </div>
 
     <div id="barracks-flow-actions" class="board-tools">
-      <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD</button>
+      <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">{i18n.openingUiShipboardBarracksRaiseSquad}</button>
       <button id="barracks-equipment" class="{command.equipmentClasses}" onclick="{command.equipmentWorkspace}">{command.equipmentLabel}</button>
-      <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">OFFICER DOSSIER</button>
+      <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">{i18n.openingUiShipboardBarracksOfficerDossier}</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
       <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">{command.missionLabel}</button>
     </div>
     <div id="barracks-command-board" class="{command.overviewClasses}">
       <div id="barracks-command-rail" class="command-rail panel console-section">
-        <div id="barracks-section-heading" class="label heading section-heading">OFFICER COMMANDS</div>
-        <div id="barracks-rail-note" class="label muted wrap rail-note">Named officers coordinate their squads. Independent squads act under their NCOs.</div>
+        <div id="barracks-section-heading" class="label heading section-heading">{i18n.openingUiShipboardBarracksOfficerCommands}</div>
+        <div id="barracks-rail-note" class="label muted wrap rail-note">{i18n.openingUiShipboardBarracksNamedOfficersCoordinateTheirSquadsIndependentSquads}</div>
         <div id="barracks-command-list" class="command-list">
           <div each="group in command.commands" key="{group.id}" id="{group.cardId}" class="command-entry" style="{group.cardStyle}">
           <button id="{group.id}" class="{group.classes}" onclick="{group.select}">
@@ -59,12 +59,12 @@
             <div id="officer-progress" class="label heading warm officer-line">{command.officerProgress}</div>
             <div id="officer-service" class="label officer-line">{command.officerService}</div>
           </div>
-          <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">VIEW FORMATIONS</button>
+          <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">{i18n.openingUiShipboardBarracksViewFormations}</button>
         </div>
         <div id="officer-dossier-scroll" class="officer-scroll">
           <div id="officer-biography" class="label wrap officer-copy">{command.officerBiography}</div>
           <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
-          <div id="officer-scope" class="label muted wrap officer-copy">Specialties follow the squads this officer leads into the operation, including borrowed squads. Independent NCO squads receive no officer specialty. Unavailable officers grant no new field effects.</div>
+          <div id="officer-scope" class="label muted wrap officer-copy">{i18n.openingUiShipboardBarracksSpecialtiesFollowTheSquadsThisOfficerLeads}</div>
           <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
           <div id="officer-specialty-list" class="officer-list">
           <div each="specialty in command.officerSpecialties" key="{specialty.id}" id="{specialty.id}" class="officer-specialty console-readout">
@@ -83,7 +83,7 @@
           </div>
           </div>
           <div id="officer-traits" class="label muted wrap officer-copy">{command.officerTraits}</div>
-          <div id="officer-history-heading" class="label heading warm officer-line">SERVICE RECORD / LATEST 20 ENTRIES</div>
+          <div id="officer-history-heading" class="label heading warm officer-line">{i18n.openingUiShipboardBarracksServiceRecordLatestEntries}</div>
           <div id="officer-history-list" class="officer-list" style="{command.officerHistoryStyle}">
             <div each="note in command.officerHistory" key="{note.id}" id="{note.id}" class="label wrap officer-history-note">{note.text}</div>
           </div>
@@ -92,15 +92,15 @@
       <div id="barracks-formation-board" class="{command.formationClasses}">
         <div id="barracks-board-title" class="label heading board-title">{command.title}</div>
         <div id="barracks-board-tools" class="board-tools">
-          <div id="barracks-search-label" class="label search-label">SEARCH</div>
+          <div id="barracks-search-label" class="label search-label">{i18n.openingUiShipboardBarracksSearch}</div>
           <input id="barracks-search" class="roster-search" value="{command.search}" maxlength="64" oninput="{command.editSearch}" />
           <button id="barracks-attention" class="tool-button console-action" onclick="{command.attention}">{command.attentionLabel}</button>
           <button id="barracks-profile-filter" class="profile-filter console-action" onclick="{command.filter}">{command.filterLabel}</button>
         </div>
         <div id="barracks-selection-tools" class="selection-tools">
           <div id="barracks-scope-count" class="label muted scope-count">{command.scopeSummary}</div>
-          <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">SELECT ALL IN VIEW</button>
-          <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">CLEAR</button>
+          <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">{i18n.openingUiShipboardBarracksSelectAllInView}</button>
+          <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">{i18n.openingUiShipboardBarracksClear}</button>
         </div>
         <div id="barracks-column-key" class="label muted column-key">{command.selectionMode}</div>
         <div id="barracks-empty" class="label muted wrap empty-message">{command.empty}</div>
@@ -127,61 +127,61 @@
             </button>
             <div id="{squad.footerId}" class="card-footer">
               <div id="{squad.kitId}" class="{squad.kitClasses}">{squad.kit}</div>
-              <button id="{squad.inspectId}" class="inspect-button console-action" onclick="{squad.inspect}">INSPECT</button>
+              <button id="{squad.inspectId}" class="inspect-button console-action" onclick="{squad.inspect}">{i18n.openingUiShipboardBarracksInspect}</button>
             </div>
           </div>
         </div>
         <div id="barracks-page-tools" class="page-tools">
-          <button id="barracks-page-previous" class="tool-button console-action" disabled="{command.previousDisabled}" onclick="{command.previous}">PREVIOUS</button>
+          <button id="barracks-page-previous" class="tool-button console-action" disabled="{command.previousDisabled}" onclick="{command.previous}">{i18n.openingUiShipboardBarracksPrevious}</button>
           <div id="barracks-page-label" class="label heading page-label">{command.pageLabel}</div>
-          <button id="barracks-page-next" class="tool-button console-action" disabled="{command.nextDisabled}" onclick="{command.next}">NEXT</button>
+          <button id="barracks-page-next" class="tool-button console-action" disabled="{command.nextDisabled}" onclick="{command.next}">{i18n.openingUiShipboardBarracksNext}</button>
         </div>
       </div>
       <div id="barracks-orders" class="{command.ordersPanelClasses}">
         <div id="barracks-order-heading" class="label heading order-heading">{command.selection}</div>
         <div id="barracks-order-tabs" class="board-tools">
-          <button id="barracks-preparation" class="tab-button console-action" onclick="{command.preparation}">PREPARATION</button>
-          <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">PROFILES</button>
+          <button id="barracks-preparation" class="tab-button console-action" onclick="{command.preparation}">{i18n.openingUiShipboardBarracksPreparation}</button>
+          <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">{i18n.openingUiShipboardBarracksProfiles}</button>
         </div>
         <div id="barracks-preparation-body" class="{command.preparationClasses}">
-          <div id="transfer-heading" class="label heading warm order-caption">1 / CONSOLIDATE SURVIVORS</div>
+          <div id="transfer-heading" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksConsolidateSurvivors}</div>
           <div id="transfer-summary" class="label wrap preparation-copy">{command.transferSummary}</div>
           <div id="barracks-choose-donors-action" class="order-action-row">
             <button id="barracks-choose-donors" class="order-button console-action" onclick="{command.chooseDonors}">{command.donorLabel}</button>
           </div>
           <div id="barracks-review-transfers-action" class="order-action-row">
-            <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">REVIEW TRANSFERS</button>
+            <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">{i18n.openingUiShipboardBarracksReviewTransfers}</button>
           </div>
           <div id="barracks-transfer-rows" class="{command.transferRowsClasses}">
             <div each="row in command.transferRows" key="{row.id}" id="{row.id}" class="label wrap transfer-row">{row.text}</div>
           </div>
           <div id="barracks-transfer-reason" class="label wrap preparation-copy">{command.transferReason}</div>
           <div id="barracks-transfer-actions" class="board-tools">
-            <button id="barracks-apply-transfers" class="tab-button console-action" disabled="{command.applyTransfersDisabled}" onclick="{command.applyTransfers}">APPLY TRANSFERS</button>
-            <button id="barracks-cancel-transfers" class="tab-button console-action" onclick="{command.cancelTransfers}">CANCEL TRANSFERS</button>
+            <button id="barracks-apply-transfers" class="tab-button console-action" disabled="{command.applyTransfersDisabled}" onclick="{command.applyTransfers}">{i18n.openingUiShipboardBarracksApplyTransfers}</button>
+            <button id="barracks-cancel-transfers" class="tab-button console-action" onclick="{command.cancelTransfers}">{i18n.openingUiShipboardBarracksCancelTransfers}</button>
           </div>
-          <div id="barracks-order-caption-82" class="label heading warm order-caption">2 / FILL VACANCIES</div>
+          <div id="barracks-order-caption-82" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksFillVacancies}</div>
           <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
           <div id="barracks-recruit-draw" class="recruit-draw">
             <img id="barracks-recruit-draw-icon" class="recruit-icon" src="{command.recruitIcon}" />
             <div id="barracks-recruit-draw-count" class="label warm recruit-count">{command.recruitDraw}</div>
-            <div id="barracks-recruit-draw-label" class="label muted recruit-label">TO ENLIST</div>
+            <div id="barracks-recruit-draw-label" class="label muted recruit-label">{i18n.openingUiShipboardBarracksToEnlist}</div>
           </div>
           <div id="barracks-reinforce-action" class="order-action-row">
-            <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
+            <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">{i18n.openingUiShipboardBarracksFillVacancies2}</button>
           </div>
-          <div id="barracks-order-caption-85" class="label heading warm order-caption">3 / RESTORE EQUIPMENT</div>
+          <div id="barracks-order-caption-85" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksRestoreEquipment}</div>
           <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
           <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
           <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
           <div id="barracks-issue-action" class="order-action-row">
-            <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">ISSUE ASSIGNED EQUIPMENT</button>
+            <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">{i18n.openingUiShipboardBarracksIssueAssignedEquipment}</button>
           </div>
         </div>
         <div id="barracks-orders-body" class="{command.ordersClasses}">
           <div id="barracks-profile-heading" class="profile-heading">
-            <div id="barracks-order-caption-71" class="label heading warm order-caption">SQUAD PROFILES</div>
-            <button id="barracks-new-profile" class="new-profile console-action" onclick="{command.newProfile}">NEW</button>
+            <div id="barracks-order-caption-71" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksSquadProfiles}</div>
+            <button id="barracks-new-profile" class="new-profile console-action" onclick="{command.newProfile}">{i18n.openingUiShipboardBarracksNew}</button>
           </div>
           <div id="barracks-profile-list" class="profile-list">
             <button each="profile in command.profiles" key="{profile.id}" id="{profile.id}" class="{profile.classes}" onclick="{profile.select}">
@@ -191,34 +191,34 @@
           </div>
           <div id="barracks-profiles-empty" class="label muted wrap empty-message">{command.profilesEmpty}</div>
           <div id="barracks-assign-profile-action" class="order-action-row">
-            <button id="barracks-assign-profile" class="order-button console-action" disabled="{command.profileDisabled}" onclick="{command.assignProfile}">ASSIGN PROFILE</button>
+            <button id="barracks-assign-profile" class="order-button console-action" disabled="{command.profileDisabled}" onclick="{command.assignProfile}">{i18n.openingUiShipboardBarracksAssignProfile}</button>
           </div>
-          <div id="barracks-profile-note" class="label muted wrap profile-note">Profiles name the intended loadout and tactic sheet. Assignment spends no cargo.</div>
+          <div id="barracks-profile-note" class="label muted wrap profile-note">{i18n.openingUiShipboardBarracksProfilesNameTheIntendedLoadoutAndTactic}</div>
 
         </div>
         <div id="barracks-profile-editor" class="{command.editorClasses}">
-          <div id="barracks-order-caption-92" class="label heading warm order-caption">SAVE SQUAD PROFILE</div>
-          <div id="barracks-editor-copy" class="label muted wrap editor-copy">Pair a known weapon loadout with an armour tactic sheet. Use Equipment above to design new weapon loadouts.</div>
-          <div id="barracks-order-caption-94" class="label muted order-caption">PROFILE NAME</div>
+          <div id="barracks-order-caption-92" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksSaveSquadProfile}</div>
+          <div id="barracks-editor-copy" class="label muted wrap editor-copy">{i18n.openingUiShipboardBarracksPairAKnownWeaponLoadoutWithAn}</div>
+          <div id="barracks-order-caption-94" class="label muted order-caption">{i18n.openingUiShipboardBarracksProfileName}</div>
           <input id="barracks-profile-name" class="profile-name-input" value="{command.draftName}" maxlength="48" oninput="{command.editName}" />
-          <div id="barracks-order-caption-96" class="label heading warm order-caption">WEAPON LOADOUT</div>
+          <div id="barracks-order-caption-96" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksWeaponLoadout}</div>
           <div id="barracks-selector-97" class="selector">
             <button id="barracks-weapon-previous" class="step console-action" onclick="{command.weaponPrevious}">&lt;</button>
             <div id="barracks-selector-value-99" class="label wrap selector-value">{command.draftWeapon}</div>
             <button id="barracks-weapon-next" class="step console-action" onclick="{command.weaponNext}">&gt;</button>
           </div>
-          <div id="barracks-order-caption-102" class="label heading warm order-caption">ARMOUR / TACTIC SHEET</div>
+          <div id="barracks-order-caption-102" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksArmourTacticSheet}</div>
           <div id="barracks-selector-103" class="selector">
             <button id="barracks-armor-previous" class="step console-action" onclick="{command.armorPrevious}">&lt;</button>
             <div id="barracks-selector-value-105" class="label wrap selector-value">{command.draftArmor}</div>
             <button id="barracks-armor-next" class="step console-action" onclick="{command.armorNext}">&gt;</button>
           </div>
-          <div id="barracks-editor-copy-108" class="label muted wrap editor-copy">Saving creates a reusable profile. Existing profiles and issued equipment stay as they are.</div>
+          <div id="barracks-editor-copy-108" class="label muted wrap editor-copy">{i18n.openingUiShipboardBarracksSavingCreatesAReusableProfileExistingProfiles}</div>
           <div id="barracks-save-profile-action" class="order-action-row">
-            <button id="barracks-save-profile" class="order-button console-action" disabled="{command.saveDisabled}" onclick="{command.saveProfile}">SAVE PROFILE</button>
+            <button id="barracks-save-profile" class="order-button console-action" disabled="{command.saveDisabled}" onclick="{command.saveProfile}">{i18n.openingUiShipboardBarracksSaveProfile}</button>
           </div>
           <div id="barracks-cancel-profile-action" class="order-action-row">
-            <button id="barracks-cancel-profile" class="order-button console-action" onclick="{command.cancelProfile}">BACK TO ORDERS</button>
+            <button id="barracks-cancel-profile" class="order-button console-action" onclick="{command.cancelProfile}">{i18n.openingUiShipboardBarracksBackToOrders}</button>
           </div>
         </div>
       </div>
@@ -226,8 +226,8 @@
     <div id="barracks-body" class="{command.detailClasses}">
       <div id="barracks-stage" class="panel barracks-stage console-section">
         <div id="barracks-detail-tools" class="detail-tools">
-          <button id="barracks-back-command" class="back-command console-action" onclick="{command.back}">BACK TO COMMAND</button>
-          <button id="barracks-edit-equipment" class="back-command console-action" onclick="{command.editEquipment}">EQUIP SQUAD</button>
+          <button id="barracks-back-command" class="back-command console-action" onclick="{command.back}">{i18n.openingUiShipboardBarracksBackToCommand}</button>
+          <button id="barracks-edit-equipment" class="back-command console-action" onclick="{command.editEquipment}">{i18n.openingUiShipboardBarracksEquipSquad}</button>
         </div>
         <div id="barracks-selected-heading" class="selected-heading console-header">
           <div id="barracks-selected-copy" class="selected-copy">
@@ -238,7 +238,7 @@
         </div>
 
         <div id="barracks-record" class="record-strip console-readout">
-          <div id="barracks-record-heading" class="label heading tone-edge record-heading">SERVICE RECORD</div>
+          <div id="barracks-record-heading" class="label heading tone-edge record-heading">{i18n.openingUiShipboardBarracksServiceRecord}</div>
           <div id="barracks-record-cells" class="record-cells">
             <div each="cell in recordCells" key="{cell.id}" id="{cell.id}" class="record-cell">
               <div id="{cell.labelId}" class="label tone-muted record-label">{cell.label}</div>
@@ -250,7 +250,7 @@
         <canvas id="barracks-canvas" class="barracks-canvas" width="1280" height="650" />
 
         <div id="barracks-muster" class="muster-panel console-well">
-          <div id="barracks-muster-heading" class="label heading tone-edge section-heading">SHIPBOARD MUSTER</div>
+          <div id="barracks-muster-heading" class="label heading tone-edge section-heading">{i18n.openingUiShipboardBarracksShipboardMuster}</div>
           <div id="barracks-muster-list" class="muster-list">
             <div each="marine in musterRows" key="{marine.id}" id="{marine.id}" class="{marine.classes}" tabindex="0">
               <div id="{marine.headerId}" class="muster-header">
@@ -283,7 +283,7 @@
       <div id="guide-status" class="label wrap warm">{command.guideStatus}</div>
       <div id="guide-controls" class="board-tools">
         <img id="guide-progress" class="{command.guideProgressClasses}" src="{command.guideProgressImage}" />
-        <button id="guide-previous" class="{command.guidePreviousClasses}" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
+        <button id="guide-previous" class="{command.guidePreviousClasses}" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">{i18n.openingUiShipboardBarracksPrevious}</button>
         <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">{command.guideNextLabel}</button>
         <button id="guide-dismiss" class="{command.guideDismissClasses}" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">{command.guideDismissLabel}</button>
         <div id="guide-close-hint" class="label muted guide-close-hint">{command.guideCloseHint}</div>
@@ -367,10 +367,10 @@
   .command-name { height: 34px; } .command-summary { height: 30px; } .command-capacity { height: 30px; }
   .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
   .board-title { height: 26px; color: #dfc588; }
-  .board-tools, .selection-tools, .page-tools { flex-direction: row; align-items: center; height: 32px; gap: 6px; }
+  .board-tools, .selection-tools, .page-tools { flex-direction: row; align-items: center; height: 40px; gap: 6px; }
   .search-label { width: 65px; height: 20px; color: #a5b0a9; }
   .roster-search { width: 0px; flex-grow: 1; height: 24px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
-  .tool-button { width: 126px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .tool-button { white-space: normal; width: 126px; height: 36px; padding: 0px 4px; text-align: center; font-family: heading; }
   .profile-filter { width: 192px; height: 26px; padding: 0px 4px; text-align: center; }
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
@@ -407,17 +407,17 @@
   .guide-callout.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
   .guide-spotlight { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .guide-target { position: absolute; width: 0px; height: 0px; border-width: 0px; pointer-events: none; background-color: transparent; }
-  .guide-heading { height: 22px; }
+  .guide-heading { height: 44px; white-space: normal; overflow: scroll; }
   .guide-dialogue { flex-direction: row; height: 116px; gap: 12px; }
   .guide-portrait { width: 96px; height: 96px; border-width: 2px; border-color: #8a967f; pointer-events: none; }
   .guide-text { width: 0px; flex-grow: 1; height: 116px; overflow: scroll; }
   #guide-status { height: 42px; overflow: scroll; }
-  #guide-controls { height: 28px; }
-  #guide-controls .tool-button { width: 94px; }
+  #guide-controls { height: 40px; }
+  #guide-controls .tool-button { width: 112px; height: 40px; white-space: normal; }
   .guide-dismiss { width: 82px; height: 28px; font-family: heading; text-align: center; }
   .guide-close-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; font-family: compact; }
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
-  .flow-button { width: 190px; height: 28px; font-family: heading; text-align: center; }
+  .flow-button { white-space: normal; width: 190px; height: 38px; font-family: heading; text-align: center; }
   .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
   .preparation-copy { height: auto; }
   .transfer-rows { flex-direction: column; height: 96px; overflow: scroll; gap: 4px; }
@@ -464,11 +464,11 @@
   .officer-specialty { flex-direction: column; height: 152px; padding: 10px; gap: 6px; border-width: 1px; }
   .officer-specialty-header { flex-direction: row; align-items: center; height: 36px; gap: 12px; }
   .officer-specialty-icon { width: 36px; height: 36px; }
-  .officer-specialty-title { width: 0px; flex-grow: 1; height: 24px; }
+  .officer-specialty-title { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
   .officer-specialty-footer { flex-direction: row; align-items: center; height: 30px; gap: 12px; }
   .officer-rank-track { width: 92px; height: 28px; }
-  .officer-rank-label { width: 98px; height: 20px; }
-  .officer-point-cost { width: 80px; height: 20px; }
+  .officer-rank-label { width: 112px; height: 30px; white-space: normal; }
+  .officer-point-cost { width: 100px; height: 30px; white-space: normal; }
   .guide-progress { width: 98px; height: 24px; }
   .officer-train { width: 112px; height: 28px; text-align: center; font-family: heading; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }

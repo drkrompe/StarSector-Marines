@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign.Offer;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -62,7 +63,7 @@ final class SecondhandWingsModel {
         String trade = reviewed == null ? "" : reviewed.outgoing().stream().map(boat ->
                 boat.name() + " / " + BoatFitting.findById(boat.plating()).displayName()
                         + " / " + BoatFitting.findById(boat.drive()).displayName()).collect(Collectors.joining("\n"));
-        if (trade.isEmpty()) trade = "No airworthy Hermes aboard. Any unrepaired original wrecks are included in the exchange.";
+        if (trade.isEmpty()) trade = Strings.get("openingSecondhandWingsNoAirworthyHermesAboardAnyUnrepairedOriginal");
         return new Row(live.visible(), visible, page, live.credits(), live.refusal() != null,
                 feedback != null ? feedback : live.refusal(), trade, this::open, this::act, this::dismiss);
     }
@@ -75,18 +76,18 @@ final class SecondhandWingsModel {
                 case "resumeClasses" -> available ? "wings-resume console-action" : "hidden";
                 case "classes" -> visible ? "wings-backdrop" : "wings-hidden";
                 case "portrait" -> page == 1 ? OpeningBroker.PORTRAIT : "graphics/portraits/castle.png";
-                case "title" -> page == 1 ? "MARA VENN / SECONDHAND WINGS" : "CASTLE / SECONDHAND WINGS";
+                case "title" -> page == 1 ? Strings.get("openingSecondhandWingsMaraVennSecondhandWings") : Strings.get("openingSecondhandWingsCastleSecondhandWings");
                 case "copy" -> switch (page) {
-                    case 0 -> "Those Hermes wrecks got us started. We patched one for the first contracts; opening the sealed bay gives us the other. But four seats and a courier's engine mean too many trips under fire. Mara has found two surplus Aeroshuttles. Rough paint, sound frames. We pay the yard to make them ours.";
-                    case 1 -> "You gave our cooperative a place to start again. I want your company around to share in the work. Two airframes: 3,000 credits. Refurbishment, standard fittings and bay adapters: 2,000. Restore Second Wind's second bay separately before delivery. The yard takes the old Hermes, their installed fittings and any remaining wrecks; those fittings do not transfer. This is optional. The offer will wait.";
-                    default -> "Those are ours, Captain. Proper landing craft, paid for by our work. Two Aeroshuttles, six seats each. A twelve-person squad can land together when both fly; larger forces still need repeat trips. The bay adapters belong to Second Wind. Select a boat, then PLATING or DRIVE to compare upgrades. Plating improves survival; drives shorten the approach. Nothing else needs buying now. The next briefing uses these actual boats.";
+                    case 0 -> Strings.get("openingSecondhandWingsThoseHermesWrecksGotUsStartedWe");
+                    case 1 -> Strings.get("openingSecondhandWingsYouGaveOurCooperativeAPlaceTo");
+                    default -> Strings.get("openingSecondhandWingsThoseAreOursCaptainProperLandingCraft");
                 };
-                case "bill" -> page == 2 ? "DELIVERED / 2 AEROSHUTTLES / 12 SEATS PER LIFT"
-                        : String.format("PAIR + REFIT  5,000 cr   /   AVAILABLE  %,d cr", credits);
-                case "trade" -> page == 1 ? "EXCHANGE INCLUDES\n" + trade : "HERMES  4 SEATS   >   AEROSHUTTLE  6 SEATS\nTwo repaired landers replace the ship's old courier boats.";
-                case "reason" -> page == 2 ? "Delivered at standard fit. Plating and drive upgrades are optional."
-                        : page == 1 && refusal != null ? refusal : "No additional material bill. Bay restoration is a separate 8,000-credit order.";
-                case "actionLabel" -> page == 0 ? "REVIEW OFFER" : page == 1 ? "BUY PAIR - 5,000" : "INSPECT FITTINGS";
+                case "bill" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAeroshuttlesSeatsPerLift")
+                        : String.format(Strings.get("openingSecondhandWingsPairRefitCrAvailableDCr"), credits);
+                case "trade" -> page == 1 ? Strings.format("openingSecondhandWingsExchangeIncludes", trade) : Strings.get("openingSecondhandWingsHermesSeatsAeroshuttleSeatsTwoRepairedLanders");
+                case "reason" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAtStandardFitPlatingAndDrive")
+                        : page == 1 && refusal != null ? refusal : Strings.get("openingSecondhandWingsNoAdditionalMaterialBillBayRestorationIs");
+                case "actionLabel" -> page == 0 ? Strings.get("openingSecondhandWingsReviewOffer") : page == 1 ? Strings.get("openingSecondhandWingsBuyPair") : Strings.get("openingSecondhandWingsInspectFittings");
                 case "disabled" -> page == 1 && blocked;
                 case "oldArt" -> ShuttleType.HERMES.spritePath;
                 case "newArt" -> ShuttleType.AEROSHUTTLE.spritePath;

@@ -27,6 +27,13 @@ public final class MissionDefencePolicy {
     static final boolean CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE = true;
 
     /**
+     * Defence nests a Conquest declares when its target market holds Ground Defenses. UNTUNED first-pass
+     * mission-design choice: a dozen over the canonical 560x336 map (roughly one per 15,000 cells), few enough to be
+     * a field to cross rather than a wall. Change freely once play settles how thick the network should be.
+     */
+    static final int CONQUEST_NESTS_WHEN_MARKET_HAS_THEM = 12;
+
+    /**
      * The defences this mission declares.
      *
      * @param market the target world's profile as the market gave it; its signals are an input, not the answer
@@ -38,13 +45,14 @@ public final class MissionDefencePolicy {
     }
 
     /**
-     * UNTUNED first-pass mission-design choice: a Conquest reads its market's Heavy Batteries and Planetary Shield
-     * signals and declares them at the fixed amounts above. Change here to make Conquest always, never or sometimes
+     * UNTUNED first-pass mission-design choice: a Conquest reads its market's Heavy Batteries, Planetary Shield and Ground Defenses
+     * signals and declares them (and its Ground Defenses as nests) at the fixed amounts above. Change here to make Conquest always, never or sometimes
      * carry them.
      */
     static GroundDefences conquest(TargetProfile market) {
         return new GroundDefences(
                 market.heavyBatteries() ? CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM : 0,
-                market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE);
+                market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE,
+                market.groundDefences() ? CONQUEST_NESTS_WHEN_MARKET_HAS_THEM : 0);
     }
 }

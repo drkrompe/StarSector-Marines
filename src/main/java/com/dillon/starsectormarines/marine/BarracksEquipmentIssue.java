@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -22,10 +23,10 @@ public final class BarracksEquipmentIssue {
             String armor = profile != null ? profile.armorDoctrineId() : squad.armorDoctrineId();
             SquadEquipmentPreview preview = roster.previewSquadEquipment(squad.id(), weapons, armor,
                     EquipmentIssueResources.UNLIMITED);
-            String reason = squad.reserve() ? "Reserve pool"
-                    : squad.stationed() ? "On station"
-                    : weapons == null || armor == null ? "Assign a profile first"
-                    : !preview.canApply() ? "Required equipment not unlocked" : "";
+            String reason = squad.reserve() ? Strings.get("openingBarracksEquipmentIssueReservePool")
+                    : squad.stationed() ? Strings.get("openingBarracksEquipmentIssueOnStation")
+                    : weapons == null || armor == null ? Strings.get("openingBarracksEquipmentIssueAssignAProfileFirst")
+                    : !preview.canApply() ? Strings.get("openingBarracksEquipmentIssueRequiredEquipmentNotUnlocked") : "";
             boolean eligible = reason.isEmpty();
             if (eligible) total = total.plus(preview.issueCost());
             entries.add(new Entry(squad.id(), weapons, armor, eligible, reason));

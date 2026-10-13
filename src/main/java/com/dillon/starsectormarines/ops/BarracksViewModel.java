@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -59,7 +60,7 @@ public final class BarracksViewModel {
         selectedSquadName = reactor.computed(() -> {
             revision.get();
             MarineSquad squad = selectedSquad();
-            return squad != null ? squad.name() : "No line squad assigned";
+            return squad != null ? squad.name() : Strings.get("openingBarracksNoLineSquadAssigned");
         });
         selectedSquadSummary = reactor.computed(this::buildSelectedSummary);
         quartersStatus = reactor.computed(this::buildQuartersStatus);
@@ -102,17 +103,16 @@ public final class BarracksViewModel {
             int ready = roster.readyCount(squad);
             int wounded = woundedCount(squad);
             boolean selected = squad.id().equals(selectedSquadId.get());
-            String status = squad.stationed() ? "STATIONED"
-                    : ready == MarineSquad.CAPACITY ? "READY"
-                    : wounded > 0 ? "RECOVERING" : "UNDERSTRENGTH";
+            String status = squad.stationed() ? Strings.get("openingBarracksStationed")
+                    : ready == MarineSquad.CAPACITY ? Strings.get("openingBarracksReady")
+                    : wounded > 0 ? Strings.get("openingBarracksRecovering") : Strings.get("openingBarracksUnderstrength");
             String classes = "barracks-squad-row"
                     + (selected ? " selected" : "")
                     + (squad.stationed() ? " stationed" : "");
             String id = "barracks-squad:" + squad.id();
             rows.add(new SquadRow(id, id + ":name", id + ":status", id + ":detail",
                     id + ":record", classes, squad.name(), status,
-                    ready + " / " + MarineSquad.CAPACITY + " RTD"
-                            + (wounded > 0 ? "  ·  " + wounded + " WIA" : ""),
+                    Strings.format("openingBarracksRtd", ready, MarineSquad.CAPACITY, (wounded > 0 ? Strings.format("openingBarracksWia", wounded) : "")),
                     compactRecord(squad.career()),
                     () -> command.inspect(squad.id())));
         }
@@ -130,10 +130,10 @@ public final class BarracksViewModel {
             String id = "barracks-billet:" + billet;
             String position = teamLabel(team) + " " + (billet % MarineSquad.TEAM_SIZE + 1);
             if (billet >= memberIds.size()) {
-                SpecSheet sheet = new SpecSheet("Open billet", position, null, "item", List.of(),
-                        List.of("No marine holds this place. Replenish the squad from Personnel Command to draw ready reserves, then enlist Marines from fleet cargo."));
+                SpecSheet sheet = new SpecSheet(Strings.get("openingBarracksOpenBillet"), position, null, "item", List.of(),
+                        List.of(Strings.get("openingBarracksNoMarineHoldsThisPlaceReplenishThe")));
                 rows.add(new MusterRow(id, id + ":name", id + ":detail",
-                        "muster-row vacant", "Open billet", "Vacant", position,
+                        "muster-row vacant", Strings.get("openingBarracksOpenBillet"), Strings.get("openingBarracksVacant"), position,
                         List.of(new MusterItem(id + ":vacancy", "graphics/ui/formation/marine-cutout-vacant.svg", sheet)), sheet));
                 continue;
             }
@@ -142,7 +142,7 @@ public final class BarracksViewModel {
             boolean wounded = soldier.status() == MarineSoldierStatus.WIA;
             String recovery = wounded ? FleetArmoryViewModel.formatRemainingCompact(
                     soldier.unavailableUntilDay(), currentDay.getAsDouble()) : "";
-            String detail = wounded ? "+ " + recovery : squad.stationed() ? "Stationed" : "Ready";
+            String detail = wounded ? "+ " + recovery : squad.stationed() ? Strings.get("openingBarracksStationed2") : Strings.get("openingBarracksReady2");
             String name = soldier.enlistedRank().abbreviation() + " " + soldier.name();
             List<MusterItem> items = new ArrayList<>();
             items.add(new MusterItem(id + ":armor", soldier.armorDef().iconPath(), SpecSheets.armor(soldier.armorDef())));
@@ -155,15 +155,15 @@ public final class BarracksViewModel {
                 items.add(new MusterItem(id + ":system", IntegralSystemCopy.iconPath(soldier.armorDef()),
                         SpecSheets.integralSystem(soldier.armorDef())));
             }
-            String availability = wounded ? "Wounded · return to duty in " + recovery
-                    : squad.stationed() ? "On stationing duty" : "Ready for deployment";
+            String availability = wounded ? Strings.format("openingBarracksWoundedReturnToDutyIn", recovery)
+                    : squad.stationed() ? Strings.get("openingBarracksOnStationingDuty") : Strings.get("openingBarracksReadyForDeployment");
             SpecSheet sheet = new SpecSheet(name, position + " · " + availability,
                     soldier.armorDef().iconPath(), wounded ? "special" : "armor",
-                    List.of(SpecSheet.Stat.of("Primary", soldier.primaryDef().catalogName(soldier.primaryGrade().tier)),
-                            SpecSheet.Stat.of("Armor", soldier.armorDef().displayName()),
-                            SpecSheet.Stat.of("Specialty", soldier.specialEquipmentDef() == null ? "None issued" : soldier.specialEquipmentDef().displayName())),
-                    List.of(wounded ? "This marine keeps their billet while recovering and cannot be replaced by replenishment."
-                            : "Equipment shown is this marine's current issued kit. Hover a resource image for its specifications."));
+                    List.of(SpecSheet.Stat.of(Strings.get("openingBarracksPrimary"), soldier.primaryDef().catalogName(soldier.primaryGrade().tier)),
+                            SpecSheet.Stat.of(Strings.get("openingBarracksArmor"), soldier.armorDef().displayName()),
+                            SpecSheet.Stat.of(Strings.get("openingBarracksSpecialty"), soldier.specialEquipmentDef() == null ? Strings.get("openingBarracksNoneIssued") : soldier.specialEquipmentDef().displayName())),
+                    List.of(wounded ? Strings.get("openingBarracksThisMarineKeepsTheirBilletWhileRecovering")
+                            : Strings.get("openingBarracksEquipmentShownIsThisMarineSCurrent")));
             rows.add(new MusterRow(id, id + ":name", id + ":detail",
                     "muster-row " + (wounded ? "wounded" : "ready"), name, detail, position, List.copyOf(items), sheet));
         }
@@ -183,16 +183,16 @@ public final class BarracksViewModel {
         List<RecordCell> cells = new ArrayList<>();
         // Zero states spell themselves out. The heading face carries no em-dash,
         // so a placeholder glyph renders as an empty cell that reads as a bug.
-        cells.add(cell("operations", "OPERATIONS", career.missionsDeployed() == 0 ? "none"
-                : career.missionsDeployed() + "  (" + career.missionsWon() + " won)"));
-        cells.add(cell("kills", "CONFIRMED", String.valueOf(career.kills())));
-        cells.add(cell("accuracy", "ROUNDS ON TARGET", career.roundsFired() == 0 ? "no data"
+        cells.add(cell("operations", Strings.get("openingBarracksOperations"), career.missionsDeployed() == 0 ? "none"
+                : Strings.format("openingBarracksWon", career.missionsDeployed(), career.missionsWon())));
+        cells.add(cell("kills", Strings.get("openingBarracksConfirmed"), String.valueOf(career.kills())));
+        cells.add(cell("accuracy", Strings.get("openingBarracksRoundsOnTarget"), career.roundsFired() == 0 ? Strings.get("openingBarracksNoData")
                 : Math.round(career.landedFraction() * 100f) + "%"));
-        cells.add(cell("casualties", "CASUALTIES", career.marinesDeployed() == 0 ? "none"
-                : career.casualties() + " of " + career.marinesDeployed()));
+        cells.add(cell("casualties", Strings.get("openingBarracksCasualties"), career.marinesDeployed() == 0 ? "none"
+                : Strings.format("openingBarracksOf", career.casualties(), career.marinesDeployed())));
         // Kept un-netted from damage dealt at the telemetry seam precisely so it
         // can be reported rather than quietly folded away.
-        cells.add(cell("friendly", "FRIENDLY FIRE",
+        cells.add(cell("friendly", Strings.get("openingBarracksFriendlyFire"),
                 career.friendlyFireDamage() <= 0f ? "none"
                         : String.valueOf(Math.round(career.friendlyFireDamage()))));
         return List.copyOf(cells);
@@ -205,23 +205,20 @@ public final class BarracksViewModel {
 
     /** One line the squad rail can carry without crowding the readiness detail. */
     private static String compactRecord(SquadCareer career) {
-        if (career == null || career.missionsDeployed() == 0) return "No operations on record";
-        return career.missionsWon() + "W / " + career.missionsDeployed() + " ops"
-                + "  ·  " + career.kills() + " confirmed";
+        if (career == null || career.missionsDeployed() == 0) return Strings.get("openingBarracksNoOperationsOnRecord");
+        return Strings.format("openingBarracksWOpsConfirmed", career.missionsWon(), career.missionsDeployed(), career.kills());
     }
 
     private String buildSelectedSummary() {
         revision.get();
         MarineSquad squad = selectedSquad();
-        if (squad == null) return "No line formations on the company roll";
+        if (squad == null) return Strings.get("openingBarracksNoLineFormationsOnTheCompanyRoll");
         int ready = roster.readyCount(squad);
         int wounded = woundedCount(squad);
-        String summary = ready + " ready aboard  ·  " + wounded + " recovering  ·  "
-                + Math.max(0, MarineSquad.CAPACITY - ready - wounded) + " open billets";
+        String summary = Strings.format("openingBarracksReadyAboardRecoveringOpenBillets", ready, wounded, Math.max(0, MarineSquad.CAPACITY - ready - wounded));
         int systems = integralSystemCount(squad);
         if (systems == 0) return summary;
-        return summary + "  ·  " + systems
-                + (systems == 1 ? " integral system" : " integral systems") + " aboard";
+        return Strings.format("openingBarracksSystemsAboard", summary, systems);
     }
 
     /** Squad total; individual carried systems also appear in the muster kit. */
@@ -237,15 +234,14 @@ public final class BarracksViewModel {
     private String buildQuartersStatus() {
         revision.get();
         MarineSquad squad = selectedSquad();
-        if (squad == null) return "Quarters unassigned";
+        if (squad == null) return Strings.get("openingBarracksQuartersUnassigned");
         if (squad.stationed()) {
-            return "Quarters vacant  ·  formation deployed on stationing duty";
+            return Strings.get("openingBarracksQuartersVacantFormationDeployedOnStationingDuty");
         }
         int aboard = sceneMarines().size();
         int wounded = woundedCount(squad);
-        if (aboard == 0) return "Quarters vacant  ·  no ready personnel aboard";
-        return aboard + " marines aboard  ·  transit watch"
-                + (wounded > 0 ? "  ·  " + wounded + " in recovery" : "");
+        if (aboard == 0) return Strings.get("openingBarracksQuartersVacantNoReadyPersonnelAboard");
+        return Strings.format("openingBarracksMarinesAboardTransitWatch", aboard, (wounded > 0 ? Strings.format("openingBarracksInRecovery", wounded) : ""));
     }
 
     private MarineSquad selectedSquad() {
@@ -275,9 +271,9 @@ public final class BarracksViewModel {
 
     private static String teamLabel(int team) {
         return switch (team) {
-            case 0 -> "Alpha";
-            case 1 -> "Bravo";
-            default -> "Charlie";
+            case 0 -> Strings.get("openingBarracksAlpha");
+            case 1 -> Strings.get("openingBarracksBravo");
+            default -> Strings.get("openingBarracksCharlie");
         };
     }
 

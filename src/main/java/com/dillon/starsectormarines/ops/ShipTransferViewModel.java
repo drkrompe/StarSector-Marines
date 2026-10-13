@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
@@ -158,16 +159,16 @@ public final class ShipTransferViewModel {
         selectedName = reactor.computed(() -> {
             revision.get();
             Candidate ship = selected();
-            return ship == null ? "No ship" : ship.name();
+            return ship == null ? Strings.get("openingShipTransferNoShip") : ship.name();
         });
         selectedSummary = reactor.computed(this::buildSelectedSummary);
         verdict = reactor.computed(this::buildVerdict);
         transferLabel = reactor.computed(() -> {
             revision.get();
             Candidate ship = selected();
-            if (isHome(ship)) return "THE COMPANY LIVES HERE";
-            if (ship != null && !ship.quarters()) return "NOT A COMPANY BERTH";
-            return unquartered() ? "QUARTER THE COMPANY HERE" : "MOVE THE COMPANY ABOARD";
+            if (isHome(ship)) return Strings.get("openingShipTransferTheCompanyLivesHere");
+            if (ship != null && !ship.quarters()) return Strings.get("openingShipTransferNotACompanyBerth");
+            return unquartered() ? Strings.get("openingShipTransferQuarterTheCompanyHere") : Strings.get("openingShipTransferMoveTheCompanyAboard");
         });
         transferClasses = reactor.computed(() -> {
             revision.get();
@@ -183,29 +184,26 @@ public final class ShipTransferViewModel {
         });
         roomTitle = reactor.computed(() -> {
             revision.get();
-            if (home.get().displaced()) return "COMPANY SHIP  //  DISPLACED";
-            return unquartered() ? "COMPANY SHIP  //  FOUNDING"
-                    : "COMPANY SHIP  //  TRANSFER";
+            if (home.get().displaced()) return Strings.get("openingShipTransferCompanyShipDisplaced");
+            return unquartered() ? Strings.get("openingShipTransferCompanyShipFounding")
+                    : Strings.get("openingShipTransferCompanyShipTransfer");
         });
         // Named for the fleet rather than a compartment: this is the only page
         // in the shell that is not aboard anything in particular.
         contextLabel = reactor.computed(() -> {
             revision.get();
-            if (home.get().displaced()) return "COMPANY FLEET / DISPLACED";
-            return unquartered() ? "COMPANY FLEET / FOUNDING" : "COMPANY FLEET / TRANSFER";
+            if (home.get().displaced()) return Strings.get("openingShipTransferCompanyFleetDisplaced");
+            return unquartered() ? Strings.get("openingShipTransferCompanyFleetFounding") : Strings.get("openingShipTransferCompanyFleetTransfer");
         });
         roomCopy = reactor.computed(() -> {
             revision.get();
             CompanyShipDesignation.Home standing = home.get();
             if (standing.displaced()) {
-                return standing.formerShipName() + gone(standing)
-                        + "The company needs somewhere to live.";
+                return Strings.format("openingShipTransferTheCompanyNeedsSomewhereToLive", standing.formerShipName() + gone(standing));
             }
             return unquartered()
-                    ? "The company has to live somewhere. This is the first real "
-                            + "decision about what it is for."
-                    : "A bigger hull is not automatically a better home. What a ship "
-                            + "takes away is the half worth reading.";
+                    ? Strings.get("openingShipTransferTheCompanyHasToLiveSomewhereThis")
+                    : Strings.get("openingShipTransferABiggerHullIsNotAutomaticallyA");
         });
     }
 
@@ -351,7 +349,7 @@ public final class ShipTransferViewModel {
             String id = "transfer-ship:" + ship.id();
             rows.add(new CandidateRow(id, id + ":name", id + ":hull", id + ":detail",
                     id + ":cost", classes, ship.name(), ship.designation(), ship.ship().art(),
-                    interior == null ? "laying out her deck" : berths(interior),
+                    interior == null ? Strings.get("openingShipTransferLayingOutHerDeck") : berths(interior),
                     rowCost(ship, quarters, interior, here),
                     () -> selectedShipId.set(ship.id())));
         }
@@ -368,8 +366,8 @@ public final class ShipTransferViewModel {
      */
     private String rowCost(Candidate ship, ShipInterior quarters,
                            ShipInterior interior, boolean here) {
-        if (here) return "HOME";
-        if (!ship.quarters()) return "TOO SMALL TO LIVE ABOARD";
+        if (here) return Strings.get("openingShipTransferHome");
+        if (!ship.quarters()) return Strings.get("openingShipTransferTooSmallToLiveAboard");
         if (interior == null) return "";
         if (quarters == null && !unquartered()) return "";
         return cost(quarters, interior);
@@ -387,11 +385,11 @@ public final class ShipTransferViewModel {
             String value;
             String classes = "facility-cell";
             if (!facility.programmed()) {
-                value = "none aboard";
+                value = Strings.get("openingShipTransferNoneAboard");
                 classes += " absent";
             } else {
                 value = facility.capacity() > 0
-                        ? facility.capacity() + " in " + facility.rooms()
+                        ? Strings.format("openingShipTransferIn", facility.capacity(), facility.rooms())
                         : String.valueOf(facility.rooms());
                 if (quarters != null && quarters != interior) {
                     int change = new InteriorChange(quarters, interior)
@@ -411,20 +409,19 @@ public final class ShipTransferViewModel {
     private String buildSelectedSummary() {
         revision.get();
         Candidate ship = selected();
-        if (ship == null) return "The company owns no ship to live aboard.";
-        return ship.designation() + "   ·   " + ship.lift()
-                + " berths' worth of lift   ·   " + ship.cargo() + " cargo";
+        if (ship == null) return Strings.get("openingShipTransferTheCompanyOwnsNoShipToLive");
+        return Strings.format("openingShipTransferBerthsWorthOfLiftCargo", ship.designation(), ship.lift(), ship.cargo());
     }
 
     private String buildVerdict() {
         revision.get();
         Candidate ship = selected();
         if (ship == null) return "";
-        if (!ship.ship().habitable()) return "No interior. Nobody could live aboard her.";
+        if (!ship.ship().habitable()) return Strings.get("openingShipTransferNoInteriorNobodyCouldLiveAboardHer");
         if (!ship.quarters()) {
-            return "One deck. A boat to send somewhere, not somewhere to live.";
+            return Strings.get("openingShipTransferOneDeckABoatToSendSomewhere");
         }
-        if (isHome(ship)) return "The company is quartered here.";
+        if (isHome(ship)) return Strings.get("openingShipTransferTheCompanyIsQuarteredHere");
         ShipInterior interior = interiorOf(ship);
         if (interior == null) return "";
         // Before there is a home the question is not what the company would
@@ -433,15 +430,15 @@ public final class ShipTransferViewModel {
         if (unquartered()) {
             List<RoomPurpose> absent = missing(interior);
             return absent.isEmpty()
-                    ? "She has everywhere the company needs."
-                    : "She has no " + list(absent, "or") + ".";
+                    ? Strings.get("openingShipTransferSheHasEverywhereTheCompanyNeeds")
+                    : Strings.format("openingShipTransferSheHasNo", list(absent, "openingListOr"));
         }
         ShipInterior quarters = interiorOf(homeShip());
         if (quarters == null) return "";
         List<RoomPurpose> lost = new InteriorChange(quarters, interior).lost();
         return lost.isEmpty()
-                ? "Nothing aboard would be given up."
-                : "Moving here would give up " + list(lost, "and") + ".";
+                ? Strings.get("openingShipTransferNothingAboardWouldBeGivenUp")
+                : Strings.format("openingShipTransferMovingHereWouldGiveUp", list(lost, "openingListAnd"));
     }
 
     /**
@@ -452,10 +449,10 @@ public final class ShipTransferViewModel {
      * to work that out from a shorter roster.
      */
     private static String gone(CompanyShipDesignation.Home standing) {
-        if (!standing.lostInAction()) return " is gone. ";
+        if (!standing.lostInAction()) return Strings.get("openingShipTransferIsGone");
         return standing.marinesLost() > 0
-                ? " was lost with " + standing.marinesLost() + " marines aboard. "
-                : " was lost. ";
+                ? Strings.format("openingShipTransferWasLostWithMarinesAboard", standing.marinesLost())
+                : Strings.get("openingShipTransferWasLost");
     }
 
     /**
@@ -471,23 +468,22 @@ public final class ShipTransferViewModel {
         Candidate ship = selected();
         if (ship == null || isHome(ship)) return "";
         if (CerberusCompanyStart.conversionRequired()) return CompanyYard.reservedCredits(CerberusCompanyStart.startingShip()) > 0
-                ? "Install Mercenary Company Conversion at a planetary port first (Castle's reserved payment)."
-                : "Install Mercenary Company Conversion at a planetary port first (5,000 credits).";
-        if (preparationBlocked()) return "First-mission stores or boat berth missing. Castle's lesson shows the complete bill.";
+                ? Strings.get("openingShipTransferInstallMercenaryCompanyConversionAtAPlanetary")
+                : Strings.get("openingShipTransferInstallMercenaryCompanyConversionAtAPlanetary2");
+        if (preparationBlocked()) return Strings.get("openingShipTransferFirstMissionStoresOrBoatBerthMissing");
         TransferCost price = costOf(ship);
         if (price.free()) {
-            return unquartered() ? "No charge. There is nowhere to move out of." : "";
+            return unquartered() ? Strings.get("openingShipTransferNoChargeThereIsNowhereToMove") : "";
         }
-        String line = "Refit  \u00b7  " + money(price.credits()) + " credits  \u00b7  "
-                + moved(price);
+        String line = Strings.format("openingShipTransferRefitCredits", money(price.credits()), moved(price));
         int shortfall = price.credits() - means.credits();
-        return shortfall > 0 ? line + "  \u00b7  " + money(shortfall) + " short" : line;
+        return shortfall > 0 ? Strings.format("openingShipTransferShort", line, money(shortfall)) : line;
     }
 
     /** Who and what the yard is being paid to shift. */
     private static String moved(TransferCost price) {
         String heads = count(price.marines(), "marine");
-        return price.walkers() > 0 ? heads + " and " + count(price.walkers(), "walker") : heads;
+        return price.walkers() > 0 ? Strings.format("openingShipTransferAnd", heads, count(price.walkers(), "walker")) : heads;
     }
 
     private static String count(int many, String thing) {
@@ -521,16 +517,16 @@ public final class ShipTransferViewModel {
     public String preparationBill() {
         if (CerberusCompanyStart.conversionRequired()) return CerberusCompanyStart.instructions();
         Candidate ship = selected();
-        if (ship == null || !ship.quarters()) return "Select a ship with company quarters and a boat bay.";
-        if (ShipsBoats.aboard(ship.ship()).isEmpty()) return "This hull has no boat berth. Choose a ship with a hangar.";
-        StringBuilder text = new StringBuilder("FIRST MISSION STORES   Cost / Available / Short by\n");
+        if (ship == null || !ship.quarters()) return Strings.get("openingShipTransferSelectAShipWithCompanyQuartersAnd");
+        if (ShipsBoats.aboard(ship.ship()).isEmpty()) return Strings.get("openingShipTransferThisHullHasNoBoatBerthChoose");
+        StringBuilder text = new StringBuilder(Strings.get("openingShipTransferFirstMissionStoresCostAvailableShortBy"));
         for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship()))) {
             int available = preparationResources.available(line.commodityId());
             text.append(preparationResources.commodityName(line.commodityId())).append(": ")
                     .append(line.quantity()).append(" / ").append(available).append(" / ")
                     .append(Math.max(0, line.quantity() - available)).append('\n');
         }
-        return text.append("Checked now; each workshop spends only when you confirm its order.").toString();
+        return text.append(Strings.get("openingShipTransferCheckedNowEachWorkshopSpendsOnlyWhen")).toString();
     }
 
     /**
@@ -558,10 +554,10 @@ public final class ShipTransferViewModel {
         // move: what will this hull not do for the company. With no home to
         // measure against, that is simply what she lacks.
         if (quarters == null) {
-            return shorten("no ", missing(candidate), "or", "has everywhere");
+            return shorten("openingShipMissing", missing(candidate), "openingListOr", Strings.get("openingShipTransferHasEverywhere"));
         }
-        return shorten("loses ", new InteriorChange(quarters, candidate).lost(),
-                "and", "no loss");
+        return shorten("openingShipLoses", new InteriorChange(quarters, candidate).lost(),
+                "openingListAnd", Strings.get("openingShipTransferNoLoss"));
     }
 
     /**
@@ -574,9 +570,10 @@ public final class ShipTransferViewModel {
     private static String shorten(String lead, List<RoomPurpose> purposes,
                                  String conjunction, String none) {
         if (purposes.isEmpty()) return none;
-        if (purposes.size() <= ROW_LOSSES) return lead + list(purposes, conjunction);
-        return lead + list(purposes.subList(0, ROW_LOSSES), conjunction)
-                + " +" + (purposes.size() - ROW_LOSSES) + " more";
+        String visible = list(purposes.subList(0, Math.min(ROW_LOSSES, purposes.size())), conjunction);
+        if (purposes.size() > ROW_LOSSES)
+            visible = Strings.format("openingListMore", visible, purposes.size() - ROW_LOSSES);
+        return Strings.format(lead, visible);
     }
 
     /**
@@ -687,7 +684,7 @@ public final class ShipTransferViewModel {
     private static String berths(ShipInterior interior) {
         if (interior == null) return "";
         ShipInterior.Facility berthing = interior.facility(RoomPurpose.BARRACKS);
-        return berthing.programmed() ? berthing.capacity() + " berths" : "no berthing";
+        return berthing.programmed() ? Strings.format("openingShipTransferBerths", berthing.capacity()) : Strings.get("openingShipTransferNoBerthing");
     }
 
     private static List<Candidate> playerFleet() {
@@ -729,34 +726,32 @@ public final class ShipTransferViewModel {
      *     range" says she has neither only by accident of grammar.
      */
     private static String list(List<RoomPurpose> purposes, String conjunction) {
-        StringBuilder text = new StringBuilder();
-        for (int index = 0; index < purposes.size(); index++) {
-            if (index > 0) {
-                text.append(index == purposes.size() - 1 ? " " + conjunction + " " : ", ");
-            }
-            text.append(label(purposes.get(index)).toLowerCase(Locale.ROOT));
+        if (purposes.isEmpty()) return "";
+        String text = label(purposes.get(0));
+        for (int index = 1; index < purposes.size(); index++) {
+            text = Strings.format(index == purposes.size() - 1 ? conjunction : "openingListComma",
+                    text, label(purposes.get(index)));
         }
-        return text.toString();
+        return text;
     }
 
     private static String label(RoomPurpose purpose) {
         return switch (purpose) {
-            case BARRACKS -> "Berthing";
-            case VEHICLE_BAY -> "Mech bay";
-            case PATIENT_WARD -> "Sick bay";
-            case CONFERENCE_ROOM -> "Briefing room";
-            case STOCKROOM -> "Hold";
-            case FIRING_RANGE -> "Range";
-            case MESS_HALL -> "Mess";
-            case CREW_QUARTERS -> "Crew quarters";
-            case BRIDGE -> "Bridge";
+            case BARRACKS -> Strings.get("openingShipTransferBerthing");
+            case VEHICLE_BAY -> Strings.get("openingShipTransferMechBay");
+            case PATIENT_WARD -> Strings.get("openingShipTransferSickBay");
+            case CONFERENCE_ROOM -> Strings.get("openingShipTransferBriefingRoom");
+            case STOCKROOM -> Strings.get("openingShipTransferHold");
+            case FIRING_RANGE -> Strings.get("openingShipTransferRange");
+            case MESS_HALL -> Strings.get("openingShipTransferMess");
+            case CREW_QUARTERS -> Strings.get("openingShipTransferCrewQuarters");
+            case BRIDGE -> Strings.get("openingShipTransferBridge");
             default -> words(purpose.name());
         };
     }
 
     private static String words(String constant) {
-        String spaced = constant.replace('_', ' ').toLowerCase(Locale.ROOT);
-        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+        return Strings.get("openingShipWord" + constant);
     }
 
     /** One ship in the fleet, as a place the company could live. */
