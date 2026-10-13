@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — campaign lessons end at preparation; battle presentation leaves room for mission dialogue.
+Updated: 2026-10-13 — Engineering uses wall-anchored condition glyphs and expandable inspection cards; campaign lessons end at preparation so battle presentation leaves room for mission dialogue.
 
 ## Purpose
 
@@ -1320,9 +1320,15 @@ screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
 **Engineering** is the persistent ship-condition navigation tab, reached from
 every company room and Armory subview. It contains the former Walk the Ship
-room-condition survey. Selecting a compartment on
-the actual deck or its list entry focuses that room and shows Castle's portrait,
-a condition blurb, its working benefit and any next repair. Sealed structural
+room-condition survey. Small SVG glyphs straddle compartment walls with sealed,
+damaged, faulty-power or working status. They have no opaque tiles and shrink for
+small rooms so furnishings remain visible. Hovering a room or glyph opens a bounded
+inspection card beside it; selecting pins that card for interaction without changing
+the camera. The card retains Castle's portrait, condition, working benefit, bill and
+reviewed repair action. Moving into its controls keeps it open; Close, Escape or
+empty-deck selection dismisses it. Cards stay inside the viewport and scroll when
+needed; badges follow the same camera as the rooms. A separate compact distribution
+control represents the ship-wide circuits order. Sealed structural
 rooms are distinct from accessible damaged rooms and usable rooms on faulty
 power. Workshop stages retain their own reviewed orders; the second boat bay can
 also be repaired here through its existing yard authority.

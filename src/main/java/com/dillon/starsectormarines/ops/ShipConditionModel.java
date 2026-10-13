@@ -48,6 +48,7 @@ public final class ShipConditionModel {
         refresh();
     }
     public Signal<Map<String, Object>> row() { return row; }
+    public int selectedRoomId() { return selected; }
     public void select(int id) { selected = id; reviewed = null; feedback = ""; refocus(); refresh(); }
     public void refocus() {
         var ship = deck.get();
@@ -55,11 +56,14 @@ public final class ShipConditionModel {
     }
     public static Map<String, Object> workshopOnly() {
         var m = new LinkedHashMap<String, Object>();
-        m.put("classes", "condition-panel"); m.put("listClasses", "hidden"); m.put("headingClasses", "hidden"); m.put("rooms", List.of()); m.put("portrait", CompanyManagementGuide.portrait());
+        m.put("classes", "condition-panel"); m.put("rooms", List.of()); m.put("portrait", CompanyManagementGuide.portrait());
         m.put("title", Strings.get("openingShipConditionShipCondition")); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("reason", "");
         m.put("action", (Runnable) () -> {}); m.put("actionLabel", Strings.get("openingShipConditionReviewRepair")); m.put("disabled", true);
         m.put("actionClasses", "hidden"); m.put("detailClasses", "hidden"); m.put("workshopClasses", "restoration-panel");
         m.put("feedback", ""); m.put("summary", Strings.get("openingShipConditionRoomSurvey"));
+        m.put("powerClasses", "hidden"); m.put("powerLabel", Strings.get("openingShipConditionDistributionCircuits"));
+        m.put("powerAction", (Runnable) () -> {});
+        m.put("status", "");
         return m;
     }
     public void refresh() {
@@ -76,18 +80,21 @@ public final class ShipConditionModel {
                     : graph.emergencyLighting(room.id()) ? Strings.get("openingShipConditionFaultyPower") : Strings.get("openingShipConditionWorking");
             if (state.applies() && room.purpose() == RoomPurpose.VEHICLE_BAY && state.mechBay())
                 status = Strings.format("openingShipConditionBerthsWorking", state.workingMechBerths());
-            rooms.add(Map.of("nameId", "survey-name-" + room.id(), "statusId", "survey-status-" + room.id(), "id", "survey-room-" + room.id(), "label", name(room) + " / " + (room.id() + 1),
+            rooms.add(Map.of("roomId", room.id(), "icon", "graphics/ui/company/condition-" + (sealed ? "sealed" : graph.damaged(room.id()) ? "repair" : graph.emergencyLighting(room.id()) ? "power" : "working") + ".svg",
+                    "nameId", "survey-name-" + room.id(), "id", "survey-room-" + room.id(), "label", name(room) + " / " + (room.id() + 1),
                     "status", status, "classes", room.id() == selected ? "survey-room selected" : "survey-room",
                     "select", selection(room.id())));
         }
-        if (state.applies()) rooms.add(0, Map.of("nameId", "survey-power-name", "statusId", "survey-power-status", "id", "survey-power", "label", Strings.get("openingShipConditionDistributionCircuits"), "status", state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower"),
-                "classes", selected == -1 ? "survey-room selected" : "survey-room", "select", selection(-1)));
         var selectedRoom = graph.compartments().stream().filter(r -> r.id() == selected).findFirst().orElse(null);
         boolean workshop = selectedRoom != null && selectedRoom.equals(graph.largest(RoomPurpose.PARTS_CAGE)) && ship.ship().workshop() != WorkshopState.NONE;
         var m = workshopOnly();
+        m.put("status", rooms.stream().filter(r -> ((Integer) r.get("roomId")) == selected)
+                .map(r -> r.get("status")).findFirst().orElse(state.applies() ? (state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")) : Strings.get("openingShipConditionShipboardServices")));
+        m.put("powerClasses", state.applies() ? "survey-power console-action" : "hidden");
+        m.put("powerLabel", Strings.format("openingShipConditionPowerStatus", state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")));
+        m.put("powerAction", selection(-1));
         m.put("rooms", List.copyOf(rooms));
-        m.put("listClasses", "survey-list console-well"); m.put("headingClasses", "label heading tone-accent survey-heading");
-        m.put("summary", Strings.format("openingShipConditionDamagedRoomsSelectToInspect", graph.compartments().stream().filter(r -> graph.damaged(r.id())).count()));
+        m.put("summary", Strings.format("openingShipConditionDamageInspectionSummary", graph.compartments().stream().filter(r -> graph.damaged(r.id())).count()));
         m.put("workshopClasses", workshop ? "restoration-panel" : "hidden");
         m.put("detailClasses", workshop ? "hidden" : "condition-detail");
         m.put("title", selectedRoom == null ? (state.applies() ? Strings.get("openingShipConditionDistributionCircuits") : Strings.get("openingShipConditionShipCondition")) : name(selectedRoom));
