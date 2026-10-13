@@ -63,7 +63,8 @@ class DebugMissionCatalogTest {
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
         assertEquals(List.of("01", "02", "03", "04A", "04B", "05", "R1", "R2", "R3", "R4"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
-        assertEquals(1, DebugMissionScreen.visible(catalog, 0, "Asharu").size());
+        assertEquals(List.of("01", "02"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
+                .map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         var grouped = DebugMissionScreen.visible(catalog, 0, "All locations");
         assertEquals(jangala, grouped.subList(0, jangala.size()));
         assertEquals("Asharu", DebugMissionScreen.locationOf(grouped.get(jangala.size())));

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
+
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import java.awt.Color;
@@ -446,6 +448,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private OpeningOperationStoryObserver openingStory;
     private WaylineHoundRecovery waylineHound;
     private DepotHoldSequence depotHold;
+    private SalvageRightsSequence salvageRights;
+    public SalvageRightsSequence getSalvageRights() { return salvageRights; }
+    public void installSalvageRights(PointOfInterest receiving,PointOfInterest workshop,int engineers,List<EntitySpec> reserve) {
+        if(simTickIndex!=0 || salvageRights!=null)throw new IllegalStateException("Install recovery once at setup");
+        salvageRights=new SalvageRightsSequence(receiving,workshop,engineers,reserve,storyBeats);
+        addObjective(salvageRights);
+    }
     public DepotHoldSequence getDepotHold() { return depotHold; }
     public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
         if (simTickIndex != 0 || depotHold != null) throw new IllegalStateException("Install depot hold once at setup");
@@ -526,7 +535,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (lastLiftSequence == null ? 0 : lastLiftSequence.pendingMembers())
                 + (relayNineSequence == null ? 0 : relayNineSequence.pendingMembers())
                 + (thunderRun == null ? 0 : thunderRun.pendingMembers())
-                + (depotHold == null ? 0 : depotHold.pendingMembers());
+                + (depotHold == null ? 0 : depotHold.pendingMembers())
+                + (salvageRights == null ? 0 : salvageRights.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2537,6 +2547,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (thunderRun != null) thunderRun.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         if (depotHold != null) depotHold.advance(this);
+        if (salvageRights != null) salvageRights.advance(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall

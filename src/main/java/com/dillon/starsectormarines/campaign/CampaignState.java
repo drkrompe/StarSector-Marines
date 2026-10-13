@@ -34,6 +34,7 @@ public final class CampaignState implements Serializable {
     public BrokenSupplyRouteProgress brokenSupplyRoute;
     /** Null in older saves and until the first Corvus launch. */
     public CorvusWaylineProgress corvusWayline;
+    public ShepherdRecoveryProgress shepherdRecovery;
 
     // ---------- Id registries (interned vanilla strings) ----------
 

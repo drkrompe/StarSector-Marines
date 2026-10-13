@@ -13,6 +13,10 @@ public final class CorvusWaylineProgress implements Serializable {
     private int paid;
     private String activeId;
     private String activePlanetName;
+    // Null only in pre-recovery saves: their completed account already passed its debrief.
+    private Boolean aftermathAcknowledged = false;
+    public boolean aftermathAcknowledged() { return complete() && !Boolean.FALSE.equals(aftermathAcknowledged); }
+    public void acknowledgeAftermath() { if(complete()) aftermathAcknowledged=true; }
 
     public boolean readable() {
         return version == 1 && chapter >= 0 && chapter <= CorvusChapter.values().length && attempt > 0;

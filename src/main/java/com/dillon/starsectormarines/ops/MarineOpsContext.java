@@ -860,7 +860,9 @@ public class MarineOpsContext {
         boolean referral = client.patronHouseId == -1L && Factions.INDEPENDENT.equals(client.factionId)
                 && OpeningBroker.introductionPending() && OpeningBroker.current() != null;
         if (referral || !MissionGenerator.generate(planet, client).isEmpty()) {
-            out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet) || SupplyRouteCampaign.atSite(planet) || CorvusWaylineCampaign.atSite(planet)));
+            if(ShepherdRecoveryCampaign.atSite(planet) && client.patronHouseId==-1L && "independent".equals(client.factionId))
+                out.add(new Client(client.factionId,ShepherdRecoveryCampaign.NAME,OpeningBroker.CREST,client.repLevel,client.locked,client.lockReason,-1L,"marines_tamsin_vale"));
+            else out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet) || SupplyRouteCampaign.atSite(planet) || CorvusWaylineCampaign.atSite(planet)));
         }
     }
 

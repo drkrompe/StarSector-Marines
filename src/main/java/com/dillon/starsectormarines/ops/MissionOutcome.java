@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
+
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
@@ -32,6 +34,7 @@ import java.util.UUID;
  * a debug fixture with no battle in hand names four values, not thirty-six.
  */
 public final class MissionOutcome {
+    public final SalvageRightsSequence.Report salvageRights;
 
     /** Stable story-person outcomes; separate from representative population scaling. */
     public final LastLiftProgress.Outcome lastLiftOutcome;
@@ -142,6 +145,7 @@ public final class MissionOutcome {
     }
 
     private MissionOutcome(Builder b) {
+        this.salvageRights=b.salvageRights;
         this.lastLiftOutcome    = b.lastLiftOutcome;
         this.freightOutcome = b.freightOutcome;
         this.waylineHound = b.waylineHound;
@@ -222,6 +226,8 @@ public final class MissionOutcome {
 
         private LastLiftProgress.Outcome lastLiftOutcome;
         private FreightRunProgress.Outcome freightOutcome;
+        private SalvageRightsSequence.Report salvageRights;
+        public Builder salvageRights(SalvageRightsSequence.Report report){salvageRights=report;return this;}
         private WaylineHoundRecovery.Report waylineHound;
         private boolean victory;
         private String missionId;

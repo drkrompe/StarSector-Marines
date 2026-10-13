@@ -975,6 +975,10 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if(ShepherdRecoveryCampaign.isBattle(mission))return List.of(
+                BriefingViewModel.info("basin-militia","Militia","8 / holds workshop after company secures it",""),
+                BriefingViewModel.info("basin-crew","Inspection party","2 technicians / protect at Morrow's south access",""),
+                BriefingViewModel.info("basin-lift","Heavy lift","Cooperative transport / your owned mech lance",""));
         if (CorvusWaylineCampaign.isBattle(mission)) {
             rows.add(BriefingViewModel.info("employer-heavy-lift", "Heavy lift", "Wayline transport / your active mech lance", ""));
             rows.add(BriefingViewModel.info("employer-force", "Local support", "No employer infantry or fighter cover", ""));
@@ -1011,7 +1015,7 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;

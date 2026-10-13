@@ -1,10 +1,10 @@
 # A Working Ship
 
-Status: IN PROGRESS — employer, mission briefs and authored map visits; battle and campaign integration next
+Status: IN PROGRESS — Salvage Rights playable; Cold Start and Working Passage have maps and mission designs
 
 Written: 2026-10-12
 
-Updated: 2026-10-12 — Salvage Rights and Cold Start take place at night, with authored emergency and yard-power circuits.
+Updated: 2026-10-13 — First recovery contract, physical inspection and persistent claim; later chapter battles remain open.
 
 ## Placement and employer
 
@@ -67,9 +67,9 @@ visits. Its production roads and terrain are editable catalog plans. Asharu uses
 the actual world's captured palette at campaign launch; the review uses ARID.
 
 **Salvage Rights and Cold Start are night operations.** Low ambient light retains
-terrain readability. Portable apron and workshop lamps, isolated scrap-yard work
-lights and Morrow's warm emergency lamps break up the darkness. They are authored
-site fixtures, not automatic lamps on every building wall. Cold Start begins on
+terrain readability. Occupied camp interiors and their entrances are lit;
+Morrow's warm emergency fixtures illuminate the service corners. Open ground
+remains dark instead of acquiring scattered decorative light pools. Cold Start begins on
 those surviving circuits; restoring pump power should visibly restore the broader
 yard floodlights without changing the time of day. Working Passage is the following
 day's departure. Environmental lighting is presentation, not a new stealth rule:
@@ -147,8 +147,9 @@ controls dead. Some of them are on the repair team. They know what can be saved.
 
 **Castle:** “Then we keep the cutters away from her until they get a look.”
 
-These are proposed text beats for the future battle host; no recordings or
-sighting triggers are implemented by map dressing.
+These are text-only story hooks and a written Castle/Vale recovery agreement.
+No new recordings are included. The paid claim closes this chapter; failed attempts
+retain confirmed inspection casualties and send a replacement party on a new attempt.
 
 ## 2 — Cold Start
 
@@ -225,9 +226,55 @@ and any named engineer handoff must be resolved with the campaign reward.
 
 ## Battle and campaign acceptance still to implement
 
-- Post-Cold unlock and acknowledged-aftermath gate, HQ notification, Vale contact,
-  three briefs/debriefs, explicit contract consideration, story archive and debug
-  fixtures. No recordings yet; textual hooks first.
+### Repair and departure contract design
+
+Cold Start is a **6–8 minute target**, subject to playback. Start with the earlier
+workshop held and the receiving store clear. The repair carrier waits at the apron
+until the company advances; it stops before hostile contact rather than charging
+through it. Escort arrival commits one four-person road team. Beginning the pump
+connection commits two four-person teams, staggered between the south haul and
+quarry approaches. These are finite authored commitments, not an endless spawn timer.
+The cooperative's militia keep separate workshop and carrier holds.
+
+The connection requires a technician physically at the pump and company cover.
+Interruption pauses the current task. Completing it permanently records shore power
+and changes the yard lights immediately; a retry starts with that circuit restored.
+Then expose one suggested gun position through the existing Tender construction
+interface. The first completed gun commits the last road team, so the player sees
+the tool working before the repair is signed off. No completion by enemies merely
+aging out offscreen. The ship remains grounded, with the large landed body and
+ordinary vulnerable builders. No fleet ownership is granted in this chapter.
+
+Persist completed repair milestones and confirmed party losses. Replacement crews
+are explicitly new cooperative personnel; incomplete task seconds reset on a new
+sortie. Losing the carrier before delivery requires a new delivery; losing every
+available technician ends the attempt. Completed shore power is not revoked. The
+campaign settlement must reject duplicate receipts before payment or milestone writes.
+
+Working Passage is a **7–10 minute target**, subject to playback. Morrow's advance
+is gated by cleared assembly positions, not a timed dash independent of the company.
+The player clears the pump bend, shelters the tender behind it and places a defence;
+one militia team inherits that hold. A quarry team then pressures the narrows while
+a smaller southern team tests the previous gun and militia. The final yard is a
+short defended spool-up, with a finite pursuit along the road the player just secured.
+Keep each team physically committed to a named approach and avoid simultaneous
+unreadable attacks on all three positions.
+
+The tender's critical disable aborts departure rather than awarding a replacement
+hull. Preserve the recovery claim and completed repairs; a new sortie begins with
+Vale's explicit recovery/refit of the same grounded ship. The debug fixture may
+start with that work complete, but the campaign may not silently respawn it inside
+the current battle. Successful climb-out grants one named fleet member, tracked by
+persistent identity; replaying the debrief cannot add another. Subsequent sale or
+loss ends access to its construction support until the player owns another eligible
+ship. Confirm the existing tender's disable/recovery boundary before implementing
+this contract; these timings and teams are proposed encounter design, not tested battles.
+
+### Remaining acceptance
+
+- Cold Start and Working Passage offers, briefs/debriefs, archive and debug fixtures.
+  Salvage Rights supplies the post-Cold gate, HQ notification, Vale contact,
+  actual company lift, fixed claim payment and first debug fixture. No new recordings.
 - Design for a rebuilding company: two squads as the initial test force, allied
   holders and engineers; Hound optional. Use the real launch roster and fitted
   boats. A weakened company can postpone and replenish. Do not assume every
@@ -260,5 +307,11 @@ and any named engineer handoff must be resolved with the campaign reward.
 and two seeds: destinations, furnished interiors, clear landing berths, connected
 outdoor ground, road centerlines, repair cargo clearance and unblocked construction
 plots. The static hull disappears only on the third visit. Campaign availability,
-combat balance, repair triggers and ship ownership are deliberately not claimed
-by these map-only renders.
+combat balance, repair triggers and ship ownership are not established by map renders.
+
+`createSnapshots -Psnapshot=salvage-rights` separately exercises the first battle
+with a named two-squad company, paired Aeroshuttles and mixed Hermes/Aeroshuttle lift,
+plus an absent-company control. It checks exact committed identities, aircraft and
+squad reunion, and records phase transitions and survivors. Production contract and
+debrief documents render at 1920×1080 / 100%. This remains detached headless evidence;
+live Asharu discovery, save/load and return-to-HQ acceptance are still required.
