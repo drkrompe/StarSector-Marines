@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -32,6 +33,9 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
     public String id() { return "second-squad"; }
     public String label() { return "Second squad preparation and direct command assignment"; }
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        try (var strings = new HeadlessStrings(context.modRoot())) { return renderLocalized(context); }
+    }
+    private List<SnapshotArtifact> renderLocalized(SnapshotContext context) throws Exception {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         HeadlessSvgAssets.install(context.modRoot());
         var frames = new ArrayList<SnapshotArtifact>();
