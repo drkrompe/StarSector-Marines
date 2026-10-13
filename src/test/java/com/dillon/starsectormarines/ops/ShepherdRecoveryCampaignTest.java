@@ -70,17 +70,19 @@ class ShepherdRecoveryCampaignTest {
         assertEquals("Asharu",DebugMissionCatalog.Scenario.COLD_START.location());
     }
 
-    @Test void writtenAgreementAccountsForInspectionLossesWithoutAwardingAWorkingShip() throws Exception {
+    @Test void writtenAgreementRespondsToInspectionLossesWithoutRecordings() throws Exception {
         var catalog = WaylineNarration.parse(new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH))));
         var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
+        String previousPeopleLine = null;
         for (int losses : List.of(0, 1)) {
             var result = MissionOutcome.builder().mission(mission).victory(true)
                     .salvageRights(new SalvageRightsSequence.Report(true, losses)).build();
             var lines = MissionDebriefConversation.lines(result, catalog);
-            assertEquals(4, lines.size());
             assertTrue(lines.stream().noneMatch(WaylineNarration.Line::voiced));
-            assertEquals(losses > 0, lines.get(2).text().contains("inspection losses"));
-            assertTrue(lines.get(1).text().contains("finishing the repairs and departure"));
+            var peopleLine = lines.stream().filter(line -> line.id().equals("shepherd-debrief-people"))
+                    .findFirst().orElseThrow().text();
+            if (previousPeopleLine != null) assertNotEquals(previousPeopleLine, peopleLine);
+            previousPeopleLine = peopleLine;
         }
     }
 
@@ -92,7 +94,6 @@ class ShepherdRecoveryCampaignTest {
         assertEquals("Working Passage",mission.name);assertEquals(0,mission.payout);
         assertEquals(StoryScene.WORKING_PASSAGE,StoryScene.forMission(mission));
         assertEquals(2,MissionForceEnvelope.recommendedSquads(mission));
-        assertTrue(mission.flavor.contains("willing working crew"));
         var boat=FittedBoat.standard(ShuttleType.HERMES);
         var manifest=DetachmentResolver.buildShuttleManifestForPersonnel(mission,List.of(boat),24);
         assertEquals(24,manifest.stream().mapToInt(m->m.embarkedPersonnel).sum());

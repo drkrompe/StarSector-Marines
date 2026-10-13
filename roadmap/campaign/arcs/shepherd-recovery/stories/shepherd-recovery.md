@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Mercenary bargain and cooperative neutrality in Hegemony space; live campaign and audio-mix acceptance remain.
+Updated: 2026-10-13 — Character-led written exchanges and disputed salvage claims; live campaign and audio-mix acceptance remain.
 
 ## Placement and employer
 
@@ -53,8 +53,10 @@ the ship is not a search for people sealed inside it. The exact original complem
 and casualty count are not yet authored and must not be invented by dialogue.
 
 Armed **scrappers** moved in after the evacuation and began stripping machinery
-from the yard and route. The familiar salvage livelihood is shared with Vale's
-legitimate crews; the opposition is this armed outfit occupying her claimed yard,
+from the yard and route. Vale says they regard her evacuation as abandonment;
+she regards it as getting her people out. This is her account of this dispute,
+not a newly authored law of salvage. The familiar salvage livelihood is shared
+with her crews; the opposition is this armed outfit occupying her claimed yard,
 not all scavengers or the Independent faction. Their presence reads through
 cutting stations, parked collection vehicles and removed components rather than
 another generic military base. They are opportunists exploiting the gap, not
@@ -158,12 +160,11 @@ remote and piloted travel. Repair completion does not shrink her to overhead sca
 **Promise:** take a useful wreck, not a pile of loot. Teach clearing the ground
 around an asset and handing a secured position to allied holders.
 
-The written offer introduces the hired job and cash terms before the tactical
-instructions. Vale explains that her crews work in Hegemony space without working
-for the government. Her concern about official scrutiny and opportunistic outfits
-explains why she is paying for security. The Colossus stores stay hers; Morrow is
-the company's earned asset once all three contracts are complete. The immediate
-instructions remain receiving store, workshop, then a protected hull inspection.
+Vale begins with the stock she needs from the Colossus and the crew now occupying
+her yard. Her wish to finish before an inspector arrives carries the political
+concern without a statement of allegiance. The offer's contract readout states
+the two cash fees and Morrow's eventual handover. The immediate instructions
+remain receiving store, workshop, then a protected hull inspection.
 
 Beat order:
 
@@ -179,12 +180,14 @@ Beat order:
    Vale's people hold the secured yard between missions. Persistence records the
    recovery claim, not a free fleet member.
 
-**Castle, hull secured:** “Put the registry number in the agreement. We bring your
-   crews back to work; when this ship flies, it flies with us.”
+**Castle, hull secured:** “The workshop's salvageable. I take it that doesn't
+change our price?”
 
-**Vale:** “The Colossus holds more work than our shops can handle. We keep her
-stores and the yard; you earn Morrow by finishing the repairs and departure.
-That's why I'm willing to part with her.”
+**Vale:** “No, Castle. We have an agreement.”
+
+**Castle:** “Parts and fitters included?”
+
+**Vale:** “For the repair, yes. After she leaves, you're buying your own.”
 
 **Vale, first sight of the hull:** “Her crew put her down there with half the
 controls dead. Some of them are on the repair team. They know what can be saved.”
@@ -230,16 +233,16 @@ Beat order:
    task. Field-completed milestones persist on a retry; unfinished work remains.
    A stopped task resumes only while its living crew and location are safe.
 
-**Castle, first gun online:** “That is a position we do not have to fill with
-   another squad. Keep the crew covered. Let the machine do its job.”
+**Castle, first gun debrief:** “I could get used to having a few of those.”
 
-**Vale, repairs complete:** “Drone bay answers. Pumps hold pressure. Tomorrow we
-   find out whether she still remembers how to leave the ground.”
+**Vale:** “Good to hear those builders again. We used to complain about the noise.”
 
-The written debrief accounts for the repair fee and remaining bargain. Castle
-prioritizes company pay, supplies and losses; Vale supplies holders for the route
-her shops need. Retained delivery and power milestones are respected by returning
-briefings, including withholding an obsolete recorded delivery instruction.
+The settlement readout accounts for payment and remaining work. Castle asks
+whether the ship can leave; Vale explains how to bring her out and why she needs
+holders left on that road. After company or technician losses, Castle instead
+asks for time before the next commitment. Retained delivery and power milestones
+are respected by returning briefings, including withholding an obsolete recorded
+delivery instruction. Existing recordings remain separate from these written exchanges.
 
 ## 3 — Working Passage
 
@@ -269,12 +272,16 @@ Beat order:
    named fleet hull is awarded once, and later eligible missions can select it
    as fleet construction support.
 
-**Castle, departure:** “Registry accepted. Morrow is ours. Hull, workshop, and a
-   very long list of maintenance jobs.”
+**Castle, departure:** “Transfer's through. Morrow's ours.”
 
-**Vale:** “The Colossus stores, yard and haul road stay with us. Morrow is your
-final payment, as agreed. Now I can put our crews back to work. If the Hegemony
-comes asking about the salvage, I'll answer for our claims.”
+**Vale:** “All right. Have someone check the drone bay filters before you put her
+to work. The dust here gets into everything.”
+
+**Castle:** “We'll see to it. The hands who want to come with her have berths.”
+
+Vale's final reply depends on confirmed losses; without them she asks Castle to
+listen to the ship's people before changing things. The contract record carries
+the ownership settlement rather than making her repeat it at parting.
 
 The transfer includes an explicit berth offer to willing working crew sufficient
 for the awarded member's actual minimum complement. They join fleet crew, not marine

@@ -14,8 +14,8 @@ record ShepherdRecoveryWorkGuide(ShepherdRecoveryProgress progress,OpeningBroker
         case "payment"->progress.departed()?"Named fleet hull / transfer completed":progress.repaired()?"Morrow + willing working crew / in kind":progress.claimSecured()?"22,000 cr / repair contract":"18,000 cr + protected recovery claim";
         case "location"->destination==null?"Asharu / Corvus":destination.label();
         case "route"->progress.departed()?"Yard reopened. Morrow joined the fleet.":"Marine operations > Tamsin Vale";
-        case "preparation"->progress.departed()?"Vale keeps the Colossus and yard. Our contract is paid."
-                :"Neutral crews in Hegemony space. Earn Morrow; Vale keeps the Colossus. Two squads recommended. Replenish first.";
+        case "preparation"->progress.departed()?"Contract closed. Morrow and her working crew have joined the fleet."
+                :"Reopen Vale's yard; earn Morrow. Two squads recommended. Replenish first.";
         case "courseDisabled"->destination==null;
         case "courseAction"->plotCourse;
         default->throw new IllegalArgumentException("Unknown recovery guide property: "+property);
