@@ -1032,7 +1032,11 @@ an explicit authoring command, never a build or gameplay network operation.
 Credentials stay in the author's local environment, outside shipped content.
 Unrecorded characters must receive an explicit voice assignment before synthesis;
 they cannot inherit the catalog host's voice. Text-only drafts remain readable
-and silent until recordings have been reviewed and packaged.
+and silent until recordings have been reviewed and packaged. Junction and Thunder Run
+have recorded dialogue for every authored player line, including Castle's defense
+instructions and Kestrel's support and emergency calls. Aircraft emergencies use
+the explicit interruption policy in `battle-radio-nouns.md`; routine guidance
+cannot defer a missile warning until after the aircraft has gone down.
 
 Shepherd recovery uses Castle for company guidance and Tamsin Vale for the yard's
 repair and departure work. Vale's retained voice is `cZH6erlGkOyAQheipyno`;

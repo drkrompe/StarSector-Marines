@@ -1622,20 +1622,22 @@
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.advance_distress",
       "text": "Captain, an earlier Wayline dispatch is taking fire ahead. We have the hauler's nearby camera feed while it survives. Our three contracted loads are still at staging. Open the road before they follow.",
-      "durationSeconds": 18,
+      "durationSeconds": 11.2,
       "priority": 25,
       "expiresSeconds": 40,
       "supersedes": [],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] Captain, an earlier Wayline dispatch is taking fire ahead. We have the hauler's nearby camera feed while it survives. Our three contracted loads are still at staging. Open the road before they follow."
     },
     {
       "id": "marines_castle_thunder_defend_dispatch",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.defend_dispatch",
       "text": "Hold here for the next dispatch. Select an infantry squad, choose DEFEND AREA, then click a roadside position. They will hold that area until you give another order. Wayline militia will help anchor the post.",
-      "durationSeconds": 18,
+      "durationSeconds": 12.24,
       "priority": 40,
       "expiresSeconds": 40,
       "supersedes": [
@@ -1643,27 +1645,31 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] Hold here for the next dispatch. Select an infantry squad, choose DEFEND AREA, then click a roadside position. They will hold that area until you give another order. Wayline militia will help anchor the post."
     },
     {
       "id": "marines_castle_thunder_defend_order_placed",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.defend_order_placed",
       "text": "Defensive order received. Keep an approach covered while the freight moves. That squad will stay on your order; give it a new one when it is time to advance.",
-      "durationSeconds": 14,
+      "durationSeconds": 8.8,
       "priority": 25,
       "expiresSeconds": 40,
       "supersedes": [],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] Defensive order received. Keep an approach covered while the freight moves. That squad will stay on your order; give it a new one when it is time to advance."
     },
     {
       "id": "marines_castle_thunder_defend_crossing",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.defend_crossing",
       "text": "Two minutes until the next dispatch clears. Cover the cross streets with DEFEND AREA. Our militia will hold the captured posts and assemble their field guns if they can reach the mounts. The armor joins at Outbound Gate.",
-      "durationSeconds": 18,
+      "durationSeconds": 11.52,
       "priority": 40,
       "expiresSeconds": 40,
       "supersedes": [
@@ -1671,14 +1677,16 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] Two minutes until the next dispatch clears. Cover the cross streets with DEFEND AREA. Our militia will hold the captured posts and assemble their field guns if they can reach the mounts. The armor joins at Outbound Gate."
     },
     {
       "id": "marines_castle_thunder_dispatch_window_complete",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.dispatch_window_complete",
       "text": "Dispatch window complete. The militia can hold here. Select your holding squad and give a new move order toward East Crossing when you are ready. Your Defend Area order does not expire on its own.",
-      "durationSeconds": 16,
+      "durationSeconds": 11.04,
       "priority": 40,
       "expiresSeconds": 40,
       "supersedes": [
@@ -1687,14 +1695,16 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] Dispatch window complete. The militia can hold here. Select your holding squad and give a new move order toward East Crossing when you are ready. Your Defend Area order does not expire on its own."
     },
     {
       "id": "marines_castle_thunder_crossing_window_complete",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.crossing_window_complete",
       "text": "The armor is moving up behind us. Push on and secure Outbound Gate to release the breakthrough. Replace any Defend Area orders on squads you want to advance; leave enough people covering the road.",
-      "durationSeconds": 16,
+      "durationSeconds": 10.8,
       "priority": 40,
       "expiresSeconds": 40,
       "supersedes": [
@@ -1702,40 +1712,46 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] The armor is moving up behind us. Push on and secure Outbound Gate to release the breakthrough. Replace any Defend Area orders on squads you want to advance; leave enough people covering the road."
     },
     {
       "id": "marines_castle_thunder_militia_gun_0_ready",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.militia_gun_0_ready",
       "text": "Wayline has assembled the Dispatch machine gun. The crew holds the shoulder; keep the freight lane open. That gun has a finite ammunition belt.",
-      "durationSeconds": 12,
+      "durationSeconds": 8.0,
       "priority": 20,
       "expiresSeconds": 40,
       "supersedes": [],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] Wayline has assembled the Dispatch machine gun. The crew holds the shoulder; keep the freight lane open. That gun has a finite ammunition belt."
     },
     {
       "id": "marines_castle_thunder_militia_gun_1_ready",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.militia_gun_1_ready",
       "text": "The East Crossing gun is ready. Militia cover this post while the company takes the outbound strongpoint. Keep an eye on the other approach.",
-      "durationSeconds": 12,
+      "durationSeconds": 7.44,
       "priority": 20,
       "expiresSeconds": 40,
       "supersedes": [],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] The East Crossing gun is ready. Militia cover this post while the company takes the outbound strongpoint. Keep an eye on the other approach."
     },
     {
       "id": "marines_castle_thunder_advance_load_lost",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.advance_load_lost",
       "text": "We lost the earlier dispatch. Our contracted freight is still accounted for separately. That is why we hold the road before sending the rest.",
-      "durationSeconds": 12,
+      "durationSeconds": 8.08,
       "priority": 30,
       "expiresSeconds": 40,
       "supersedes": [
@@ -1743,14 +1759,16 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[concerned, firm command voice] We lost the earlier dispatch. Our contracted freight is still accounted for separately. That is why we hold the road before sending the rest."
     },
     {
       "id": "marines_castle_thunder_advance_load_clear",
       "missionId": "story_supply_route_thunder_run",
       "event": "supply_route.thunder_run.advance_load_clear",
       "text": "The earlier driver is clear. Finish bringing our contracted loads through; dispatch is counting those separately.",
-      "durationSeconds": 10,
+      "durationSeconds": 6.32,
       "priority": 20,
       "expiresSeconds": 40,
       "supersedes": [
@@ -1758,7 +1776,9 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[clear, firm command voice] The earlier driver is clear. Finish bringing our contracted loads through; dispatch is counting those separately."
     },
     {
       "id": "marines_mara_thunder_run_briefing",
@@ -2440,60 +2460,69 @@
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_inbound",
       "text": "Kestrel to ground team. Wayline sent us ahead. Keep moving; we will work the next position.",
-      "durationSeconds": 8,
+      "durationSeconds": 5.28,
       "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "KESTREL / WAYLINE AIR",
       "portrait": "",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "synthesisText": "[steady, focused voice] Kestrel to ground team. Wayline sent us ahead. Keep moving; we will work the next position."
     },
     {
       "id": "wayline_junction_gunship_on_station",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_on_station",
       "text": "Kestrel, on station. We have the road. Your militia can move up behind the company.",
-      "durationSeconds": 8,
+      "durationSeconds": 4.96,
       "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "KESTREL / WAYLINE AIR",
       "portrait": "",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "synthesisText": "[steady, focused voice] Kestrel, on station. We have the road. Your militia can move up behind the company."
     },
     {
       "id": "wayline_junction_gunship_covering_militia",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_covering_militia",
       "text": "Kestrel is staying over the militia while they settle in. Push on when your people are ready.",
-      "durationSeconds": 8,
+      "durationSeconds": 5.36,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "YHcCpa6SBWnKDaCPZJQR",
+      "synthesisText": "[steady, conversational voice] Kestrel is staying over the militia while they settle in. Push on when your people are ready."
     },
     {
       "id": "wayline_junction_gunship_hit",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_hit",
       "text": "Taking fire up here. Keep those emplacements off us.",
-      "durationSeconds": 8,
-      "priority": 20,
+      "durationSeconds": 3.52,
+      "priority": 81,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "KESTREL / WAYLINE AIR",
       "portrait": "",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "synthesisText": "[strained, urgent voice] Taking fire up here. Keep those emplacements off us.",
+      "interrupts": true
     },
     {
       "id": "wayline_junction_gunship_lost",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_lost",
       "text": "Kestrel is down. Keep clear of the impact. The company will have to open the rest of the junction.",
-      "durationSeconds": 8,
-      "priority": 30,
+      "durationSeconds": 5.6,
+      "priority": 85,
       "expiresSeconds": 30,
       "supersedes": [
         "supply_route.junction.gunship_inbound",
@@ -2503,20 +2532,25 @@
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "synthesisText": "[concerned, firm command voice] Kestrel is down. Keep clear of the impact. The company will have to open the rest of the junction.",
+      "interrupts": true
     },
     {
       "id": "wayline_junction_gunship_returned",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_returned",
       "text": "Kestrel is heading home. Good work down there.",
-      "durationSeconds": 8,
+      "durationSeconds": 2.88,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "KESTREL / WAYLINE AIR",
       "portrait": "",
-      "voiced": false
+      "voiced": true,
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "synthesisText": "[steady, focused voice] Kestrel is heading home. Good work down there."
     },
     {
       "id": "wayline_thunder_run_gunship_inbound",
@@ -2524,7 +2558,7 @@
       "event": "supply_route.thunder_run.gunship_inbound",
       "text": "Kestrel again, Captain. Same crew, longer road. Coming up to cover the convoy.",
       "durationSeconds": 5.04,
-      "priority": 15,
+      "priority": 50,
       "expiresSeconds": 30,
       "supersedes": [],
       "speaker": "KESTREL / WAYLINE AIR",
@@ -2557,7 +2591,7 @@
       "event": "supply_route.thunder_run.gunship_hit",
       "text": "We're hit! Still flying. Keep her moving!",
       "durationSeconds": 2.88,
-      "priority": 27,
+      "priority": 81,
       "expiresSeconds": 5,
       "supersedes": [
         "supply_route.thunder_run.gunship_inbound",
@@ -2568,7 +2602,8 @@
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[strained, urgent voice, fast delivery] We're hit! Still flying. Keep her moving!"
+      "synthesisText": "[strained, urgent voice, fast delivery] We're hit! Still flying. Keep her moving!",
+      "interrupts": true
     },
     {
       "id": "wayline_thunder_run_gunship_lost",
@@ -2576,7 +2611,7 @@
       "event": "supply_route.thunder_run.gunship_lost",
       "text": "Kestrel is down! Clear the impact area. Company, keep that convoy moving.",
       "durationSeconds": 5.12,
-      "priority": 30,
+      "priority": 85,
       "expiresSeconds": 15,
       "supersedes": [
         "supply_route.thunder_run.gunship_inbound",
@@ -2589,7 +2624,8 @@
       "portrait": "graphics/portraits/castle.png",
       "voiced": true,
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "synthesisText": "[startled, then firm command voice] Kestrel is down! Clear the impact area. Company, keep that convoy moving."
+      "synthesisText": "[startled, then firm command voice] Kestrel is down! Clear the impact area. Company, keep that convoy moving.",
+      "interrupts": true
     },
     {
       "id": "wayline_thunder_run_gunship_returned",
@@ -2657,7 +2693,7 @@
       "event": "supply_route.thunder_run.gunship_pass_committed",
       "text": "Kestrel. Crossing the road, sweeping the ridge. Keep the column moving.",
       "durationSeconds": 3.92,
-      "priority": 18,
+      "priority": 51,
       "expiresSeconds": 10,
       "supersedes": [
         "supply_route.thunder_run.gunship_inbound"
@@ -2674,7 +2710,7 @@
       "event": "supply_route.thunder_run.gunship_missile_warning",
       "text": "Launch! Ridge launchers! Missiles inbound!",
       "durationSeconds": 2.8,
-      "priority": 26,
+      "priority": 80,
       "expiresSeconds": 5,
       "supersedes": [
         "supply_route.thunder_run.gunship_inbound",
@@ -2684,7 +2720,8 @@
       "portrait": "",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[urgent, sharp voice, fast delivery] Launch! Ridge launchers! Missiles inbound!"
+      "synthesisText": "[urgent, sharp voice, fast delivery] Launch! Ridge launchers! Missiles inbound!",
+      "interrupts": true
     }
   ]
 }
