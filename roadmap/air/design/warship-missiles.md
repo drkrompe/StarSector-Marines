@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — slice 2 (swarm bursts) shipped and folded; the swarm design calls below are decided; what remains is listed under Slicing.
+Updated: 2026-10-12 — early splits, Hydra flanking, the Dragonfire standoff beam and anti-fighter missiles shipped (slice 4); what remains is listed under Slicing.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, barrage, point defence, flux) is that doc's; this one adds the *missile* half of the barrage.
 
@@ -134,6 +134,42 @@ These are design calls made while building slice 2, recorded as decided.
 - **Hardened targets, by reading.** Wall damage is hit-point accumulating (`MapEditor.damageWallsInRadius`),
   so a swarm's many small shares breach in aggregate; per-volley accumulation was not needed. This is
   read from the code, not measured against a compound.
+
+## Shipped (slice 4: early split, flanking, standoff beam, anti-fighter)
+
+- **`canSplitEarly`.** The carrier's split point is `max(distance - splitRange, a third of the way)`, and the
+  spec's `minTimeToSplit` (the dispenser arming) pushes it toward the ground only for a carrier that may not
+  split early (`MirvSplit`). Reading of the spec: *in range* is what splits it; arming is a guard that
+  `canSplitEarly` lifts. In the install's data the Hurricane and the Sabot say it and the Hydra and the Pilum
+  do not, so a Hurricane sent at a district inside its split range splits at once, short of its arming time,
+  where a Hydra flies on.
+- **Hydra flanking.** A submunition whose spec has an `angledApproachDist` (the Hydra's platforms) leaves the
+  split abeam of the line of fire, alternate ones to either side, swings out by half that distance (held to what
+  the leg allows) and closes on its aim point from the side (`BloomFlank`). Only in presets that curve the bloom,
+  and only on the ground: a platform's own beamfire is not drawn, it lands as the spec's energy blast on its
+  budget share. The Hydra sheaf swings out about half again as far as a Hurricane sheaf.
+- **Dragonfire.** A `CUSTOM` missile that names a `payloadWeaponId` flies to its spec's standoff short of
+  the ground (700 px, 31.5 cells), hovers there painting for the spec's `targetingTime` (a thin pulsing line and a
+  growing glow on the ground), then burns the payload's own beam for `firingTime` in that weapon's colours and
+  width. The damage is the weapon's own (4000 energy) and lands as one committed detonation at the instant of
+  release. **Point defence can stop the missile on its way out and while it paints (a hard body, 600 hp, so weakly)
+  but cannot touch a released beam**: the warship's mounts, the tender's lasers and deployable pods all skip it
+  (`Interceptable.canBeIntercepted`), and a missile shot down before release fires nothing. The beam is
+  presentation along its line; only the aim point takes damage.
+- **Anti-fighter missiles.** A mount whose weapon carries `ANTI_FTR` is flak-class in the ship-versus-air rules, and
+  the air layer is offered every mount before the ground is, so a Locust or Swarmer takes an aircraft in reach before
+  the ground it was ordered onto; that was true once ships could shoot aircraft and needed no new rule. What
+  changed is that such a round now flies its own missile path at the craft rather than a bullet's line. Where it lands
+  and whether it hits are decided as before.
+- **Evidence.** The `warship-missile-tactics` scene and snapshot suite: a Hurricane at a close district, a
+  Hurricane control against the Hydra, the Hydra's flank, and Dragonfires with and without a defender ship's
+  point defence. Verdicts: `splits-before-the-dispenser-arms`, `splits-near-the-launch`, `swings-abeam`,
+  `arrives-from-the-side`, `both-flanks-used`, `flank-exceeds-the-bloom-control`, `holds-the-standoff`,
+  `paints-before-it-fires`, `beam-lands-its-damage`, `point-defence-can-stop-the-missile-before-the-beam`,
+  `a-loosed-beam-is-never-engaged`. Unit tests: `MirvSplitTest`, `BloomFlankTest`, `WarshipShellBeamTest` and the
+  spec reader against the install. One thing the evidence says plainly: a Hurricane's wide fan already arrives
+  about as far off the line as a Hydra's flank (51 against 46 degrees), so the discriminator is how far out
+  it swings and that it always goes abeam, to both sides, not the arrival angle alone.
 
 ## Why this doc exists
 
@@ -292,7 +328,7 @@ down a long slant to the ground. Decisions:
 | **Fire-and-forget homing** | `turnRate > 0` and not `GUIDED_POOR` | Flies toward the mount's chosen *unit*, re-sampling that unit's position until a terminal commit distance, then locks on. Small lead error shrinks with turn rate. A running squad is still hit; a squad that dies or breaks LOS before commit is not followed. |
 | **Poorly guided** | `GUIDED_POOR` hint | As homing, with a wide terminal error and an early commit: it goes where the target *was*. Atropos, Sabot carrier. |
 | **Two-stage** | `MIRV` behaviour or `MISSILE_TWO_STAGE_*` | A carrier flies to `splitRange`, then releases warheads (see below). |
-| **Standoff / custom** | `behavior: CUSTOM` (Dragon) | Stops at a standoff, paints, then delivers a beam-class payload that **cannot be intercepted after release** (the weapon's own lore). Later slice. |
+| **Standoff / custom** | `behavior: CUSTOM` with a payload weapon (Dragon) | Stops at a standoff, paints, then delivers a beam-class payload that **cannot be intercepted after release** (the weapon's own lore). Shipped (slice 4). |
 
 Terminal homing at ground units is the one place the model reads the *target's*
 motion. A homing body's landing point is therefore not final until its commit
@@ -410,7 +446,7 @@ PD in different ways and the model keeps the two shapes distinct.
 - **A carrier killed before the split loses the whole payload.** That is the
   Hurricane's lore weakness and the reason `splitRange` is long. After the split
   there are many fast small bodies and PD is saturated.
-- **Dragonfire's beam payload is not interceptable once released.** Later.
+- **Dragonfire's beam payload is not interceptable once released.** Shipped (slice 4).
 - Carried interceptor pods and deployable PD (`PointDefenseService`) already
   read the opt-in on `Projectile`; bodies carry the same flag, so they
   intercept swarm bodies without changes to them.
@@ -482,9 +518,10 @@ Reuse the game's art; author none. Per body:
    its seeker's turn rate; unguided and `GUIDED_POOR` rounds go where the unit was.
    Still approximate: the aim is fixed at fire, not steered in flight, so a unit that
    changes course after launch still escapes.
-4. Later, not yet stories: honouring `canSplitEarly`; anti-fighter preference for `ANTI_FTR` weapons once aircraft
-   are hittable; Dragonfire standoff and non-interceptable beam payload; Hydra
-   flanking; threat-weighted point-defence target choice; a `renderEvidence` figure
+4. Shipped: `canSplitEarly`, Hydra flanking, Dragonfire standoff and a non-interceptable beam payload, anti-fighter missiles (see
+   **Shipped (slice 4)** above).
+5. Later, not yet stories: threat-weighted point-defence target choice; the Hydra platforms' own beamfire drawn after the flank;
+   a Dragonfire beam that damages along its line rather than at its aim point; a `renderEvidence` figure
    for the `SHUTTLES` layer with a full swarm in view; a measured hardened-target
    breach by a swarm against a compound.
 
