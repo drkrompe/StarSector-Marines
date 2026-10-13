@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -28,6 +29,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -74,7 +76,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<String> selectedSlotRule;
     private final ComputedSignal<List<CatalogRow>> catalogRows;
-    private final ComputedSignal<List<MaterialRow>> materialStock;
+    private final ComputedSignal<List<Row>> materialStock;
     private final ComputedSignal<String> pickerClasses;
     private final ComputedSignal<String> workspaceClasses;
     private final ComputedSignal<String> fittingHeaderClasses;
@@ -749,7 +751,7 @@ public final class MechLabViewModel {
 
             String base = "mech-catalog:" + component.id;
             boolean showMaterials = !inCargo && !installed && fits && !locked;
-            List<MaterialRow> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
+            List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
@@ -837,32 +839,21 @@ public final class MechLabViewModel {
         return List.copyOf(rows);
     }
 
-    public Signal<List<MaterialRow>> materialStock() { return materialStock; }
+    public Signal<List<Row>> materialStock() { return materialStock; }
 
-    private List<MaterialRow> buildMaterialStock() {
+    private List<Row> buildMaterialStock() {
         revision.get();
         return List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY,
-                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity -> {
-            String id = "mech-material-stock:" + commodity;
-            int available = resources.available(commodity);
-            return new MaterialRow(id, id + ":icon", id + ":label", "material-stock",
-                    resources.commodityIcon(commodity), Integer.toString(available),
-                    resources.commodityName(commodity), available, 0);
-        }).toList();
+                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity ->
+                CompanyResources.stock("mech-material-stock:" + commodity, resources.commodityName(commodity),
+                        resources.commodityIcon(commodity), resources.available(commodity))).toList();
     }
 
-    private List<MaterialRow> materialRows(String ownerId, FabricationCost cost) {
-        List<MaterialRow> rows = new ArrayList<>();
-        for (FabricationCost.Line line : cost.lines()) {
-            int available = resources.available(line.commodityId());
-            String id = ownerId + ":material:" + line.commodityId();
-            rows.add(new MaterialRow(id, id + ":icon", id + ":label",
-                    available >= line.quantity() ? "material-cost" : "material-cost short",
-                    resources.commodityIcon(line.commodityId()),
-                    Integer.toString(line.quantity()), resources.commodityName(line.commodityId()),
-                    available, line.quantity()));
-        }
-        return List.copyOf(rows);
+    private List<Row> materialRows(String ownerId, FabricationCost cost) {
+        if (cost == null) return List.of();
+        return cost.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId()))).map(line -> CompanyResources.cost(
+                ownerId + ":material:" + line.commodityId(), resources.commodityName(line.commodityId()),
+                resources.commodityIcon(line.commodityId()), resources.available(line.commodityId()), line.quantity())).toList();
     }
 
     private void selectSquad(String squadId) {
@@ -1373,7 +1364,7 @@ public final class MechLabViewModel {
                              String classes, String name, String badge, String badgeClasses,
                              String stock, String telemetry, String delta, String deltaClasses,
                              String detail, String actionLabel, String actionHint,
-                             boolean actionDisabled, List<MaterialRow> materials,
+                             boolean actionDisabled, List<Row> materials,
                              String materialsClasses,
                              Runnable action)
             implements MarkupPropertySource {
@@ -1391,19 +1382,11 @@ public final class MechLabViewModel {
             case "delta" -> delta; case "deltaClasses" -> deltaClasses;
             case "detail" -> detail; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
+            case "materialsStyle" -> CompanyResources.billHeight(materials);
+            case "cardStyle" -> "height: " + (140 + materials.size() * 36) + "px;";
             case "materialsClasses" -> materialsClasses;
             case "action" -> action;
             default -> throw unknown("mech-catalog", p); }; }
-    }
-
-    public record MaterialRow(String id, String iconId, String labelId,
-                              String classes, String icon, String label,
-                              String name, int available, int required)
-            implements MarkupPropertySource {
-        @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "iconId" -> iconId; case "labelId" -> labelId;
-            case "classes" -> classes; case "icon" -> icon; case "label" -> label;
-            default -> throw unknown("mech-material", p); }; }
     }
 
     private static IllegalArgumentException unknown(String owner, String property) {

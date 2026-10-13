@@ -110,7 +110,8 @@ class FirstRefitModelTest {
                 noop, noop, noop, noop, noop, noop);
         var mod = new File("mod").toPath();
         var loader = new MarkupLoader(file -> Files.readString(mod.resolve(file)), List.of(
-                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
+                "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
         try (var markup = loader.reloadAndBuild(new Reactor(), "ship-view", props)) {
             var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(document::addStyleSheet);

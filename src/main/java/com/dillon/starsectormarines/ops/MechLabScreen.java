@@ -45,7 +45,8 @@ public final class MechLabScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "mech-lab";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
 
     private final Reactor reactor = new Reactor();

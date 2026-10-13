@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessHostPassRenderer;
+import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONObject;
 
@@ -65,6 +66,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     private final HeadlessBattleSprites sprites;
     private final BattleRenderer renderer;
     private final boolean skipUnsupportedCommands;
+    private final HeadlessUiRenderer nightRasterizer;
 
     public HeadlessBattleSceneRenderer(Path modRoot) {
         this(modRoot, false);
@@ -90,6 +92,13 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             sprites.ensureEngineFxSprites();
             renderer = new BattleRenderer(sprites);
             this.skipUnsupportedCommands = skipUnsupportedCommands;
+            nightRasterizer = new HeadlessUiRenderer(resourceRoots(modRoot), (pass, context, viewport, alpha) -> {
+                if (!(pass instanceof NightRasterLayer layer)) return false;
+                if (layer.mesh() != null) drawPolygon(context, viewport.height(), layer.mesh());
+                else for (int i = 0; i < layer.surfaces().count(RenderLayer.FOG); i++)
+                    drawCommand(context, viewport, layer.surfaces().buffer(RenderLayer.FOG)[i]);
+                return true;
+            });
         } catch (Exception failure) {
             throw new IllegalStateException("Could not prepare headless battle assets", failure);
         }
@@ -226,6 +235,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             case CUSTOM -> {
                 if (command.customDraw() instanceof WorldLabel label) drawWorldLabel(context, surfaceHeight, label);
                 else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes);
+                else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night);
                 else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
             }
             case RIBBON -> {
@@ -235,6 +245,64 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                                     + command.kind());
                 }
             }
+        }
+    }
+
+    /** Exact sprite-alpha coverage and premultiplied shade mixing, matching the night GPU pass. */
+    BufferedImage renderNightLighting(NightLightingPass pass, CanvasHostViewport viewport) {
+        int width = Math.max(1, Math.round(viewport.width()));
+        int height = Math.max(1, Math.round(viewport.height()));
+        BufferedImage fog = nightRasterizer.renderHostPass(new NightRasterLayer(pass.fogShade(), null), width, height);
+        BufferedImage lit = nightRasterizer.renderHostPass(new NightRasterLayer(pass.litShade(), null), width, height);
+        BufferedImage coverage = nightRasterizer.renderHostPass(new NightRasterLayer(null, pass.surfaces()), width, height);
+        return compositeNightLighting(fog, lit, coverage);
+    }
+
+    static BufferedImage compositeNightLighting(BufferedImage fog, BufferedImage lit, BufferedImage coverage) {
+        int width = fog.getWidth(), height = fog.getHeight();
+        if (lit.getWidth() != width || lit.getHeight() != height
+                || coverage.getWidth() != width || coverage.getHeight() != height)
+            throw new IllegalArgumentException("Night shade and coverage dimensions must agree");
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+            int dark = fog.getRGB(x, y), light = lit.getRGB(x, y);
+            int mask = coverage.getRGB(x, y) >>> 24;
+            if (mask == 0) { result.setRGB(x, y, dark); continue; }
+            if (mask == 255) { result.setRGB(x, y, light); continue; }
+            float weight = mask / 255f;
+            float darkWeight = (dark >>> 24) * (1 - weight);
+            float lightWeight = (light >>> 24) * weight;
+            float alpha = darkWeight + lightWeight;
+            if (alpha <= 0f) continue;
+            int mixed = Math.round(alpha) << 24;
+            for (int shift = 0; shift <= 16; shift += 8) {
+                int channel = Math.round((((dark >>> shift) & 255) * darkWeight
+                        + ((light >>> shift) & 255) * lightWeight) / alpha);
+                mixed |= channel << shift;
+            }
+            result.setRGB(x, y, mixed);
+        }
+        return result;
+    }
+
+    private void drawNightLighting(CanvasContext context, CanvasHostViewport viewport, NightLightingPass pass) {
+        BufferedImage shade = renderNightLighting(pass, viewport);
+        // Equal adjacent pixels share a fill; transparent gaps never get a lighting rectangle.
+        for (int y = 0; y < shade.getHeight(); y++) {
+            int start = 0, color = shade.getRGB(0, y);
+            for (int x = 1; x <= shade.getWidth(); x++) {
+                int next = x == shade.getWidth() ? 0 : shade.getRGB(x, y);
+                if (x < shade.getWidth() && next == color) continue;
+                if ((color >>> 24) != 0) context.fillRect(start, y, x - start, 1, new Color(color, true));
+                start = x;
+                color = next;
+            }
+        }
+    }
+
+    private record NightRasterLayer(PolyMesh mesh, DrawList surfaces) implements CanvasHostPass {
+        public void draw(CanvasHostViewport viewport, float alpha) {
+            throw new UnsupportedOperationException("Headless night intermediate only");
         }
     }
 

@@ -32,8 +32,8 @@ final class SecondSquadPreparation {
         StringBuilder costs = new StringBuilder();
         for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
             int available = stores.available(line.commodityId());
-            costs.append(LessonCopy.text("lessonCostLine", stores.commodityName(line.commodityId()),
-                    line.quantity(), available, Math.max(0, line.quantity() - available)));
+            costs.append(CompanyResources.namedBill(stores.commodityName(line.commodityId()),
+                    line.quantity(), available)).append("\n");
         }
         return new PreparationGuide.Lesson(3, LessonCopy.text("lessonSecondTitle"),
                 LessonCopy.text("lessonSecondSummary", MissionForceEnvelope.recommendedPersonnel(mission),
