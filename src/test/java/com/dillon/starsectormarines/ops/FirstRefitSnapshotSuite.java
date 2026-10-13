@@ -17,7 +17,6 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -36,39 +35,19 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         var reactor = new Reactor();
-        EquipmentTemplateCost[] stock = {EquipmentTemplateCost.ZERO};
         EquipmentIssueResources resources = new EquipmentIssueResources() {
-            public String commodityIcon(String id) { return switch (id) {
-                case Commodities.SUPPLIES -> "graphics/icons/cargo/supplies.png";
-                case Commodities.HAND_WEAPONS -> "graphics/icons/cargo/heavyweapons.png";
-                case Commodities.HEAVY_MACHINERY -> "graphics/icons/cargo/heavymachinery.png";
-                default -> "";
-            }; }
-            public String commodityName(String id) { return switch (id) {
-                case Commodities.SUPPLIES -> "Supplies";
-                case Commodities.HAND_WEAPONS -> "Heavy armaments";
-                case Commodities.HEAVY_MACHINERY -> "Heavy machinery";
-                default -> id;
-            }; }
-            public EquipmentTemplateCost available() { return stock[0]; }
-            public boolean spend(EquipmentTemplateCost cost) {
-                if (!stock[0].covers(cost)) return false;
-                stock[0] = new EquipmentTemplateCost(stock[0].supplies() - cost.supplies(),
-                        stock[0].heavyArmaments() - cost.heavyArmaments(), stock[0].heavyMachinery() - cost.heavyMachinery(), stock[0].food() - cost.food());
-                return true;
-            }
+            public EquipmentTemplateCost available() { throw new AssertionError("Fitting must not read cargo"); }
+            public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not spend cargo"); }
         };
         String[] inspected = {null};
         var model = new FirstRefitModel(reactor, roster, resources, id -> inspected[0] = id);
         List<SnapshotArtifact> frames = new ArrayList<>();
         frames.add(resultsFrame(context, roster));
-        frames.add(frame(context, reactor, model, "01-wayline-consignment.png", "refit-claim"));
-        if (!roster.firstRefit().claimed()) throw new AssertionError("Accept control did not claim reward");
+        frames.add(frame(context, reactor, model, "01-wayline-technology-choice.png", null));
         frames.add(frame(context, reactor, model, "02-choose-squad.png", "refit-squad:" + squad.id()));
         frames.add(frame(context, reactor, model, "02b-choose-path.png", "refit-path:STEADY_LINE"));
         frames.add(frame(context, reactor, model, "03-steady-line-free-fitting.png", null));
         if (roster.firstRefit().complete()) throw new AssertionError("Inspection fitted equipment without confirmation");
-        stock[0] = new EquipmentTemplateCost(200, 0, 100, 0);
         model.refresh();
         frames.add(frame(context, reactor, model, "04-steady-line-review.png", "refit-path:FORWARD_SCREEN"));
         frames.add(frame(context, reactor, model, "05-forward-screen-review.png", null));
@@ -76,6 +55,9 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         frames.add(frame(context, reactor, model, "05a-proposed-weapon-spec.png", null, "refit-proposed-item:0"));
         frames.add(frame(context, reactor, model, "05a-scout-system-spec.png", "refit-billet:11", "refit-proposed-item:1:system"));
         frames.add(frame(context, reactor, model, "05a-special-removal.png", "refit-billet:0"));
+        if (roster.firstRefit().claimed()) throw new AssertionError("Comparison granted technology");
+        frames.add(frame(context, reactor, model, "05a-accept-forward-screen.png", "refit-claim"));
+        if (!roster.firstRefit().claimed()) throw new AssertionError("Accept control did not claim reward");
         var members = roster.manningMemberIds(squad);
         roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
                 members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
@@ -126,7 +108,6 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         try (var markup = loader.build(reactor, "first-refit", props)) {
             var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(document::addStyleSheet);
-            FleetArmoryScreen.bindFirstRefitPreviews(document, markup, new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             var binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
             FleetArmoryScreen.bindFirstRefitSheets(binder, markup, model);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),

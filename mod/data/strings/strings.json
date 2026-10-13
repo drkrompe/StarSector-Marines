@@ -432,7 +432,7 @@
 		"equipmentTemplateKindPrimary": "primary weapon pattern",
 		"equipmentTemplateKindArmor": "armor pattern",
 		"equipmentTemplateKindSpecial": "special-equipment pattern",
-		"equipmentTemplateUnlockFmt": "Adds {0} to the Fleet Armory as a permanent {1}.",
+		"equipmentTemplateUnlockFmt": "Transfers {0} to the Fleet Armory as a permanent {1}. The Machine Shop fits and swaps learned equipment for free.",
 		"equipmentTemplateShipBoundary": "This is infantry equipment data and does not authorize starship construction.",
 		"equipmentTemplateLearnPrompt": "Right-click to learn",
 		"equipmentTemplateAlreadyKnown": "Template already known",

@@ -260,9 +260,13 @@ fallback without choosing an operation commander in advance.
 **A Proper Issue** is Castle's optional first squad-refit lesson after the story
 victory in Hold Until Relieved. The debrief and HQ point to the Armory; its
 opening conversation and gallery resume action keep the offer discoverable.
-Accepting Wayline's consignment permanently learns Milspec Stalwart and Lancer
-patterns and the Janus scout suit, plus two reusable weapon plans. Acceptance
-never changes a soldier's kit or creates cargo. Existing collections are retained.
+Wayline offers one free technology transfer: Steady Line permanently teaches
+Milspec Stalwart; Forward Screen teaches Milspec Lancer and Janus scout suits.
+Acceptance grants reusable plan intent for both paths, but only the chosen path's
+technology. The other remains obtainable through open-market specs or mission
+rewards. Both featured Milspec specs circulate in the Common access band; military
+grade and campaign acquisition tier are distinct. Existing learned collections,
+including previously claimed two-path bundles, are never revoked.
 
 The lesson presents exactly two complete equipment paths: **Steady Line** pairs
 three Milspec automatics with a line-holding armor plan; **Forward Screen** pairs
@@ -281,8 +285,8 @@ results while the lesson is unfinished. Armory returns to that debrief without
 settling or forfeiting any pending salvage; ordinary settlement actions retain
 their existing ownership.
 
-The player accepts the patterns, selects an actual line squad, chooses one path,
-and reviews twelve clickable equipment squares in three fire-team columns of
+The player selects an actual line squad, compares either path without learning it,
+then explicitly accepts one technology transfer. The review shows twelve clickable equipment squares in three fire-team columns of
 four billets, alongside current and proposed equipment. The grid uses the Barracks'
 current-equipment icons, with wounded and vacant slots identified. Selecting a
 square displays current and proposed weapon, armor and
@@ -1218,6 +1222,10 @@ Delivery ends with Castle directing the player to the real PLATING and DRIVE con
 no additional purchase is required. The conversation overlays the room and owns input
 while open. Later briefings freeze the purchased boats and their actual fittings through
 the shared campaign lift authority. Replayed Depot Clearance never unlocks the offer.
+
+The ship view offers a Machine Shop / Fit Squads control that opens the Armory
+fitting workspace and returns to the ship. Free fitting remains available regardless
+of workshop restoration; repairing production machinery affects boat and mech jobs.
 
 The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,
