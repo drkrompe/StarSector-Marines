@@ -467,6 +467,13 @@ the assault. A lull or the death of the opening element never discards reserves.
 Pending ground arrivals count as forces still in play for elimination; victory
 requires the entire committed assault to be defeated.
 
+Relief fields twelve initial raiders and two four-person road groups. All twenty
+carry Rooks at their ordinary low militia grades, matching the new company's
+entry-level weapon tier while its Hermes unloads four recruits per trip. Employer
+weapons and cover remain their existing advantage; Counterattack retains mixed
+militia weapons. The opening must not inherit Lancers and Longbows from the
+generic militia roll and overwhelm a partially landed starter squad.
+
 Road arrivals create ordinary, equipped militia squads. Scripted ownership
 covers their approach only; reaching it or observing direct contact hands them
 to the ordinary assault commander. Squad AI owns contact, cohesion and survival.
