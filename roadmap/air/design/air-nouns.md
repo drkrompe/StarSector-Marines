@@ -1613,7 +1613,7 @@ from the hull's size, its hints, fighter bays, designation and shield type
 (combat, carrier or support, at frigate to capital size); the class is not a
 posture and only scales how much each air threat counts toward the entry level,
 so a frigate fears a fighter and a carrier fears them more, while a combat
-capital is the unscaled row.
+capital is the unscaled row. A carrier additionally conserves flux in a fight and keeps a wider standoff (`PostureProfile`; `warship-behaviours.md`).
 
 **Support fire weighs the objective and its own side, and never refuses a
 manual order.** Under the support and intercept postures the director scores
