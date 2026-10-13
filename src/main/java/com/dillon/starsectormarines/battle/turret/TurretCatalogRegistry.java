@@ -152,6 +152,14 @@ public final class TurretCatalogRegistry {
             validateAsset(mount.id, "recoilSprite", mount.recoilSpritePath);
             validateAsset(mount.weapon.id, "projectileSprite", mount.weapon.projectileSpritePath);
         }
+        for (StructureDef structure : structuresById.values()) {
+            if (structure.buildingArt != null) {
+                for (String path : structure.buildingArt.spritePaths()) validateAsset(structure.id, "buildingArt", path);
+            }
+            if (structure.gatehouseArt != null) {
+                for (String path : structure.gatehouseArt.spritePaths()) validateAsset(structure.id, "gatehouseArt", path);
+            }
+        }
     }
 
     private static void validateAsset(String ownerId, String field, String path) {

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fort;
 import com.dillon.starsectormarines.battle.battery.FireControl;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -36,6 +37,9 @@ public final class Fort {
         private int minX, minY, maxX, maxY;
         private boolean[] mask = new boolean[0];
         private float centreX, centreY;
+        private String structureId;
+        private boolean roofOpened;
+        private int[] floorBounds;
 
         Place(FortAspect aspect, long coreId, Faction owner) {
             this.aspect = aspect;
@@ -45,6 +49,37 @@ public final class Fort {
 
         public FortAspect aspect() {
             return aspect;
+        }
+
+        /** Id of the structure that is this aspect's core, which names how its building is drawn; null when unknown. */
+        public String structureId() {
+            return structureId;
+        }
+
+        /**
+         * The world cells of the building's interior floor, as inclusive bounds {minX, minY, maxX, maxY}, from the
+         * authored layout and the fort's frame; null while the fort has no frame. This is what the building's art covers.
+         */
+        public int[] floorBounds(FortFrame frame) {
+            if (frame == null) return null;
+            if (floorBounds == null) {
+                int[] f = BatteryFort.floor(aspect);
+                floorBounds = frame.bounds(f[0], f[1], f[2], f[3]);
+            }
+            return floorBounds;
+        }
+
+        void structureId(String structureId) {
+            this.structureId = structureId;
+        }
+
+        /** Whether the building's roof has been opened because the aspect was wrecked; done once. */
+        boolean roofOpened() {
+            return roofOpened;
+        }
+
+        void markRoofOpened() {
+            roofOpened = true;
         }
 
         /** The structure whose destruction wrecks this aspect. */
@@ -109,6 +144,7 @@ public final class Fort {
     private final Map<FortAspect, Place> places = new EnumMap<>(FortAspect.class);
     private final List<Long> nests = new ArrayList<>();
     private FortressBattery battery;
+    private FortFrame frame;
     private float readyRounds = READY_ROUNDS;
     private boolean magazineBlown;
 
@@ -133,6 +169,16 @@ public final class Fort {
     void attach(FortressBattery battery) {
         this.battery = battery;
         battery.attachFort(this);
+    }
+
+    /** Records where the fort stands, once; later tags of the same fort say the same thing. */
+    void frame(FortFrame frame) {
+        if (this.frame == null) this.frame = frame;
+    }
+
+    /** Where the fort's local frame stands on the map, or null when the fort was assembled without a placement. */
+    public FortFrame frame() {
+        return frame;
     }
 
     void addPlace(Place place) {

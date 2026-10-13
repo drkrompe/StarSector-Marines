@@ -49,6 +49,7 @@ public final class FortSystem {
                 if (!place.resolved()) resolve(sim, place);
                 if (!place.wrecked() && !sim.world().isAlive(place.coreId())) {
                     place.markWrecked();
+                    openRoof(sim, fort, place);
                     if (place.aspect() == FortAspect.MAGAZINE) goUp(sim, fort, place);
                 }
             }
@@ -130,6 +131,14 @@ public final class FortSystem {
         boolean[] mask = new boolean[(maxX - minX + 1) * (maxY - minY + 1)];
         for (int[] c : cells) mask[(c[1] - minY) * (maxX - minX + 1) + (c[0] - minX)] = true;
         place.resolve(mask, minX, minY, maxX, maxY, sim.world().x(place.coreId()), sim.world().y(place.coreId()));
+    }
+
+    /** A wrecked building loses its roof, once, so the floor shows through whatever the wreck art leaves open. */
+    private static void openRoof(BattleSimulation sim, Fort fort, Fort.Place place) {
+        if (place.roofOpened()) return;
+        place.markRoofOpened();
+        int[] b = place.floorBounds(fort.frame());
+        if (b != null) sim.openRoofs(b[0], b[1], b[2], b[3]);
     }
 
     /** A wrecked magazine goes up: a blast that shakes the walls of its own building and whoever is inside. */
