@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -48,17 +49,21 @@ class FortressBatteryStageTest {
         new FortressBatteryStage().run(none);
         assertTrue(none.defensePosts.isEmpty());
 
-        GenContext groundOnly = field(TargetProfile.NEUTRAL.withDefences(true, false, true));
-        new FortressBatteryStage().run(groundOnly);
-        assertTrue(groundOnly.defensePosts.isEmpty(), "ground defences and a shield are not heavy batteries");
+        GenContext marketOnly = field(TargetProfile.NEUTRAL.withDefences(true, true, true));
+        new FortressBatteryStage().run(marketOnly);
+        assertTrue(marketOnly.defensePosts.isEmpty(), "the market's signals are inputs, not a declaration");
+
+        GenContext shieldOnly = field(TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(0, true)));
+        new FortressBatteryStage().run(shieldOnly);
+        assertTrue(shieldOnly.defensePosts.isEmpty(), "a declared shield is not a battery");
     }
 
     @Test
     void aDeclaredBatteryStandsSealedOnOpenGroundWithAClearApron() {
-        GenContext ctx = field(TargetProfile.NEUTRAL.withDefences(true, true, false));
+        GenContext ctx = field(declared(3));
         new FortressBatteryStage().run(ctx);
 
-        assertEquals(FortressBatteryStage.batteryCount(W, H), ctx.defensePosts.size());
+        assertEquals(3, ctx.defensePosts.size(), "exactly the declared count");
         StructureDef def = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID);
         for (DefensePost post : ctx.defensePosts) {
             assertEquals(def.id, post.turrets.get(0).structureId);
@@ -76,8 +81,8 @@ class FortressBatteryStageTest {
 
     @Test
     void placementIsDeterministicAndKeepsBatteriesApart() {
-        GenContext a = field(TargetProfile.NEUTRAL.withDefences(true, true, false));
-        GenContext b = field(TargetProfile.NEUTRAL.withDefences(true, true, false));
+        GenContext a = field(declared(3));
+        GenContext b = field(declared(3));
         new FortressBatteryStage().run(a);
         new FortressBatteryStage().run(b);
         assertEquals(a.defensePosts.size(), b.defensePosts.size());
@@ -95,8 +100,13 @@ class FortressBatteryStageTest {
     }
 
     @Test
-    void aSmallMapCarriesOneAndALargeOneNoMoreThanFour() {
-        assertEquals(1, FortressBatteryStage.batteryCount(60, 40));
-        assertEquals(4, FortressBatteryStage.batteryCount(560, 336));
+    void theDeclaredCountIsHonouredWhateverTheMapSize() {
+        GenContext one = field(declared(1));
+        new FortressBatteryStage().run(one);
+        assertEquals(1, one.defensePosts.size());
+    }
+
+    private static TargetProfile declared(int batteries) {
+        return TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(batteries, false));
     }
 }

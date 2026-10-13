@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -24,11 +25,10 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
- * Stands fortress batteries on the map when, and only when, the target profile says the world holds heavy batteries
- * ({@link TargetProfile#heavyBatteries()}). That signal is the mission's declaration: a mission that wants a battery
- * states it (the market's industries, or the mission's own {@code defences}), and this stage answers by finding the
- * ground. How often a battle has batteries is therefore not decided here; with no declaration the stage places nothing
- * and the map is byte-identical to one generated without it.
+ * Stands exactly the fortress batteries the mission declared ({@link GroundDefences#batteries()}, carried on the
+ * target profile as {@link TargetProfile#declaredDefences()}) and finds ground for them. Neither whether a battle has
+ * batteries nor how many is decided here: this stage never reads the market's signals and never derives a count from
+ * the map's area. With no declaration it places nothing and the map is byte-identical to one generated without it.
  *
  * <p>A battery is a multi-cell structure, emitted as a one-turret {@link DefensePost} like an overwatch tower, so the
  * existing spawn path stands it up and the simulation registers it as a battery because its definition says it is one.
@@ -42,10 +42,6 @@ import java.util.List;
  */
 public final class FortressBatteryStage implements GenStage {
 
-    /** Map cells per declared battery: a large map carries a few, a small one a single battery. */
-    private static final int CELLS_PER_BATTERY = 24000;
-    private static final int MIN_BATTERIES = 1;
-    private static final int MAX_BATTERIES = 4;
     /** Minimum distance between two batteries, and from any other post, in cells. */
     private static final int BATTERY_SEPARATION = 40;
     private static final int POST_SEPARATION = 12;
@@ -61,7 +57,7 @@ public final class FortressBatteryStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        if (profile == null || !profile.heavyBatteries()) return;
+        if (profile == null || profile.declaredDefences().batteries() <= 0) return;
         TacticalRegionMap regions = ctx.get(BspKeys.TACTICAL_REGIONS);
         if (regions == null) {
             throw new IllegalStateException(
@@ -72,7 +68,7 @@ public final class FortressBatteryStage implements GenStage {
         boolean[][] roadReservation = ctx.get(BspKeys.ROAD_RESERVATION);
         StructureDef def = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID);
 
-        int budget = batteryCount(ctx.width, ctx.height);
+        int budget = profile.declaredDefences().batteries();
         List<Site> sites = candidates(ctx, regions, def, roadReservation);
         sites.sort(Comparator.comparingInt(Site::band).thenComparingLong(Site::centreDistSq)
                 .thenComparingInt(Site::y).thenComparingInt(Site::x));
@@ -94,11 +90,6 @@ public final class FortressBatteryStage implements GenStage {
         if (!placed.isEmpty()) {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(grid, ctx.topology, axis));
         }
-    }
-
-    /** Batteries a declared world carries on a map of this size. Untuned first-pass figure. */
-    static int batteryCount(int width, int height) {
-        return Math.max(MIN_BATTERIES, Math.min(MAX_BATTERIES, Math.round((float) (width * height) / CELLS_PER_BATTERY)));
     }
 
     private static List<Site> candidates(GenContext ctx, TacticalRegionMap regions, StructureDef def,

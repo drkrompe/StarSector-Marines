@@ -2220,10 +2220,10 @@ public final class BattleSetup {
 
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         linkGuardpostSquads(sim, defenders.defensePosts());
-        // A world that states a planetary shield carries a generator beside its
-        // keep, held by the garrison. How many worlds state one is the mission's
-        // business; this only honours the statement.
-        if (profile != null && profile.planetaryShield()) {
+        // A mission that declares a shield generator gets one beside the keep, held
+        // by the garrison. Whether a mission declares one is its own business (see
+        // MissionDefencePolicy); this only honours the declaration.
+        if (profile != null && profile.declaredDefences().shieldGenerator()) {
             ShieldGeneratorPlacement.nearKeep(sim, Faction.DEFENDER);
         }
         claimConquestSetupGarrisons(sim);

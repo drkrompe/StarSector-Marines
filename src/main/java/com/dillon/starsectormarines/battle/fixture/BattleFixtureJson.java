@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -877,6 +878,8 @@ public final class BattleFixtureJson {
         encoded.put("groundDefences", profile.groundDefences());
         encoded.put("heavyBatteries", profile.heavyBatteries());
         encoded.put("planetaryShield", profile.planetaryShield());
+        encoded.put("declaredBatteries", profile.declaredDefences().batteries());
+        encoded.put("declaredShieldGenerator", profile.declaredDefences().shieldGenerator());
         return encoded;
     }
 
@@ -917,7 +920,10 @@ public final class BattleFixtureJson {
                 // the ground-defence signals describes a world with none.
                 encoded.has("groundDefences") && encoded.getBoolean("groundDefences"),
                 encoded.has("heavyBatteries") && encoded.getBoolean("heavyBatteries"),
-                encoded.has("planetaryShield") && encoded.getBoolean("planetaryShield"));
+                encoded.has("planetaryShield") && encoded.getBoolean("planetaryShield"),
+                // The mission's declaration, optional and none for a fixture that predates it.
+                new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
+                        encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator")));
     }
 
     private static <E extends Enum<E>> E enumValue(
