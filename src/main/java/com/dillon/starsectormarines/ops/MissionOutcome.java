@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.story.ColdStartProgress;
+import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -38,6 +39,7 @@ import java.util.UUID;
 public final class MissionOutcome {
     public final SalvageRightsSequence.Report salvageRights;
     public final ColdStartProgress.Report coldStart;
+    public final WorkingPassageProgress.Report workingPassage;
 
     /** Stable story-person outcomes; separate from representative population scaling. */
     public final LastLiftProgress.Outcome lastLiftOutcome;
@@ -153,6 +155,7 @@ public final class MissionOutcome {
     private MissionOutcome(Builder b) {
         this.salvageRights=b.salvageRights;
         this.coldStart=b.coldStart;
+        this.workingPassage=b.workingPassage;
         this.lastLiftOutcome    = b.lastLiftOutcome;
         this.freightOutcome = b.freightOutcome;
         this.waylineHound = b.waylineHound;
@@ -237,6 +240,8 @@ public final class MissionOutcome {
         private LastLiftProgress.Outcome lastLiftOutcome;
         private FreightRunProgress.Outcome freightOutcome;
         private SalvageRightsSequence.Report salvageRights;
+        private WorkingPassageProgress.Report workingPassage;
+        public Builder workingPassage(WorkingPassageProgress.Report report){workingPassage=report;return this;}
         private ColdStartProgress.Report coldStart;
         public Builder coldStart(ColdStartProgress.Report report){coldStart=report;return this;}
         public Builder salvageRights(SalvageRightsSequence.Report report){salvageRights=report;return this;}

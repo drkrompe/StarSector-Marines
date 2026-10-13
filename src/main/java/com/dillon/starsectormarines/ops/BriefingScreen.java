@@ -999,6 +999,11 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.workingPassage(mission.id)) return List.of(
+                BriefingViewModel.info("basin-tender", "Morrow", "Live repaired Shepherd / escort to eastern climb-out yard", ""),
+                BriefingViewModel.info("basin-build", "Construction", "Build road guns behind company gains", ""),
+                BriefingViewModel.info("basin-holds", "Militia", "8 / separate cooperative holding detachments", ""),
+                BriefingViewModel.info("basin-award", "Registry transfer", "Physical climb-out / named hull and willing minimum crew", ""));
         if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.coldStart(mission.id)) return List.of(
                 BriefingViewModel.info("basin-cargo", "Repair cargo", "Distribution rig / escort from apron to workshop", ""),
                 BriefingViewModel.info("basin-crew", "Repair crew", "2 technicians / protect at pump and grounded hull", ""),

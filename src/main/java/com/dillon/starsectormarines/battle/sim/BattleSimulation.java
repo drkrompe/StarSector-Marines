@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
@@ -490,6 +491,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private DepotHoldSequence depotHold;
     private SalvageRightsSequence salvageRights;
+    private WorkingPassageSequence workingPassage;
+    public WorkingPassageSequence getWorkingPassage() { return workingPassage; }
+    public void installWorkingPassage(Tender tender, List<Integer> militia, List<EntitySpec> reserve) {
+        if (simTickIndex != 0 || workingPassage != null) throw new IllegalStateException("Install Working Passage once at setup");
+        workingPassage = new WorkingPassageSequence(tender, militia, reserve, storyBeats);
+        addObjective(workingPassage);
+    }
     private ColdStartSequence coldStart;
     public ColdStartSequence getColdStart() { return coldStart; }
     public void installColdStart(int engineers, long carrier, List<EntitySpec> reserve, boolean delivered, boolean powered) {
@@ -648,7 +656,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (thunderRun == null ? 0 : thunderRun.pendingMembers())
                 + (depotHold == null ? 0 : depotHold.pendingMembers())
                 + (salvageRights == null ? 0 : salvageRights.pendingMembers())
-                + (coldStart == null ? 0 : coldStart.pendingMembers());
+                + (coldStart == null ? 0 : coldStart.pendingMembers())
+                + (workingPassage == null ? 0 : workingPassage.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2737,6 +2746,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (depotHold != null) depotHold.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
+        if (workingPassage != null) workingPassage.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions

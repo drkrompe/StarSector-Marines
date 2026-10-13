@@ -12,7 +12,7 @@ public final class YardConstruction extends CommandPower {
 
     public YardConstruction(Tender source) {
         super("yard-construction", "Build Vulcan Turret", 0f, 0f);
-        if (source == null || !source.grounded()) throw new IllegalArgumentException("grounded tender required");
+        if (source == null || !(source.grounded() || source.lowHover())) throw new IllegalArgumentException("recovery tender required");
         this.source = source;
     }
 

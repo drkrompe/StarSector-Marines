@@ -1,10 +1,10 @@
 # A Working Ship
 
-Status: IN PROGRESS — Salvage Rights and Cold Start playable; Working Passage departure remains open
+Status: IN PROGRESS — all three contracts and fleet handover implemented; live campaign acceptance remains
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Cold Start playable; departure remains open and gates the planned Agreus referral.
+Updated: 2026-10-13 — Working Passage physical departure, recovery policy and once-only Morrow/crew transfer implemented.
 
 ## Placement and employer
 
@@ -112,9 +112,10 @@ scale reflects the installed hull's 15 minimum crew, capacity for 30, 100 cargo 
 drone bay; it is deliberately larger than compressed overhead flight scale.
 The source art and footprint annotation remain with the ordinary asset exporter.
 Cold Start adds servicing equipment to
-the yard. Working Passage removes the static hull so its future battle host can
-spawn one live tender; the emptied cradle remains visible behind it. This first
-map slice does **not** animate repairs or claim that the final ship already moves.
+the yard. Working Passage replaces the static hull with one live low-hover tender;
+the emptied cradle remains visible behind it. Her moving body retains the same
+24 × 20-cell size until climb-out, with swept terrain clearance for mission,
+remote and piloted travel. Repair completion does not shrink her to overhead scale.
 
 ## 1 — Salvage Rights
 
@@ -209,7 +210,7 @@ to test the drives and clear her for ascent.”
 
 Beat order:
 
-1. A live Shepherd lifts from the now empty cradle. Its short move to the first
+1. A live Shepherd hovers from the now empty cradle. Its short move to the first
    assembly point is visible; the player is not teleported to a different map.
 2. Clear the pump bend. Pause the tender behind the company's forward position,
    establish a gun, then hand the hold to a separate militia detachment.
@@ -217,8 +218,9 @@ Beat order:
    a south-road party pressures the previous gain. Stagger their commitments so
    the player has a decision about where to retain a squad. Do not stack all
    allied squads on one exact objective coordinate.
-4. Secure the climb-out yard and hold the last approach while the repaired drives
-   spool. Earlier constructions and militia holds should visibly contain pursuit.
+4. Secure the climb-out yard and hold the last approach through 55 seconds of safe
+   drive work. Hostile pressure, absent company cover or an out-of-position hull
+   pauses the work. Earlier constructions and militia holds contain pursuit.
 5. Morrow climbs out. Castle confirms the registry transfer with Vale. The actual
    named fleet hull is awarded once, and later eligible missions can select it
    as fleet construction support.
@@ -229,13 +231,16 @@ Beat order:
 **Vale:** “The corridor is ours again. Keep her working, Castle. That is what
    those ships were built for.”
 
-The transfer includes an explicit berth offer to willing surviving Morrow crew,
-not ownership of people or an automatic new marine squad. Fleet crew accounting
-and any named engineer handoff must be resolved with the campaign reward.
+The transfer includes an explicit berth offer to willing working crew sufficient
+for the awarded member's actual minimum complement. They join fleet crew, not marine
+squads; no named engineer award is authored. The fleet receives an actual Shepherd
+named Morrow only after confirmed physical departure, with no cash payment. The
+permanent member receipt prevents another award after debrief replay, reload, sale
+or loss. Campaign support still requires a currently owned eligible source.
 
 ## Remaining battle and campaign acceptance
 
-### Cold Start acceptance and departure design
+### Battle contract and remaining acceptance
 
 Cold Start is a **6–8 minute target**, subject to playback. Start with the earlier
 workshop held and the receiving store clear. The repair carrier waits at the apron
@@ -276,14 +281,18 @@ start with that work complete, but the campaign may not silently respawn it insi
 the current battle. Successful climb-out grants one named fleet member, tracked by
 persistent identity; replaying the debrief cannot add another. Subsequent sale or
 loss ends access to its construction support until the player owns another eligible
-ship. Confirm the existing tender's disable/recovery boundary before implementing
-this contract; these timings and teams are proposed encounter design, not tested battles.
+ship. Critical disable at or below 20% hull strength aborts the attempt, as do hull
+loss and failed departure. Confirmed militia losses and the failure remain on the
+account while the claim and completed repairs survive. These are implemented rules;
+the duration targets remain tuning goals until measured playback and live review.
 
 ### Remaining acceptance
 
-- Live Cold Start discovery, launch, return to HQ and save/load acceptance. Both
-  recovery chapters have campaign offers, text-only narration and debug fixtures;
-  Working Passage remains unavailable until its departure and ownership handoff ship.
+- Live discovery, launch, return to HQ and save/load acceptance across all three
+  chapters. Each has a campaign offer, text-only narration and a debug fixture;
+  Working Passage is debug chapter 04 on Asharu and follows completed Cold Start repairs.
+  Its detached expected company has 24 service-grade pulse rifles with starting
+  Ward armor and no Hound or officer bonuses; it does not change new-company issue.
   Cold Start pays 22,000 credits only on an accepted repair victory.
 - Design for a rebuilding company: two squads as the initial test force, allied
   holders and engineers; Hound optional. Use the real launch roster and fitted
@@ -295,16 +304,16 @@ this contract; these timings and teams are proposed encounter design, not tested
   seen helping before the next beat.
 - Keep Working Passage tender damage and failed withdrawal explicit. Cold Start
   already retains delivery, shore power and technician losses without carrying
-  unfinished work or a free turret into another sortie. Departure's exact hull
-  disable/recovery policy still needs a bounded decision before that settlement ships.
-- Fleet transfer once on final victory, using stored member identity. Never let
+  unfinished work or a free turret into another sortie. Verify departure's implemented
+  critical abort, recorded militia losses and same-hull recovery/refit across a live retry.
+- Live-check fleet transfer once on physical departure, using stored member identity. Never let
   `Tender.fit` fallback summon a stock Shepherd if the awarded hull was sold or
   lost. Atmosphere permission and support eligibility are mission facts; this
   contract grants neither general bombardment rights nor a shuttle berth.
 - Preserve the current free construction rules. Construction time, finite fragile
   drones and secure working ground are the immediate constraints. Do not add a
   new cargo economy to this arc. Ordinary fleet upkeep still applies to ownership.
-- Full-width hull flight/arrival clearance and the departure battle need playback.
+- Live-check full-width hull flight/arrival clearance and the departure battle.
   Cold Start separately exercises physical repair-carrier traversal and grounded
   builder reach; this does not establish a flying Shepherd's clearance.
   The live grounded/low-hover body must retain the large footprint until climb-out;
@@ -336,3 +345,28 @@ Absent-company and no-construction controls must not complete their missing work
 A withdrawal after shore power feeds its real report through campaign settlement
 before constructing a retry. Frames are 1920×1080 / 100%; this is detached headless
 playback, not a recording of a live campaign save.
+
+`createSnapshots -Psnapshot=working-passage` exercises physical company lift,
+the full-width low-hover route, ordinary ship-bar construction at both stops,
+militia holds and actual hull departure. The expected debug company has 24
+named marines with service-grade pulse rifles and starting Ward armor, no Hound
+and no officer bonuses. The production campaign still launches the player's
+selected roster and fitted boats; this fixture does not grant equipment there.
+
+Three ordinary fixtures (seeds 14101, 15101 and 15102, including mixed
+Hermes/Aeroshuttle lift) complete in approximately 6:47, 7:27 and 7:10. Company
+losses are 4, 7 and 2; militia losses are 1, 0 and 5. Each constructs two guns,
+records fire from the first gun and completes physical climb-out. The second gun
+is built and retained, but did not fire in these observations. An otherwise
+identical starter-Rook control loses its company: the automatic refitted result
+does not establish that an unrefitted company can coast through this chapter.
+
+Absent arrival and withheld construction do not advance their gates. Withdrawal
+retains the recovery claim and completed repairs; a replenished retry completes.
+Injected critical hull damage fails without departure. Exact identities, landed
+squad reunion, phase times, casualties and fired shots are retained in
+`build/reports/working-passage/playback.txt`. Optional
+`-Dbattle.workingPassage.fixture=<id substring>` and
+`-Dbattle.workingPassage.maxTicks=<ticks>` select bounded investigation. These
+remain detached production replays; live save/load, fleet handover and campaign
+return acceptance remain open.

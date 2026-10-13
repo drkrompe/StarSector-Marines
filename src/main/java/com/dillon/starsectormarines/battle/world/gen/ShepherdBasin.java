@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.warship.LowHoverClearance;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
@@ -41,6 +42,10 @@ public final class ShepherdBasin {
     public static final Place NARROWS = new Place("narrows", "Narrows build ground", 252, 110);
     public static final Place LIFT = new Place("lift", "Climb-out yard", 280, 77);
     public static final List<Place> PLACES = List.of(LANDING, WORKSHOP, CRADLE, PUMP, BEND, NARROWS, LIFT);
+    /** Full-size service lane; stops keep construction plots within normal builder reach. */
+    public static final float[][] HOVER_ROUTE = {{131,115}, {197,115}, {239,99}, {279,77}};
+    /** The pump workshop stays above the lane; the first leg bends around its south face. */
+    public static final float[][] HOVER_APPROACH = {{131,115}, {151,112}, {190,112}, {197,115}};
 
     private ShepherdBasin() {}
 
@@ -53,7 +58,8 @@ public final class ShepherdBasin {
                 ShepherdBasin::buildings, ShepherdBasin::yards, ShepherdBasin::shipbreaking,
                 context -> recoveryYard(context, visit),
                 context -> RoadRasterizer.clearReplacedSurfaces(context.topology, WIDTH, HEIGHT),
-                ShepherdBasin::yardSurfaces, ShepherdBasin::terrain, new FinalizeStage(),
+                ShepherdBasin::yardSurfaces, ShepherdBasin::terrain,
+                context -> { if (visit == Visit.WORKING_PASSAGE) hoverLane(context); }, new FinalizeStage(),
                 new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, LANDING.x(), LANDING.y(), 290, 77,
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(),
@@ -66,6 +72,16 @@ public final class ShepherdBasin {
         for (var poi : map.pointsOfInterest) requireRoute(map, poi.interiorAnchorX, poi.interiorAnchorY);
         requireRoute(map, 194, 2);
         requireRoute(map, 301, 145);
+        if (visit == Visit.WORKING_PASSAGE) {
+            List<float[]> centers = new ArrayList<>(List.of(HOVER_APPROACH));
+            centers.add(HOVER_ROUTE[2]);
+            centers.add(HOVER_ROUTE[3]);
+            for (int i=1;i<centers.size();i++) {
+                float[] a=centers.get(i-1), b=centers.get(i);
+                if (!LowHoverClearance.sweptClear(map.grid,a[0],a[1],b[0],b[1],24,20))
+                    throw new IllegalStateException("Full-size Morrow service lane obstructed at leg " + i);
+            }
+        }
         if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting(map));
         return map;
     }
@@ -240,6 +256,35 @@ public final class ShepherdBasin {
         }
         // Working Passage leaves the cradle empty for a live Tender, never a
         // second static hull beneath it. Its moving body belongs to battle setup.
+    }
+
+    /** Yard staff clear the service lane before the live recovering hull is launched. */
+    private static void hoverLane(GenContext c) {
+        boolean[][] lane = new boolean[HEIGHT][WIDTH];
+        List<float[]> centers = new ArrayList<>(List.of(HOVER_APPROACH));
+        centers.add(HOVER_ROUTE[2]);
+        centers.add(HOVER_ROUTE[3]);
+        for (int leg = 1; leg < centers.size(); leg++) {
+            float[] a = centers.get(leg - 1), b = centers.get(leg);
+            int steps = (int) Math.ceil(Math.hypot(b[0]-a[0], b[1]-a[1]) * 4);
+            for (int i=0;i<=steps;i++) {
+                float x=a[0]+(b[0]-a[0])*i/steps, y=a[1]+(b[1]-a[1])*i/steps;
+                for (int cy=(int)Math.floor(y-11);cy<Math.ceil(y+11);cy++)
+                    for (int cx=(int)Math.floor(x-13);cx<Math.ceil(x+13);cx++) lane[cy][cx]=true;
+            }
+        }
+        c.doodads.removeIf(d -> {
+            for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)
+                for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
+                    if(x>=0&&y>=0&&x<WIDTH&&y<HEIGHT&&lane[y][x]) return true;
+            return false;
+        });
+        for(int y=0;y<HEIGHT;y++)for(int x=0;x<WIDTH;x++)if(lane[y][x]) {
+            if(c.topology.getBuildingId(x,y)>0) throw new IllegalStateException("Low-hover lane crosses a building");
+            c.grid.setWalkableFloor(x,y);
+            c.topology.setWall(x,y,false);
+            c.topology.setFixture(x,y,false);
+        }
     }
 
     /** Older sorted stock reads differently from the recent, diagonally strewn wreckage. */

@@ -23,7 +23,8 @@ enum StoryScene {
     VETERANS_JOB("veterans-job", "BROKER'S CACHE"),
     SILENT_COLONY("silent-colony", "DISTRESS BEACON / COLONY"),
     SALVAGE_RIGHTS("salvage-rights", "ASHARU / MORROW RECOVERY BASIN"),
-    COLD_START("salvage-rights", "ASHARU / SAME MORROW RECOVERY BASIN");
+    COLD_START("salvage-rights", "ASHARU / SAME MORROW RECOVERY BASIN"),
+    WORKING_PASSAGE("salvage-rights", "ASHARU / MORROW DEPARTURE CORRIDOR");
 
     private static final Pattern ROUTE_RECORD = Pattern.compile(
             Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1234])_(0|[1-9][0-9]*)_[1-9][0-9]*");
@@ -62,6 +63,7 @@ enum StoryScene {
             case SILENT_COLONY -> SILENT_COLONY;
             case SALVAGE_RIGHTS -> SALVAGE_RIGHTS;
             case COLD_START -> COLD_START;
+            case WORKING_PASSAGE -> WORKING_PASSAGE;
         };
         if (source == MissionSource.CAMPAIGN_EVENT)
             return SilentColonyMissionKey.parse(id) == null ? null : SILENT_COLONY;
@@ -69,7 +71,7 @@ enum StoryScene {
             if (OpeningOperationKind.RELIEF.recurringId.equals(id)) return RELIEF;
             if (OpeningOperationKind.COUNTERATTACK.recurringId.equals(id)) return DEPOT;
         } else if (source == MissionSource.STORY) {
-            if(ShepherdRecoveryCampaign.owns(id))return ShepherdRecoveryProgress.coldStart(id)?COLD_START:SALVAGE_RIGHTS;
+            if(ShepherdRecoveryCampaign.owns(id))return ShepherdRecoveryProgress.workingPassage(id)?WORKING_PASSAGE:ShepherdRecoveryProgress.coldStart(id)?COLD_START:SALVAGE_RIGHTS;
             if (VeteransJobStory.ID.equals(id)) return VETERANS_JOB;
             var corvus = CorvusWaylineProgress.forMission(id);
             if (corvus != null) return switch (corvus) {

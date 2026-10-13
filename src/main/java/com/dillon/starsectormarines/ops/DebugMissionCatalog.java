@@ -15,11 +15,17 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.SquadWeaponIssue;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +49,8 @@ public final class DebugMissionCatalog {
         VETERANS_JOB("Independent stories", "The Veteran's Job", "Raid the broker's cache and extract.", 3, false),
         SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
         SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", 2, false),
-        COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", 2, false);
+        COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", 2, false),
+        WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin with service pulse rifles and starting Ward armor; build road defenses and secure physical climb-out.", 2, false);
         public final String group, title, description;
         public final int squads;
         public final boolean hound;
@@ -77,10 +84,11 @@ public final class DebugMissionCatalog {
                 case SILENT_COLONY -> "E1";
                 case SALVAGE_RIGHTS -> "02";
                 case COLD_START -> "03";
+                case WORKING_PASSAGE -> "04";
             };
         }
         public String location() {
-            if(this==SALVAGE_RIGHTS || this==COLD_START)return "Asharu";
+            if(this==SALVAGE_RIGHTS || this==COLD_START || this==WORKING_PASSAGE)return "Asharu";
             if (corvus() != null) return corvus().planetName;
             return this == VETERANS_JOB || this == SILENT_COLONY ? "Unfixed site" : "Jangala";
         }
@@ -100,6 +108,7 @@ public final class DebugMissionCatalog {
                 case SILENT_COLONY -> "Campaign event / Location varies in campaign";
                 case SALVAGE_RIGHTS -> "A Working Ship 1 of 3 / After Garnir 01";
                 case COLD_START -> "A Working Ship 2 of 3 / After Asharu 02";
+                case WORKING_PASSAGE -> "A Working Ship 3 of 3 / After Asharu 03";
             };
         }
         public Mission mission() {
@@ -113,15 +122,16 @@ public final class DebugMissionCatalog {
                     .requiredDrops(squads * 2).employerShuttles(0)
                     .marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
-                    .requirements(squads + " starter squads" + (hound ? " + Wayward (chaingun)" : "") + "; preset boats supplied")
+                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (hound ? " + Wayward (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();
         }
     }
-    public record Preset(DebugCompanyStage stage, int squads, int mechs, ShuttleType boat, int boats, boolean starterIssue) {
+    public record Preset(DebugCompanyStage stage, int squads, int mechs, ShuttleType boat, int boats, boolean starterIssue, boolean serviceRifles) {
         public String summary() {
             return squads + (squads == 1 ? " squad" : " squads") + " / " + squads * 12 + " marines / "
-                    + boats + " " + boat.displayName() + (mechs > 0 ? " / " + mechs + (starterIssue ? " chaingun Hound" : " mechs") : " / no deployed mechs");
+                    + boats + " " + boat.displayName() + (mechs > 0 ? " / " + mechs + (starterIssue ? " chaingun Hound" : " mechs") : " / no deployed mechs")
+                    + (serviceRifles ? " / service pulse rifles / starting Ward armor / no officer bonuses" : "");
         }
     }
     private DebugMissionCatalog() { }
@@ -136,7 +146,7 @@ public final class DebugMissionCatalog {
     public static Preset preset(Mission m) {
         Scenario story = scenario(m);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
-                story.hound ? 1 : 0, ShuttleType.AEROSHUTTLE, story.opening() ? 1 : 2, true);
+                story.hound ? 1 : 0, ShuttleType.AEROSHUTTLE, story.opening() ? 1 : 2, true, story == Scenario.WORKING_PASSAGE);
         DebugCompanyStage stage = switch (m.tier) {
             case FIRST_CONTRACT -> DebugCompanyStage.FIRST_CONTRACT;
             case ESTABLISHED -> DebugCompanyStage.ESTABLISHED;
@@ -146,7 +156,7 @@ public final class DebugMissionCatalog {
         };
         return new Preset(stage, MissionForceEnvelope.recommendedSquads(m), stage.mechs,
                 m.type == MissionType.CONQUEST ? ShuttleType.AEROSHUTTLE : ShuttleType.VALKYRIE,
-                m.type == MissionType.CONQUEST ? 6 : 2, false);
+                m.type == MissionType.CONQUEST ? 6 : 2, false, false);
     }
     public static List<Mission> missions(PlanetAPI planet) {
         List<Mission> result = new ArrayList<>();
@@ -163,6 +173,18 @@ public final class DebugMissionCatalog {
                     SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         return roster;
     }
+    /** Detached expected issue for one authored debug operation; campaign equipment is untouched. */
+    public static MarineRoster expectedCompany(Mission mission, int squads) {
+        MarineRoster roster = starterCompany(squads);
+        if (scenario(mission) != Scenario.WORKING_PASSAGE) return roster;
+        roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.primaryId(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE));
+        var issue = new SquadWeaponIssue("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE, null);
+        var doctrine = roster.armory().createWeaponDoctrine("Working Passage service rifles", Collections.nCopies(12, issue));
+        for (var squad : roster.squads()) if (!squad.reserve()
+                && roster.applySquadEquipment(squad.id(), doctrine.id(), SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR) != SquadEquipmentResult.APPLIED)
+            throw new IllegalStateException("Unable to issue Working Passage debug equipment");
+        return roster;
+    }
     static List<ShuttleAssignment> manifest(Mission m, List<FittedBoat> boats, int personnel) {
         List<ShuttleAssignment> result = new ArrayList<>();
         if (scenario(m).opening()) result.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6));
@@ -174,6 +196,7 @@ public final class DebugMissionCatalog {
         if (chapter != null) return chapter.fixture(seed, manifest, chapter.profile(chapter.surface)).build();
         TargetProfile profile = new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
         return switch (scenario) {
+            case WORKING_PASSAGE -> BattleSetup.createWorkingPassage(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
             case COLD_START -> BattleSetup.createColdStart(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD),false,false);
             case SALVAGE_RIGHTS -> BattleSetup.createSalvageRights(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
             case RELIEF, MILITIA_RELIEF -> BattleSetup.createOpeningOperation(seed, manifest, 1, OpeningOperationKind.RELIEF, profile, false);
