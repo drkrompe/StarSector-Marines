@@ -1,0 +1,21 @@
+{
+  "cellPx": 32,
+  "cells": [{
+    "col": 0,
+    "description": "Grounded Shepherd in a recovery cradle. Preserve the whole vanilla hull; not a live fleet ship or automatic construction source.",
+    "name": "doodad.shepherd-recovery-hull",
+    "row": 0
+  }],
+  "doodads": [{
+    "ballisticHalfHeight": 1.5,
+    "col": 0,
+    "cover": "heavy",
+    "footprintCells": [
+      20,
+      24
+    ],
+    "id": "doodad.shepherd-recovery-hull",
+    "row": 0
+  }],
+  "sheet": "graphics/tilesets/shepherd-recovery.png"
+}

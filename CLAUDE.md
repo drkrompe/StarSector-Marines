@@ -1097,6 +1097,7 @@ The discovered suite ids and default output directories are:
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
+| `shepherd-basin` | Three recovery-map visits at 1920×1080, outdoor daylight, enlarged grounded Shepherd, cargo/infantry access and clear construction plots across palettes and seeds; no battle or campaign simulation | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |

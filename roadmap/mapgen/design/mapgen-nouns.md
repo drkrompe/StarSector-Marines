@@ -1335,6 +1335,20 @@ ground.
 
 ## Boundaries
 
+The **Shepherd recovery basin** is a 304 by 176 authored industrial landscape
+shared across three visits. Its worn road, rear service loop, natural ridges,
+four west-facing freight berths and varied repair buildings stay in the same
+places. `ShepherdBasin` adds servicing equipment on Cold Start and leaves the
+static hull's cradle empty on Working Passage. Its hull is an inert catalog
+doodad with an explicit 24 by 20-cell solid grounded footprint, large enough to
+read as a crewed workshop ship. This authored ground scale is intentionally
+larger than the compressed overhead flight scale; the future battle host owns repair
+progress and any live tender. Named work destinations and suggested construction
+plots do not silently become capture objectives. The opt-in `shepherd-basin`
+evidence suite proves furnished access, connected outdoor ground, berth clearance,
+open work plots and cargo routes. It does not establish moving ship clearance or
+battle progression. `shepherd-recovery.md` owns those remaining consumers.
+
 Generation authors the initial world. The desktop emplacement editor stages and
 validates layout data, but does not decide runtime placement or become a second
 geometry authority. Map-editor or battle services may mutate
