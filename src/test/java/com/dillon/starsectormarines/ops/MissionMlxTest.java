@@ -95,6 +95,7 @@ class MissionMlxTest {
         try (MarkupInstance instance = loader.build(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
             BriefingScreen.requireRetainedElements(instance);
             BriefingViewModel.applyVisibility(instance, props);
+            assertNull(instance.requireElement("mission-preparation").parent());
             assertNull(instance.requireElement("mission-briefing-speaker").parent());
             assertNull(instance.requireElement("mission-narration-replay").parent());
             assertNull(instance.requireElement("mission-narration-stop").parent());
@@ -124,6 +125,8 @@ class MissionMlxTest {
             assertEquals("graphics/portraits/portrait_mercenary01.png",
                     instance.requireElement("captain-preview-icon").imageSource());
             assertEquals("mission-overview", speaker.parent().id());
+            assertNull(instance.requireElement("mission-preparation").parent(),
+                    "Inapplicable preparation buttons must not paint behind the speaker");
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard()).layout(1920, 1080);
