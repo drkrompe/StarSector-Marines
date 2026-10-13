@@ -3,7 +3,7 @@
 Status: PLANNED — first vertical selected; paired with command-power shield-zone consumption.
 Written: 2026-08-23
 
-Updated: 2026-08-24 — selected a Conquest-local planetary-shield relay and bounded its campaign signal, map placement, and neutralization authority.
+Updated: 2026-10-14 — the planetary-shield signal (`TargetProfile.planetaryShield`) is built, see `ground-defences.md`; map placement remains.
 
 Read `campaign-battle-bridge-nouns.md` before changing this story.
 

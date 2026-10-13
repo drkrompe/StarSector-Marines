@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 and 2 built (profile signals; multi-cell structures); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
@@ -101,11 +101,24 @@ capital that is not another ship.
 
 ## Slices
 
-1. **Profile signals**: ground defences, heavy batteries and planetary shield on the
-   target profile, read once from the market (shared with both command-power stories),
-   as inputs to mission design.
-2. **Multi-cell structures**: the turret catalog takes footprints larger than one cell
-   (today every structure is 1x1 by validation), with art for a battery and a generator.
+1. **Profile signals** (built): ground defences, heavy batteries and planetary shield on
+   the target profile, read once from the market (shared with both command-power
+   stories), as inputs to mission design. As built: three booleans on `TargetProfile`,
+   read in `TargetProfileResolver` (ground defences is true for Ground Defenses *or* its
+   Heavy Batteries upgrade, which keeps the network), carried through fixture JSON, and
+   restatable by a mission (`Mission.defences`, the DEBUG "Ground defences" dial on
+   Conquest). Nothing in map generation reads them yet. `DetachmentResolver.planetHasHeavyArmaments`
+   is left as it is: it also counts heavy industry, so it is not the same question.
+2. **Multi-cell structures** (built, art outstanding): the turret catalog takes odd
+   footprints larger than one cell, centred on the anchor cell. As built: `StructureDef`
+   validates odd positive `footprintCells`; `StructureFootprint` owns placement validity
+   and sealing; `BattleSimulation.spawn` seals a multi-cell structure's footprint and
+   `TurretDemolitionSystem` opens it as rubble on death; the body radius is the authored
+   `radius` circle; the ground pad is drawn at the full footprint. One-cell structures
+   are unchanged, and defence-post layouts still require one-cell turrets.
+   `structure.fortress-battery-placeholder` (3x3, heavy-mortar mount) is a stand-in for
+   slice 3. Battery and generator art is still to do: the mount sprite is drawn at its own
+   `visualCells`, not the footprint.
 3. **Fortress battery**: placement in the fortress ward, vanilla station-module guns,
    ground-to-air aim at a hull in the envelope, the envelope registered as a capital
    hazard, fire control and its capture rules, and the Orbital Barrage lock.
