@@ -56,7 +56,11 @@ Lighting changes presentation, not perception or navigation. Cold Start's comple
 shore-power connection brings the yard circuit online immediately; a later attempt
 retains that restored circuit. Working Passage departs by day.
 
-Cold Start follows the protected claim. The company escorts cooperative repair
+Cold Start follows the protected claim. The selected company begins assembled
+on the secured receiving apron, with its actual named personnel, issued equipment
+and squad leadership. There is no second insertion flight. This is the current
+mobilization's selected roster, not a saved copy of the previous battle's positions
+or a replacement for its casualties. The company escorts cooperative repair
 cargo to the workshop and covers living technicians at the pump and grounded hull.
 Delivered cargo and restored shore power are persistent field milestones; unfinished
 work needs another mobilization. Confirmed technician losses remain on the account,
@@ -753,10 +757,11 @@ equipment is part of this objective.
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
 same crew that covered the Junction. Two twin-launcher missile batteries on
-the northern hilltops cover its committed opening pass. Kestrel enters along the
-cross street, sweeps through the gap into both batteries' coverage, then arcs
-east to join a convoy-cover orbit if it survives. This authored route holds
-through damage; missile tracking and ordinary durability determine the result.
+the northern hilltops cover its committed opening pass. Kestrel enters from
+the east, flies a right-to-left pass across the cross street in front of the
+ridge, then makes a broad return over the convoy to join its cover orbit if
+it survives. This authored route holds through damage; missile tracking and
+ordinary durability determine the result.
 The pass call follows physical commitment, the launch warning an actual missile,
 and hit/loss/return lines their observed facts. Obsolete queued calls yield to
 the loss acknowledgment. Their rotating
@@ -998,6 +1003,16 @@ clean subtitles, synthesis text, sound IDs, voice/model settings and duration;
 source takes and generation receipts remain authoring assets. Generation is
 an explicit authoring command, never a build or gameplay network operation.
 Credentials stay in the author's local environment, outside shipped content.
+Unrecorded characters must receive an explicit voice assignment before synthesis;
+they cannot inherit the catalog host's voice. Text-only drafts remain readable
+and silent until recordings have been reviewed and packaged.
+
+Shepherd recovery uses Castle for company guidance and Tamsin Vale for the yard's
+repair and departure work. Vale's retained voice is `cZH6erlGkOyAQheipyno`;
+her working-yard authority is distinct from Mara's broker role. Recorded militia
+handover reports require a confirmed hold, and departure/transfer dialogue requires
+the corresponding physical mission fact. Text-only beats can coexist with recorded
+lines without borrowing another character's voice or promising an uncompleted task.
 
 ## Boundaries and acceptance
 

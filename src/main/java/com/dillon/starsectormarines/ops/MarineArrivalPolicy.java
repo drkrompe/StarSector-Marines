@@ -7,7 +7,9 @@ public enum MarineArrivalPolicy {
     /** Historical behavior: each craft lands independently with a full hold. */
     INDEPENDENT_FULL_LOAD,
     /** Two craft share an arrival area and each delivers half a 12-marine squad. */
-    PAIRED_HALF_SQUAD;
+    PAIRED_HALF_SQUAD,
+    /** Selected company already occupies the secured site; boats remain in reserve. */
+    SECURED_GROUND;
 
     public static MarineArrivalPolicy defaultFor(MissionType type) {
         return type == MissionType.CONQUEST

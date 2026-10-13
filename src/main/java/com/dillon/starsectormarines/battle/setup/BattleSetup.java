@@ -65,6 +65,8 @@ import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldWork;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.GroundMarineArrival;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
@@ -1452,10 +1454,10 @@ public final class BattleSetup {
         return sim;
     }
 
-    /** Repair mobilization at the recovered basin, with committed lift and one physical cargo carrier. */
+    /** Repair mobilization already ashore at the recovered basin, with optional reserve boats and one physical cargo carrier. */
     public static BattleSimulation createColdStart(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean cargoDelivered, boolean shorePower) {
-        if(manifest==null || manifest.isEmpty() || manifest.size()>4)
-            throw new IllegalArgumentException("Cold Start requires one to four company boats");
+        if(manifest==null || manifest.size()>4)
+            throw new IllegalArgumentException("Cold Start supports up to four company boats");
         MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.COLD_START);
         if (shorePower && map.topology.nightLighting() != null)
             map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
@@ -1463,6 +1465,8 @@ public final class BattleSetup {
         sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
+        sim.setGroundMarineArrival(new GroundMarineArrival(18, 68,
+                SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE), "Company holds the secured receiving apron")));
         Random rng=new Random(seed);
         var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
         stampLzPads(sim,pads);
@@ -1473,12 +1477,14 @@ public final class BattleSetup {
             long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
                     entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
             var mission=sim.world().mission(air);
-            mission.totalCycles=assignment.cycles;mission.manifestOrdinal=i;
-            mission.commandClaim=SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company recovery lift");
-            mission.cycleLoadouts=new MarineLoadout[assignment.cycles][];
-            for(int cycle=0;cycle<assignment.cycles;cycle++)
-                mission.cycleLoadouts[cycle]=InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle),rng);
-            mission.marineLoadout=mission.cycleLoadouts[0];
+            mission.manifestOrdinal=i;
+            // Committed fitted boats remain in reserve;
+            // the company is already on site and carries no inbound recipe.
+            mission.totalCycles=1;
+            mission.marinesRemaining=0;
+            mission.marineLoadout=new MarineLoadout[0];
+            mission.cycleLoadouts=new MarineLoadout[][]{mission.marineLoadout};
+            mission.state=ShuttleState.GONE;
         }
         // The earlier workshop gain persists. Scrappers now occupy the pump work site.
         var pump=openingDefenseNode(171,117,Faction.DEFENDER,map.grid);

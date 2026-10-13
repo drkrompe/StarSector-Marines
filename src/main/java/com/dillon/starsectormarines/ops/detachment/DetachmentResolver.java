@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
@@ -109,7 +110,8 @@ public final class DetachmentResolver {
 
     /** Player boats can cycle; employer support must cover every drop if flying alone. */
     public static boolean hasRequiredTransport(Mission mission, List<FittedBoat> boats) {
-        if (mission.source == MissionSource.STATIONING) return true;
+        if (mission.source == MissionSource.STATIONING
+                || mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND) return true;
         if (boats != null && !boats.isEmpty()) return true;
         if (mission.source.isDebug() || MissionForceEnvelope.allowsUnderstrength(mission)) return false;
         return mission.employerShuttles > 0 && mission.employerShuttles >= mission.requiredDrops;
