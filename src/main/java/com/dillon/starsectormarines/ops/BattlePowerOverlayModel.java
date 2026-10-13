@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -68,12 +69,18 @@ final class BattlePowerOverlayModel {
     }
 
     Presentation update(CommandPowerService service, String targetingPowerId) {
+        return update(service, targetingPowerId, false);
+    }
+
+    /** As above, with whether Orbital Barrage is held back by a hostile fortress battery. */
+    Presentation update(CommandPowerService service, String targetingPowerId, boolean barrageLocked) {
         if (service == null) return updateProjected(0f, 0f, 0, List.of(), null);
         List<PowerState> states = new ArrayList<>();
         for (CommandPower power : service.getAvailablePowers()) {
             int charges = service.getChargesRemaining(power.id);
             states.add(new PowerState(power.id, power.cardLabel(charges), power.cpCost,
-                    power.supplyCost, service.getCooldownRemaining(power.id), charges));
+                    power.supplyCost, service.getCooldownRemaining(power.id), charges,
+                    barrageLocked && OrbitalBarrage.ID.equals(power.id)));
         }
         return updateProjected(service.getCommandPoints(), service.getMaxCommandPoints(),
                 service.getAvailableSupplies(), states, targetingPowerId);
@@ -93,6 +100,7 @@ final class BattlePowerOverlayModel {
         for (PowerState power : stable) {
             boolean armed = power.id().equals(targetingPowerId);
             boolean ready = power.cooldownSeconds() <= 0f
+                    && !power.locked()
                     && power.charges() != 0
                     && cp >= power.cpCost()
                     && availableSupplies >= power.supplyCost();
@@ -100,6 +108,8 @@ final class BattlePowerOverlayModel {
             if (armed) {
                 status = "TARGET";
                 armedName = power.name();
+            } else if (power.locked()) {
+                status = "LOCKED";
             } else if (power.cooldownSeconds() > 0f) {
                 status = (int) Math.ceil(power.cooldownSeconds()) + "S";
             } else if (power.charges() == 0) {
@@ -153,8 +163,13 @@ final class BattlePowerOverlayModel {
 
     record Presentation(boolean visible, int powerCount, boolean targeting) {}
 
+    /** @param locked whether something on the ground is withholding the power (a fortress battery's fire control) */
     record PowerState(String id, String name, float cpCost, int supplyCost,
-                      float cooldownSeconds, int charges) {}
+                      float cooldownSeconds, int charges, boolean locked) {
+        PowerState(String id, String name, float cpCost, int supplyCost, float cooldownSeconds, int charges) {
+            this(id, name, cpCost, supplyCost, cooldownSeconds, charges, false);
+        }
+    }
 
     record PowerCard(String id, String nameId, String metaId,
                      String costId, String statusId,
