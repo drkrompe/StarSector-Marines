@@ -58,7 +58,7 @@ entries, sound registrations, chapter routing and public-hook coverage.
 File validation and headless tests do not replace listening in the battle mix.
 
 Thunder Run's seven `wayline_thunder_run_gunship_*` clips use the existing
-Kestrel/Liam voice (`TX3LPaxmHKxFdv7VOQHJ`) and Castle command voice
+Talon Two/Liam voice (`TX3LPaxmHKxFdv7VOQHJ`) and Castle command voice
 (`cuwCdnt9CKAB9XrTA1j0`) with Eleven v4. Clean source takes and generation
 receipts are retained here; the audio manifest applies the separate COMMS
 recipe. Arrival, committed pass, actual missile launch, damage, loss, station
@@ -66,3 +66,9 @@ and return each have their own trigger. A loss supersedes obsolete pending
 calls; the launch warning and survivor lines never imply a guaranteed crash.
 These takes have technical encoding checks; delivery and battle-mix audition
 remain part of the live play review.
+
+Talon Two is the Wayline aviation callsign, distinct from infantry radio actor
+Kestrel Two. The two roles currently share the Liam voice but use separate
+recording banks and delivery direction. Stable gunship sound and event IDs do
+not encode the callsign. Mission briefings and other speakers' references use
+the same aviation name.

@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.List;
 
-/** Authored flight through the ridge batteries' coverage; missiles alone decide whether Kestrel survives. */
+/** Authored flight through the ridge batteries' coverage; missiles alone decide whether Talon Two survives. */
 public final class ThunderRunAirPass {
     private final StoryBeatLog log;
     private final long aircraft;
