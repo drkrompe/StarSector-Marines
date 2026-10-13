@@ -92,7 +92,6 @@ public final class BattleCommsPanel implements HudPanel {
             CounterattackSystem counterattack = counterattack();
             if (hasActiveSignpost(counterattack)) renderSignpost(counterattack, alphaMult);
             renderRecoveryBerth(alphaMult);
-            renderDepotObjective(alphaMult);
 
             BattleCommsFeed.Notice notice = feed.activeNotice();
             if (notice != null) renderNotice(notice, alphaMult);
@@ -131,21 +130,6 @@ public final class BattleCommsPanel implements HudPanel {
         renderObjective(camera, recovery.x(), recovery.y(), "WAYWARD / RECOVER HOUND",
                 recovery.startupFraction() > 0 ? "STARTUP " + (int) (recovery.startupFraction() * 100) + "%"
                         : "INFANTRY NEAR BERTH / HOLD 5s", WARNING, alpha);
-    }
-
-    private boolean hasDepotObjective() {
-        return ctx.getSim() != null && !ctx.getSim().isComplete() && ctx.getSim().getDepotHold() != null;
-    }
-
-    private void renderDepotObjective(float alpha) {
-        if (!hasDepotObjective() || ctx.getCamera() == null) return;
-        var hold = ctx.getSim().getDepotHold();
-        var progress = hold.progress();
-        String status = !progress.committed() ? "COMPANY INSIDE / " + (int) (progress.captureFraction() * 100) + "%"
-                : progress.waves() < 2 ? "WAVE " + (progress.waves() + 1) + " / " + (int) Math.ceil(progress.nextWaveSeconds()) + "s TO ROAD ENTRY"
-                : "FINAL ATTACK / CLEAR RAIDERS + HOLD DISPATCH";
-        renderObjective(ctx.getCamera(), hold.x() + .5f, hold.y() + .5f,
-                progress.committed() ? "DEFEND DISPATCH" : "CAPTURE DISPATCH", status, GOOD_NEWS, alpha);
     }
 
     /** Persistent beacon, including an edge pointer when the objective is off camera. */
@@ -278,6 +262,6 @@ public final class BattleCommsPanel implements HudPanel {
     public boolean isVisible() {
         var sim = ctx.getSim();
         boolean recovery = sim != null && sim.getWaylineHound() != null && sim.getWaylineHound().objectiveVisible(sim);
-        return ctx.getLayout() != null && (recovery || hasDepotObjective() || feed.activeNotice() != null || hasActiveSignpost(counterattack()));
+        return ctx.getLayout() != null && (recovery || feed.activeNotice() != null || hasActiveSignpost(counterattack()));
     }
 }
