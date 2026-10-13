@@ -84,6 +84,14 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
      */
     static final float SQUAD_FLANK_RADIUS = 14f;
 
+    /**
+     * Ticks a squad may spend maneuvering against one contact before it gives the maneuver up and carries out its
+     * order. A flank is a means of getting at the contact, so it ends with the contact; a contact that does not die
+     * (a fort's wall nest nobody here can reach) used to hold a maneuvering squad on its flank cell for ever, short
+     * of its own order by two hundred cells. UNTUNED first-pass figure: a minute of ship's time at 30 ticks a second.
+     */
+    static final int MANEUVER_LIMIT_TICKS = 1800;
+
     private final int destX;
     private final int destY;
 
@@ -217,6 +225,9 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         if (!assault.isManeuvering()) return new int[]{destX, destY};
         long contact = sim.resolveUnit(assault.sharedContactId());
         if (contact == 0L) return new int[]{destX, destY};
+        if (squad.flankAim.maneuverSpent(contact, sim.getSimTickIndex(), MANEUVER_LIMIT_TICKS)) {
+            return new int[]{destX, destY};
+        }
 
         float contactX = sim.world().x(contact);
         float contactY = sim.world().y(contact);

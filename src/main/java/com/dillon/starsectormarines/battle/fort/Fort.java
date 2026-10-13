@@ -152,6 +152,7 @@ public final class Fort {
     private final List<Long> nests = new ArrayList<>();
     private FortressBattery battery;
     private FortFrame frame;
+    private int[] exteriorCells;
     private int originX, originY, quarterTurns = FortTag.UNPLACED;
     private float readyRounds = READY_ROUNDS;
     private boolean magazineBlown;
@@ -165,6 +166,7 @@ public final class Fort {
     void become(FortKind kind) {
         this.kind = kind;
         this.frame = null;
+        this.exteriorCells = null;
     }
 
     public int id() {
@@ -192,6 +194,18 @@ public final class Fort {
             this.originY = originY;
             this.quarterTurns = quarterTurns;
         }
+    }
+
+    /**
+     * The works of this fort that can be seen from outside, as packed {@code x, y} world cells (see
+     * {@link FortFrame#exteriorCells}); empty for a fort with no placement. Worked out once.
+     */
+    public int[] exteriorCells() {
+        if (exteriorCells != null) return exteriorCells;
+        FortFrame placed = frame();
+        if (placed == null) return new int[0];
+        exteriorCells = placed.exteriorCells();
+        return exteriorCells;
     }
 
     /** Where the fort's local frame stands on the map, or null when the fort was assembled without a placement. */
