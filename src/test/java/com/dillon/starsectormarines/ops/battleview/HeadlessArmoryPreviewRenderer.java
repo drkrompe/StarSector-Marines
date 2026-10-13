@@ -200,7 +200,8 @@ public final class HeadlessArmoryPreviewRenderer {
             String armorRoot = MODULAR_ROOT + "armor/" + familyDirectory(family) + "/";
             LayeredUnitAssets loaded = new LayeredUnitAssets(
                     sprite(armorRoot + "body.png"), sprite(armorRoot + "head.png"),
-                    sprite(FOOT), null,
+                    sprite(family == LayeredArmorFamily.SPECTER_HEAVY
+                            ? armorRoot + "foot.png" : FOOT), null,
                     sprite(MODULAR_ROOT + "weapons/rifle.png"),
                     sprite(MODULAR_ROOT + "weapons/laser-gun.png"),
                     sprite(MODULAR_ROOT + "weapons/smg.png"),

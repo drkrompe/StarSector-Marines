@@ -138,7 +138,7 @@ public final class MissionSelectScreen implements Screen {
             props.put("brokerName",ShepherdRecoveryCampaign.NAME);
             props.put("brokerRole","BASIN RECLAMATION COOPERATIVE / INDEPENDENT");
             props.put("brokerIntroduction","Mara made the introduction. This contract is with our cooperative: recover Morrow and reopen our corridor. The repaired ship is payment in kind after all three operations; the fixed yard remains ours.");
-            props.put("brokerProgress",progress!=null && progress.claimSecured()?"CLAIM SECURED / REPAIRS NEXT":"SALVAGE RIGHTS / NIGHT RECOVERY");
+            props.put("brokerProgress",progress!=null && progress.repaired()?"REPAIRED / WORKING PASSAGE NOT YET AVAILABLE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
     }
 
     static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {

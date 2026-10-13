@@ -27,9 +27,15 @@ final class BattleLessonOverlay {
 
     BattleLessonOverlay(MarineRoster roster) {
         this.roster = roster;
-        document = new UiDocument(new UiElement("field-lesson").child(tray)).theme(MarineOpsThemes.standard());
+        document = document(tray);
         guide = PreparationGuide.install(document, this::lesson, () -> {});
         guide.combatInput();
+    }
+
+    static UiDocument document(UiElement tray) {
+        // This full-screen host sits above the battle: only the guide may paint a backdrop.
+        return new UiDocument(new UiElement("field-lesson")
+                .style("background-color: transparent;").child(tray)).theme(MarineOpsThemes.standard());
     }
 
     void attach(PositionAPI position) {
