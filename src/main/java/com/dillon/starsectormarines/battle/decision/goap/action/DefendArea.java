@@ -72,7 +72,7 @@ public final class DefendArea implements Action {
             target = sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
-        if (target != 0L) return engageInsideArea(member, target, sim);
+        if (target != 0L) return engageInsideArea(member, target, squad, sim);
 
         SquadContactPicture picture = squad.contactPicture;
         int[] destination = picture.hasContacts()
@@ -84,7 +84,7 @@ public final class DefendArea implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private ActionStatus engageInsideArea(long member, long target,
+    private ActionStatus engageInsideArea(long member, long target, Squad squad,
                                           BattleControl sim) {
         int[] firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
                 member, target, centerX, centerY, radius);
@@ -100,7 +100,7 @@ public final class DefendArea implements Action {
         }
         if (firingPosition == null) {
             int[] prepared = preparedPosition(member,
-                    sim.world().cellX(target), sim.world().cellY(target), null, sim);
+                    sim.world().cellX(target), sim.world().cellY(target), squad, sim);
             moveToward(member, prepared[0], prepared[1], sim);
             return ActionStatus.RUNNING;
         }

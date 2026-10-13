@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.warship.ShipClass.Role;
+import com.dillon.starsectormarines.battle.warship.ShipClass.Shield;
 
 /**
  * How much each kind of air threat counts for a {@link ShipClass}: a small
@@ -15,6 +16,9 @@ import com.dillon.starsectormarines.battle.warship.ShipClass.Role;
  *   <li>A carrier's weight on hostile fighters is high (twice), whatever its
  *       size: its wing is the reason it is there. A support ship counts them
  *       1.5 times.</li>
+ *   <li>Shield type scales the armed-craft weight again: none is the identity, a front (or phase) shield
+ *       0.85, an omni shield 0.7. Armed craft can now hurt a hull, and a shield is what stands between
+ *       them and it.</li>
  *   <li>Hostile ships and declared threats count the same for every class.
  *       There is no ground-clutter term in the score, so a carrier's near-zero
  *       weight on ground is already true of every class.</li>
@@ -34,6 +38,12 @@ public final class AirThreatWeights {
 
     /** The row for a class. */
     public static Row of(ShipClass shipClass) {
+        Row base = bySizeAndRole(shipClass);
+        float shield = shieldFactor(shipClass.shield());
+        return shield == 1f ? base : new Row(base.declared(), base.hostileShip(), base.armedCraft() * shield);
+    }
+
+    private static Row bySizeAndRole(ShipClass shipClass) {
         if (shipClass.role() == Role.CARRIER) return new Row(1f, 1f, 2f);
         if (shipClass.role() == Role.SUPPORT) return new Row(1f, 1f, 1.5f);
         return switch (shipClass.size()) {
@@ -43,6 +53,26 @@ public final class AirThreatWeights {
             case CAPITAL -> IDENTITY;
         };
     }
+
+    /**
+     * How much a shield type scales the weight of armed craft (owner decision: no shield fears aircraft more
+     * than a front shield, a front shield more than an omni). A hull with no shield is the identity, the row the
+     * base weights were tuned on. A front shield leaves the flanks open, so it takes off less than an omni. A
+     * phase hull is judged as a front shield: its cloak shrugs off a strike while it holds, but the cloak is a
+     * flux and a fire-power sacrifice and not a standing screen.
+     */
+    static float shieldFactor(Shield shield) {
+        return switch (shield) {
+            case NONE -> 1f;
+            case FRONT, PHASE -> FRONT_SHIELD;
+            case OMNI -> OMNI_SHIELD;
+        };
+    }
+
+    /** Multiplier on armed-craft weight for a front (and phase) shield. */
+    static final float FRONT_SHIELD = 0.85f;
+    /** Multiplier on armed-craft weight for an omni shield. */
+    static final float OMNI_SHIELD = 0.7f;
 
     /**
      * The weighted threat score: declared strength, plus hostile ships, plus

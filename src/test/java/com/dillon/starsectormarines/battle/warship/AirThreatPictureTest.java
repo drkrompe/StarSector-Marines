@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.warship;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -80,6 +81,25 @@ class AirThreatPictureTest {
         assertEquals(hostileX, sim.world().kinematics(hostile).x);
         assertEquals(1, picture.drops().size(), "only the hostile one is a drop");
         assertTrue(picture.ownAir() >= 1, "the ship's own craft is cover to protect: " + Arrays.toString(before) + " own=" + own);
+    }
+
+    @Test
+    void aStrikeCraftCountsOnlyWhereItsOrdnanceCanHurtTheHull() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        SceneWorld w = world();
+        BattleSimulation sim = w.sim();
+        Warship onslaught = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE, 20f, 30f, 0f);
+        Warship hound = Warship.fit("hound", "hound_Assault", Faction.MARINE, 20f, 10f, 0f);
+        for (FighterProfile craft : new FighterProfile[] {FighterProfile.THUNDER, FighterProfile.DAGGER}) {
+            long id = sim.spawnSortie(craft, Faction.DEFENDER, 20f, 30f, 110f, 30f, 110f, 30f, 0f);
+            sim.world().mission(id).strikeSortie = true;
+        }
+        for (int i = 0; i < 80; i++) sim.advance(BattleSimulation.TICK_DT);
+
+        List<Warship> both = List.of(onslaught, hound);
+        assertEquals(1, AirThreatPicture.take(sim, onslaught, both).armedCraft(), "beams glance off 1750 armour, bombs do not");
+        assertEquals(2, AirThreatPicture.take(sim, hound, both).armedCraft(), "400 armour is hurt by both");
     }
 
     @Test
