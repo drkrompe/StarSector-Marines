@@ -328,6 +328,7 @@ public class BattleRenderer {
                         })),
                 new ShuttleRenderSystem(sprites),
                 new ShipLightingRenderSystem(),
+                new NightLightingRenderSystem(),
                 new WarshipRenderSystem(sprites),
                 new LanceSweepRenderSystem(),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its

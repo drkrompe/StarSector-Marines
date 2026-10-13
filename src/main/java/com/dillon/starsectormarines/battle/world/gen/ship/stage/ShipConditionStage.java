@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
+import com.dillon.starsectormarines.battle.world.gen.fit.VehicleBayFitting;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipRestoration;
@@ -71,6 +73,19 @@ public final class ShipConditionStage implements GenStage {
         }
         // Removing a machine berth must rebind boat crew task indices as well.
         var original = List.copyOf(ctx.gantries);
+        var offline = new ArrayList<Gantry>();
+        int machine = 0;
+        for (var gantry : original) {
+            if (gantry.holds != Gantry.Holds.MACHINE) continue;
+            if (machine++ < state.workingMechBerths()) continue;
+            offline.add(gantry);
+            var room = graph.compartments().stream().filter(r -> r.contains(gantry.centerX, gantry.centerY))
+                    .findFirst().orElseThrow();
+            if (closed.contains(room)) continue;
+            wreckBerth(ctx, room, gantry);
+        }
+        ctx.put(ShipKeys.OFFLINE_MACHINE_BERTHS, List.copyOf(offline));
+        ctx.gantries.removeAll(offline);
         ctx.gantries.removeIf(g -> closed.stream().anyMatch(room -> room.contains(g.centerX, g.centerY)));
         var tasks = new ArrayList<FixtureTask>();
         for (var task : ctx.fixtureTasks) {
@@ -82,10 +97,39 @@ public final class ShipConditionStage implements GenStage {
         ctx.fixtureTasks.clear(); ctx.fixtureTasks.addAll(tasks);
         ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(graph.compartments(), graph.unplaced(), graph.apertures(), graph.boats(), damaged, faults));
     }
+
+    /** Damage stays within this berth's five-by-seven servicing module, clear of the shared aisle. */
+    private static void wreckBerth(GenContext ctx, DeckGraph.Compartment room, Gantry gantry) {
+        RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
+        int[] near = floor.toCanonical(gantry.left() - room.left(), gantry.bottom() - room.top());
+        int[] far = floor.toCanonical(gantry.right() - room.left(), gantry.top() - room.top());
+        int x = Math.min(near[0], far[0]) - 1;
+        int y = Math.min(near[1], far[1]);
+        if (y < floor.canonicalHeight() / 2) y--; // Include the outboard head station.
+        int band = y;
+        ctx.doodads.removeIf(d -> inModule(floor, room, d.cellX, d.cellY, x, band));
+        ctx.fixtureTasks.removeIf(t -> inModule(floor, room, t.cellX(), t.cellY(), x, band)
+                || inModule(floor, room, t.fixtureX(), t.fixtureY(), x, band));
+        WorkshopConditionStage.overlay(ctx, room, floor, x, y, "scorch", true, false);
+        WorkshopConditionStage.overlay(ctx, room, floor, x, y, "mill", false, false);
+        WorkshopConditionStage.overlay(ctx, room, floor, x, y + 3, "collapse", false, false);
+    }
+
+    private static boolean inModule(RoomFloor floor, DeckGraph.Compartment room,
+                                    int worldX, int worldY, int x, int y) {
+        int[] cell = floor.toCanonical(worldX - room.left(), worldY - room.top());
+        return cell[0] >= x && cell[0] < x + VehicleBayFitting.BAY_WIDTH
+                && cell[1] >= y && cell[1] < y + VehicleBayFitting.BAY_DEPTH;
+    }
+
     public static void restrictAccess(GenContext ctx, ShipRestoration state) {
         var graph = ctx.get(ShipKeys.DECK_GRAPH);
         for (var room : graph.compartments()) if (sealed(graph, room, state))
             for (int y = room.top(); y <= room.bottom(); y++) for (int x = room.left(); x <= room.right(); x++)
                 if (room.contains(x, y)) ctx.grid.setWalkable(x, y, false);
+        var offline = ctx.get(ShipKeys.OFFLINE_MACHINE_BERTHS);
+        if (offline != null) for (var berth : offline)
+            for (int y = berth.bottom(); y <= berth.top(); y++)
+                for (int x = berth.left(); x <= berth.right(); x++) ctx.grid.setWalkable(x, y, false);
     }
 }

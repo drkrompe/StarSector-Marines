@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — sealed mess hall and Engineering survey alongside reserved facilities and distribution faults.
+Updated: 2026-10-12 — Second Wind reserves four mech berths within its existing hull envelope; individual repairs restore capacity.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1496,6 +1496,14 @@ company eligibility. It remains a frigate and combat freighter: +18 maximum crew
 working Hermes berth complete its founding-company facilities. Extra beds do not
 add working boat berths, and installing the hullmod creates no company assets.
 
+The original Second Wind hull reserves a larger 24-by-16 Mech Lab at conversion:
+two facing pairs of full-depth gantries, the shared service lane and the existing
+parts-shop end. It fits inside the same hull envelope as the single-gantry program;
+other converted hulls retain their compact bay. The larger room is present before
+any repair. Its compartment, doors, machinery positions and neighboring rooms
+remain fixed as individual berths return to service. The refit can reorganize the
+old single-berth layout once; paying for restoration never repacks the deck.
+
 The custom start's original Cerberus reserves two bay compartments even before
 conversion. The second is damaged: its hatch and launch aperture are sealed,
 its deck carries debris, and it offers no working berth or crew duties. Its
@@ -1552,8 +1560,13 @@ when it is sealed. Presence on the plan is distinct from usable room navigation
 and berth capacity. Removing a gantry rebinds all surviving work-station berth
 references, so the first shuttle keeps its own servicing crew.
 
-Campaign owns the milestones: mission two restores the Mech Lab with the first
-Hound's recovery, while the mess, spare billets and distribution repairs are explicit yard
+Campaign owns the milestones: mission two makes the Mech Lab accessible and
+restores its first berth with the first Hound's recovery. Three further yard
+repairs restore one additional berth apiece. Wrecked berths retain visible broken
+equipment and collapse, supply no machine capacity or crew work, and keep their
+machine pads closed while the shared aisle remains accessible. The working berth
+order is stable, so repairing another gantry never moves an existing machine.
+The mess, spare billets and distribution repairs are explicit yard
 orders after mission one. The room program, placement RNG and compartment
 footprints never change because those repairs were completed.
 

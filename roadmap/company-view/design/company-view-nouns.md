@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- Required preparation recaptures alternate entrances and explains how to resume reserved depot orders after leaving.
+Updated: 2026-10-12 -- Second Wind's lance bay restores its first berth with Wayward and three further berths through separate yard orders.
 
 ## Purpose
 
@@ -1327,11 +1327,26 @@ rooms are distinct from accessible damaged rooms and usable rooms on faulty
 power. Workshop stages retain their own reviewed orders; the second boat bay can
 also be repaired here through its existing yard authority.
 
-The original hull reserves its Mech Lab as a sealed wreck until **Take Back the
-Depot**, the second story mission. Completion supplies restoration of the single
-mech gantry with Wayward's recovery, so the first-mech fitting lesson opens into
-a working bay without another bill. The completed chapter is the durable repair
-fact, including on older saves. Ordinary ships are unaffected.
+The original hull reserves a four-berth Mech Lab as a sealed wreck until **Take
+Back the Depot**, the second story mission. Completion opens the room and restores
+berth one with Wayward's recovery, so the first-mech fitting lesson opens into a
+working bay without another bill. The completed chapter is the durable first-berth
+repair fact, including on older saves.
+
+Engineering offers three separate 5,000-credit yard repairs in berth order. Each
+includes labor and materials, restores one gantry and increases usable capacity
+from one through four; it awards no chassis or components. Every berth requires its
+own review and authorization at an accessible planetary spaceport, with the active,
+converted original hull as the owned company home. Payment rechecks recovery,
+preceding repairs, funds and ownership; stale or repeated orders spend nothing.
+The hull retains these paid receipts through saves and company transfers. Older
+saves with the depot completed begin with berth one restored and the other three
+damaged; their owned mechs are never removed. Ordinary hulls retain their facilities.
+
+The room survey shows working berths out of four and the next repair's benefit and
+bill. Mech Lab reads working physical gantries, so a damaged pad cannot be selected
+for fabrication. The workshop checks this capacity again before spending materials.
+Each completed repair refreshes the shared deck, room view and capacity together.
 
 The original hull's mess hall starts sealed. Field rations in working quarters
 keep the first mission available. A 2,500-credit yard order after Relief restores

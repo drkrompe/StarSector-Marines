@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — Required preparation recaptures alternate UI entrances and guides interrupted depot orders back to their saved port; live acceptance remains.
+Updated: 2026-10-12 — Second Wind reserves four mech berths within its existing hull; Hound recovery restores the first and separate paid repairs restore the remaining three. Live acceptance remains.
 
 ## Outcome
 
@@ -24,6 +24,8 @@ API own start selection. Existing starts and saves remain unchanged.
 
 The conversion trades 25 cargo capacity for 18 additional personnel places,
 expanded barracks, company command eligibility and a compact single-gantry Mech Lab.
+The original Second Wind hull instead reserves four berths; `ship-condition-survey.md`
+owns its first-berth recovery and three paid repairs.
 The Cerberus begins with one working Hermes berth and a reserved damaged second bay;
 `cerberus-bay-restoration.md` owns its later paid repair. Extra beds do not mint boats.
 It remains a frigate and combat freighter. Installation is a reviewed planetary
@@ -106,7 +108,9 @@ quarters.
 
 `cerberus-start` renders an unconverted control and five converted campaign seeds
 using the installed collision polygon, requiring every programmed room, sufficient
-squad berthing, exactly one machine gantry and exactly one boat berth. Focused tests
+squad berthing, four machine gantries when fully restored, and one or two working
+boat berths according to condition. `second-wind-lance` checks the original hull's
+zero-through-four working machine berths and fixed layout across repairs. Focused tests
 cover the real preparation orders, depot serialization and exhaustion, partial
 cargo draws, failed bills, port-only availability, one-time installation/depot issue,
 and stale Mech Lab fabrication after a capacity change.
