@@ -63,6 +63,7 @@ public final class GunshipCrashScene implements BehaviorScene {
             var craftBody = sim.world().kinematics(craft);
             float[] start = new float[3], contact = new float[2];
             boolean[] touched = {false};
+            int[] impactBursts = {0};
             int[] firstFall = {-1}, fallTicks = {0}, settledTick = {-1}, shots = {0};
             boolean[] killed = {false};
             float[] hpBefore = {0f, 0f}, hpAfter = {0f, 0f};
@@ -86,6 +87,7 @@ public final class GunshipCrashScene implements BehaviorScene {
                     killed[0] = true;
                 }
                 for (var shot : s.getShotsThisFrame()) if (guns.contains(shot.shooterId)) shots[0]++;
+                if (momentum) impactBursts[0] += s.getHeavyImpactsThisFrame().size();
                 if (mission.state == ShuttleState.CRASHING) {
                     if (firstFall[0] < 0) {
                         firstFall[0] = tick;
@@ -127,6 +129,8 @@ public final class GunshipCrashScene implements BehaviorScene {
                             "initial speed=" + start[2] + ", fall travel=" + airTravel));
                     verdicts.add(Verdict.of("skids-to-rest", skid > .5f && craftBody.speed() == 0f,
                             "ground travel=" + skid + ", final speed=" + craftBody.speed()));
+                    verdicts.add(Verdict.of("impact-spreads-fireballs", impactBursts[0] == 15,
+                            "primary impact and spreading fireballs=" + impactBursts[0]));
                 }
                 else verdicts.add(Verdict.of("real-flak-shootdown", shots[0] > 0 && mission.destroyed,
                         "visible flak shots=" + shots[0] + ", destroyed=" + mission.destroyed));

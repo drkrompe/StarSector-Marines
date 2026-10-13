@@ -11,6 +11,47 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EffectsServiceTest {
 
+    @Test void crashFireFansOutAlongTravelOverTimeAndFinishes() {
+        var effects = new EffectsService(new Random(17));
+        effects.spawnCrashBlastFan(10f, 20f, 0f, 12f, 3f);
+        effects.tickPlumes(.05f);
+        assertTrue(effects.getHeavyImpactsThisFrame().isEmpty());
+        effects.tickPlumes(.05f);
+        var first = effects.getHeavyImpactsThisFrame();
+        assertEquals(2, first.size());
+        assertEquals(20f, first.get(0)[0] + first.get(1)[0], .001f);
+        assertEquals(first.get(0)[1], first.get(1)[1], .001f);
+        float firstReach = first.get(0)[1] - 20f;
+        float firstWidth = Math.abs(first.get(0)[0] - 10f);
+        assertTrue(firstReach > 0f);
+        int bursts = first.size();
+        float finalReach = firstReach, finalWidth = firstWidth;
+        for (int step = 0; step < 12; step++) {
+            effects.beginFrame();
+            effects.tickPlumes(.1f);
+            for (float[] burst : effects.getHeavyImpactsThisFrame()) {
+                bursts++;
+                assertTrue(burst[1] - 20f > firstReach);
+                finalReach = Math.max(finalReach, burst[1] - 20f);
+                finalWidth = Math.max(finalWidth, Math.abs(burst[0] - 10f));
+            }
+        }
+        assertEquals(14, bursts);
+        assertTrue(finalReach > firstReach * 6f);
+        assertTrue(finalWidth > firstWidth * 6f);
+        effects.beginFrame();
+        effects.tickPlumes(10f);
+        assertTrue(effects.getHeavyImpactsThisFrame().isEmpty());
+        assertTrue(effects.getFireBurstsThisFrame().isEmpty());
+    }
+
+    @Test void aVerticalCrashDoesNotInventADirectionalFuelFan() {
+        var effects = new EffectsService(new Random(17));
+        effects.spawnCrashBlastFan(10f, 20f, 0f, 0f, 3f);
+        effects.tickPlumes(1f);
+        assertTrue(effects.getHeavyImpactsThisFrame().isEmpty());
+    }
+
     @Test void vehicleCookOffIsOnceQueuedAndLeavesLongerFiniteSmoke() {
         var effects = new EffectsService(new Random(17));
         effects.spawnVehicleWreck(4.5f, 6.5f, 4.8f, 1.65f);
