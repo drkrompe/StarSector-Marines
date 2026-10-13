@@ -1525,6 +1525,12 @@ public final class Warship {
         stationTo(sx, sy);
     }
 
+    /** The station the mission gave, as {@code {x, y}}: the remembered one while a standoff has moved the ship, else the current one. */
+    float[] missionStation() {
+        if (standoffApplied) return originalHadStation ? new float[]{originalStationX, originalStationY} : new float[]{x, y};
+        return hasStation ? new float[]{stationX, stationY} : new float[]{x, y};
+    }
+
     /** Goes back to the station the mission gave once the standoff posture is over. */
     void endStandoff() {
         if (!standoffApplied) return;

@@ -198,7 +198,7 @@ public final class FleetArmoryScreen implements Screen {
         document = built;
         if (view == View.FIRST_REFIT) CompanyNotices.Notice.FIRST_REFIT.review(roster);
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
-                CompanyPreparationGuide.armory(roster, context), () -> leaveGallery(dismissDialog)), this::cancelGallery);
+                companyLesson(), () -> leaveGallery(dismissDialog)), this::cancelGallery);
         markupInstance = candidate;
         specSheets = candidateSheets;
         boundSquadCards = view == View.SQUADS ? viewModel.squadCards().get() : null;
@@ -404,6 +404,18 @@ public final class FleetArmoryScreen implements Screen {
             }
             binder.bindLive(markup.requireElement(prefix + "1:system"), () -> model.sheet(proposed, 3));
         }
+    }
+
+    private PreparationGuide.Lesson companyLesson() {
+        var founding = CompanyPreparationGuide.armory(roster, context);
+        if (founding != null) return founding;
+        if (view == View.FIRST_REFIT && firstRefit.guide() != null) return firstRefit.guide();
+        if (CampaignLessons.next(roster) == CampaignLessons.Step.REFIT)
+            return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("found-squad"),
+                    "lessonEquipment", this::showFirstRefit);
+        if (view == View.SQUADS && CampaignLessons.next(roster) == CampaignLessons.Step.FORMATIONS)
+            return CampaignLessons.formations(roster, context, true, this::showSquadOverview);
+        return CampaignLessons.handoff(roster, context, ScreenId.FLEET_ARMORY);
     }
 
     private void showFirstRefit() {

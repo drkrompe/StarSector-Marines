@@ -82,6 +82,7 @@ public final class WarshipShell implements Interceptable {
     private boolean inert;
     private BeamPayload beam;
     private boolean beamTaken;
+    private boolean hullOnly;
 
     WarshipShell(VanillaWeapon weapon, Faction faction, Warship shooter, float fromX, float fromY, float toX,
                  float toY, MissilePath path, float blastCells, float damage, float penetration,
@@ -114,6 +115,20 @@ public final class WarshipShell implements Interceptable {
     WarshipShell withBeam(BeamPayload payload) {
         this.beam = payload;
         return this;
+    }
+
+    /**
+     * Makes this a round fired from the ground at a hull: when it lands it hurts hulls only, through the hull's
+     * armour rule, and does not detonate on the ground beneath the aim point.
+     */
+    WarshipShell againstHullsOnly() {
+        this.hullOnly = true;
+        return this;
+    }
+
+    /** Whether this round lands on hulls alone (a ground battery's) and not on the ground below. */
+    boolean hullOnly() {
+        return hullOnly;
     }
 
     /** Whether this missile ends in a beam rather than a landing. */

@@ -22,7 +22,7 @@ final class PreparationGuide {
                   String actionLabel, Runnable action, int height) {
         Lesson(int milestone, String title, String copy, List<String> targets, String actionLabel, Runnable action) {
             this(milestone, title, copy, targets, actionLabel, action,
-                    milestone == 0 && copy.contains("Cost / Available") ? 392 : 280);
+                    310);
         }
     }
 
@@ -64,6 +64,24 @@ final class PreparationGuide {
         document.onCancel(() -> { if (!visible()) close.run(); });
     }
 
+    void fallbackInput(Supplier<List<UiElement>> fallback) {
+        document.inputRegions(() -> {
+            if (!visible()) return fallback.get();
+            var allowed = new ArrayList<>(regions().stream().flatMap(r -> r.elements().stream()).toList());
+            allowed.add(markup.requireElement("preparation-callout"));
+            return allowed;
+        });
+    }
+
+    /** Combat keeps world targeting and shortcuts available outside the portrait. */
+    void combatInput() {
+        document.inputRegions(null);
+        document.onCancel(null);
+        markup.requireElement("preparation-shade").style("opacity: 0.25;");
+    }
+
+    Rect calloutBounds() { return visible() ? markup.requireElement("preparation-callout").box().borderBox() : Rect.EMPTY; }
+
     boolean visible() { return current != null; }
 
     void update() {
@@ -71,12 +89,13 @@ final class PreparationGuide {
         UiElement callout = markup.requireElement("preparation-callout");
         callout.classed("preparation-hidden", !visible());
         if (!visible()) { spotlight.update(); document.advance(0f); return; }
+        markup.requireElement("preparation-speaker").text(LessonCopy.text("lessonSpeaker"));
         markup.requireElement("preparation-title").text(current.title());
         markup.requireElement("preparation-copy").text(current.copy());
         markup.requireElement("preparation-progress").imageSource(
                 "graphics/ui/officers/preparation-step-" + current.milestone() + ".svg");
         UiElement action = markup.requireElement("preparation-continue");
-        action.text(current.actionLabel() == null ? "CONTINUE" : current.actionLabel());
+        action.text(current.actionLabel() == null ? LessonCopy.text("lessonContinue") : current.actionLabel());
         action.classed("preparation-hidden", current.action() == null);
         List<UiElement> targets = targets();
         UiElement target = targets.isEmpty() ? null : targets.get(0);
@@ -97,6 +116,12 @@ final class PreparationGuide {
         float height = current.height();
         Rect place = BarracksGuideCallout.place(anchor, holes, view,
                 Math.min(528, view.width() - 16), Math.min(height, view.height() - 16));
+        UiElement navigation = find(document.root(), "marine-ops-page-nav");
+        if (navigation != null) {
+            float top = UiSpotlight.visibleBounds(document, navigation).bottom() + 8;
+            if (top + place.height() <= view.height() - 8 && place.y() < top)
+                place = new Rect(place.x(), top, place.width(), place.height());
+        }
         callout.style(String.format(Locale.ROOT, "left: %.1fpx; top: %.1fpx; width: %.1fpx; height: %.1fpx;",
                 place.x(), place.y(), place.width() - 28, place.height() - 28));
         document.advance(0f);

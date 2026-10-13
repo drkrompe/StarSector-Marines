@@ -14,6 +14,7 @@ public final class LootSelection {
     public LootSelection(LootManifest manifest) {
         this.manifest = manifest != null ? manifest : LootManifest.EMPTY;
         this.selected = new boolean[this.manifest.stacks.size()];
+        for (int i = 0; i < selected.length; i++) selected[i] = this.manifest.stacks.get(i).fieldRecovered;
     }
 
     public LootManifest manifest() {
@@ -35,7 +36,7 @@ public final class LootSelection {
     public boolean canSelect(int index) {
         if (!valid(index)) return false;
         return selected[index]
-                || selectedValue + (long) manifest.stacks.get(index).totalValue()
+                || selectedValue + (long) manifest.stacks.get(index).claimCost()
                 <= manifest.selectionBudget;
     }
 
@@ -45,12 +46,12 @@ public final class LootSelection {
         LootStack stack = manifest.stacks.get(index);
         if (selected[index]) {
             selected[index] = false;
-            selectedValue -= stack.totalValue();
+            selectedValue -= stack.claimCost();
             return true;
         }
         if (!canSelect(index)) return false;
         selected[index] = true;
-        selectedValue += stack.totalValue();
+        selectedValue += stack.claimCost();
         return true;
     }
 

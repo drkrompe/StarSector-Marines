@@ -197,6 +197,30 @@ public final class PendingDetonation {
         this.authoredAftermath = authoredAftermath;
     }
 
+    /**
+     * Whether this is ship-grade ordnance: a warship's round, warhead or lance
+     * beam, or an orbital barrage. Only this kind is read by a planetary
+     * shield dome; small arms, mech weapons, rockets and aircraft ordnance
+     * pass through it. Set by whoever fires it, before it is queued.
+     */
+    private boolean shipGrade;
+    /** Set by a shield dome that took this detonation as flux instead of letting it land. */
+    private boolean absorbed;
+
+    /** Marks this as ship-grade ordnance and returns it, so a factory can mark it inline. */
+    public PendingDetonation asShipGrade() {
+        this.shipGrade = true;
+        return this;
+    }
+
+    public boolean isShipGrade() { return shipGrade; }
+
+    /** Records that a dome took this detonation: nothing it would have done has happened. */
+    public void markAbsorbed() { this.absorbed = true; }
+
+    /** True when a dome absorbed this detonation instead of it landing. */
+    public boolean wasAbsorbed() { return absorbed; }
+
     public boolean excludesAreaTarget(long targetId) {
         if (targetId == directTargetId && directTargetId != 0L && directDamage > 0f) return true;
         for (long excluded : areaExcludedTargetIds) {

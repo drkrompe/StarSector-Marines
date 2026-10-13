@@ -43,6 +43,7 @@
       "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
       "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
     },
+    { "id": "mount.shield-generator-core", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 1, "turnRateDegPerSec": 60.0 } },
     { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
   "structures": [
@@ -56,6 +57,7 @@
     { "id": "structure.turret-locust", "mount": "mount.turret-locust", "catalog": { "displayName": "Locust Emplacement" }, "durability": { "structure": 85.0, "armorCapacity": 135.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 18.0 },
     { "id": "structure.turret-heavy-mg", "mount": "mount.turret-heavy-mg", "catalog": { "displayName": "Heavy MG Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
     { "id": "structure.deployable-point-defence", "mount": "mount.pd-interceptor", "catalog": { "displayName": "Palisade Interceptor Pod" }, "durability": { "structure": 26.0, "armorCapacity": 18.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 3.0 },
-    { "id": "structure.fortress-battery-placeholder", "mount": "mount.turret-heavy-mortar", "catalog": { "displayName": "Fortress Battery (placeholder)" }, "durability": { "structure": 1800.0, "armorCapacity": 1200.0, "armorRating": 40.0 }, "physics": { "radius": 1.4, "hitHalfHeight": 1.0, "footprintCells": [3, 3] }, "forceScore": 60.0 }
+    { "id": "structure.fortress-battery-placeholder", "mount": "mount.turret-heavy-mortar", "catalog": { "displayName": "Fortress Battery" }, "durability": { "structure": 1800.0, "armorCapacity": 1200.0, "armorRating": 40.0 }, "physics": { "radius": 1.4, "hitHalfHeight": 1.0, "footprintCells": [3, 3] }, "forceScore": 60.0, "battery": { "loadout": "citadel", "fireControlRadius": 4.5 } },
+    { "id": "structure.shield-generator", "mount": "mount.shield-generator-core", "catalog": { "displayName": "Planetary Shield Generator (placeholder art)" }, "durability": { "structure": 900.0, "armorCapacity": 900.0, "armorRating": 30.0 }, "physics": { "radius": 1.3, "hitHalfHeight": 1.0, "footprintCells": [3, 3] }, "forceScore": 40.0, "dome": { "radiusCells": 16.0, "fluxCapacity": 1500.0, "dissipationPerSecond": 60.0, "overloadSeconds": 9.0, "captureRadiusCells": 6.0, "captureSeconds": 8.0 } }
   ]
 }
