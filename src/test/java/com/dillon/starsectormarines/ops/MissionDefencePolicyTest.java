@@ -27,6 +27,21 @@ class MissionDefencePolicyTest {
         GroundDefences declared = MissionDefencePolicy.declare(of(MissionType.CONQUEST), FORTRESS_MARKET);
         assertEquals(MissionDefencePolicy.CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM, declared.batteries());
         assertEquals(MissionDefencePolicy.CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE, declared.shieldGenerator());
+        assertEquals(MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM, declared.nests());
+
+        GroundDefences nestsOnly = MissionDefencePolicy.declare(of(MissionType.CONQUEST),
+                TargetProfile.NEUTRAL.withDefences(true, false, false));
+        assertEquals(new GroundDefences(0, false, MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM), nestsOnly);
+    }
+
+    @Test
+    void theDebugDialCanDeclareNestsAndFortressIncludesThem() {
+        Mission nests = Mission.builder().type(MissionType.SABOTAGE).defences(DebugDefences.NESTS).build();
+        GroundDefences declared = MissionDefencePolicy.declare(nests, TargetProfile.NEUTRAL);
+        assertEquals(0, declared.batteries());
+        assertEquals(false, declared.shieldGenerator());
+        assertEquals(true, declared.nests() > 0);
+        assertEquals(true, DebugDefences.FORTRESS.declaration().nests() > 0);
     }
 
     @Test

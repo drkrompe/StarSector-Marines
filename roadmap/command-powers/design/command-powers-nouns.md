@@ -4,7 +4,7 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Close Air Support: a committed Mudskipper is the source of a called gunship that circles targeted ground (law 9 gives it no campaign bridge).
+Updated: 2026-10-14 — Close Air Support: a committed Mudskipper is the source of a called gunship that circles overhead of targeted ground (law 9 gives it no campaign bridge).
 Earlier 2026-10-13 — Ship on Station delivers its own writeback bridge (law 9); the compact battle tray identifies its campaign-backed sources.
 Supplies pool with the base-game commodity icon resolved from the live spec.
 
@@ -88,7 +88,7 @@ commitment.
   and ground-support fittings are player sources; the warning window is the
   extension seam for future counter-battery play.
 - **Ship on Station** calls a committed ship over the battle: a physical cruiser, capital or Shepherd descends through the clouds on the company's side a short glide from a seen cell, stations over it, works it under the company's mission stance for a bounded visit, then departs. Each committed ship is its own charge on one card, from its frozen fitted loadout; debug and employer sources feed the same power. It spends supplies like Orbital Barrage and writes nothing back to the fleet yet. `ship-support.md` owns the design. The defending world may call the same mechanism for its own side (not a command power: no card, cost or player activation), by its commander, once, with a warning.
-- **Close Air Support** calls a Mudskipper gunship over a seen cell: a physical craft that enters from the nearest map edge, rings the cell with its flank toward it while the broadside guns on that side work the ground, and leaves when its bounded visit is spent. A committed Mudskipper of either mark is the source, so the card exists only for a company that brought one; an employer may offer it too. Two activations a battle, paid in command points and supplies. It conjures a battle-native craft the way Marine Insertion does and reads or writes nothing in the campaign fleet. `air-nouns.md` (Gunships) owns how the craft flies and fires.
+- **Close Air Support** calls a Mudskipper gunship over a seen cell: a physical craft that enters from the nearest map edge, circles overhead of the cell while its one turret works the ground beneath it, and leaves when its bounded visit is spent. A committed Mudskipper of either mark is the source, so the card exists only for a company that brought one; an employer may offer it too. Two activations a battle, paid in command points and supplies. It conjures a battle-native craft the way Marine Insertion does and reads or writes nothing in the campaign fleet. `air-nouns.md` (Gunships) owns how the craft flies and fires.
 - **Marine Insertion** sends a physical manned Valkyrie from the nearest map
   edge to a safe scored landing zone near the requested cell, then unloads a
   full infantry squad into the ordinary roster and commander flow. It is
@@ -118,12 +118,18 @@ reach geography may add named landing zones, air-defense contesting, and
 craft-specific delivery risk on the shared insertion/delivery seam.
 
 Map-authored orbital-defense state may constrain a power at target-validation
-time without removing its frozen source or deck identity. A local shield may
-deny only covered barrage targets, while a surface-to-orbit battery may hold
-new barrage commitments at standoff until ground forces neutralize its
-fire-control site. `shielded-fire-support-zones.md` and
-`orbital-battery-fire-support-lock.md` own those distinct extensions; neither
-may spend resources on a denied request or invent campaign fleet damage.
+time without removing its frozen source or deck identity. A surface-to-orbit
+battery holds new barrage commitments at standoff until ground forces
+neutralize its fire-control site (`orbital-battery-fire-support-lock.md`; built,
+see `ground-defences.md`); that lock may not spend resources on a denied request
+or invent campaign fleet damage. A planetary shield does **not** deny barrage
+targeting: a barrage is ship-grade ordnance, so it fires normally and an up
+dome over the aim point absorbs it as flux like any other ship round, while a
+dome that is down lets it land. The targeting preview draws each hostile dome the
+player has seen with its reach and whether it is up or down, and marks an aim
+point under one as absorbed, so the player chooses knowingly; concentrated fire
+(or ground forces taking the generator) is what opens the sky. The dome's rules
+are in `ground-defences.md` and `air-nouns.md`.
 
 A forward operating base, if introduced, is a territory- and spoils-gated
 reach object. It may anchor delivery but is neither a command power nor a

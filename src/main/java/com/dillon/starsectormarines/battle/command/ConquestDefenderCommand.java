@@ -235,6 +235,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     @Override
     public CommandPlan<ConquestFrontSnapshot> plan(ConquestCommandFrame frame) {
+        structures = frame.facts().structures();
         CommanderInfluenceSnapshot influence = frame.influence();
         Threat[] threats = buildThreats(influence);
         Map<Integer, Rally> rallies = new HashMap<>();
@@ -265,7 +266,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 continue;
             }
             if (squad.assignedObjective != null
-                    && squad.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK) {
+                    && squad.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK
+                    && !DefenceStructureTactics.isTask(squad.assignedObjective, structures)) {
                 AssignmentReason reason = ownsReliefObjective(squad)
                         ? AssignmentReason.DEFENDER_RELIEF_OBJECTIVE
                         : AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED;
@@ -309,6 +311,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 assignResponse(choice, threat.track, directives, selected);
             }
         }
+
+        assignDefenceStructureTasks(frame, candidates, selected, directives);
 
         for (PlanningSquad squad : candidates) {
             if (selected.contains(squad.id)) continue;
@@ -525,6 +529,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         return count;
     }
 
+    /** The ground-defence structures this side knew of at the start of the current plan. */
+    private List<DefenceStructureFact> structures = List.of();
+
     private boolean hasHigherAuthority(PlanningSquad squad) {
         return squad.originalDirective != null
                 && squad.originalDirective.authority().priority()
@@ -590,6 +597,45 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 true, request.hasObjective(),
                 SquadCommandClaim.mission(strategyId(),
                         "convoy relief " + request.reason.name()));
+    }
+
+    /**
+     * Draws squads from the unselected reserve to ground-defence structures this side knows of (see
+     * {@link DefenceStructureTactics}): its own when pressed, one taken from it, or an enemy one it has seen. The
+     * response to a threatened track has already chosen, so structure work only ever spends the reserve. A squad left
+     * holding an order for a structure that no longer needs it is released.
+     */
+    private void assignDefenceStructureTasks(ConquestCommandFrame frame, List<PlanningSquad> candidates,
+                                             Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+        List<DefenceStructureTactics.Candidate> offered = new ArrayList<>();
+        for (PlanningSquad squad : candidates) {
+            if (selected.contains(squad.id)) continue;
+            offered.add(new DefenceStructureTactics.Candidate(squad.id, squad.anchorCellX, squad.anchorCellY,
+                    squad.originalDirective != null ? squad.originalDirective.assignment() : null));
+        }
+        Set<Integer> tasked = new HashSet<>();
+        for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
+                frame.perspective(), structures, offered, frame.topology())) {
+            PlanningSquad squad = candidateById(candidates, task.squadId());
+            squad.assignedObjective = task.assignment();
+            int home = homeTrack(squad);
+            directives.put(squad.id, directive(squad, home, home, switch (task.role()) {
+                case DEFEND -> AssignmentReason.DEFENCE_STRUCTURE_DEFEND;
+                case RETAKE -> AssignmentReason.DEFENCE_STRUCTURE_RETAKE;
+                case TAKE -> AssignmentReason.DEFENCE_STRUCTURE_TAKE;
+            }));
+            tasked.add(squad.id);
+            selected.add(squad.id);
+        }
+        for (PlanningSquad squad : candidates) {
+            if (tasked.contains(squad.id) || selected.contains(squad.id)) continue;
+            if (DefenceStructureTactics.isTask(squad.assignedObjective, structures)) squad.assignedObjective = null;
+        }
+    }
+
+    private static PlanningSquad candidateById(List<PlanningSquad> squads, int id) {
+        for (PlanningSquad squad : squads) if (squad.id == id) return squad;
+        throw new IllegalStateException("no candidate squad " + id);
     }
 
     private void clearMissionRally(PlanningSquad squad) {
@@ -737,7 +783,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     threats);
             if (hasHigherAuthority(planned)
                     || planned.assignedObjective != null
-                    && planned.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK) {
+                    && planned.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK
+                    && !DefenceStructureTactics.isTask(planned.assignedObjective, structures)) {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND, reason));
             } else if (planned.assignedObjective != null) {

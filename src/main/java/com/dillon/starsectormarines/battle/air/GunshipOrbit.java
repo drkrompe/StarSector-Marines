@@ -4,8 +4,8 @@ package com.dillon.starsectormarines.battle.air;
  * The ring a gunship flies about its target, and the numbers that size it.
  *
  * <p>A gunship attacks by <em>circling</em>, not by running in: it holds a ring of fixed radius
- * about a ground point with one flank toward it, so the guns mounted on that side stay on the
- * ground for the whole visit. This class is the geometry of that ring and nothing else. Pure
+ * about a ground point, so its turret stays over the ground for the whole visit and covers it from
+ * every side as it goes round. This class is the geometry of that ring and nothing else. Pure
  * functions over a pose and a centre, so the shape is testable without a simulation and
  * {@link AirSystem} only has to ask "where do I steer".
  *
@@ -15,18 +15,16 @@ package com.dillon.starsectormarines.battle.air;
  * a craft that finds itself inside drifts out to the radius instead of cutting a chord.
  *
  * <p><b>Which way round</b> is decided once, on entry, as the direction that asks the least
- * turning of the craft as it arrives, and then held: the flank that faces the target is the
- * flank with the guns, so a craft that changed direction mid-visit would swing its working
- * battery to the far side of the hull.
+ * turning of the craft as it arrives, and then held, so the craft is never seen reversing its
+ * circuit mid-visit.
  *
  * <p>Heading uses the sprite convention shared by {@link AirBody}: {@code 0°} is +Y, positive
- * counter-clockwise, so the side a clockwise ring keeps toward its centre is the right-hand
- * (starboard) one.
+ * counter-clockwise.
  */
 public final class GunshipOrbit {
 
-    /** Cells between the craft and the ground point it circles. Inside the Heavy MG's reach with room to cover ground past the centre. */
-    public static final float RADIUS_CELLS = 10f;
+    /** Cells between the craft and the ground point it circles. Tight enough to read as overhead, and well inside the turret's reach whichever side of the ring a target is on. */
+    public static final float RADIUS_CELLS = 7f;
     /** Cruise on the ring, cells/sec. Slower than the airframe's own cruise: a gunship holds station, it does not race round it. */
     public static final float ORBIT_SPEED = 7f;
     /** Seconds on the ring before the craft turns for the exit. */
@@ -123,11 +121,6 @@ public final class GunshipOrbit {
     public static AirHandling paced(AirHandling base, float currentSpeed, float dt) {
         float cap = Math.max(ORBIT_SPEED, currentSpeed - base.brakingAccel() * dt);
         return new Paced(base, Math.min(cap, base.maxSpeed()));
-    }
-
-    /** The side of the hull that faces the ring's centre: local {@code +X} for a clockwise ring, {@code -X} for a counter-clockwise one. */
-    public static float inboardSide(boolean clockwise) {
-        return clockwise ? 1f : -1f;
     }
 
     private record Paced(AirHandling base, float maxSpeed) implements AirHandling {

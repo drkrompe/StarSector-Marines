@@ -143,7 +143,7 @@ def main() -> None:
         built[family] = (body, head)
 
     # Specter's new geometry and casing palettes have their own retained exporter.
-    specter_exporter = runpy.run_path(str(here / "specter-v1" / "export_assets.py"))
+    specter_exporter = runpy.run_path(str(here / "specter-v2" / "export_assets.py"))
     specter_exporter["export"]()
     specter_dir = directory / "armor" / "specter-heavy"
     built["specter-heavy"] = (

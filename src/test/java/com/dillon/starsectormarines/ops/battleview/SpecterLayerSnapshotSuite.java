@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -35,7 +37,7 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
     private UnitLayerLayouts layouts;
 
     @Override public String id() { return "specter-layers"; }
-    @Override public String label() { return "Specter layered sprite first pass"; }
+    @Override public String label() { return "Specter articulated shoulder review"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -46,8 +48,14 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
                 modRoot.resolve(UnitLayerLayouts.CONTENT_PATH))));
         List<BufferedImage> frames = new ArrayList<>();
         for (int i = 0; i < 12; i++) frames.add(review(i / 12f));
-        return List.of(new SnapshotArtifact("specter-layers-contact.png", frames.get(3)),
-                SnapshotArtifact.colorAnimation("specter-layers-motion.gif", frames, 100));
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
+        artifacts.add(new SnapshotArtifact("specter-layers-contact.png", frames.get(3)));
+        artifacts.add(SnapshotArtifact.colorAnimation("specter-layers-motion.gif", frames, 100));
+        // Retain unquantized frames for the review video as well as the portable GIF.
+        for (int i = 0; i < frames.size(); i++) {
+            artifacts.add(new SnapshotArtifact("frames/pose-%02d.png".formatted(i), frames.get(i)));
+        }
+        return artifacts;
     }
 
     private BufferedImage review(float phase) throws Exception {
@@ -59,18 +67,18 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setColor(new Color(0x111920));
         g.fillRect(0, 0, 1920, 1080);
-        text(g, "SPECTER / LAYERED FIRST PASS", 40, 48, 28);
+        text(g, "SPECTER / INDEPENDENT SHOULDER SHELLS", 40, 48, 28);
         text(g, "1920 × 1080 · 100% UI scale · production infantry composition", 40, 79, 17);
         LayeredUnitAssets slate = assets(SPECTER);
         text(g, "Separate source parts · magnified 2×", 40, 125, 20);
-        String[] parts = {"body", "head", "foot", "rifle"};
-        int[] partPositions = {50, 390, 650, 880};
+        String[] parts = {"body", "shoulder-left", "shoulder-right"};
+        String[] partLabels = {"Torso + dark joint backing", "Left shell", "Right shell"};
+        int[] partPositions = {50, 390, 730};
         for (int i = 0; i < parts.length; i++) {
-            BufferedImage part = image(i == 3 ? ROOT + "variants/weapons/rifle.png"
-                    : SPECTER + parts[i] + ".png");
+            BufferedImage part = image(SPECTER + parts[i] + ".png");
             int x = partPositions[i];
             g.drawImage(part, x, 145, part.getWidth() * 2, part.getHeight() * 2, null);
-            text(g, parts[i] + " · " + part.getWidth() + "×" + part.getHeight(), x, 445, 16);
+            text(g, partLabels[i] + " · 150×95", x, 445, 16);
         }
         text(g, "Same shoulder unit · magnified comparison", 1120, 125, 20);
         actor(g, assets(ROOT + "variants/armor/army-green/"), LayeredArmorFamily.ARMY_GREEN,
@@ -80,14 +88,14 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
         text(g, "Legionary", 1190, 445, 17);
         text(g, "Specter", 1585, 445, 17);
         text(g, "Weapon clearance and articulated poses · magnified", 40, 500, 20);
-        String[] clips = {"idle", "aiming", "firing", "walking", "aiming"};
-        String[] labels = {"Carry / rifle", "Aim / pulse", "Fire / DMR", "Walk / SMG", "Independent head look"};
-        String[] weapons = {WeaponRegistry.STARTER_PRIMARY_ID, WeaponRegistry.PULSE_RIFLE_ID,
-                WeaponRegistry.DMR_ID, WeaponRegistry.SMG_ID, WeaponRegistry.STARTER_PRIMARY_ID};
+        String[] clips = {"walking", "aiming", "firing", "amr-brace", "rocket-fire"};
+        String[] labels = {"Walk / alternating shoulders", "Aim / independent head", "Fire / DMR recoil", "Brace / anti-materiel", "Rocket / weapon overlap"};
+        String[] weapons = {WeaponRegistry.SMG_ID, WeaponRegistry.PULSE_RIFLE_ID,
+                WeaponRegistry.DMR_ID, WeaponRegistry.STARTER_PRIMARY_ID, WeaponRegistry.STARTER_PRIMARY_ID};
         for (int i = 0; i < clips.length; i++) {
             actor(g, slate, LayeredArmorFamily.SPECTER_HEAVY,
                     190 + i * 375, 630, 125, clips[i], phase,
-                    i == 4 ? 50f * (float) Math.sin(phase * Math.PI * 2) : 0, weapons[i]);
+                    i == 1 ? 50f * (float) Math.sin(phase * Math.PI * 2) : 0, weapons[i]);
             text(g, labels[i], 70 + i * 375, 770, 17);
         }
         text(g, "Baked paint variants · shared geometry · magnified", 40, 825, 20);
@@ -111,15 +119,25 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
                        float x, float y, float sw, String clip, float phase,
                        float headLook, String weaponId) {
         if (clip.equals("walking")) phase += 0.75f;
-        LayerPose pose = layouts.clip("marine-line", "rifle", clip).sample(
-                clip.equals("aiming") ? 1f : phase);
+        boolean amr = clip.equals("amr-brace");
+        boolean rocket = clip.equals("rocket-fire");
+        String variant = amr ? "anti-materiel" : rocket ? "rocket" : "rifle";
+        String animation = amr ? "aiming" : rocket ? "firing" : clip;
+        LayerPose pose = layouts.clip("marine-line", variant, animation).sample(
+                amr ? 0.5f - 0.5f * (float) Math.cos(phase * Math.PI * 2)
+                        : clip.equals("aiming") ? 1f : phase);
         pose = layouts.applyArmorMastering(pose, family, family);
-        int action = clip.equals("firing") ? LayeredAppearance.POSE_FIRING
+        int action = amr ? LayeredAppearance.POSE_AMR_AIM
+                : rocket ? LayeredAppearance.POSE_ROCKET_FIRE
+                : clip.equals("firing") ? LayeredAppearance.POSE_FIRING
                 : clip.equals("idle") || clip.equals("walking") ? LayeredAppearance.POSE_IDLE
                 : LayeredAppearance.POSE_AIMED;
         int flags = clip.equals("walking") ? LayeredAppearance.FLAG_MOVING : 0;
-        if (clip.equals("firing") && phase < 0.25f) flags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
+        if ((clip.equals("firing") || rocket) && phase < 0.25f) flags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
         WeaponDef primary = WeaponRegistry.require(weaponId);
+        SpecialEquipmentDef special = amr
+                ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
+                : rocket ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID) : null;
         LayeredUnitComposer.emit((sprite, cx, cy, width, height, angle, red, green, blue, alpha) -> {
             BufferedImage source = images.get(sprite.sourcePath);
             AffineTransform transform = new AffineTransform();
@@ -128,18 +146,25 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
             transform.scale(width / source.getWidth(), height / source.getHeight());
             transform.translate(-source.getWidth() / 2.0, -source.getHeight() / 2.0);
             g.drawImage(source, transform, null);
-        }, assets, assets.head, primary, true, null, EquipmentGrade.SERVICE,
+        }, assets, assets.head, primary, true, special, EquipmentGrade.SERVICE,
                 x, 1080f - y, sw, 0, headLook, phase, phase, action, flags, 1f, pose);
     }
 
     private LayeredUnitAssets assets(String armor) throws Exception {
         String weapons = ROOT + "variants/weapons/";
-        return new LayeredUnitAssets(layer(armor + "body.png"), layer(armor + "head.png"),
+        LayeredUnitAssets result = new LayeredUnitAssets(layer(armor + "body.png"), layer(armor + "head.png"),
                 layer(armor.startsWith(SPECTER) ? armor + "foot.png" : ROOT + "marine-foot.png"),
                 null, layer(weapons + "rifle.png"), layer(weapons + "laser-gun.png"),
                 layer(weapons + "smg.png"), layer(weapons + "dmr.png"),
                 layer(weapons + "rocket-launcher.png"), layer(weapons + "anti-materiel-rifle.png"),
-                layer(ROOT + "marine-muzzle-flash.png"), null, null);
+                layer(ROOT + "marine-muzzle-flash.png"), null, null,
+                armor.startsWith(SPECTER) ? layer(armor + "shoulder-left.png") : null,
+                armor.startsWith(SPECTER) ? layer(armor + "shoulder-right.png") : null);
+        result.registerSpecialEquipment(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
+                layer(weapons + "anti-materiel-rifle.png"));
+        result.registerSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+                layer(weapons + "rocket-launcher.png"));
+        return result;
     }
 
     private LayeredSpriteCache layer(String path) throws Exception {

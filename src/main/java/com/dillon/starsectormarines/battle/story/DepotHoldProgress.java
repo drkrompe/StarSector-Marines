@@ -8,10 +8,17 @@ public final class DepotHoldProgress {
     private float capture, elapsed;
     private boolean committed, complete;
     private int waves;
+    private boolean companyInside, friendlyInside, enemyInside;
+    public boolean companyInside() { return companyInside; }
+    public boolean friendlyInside() { return friendlyInside; }
+    public boolean enemyInside() { return enemyInside; }
 
     public void advance(float dt, boolean companyInside, boolean friendlyInside,
                         boolean enemyInside, int remainingRaiders) {
         if (complete) return;
+        this.companyInside = companyInside;
+        this.friendlyInside = friendlyInside;
+        this.enemyInside = enemyInside;
         boolean occupying = committed ? friendlyInside : companyInside;
         capture = occupying && !enemyInside ? Math.min(CAPTURE_SECONDS, capture + dt) : 0f;
         if (!committed && capture + .001f >= CAPTURE_SECONDS) {

@@ -6,6 +6,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NightLightingTest {
+    @Test void fixtureAppearanceSurvivesPowerRestorationWithoutChangingThePool() {
+        var strip=new NightLighting.Lamp(10,10,8,1,.6f,.2f,"yard");
+        var flood=new NightLighting.Lamp(10,10,8,1,.6f,.2f,"yard",NightLighting.Fixture.TRIPOD_FLOODLIGHT,135);
+        var before=new NightLighting(.76f,List.of(flood),Set.of());
+        assertEquals(NightLighting.Fixture.STRIP,strip.fixture());
+        assertEquals(flood,before.withPower("yard").lamps().get(0));
+        assertEquals(strip.pool(12,14),flood.pool(12,14));
+        assertThrows(IllegalArgumentException.class,()->new NightLighting.Lamp(10,10,8,1,.6f,.2f,
+                "yard",NightLighting.Fixture.TRIPOD_FLOODLIGHT,Float.NaN));
+    }
+
     @Test void restoringPowerRetainsEmergencyLightsAndDoesNotMutateThePreviousState() {
         var emergency=new NightLighting.Lamp(10,10,8,1,.6f,.2f,"emergency");
         var work=new NightLighting.Lamp(20,10,16,1,.9f,.8f,"yard");

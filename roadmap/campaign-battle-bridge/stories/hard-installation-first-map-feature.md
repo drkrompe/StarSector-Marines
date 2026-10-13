@@ -35,8 +35,8 @@ planet remains protected.
    compound is DEFENDER_HELD or CONTESTED. Capturing the compound intact makes
    it inoperable for the defender without creating a second capture model;
    destroying the structure disables it irreversibly.
-5. `shielded-fire-support-zones.md` consumes only that operational coverage
-   fact for Orbital Barrage targeting. Map generation does not inspect command
+5. Orbital Barrage is not denied by coverage: the shield dome absorbs it as
+   ship-grade ordnance (`command-powers-nouns.md`, `ground-defences.md`). Map generation does not inspect command
    decks or implement power activation.
 
 The relay must read as a hardened power-and-field installation through

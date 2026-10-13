@@ -68,8 +68,8 @@ class FleetArmoryViewModelTest {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(12);
         FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster);
-        assertEquals(List.of("First Loadout"), model.weaponDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
-        assertEquals(List.of("First Loadout"), model.armorDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
+        assertEquals(List.of("Dockside Issue"), model.weaponDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
+        assertEquals(List.of("Watchman's Kit"), model.armorDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
         assertEquals("12 LINE", model.weaponDoctrineTiles().get().get(0).composition());
         var members = roster.manningMemberIds(roster.squadById(model.selectedSquadId()));
         List<String> before = members.stream().map(id -> roster.soldierById(id).armorDef().id()).toList();

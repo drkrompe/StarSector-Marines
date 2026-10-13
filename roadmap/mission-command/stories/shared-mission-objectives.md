@@ -9,12 +9,12 @@ authority remain in `mission-command-nouns.md` and the mission-family designs.
 
 ## Remaining scope
 
-- Adapt Raid, Sabotage, Conquest, Assault and the authored opening/freight/
-  intervention sequences to the common public mission picture. Preserve each
-  mission's actual victory conditions and private reinforcement knowledge.
-- Replace anonymous capture codes with authored place names and connect every
-  adapter's progress, blockers and friendly tasks to the common map/rail.
-- Retire superseded family-specific HUD branches only after equivalent coverage.
+- Live-accept the common story, territorial, Raid and sabotage marker adapters:
+  actual capture clocks, contest, missing cover/crew, construction, announced
+  response tails, recapture and terminal state. Preserve each mission law.
+- Refine generic Assault search-sector presentation without exposing a hidden
+  enemy census. Untimed fallback instructions must remain truthful.
+- Retire superseded HUD model methods after remaining callers and tests migrate.
 - Live-accept extraction, rescue, Last Lift and Silent Colony at 1920 x 1080,
   100% UI scale: source arrival, contest/escort holds, pickup wait, boarding,
   partial survival, branch completion and player-order override.

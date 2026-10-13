@@ -2084,6 +2084,12 @@ not itself authorize action. Mechanical suppression, richer cross-squad contact
 sharing, recon doctrine, and dynamic mech reassignment are separate extensions
 and must preserve the same knowledge and ownership laws.
 
+Ground-defence structures (a fortress battery's fire control, a shield generator) are a bounded Conquest extension
+of the same kind: each Conquest commander is disclosed the structures its side built, holds, or (for the company)
+has seen, and may detach a few squads to take, retake or stand to at them with ordinary attack-move and area-defence
+orders. No hostile identity or unseen structure is disclosed, and the extension is inert on a map with none
+(`ground-defences.md`, *Command awareness*).
+
 Target-faction doctrine is likewise a bounded mission-command extension, not a
 new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`
 may bias legal assignment, reserve, recapture, and local posture choices from a
