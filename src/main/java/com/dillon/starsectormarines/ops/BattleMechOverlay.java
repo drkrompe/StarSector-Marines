@@ -17,8 +17,6 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntConsumer;
-import java.util.function.IntSupplier;
 
 /** Host bridge for selected-Mech doctrine, coordination, and lance tactical orders. */
 final class BattleMechOverlay {
@@ -27,14 +25,13 @@ final class BattleMechOverlay {
     static final String COMPONENT_PATH =
             "data/ui/components/battle/battle-mech-overlay.mlx";
     static final float DOCUMENT_WIDTH = 430f;
-    static final float DOCUMENT_HEIGHT = 309f;
+    static final float DOCUMENT_HEIGHT = 252f;
     private static final float EDGE_INSET = 12f;
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
     private final Selection selection;
-    private final IntSupplier targetingSquadId;
     private final BattleMechOverlayModel model;
 
     private BattleSimulation simulation;
@@ -45,13 +42,11 @@ final class BattleMechOverlay {
     private BattleMechOverlayModel.Presentation presentation =
             new BattleMechOverlayModel.Presentation(false);
 
-    BattleMechOverlay(Selection selection, IntConsumer defendAreaAction,
-                      IntSupplier targetingSquadId) {
+    BattleMechOverlay(Selection selection) {
         this.selection = selection;
-        this.targetingSquadId = targetingSquadId;
         model = new BattleMechOverlayModel(
                 reactor, selection::clear, this::requestDoctrine,
-                this::requestLanceOrder, defendAreaAction);
+                this::requestLanceOrder);
     }
 
     void attach(PositionAPI nextPosition, BattleSimulation sim) {
@@ -77,10 +72,6 @@ final class BattleMechOverlay {
                     "battle-mech-lance-order-scope",
                     "battle-mech-lance-order-cards",
                     "battle-mech-form-on-lead", "battle-mech-free-reign",
-                    "battle-mech-tactical-order-heading-row",
-                    "battle-mech-tactical-order-heading",
-                    "battle-mech-tactical-order-scope",
-                    "battle-mech-defend-area",
                     "battle-mech-doctrine-heading-row",
                     "battle-mech-doctrine-heading", "battle-mech-doctrine-scope",
                     "battle-mech-doctrine-cards", "battle-mech-default")) {
@@ -164,9 +155,7 @@ final class BattleMechOverlay {
     private BattleMechOverlayModel.Presentation updateModel(BattleSimulation sim) {
         int squadId = selection.hasSquadSelection()
                 ? selection.getSelectedSquadId() : Selection.NONE;
-        var result = model.update(sim, squadId, selection.getSelectedUnitEntityId(),
-                targetingSquadId.getAsInt());
-        model.selectionScope(selection.squadCount());
+        var result = model.update(sim, squadId, selection.getSelectedUnitEntityId());
         return result;
     }
 

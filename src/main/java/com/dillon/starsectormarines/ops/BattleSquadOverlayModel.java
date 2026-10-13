@@ -40,9 +40,6 @@ final class BattleSquadOverlayModel {
     private final MutableSignal<String> squadStrength;
     private final MutableSignal<String> moraleLabel;
     private final MutableSignal<String> moraleStyle;
-    private final MutableSignal<String> tacticalScope;
-    private final MutableSignal<String> defendAreaLabel;
-    private final MutableSignal<String> defendAreaClasses;
     private final MutableSignal<List<FireTeamView>> fireTeams;
     private final MutableSignal<String> tooltipClasses;
     private final MutableSignal<String> tooltipTitle;
@@ -52,24 +49,19 @@ final class BattleSquadOverlayModel {
     private final MutableSignal<String> tooltipSystem;
     private final MutableSignal<String> tooltipProfile;
     private final Runnable backAction;
-    private final Runnable defendAreaAction;
     private final LongConsumer selectMemberAction;
 
     private final Map<String, MemberTile> tilesById = new HashMap<>();
     private String hoveredTileId;
 
     BattleSquadOverlayModel(Reactor reactor, Runnable backAction,
-                            Runnable defendAreaAction, LongConsumer selectMemberAction) {
+                            LongConsumer selectMemberAction) {
         this.selectMemberAction = selectMemberAction;
         this.backAction = backAction;
-        this.defendAreaAction = defendAreaAction;
         squadTitle = reactor.signal("SQUAD");
         squadStrength = reactor.signal("0/0");
         moraleLabel = reactor.signal("MORALE --");
         moraleStyle = reactor.signal("width: 0%;");
-        tacticalScope = reactor.signal("TACTICAL ORDER");
-        defendAreaLabel = reactor.signal("DEFEND AREA");
-        defendAreaClasses = reactor.signal("squad-defend-area");
         fireTeams = reactor.signal(emptyTeams());
         tooltipClasses = reactor.signal(TOOLTIP_HIDDEN);
         tooltipTitle = reactor.signal("");
@@ -80,12 +72,8 @@ final class BattleSquadOverlayModel {
         tooltipProfile = reactor.signal("");
     }
 
-    BattleSquadOverlayModel(Reactor reactor, Runnable backAction, Runnable defendAreaAction) {
-        this(reactor, backAction, defendAreaAction, unit -> { });
-    }
-
     BattleSquadOverlayModel(Reactor reactor, Runnable backAction) {
-        this(reactor, backAction, () -> { });
+        this(reactor, backAction, unit -> { });
     }
 
     Map<String, Object> props() {
@@ -94,9 +82,6 @@ final class BattleSquadOverlayModel {
         props.put("squadStrength", squadStrength);
         props.put("moraleLabel", moraleLabel);
         props.put("moraleStyle", moraleStyle);
-        props.put("tacticalScope", tacticalScope);
-        props.put("defendAreaLabel", defendAreaLabel);
-        props.put("defendAreaClasses", defendAreaClasses);
         props.put("fireTeams", fireTeams);
         props.put("tooltipClasses", tooltipClasses);
         props.put("tooltipTitle", tooltipTitle);
@@ -106,16 +91,14 @@ final class BattleSquadOverlayModel {
         props.put("tooltipSystem", tooltipSystem);
         props.put("tooltipProfile", tooltipProfile);
         props.put("backAction", backAction);
-        props.put("defendAreaAction", defendAreaAction);
         return props;
     }
 
-    Presentation update(BattleSimulation sim, int selectedSquadId,
-                        int targetingSquadId) {
-        return update(sim, selectedSquadId, targetingSquadId, 0L, false);
+    Presentation update(BattleSimulation sim, int selectedSquadId) {
+        return update(sim, selectedSquadId, 0L, false);
     }
 
-    Presentation update(BattleSimulation sim, int selectedSquadId, int targetingSquadId,
+    Presentation update(BattleSimulation sim, int selectedSquadId,
                         long selectedMemberId, boolean memberSelectionEnabled) {
         if (sim == null || selectedSquadId < 0) return hide();
         Squad squad = sim.getSquad(selectedSquadId);
@@ -137,19 +120,9 @@ final class BattleSquadOverlayModel {
         for (long unit : live) members.add(capture(sim, squad, unit));
         String label = squad.campaignLabel != null && !squad.campaignLabel.isBlank()
                 ? squad.campaignLabel : "SQUAD " + squad.id;
-        Presentation result = updateProjected(new SquadState(label, squad.aliveMembers,
+        return updateProjected(new SquadState(label, squad.aliveMembers,
                 Math.max(squad.aliveMembers, squad.originalSize), squad.morale, members),
                 selectedMemberId, memberSelectionEnabled);
-        boolean targeting = selectedSquadId == targetingSquadId;
-        defendAreaLabel.set(targeting ? "CANCEL AREA" : "DEFEND AREA");
-        defendAreaClasses.set(targeting
-                ? "squad-defend-area squad-defend-area-active"
-                : "squad-defend-area");
-        return result;
-    }
-
-    void selectionScope(int count) {
-        tacticalScope.set(count > 1 ? "ALL " + count + " SQUADS" : "TACTICAL ORDER");
     }
 
     static boolean isPlayerInfantrySquad(Squad squad) {
