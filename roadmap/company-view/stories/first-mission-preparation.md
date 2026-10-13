@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED - live campaign acceptance open
 Written: 2026-10-11
-Updated: 2026-10-11 - retained walkthrough and cargo preflight verified; live campaign acceptance remains.
+Updated: 2026-10-13 - follow-on upkeep uses campaign-day recovery; retained walkthrough and cargo preflight verified, with live campaign acceptance remaining.
 
 ## Outcome
 
@@ -73,5 +73,7 @@ package boundary passes. This does not replace live game acceptance.
 
 ## Follow-on
 
-Persistent boat condition and cargo-backed repairs are tracked separately in
-`boat-condition-and-repairs.md`; tactical repair behavior is not changed here.
+Persistent boat condition, automatic campaign-day recovery and optional paid
+acceleration are tracked separately in `boat-condition-and-repairs.md`; the
+opening wreck remains a paid restoration, and tactical repair behavior is not
+changed here.
