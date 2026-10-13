@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.fort.FortService;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
@@ -313,6 +315,7 @@ public class BattleRenderer {
                 new SmokeRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
+                new FortBuildingRenderSystem(sprites),
                 new DroneRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),
@@ -689,7 +692,11 @@ public class BattleRenderer {
 
         CellTopology topology = sim.getTopology();
         if (RoofMesh.enabled() && rc.hostProfile.residentGroundAllowed()) {
+            FortService forts = sim.forts();
+            TurretCatalogRegistry catalog = TurretCatalogRegistry.installed();
             RoofMesh.RoofResolver resolver = (x, y, sink) -> {
+                // A fort building draws its own roof art; the brick roof stays out of its cells.
+                if (!forts.isEmpty() && forts.roofArtCovers(x, y, catalog)) return;
                 int[] cell = brick.resolve(false, false, false, false, x, y);
                 int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
                 sink.quad(cell[0] * TileManifest.FLOORS_TILE_SIZE + inset,
@@ -724,6 +731,7 @@ public class BattleRenderer {
                 int cy = b.cellsY[i];
                 if (!view.contains(cx, cy)) continue;
                 if (topology.isRoofDestroyed(cx, cy)) continue;
+                if (!sim.forts().isEmpty() && sim.forts().roofArtCovers(cx, cy, TurretCatalogRegistry.installed())) continue;
                 int[] c = brick.resolve(false, false, false, false, cx, cy);
                 TileManifest.TileFrame f = new TileManifest.TileFrame(c[0], c[1]);
                 addSmallTileTinted(out, f, cx, cy,

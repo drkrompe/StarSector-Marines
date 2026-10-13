@@ -12,6 +12,28 @@ import java.util.List;
  */
 public interface FortPlan {
 
+    /** What a gatehouse piece is: a tower cap standing on solid wall, or the leaves of the gate over its open passage. */
+    enum PieceKind { TOWER, GATE }
+
+    /**
+     * One piece of gatehouse art in the footprint frame: the cells it covers and the clockwise quarter turns its sprite
+     * takes from its authored frame (outer flank on the left, passage along x). The sprite is stretched to the cells.
+     */
+    record Piece(PieceKind kind, int x, int y, int width, int height, int turns) { }
+
+    /** The plan of a kind of fort. */
+    static FortPlan of(FortKind kind) {
+        return switch (kind) {
+            case BATTERY_FORT -> BatteryFort.PLAN;
+            case SHIELD_FORT -> ShieldFort.PLAN;
+        };
+    }
+
+    /** Gatehouse pieces to draw art over; empty for a kind that has no authored gatehouse art yet. */
+    default List<Piece> gatehouse() {
+        return List.of();
+    }
+
     /** One gate through the works: the open cell just outside its middle and the direction outward from it. */
     record Gate(int mouthX, int mouthY, int outX, int outY) { }
 

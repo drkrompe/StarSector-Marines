@@ -1708,11 +1708,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The battle's fortress batteries: whose they are, whether they fire, and what they withhold. */
     public FortressBatteryService fortressBatteries() { return fortressBatteries; }
 
+    /** Opens the roof over every building cell in the inclusive rectangle: a cave-in, as a wrecked building leaves. */
+    public void openRoofs(int minX, int minY, int maxX, int maxY) {
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) mapEditor.destroyRoof(x, y);
+        }
+    }
+
     /** The battle's forts: the walled compounds built round a battery, and the aspects housed in them. */
     public FortService forts() { return forts; }
 
     /** Records that the spawned structure {@code id} is a part of a fort: its platform, an aspect core or a nest. */
     public void tagFortPart(FortTag tag, long id, StructureDef structure, Faction holder) {
+        forts.tagFrame(tag.fortId(), tag);
         if (structure.isBattery()) {
             FortressBattery battery = fortressBatteries.byStructure(id);
             if (battery != null) forts.tagPlatform(tag.fortId(), battery);
@@ -1720,7 +1728,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             forts.tagEmitter(tag.fortId(), id, holder);
             shieldDomes.govern(id);
         } else if (structure.isFortAspectCore()) {
-            forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder);
+            forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder, structure.id);
         } else {
             forts.tagNest(tag.fortId(), id);
         }

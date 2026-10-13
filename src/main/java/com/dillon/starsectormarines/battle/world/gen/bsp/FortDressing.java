@@ -101,6 +101,15 @@ final class FortDressing {
         }
     }
 
+    /**
+     * A berm two courses thick: the ring at {@code distance} and a second one just outside it, sharing the one gap, so a
+     * single hairline of bags becomes a wall that reads at game scale and still turns the way in.
+     */
+    void thickRing(int x, int y, int w, int h, int distance, int gapDx, int gapDy, int gapAt, int gapWidth) {
+        ring(x, y, w, h, distance, gapDx, gapDy, gapAt, gapWidth);
+        ring(x, y, w, h, distance + 1, gapDx, gapDy, gapAt, gapWidth);
+    }
+
     private static boolean inGap(int cx, int cy, int x0, int y0, int x1, int y1,
                                  int gapDx, int gapDy, int gapAt, int gapWidth) {
         int half = gapWidth / 2;
