@@ -112,6 +112,52 @@ public final class WarshipSystem {
         if (soundId != null) cues.add(new WarshipSoundCue(kind, soundId, x, y, 1f));
     }
 
+    /** The game's own deep boom (the jump gate's), used low and slow for a ship breaking the deck. */
+    static final String ARRIVAL_REPORT_SOUND = "gate_explosion";
+    /** The game's heavy hit, used for the pressure wave arriving on the ground. */
+    static final String ARRIVAL_SETTLE_SOUND = "hit_heavy";
+    /** The game's engine boost, used for a ship climbing away: low at lift-off, higher as it goes. */
+    static final String DEPARTURE_SOUND = "engine_accelerate";
+    /** Seconds after lift-off at which the climbing roar is given a second, higher voice. */
+    static final float DEPARTURE_CLIMB_CUE_SECONDS = 2.5f;
+    /** At most one of each atmosphere sound per this many seconds, however many ships enter together. */
+    private static final float ATMOSPHERE_CUE_GAP_SECONDS = 2f;
+
+    private void atmosphereCue(WarshipSoundCue.Kind kind, String soundId, Warship ship) {
+        if (cueAllowed(kind, ATMOSPHERE_CUE_GAP_SECONDS)) cue(kind, soundId, ship.x, ship.y);
+    }
+
+    /** Whether a clock that read {@code before} and now reads {@code after} passed {@code at}. */
+    private static boolean crossed(float before, float after, float at) {
+        return before < at && after >= at;
+    }
+
+    /**
+     * Records the sounds of a ship entering and leaving through the deck. They are
+     * requests only, like every other cue here: nothing reads them back, so the
+     * simulation is the same with or without anybody listening.
+     */
+    private void entryCues(Warship ship, float entryBefore) {
+        float entryAfter = ship.entrySeconds();
+        if (entryBefore < 0f) return;
+        if (entryBefore == 0f && entryAfter > 0f) {
+            atmosphereCue(WarshipSoundCue.Kind.ARRIVAL_REPORT, ARRIVAL_REPORT_SOUND, ship);
+        }
+        if (crossed(entryBefore, entryAfter, WarshipAtmosphere.DESCENT_SECONDS * 0.82f)) {
+            atmosphereCue(WarshipSoundCue.Kind.ARRIVAL_SETTLE, ARRIVAL_SETTLE_SOUND, ship);
+        }
+    }
+
+    private void departureCues(Warship ship, float departingBefore) {
+        if (!ship.departing()) return;
+        float after = ship.departingSeconds();
+        if (departingBefore < 0f) {
+            atmosphereCue(WarshipSoundCue.Kind.DEPARTURE_ROAR, DEPARTURE_SOUND, ship);
+        } else if (crossed(departingBefore, after, DEPARTURE_CLIMB_CUE_SECONDS)) {
+            atmosphereCue(WarshipSoundCue.Kind.DEPARTURE_CLIMB, DEPARTURE_SOUND, ship);
+        }
+    }
+
     /** Puts a ship over the battle. */
     public void add(Warship ship) {
         // Doctrine passes are staggered by add order, so a fleet does not all look at once.
@@ -222,7 +268,12 @@ public final class WarshipSystem {
         ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
             doctrine(dt, sim, ship);
+            float entryBefore = ship.entrySeconds();
+            ship.addEntrySeconds(dt);
+            entryCues(ship, entryBefore);
+            float departingBefore = ship.departing() ? ship.departingSeconds() : -1f;
             depart(dt, sim, ship);
+            departureCues(ship, departingBefore);
             direct(dt, sim, ship);
             tickShield(dt, sim, ship);
             ship.fluxPool().update(dt);

@@ -10,11 +10,13 @@ import com.dillon.starsectormarines.battle.warship.SplitEvent;
 import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
 import com.dillon.starsectormarines.battle.warship.WarheadStrike;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
 import com.dillon.starsectormarines.battle.warship.WarshipEngine;
 import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipShell;
 import com.dillon.starsectormarines.battle.warship.WarshipThrust;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -98,8 +100,23 @@ public final class WarshipRenderSystem implements RenderSystem {
     /** How many puffs of smoke a missile draws behind it this frame. */
     private int tailPuffs = TAIL_PUFFS;
 
+    private final ShipAtmosphereFx atmosphereFx;
+    /** What the world's surface tints the cloud, the re-entry glow and the dust; bare rock until somebody says. */
+    private WarshipAtmosphere.Tint tint = WarshipAtmosphere.Tint.forPalette(null);
+
     public WarshipRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
+        this.atmosphereFx = new ShipAtmosphereFx(sprites);
+    }
+
+    /**
+     * Tints the atmosphere effects by the surface the battle is fought over (see
+     * {@code SurfaceZoning.forPlanetType}). The seam is here and not wired: the
+     * simulation does not carry the target's palette to presentation yet, so
+     * every battle reads as bare rock until the host that built it calls this.
+     */
+    public void surface(SurfacePalette palette) {
+        this.tint = WarshipAtmosphere.Tint.forPalette(palette);
     }
 
     @Override
@@ -116,14 +133,21 @@ public final class WarshipRenderSystem implements RenderSystem {
                 : engineClockSeconds + Math.max(0f, ctx.realDt);
         sprites.ensureEngineFxSprites();
         for (Warship ship : ctx.sim.warships().ships()) {
+            // The dust a ship's wash kicks and the ring its arrival sends out lie on the ground, under it.
+            atmosphereFx.ground(out, cam, cellPx, ctx.alphaMult, ship, tint);
+            // A ship in the cloud deck is seen through it.
+            float seen = ctx.alphaMult * WarshipAtmosphere.hullVisibility(
+                    ship.entrySeconds(), ship.departingSeconds(), ship.departing());
             // Under the hull: the nozzles sit inside its outline and the flame trails out of it.
-            drawEngines(out, cam, cellPx, ctx.alphaMult, ship);
-            drawHull(out, cam, cellPx, ctx.alphaMult, ship);
+            drawEngines(out, cam, cellPx, seen, ship);
+            drawHull(out, cam, cellPx, seen, ship);
             for (Warship.Mount m : ship.mounts()) {
-                drawMount(out, cam, cellPx, ctx.alphaMult, ship, m);
-                drawMuzzleFlash(out, cam, cellPx, ctx.alphaMult, ship, m);
+                drawMount(out, cam, cellPx, seen, ship, m);
+                drawMuzzleFlash(out, cam, cellPx, seen, ship, m);
             }
-            drawShield(out, cam, cellPx, ctx.alphaMult, ship);
+            drawShield(out, cam, cellPx, seen, ship);
+            // Cloud and heat over the hull: the deck it is dropping through, the burn of coming down.
+            atmosphereFx.sky(out, cam, cellPx, ctx.alphaMult, ship, tint);
         }
         ViewCull cull = ViewCull.of(cam);
         List<WarshipShell> shells = ctx.sim.warships().shells();

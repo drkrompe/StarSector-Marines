@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -227,11 +228,16 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         BattleCamera cam = ctx.camera;
         ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
-        float reach = sun.reachCells(WARSHIP_SHADOW_ALTITUDE_CELLS);
-        float alpha = ctx.alphaMult * WARSHIP_SHADOW_ALPHA * sun.shadowStrength();
+        float baseAlpha = ctx.alphaMult * WARSHIP_SHADOW_ALPHA * sun.shadowStrength();
         for (Warship ship : ships) {
             ShuttleSpriteCache hull = sprites.spriteByPath(ship.spritePath);
             if (hull == null) continue;
+            // A ship dropping through the deck, or climbing back into it, casts from higher up: the
+            // shadow lies further down-sun, softer and thinner, and closes on the hull as it settles.
+            float lift = WarshipAtmosphere.lift(ship.entrySeconds(), ship.departingSeconds(), ship.departing());
+            float reach = sun.reachCells(WarshipAtmosphere.altitudeCells(WARSHIP_SHADOW_ALTITUDE_CELLS, lift));
+            float alpha = baseAlpha * WarshipAtmosphere.shadowDensity(lift);
+            float soft = WarshipAtmosphere.shadowSoftness(lift);
             float rad = (float) Math.toRadians(ship.facingDegrees);
             float c = (float) Math.cos(rad);
             float s = (float) Math.sin(rad);
@@ -239,10 +245,29 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             float shadowY = ship.y + (ship.pivotX * s + ship.pivotY * c) - sun.dirY() * reach;
             if (!view.visible(shadowX, shadowY, ship.lengthCells * Math.max(1f, hull.aspect))) continue;
             float pxH = ship.lengthCells * cellPx;
-            emit(out, hull.sprite, cam, shadowX, shadowY, pxH * hull.aspect, pxH,
-                    ship.facingDegrees, alpha);
+            if (soft < 0.02f) {
+                emit(out, hull.sprite, cam, shadowX, shadowY, pxH * hull.aspect, pxH,
+                        ship.facingDegrees, alpha);
+                continue;
+            }
+            // A penumbra: the same silhouette stacked at growing size and falling density, so the
+            // edge dissolves the higher the ship is rather than the whole shape simply fading.
+            // Shares sum to one, so the core is as dark as an unsoftened shadow's and only the rim differs.
+            float total = 0f;
+            for (int ring = 0; ring < SHADOW_PENUMBRA_LAYERS; ring++) total += 1f / (1f + ring * (0.6f + soft));
+            for (int ring = 0; ring < SHADOW_PENUMBRA_LAYERS; ring++) {
+                float grow = 1f + soft * SHADOW_PENUMBRA_GROWTH * ring;
+                float share = 1f / (1f + ring * (0.6f + soft)) / total;
+                emit(out, hull.sprite, cam, shadowX, shadowY, pxH * hull.aspect * grow, pxH * grow,
+                        ship.facingDegrees, alpha * share);
+            }
         }
     }
+
+    /** Copies of a high ship's silhouette stacked to soften its shadow's edge. */
+    private static final int SHADOW_PENUMBRA_LAYERS = 4;
+    /** How much larger each outer copy is, per step, at full softness. */
+    private static final float SHADOW_PENUMBRA_GROWTH = 0.1f;
 
     /**
      * Every live body on the ground, offset away from the sun by its own

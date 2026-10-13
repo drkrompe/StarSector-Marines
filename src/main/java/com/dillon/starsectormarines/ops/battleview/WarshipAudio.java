@@ -22,6 +22,21 @@ public final class WarshipAudio {
 
     private WarshipAudio() { }
 
+    /**
+     * The pitch a kind of cue is played at. The atmosphere sounds are the game's own
+     * clips used out of their register: the boom slowed to a rumble, the heavy hit
+     * to a thud, the engine boost low at lift-off and higher as the ship climbs.
+     */
+    static float basePitch(WarshipSoundCue.Kind kind) {
+        return switch (kind) {
+            case ARRIVAL_REPORT -> 0.62f;
+            case ARRIVAL_SETTLE -> 0.55f;
+            case DEPARTURE_ROAR -> 0.6f;
+            case DEPARTURE_CLIMB -> 0.95f;
+            default -> 1f;
+        };
+    }
+
     public static void play(List<WarshipSoundCue> cues) {
         if (cues.isEmpty()) return;
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
@@ -34,7 +49,8 @@ public final class WarshipAudio {
                 Global.getSoundPlayer().playLoop(cue.soundId(), BEAM_LOOP_OWNER, 1f, cue.volume(), where, zeroVelocity);
                 continue;
             }
-            float pitch = 1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER);
+            float pitch = basePitch(cue.kind())
+                    + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER);
             Global.getSoundPlayer().playSound(cue.soundId(), pitch, cue.volume(), where, zeroVelocity);
         }
     }
