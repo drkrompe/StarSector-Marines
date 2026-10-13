@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — dedicated open recovery skids distinguish field finds from storage scenery.
+Updated: 2026-10-13 — authored recovery sites keep Relief's first exploration find inside its defended compound.
 
 Campaign loot turns a victorious operation's already-negotiated salvage right
 into one visible choice: which recovered items to claim, carry, or fence. It
@@ -37,6 +37,15 @@ reachable ground away from landing zones and tactical centers. Placement uses
 its own seeded random stream, never carves terrain, and permits fewer caches
 when legal sites are scarce. These are optional detours, not objectives or
 automatic commander assignments.
+
+A mission may author a resource's recovery area and preferred spot. That find
+uses the nearest clear, reachable cell inside its area, overriding generic
+landing/objective separation without carving ground or adding another bundle.
+An authored area with no valid cell is a setup error, rather than an invitation
+to move the find elsewhere. Relief keeps its metals find in the defended inner
+yard between the gate and relay so it is available during the assault, before
+the finite enemy force is eliminated. Its other material finds retain optional
+exploration placement.
 
 An unknown cache remains hidden by the player's actual fog of war. Discovery
 leaves a remembered marker. Company infantry must remain within three cells,
