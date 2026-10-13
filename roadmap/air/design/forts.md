@@ -4,13 +4,12 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort, redoubt/citadel and command awareness remain.
+Updated: 2026-10-13 — fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort built (slice 3: octagonal works, inner keep, power plant and control room, dome held at the control room), folding in the local shield relay; redoubt/citadel and richer command awareness remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
-which is the layout machinery a fort is built from. `hard-installation-first-map-feature.md`
-(the local shield relay) is one fort described before forts existed; it folds into this
-direction rather than shipping as a separate model.
+which is the layout machinery a fort is built from. The local shield relay, which was once its
+own story, is the shield fort below.
 
 ## What the owner asked for
 
@@ -69,9 +68,13 @@ be cracked only one way is a puzzle with one answer.
 ## The family
 
 - **Battery fort** — the platform, fire control, a magazine, and power. Nests on the wall.
-- **Shield fort** — the generator, power, and a control room. This is the local shield relay
-  of `hard-installation-first-map-feature.md`: one node of the world's shield, covering its
-  own ground.
+- **Shield fort** — the generator, power, and a control room: one node of the world's shield,
+  covering its own ground. It is the local shield relay this direction absorbed. It is a node,
+  not the planet's shield: a fire team does not switch the world-wide envelope off, it opens
+  the local tactical footprint to fire support while the rest of the planet stays protected.
+  Orbital Barrage is not denied by it; the dome absorbs barrage as ship-grade ordnance. Any
+  faction or visual treatment of its buildings is a presentation layer and may not change what
+  the fort does.
 - **Redoubt** — a walled nest cluster with a small command post; anti-air and anti-infantry,
   no ship-grade guns.
 - **Citadel** — a battery and a shield fort sharing one wall and one power plant, so cutting
@@ -111,7 +114,7 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
 ## Built: battery fort and aspects (slices 1 and 2)
 
 - **Layout.** `BatteryFort` is the authored frame (works, gates, buildings, lanes) and `FortBelt` the outer belt; both
-  rotate as one at four cardinal turns. `BatteryFortStage` stamps it on ground the city has left free (city is prior;
+  rotate as one at four cardinal turns. `FortStage` stamps it on ground the city has left free (city is prior;
   roads and precinct claims are respected), turns the main gate to face the map centre where it can, and paves a lane
   from each gate toward the nearest road (ground paint only, not in the road graph). Fort walls carry wall-health, so
   they can be breached. The belt uses the earthworks sheet `fort-earthworks` (trench sections by connection mask, thick
@@ -129,6 +132,34 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
 - **Commanders.** `DefenceStructureTactics` still works: a fort's fact points the squad at the bunker, disclosed when
   the platform is sighted.
 - **Tuning is untuned.** Numbers (12 ready rounds, 0.25 unpowered rate, core hit points) are first passes.
+
+## Built: shield fort (slice 3)
+
+- **Layout.** `ShieldFort` is a different fortress from the battery fort, not that one with the guns swapped. An
+  octagonal trace with a round tower on each diagonal face (instead of pointed corner bastions), three gates (a main
+  gate and two posterns, each with a gatehouse and a baffle), and an **inner keep**: a two-cell ring wall round the
+  generator open only at two opposite diagonal gaps, so an outer gate leads into a yard and never at the emitter.
+  The buildings keep to the half of the works away from the main gate. It shares the belt machinery (`FortBelt` now
+  takes a spec per kind) and the stamping stage (`FortStage`, driven by a `FortPlan` per kind; fort ids are unique
+  across kinds on a map).
+- **Aspects.** The generator is the **emitter** (no presence capture; destroying it ends the dome for good). The
+  **power plant** feeds the dome: wrecked, contested or held by a side that is not the dome's holder, the dome is down
+  exactly as an overloaded one is, and rises again after a reboot when power returns. The **control room** decides who
+  the dome serves: whoever holds it holds the dome, and the generator changes sides with it (the dome reboots first). A
+  governed dome ignores the old ring of ground round the generator. Power is local to the fort, and the rules are
+  written for sides: a side that has taken only the control room has a dome with no power, because the plant is still
+  the other side's to withhold; taking both gives it the dome. A wrecked control room leaves the dome with whoever held it
+  last; a wrecked plant or emitter stays wrecked.
+- **Authority.** `GroundDefences` declares shield forts by kind. Conquest's untuned first pass converts its
+  declared shield generator into one shield fort (`CONQUEST_SHIELD_AS_FORT`, one line to turn off); the DEBUG dial has a
+  shield-fort option; fixtures round-trip the declaration and a legacy fixture reads as none. A bare generator beside the
+  keep remains for scenes and the old dial option.
+- **Commanders.** A shield fort discloses two facts, both on sighting the generator: the control room (where the dome
+  is taken, held or retaken, the existing take/retake/defend roles) and the power plant (a `FORT_POWER` fact, work for the
+  side that does not hold it). Fair knowledge only.
+- **Map.** Aspect rings and labels draw as for the battery fort, with a "DOME UNPOWERED" line over the generator.
+- **Untuned.** A control room that is merely contested does not drop the dome (only the plant does); the tower and
+  keep sizes, wall hit points and the whole conversion are first passes.
 
 ## Built: building art by function
 
@@ -152,7 +183,7 @@ The wire sprite itself is still pale on earth and wants a bolder reskin; the shi
    Fire control moves from a radius around the platform to its bunker.
 2. **Aspects as dependencies** — power feeds guns, sensors and dome; the magazine feeds
    sustained fire; each aspect's state is readable on the map.
-3. **Shield fort** — folds the local shield relay story in; the dome's emitter and power.
+3. **Shield fort** (built) — see above; it folded the local shield relay story in.
 4. **Redoubt and citadel.**
 5. **Command awareness** — `DefenceStructureTactics` reasons about aspects (which one to take
    or wreck first for the effect wanted) using only what a side knows.

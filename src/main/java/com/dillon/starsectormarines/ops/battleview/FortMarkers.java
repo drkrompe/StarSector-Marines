@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -37,6 +38,10 @@ public final class FortMarkers {
         List<Marker> out = new ArrayList<>();
         if (service == null) return out;
         for (Fort fort : service.forts()) {
+            if (fort.kind() == FortKind.SHIELD_FORT) {
+                shieldMarkers(fort, player, out);
+                continue;
+            }
             FortressBattery battery = fort.battery();
             if (battery == null) continue;
             for (Fort.Place place : fort.places()) {
@@ -52,6 +57,52 @@ public final class FortMarkers {
             }
         }
         return out;
+    }
+
+    /**
+     * A shield fort's aspects: the plant and the control room as for any aspect, the emitter wrecked or not, and one line
+     * over the generator saying why the dome is not up.
+     */
+    private static void shieldMarkers(Fort fort, Faction player, List<Marker> out) {
+        Faction holder = fort.domeHolderNow();
+        if (holder == null) return;
+        for (Fort.Place place : fort.places()) {
+            if (!place.resolved()) continue;
+            FortAspect aspect = place.aspect();
+            if (aspect == FortAspect.EMITTER) {
+                if (place.wrecked()) {
+                    out.add(new Marker("EMITTER WRECKED", place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED,
+                            holder.hostileTo(player), 0f));
+                }
+                continue;
+            }
+            Faction owner = place.control().holder();
+            boolean hostile = owner.hostileTo(player);
+            if (place.wrecked()) {
+                out.add(new Marker(aspect.label() + " WRECKED", place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED, hostile, 0f));
+                continue;
+            }
+            String label = aspect.label();
+            if (place.control().contested()) {
+                label += String.format(Locale.ROOT, " CONTESTED %d%%", Math.round(place.control().captureProgress() * 100f));
+            } else if (!owner.friendlyTo(Faction.DEFENDER)) {
+                label += " TAKEN";
+            }
+            out.add(new Marker(label, place.x(), place.y(), ASPECT_RING_CELLS, Kind.ASPECT, hostile,
+                    place.control().captureProgress()));
+        }
+        Fort.Place emitter = fort.place(FortAspect.EMITTER);
+        if (emitter != null && !emitter.wrecked()) {
+            String status = shieldStatus(fort, holder);
+            if (!status.isEmpty()) {
+                out.add(new Marker(status, emitter.x(), emitter.y() - 2.4f, 0f, Kind.STATUS, holder.hostileTo(player), 0f));
+            }
+        }
+    }
+
+    /** Why a shield fort's dome is down, or an empty string when it is up. */
+    static String shieldStatus(Fort fort, Faction holder) {
+        return fort.domePowered(holder) ? "" : "DOME UNPOWERED";
     }
 
     private static Marker aspectMarker(Fort fort, FortressBattery battery, Fort.Place place, Faction player) {
