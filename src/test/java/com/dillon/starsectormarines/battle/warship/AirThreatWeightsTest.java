@@ -38,6 +38,28 @@ class AirThreatWeightsTest {
     }
 
     @Test
+    void noShieldFearsAircraftMoreThanFrontMoreThanOmni() {
+        float none = AirThreatWeights.score(new ShipClass(HullSize.CRUISER, Role.COMBAT, 0, Shield.NONE), 0f, 0f, 2);
+        float front = AirThreatWeights.score(new ShipClass(HullSize.CRUISER, Role.COMBAT, 0, Shield.FRONT), 0f, 0f, 2);
+        float omni = AirThreatWeights.score(new ShipClass(HullSize.CRUISER, Role.COMBAT, 0, Shield.OMNI), 0f, 0f, 2);
+        assertTrue(none > front && front > omni, none + " > " + front + " > " + omni);
+        assertEquals(none * AirThreatWeights.FRONT_SHIELD, front, 1e-6f);
+        assertEquals(none * AirThreatWeights.OMNI_SHIELD, omni, 1e-6f);
+    }
+
+    @Test
+    void aShieldScalesOnlyArmedCraftNotShipsOrDeclaredThreats() {
+        ShipClass omni = new ShipClass(HullSize.CAPITAL, Role.COMBAT, 0, Shield.OMNI);
+        assertEquals(1.5f + 1f, AirThreatWeights.score(omni, 1.5f, 1f, 0), 1e-6f);
+    }
+
+    @Test
+    void aPhaseHullIsJudgedAsAFrontShield() {
+        assertEquals(AirThreatWeights.score(new ShipClass(HullSize.CAPITAL, Role.COMBAT, 0, Shield.FRONT), 0f, 0f, 2),
+                AirThreatWeights.score(new ShipClass(HullSize.CAPITAL, Role.COMBAT, 0, Shield.PHASE), 0f, 0f, 2), 1e-6f);
+    }
+
+    @Test
     void aCarrierCountsFightersHighAtAnySizeAndShipsAndDeclaredThreatsAsEveryoneDoes() {
         ShipClass carrier = of(HullSize.CAPITAL, Role.CARRIER);
         assertEquals(1f, AirThreatWeights.score(carrier, 0f, 0f, 1), 1e-6f);
