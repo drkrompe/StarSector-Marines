@@ -37,7 +37,7 @@
           { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "light_autocannon_fire" }
+      "audio": { "fireSound": "marines_rook_rifle_fire" }
     },
     {
       "id": "weapon.pulse-rifle",
