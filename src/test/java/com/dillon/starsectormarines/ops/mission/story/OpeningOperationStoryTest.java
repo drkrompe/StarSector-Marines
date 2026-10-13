@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
+import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
@@ -69,6 +70,7 @@ class OpeningOperationStoryTest {
         // starting issue. Either one used to make the job disappear.
         MarineRoster grown = new MarineRoster();
         grown.bootstrapInitialComplement(36);
+        EquipmentTestFixtures.learnServiceKit(grown.armory());
         assertEquals(SquadEquipmentResult.APPLIED, grown.applySquadEquipment(
                 grown.squads().get(0).id(),
                 SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,

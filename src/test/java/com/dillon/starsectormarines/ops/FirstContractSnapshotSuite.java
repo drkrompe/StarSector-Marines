@@ -57,6 +57,8 @@ public final class FirstContractSnapshotSuite implements SnapshotSuite {
         }
         frames.add(new SnapshotArtifact("debrief-defeat.png",
                 renderDebrief(context, renderer, OpeningOperationKind.RELIEF, false)));
+        frames.add(new SnapshotArtifact("debrief-relief-no-company-losses.png",
+                renderDebrief(context, renderer, OpeningOperationKind.RELIEF, true, 0)));
         return frames;
     }
 
@@ -109,15 +111,20 @@ public final class FirstContractSnapshotSuite implements SnapshotSuite {
 
     private BufferedImage renderDebrief(SnapshotContext context, HeadlessUiRenderer renderer,
                                          OpeningOperationKind kind, boolean victory) throws Exception {
+        return renderDebrief(context, renderer, kind, victory, 2);
+    }
+
+    private BufferedImage renderDebrief(SnapshotContext context, HeadlessUiRenderer renderer,
+                                         OpeningOperationKind kind, boolean victory, int lost) throws Exception {
         MissionOutcome outcome = MissionOutcome.builder().missionId(kind.missionId).missionName(kind.displayName)
                 .missionSource(MissionSource.STORY).victory(victory).payoutEarned(victory ? kind.payout : 0)
-                .marinesEngaged(12).marinesLost(2).alliesEngaged(12).alliesLost(victory ? 3 : 12).build();
+                .marinesEngaged(12).marinesLost(lost).alliesEngaged(12).alliesLost(victory ? 3 : 12).build();
         Map<String, Object> props = ResultsScreen.previewProps(victory, false);
         props.put("missionName", outcome.missionName);
         props.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
         props.put("squadRows", List.of(new ResultsScreen.PersonnelRow("result-squad-fixture", "1st Squad",
-                "10R 0W 0M 2K", "label heading results-squad-summary tone-danger",
-                "Hale R · Chen R · Ilyin R · Okafor R · Bell K · Ruiz K")));
+                (12 - lost) + "R 0W 0M " + lost + "K", "label heading results-squad-summary " + (lost > 0 ? "tone-danger" : "tone-good"),
+                "Hale R · Chen R · Ilyin R · Okafor R · " + (lost > 0 ? "Bell K · Ruiz K" : "Bell R · Ruiz R"))));
         ResultsScreen.putStoryDebrief(props, outcome);
         return renderDocument(context, renderer, ResultsScreen.COMPONENT_PATHS, ResultsScreen.ROOT_COMPONENT, props);
     }

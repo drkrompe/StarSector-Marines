@@ -636,6 +636,7 @@ public final class BattleFixtureJson {
                 frozen.put("hullId", ship.hullId());
                 frozen.put("shipName", ship.shipName());
                 frozen.put("tender", ship.tender());
+                if (ship.memberId() != null) frozen.put("memberId", ship.memberId());
                 JSONObject weapons = new JSONObject();
                 for (Map.Entry<String, String> slot : ship.weapons().entrySet()) {
                     weapons.put(slot.getKey(), slot.getValue());
@@ -692,7 +693,8 @@ public final class BattleFixtureJson {
                     weapons.put(slot, encodedWeapons.getString(slot));
                 }
                 ships.add(new ShipSupportSource(frozen.getString("hullId"),
-                        frozen.getString("shipName"), frozen.getBoolean("tender"), weapons));
+                        frozen.getString("shipName"), frozen.getBoolean("tender"), weapons,
+                        frozen.has("memberId") && !frozen.isNull("memberId") ? frozen.getString("memberId") : null));
             }
             powers.add(new CommandPowerCommitment(
                     encoded.getString("id"), deployments, ships));

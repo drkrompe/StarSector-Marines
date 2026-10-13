@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
+import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -113,6 +114,11 @@ public final class MissionOutcome {
      * reached the ground.
      */
     public final int marinesLostAboard;
+    /**
+     * The committed ships the player called over the battle and how each ended, in the order
+     * they were called. A committed ship never called is absent, which is how it pays nothing.
+     */
+    public final List<ShipSupportResult> shipsCalled;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
@@ -189,6 +195,7 @@ public final class MissionOutcome {
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, b.salvageHighValueChancePct));
         this.boatsLost = immutableBoatLosses(b.boatsLost);
         this.marinesLostAboard = Math.max(0, b.marinesLostAboard);
+        this.shipsCalled = b.shipsCalled == null ? Collections.emptyList() : List.copyOf(b.shipsCalled);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
@@ -256,6 +263,7 @@ public final class MissionOutcome {
 
         private List<BoatLoss> boatsLost = Collections.emptyList();
         private int marinesLostAboard;
+        private List<ShipSupportResult> shipsCalled = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
@@ -475,6 +483,11 @@ public final class MissionOutcome {
 
         public Builder boatsLost(List<BoatLoss> boatsLost) {
             this.boatsLost = boatsLost;
+            return this;
+        }
+
+        public Builder shipsCalled(List<ShipSupportResult> shipsCalled) {
+            this.shipsCalled = shipsCalled;
             return this;
         }
 

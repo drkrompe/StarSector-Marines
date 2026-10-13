@@ -1,4 +1,4 @@
-<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvagePlaybackClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -40,8 +40,8 @@
         <div id="salvage-conversation" class="{salvageClasses}">
           <div id="salvage-conversation-heading" class="salvage-heading">
             <div id="salvage-conversation-status" class="label heading tone-accent">{conversationTitle}</div>
-            <button id="salvage-replay" class="salvage-play console-action" onclick="{salvageReplay}">Replay</button>
-            <button id="salvage-stop" class="salvage-play console-action" onclick="{salvageStop}">Stop</button>
+            <button id="salvage-replay" class="{salvagePlaybackClasses}" onclick="{salvageReplay}">Replay</button>
+            <button id="salvage-stop" class="{salvagePlaybackClasses}" onclick="{salvageStop}">Stop</button>
           </div>
           <div id="salvage-turns" class="salvage-turns">
             <div each="turn in salvageTurns" key="{turn.id}" id="{turn.id}" class="salvage-turn">

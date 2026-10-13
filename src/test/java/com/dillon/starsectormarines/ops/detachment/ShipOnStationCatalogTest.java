@@ -79,6 +79,7 @@ class ShipOnStationCatalogTest {
                     case "getVariant" -> variant;
                     case "getHullSpec" -> spec;
                     case "getShipName" -> name;
+                    case "getId" -> "id-" + name;
                     default -> throw new UnsupportedOperationException(method.getName());
                 });
     }
@@ -101,6 +102,8 @@ class ShipOnStationCatalogTest {
 
         assertEquals("ISS Cruiser", shipPower(PowerCatalog.contributedBy(cruiser)).sources().get(0).shipName());
         assertEquals("onslaught", shipPower(PowerCatalog.contributedBy(capital)).sources().get(0).hullId());
+        assertEquals("id-ISS Capital", shipPower(PowerCatalog.contributedBy(capital)).sources().get(0).memberId(),
+                "a committed member is written back to by its id");
         assertNull(shipPower(PowerCatalog.contributedBy(frigate)));
     }
 

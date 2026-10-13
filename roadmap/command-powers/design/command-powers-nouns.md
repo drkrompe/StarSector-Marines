@@ -4,7 +4,7 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the compact battle tray identifies its campaign-backed
+Updated: 2026-10-13 — Ship on Station delivers its own writeback bridge (law 9); the compact battle tray identifies its campaign-backed sources.
 Supplies pool with the base-game commodity icon resolved from the live spec.
 
 ## Vocabulary
@@ -104,7 +104,7 @@ commitment.
 6. UI targeting never spends or resolves a power directly. The simulation owns target validation, payment, cooldown/charge updates, and effect resolution in one activation lifecycle.
 7. Current in-battle pacing is command points plus per-power cooldowns and charges. Current campaign consumption is supplies paid at activation where a power declares it; slotting itself is not a second resource charge.
 8. A fleet capability must pass the projection lens: it either becomes a plausible ground-op ability or materially scales one. Hull-survival flavor alone is not sufficient.
-9. Committed physical support and its possible risk are distinct from the power abstraction. Crew loss, CR attrition, asset retirement, air-defense contesting, and catastrophic loss require their own delivered battlefield/campaign bridge; they are not implied by selecting a card today.
+9. Committed physical support and its possible risk are distinct from the power abstraction. Crew loss, CR attrition, asset retirement, air-defense contesting, and catastrophic loss require their own delivered battlefield/campaign bridge; they are not implied by selecting a card today. Ship on Station is the delivered bridge for its own risk: hull damage and CR attrition (a destroyed ship returns crippled) are written to the committed member through settlement (`ship-support.md`); other powers still have none.
 
 ## Boundaries and extension points
 

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Wayline relief introduces Castle's optional two-path squad equipment lesson.
+Updated: 2026-10-12 — Relief establishes the first paid company job and Mara's continuing commercial relationship, alongside Castle's equipment lesson.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -30,6 +30,15 @@ affiliation nor its militia implies that Jangala's government is Independent.
 Wayline's drivers pooled money for local protection; raiders occupied their
 freight depot and now threaten its militia post. This is a local company story,
 not a simulated change to vanilla market ownership, trade, or faction relations.
+
+The opening introduction is a first commercial relationship. Castle puts the
+company forward; Mara introduces herself through the drivers whose pooled money
+pays both the checkpoint watch and the company's fee. The preparation handoff
+marks a founding company's first paid job, while the office and mission text
+refer to the first **Wayline** contract so established companies and retries do
+not acquire a fabricated career history. Mara offers further work on the strength
+of this job, not a faction commission, permanent payroll or new patron-system status.
+Her personal knowledge of the loading crews makes the cooperative's need concrete.
 
 1. **Hold Until Relieved**: land beside the militia and break the bandit assault.
    Successful settlement pays 6,000 credits, records Relief complete, and unlocks
@@ -79,6 +88,13 @@ Story results contain a message from Mara alongside normal settlement and
 personnel facts. Allied and company losses are acknowledged only from the frozen
 outcome. A total militia loss is never described as a line saved intact. Story
 text does not introduce a survival bonus or override battle victory.
+Relief victory also carries a short written Castle/Mara exchange: the first
+Wayline payment has arrived, the company has earned a name with the drivers,
+and Mara wants to work together again. Castle acknowledges company deaths when
+present; otherwise she turns to crew pay and supplies without promising that
+every survivor is uninjured. The exchange grants nothing and is absent on defeat
+and recurring work. Its unrecorded transcript offers no audio playback controls;
+the existing tactical radio recordings remain the operational briefing.
 
 The office uses reachable campaign geography. Prefer Jangala when it is a visible,
 populated, non-player planetary market whose owner is not hostile to the player.

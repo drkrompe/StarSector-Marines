@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -391,6 +392,7 @@ public final class MissionResolver {
                 .salvageHighValueChancePct(recoveryModifier.highValueChancePct)
                 .boatsLost(boatsLost)
                 .marinesLostAboard(marinesLostAboard)
+                .shipsCalled(ShipSupportResult.allOf(sim.warships().called()))
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
@@ -480,6 +482,7 @@ public final class MissionResolver {
         }
 
         strikeLostBoats(outcome);
+        ShipSupportSettlement.settle(outcome.shipsCalled);
 
         MarineRoster roster = applyPersonnelOutcome(outcome);
         if (outcome.contractId != -1L) {

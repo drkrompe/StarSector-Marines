@@ -163,6 +163,18 @@ public final class WarshipSystem {
         // Doctrine passes are staggered by add order, so a fleet does not all look at once.
         ship.doctrineClock = DOCTRINE_PERIOD_SECONDS - 0.1f * (ships.size() % 10);
         ships.add(ship);
+        if (ship.supportSource() != null && !called.contains(ship)) called.add(ship);
+    }
+
+    private final List<Warship> called = new ArrayList<>();
+    private final List<Warship> calledView = Collections.unmodifiableList(called);
+
+    /**
+     * Every hull a ship-support call put over this battle, kept after it is destroyed or has
+     * left (unlike {@link #ships()}), so settlement can read how each one ended.
+     */
+    public List<Warship> called() {
+        return calledView;
     }
 
     /** Seconds between two doctrine passes for one ship. */
