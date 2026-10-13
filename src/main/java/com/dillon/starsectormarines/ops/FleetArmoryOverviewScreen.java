@@ -144,7 +144,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
             viewModel.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard);
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
     }
 

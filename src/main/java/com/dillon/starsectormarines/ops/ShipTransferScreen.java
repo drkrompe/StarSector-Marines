@@ -178,7 +178,7 @@ public final class ShipTransferScreen implements Screen {
     public void advance(float dt) {
         if (viewModel != null) viewModel.advance();
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_TRANSFER, context::roomAboard);
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_TRANSFER, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
     }

@@ -172,7 +172,7 @@ public final class ShipViewScreen implements Screen {
         if (workshop != null) workshop.refresh();
         if (survey != null) survey.refresh();
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard);
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (deck != null) controls.advance(dt, deck.camera());
     }

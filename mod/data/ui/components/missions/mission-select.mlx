@@ -1,4 +1,4 @@
-<template props="choiceClasses,choiceSummary,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,choiceClasses,choiceSummary,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -6,6 +6,7 @@
         <div id="mission-select-title" class="label title tone-edge">{screenTitle}</div>
         <div id="mission-select-location" class="label tone-muted">{locationLabel}</div>
       </div>
+      <button id="mission-company-news" class="{companyNewsClasses}" onclick="{companyNewsAction}">{companyNewsLabel}</button>
       <div id="mission-select-purpose" class="label heading tone-accent">CONTRACT BOARD</div>
       <img id="mission-select-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
     </div>
@@ -110,6 +111,8 @@
 </template>
 
 <style>
+  .company-news { padding: 5px 10px; color: #ffd464; border-color: #aa8742; }
+  .company-news.hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
   .choice-consequence { flex-direction: column; height: 90px; padding: 10px; gap: 6px; border-width: 1px; }
   #mission-choice-heading { height: 16px; }
   .choice-copy { height: 54px; white-space: normal; }

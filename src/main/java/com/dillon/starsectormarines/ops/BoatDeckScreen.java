@@ -111,17 +111,27 @@ public final class BoatDeckScreen implements Screen {
         restoration = new BoatBayRestorationModel(reactor,
                 () -> CompanyBayRestoration.offer(reviewedShip, roster),
                 () -> CompanyBayRestoration.repair(reviewedShip, roster),
-                () -> { selectedBayIndex.set(1); viewModel.backToDeckAction().run(); refreshBayPresentation(); invalidateBay(); },
+                () -> {
+                    if (roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId))
+                        CompanyNotices.Notice.SECOND_BAY.review(roster);
+                    selectedBayIndex.set(1); viewModel.backToDeckAction().run(); refreshBayPresentation(); invalidateBay();
+                },
                 () -> { ShipsBoatsAboard.reconcile(roster.boatDeck()); viewModel.refresh(); viewModel.selectBoatAction(1).run(); deckChanged(); });
         wings = new SecondhandWingsModel(reactor, roster.boatDeck(),
                 () -> SecondhandWingsCampaign.offer(roster),
                 review -> SecondhandWingsCampaign.purchase(roster, review),
                 () -> { viewModel.refresh(); deckChanged(); },
-                () -> viewModel.selectBoatAction(0).run());
+                () -> viewModel.selectBoatAction(0).run(),
+                () -> CompanyNotices.Notice.SECONDHAND_WINGS.review(roster));
         // Rebinding uses a new model when the shell re-enters this screen.
         if (document != null) closeDocument();
         refreshBayPresentation();
         if (document == null) installDocument();
+        var news = CompanyNotices.current();
+        if (!CompanyPreparation.required(roster)) {
+            if (news.contains(CompanyNotices.Notice.SECONDHAND_WINGS)) wings.open();
+            else if (news.contains(CompanyNotices.Notice.SECOND_BAY)) restoration.row().get().action().run();
+        }
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         if (preparationGuide != null) preparationGuide.update();
         if (document != null && wings != null && !CompanyPreparation.required(roster))
@@ -388,7 +398,7 @@ public final class BoatDeckScreen implements Screen {
             refreshBayPresentation();
         }
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard);
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
         if (document != null && wings != null && !CompanyPreparation.required(roster))

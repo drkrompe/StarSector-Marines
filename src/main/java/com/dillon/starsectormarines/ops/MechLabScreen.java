@@ -537,6 +537,8 @@ public final class MechLabScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        if (document != null && viewModel != null && viewModel.labGuideVisible())
+            CompanyNotices.Notice.HOUND_INDUCTION.review(CompanyPreparationGuide.roster());
         if (Float.isFinite(dt)) previewSeconds = (previewSeconds + Math.max(0f, dt)) % 3600d;
         if (viewModel != null) {
             cameraController.target(viewModel.fittingFocused(),
@@ -545,7 +547,7 @@ public final class MechLabScreen implements Screen {
         }
         if (markupInstance != null) {
             markupInstance.flush();
-            if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.MECH_LAB, context::roomAboard);
+            if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.MECH_LAB, context::roomAboard, CompanyNotices.current());
             if (document != null) {
                 wireEquipmentPreviews(markupInstance, document, specSheets);
             }

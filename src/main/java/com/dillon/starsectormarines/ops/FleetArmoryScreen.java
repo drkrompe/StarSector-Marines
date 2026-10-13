@@ -197,6 +197,7 @@ public final class FleetArmoryScreen implements Screen {
         MarkupInstance previousInstance = markupInstance;
         if (prepared != null) prepared.commit();
         document = built;
+        if (view == View.FIRST_REFIT) CompanyNotices.Notice.FIRST_REFIT.review(roster);
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.armory(roster, context), this::cancelGallery);
         markupInstance = candidate;
         specSheets = candidateSheets;
@@ -471,7 +472,7 @@ public final class FleetArmoryScreen implements Screen {
             if (firstRefit != null) firstRefit.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard);
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard, CompanyNotices.current());
         // Loadout cards come and go with the rarity and supplies filters, so
         // the entries a reader can ask about are wired after reconciliation
         // rather than only when the document was installed.

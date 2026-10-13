@@ -19,6 +19,7 @@ final class SecondhandWingsModel {
     private final Supplier<Offer> offer;
     private final Function<SecondhandWings.Review, String> purchase;
     private final Runnable changed, inspect;
+    private final Runnable reviewedNotice;
     private final MutableSignal<Row> row;
     private SecondhandWings.Review reviewed;
     private boolean visible;
@@ -27,6 +28,13 @@ final class SecondhandWingsModel {
 
     SecondhandWingsModel(Reactor reactor, BoatDeck deck, Supplier<Offer> offer,
                         Function<SecondhandWings.Review, String> purchase, Runnable changed, Runnable inspect) {
+        this(reactor, deck, offer, purchase, changed, inspect, () -> { });
+    }
+
+    SecondhandWingsModel(Reactor reactor, BoatDeck deck, Supplier<Offer> offer,
+                        Function<SecondhandWings.Review, String> purchase, Runnable changed, Runnable inspect,
+                        Runnable reviewedNotice) {
+        this.reviewedNotice = reviewedNotice;
         this.deck = deck; this.offer = offer; this.purchase = purchase;
         this.changed = changed; this.inspect = inspect;
         row = reactor.signal(project());
@@ -34,7 +42,10 @@ final class SecondhandWingsModel {
     Signal<Row> row() { return row; }
     boolean visible() { return visible; }
     void dismiss() { visible = false; refresh(); }
-    void open() { reviewed = SecondhandWings.review(deck); page = 0; feedback = null; visible = true; refresh(); }
+    void open() {
+        reviewed = SecondhandWings.review(deck); page = 0; feedback = null; visible = true;
+        reviewedNotice.run(); refresh();
+    }
     void refresh() { row.set(project()); }
 
     private void act() {
