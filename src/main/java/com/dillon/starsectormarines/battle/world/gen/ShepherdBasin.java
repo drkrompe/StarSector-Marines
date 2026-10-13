@@ -29,7 +29,7 @@ import java.util.Set;
 
 /** The same Asharu recovery basin on three visits. Battle progression belongs to its future host. */
 public final class ShepherdBasin {
-    public static final int WIDTH = 304, HEIGHT = 176;
+    public static final int WIDTH = 304, HEIGHT = 224;
     public enum Visit { SALVAGE_RIGHTS, COLD_START, WORKING_PASSAGE }
 
     /** Stable authored destinations consumed by the map review; no implicit capture objectives. */
@@ -58,9 +58,12 @@ public final class ShepherdBasin {
                 ShepherdBasin::buildings, ShepherdBasin::yards, ShepherdBasin::shipbreaking,
                 context -> recoveryYard(context, visit),
                 context -> RoadRasterizer.clearReplacedSurfaces(context.topology, WIDTH, HEIGHT),
-                ShepherdBasin::yardSurfaces, ShepherdBasin::terrain,
+                ShepherdBasin::yardSurfaces, ShepherdBasin::terrain, ShepherdBasin::colossusWreck,
+                context -> { if (visit == Visit.COLD_START) outerPickets(context); },
                 context -> { if (visit == Visit.WORKING_PASSAGE) hoverLane(context); }, new FinalizeStage(),
-                new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145))).run(c);
+                visit == Visit.COLD_START
+                        ? new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,176,38,279,107,151,96,188,112,170,176,243,176,199,160)
+                        : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,170,176,243,176,199,160))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, LANDING.x(), LANDING.y(), 290, 77,
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(),
                 AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.SHEPHERD_BASIN), ""), c.landingPads);
@@ -72,6 +75,15 @@ public final class ShepherdBasin {
         for (var poi : map.pointsOfInterest) requireRoute(map, poi.interiorAnchorX, poi.interiorAnchorY);
         requireRoute(map, 194, 2);
         requireRoute(map, 301, 145);
+        requireRoute(map, 170, 176);
+        requireRoute(map, 243, 176);
+        requireRoute(map, 199, 160);
+        if (visit == Visit.COLD_START) {
+            requireRoute(map, 176, 38);
+            requireRoute(map, 279, 107);
+            requireRoute(map, 151, 96);
+            requireRoute(map, 188, 112);
+        }
         if (visit == Visit.WORKING_PASSAGE) {
             List<float[]> centers = new ArrayList<>(List.of(HOVER_APPROACH));
             centers.add(HOVER_ROUTE[2]);
@@ -82,12 +94,12 @@ public final class ShepherdBasin {
                     throw new IllegalStateException("Full-size Morrow service lane obstructed at leg " + i);
             }
         }
-        if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting(map));
+        if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting(map, visit));
         return map;
     }
 
     /** Emergency and portable lights survive the outage; Cold Start restores the yard circuit. */
-    private static NightLighting nightLighting(MapResult map) {
+    private static NightLighting nightLighting(MapResult map, Visit visit) {
         List<NightLighting.Lamp> lamps = new ArrayList<>();
         // These buildings are the occupied camp. Fixtures follow their actual
         // furnished footprints and entrances, never arbitrary patches of ground.
@@ -107,7 +119,26 @@ public final class ShepherdBasin {
                 floodlight(144,125,8,"emergency",132,114), floodlight(117,126,8,"emergency",127,114),
                 floodlight(132,103,18,"yard",132,114), floodlight(132,128,18,"yard",132,114),
                 floodlight(163,118,16,"yard",171,117), floodlight(183,134,16,"yard",171,117)));
+        if (visit == Visit.COLD_START) {
+            lamps.add(floodlight(169,40,9,"camp",176,31));
+            lamps.add(floodlight(286,106,9,"camp",289,119));
+        }
+        // One salvage work light belongs to the spilled cargo apron, rather
+        // than distributing decorative pools across the open canyon.
+        lamps.add(floodlight(206,159,16,"camp",211,179));
         return new NightLighting(.76f, lamps, Set.of("emergency","camp"));
+    }
+
+    /** Three-seat roadside screens leave the carriageway and each inward flank open. */
+    private static void outerPickets(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // The haul road bends northeast toward its southern entrance. Cover sits
+        // on its western verge rather than narrowing the seven-cell carriageway.
+        for (int x = 168; x <= 170; x++) yard.prop(x, 36, "sandbag-straight-s", 0);
+        // Quarry arrivals approach from the northeast; this short elbow protects
+        // the eastern verge while leaving the southward withdrawal open.
+        for (int y = 110; y <= 112; y++) yard.prop(285, y, "sandbag-straight-e", 0);
+        for (int x = 285; x <= 287; x++) yard.prop(x, 114, "sandbag-straight-n", 0);
     }
 
     private static NightLighting.Lamp light(float x, float y, float radius, String circuit) {
@@ -127,6 +158,42 @@ public final class ShepherdBasin {
     private static void requireRoute(MapResult map, int x, int y) {
         if (Paths.isEmpty(GridPathfinder.findPath(map.grid, LANDING.x(), LANDING.y(), x, y)))
             throw new IllegalStateException("Basin destination disconnected at " + x + "," + y);
+    }
+
+    /** A cargo prize driven into the rear canyon; its spilled apron stays traversable. */
+    private static void colossusWreck(GenContext c) {
+        Doodad wreck = new Doodad(177, 165,
+                TileRegistry.installed().doodad("doodad.basin-colossus-wreck"), 3);
+        if (wreck.footprintCellsX != 60 || wreck.footprintCellsY != 48)
+            throw new IllegalStateException("Basin Colossus requires its authored 60 by 48-cell frame");
+        // Physical hull geometry is authored here, independently of the prop's
+        // observation mask. The quarter-turn puts the broad cargo body on the
+        // east, its neck in the middle and twin engines on the west. The open
+        // U between those engine pods must remain ground, not a hidden wall.
+        for (int y = 0; y < 48; y++) for (int x = 0; x < 60; x++) {
+            boolean cargo = x >= 30 && x <= 57 && y >= 3 && y <= 44
+                    && (x <= 54 || y >= 6 && y <= 41);
+            boolean neck = x >= 14 && x <= 32 && y >= 14 && y <= 33;
+            boolean engines = x >= 3 && x <= 28
+                    && (y >= 4 && y <= 12 || y >= 35 && y <= 43);
+            boolean shoulders = x >= 26 && x <= 32 && y >= 10 && y <= 37;
+            boolean solid = cargo || neck || engines || shoulders;
+            if (!solid) continue;
+            int cx = wreck.cellX + x, cy = wreck.cellY + y;
+            if (!c.grid.isWalkable(cx, cy) || c.topology.getBuildingId(cx, cy) != 0
+                    || c.topology.getGroundKind(cx, cy) == GroundKind.STREET)
+                throw new IllegalStateException("Colossus hull overlaps protected terrain at " + cx + "," + cy);
+            c.grid.setWalkable(cx, cy, false);
+            c.grid.setSeeThrough(cx, cy, false);
+            c.topology.setFixture(cx, cy, true);
+            c.markMadeGround(cx, cy);
+        }
+        c.doodads.add(wreck);
+        scar(c, 199, 157, 226, 178, 4.2);
+        StoryServiceYard yard = new StoryServiceYard(c);
+        yard.prop(198, 161, "industrial-crate-stack", 0);
+        yard.prop(204, 163, "industrial-crate-stack", 0);
+        yard.prop(210, 162, "industrial-pallet-stack", 0);
     }
 
     private static void grounds(GenContext c) {
@@ -284,6 +351,10 @@ public final class ShepherdBasin {
             c.grid.setWalkableFloor(x,y);
             c.topology.setWall(x,y,false);
             c.topology.setFixture(x,y,false);
+            // This is authored full-body circulation. The closing landscape
+            // pass must reserve the swept lane just as it reserves made yards,
+            // rather than planting fresh obstructions after this clearance.
+            c.markMadeGround(x,y);
         }
     }
 

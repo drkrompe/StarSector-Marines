@@ -349,7 +349,7 @@ public final class FogField {
     }
 
     private void derive(FogOfWarService fog, int x0, int y0, int x1, int y1) {
-        boolean[] revealed = fog.cellRevealedArray();
+        boolean[] revealed = fog.cellShownArray();
         for (int y = y0; y <= y1; y++) {
             int rowBase = y * gridW;
             for (int x = x0; x <= x1; x++) {

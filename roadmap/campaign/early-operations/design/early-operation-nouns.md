@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Agreus referral and North Weir contract; owned construction support and once-only mobilization settlement.
+Updated: 2026-10-13 - Colossus yard stakes, Cold Start ground arrival and outer pickets, and Agreus referral with the North Weir contract; live campaign acceptance remains open.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -24,8 +24,15 @@ fighting overhead. Morrow's crew made an emergency landing in their own cradle
 and evacuated; surviving hands return with the repair party. Armed scrappers
 occupy the abandoned yard. That outfit is the opposition, not scavengers as a
 whole; the overhead battle and local claims are mod-authored history.
-The cooperative's local permit is not planetary government authority. Completion of
-the Corvus arc and acknowledgement of its aftermath precede the offer;
+The cooperative's local permit is not planetary government authority.
+The broken Colossus against the northern rear canyon wall is the yard's grounded
+cargo and equipment depot, surrounded by valuable hull scrap. These stores and
+working installations are the scrappers' prize and the cooperative's reason to
+pay for reopening the basin. The cooperative keeps that larger asset and the
+yard; its smaller tender Morrow is the agreed payment in kind for all three
+contracts. The Colossus grants no fleet member, extra salvage objective or cargo
+inventory. The contract and settled correspondence make the exchange explicit.
+Completion of the Corvus arc and acknowledgement of its aftermath precede the offer;
 neither Broken Supply Route branch changes eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
@@ -56,7 +63,11 @@ Lighting changes presentation, not perception or navigation. Cold Start's comple
 shore-power connection brings the yard circuit online immediately; a later attempt
 retains that restored circuit. Working Passage departs by day.
 
-Cold Start follows the protected claim. The company escorts cooperative repair
+Cold Start follows the protected claim. The selected company begins assembled
+on the secured receiving apron, with its actual named personnel, issued equipment
+and squad leadership. There is no second insertion flight. This is the current
+mobilization's selected roster, not a saved copy of the previous battle's positions
+or a replacement for its casualties. The company escorts cooperative repair
 cargo to the workshop and covers living technicians at the pump and grounded hull.
 Delivered cargo and restored shore power are persistent field milestones; unfinished
 work needs another mobilization. Confirmed technician losses remain on the account,
@@ -71,6 +82,16 @@ and actual damage interrupt construction under the standing tender rules. Ground
 construction retains the large static hull and its collision, has a fixed working
 reach and grants neither flight nor a fleet member. Completing a real road gun
 allows the repair task to proceed; the gun fires and takes damage ordinarily.
+
+Two three-person cooperative outer pickets screen Cold Start's south haul and
+quarry approaches, alongside eight inner militia holders and two technicians.
+Four committed six-person raider teams assault through those
+roads. The first actual casualty or a post breach orders surviving pickets to
+withdraw toward distinct inner holds; a broken post never implies that its people
+were all killed. Survivor hold reports require physical arrival. The company can
+support a forward detachment or deny an exposed entry, while the constructed
+gun helps hold the tighter repair line. Refused road personnel remain distinct
+from casualties. No mandatory deaths or extra reward depend on these posts.
 
 Working Passage follows completed repairs. The same hull travels in a low hover
 with its full 24 by 20-cell body, clearing terrain along its actual movement.
@@ -783,10 +804,15 @@ equipment is part of this objective.
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
 same crew that covered the Junction. Two twin-launcher missile batteries on
-the northern hilltops cover its committed opening pass. Kestrel enters along the
-cross street, sweeps through the gap into both batteries' coverage, then arcs
-east to join a convoy-cover orbit if it survives. This authored route holds
-through damage; missile tracking and ordinary durability determine the result.
+the northern hilltops cover its opening pass. Kestrel enters from the west
+and sweeps left to right ahead of the eastbound column. An actual missile
+launch interrupts the pass: Kestrel banks forward and away from the ridge,
+then attempts to leave the corridor instead of returning to its cover orbit.
+The break preserves momentum and normal hull handling; it grants no dodge
+immunity. Batteries can reacquire and fire further volleys through ordinary
+range, line-of-fire and reload checks. Breaking early can keep Kestrel from
+reaching the second battery. Missile tracking and ordinary durability decide
+whether it escapes or crashes; only an unthreatened pass joins the cover orbit.
 The pass call follows physical commitment, the launch warning an actual missile,
 and hit/loss/return lines their observed facts. Obsolete queued calls yield to
 the loss acknowledgment. Their rotating
@@ -795,7 +821,7 @@ The hilltops and slopes remain impassable, including beneath a destroyed
 battery. Their placement does not invite a valley assault or add a capture
 objective; existing guards retain their roadside duties. Kestrel's loss is an
 encounter outcome, never a mandatory scripted death. Clearing
-the guns early can preserve the gunship. A surviving Kestrel can cover the next
+the guns early can preserve the gunship. An unthreatened Kestrel can cover the next
 crossing until its station time runs out. Losing it does not gate convoy progress,
 increase the company's deployment minimum, or charge the player for Wayline's
 ship. A crash damages the ground and leaves a permanent wreck for that battle,
@@ -1028,6 +1054,16 @@ clean subtitles, synthesis text, sound IDs, voice/model settings and duration;
 source takes and generation receipts remain authoring assets. Generation is
 an explicit authoring command, never a build or gameplay network operation.
 Credentials stay in the author's local environment, outside shipped content.
+Unrecorded characters must receive an explicit voice assignment before synthesis;
+they cannot inherit the catalog host's voice. Text-only drafts remain readable
+and silent until recordings have been reviewed and packaged.
+
+Shepherd recovery uses Castle for company guidance and Tamsin Vale for the yard's
+repair and departure work. Vale's retained voice is `cZH6erlGkOyAQheipyno`;
+her working-yard authority is distinct from Mara's broker role. Recorded militia
+handover reports require a confirmed hold, and departure/transfer dialogue requires
+the corresponding physical mission fact. Text-only beats can coexist with recorded
+lines without borrowing another character's voice or promising an uncompleted task.
 
 ## Boundaries and acceptance
 

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-13 — planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.; a fort's aspects are chosen between by `FortTactics` (see `forts.md`).
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -256,6 +256,12 @@ squads committed to a compound capture or in a command group) and only while the
 the keep or final-compound convergence; the defender draws on its unselected reserve after the track response has
 chosen. Directive reasons `DEFENCE_STRUCTURE_TAKE/RETAKE/DEFEND` explain the order in selected-squad UI, dumps and traces.
 A battle with no structures plans exactly as before.
+
+*Forts.* The aspects of one fort (`DefenceStructureFact.fortId`) are not each a task: `FortTactics` chooses which are
+work, in what order, and whether to hold or wreck, and each task carries its reason as a sentence in the command plan
+summary. Against a battery the bunker comes first; against a shield fort the plant comes before the control room; the
+defence stands to at the most critical pressed aspect and retakes in the same order (`forts.md`, *Built: command
+awareness*).
 
 *Evidence.* The `defence-structure-command` scene (take, no-commander control, own-structure control, retake) and
 `DefenceStructureTacticsTest`. Not built: coordinating more than one squad per structure, escorting a ship's call on a

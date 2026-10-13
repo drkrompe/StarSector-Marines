@@ -241,7 +241,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
             props.put("storyProgress",passage.departed()?"MORROW / PHYSICAL CLIMB-OUT CONFIRMED":passage.disabled()?"CRITICAL DISABLE / DEPARTURE ABORTED":"DEPARTURE INCOMPLETE");
             props.put("storyMessage",(outcome.victory
-                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Registry accepted. Morrow joins your fleet once, with willing working crew covering her minimum complement. The corridor belongs to the cooperative. Hull, workshop, and a very long list of maintenance jobs.")
+                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Registry accepted. Morrow joins your fleet once, with willing working crew covering her minimum complement. The cooperative keeps the reopened yard and the broken Colossus with its cargo and equipment. The smaller tender is your agreed payment in kind for all three contracts. Hull, workshop, and a very long list of maintenance jobs.")
                     : "The claim and completed repairs remain. Vale will recover and refit the same grounded hull for another departure; confirmed losses remain on the account.") + " Cooperative militia lost: "+passage.militiaLost()+".");
         }
         if(outcome!=null && outcome.coldStart!=null) {

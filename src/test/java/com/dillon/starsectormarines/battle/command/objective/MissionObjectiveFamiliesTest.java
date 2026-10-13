@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import java.util.Collections;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.story.ColdStartPicket;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class MissionObjectiveFamiliesTest {
     }
 
     @Test void coldStartMeasuresWorkButConstructionHasNoInventedTimer() {
-        var reserve = Collections.nCopies(16, new EntitySpec("Road team", Faction.DEFENDER, UnitType.MILITIA, 0, 0));
+        var reserve = Collections.nCopies(24, new EntitySpec("Road team", Faction.DEFENDER, UnitType.MILITIA, 0, 0));
         var sequence = new ColdStartSequence(2, 1, reserve, true, false, new StoryBeatLog());
         sequence.progress().advance(17.5f, true, true, true, true, true, false, false, false);
         assertEquals(.5f, MissionObjectiveFamilies.coldStart(sequence).progress());
@@ -109,7 +110,7 @@ class MissionObjectiveFamiliesTest {
     }
 
     @Test void coldStartEscortRallyIsNotMisnamedAsTheWorkshop() {
-        var reserve = Collections.nCopies(16, new EntitySpec("Road team", Faction.DEFENDER, UnitType.MILITIA, 0, 0));
+        var reserve = Collections.nCopies(24, new EntitySpec("Road team", Faction.DEFENDER, UnitType.MILITIA, 0, 0));
         var sequence = new ColdStartSequence(2, 1, reserve, false, false, new StoryBeatLog());
         var item = MissionObjectiveFamilies.coldStart(sequence);
         assertEquals("Repair-carrier escort rally", item.focus().name());
@@ -117,6 +118,22 @@ class MissionObjectiveFamiliesTest {
         assertEquals(sequence.targetY(), item.focus().y());
         assertTrue(item.instruction().contains("workshop"));
         assertTrue(item.blocker().contains("unloading point"));
+    }
+
+    @Test void picketStrengthAndWithdrawalAreOptionalReportsWithoutCaptureMeters() {
+        var post = new ColdStartPicket("south_haul", 5, 176, 38, 151, 96, 3);
+        post.observe(10, 3, 0, true, false);
+        var contact = MissionObjectiveFamilies.coldStartPicket(post.report());
+        assertEquals("CONTACT REPORTED", contact.phase());
+        assertEquals(-1, contact.progress());
+        assertEquals("3/3 militia alive", contact.progressText());
+        post.observe(20, 1, 0, true, false);
+        var retreat = MissionObjectiveFamilies.coldStartPicket(post.report());
+        assertEquals("FALLING BACK", retreat.phase());
+        assertEquals(151, retreat.focus().x());
+        assertEquals(96, retreat.focus().y());
+        assertFalse(retreat.progressText().contains("overrun"));
+        assertTrue(retreat.steps().startsWith("Optional"));
     }
 
     @Test void depotCaptureAndAnnouncedAttacksAreSeparateObligations() {

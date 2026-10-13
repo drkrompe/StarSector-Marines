@@ -120,7 +120,7 @@ public final class DebugMissionCatalog {
                     : Mission.builder(chapter.mission("unused", chapter.planetName, ""));
             return builder.id(PREFIX + name()).name(title).source(MissionSource.DEBUG).payout(0)
                     .requiredDrops(squads * 2).employerShuttles(0)
-                    .marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                    .marineArrivalPolicy(this == COLD_START ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
                     .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (hound ? " + Wayward (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
