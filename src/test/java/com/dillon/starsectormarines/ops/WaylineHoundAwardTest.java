@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
@@ -23,11 +24,14 @@ class WaylineHoundAwardTest {
             MarineRoster roster = new MarineRoster();
             var outcome = outcome(true, MissionSource.STORY, OpeningOperationKind.COUNTERATTACK.missionId,
                     new WaylineHoundRecovery.Report(activated, disabled));
+            assertFalse(CompanyShipRestoration.mechBayRestored(roster));
             MissionResolver.recordStoryCompletion(roster, outcome);
+            assertTrue(CompanyShipRestoration.mechBayRestored(roster));
             assertTrue(roster.hasCompletedStory(outcome.missionId));
             assertEquals(WaylineHound.deployment(), roster.mechBay().mechById(WaylineHound.ID).freezeForDeployment());
             assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));
             roster = roundTrip(roster);
+            assertTrue(CompanyShipRestoration.mechBayRestored(roster));
             MissionResolver.recordStoryCompletion(roster, outcome);
             assertEquals(1, roster.mechBay().activeDeployment().size());
             assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));

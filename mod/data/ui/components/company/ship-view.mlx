@@ -1,4 +1,4 @@
-<template props="workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -12,7 +12,30 @@
     <div id="ship-view-stage" class="panel ship-view-stage console-well">
       <canvas id="ship-view-deck" class="ship-view-deck" width="1600" height="900" />
     </div>
-    <div id="workshop-restoration" class="{workshop.classes}">
+    <div id="ship-condition" class="{survey.classes}">
+      <div id="survey-heading" class="{survey.headingClasses}">{survey.summary}</div>
+      <div id="ship-condition-rooms" class="{survey.listClasses}">
+        <button each="room in survey.rooms" key="{room.id}" id="{room.id}" class="{room.classes}" onclick="{room.select}">
+          <div id="{room.nameId}" class="label heading survey-name">{room.label}</div>
+          <div id="{room.statusId}" class="label tone-muted survey-status">{room.status}</div>
+        </button>
+      </div>
+      <div id="ship-condition-detail" class="{survey.detailClasses}">
+        <div id="survey-officer" class="officer-row">
+          <img id="survey-portrait" class="officer-portrait" src="{survey.portrait}" />
+          <div id="survey-officer-name" class="label heading tone-accent officer-title">CASTLE / COMPANY OFFICER</div>
+        </div>
+        <div id="survey-title" class="label heading tone-accent survey-title">{survey.title}</div>
+        <div id="survey-copy" class="label wrapped survey-copy">{survey.copy}</div>
+        <div id="survey-benefit" class="label wrapped survey-benefit tone-edge">{survey.benefit}</div>
+        <div id="survey-bill" class="label wrapped workshop-bill heading tone-accent">{survey.bill}</div>
+        <div id="survey-reason" class="label wrapped survey-reason tone-muted">{survey.reason}</div>
+        <div id="survey-actions" class="action-row">
+        <button id="ship-condition-action" class="{survey.actionClasses}" disabled="{survey.disabled}" onclick="{survey.action}">{survey.actionLabel}</button>
+        </div>
+        <div id="survey-feedback" class="label wrapped workshop-feedback tone-accent">{survey.feedback}</div>
+      </div>
+    <div id="workshop-restoration" class="{survey.workshopClasses}">
       <div id="workshop-officer" class="officer-row">
         <img id="workshop-portrait" class="officer-portrait" src="{workshop.portrait}" />
         <div id="workshop-officer-title" class="label heading tone-accent officer-title">CASTLE / COMPANY OFFICER</div>
@@ -37,6 +60,7 @@
       <div id="workshop-feedback" class="label wrapped workshop-feedback tone-accent">{workshop.feedback}</div>
     </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -51,7 +75,7 @@
   .ship-view-stage { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 10px; overflow: hidden; border-width: 2px; }
   .ship-view-deck { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
-  .restoration-panel { flex-direction: column; width: 360px; padding: 10px; gap: 6px; border-width: 1px; border-color: #b99f65; background-color: #202c28; overflow: scroll; }
+  .restoration-panel { flex-direction: column; width: 100%; height: 590px; padding: 10px; gap: 6px; border-width: 1px; border-color: #b99f65; background-color: #202c28; overflow: scroll; }
   .officer-row { flex-direction: row; height: 64px; gap: 8px; }
   .officer-portrait { width: 54px; height: 64px; }
   .officer-title { width: 0px; flex-grow: 1; height: 50px; white-space: normal; }
@@ -69,5 +93,17 @@
   .reclaim-copy { height: 40px; }
   .reclaim-reason { height: 34px; }
   .workshop-feedback { height: 34px; }
+  .condition-panel { flex-direction: column; width: 370px; height: 100%; padding: 10px; gap: 8px; border-width: 1px; border-color: #b99f65; background-color: #18221f; overflow: scroll; }
+  .survey-heading { width: 100%; height: 34px; white-space: normal; }
+  .survey-list { flex-direction: column; width: 100%; height: 184px; overflow: scroll; gap: 3px; }
+  .survey-room { flex-direction: column; width: 100%; height: 42px; padding: 4px 6px; border-width: 1px; }
+  .survey-room.selected { border-color: #d1b774; background-color: #374137; }
+  .survey-name { width: 100%; height: 18px; }
+  .survey-status { width: 100%; height: 16px; }
+  .condition-detail { flex-direction: column; width: 100%; height: 530px; gap: 7px; }
+  .survey-title { width: 100%; height: 24px; }
+  .survey-copy { height: 82px; }
+  .survey-benefit { height: 82px; }
+  .survey-reason { height: 48px; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>
