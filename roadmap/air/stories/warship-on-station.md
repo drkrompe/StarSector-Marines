@@ -4,7 +4,7 @@ Status: PLANNED
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — shields shipped on the flux pool (the half-flux stand-in is retained as the brawler's fire-rate setting); readiness recorded as deliberately open.
+Updated: 2026-10-13 — readiness resolved by ship-support writeback; shields shipped on the flux pool.
 
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
 `combat-durability-nouns.md`, `command-powers-nouns.md` and
@@ -98,9 +98,10 @@ exists.
 
 ## Open
 
-- **Readiness (combat readiness).** Deferred until fleet ship support exists:
-  without a fleet to draw from, a readiness cost has nothing to be spent from, and
-  the world-level gating above already does that job.
+- **Readiness (combat readiness)** is resolved by ship support writeback
+  (`ship-support.md`, slice 2): a called committed ship pays its hull's own CR-to-deploy
+  at settlement, and a ship destroyed in battle comes back crippled at CR zero. The
+  world-level gating above still does the gating; readiness is the fleet-level price.
 - **Shield refinements.** Hard flux, damage-type multipliers on efficiency, rounds
   stopped at the bubble rather than the hull, and per-hull shield colours.
 

@@ -187,6 +187,8 @@ public final class Warship {
     float turnVelocity;
     private boolean headingChosen;
     private float hitPoints;
+    /** The ship-support source this hull was called from, or null for any ship not called that way. */
+    private ShipSupportSource supportSource;
     /** Seconds of station time left, counted down while the ship is on station; infinite when unbounded. */
     private float stationSecondsRemaining = Float.POSITIVE_INFINITY;
     private boolean departing;
@@ -659,6 +661,16 @@ public final class Warship {
 
     public boolean destroyed() {
         return hitPoints <= 0f;
+    }
+
+    /** Marks this hull as the one a ship-support call fitted from {@code source}; the battle then records its result. */
+    public void calledFrom(ShipSupportSource source) {
+        this.supportSource = source;
+    }
+
+    /** The source this hull was called from, or null. */
+    public ShipSupportSource supportSource() {
+        return supportSource;
     }
 
     /**

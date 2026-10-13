@@ -18,9 +18,13 @@ import java.util.Set;
  * <p>The loadout is the slot-to-weapon map the member was fitted with at launch,
  * including built-ins. A tender carries no guns of its own (its drones are its weapons),
  * so its map is empty.
+ *
+ * <p>{@code memberId} is the committed fleet member this ship was frozen from, as the plain
+ * id string settlement finds it by; null for a debug or employer ship, which is how those
+ * write nothing back.
  */
 public record ShipSupportSource(String hullId, String shipName, boolean tender,
-                                Map<String, String> weapons) implements WarshipLoadout {
+                                Map<String, String> weapons, String memberId) implements WarshipLoadout {
 
     /** The hull a tender is fitted from; mirrors {@code Tender.HULL_ID} without depending on it. */
     public static final String TENDER_HULL_ID = "shepherd";
@@ -29,6 +33,17 @@ public record ShipSupportSource(String hullId, String shipName, boolean tender,
         if (hullId == null || hullId.isBlank()) throw new IllegalArgumentException("a ship source needs a hull");
         if (shipName == null || shipName.isBlank()) shipName = hullId;
         weapons = weapons == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(weapons));
+        if (memberId != null && memberId.isBlank()) memberId = null;
+    }
+
+    /** A ship with no campaign member behind it: a stock, debug or employer ship. */
+    public ShipSupportSource(String hullId, String shipName, boolean tender, Map<String, String> weapons) {
+        this(hullId, shipName, tender, weapons, null);
+    }
+
+    /** The same ship, frozen from the fleet member with this id. */
+    public ShipSupportSource withMemberId(String id) {
+        return new ShipSupportSource(hullId, shipName, tender, weapons, id);
     }
 
     @Override public String weaponInSlot(String slotId) {

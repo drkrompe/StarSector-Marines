@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
+Updated: 2026-10-13 — slice 2 (writeback) is built; slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -28,7 +28,7 @@ they hand that mechanism:
 | Source | a committed fleet member (a warship or a Shepherd) | a stock hull, or the employer's offered hull |
 | Loadout | the member's own fitted variant, frozen at launch | the stock variant |
 | Cost at use | supplies, as other powers | free, as other debug powers |
-| Writeback | hull damage and readiness to the member (slice 2) | none |
+| Writeback | hull damage and readiness to the member | none |
 
 Everything in battle (arrival, station, stance, director, piloting, departure, loss)
 is the same code whoever supplied the ship. A mission script that wants a ship (Cold
@@ -54,8 +54,8 @@ the battle roster is frozen at launch and holds no campaign objects (a frozen
 - **Pacing.** One activation per source per battle, a bounded station time
   (`stayFor`), then it departs back the way it came. The player can take the helm
   through direct control at any point, as today.
-- **Loss.** A ship taken to nothing is lost for the battle, and (slice 2) the campaign
-  member takes the damage. That risk is the honest price of bringing a capital, and the
+- **Loss.** A ship taken to nothing is lost for the battle, and the campaign
+  member takes the damage (slice 2). That risk is the honest price of bringing a capital, and the
   reason commitment is the player's choice.
 
 ## What makes it fun in atmosphere
@@ -88,8 +88,8 @@ In the order they are worth building:
    sources (fleet member, stock, employer), the frozen loadout through the detachment,
    activation, edge entry, station, stance, departure, the debug picker re-pointed onto
    it. Evidence: a behaviour scene and unit tests at the catalog and loadout seams.
-2. **Writeback:** hull damage and a readiness cost to the committed member, through
-   mission settlement. Unlocks the deferred readiness item in `warship-on-station.md`.
+2. **Writeback** (BUILT, 2026-10-13): hull and readiness to the committed member through
+   mission settlement; see "Slice 2 as built".
 3. **Arrival and departure in atmosphere** (built): the descent, shadow, glow, pressure
    wave and sound, presentation only and deterministic from the ship's own clocks. A
    ship that `arriveFromAbove()` drops through a cloud deck about fifty cells up over six
@@ -138,3 +138,27 @@ Finding: a capital's own hover speed makes the approach long. An Onslaught enter
 west edge took about 74 s to reach a cell 80 cells in, so most of a 90 s visit is travel
 for deep targets. Tuning (a faster arrival, station time counted from entry, or a nearer
 entry point) is an owner call alongside slice 3.
+
+## Slice 2 as built
+
+Drafted owner answers applied, including question 3 (crippled, not destroyed). A source
+frozen from a committed member carries its fleet member id (a string, never the member);
+debug and employer ships carry none, which is the whole of their difference: no id, no
+result, no writeback. The ship records nothing while it works; the battle keeps every hull
+a call put over it (`WarshipSystem.called`, which survives destruction and departure),
+`MissionResolver.compute` freezes each as a `ShipSupportResult` on the outcome, and
+`apply` settles them through `ShipSupportSettlement` beside the lost-boat strike.
+
+| Case | Hull | Combat readiness |
+| --- | --- | --- |
+| Committed, never called | unchanged | unchanged |
+| Called, survived | prior hull x share left, never below 10% | less the hull's CR-to-deploy |
+| Called, destroyed | 10% (or its prior hull if lower), crippled not lost | 0 |
+| Debug or employer ship | nothing | nothing |
+
+The readiness figure is the member's own `getDeployCost` (the `ship_data.csv` "CR to
+deploy": Onslaught 12%, Conquest 15%, Paragon 20%, Shepherd 20%), the same price vanilla
+charges to deploy that hull, so no number is invented. The results screen lists each called
+ship with its hull left, or as crippled. Needs a live look: `getStatus().setHullFraction`
+and `getRepairTracker().setCR` on a real member (whether the fleet screen shows the hull
+and CR as written, and whether a crippled member needs a repair or only supplies).
