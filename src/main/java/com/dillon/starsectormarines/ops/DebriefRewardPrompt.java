@@ -50,7 +50,7 @@ final class DebriefRewardPrompt {
         props.put("classes", "reward-hidden"); props.put("title", ""); props.put("copy", "");
         props.put("actionLabel", "CHOOSE FREE TECHNOLOGY"); props.put("lineIcon", "");
         props.put("scoutWeaponIcon", ""); props.put("scoutArmorIcon", "");
-        props.put("open", (Runnable) () -> {}); props.put("later", (Runnable) () -> {});
+        props.put("open", (Runnable) () -> {});
         return props;
     }
     private void refresh() {
@@ -66,7 +66,7 @@ final class DebriefRewardPrompt {
             props.put("scoutWeaponIcon", EquipmentIcons.primary(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.MILSPEC));
             props.put("scoutArmorIcon", MarineArmorPattern.BLUE_SCOUT.iconPath);
         }
-        props.put("open", (Runnable) this::choose); props.put("later", (Runnable) this::dismiss);
+        props.put("open", (Runnable) this::choose);
         row.set(props);
     }
 }

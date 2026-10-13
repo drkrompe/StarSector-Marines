@@ -102,7 +102,6 @@
         <div id="reward-footnote" class="label tone-muted reward-footnote">Compare the equipment before choosing. Your debrief and pending salvage will wait here.</div>
         <div id="reward-actions" class="reward-actions">
           <button id="reward-open" class="reward-open good-surface console-action" onclick="{rewardPrompt.open}">{rewardPrompt.actionLabel}</button>
-          <button id="reward-later" class="reward-later console-action" onclick="{rewardPrompt.later}">LATER</button>
         </div>
       </div>
       <div id="reward-space-below" class="reward-space" />
@@ -127,7 +126,6 @@
   .reward-footnote { height: 22px; }
   .reward-actions { flex-direction: row; height: 40px; gap: 12px; }
   .reward-open { width: 260px; height: 38px; font-family: heading; }
-  .reward-later { width: 120px; height: 38px; }
 
   .results-refit { flex-direction: row; height: 76px; padding: 8px; gap: 14px; align-items: center; border-width: 1px; border-color: #dfc588; }
   .refit-portrait { width: 72px; height: 72px; }

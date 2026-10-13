@@ -104,7 +104,6 @@ final class FirstRefitModel {
         props.put("claimLabel", path == null ? "CHOOSE A PATH" : "LEARN " + path.label.toUpperCase(Locale.ROOT));
         props.put("issueClasses", claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
-        props.put("laterLabel", complete ? "EQUIPMENT" : "EQUIPMENT / Continue later");
         props.put("doneClasses", complete ? "refit-action console-action" : "refit-hidden");
         props.put("claim", (Runnable) this::claim);
         props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
