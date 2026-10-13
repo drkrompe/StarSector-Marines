@@ -12,6 +12,10 @@ import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
+import com.dillon.starsectormarines.battle.tender.BuildOption;
+import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.tender.TenderPilot;
+import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -64,8 +68,12 @@ public final class DirectControlSession {
             WarshipPilot.Command.HOLD_FIRE, WarshipPilot.Command.TOGGLE_DIRECTOR,
             WarshipPilot.Command.CYCLE_MISSILE_PRESET, WarshipPilot.Command.CYCLE_GROUND_FIRE};
     private final WarshipSystem warships;
+    private final TenderSystem tenders;
     private BiPredicate<Integer, Integer> revealed;
     private Warship ship;
+    /** The tender whose hull is {@link #ship}, when the hull under control is one; its helm is the tender's. */
+    private Tender tender;
+    private final TenderPilot.Pad tenderPad = new TenderPilot.Pad();
 
     public DirectControlSession(BattleControl battle, UnitRosterService roster,
                                 LongPredicate unavailable, BooleanSupplier complete) {
@@ -79,6 +87,15 @@ public final class DirectControlSession {
     public DirectControlSession(BattleControl battle, UnitRosterService roster,
                                 LongPredicate unavailable, BooleanSupplier complete,
                                 WarshipSystem warships, BiPredicate<Integer, Integer> revealed) {
+        this(battle, roster, unavailable, complete, warships, null, revealed);
+    }
+
+    /** As above, with the tenders whose hulls are among {@code warships}: a tender hull is flown as a tender. */
+    public DirectControlSession(BattleControl battle, UnitRosterService roster,
+                                LongPredicate unavailable, BooleanSupplier complete,
+                                WarshipSystem warships, TenderSystem tenders,
+                                BiPredicate<Integer, Integer> revealed) {
+        this.tenders = tenders;
         this.battle = battle;
         this.roster = roster;
         this.unavailable = unavailable;
@@ -98,6 +115,12 @@ public final class DirectControlSession {
     public boolean warshipControl() { return ship != null; }
     /** The warship under control, or null. */
     public Warship controlledWarship() { return ship; }
+    /** The tender under control, or null when nothing is, or the hull is an ordinary warship. */
+    public Tender controlledTender() { return tender; }
+    /** What a tender pilot's hands remember: the last placement notice. */
+    public TenderPilot.Pad tenderPad() { return tenderPad; }
+    /** The option the tender pilot has selected, or null when the chosen number key has no option. */
+    public BuildOption selectedBuildOption() { return tender == null ? null : TenderPilot.option(selectedWeapon); }
     public boolean isControlling(long id) { return id != 0L && id == unitId; }
     public ManualIntent intent() { return intent; }
     /** 0 is all direct weapons; 1..3 name ARMS, LEFT_SHOULDER, and RIGHT_SHOULDER. */
@@ -111,6 +134,8 @@ public final class DirectControlSession {
     }
 
     public boolean canSelectWeapon(int selection) {
+        // A tender's number keys choose what to build; a slot with no option behind it is refused.
+        if (tender != null) return TenderPilot.option(selection) != null;
         // A warship has no weapon to choose: its four number keys are commands (see WARSHIP_COMMANDS).
         if (ship != null) return selection >= 0 && selection < WARSHIP_COMMANDS.length;
         if (!unitActive() || !roster.isAliveById(unitId)) return false;
@@ -124,6 +149,10 @@ public final class DirectControlSession {
     /** Serialized player choice; switching releases queued rounds without changing installed equipment. */
     public boolean selectWeapon(int selection) {
         if (!canSelectWeapon(selection)) return false;
+        if (tender != null) {
+            selectedWeapon = selection;
+            return true;
+        }
         if (ship != null) return WarshipPilot.command(ship, WARSHIP_COMMANDS[selection]);
         if (selection == selectedWeapon) return true;
         selectedWeapon = selection;
@@ -146,7 +175,10 @@ public final class DirectControlSession {
 
     /** Availability does not spend equipment or change the actor's current channel. */
     public boolean canUseAbility(DirectControlAbility ability) {
-        if (ship != null) return ability == DirectControlAbility.SHIELD && ship.hasShield();
+        if (ship != null) {
+            return ability == DirectControlAbility.SHIELD && ship.hasShield()
+                    || ability == DirectControlAbility.CANCEL_BUILDS && tender != null;
+        }
         if (ability == null || !unitActive() || !eligible(unitId) || vehicleControl
                 || roster.identity().type(unitId) != UnitType.MARINE
                 || pendingAbilities.containsKey(ability)) return false;
@@ -158,6 +190,7 @@ public final class DirectControlSession {
                 yield spec != null && spec.grantsMitigation() && roster.integralSystems().canActivate(unitId);
             }
             case SMOKE -> SmokeTactics.canThrow(unitId, battle);
+            case CANCEL_BUILDS -> false;
         };
     }
 
@@ -165,7 +198,9 @@ public final class DirectControlSession {
     public boolean requestAbility(DirectControlAbility ability, PointFireAim aim) {
         // The ship's shield key is a toggle the pilot owns, not a charge: it takes effect at once.
         if (ship != null) {
-            return canUseAbility(ability) && WarshipPilot.command(ship, WarshipPilot.Command.TOGGLE_SHIELD);
+            if (!canUseAbility(ability)) return false;
+            return ability == DirectControlAbility.CANCEL_BUILDS ? TenderPilot.cancelBuilds(tender)
+                    : WarshipPilot.command(ship, WarshipPilot.Command.TOGGLE_SHIELD);
         }
         if (!canUseAbility(ability) || aim == null || !Float.isFinite(aim.x()) || !Float.isFinite(aim.y())) {
             return false;
@@ -261,10 +296,13 @@ public final class DirectControlSession {
         if (active()) return ship != null && ship == candidate;
         if (!canEnterWarship(candidate)) return false;
         ship = candidate;
+        tender = tenders == null ? null : tenders.of(candidate);
+        tenderPad.reset();
         selectedWeapon = 0;
         intent = ManualIntent.NEUTRAL;
         pendingAbilities.clear();
-        candidate.takeHelm();
+        if (tender != null) tender.takeHelm();
+        else candidate.takeHelm();
         return true;
     }
 
@@ -299,11 +337,15 @@ public final class DirectControlSession {
         secondaryHeld = false;
         if (ship != null) {
             Warship released = ship;
+            Tender releasedTender = tender;
             ship = null;
+            tender = null;
+            tenderPad.reset();
             selectedWeapon = 0;
             pendingAbilities.clear();
             intent = ManualIntent.NEUTRAL;
-            released.releaseHelm();
+            if (releasedTender != null) releasedTender.releaseHelm();
+            else released.releaseHelm();
             return;
         }
         long previous = unitId;
@@ -372,6 +414,12 @@ public final class DirectControlSession {
      */
     private void tickWarship() {
         ManualIntent input = intent;
+        if (tender != null) {
+            TenderPilot.apply(tender, new TenderPilot.Hands(input.moveX(), input.moveY(),
+                            input.aimX(), input.aimY(), input.firing(), input.secondary()),
+                    tenderPad, TenderPilot.option(selectedWeapon), battle.getGrid(), revealed);
+            return;
+        }
         WarshipPilot.apply(ship, new WarshipPilot.Hands(input.moveX(), input.moveY(),
                         input.aimX(), input.aimY(), input.firing(), input.secondary()),
                 battle.getGrid().getWidth(), battle.getGrid().getHeight(), revealed);

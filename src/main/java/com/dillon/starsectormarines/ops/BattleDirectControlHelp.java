@@ -82,6 +82,20 @@ final class BattleDirectControlHelp {
                 add(out, "", "ShipLances");
                 add(out, "", "ShipPd");
             }
+            case TENDER -> {
+                add(out, "WASD", "ShipFly");
+                add(out, "LMB hold", "TenderBuild");
+                add(out, "RMB", "TenderDrones");
+                add(out, "1", "TenderOption");
+                add(out, "2 3 4", "TenderSoon");
+                add(out, "X", "TenderCancel");
+                add(out, "E", "ShipShield");
+                add(out, "Tab / Esc", "TenderLeave");
+                add(out, "", "TenderSeen");
+                add(out, "", "TenderReach");
+                add(out, "", "TenderStandDown");
+                add(out, "", "ShipFlux");
+            }
             case NONE -> { }
         }
         return List.copyOf(out);
