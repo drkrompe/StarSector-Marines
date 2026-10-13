@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * The fort's outer belt, authored in the {@link BatteryFort} frame: an irregular ring of trench and sandbag line with
@@ -40,39 +41,75 @@ public final class FortBelt {
         }
     }
 
-    private static final int[][] VERTICES = {
-            {13, 4}, {26, 5}, {33, 9}, {48, 3}, {60, 3}, {70, 3}, {77, 13},
-            {77, 25}, {78, 33}, {76, 40}, {77, 50}, {76, 62},
-            {62, 66}, {50, 65}, {40, 68}, {27, 65}, {18, 67},
-            {4, 62}, {3, 48}, {5, 40}, {4, 32}, {3, 21}, {6, 11}};
+    /**
+     * The approach lane of one gate, in the footprint frame: the belt and wire stay open in front of it.
+     *
+     * @param dirX,dirY the gate's outward direction, one of the four cardinal steps
+     * @param edge      the works' edge the lane leaves from, on the axis of travel: cells strictly beyond it (below it
+     *                  when the direction is negative) are in the lane
+     * @param centre    the lane's middle, on the other axis
+     */
+    public record Lane(int dirX, int dirY, int edge, int centre) {
+        boolean contains(int x, int y, int half) {
+            if (dirX != 0) {
+                return (dirX < 0 ? x < edge : x >= edge) && Math.abs(y - centre) <= half;
+            }
+            return (dirY < 0 ? y < edge : y >= edge) && Math.abs(x - centre) <= half;
+        }
+    }
 
-    /** Vertices that carry a nest, as indices into the trace. */
-    private static final int[] NEST_VERTICES = {4, 11, 14, 19};
+    /**
+     * A belt's authoring: the footprint it fills, the trace of its trench, which vertices carry nests, where the
+     * works' middle is (pits open towards it), which gate lanes it leaves open, and whether a cell is part of the
+     * works or their glacis (the belt stands off those).
+     */
+    public record Spec(int width, int height, int[][] vertices, int[] nestVertices, int worksCentreX, int worksCentreY,
+                       List<Lane> lanes, BiPredicate<Integer, Integer> cleared) { }
 
     private static final int PERIOD = 29;
     private static final int WIRE_DISTANCE = 4;
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
-    private static final List<Cell> CELLS = build();
+    private static final int[][] BATTERY_VERTICES = {
+            {13, 4}, {26, 5}, {33, 9}, {48, 3}, {60, 3}, {70, 3}, {77, 13},
+            {77, 25}, {78, 33}, {76, 40}, {77, 50}, {76, 62},
+            {62, 66}, {50, 65}, {40, 68}, {27, 65}, {18, 67},
+            {4, 62}, {3, 48}, {5, 40}, {4, 32}, {3, 21}, {6, 11}};
+
+    /** The battery fort's belt: its trace, its nest vertices (indices into the trace), and its two gate lanes. */
+    private static final Spec BATTERY_SPEC = new Spec(BatteryFort.WIDTH, BatteryFort.HEIGHT, BATTERY_VERTICES,
+            new int[]{4, 11, 14, 19}, BatteryFort.OX + BatteryFort.WORKS_W / 2, BatteryFort.OY + BatteryFort.WORKS_H / 2,
+            List.of(new Lane(-1, 0, BatteryFort.OX, BatteryFort.OY + 17),
+                    new Lane(0, -1, BatteryFort.OY, BatteryFort.OX + 23)),
+            BatteryFort::isCleared);
+
+    private static final List<Cell> CELLS = build(BATTERY_SPEC);
 
     private FortBelt() {}
 
-    /** Every belt cell in drawing order; later cells never overlap earlier ones. */
+    /** Every cell of the battery fort's belt in drawing order; later cells never overlap earlier ones. */
     public static List<Cell> cells() {
         return CELLS;
     }
 
-    /** The nest cells of the belt, in the footprint frame. */
+    /** The nest cells of the battery fort's belt, in the footprint frame. */
     public static List<int[]> nests() {
+        return nests(CELLS);
+    }
+
+    /** The nest cells among {@code cells}, in the footprint frame. */
+    public static List<int[]> nests(List<Cell> cells) {
         List<int[]> out = new ArrayList<>();
-        for (Cell c : CELLS) if (c.role() == Role.NEST) out.add(new int[]{c.x(), c.y()});
+        for (Cell c : cells) if (c.role() == Role.NEST) out.add(new int[]{c.x(), c.y()});
         return out;
     }
 
-    private static List<Cell> build() {
-        int w = BatteryFort.WIDTH, h = BatteryFort.HEIGHT;
-        List<int[]> path = trace();
+    /** Every cell of the belt {@code spec} describes, in drawing order. */
+    public static List<Cell> build(Spec spec) {
+        int w = spec.width(), h = spec.height();
+        int[][] vertices = spec.vertices();
+        List<int[]> path = trace(vertices);
         int[][] pathIndex = new int[w][h];
         for (int[] row : pathIndex) Arrays.fill(row, -1);
         for (int i = 0; i < path.size(); i++) pathIndex[path.get(i)[0]][path.get(i)[1]] = i;
@@ -82,10 +119,10 @@ public final class FortBelt {
         // The trench and sandbag line, run by run along the trace.
         for (int i = 0; i < path.size(); i++) {
             int x = path.get(i)[0], y = path.get(i)[1];
-            if (inLane(x, y, 3)) continue;
+            if (inLane(spec, x, y, 3)) continue;
             int s = i % PERIOD;
             if (s >= 12 && s < 17) {
-                int[] out = outward(x, y, pathIndex);
+                int[] out = outward(spec, x, y, pathIndex);
                 put(grid, new Cell(x, y, Role.BAG, out[0], out[1]));
                 continue;
             }
@@ -93,23 +130,23 @@ public final class FortBelt {
             if (s == 6 || s == 22) continue;
             for (int[] d : STEPS) {
                 int nx = x + d[0], ny = y + d[1];
-                if (!inside(nx, ny, w, h) || pathIndex[nx][ny] >= 0 || inLane(nx, ny, 3)) continue;
+                if (!inside(nx, ny, w, h) || pathIndex[nx][ny] >= 0 || inLane(spec, nx, ny, 3)) continue;
                 // The trench's own parapet is part of its art; behind it the spoil and firing steps are bare earth.
-                if (polygonContains(nx, ny) && !BatteryFort.isCleared(nx, ny) && (s & 3) < 2) put(grid, new Cell(nx, ny, Role.EARTH, 0, 0));
+                if (polygonContains(vertices, nx, ny) && !spec.cleared().test(nx, ny) && (s & 3) < 2) put(grid, new Cell(nx, ny, Role.EARTH, 0, 0));
             }
         }
         // Traverses: a sandbag block across the trench that breaks the line of fire along it.
         for (int i = 0; i < path.size(); i++) {
             int x = path.get(i)[0], y = path.get(i)[1];
             int s = i % PERIOD;
-            if ((s == 6 || s == 22) && !inLane(x, y, 3) && grid[x][y] != null && grid[x][y].role() == Role.TRENCH) {
-                int[] out = outward(x, y, pathIndex);
+            if ((s == 6 || s == 22) && !inLane(spec, x, y, 3) && grid[x][y] != null && grid[x][y].role() == Role.TRENCH) {
+                int[] out = outward(spec, x, y, pathIndex);
                 grid[x][y] = new Cell(x, y, Role.BAG, out[0] == 0 ? 1 : 0, out[0] == 0 ? 0 : 1);
             }
         }
 
         // Nests on the trace, each in a horseshoe pit open to the works.
-        for (int v : NEST_VERTICES) pit(grid, VERTICES[v][0], VERTICES[v][1]);
+        for (int v : spec.nestVertices()) pit(spec, grid, vertices[v][0], vertices[v][1]);
 
         // Wire: a ring four cells outside the trace, in runs with gaps, never across a gate lane.
         int[][] dist = new int[w][h];
@@ -127,7 +164,7 @@ public final class FortBelt {
             if (dist[at[0]][at[1]] >= WIRE_DISTANCE) continue;
             for (int[] d : STEPS) {
                 int nx = at[0] + d[0], ny = at[1] + d[1];
-                if (!inside(nx, ny, w, h) || dist[nx][ny] >= 0 || polygonContains(nx, ny)) continue;
+                if (!inside(nx, ny, w, h) || dist[nx][ny] >= 0 || polygonContains(vertices, nx, ny)) continue;
                 dist[nx][ny] = dist[at[0]][at[1]] + 1;
                 source[nx][ny] = source[at[0]][at[1]];
                 open.add(new int[]{nx, ny});
@@ -135,7 +172,7 @@ public final class FortBelt {
         }
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
-                if (dist[x][y] != WIRE_DISTANCE || grid[x][y] != null || inLane(x, y, 4)) continue;
+                if (dist[x][y] != WIRE_DISTANCE || grid[x][y] != null || inLane(spec, x, y, 4)) continue;
                 if (source[x][y] % 17 >= 12) continue;
                 boolean horizontal = dist[Math.min(w - 1, x + 1)][y] == WIRE_DISTANCE
                         || (x > 0 && dist[x - 1][y] == WIRE_DISTANCE);
@@ -169,32 +206,30 @@ public final class FortBelt {
     }
 
     /** Whether the cell lies in the approach lane of a gate: the belt and wire stay open there. */
-    private static boolean inLane(int x, int y, int half) {
-        int mainY = BatteryFort.OY + 17;
-        int posternX = BatteryFort.OX + 23;
-        if (x < BatteryFort.OX && Math.abs(y - mainY) <= half) return true;
-        return y < BatteryFort.OY && Math.abs(x - posternX) <= half;
+    private static boolean inLane(Spec spec, int x, int y, int half) {
+        for (Lane lane : spec.lanes()) if (lane.contains(x, y, half)) return true;
+        return false;
     }
 
     /** The first 4-neighbour direction from the trace cell that leaves the polygon. */
-    private static int[] outward(int x, int y, int[][] pathIndex) {
+    private static int[] outward(Spec spec, int x, int y, int[][] pathIndex) {
         for (int[] d : STEPS) {
             int nx = x + d[0], ny = y + d[1];
-            if (inside(nx, ny, BatteryFort.WIDTH, BatteryFort.HEIGHT) && pathIndex[nx][ny] < 0
-                    && !polygonContains(nx, ny)) return d;
+            if (inside(nx, ny, spec.width(), spec.height()) && pathIndex[nx][ny] < 0
+                    && !polygonContains(spec.vertices(), nx, ny)) return d;
         }
         return new int[]{0, 1};
     }
 
-    private static void pit(Cell[][] grid, int cx, int cy) {
-        int wx = BatteryFort.OX + BatteryFort.WORKS_W / 2 - cx;
-        int wy = BatteryFort.OY + BatteryFort.WORKS_H / 2 - cy;
+    private static void pit(Spec spec, Cell[][] grid, int cx, int cy) {
+        int wx = spec.worksCentreX() - cx;
+        int wy = spec.worksCentreY() - cy;
         int inX = Math.abs(wx) >= Math.abs(wy) ? Integer.signum(wx) : 0;
         int inY = inX == 0 ? Integer.signum(wy) : 0;
         for (int dx = -2; dx <= 2; dx++) {
             for (int dy = -2; dy <= 2; dy++) {
                 int x = cx + dx, y = cy + dy;
-                if (!inside(x, y, BatteryFort.WIDTH, BatteryFort.HEIGHT)) continue;
+                if (!inside(x, y, spec.width(), spec.height())) continue;
                 boolean ring = Math.abs(dx) == 2 || Math.abs(dy) == 2;
                 if (!ring) {
                     grid[x][y] = dx == 0 && dy == 0 ? new Cell(x, y, Role.NEST, 0, 0) : new Cell(x, y, Role.EARTH, 0, 0);
@@ -219,11 +254,11 @@ public final class FortBelt {
     }
 
     /** The trace's cells in order, edge by edge, with consecutive repeats removed. */
-    private static List<int[]> trace() {
+    private static List<int[]> trace(int[][] vertices) {
         List<int[]> out = new ArrayList<>();
-        for (int i = 0; i < VERTICES.length; i++) {
-            int[] a = VERTICES[i];
-            int[] b = VERTICES[(i + 1) % VERTICES.length];
+        for (int i = 0; i < vertices.length; i++) {
+            int[] a = vertices[i];
+            int[] b = vertices[(i + 1) % vertices.length];
             int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
             for (int s = 0; s < steps; s++) {
                 int x = a[0] + Math.round((float) (b[0] - a[0]) * s / steps);
@@ -238,10 +273,10 @@ public final class FortBelt {
         return out;
     }
 
-    private static boolean polygonContains(int px, int py) {
+    private static boolean polygonContains(int[][] vertices, int px, int py) {
         boolean in = false;
-        for (int i = 0, j = VERTICES.length - 1; i < VERTICES.length; j = i++) {
-            double xi = VERTICES[i][0], yi = VERTICES[i][1], xj = VERTICES[j][0], yj = VERTICES[j][1];
+        for (int i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+            double xi = vertices[i][0], yi = vertices[i][1], xj = vertices[j][0], yj = vertices[j][1];
             if ((yi > py) != (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) in = !in;
         }
         return in;

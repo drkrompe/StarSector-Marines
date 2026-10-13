@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
@@ -91,6 +93,34 @@ class CampaignLessonsTest {
             assertEquals(1, roster.squads().stream().filter(sq -> !sq.reserve()).count(), "Guidance creates no squad");
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
             assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster), "Another formation revives it");
+        }
+    }
+
+    @Test void shortfallOfOnlyWoundedDoesNotSendThePlayerToFillVacancies() throws Exception {
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            var roster = afterCounterattack();
+            roster.campaignLessons().reviewInvestments();
+            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
+            var wounded = roster.squadMembers(roster.squadById(second.id())).get(0);
+            roster.applySoldierOutcome(Map.of(wounded.id(), MarineSoldierStatus.WIA), 10f, 7f);
+            assertEquals(0, roster.vacancies(second), "Wounded keep their billets");
+
+            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null), false, () -> {});
+            assertEquals(LessonCopy.text("lessonFormationWounded"), lesson.copy());
+            assertFalse(lesson.targets().contains("barracks-reinforce"), "Fill Vacancies is disabled with no vacancy");
+        }
+    }
+
+    @Test void realVacanciesStillPointAtFillVacancies() throws Exception {
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            var roster = afterCounterattack();
+            roster.campaignLessons().reviewInvestments();
+            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 10);
+            assertTrue(roster.vacancies(second) > 0);
+
+            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null), false, () -> {});
+            assertEquals(LessonCopy.text("lessonFormationRecover"), lesson.copy());
+            assertTrue(lesson.targets().contains("barracks-reinforce"));
         }
     }
 

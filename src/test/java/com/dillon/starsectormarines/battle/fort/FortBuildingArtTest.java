@@ -69,6 +69,18 @@ class FortBuildingArtTest {
     }
 
     @Test
+    void artIsTurnedHalfARevolutionOnlyWhenItsDoorIsOnTheOtherEdge() throws Exception {
+        FortBuildingArt bottom = FortBuildingArt.parse("s", new JSONObject(ART));
+        FortBuildingArt top = FortBuildingArt.parse("s", new JSONObject(ART.replace("{ \"roof\"", "{ \"door\": \"top\", \"roof\"")));
+        assertTrue(top.doorOnTop());
+        assertEquals(false, bottom.needsHalfTurn(false));
+        assertEquals(true, bottom.needsHalfTurn(true));
+        assertEquals(false, top.needsHalfTurn(true));
+        assertThrows(JSONException.class, () -> FortBuildingArt.parse("s", new JSONObject(
+                ART.replace("{ \"roof\"", "{ \"door\": \"left\", \"roof\""))));
+    }
+
+    @Test
     void gatehouseTowerGoesDamagedBelowTheThreshold() throws Exception {
         FortGatehouseArt art = FortGatehouseArt.parse("s", new JSONObject(
                 "{ \"tower\": \"t.png\", \"towerDamaged\": \"d.png\", \"gate\": \"g.png\" }"));
@@ -80,7 +92,7 @@ class FortBuildingArtTest {
     void frameMatchesThePlacementForEveryTurn() {
         for (int turns = 0; turns < 4; turns++) {
             Placement at = BatteryFort.layout().at(40, 30, turns);
-            FortFrame frame = new FortFrame(40, 30, turns);
+            FortFrame frame = new FortFrame(BatteryFort.PLAN, 40, 30, turns);
             assertArrayEquals(at.cell(17, 17), frame.cell(17, 17));
             int[] f = BatteryFort.floor(FortAspect.POWER);
             int[] b = frame.bounds(f[0], f[1], f[2], f[3]);
@@ -95,7 +107,8 @@ class FortBuildingArtTest {
     @Test
     void everyFortAspectCoreNamesShippedBuildingArt() {
         for (String id : new String[]{TurretCatalogRegistry.FORT_FIRE_CONTROL_STRUCTURE_ID,
-                TurretCatalogRegistry.FORT_MAGAZINE_STRUCTURE_ID, TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID}) {
+                TurretCatalogRegistry.FORT_MAGAZINE_STRUCTURE_ID, TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID,
+                TurretCatalogRegistry.FORT_CONTROL_ROOM_STRUCTURE_ID}) {
             StructureDef def = TurretCatalogRegistry.requireStructure(id);
             assertNotNull(def.buildingArt, id + " has no building art");
             for (String path : def.buildingArt.spritePaths()) assertShipped(id, path);

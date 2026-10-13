@@ -17,7 +17,9 @@ public enum DebugDefences {
     NESTS(0, false, 12),
     FORTRESS(2, true, 12),
     /** Two walled battery forts, each a platform with fire-control bunker, magazine and power building. */
-    BATTERY_FORTS(0, false, 0, FortKind.BATTERY_FORT, 2);
+    BATTERY_FORTS(0, false, 0, FortKind.BATTERY_FORT, 2),
+    /** One walled shield fort: the generator in an inner keep, with a power plant and a control room. */
+    SHIELD_FORT(0, false, 0, FortKind.SHIELD_FORT, 1);
 
     private final GroundDefences declaration;
 
