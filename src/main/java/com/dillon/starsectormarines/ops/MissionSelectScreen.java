@@ -142,7 +142,14 @@ public final class MissionSelectScreen implements Screen {
             props.put("brokerPortrait",OpeningBroker.CREST);
             props.put("brokerName",ShepherdRecoveryCampaign.NAME);
             props.put("brokerRole","BASIN RECLAMATION COOPERATIVE / INDEPENDENT");
-            props.put("brokerIntroduction","Mara made the introduction. This contract is with our cooperative: recover Morrow and reopen our corridor. The repaired ship is payment in kind after all three operations; the fixed yard remains ours.");
+            props.put("brokerIntroduction",progress!=null && progress.departed()
+                    ? "The haulers are moving again. Give my regards to the hands aboard Morrow."
+                    : progress!=null && progress.repaired()
+                        ? "The fitters have done what they can in the cradle. Let's see her out into the open."
+                        : progress!=null && progress.claimSecured()
+                            ? progress.shorePower() ? "Power's on. We've still got work to do before she can fly."
+                                : "My people are back in the workshop. Now let's get them some power."
+                            : "Venn gave me your name. There's a ship here you might want to look at. First, though, I need my people back in their workshop.");
             props.put("brokerProgress",progress!=null && progress.departed()?"COMPLETE / MORROW REGISTRY TRANSFERRED":progress!=null && progress.repaired()?"WORKING PASSAGE / DEPARTURE CLEARANCE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
     }
 
@@ -405,7 +412,7 @@ public final class MissionSelectScreen implements Screen {
                         ? "14 militia / 2 repair technicians" : "8 militia / 2 inspection technicians"),
                 detailRow("claim","Agreement",ShepherdRecoveryProgress.coldStart(mission.id)
                         ? "Claim protected; complete repairs and departure to earn Morrow"
-                        : "Secure the claim now; earn the repaired ship after all three operations"),
+                        : "18,000 cr inspection / 22,000 cr repairs / Morrow after all three contracts"),
                 detailRow("payout","Payment on victory",NumberFormat.getIntegerInstance().format(mission.payout)+" credits"));
         if (CorvusWaylineCampaign.isBattle(mission)) return List.of(
                 detailRow("force", "Company commitment", MissionForceEnvelope.recommendedSquads(mission)

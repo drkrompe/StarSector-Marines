@@ -35,32 +35,43 @@ final class MissionDebriefConversation {
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
         if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
-                recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Registry accepted. Morrow is ours. Hull, workshop, and a very long list of maintenance jobs."),
+                recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Transfer's through. Morrow's ours."),
                 recoveryLine("departure-corridor", false, outcome.missionSource.isDebug()
                         ? "The contract would leave the Colossus stores, yard and haul road with us. The company's final payment would be Morrow; this exercise makes no transfer."
-                        : "The Colossus stores, yard and haul road stay with us. Morrow is your final payment, as agreed. Now I can put our crews back to work. If the Hegemony comes asking about the salvage, I'll answer for our claims."),
+                        : "All right. Have someone check the drone bay filters before you put her to work. The dust here gets into everything."),
                 recoveryLine("departure-crew", true, outcome.missionSource.isDebug()
                         ? "A contracted departure would include berth offers to willing working hands. Fleet crew, on our payroll, with the ship's upkeep ours from handover."
-                        : "We'll honor the berth offers to her willing working hands. Fleet crew, on our payroll. Her upkeep is our problem from here. You bought a working yard; we earned a working ship."),
-                recoveryLine("departure-cost", false, outcome.marinesLost > 0 || outcome.workingPassage.militiaLost() > 0?"And people paid for it. Keep their names with the contract record, Castle. I'll see to ours.":"That's a bargain I can take back to the shops. Keep her working, Castle."));
+                        : "We'll see to it. The hands who want to come with her have berths."),
+                recoveryLine("departure-cost", false, outcome.workingPassage.militiaLost() > 0
+                        ? "I'll have to go. There are people here waiting to hear from me. Look after her, Castle."
+                        : outcome.marinesLost > 0 ? "I'm sorry about your people, Castle. Get the rest of them home."
+                        : "They know her better than I do. Let them show you around before you start pulling things apart."));
         if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
-                recoveryLine("first-gun", true, "That is a position we do not have to fill with another squad. Keep the crew covered. Let the machine do its job."),
-                recoveryLine("repair-complete", false, "Drone bay answers. Pumps hold pressure. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow stays in the cradle until we clear her departure corridor."),
+                recoveryLine("first-gun", true, "I could get used to having a few of those."),
+                recoveryLine("repair-complete", false, outcome.missionSource.isDebug()
+                        ? "Repair exercise complete. No campaign payment is issued."
+                        : "Good to hear those builders again. We used to complain about the noise."),
                 recoveryLine("repair-cost", true, outcome.missionSource.isDebug()
                         ? "Keep the exercise losses in the review. A contracted company has to cover supplies and crew pay before committing to departure."
                         : outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
-                            ? "Account for our losses before we commit again. That fee has to keep the company in the field. We still have a ship to bring out."
-                            : "Repair fee accounted for. Supplies and crew pay first; then we finish earning that ship."),
-                recoveryLine("departure-pending", false, "I need that road carrying salvage before another outfit decides to stake a claim. I'll supply the holders; your company clears the passage. Replenish before we go. Your claim and the completed repairs stand."));
+                            ? "We lost too many people today. I don't want to rush the next part."
+                            : "Can she get herself out?"),
+                recoveryLine("departure-pending", false, outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
+                        ? "Take the time. I'll arrange a watch here. When you're ready, we'll walk her out past the pumps. I want that road open for our haulers, too."
+                        : "Not straight up from here. We'll walk her past the pumps, through the narrows. I'll leave people on the road behind you; I need it for our haulers."));
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
-                recoveryLine("registry", true, "Put Morrow's registry in the agreement. We bring your crews back to work; when this ship flies, it flies with us."),
-                recoveryLine("terms", false, "The Colossus holds more work than our shops can handle. We keep her stores and the yard; you earn Morrow by finishing the repairs and departure. That's why I'm willing to part with her. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"The inspection fee is released. Your claim is protected.")),
+                recoveryLine("registry", true, outcome.missionSource.isDebug()
+                        ? "Inspection exercise complete. No campaign claim or payment is issued."
+                        : "The workshop's salvageable. I take it that doesn't change our price?"),
+                recoveryLine("terms", false, outcome.missionSource.isDebug()
+                        ? "The actual contract includes a repair party. We'd supply the parts and fitters."
+                        : "No, Castle. We have an agreement."),
+                recoveryLine("repair-bill", true, "Parts and fitters included?"),
+                recoveryLine("repair-terms", false, "For the repair, yes. After she leaves, you're buying your own."),
                 recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
-                        ? "Record the inspection losses with ours. We need skilled hands for the next job; machinery alone won't get her flying. What gets her power back?"
-                        : outcome.missionSource.isDebug()
-                            ? "Inspection exercise signed off. What would get her power back?"
-                            : "Inspection signed off. The company has a fee and a claim worth finishing. What gets her power back?"),
-                recoveryLine("power", false, "A replacement distribution rig and shore power from the pumps. I'll supply the repair party. We pay our way in Hegemony space, but I would rather be unloading cargo than explaining its value to an inspector. Get your company ready."));
+                        ? "I'll want better cover for the next crew. Where are we sending them?"
+                        : "Fair enough. Where do you want the company?"),
+                recoveryLine("power", false, "Workshop first. I'll have a distribution rig waiting at the apron. Then we need the pumps cleared so they can connect shore power."));
         if (firstContract(outcome)) return List.of(
                 firstContractLine("receipt", true, "Payment's in. I checked twice. Our first Wayline contract, Captain. Someone's paid us to do what we said we would."),
                 firstContractLine("names", false, "The drivers asked who'd answered the call. I gave them your company's name. They'll remember it."),
