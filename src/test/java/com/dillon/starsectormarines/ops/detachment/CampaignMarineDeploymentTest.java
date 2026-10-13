@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -71,6 +72,7 @@ class CampaignMarineDeploymentTest {
     void freezesPersistentIdentityProgressionAndAllocatedVisuals() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         // Issued through the live doctrine path. A uniform Bastion schedule
         // puts the same pattern on every billet, so whichever marine takes the
         // seat is wearing the armour the freeze is supposed to carry.

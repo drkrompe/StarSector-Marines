@@ -122,7 +122,7 @@ class ShipLossSettlementTest {
         // rack it draws down; what an issue actually consumes is fleet cargo.
         assertEquals(templates, roster.armory().equipmentTemplateCards().size());
         assertTrue(roster.armory().ownsPrimaryTemplate(
-                WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE),
+                WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE),
                 "the company still knows how to arm a rifle squad");
     }
 

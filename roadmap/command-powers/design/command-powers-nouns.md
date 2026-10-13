@@ -86,7 +86,7 @@ commitment.
   consumes supplies when fired and is limited per battle. Onslaught, Invictus,
   and ground-support fittings are player sources; the warning window is the
   extension seam for future counter-battery play.
-- **Ship on Station** calls a committed ship over the battle: a physical cruiser, capital or Shepherd enters from the company's own edge, stations over a seen cell, works it under the company's mission stance for a bounded visit, then departs. Each committed ship is its own charge on one card, from its frozen fitted loadout; debug and employer sources feed the same power. It spends supplies like Orbital Barrage and writes nothing back to the fleet yet. `ship-support.md` owns the design.
+- **Ship on Station** calls a committed ship over the battle: a physical cruiser, capital or Shepherd descends through the clouds on the company's side a short glide from a seen cell, stations over it, works it under the company's mission stance for a bounded visit, then departs. Each committed ship is its own charge on one card, from its frozen fitted loadout; debug and employer sources feed the same power. It spends supplies like Orbital Barrage and writes nothing back to the fleet yet. `ship-support.md` owns the design.
 - **Marine Insertion** sends a physical manned Valkyrie from the nearest map
   edge to a safe scored landing zone near the requested cell, then unloads a
   full infantry squad into the ordinary roster and commander flow. It is
