@@ -31,7 +31,7 @@ public final class GunshipCrashScene implements BehaviorScene {
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
         try {
-            for (String loop : List.of("live-flak", "cleared-flak", "impact", "momentum")) reports.add(playOne(loop, frames));
+            for (String loop : List.of("live-flak", "cleared-flak", "impact", "momentum", "hover")) reports.add(playOne(loop, frames));
         } finally {
             TurretSlotResolver.useHullSpecs(null);
         }
@@ -40,7 +40,8 @@ public final class GunshipCrashScene implements BehaviorScene {
 
     private SceneReport playOne(String loop, FrameSink frames) {
         boolean impact = loop.equals("impact");
-        boolean momentum = loop.equals("momentum");
+        boolean hover = loop.equals("hover");
+        boolean momentum = loop.equals("momentum") || hover;
         var builder = SceneBuilder.openGround(80, 54).missionCompletion(false);
         builder.squad("company").faction(Faction.MARINE).size(1).at(impact ? 39 : 7, 27)
                 .primary("weapon.smg").stationary().assigned(id -> ObjectiveAssignment.defendTrack(id, impact ? 39 : 7, 27)).done();
@@ -79,15 +80,19 @@ public final class GunshipCrashScene implements BehaviorScene {
                         body.x = 40.5f; body.y = 27.5f; body.vx = 0f; body.vy = 0f;
                         hpBefore[0] = s.world().hp(friend); hpBefore[1] = s.world().hp(enemy);
                         s.applyAimedDamage(craft, 0L, 10000f, 100f);
+                        // Aim this collateral fixture at its named contact after instability drift.
+                        body.x -= .5f * body.ax * AirCrashMotion.FALL_SECONDS * AirCrashMotion.FALL_SECONDS;
+                        body.y -= .5f * body.ay * AirCrashMotion.FALL_SECONDS * AirCrashMotion.FALL_SECONDS;
                         killed[0] = true;
                     }
                 }
                 if (momentum && !killed[0] && mission.state == ShuttleState.ORBIT) {
+                    if (hover) { craftBody.vx = 0f; craftBody.vy = 0f; }
                     s.applyAimedDamage(craft, 0L, 10000f, 100f);
                     killed[0] = true;
                 }
                 for (var shot : s.getShotsThisFrame()) if (guns.contains(shot.shooterId)) shots[0]++;
-                if (momentum) impactBursts[0] += s.getHeavyImpactsThisFrame().size();
+                if (momentum) impactBursts[0] += s.getRollingBlastsThisFrame().size();
                 if (mission.state == ShuttleState.CRASHING) {
                     if (firstFall[0] < 0) {
                         firstFall[0] = tick;
@@ -125,12 +130,12 @@ public final class GunshipCrashScene implements BehaviorScene {
                 else if (momentum) {
                     float airTravel = (float) Math.hypot(contact[0] - start[0], contact[1] - start[1]);
                     float skid = (float) Math.hypot(craftBody.x - contact[0], craftBody.y - contact[1]);
-                    verdicts.add(Verdict.of("keeps-flight-momentum", touched[0] && start[2] > 5f && airTravel >= start[2] * 1.5f,
+                    verdicts.add(Verdict.of(hover ? "hover-loss-builds-momentum" : "keeps-flight-momentum", touched[0] && (hover ? start[2] == 0f && airTravel > 5f : start[2] > 5f && airTravel >= start[2] * 1.5f),
                             "initial speed=" + start[2] + ", fall travel=" + airTravel));
                     verdicts.add(Verdict.of("skids-to-rest", skid > .5f && craftBody.speed() == 0f,
                             "ground travel=" + skid + ", final speed=" + craftBody.speed()));
-                    verdicts.add(Verdict.of("impact-spreads-fireballs", impactBursts[0] == 15,
-                            "primary impact and spreading fireballs=" + impactBursts[0]));
+                    verdicts.add(Verdict.of("impact-spreads-fireballs", impactBursts[0] >= 20,
+                            "rolling fireballs throughout skid=" + impactBursts[0]));
                 }
                 else verdicts.add(Verdict.of("real-flak-shootdown", shots[0] > 0 && mission.destroyed,
                         "visible flak shots=" + shots[0] + ", destroyed=" + mission.destroyed));
