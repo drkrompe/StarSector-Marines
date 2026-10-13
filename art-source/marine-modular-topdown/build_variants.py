@@ -1,6 +1,7 @@
 """Normalize ImageGen variant sources and render mix-and-match composition previews."""
 
 from pathlib import Path
+import runpy
 
 from PIL import Image
 
@@ -126,7 +127,6 @@ def main() -> None:
         "palatine": ("faction-armor/palatine/body.png", "faction-armor/palatine/head.png"),
         "furnace-line": ("faction-armor/furnace-line/body.png", "faction-armor/furnace-line/head.png"),
         "reaver": ("faction-armor/reaver/body.png", "faction-armor/reaver/head.png"),
-        "specter-heavy": ("faction-armor/specter-heavy/body.png", "faction-armor/specter-heavy/head.png"),
         "bulwark-heavy": ("faction-armor/bulwark-heavy/body.png", "faction-armor/bulwark-heavy/head.png"),
         "reliquary-heavy": ("faction-armor/reliquary-heavy/body.png", "faction-armor/reliquary-heavy/head.png"),
         "lions-mantle": ("faction-armor/lions-mantle/body.png", "faction-armor/lions-mantle/head.png"),
@@ -141,6 +141,15 @@ def main() -> None:
         body.save(family_dir / "body.png", optimize=True)
         head.save(family_dir / "head.png", optimize=True)
         built[family] = (body, head)
+
+    # Specter's new geometry and casing palettes have their own retained exporter.
+    specter_exporter = runpy.run_path(str(here / "specter-v1" / "export_assets.py"))
+    specter_exporter["export"]()
+    specter_dir = directory / "armor" / "specter-heavy"
+    built["specter-heavy"] = (
+        Image.open(specter_dir / "body.png").convert("RGBA"),
+        Image.open(specter_dir / "head.png").convert("RGBA"),
+    )
 
     weapons_dir = directory / "weapons"
     weapons_dir.mkdir(parents=True, exist_ok=True)

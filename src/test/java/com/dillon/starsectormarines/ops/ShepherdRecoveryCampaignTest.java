@@ -45,6 +45,26 @@ class ShepherdRecoveryCampaignTest {
         assertEquals(StoryScene.SALVAGE_RIGHTS, StoryScene.forMission(mission));
     }
 
+    @Test void claimUnlocksColdStartWithExactCompanyLiftAndNoFreeMech() {
+        var progress=new ShepherdRecoveryProgress();var id=progress.missionId();
+        progress.begin(id,"Asharu");progress.settle(id,"Asharu",true,18000,0,true);
+        var mission=ShepherdRecoveryCampaign.offer(progress,"Asharu");
+        assertEquals("Cold Start",mission.name);assertEquals(22000,mission.payout);
+        assertEquals(StoryScene.COLD_START,StoryScene.forMission(mission));
+        var boat=FittedBoat.standard(ShuttleType.HERMES);
+        for(int people:List.of(8,24,53)) {
+            var manifest=DetachmentResolver.buildShuttleManifestForPersonnel(mission,List.of(boat),people);
+            assertEquals(people,manifest.stream().mapToInt(m->m.embarkedPersonnel).sum());
+            assertTrue(manifest.stream().allMatch(m->m.airframe==boat));
+        }
+        assertTrue(PowerCatalog.resolve(List.of(),mission,List.of()).isEmpty());
+        var debug=DebugMissionCatalog.Scenario.COLD_START.mission();
+        var preset=DebugMissionCatalog.preset(debug);
+        assertEquals(2,preset.squads());assertEquals(2,preset.boats());assertEquals(0,preset.mechs());
+        assertEquals("03",DebugMissionCatalog.Scenario.COLD_START.sequence());
+        assertEquals("Asharu",DebugMissionCatalog.Scenario.COLD_START.location());
+    }
+
     @Test void writtenAgreementAccountsForInspectionLossesWithoutAwardingAWorkingShip() throws Exception {
         var catalog = WaylineNarration.parse(new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH))));
         var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
