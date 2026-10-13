@@ -173,6 +173,7 @@ public final class MissionLaunch {
                                         Collection<String> selectedPowerIds,
                                         List<FleetMemberAPI> committedPowerSources,
                                         DebugMechRoster debugMechs, long seed) {
+        ShipsBoatsAboard.requireAirworthy(m, committedShuttles);
         if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles))
             throw new IllegalStateException("Company boats are required to cover this operation's lift.");
         int personnel = !m.source.isDebug() && DetachmentResolver.usesSelectedPersonnel(m)
@@ -188,6 +189,7 @@ public final class MissionLaunch {
                                         Collection<String> selectedPowerIds,
                                         List<FleetMemberAPI> committedPowerSources,
                                         DebugMechRoster debugMechs, long seed, int companyPersonnel) {
+        ShipsBoatsAboard.requireAirworthy(m, committedShuttles);
         if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles))
             throw new IllegalStateException("Company boats are required to cover this operation's lift.");
         DebugMissionCatalog.Scenario debugScenario = DebugMissionCatalog.scenario(m);

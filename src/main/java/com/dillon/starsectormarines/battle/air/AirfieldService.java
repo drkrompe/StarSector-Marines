@@ -157,6 +157,8 @@ public final class AirfieldService {
         public float[] offship;
         /** Collision-clear indoor hover corridor, published by the ship host. */
         public ShipBayRoute shipRoute;
+        /** Host grounding is independent of tactical servicing. */
+        public boolean grounded;
 
         /** Whether this berth's craft has somewhere off this map to go. */
         public boolean hasOffship() {
@@ -165,7 +167,7 @@ public final class AirfieldService {
 
         /** Whether this berth can put an aircraft in the air right now. */
         public boolean airworthy() {
-            return state == BerthState.PARKED;
+            return state == BerthState.PARKED && !grounded;
         }
     }
 

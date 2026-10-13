@@ -4,6 +4,16 @@ import java.io.Serializable;
 
 /** Learning receipts only. Rewards and equipment remain with their existing owners. */
 public final class CampaignLessonProgress implements Serializable {
+    private String damagedBoatId;
+    private boolean boatRecoveryReviewed;
+
+    public void observeBoatDamage(String boatId) {
+        if (damagedBoatId == null && boatId != null) damagedBoatId = boatId;
+    }
+    public String damagedBoatId() { return damagedBoatId; }
+    public boolean boatRecoveryPending() { return damagedBoatId != null && !boatRecoveryReviewed; }
+    public void reviewBoatRecovery() { boatRecoveryReviewed = true; }
+
     private boolean investmentsReviewed;
     private boolean junctionPrepared;
     private boolean supportDelivered;
