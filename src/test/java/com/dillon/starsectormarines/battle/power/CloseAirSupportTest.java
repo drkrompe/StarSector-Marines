@@ -2,18 +2,23 @@ package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirTurrets;
-import com.dillon.starsectormarines.battle.air.GunshipArmament;
+import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.GunshipOrbit;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -26,27 +31,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CloseAirSupportTest {
 
+    /** An armed craft mounts its turret on its hull's slot, which headless has to be told where to read. */
+    @BeforeAll
+    static void readWeaponSlotsOffTheInstall() { InstalledWeaponSlots.install(); }
+
+    /** Process-wide, so put it back: nothing else here should find its aircraft armed. */
+    @AfterAll
+    static void forgetTheInstall() { TurretSlotResolver.useHullSpecs(null); }
+
     private static final int SIZE = 60;
     private static final int TARGET = 30;
 
     @Test
-    void theGunshipIsArmedOnBothFlanksAndEachGunOwnsItsOwnBeam() {
-        MountedTurret[] mounts = GunshipArmament.mounts(ShuttleType.MUDSKIPPER, 0f);
-        assertEquals(4, mounts.length);
-        int starboard = 0;
-        int port = 0;
-        for (MountedTurret mount : mounts) {
-            assertTrue(mount.hasLimitedArc(), "a broadside gun does not traverse all the way round");
-            if (mount.restOffsetDeg < 0f) {
-                starboard++;
-                assertTrue(mount.mount.localOffsetX > 0f, "starboard guns sit on the right-hand side");
-            } else {
-                port++;
-                assertTrue(mount.mount.localOffsetX < 0f, "port guns sit on the left-hand side");
-            }
-        }
-        assertEquals(2, starboard);
-        assertEquals(2, port);
+    void theGunshipCarriesTheHullsOwnTurretAtTheHullsOwnMount() {
+        MountedTurret[] mounts = AirArmament.mounts(ShuttleType.MUDSKIPPER, TurretRole.A2G, 0f);
+        float[][] slots = TurretSlotResolver.resolve(ShuttleType.MUDSKIPPER.renderHullId());
+        assertEquals(1, mounts.length, "a Mudskipper has the one turret");
+        assertTrue(slots.length >= 1, "the hull publishes a weapon slot to mount it on");
+        assertEquals(slots[0][0], mounts[0].mount.localOffsetX, 1e-4f);
+        assertEquals(slots[0][1], mounts[0].mount.localOffsetY, 1e-4f);
     }
 
     @Test
@@ -77,13 +80,12 @@ class CloseAirSupportTest {
         assertEquals(0, mission.marinesRemaining, "a gunship carries nobody to set down");
         AirTurrets turrets = sim.world().airTurrets(craft);
         assertNotNull(turrets);
-        assertEquals(4, turrets.mounts.length);
+        assertEquals(1, turrets.mounts.length, "one turret, on the hull's own mount");
 
         float startHp = sim.world().hp(hostile);
         float seconds = 0f;
         float worstRingError = 0f;
         int orbitTicks = 0;
-        int ticksWithAGunOnTheOutboardSide = 0;
         int guard = 0;
         while (mission.state != ShuttleState.GONE && guard++ < 60 * 30) {
             sim.advance(BattleSimulation.TICK_DT);
@@ -95,11 +97,6 @@ class CloseAirSupportTest {
                 if (orbitTicks > 90) {
                     worstRingError = Math.max(worstRingError, Math.abs(distance - GunshipOrbit.RADIUS_CELLS));
                 }
-                for (MountedTurret mount : turrets.mounts) {
-                    boolean inboard = Math.signum(mount.mount.localOffsetX)
-                            == GunshipOrbit.inboardSide(mission.orbitClockwise);
-                    if (!inboard && mount.targetId != 0L) ticksWithAGunOnTheOutboardSide++;
-                }
             }
         }
 
@@ -107,9 +104,7 @@ class CloseAirSupportTest {
         assertTrue(orbitTicks > 20 * 30, "it spends the better part of its visit on the ring: " + orbitTicks);
         assertTrue(worstRingError < 3.5f,
                 "once settled it stays on the ring it was given, off by at most " + worstRingError);
-        assertTrue(sim.world().hp(hostile) < startHp, "the broadside guns put rounds on the ground it circled");
-        assertEquals(0, ticksWithAGunOnTheOutboardSide,
-                "only the flank facing the ring's centre has a target; the far beam's guns stay quiet");
+        assertTrue(sim.world().hp(hostile) < startHp, "the turret puts rounds on the ground it circles");
         assertTrue(seconds < 60f, "and the whole visit is bounded: " + seconds);
     }
 

@@ -901,6 +901,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
             directives.put(squad.id, directive(squad, preferred, effective,
                     AssignmentReason.valueOf(entry.getValue().reason())));
         }
+        if (phase == Phase.LANE_ADVANCE || phase == Phase.FRONT_ADJUST) {
+            assignDefenceStructureTasks(frame, squads, committed, allSquads, directives);
+        }
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
                 remainingCompounds, keep, directives, allSquads).withGroups(groups.groups());
         List<CommandProposal> proposals = buildProposals(
@@ -910,6 +913,38 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 squads.size() + holding.size(), 0,
                 List.of("remaining compounds=" + remainingCompounds),
                 proposals, detail);
+    }
+
+    /**
+     * Detaches a few squads from lane work to ground-defence structures this side knows of (see
+     * {@link DefenceStructureTactics}). Squads committed to a compound capture or in a command group are never
+     * offered; what is offered is lane work, which the lane planner re-issues to the squad the moment the structure
+     * work stands down.
+     */
+    private void assignDefenceStructureTasks(ConquestCommandFrame frame, List<PlanningSquad> squads,
+                                             IntOpenHashSet committed, Map<Integer, PlanningSquad> allSquads,
+                                             Map<Integer, SquadDirective> directives) {
+        List<DefenceStructureFact> structures = frame.facts().structures();
+        if (structures.isEmpty()) return;
+        List<DefenceStructureTactics.Candidate> candidates = new ArrayList<>();
+        for (PlanningSquad squad : squads) {
+            if (committed.contains(squad.id) || squad.commandGroup != null
+                    || (squad.assignedObjective != null
+                    && squad.assignedObjective.kind() == AssignmentKind.SECURE_COMPOUND)) continue;
+            candidates.add(new DefenceStructureTactics.Candidate(squad.id, squad.anchorCellX, squad.anchorCellY,
+                    squad.originalAssignment));
+        }
+        for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
+                frame.perspective(), structures, candidates, frame.topology())) {
+            PlanningSquad squad = allSquads.get(task.squadId());
+            squad.assignedObjective = task.assignment();
+            int preferred = stripFor(squad);
+            directives.put(squad.id, directive(squad, preferred, preferred, switch (task.role()) {
+                case DEFEND -> AssignmentReason.DEFENCE_STRUCTURE_DEFEND;
+                case RETAKE -> AssignmentReason.DEFENCE_STRUCTURE_RETAKE;
+                case TAKE -> AssignmentReason.DEFENCE_STRUCTURE_TAKE;
+            }));
+        }
     }
 
     @Override

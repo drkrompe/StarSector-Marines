@@ -9,15 +9,17 @@ import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
  * declaration.
  */
 public enum DebugDefences {
-    NONE(0, false),
-    BATTERIES(2, false),
-    SHIELD(0, true),
-    FORTRESS(2, true);
+    NONE(0, false, 0),
+    BATTERIES(2, false, 0),
+    SHIELD(0, true, 0),
+    /** The dispersed network alone: untuned count, enough to read the field on the canonical Conquest map. */
+    NESTS(0, false, 12),
+    FORTRESS(2, true, 12);
 
     private final GroundDefences declaration;
 
-    DebugDefences(int batteries, boolean shieldGenerator) {
-        this.declaration = new GroundDefences(batteries, shieldGenerator);
+    DebugDefences(int batteries, boolean shieldGenerator, int nests) {
+        this.declaration = new GroundDefences(batteries, shieldGenerator, nests);
     }
 
     /** The declaration this statement makes. */

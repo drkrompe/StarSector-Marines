@@ -359,7 +359,7 @@
     "gearMechWeaponComponentTHERMALLANCE": "Thermal lance",
     "gearNamedDescription": "{0} — {1}",
     "gearPowerActivation": "Command points and supplies are spent on activation, not when selecting the deck.",
-    "gearPowerEffectCloseAirSupport": "Calls a Mudskipper gunship to circle the selected ground with its broadside guns, then depart.",
+    "gearPowerEffectCloseAirSupport": "Calls a Mudskipper gunship to circle overhead of the selected ground and fire on it, then depart.",
     "gearPowerEffectDefault": "A support capability available from the committed fleet or employer.",
     "gearPowerEffectEmergencyResupply": "Calls a utility shuttle to deliver a supply cache.",
     "gearPowerEffectMarineInsertion": "Calls a Valkyrie to insert an infantry squad near the selected location.",

@@ -615,6 +615,36 @@ public final class DefensePostStamper implements GenStage {
                 hub != null ? cy + hub.y() : null);
     }
 
+    /** The shipped light post a defence nest is built from: the vent ring round one sealed mount. */
+    private static DefensePostLayoutDef nestLayout() {
+        return DefensePostLayoutRegistry.requireInstalled().require(DefensePostKind.LIGHT, "default");
+    }
+
+    /** Cells the nest's ring and mount turn non-walkable at {@code (cx, cy)}, for the strand guard. */
+    static int[][] nestBlockedFootprint(int cx, int cy) {
+        return blockedFootprint(nestLayout(), cx, cy);
+    }
+
+    /** True when a nest's whole ring fits at {@code (cx, cy)} by the same footprint rules every post obeys. */
+    static boolean nestFits(NavigationGrid grid, CellTopology topology, boolean[][] roadReservation, int cx, int cy) {
+        return hasValidFootprint(grid, topology, roadReservation, cx, cy, nestLayout());
+    }
+
+    /**
+     * Stamps a defence nest: the ordinary light post's ring and sealed mount, carrying {@code structureId} in place of
+     * the light post's own gun. Post-finalize callers use it, so it draws no random numbers.
+     */
+    static DefensePost stampNest(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
+                                 int cx, int cy, String structureId) {
+        DefensePostLayoutDef layout = nestLayout();
+        DefensePost stamped = stampPost(grid, topology, doodads, layout, cx, cy);
+        List<DefensePost.TurretSpec> turrets = new ArrayList<>(stamped.turrets.size());
+        for (DefensePost.TurretSpec t : stamped.turrets) {
+            turrets.add(new DefensePost.TurretSpec(structureId, t.cellX, t.cellY));
+        }
+        return new DefensePost(stamped.tier, stamped.layoutId, cx, cy, turrets, null, null);
+    }
+
     private static TileManifest.TileFrame barrierTile(DefensePostLayoutDef.Cell cell) {
         return switch (cell.appearance()) {
             case VENT -> TileManifest.lightPostVent();

@@ -33,6 +33,71 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BattleHudOverlayModelTest {
 
     @Test
+    void untimedSharedObjectiveCollapsesProgressTrackAndNeverRendersNegativeWidth() throws Exception {
+        var reactor = new Reactor();
+        var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
+        var untimed = new MissionObjectiveSnapshot.Item("construction", "Road gun", MissionObjectiveSnapshot.State.ACTIVE,
+                "CONSTRUCTION", "Build > Repair", "Place the turret", "Awaiting construction", -1f, "",
+                List.of(), "");
+        model.updateProjected(1, List.of());
+        var presentation = model.updateMission(new MissionObjectiveSnapshot(List.of(untimed), List.of()), ignored -> { });
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (var instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            var doc = document(instance, BattleHudOverlay.documentHeight(presentation));
+            var track = instance.requireElement("mission-construction-track");
+            var fill = instance.requireElement("mission-construction-progress");
+            assertEquals(0f, track.box().borderBox().height(), .01f);
+            assertEquals(0f, track.opacity(), .01f);
+            assertEquals(0f, fill.box().borderBox().width(), .01f);
+            assertTrue(fill.box().borderBox().width() >= 0f);
+            assertEquals("Awaiting construction", instance.requireElement("mission-construction-progressText").text());
+            var timed = new MissionObjectiveSnapshot.Item(untimed.id(), untimed.name(), untimed.state(),
+                    "REPAIR", untimed.steps(), "Cover the repair", "Repair / 50%", .5f, "", List.of(), "");
+            model.updateMission(new MissionObjectiveSnapshot(List.of(timed), List.of()), ignored -> { });
+            instance.flush();
+            doc.advance(0);
+            track = instance.requireElement("mission-construction-track");
+            fill = instance.requireElement("mission-construction-progress");
+            assertTrue(track.box().borderBox().height() > 0f);
+            assertEquals(1f, track.opacity(), .01f);
+            assertTrue(fill.box().borderBox().width() > 0f);
+            assertTrue(fill.box().borderBox().width() < track.box().borderBox().width());
+        }
+    }
+
+    @Test
+    void sharedTerritoryPicturePreservesConquestCommandAndCollapsesDuplicateSquadPanel() throws Exception {
+        var reactor = new Reactor();
+        var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
+        model.updateProjected(1, List.of(), conquestCommander());
+        var territory = new MissionObjectiveSnapshot.Item("territory-dispatch", "Dispatch", MissionObjectiveSnapshot.State.ACTIVE,
+                "CAPTURING", "Clear > Hold", "Hold the interior", "Capture / 50%", .5f, "", List.of(), "");
+        var presentation = model.updateMission(new MissionObjectiveSnapshot(List.of(territory), List.of()), ignored -> { });
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (var instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            var doc = document(instance, BattleHudOverlay.documentHeight(presentation));
+            assertFalse(instance.requireElement("battle-conquest-command").hasClass("conquest-command-panel-hidden"));
+            assertEquals("SHIFTING SUPPORT", instance.requireElement("battle-conquest-command-phase").text());
+            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
+            assertEquals(1, instance.requireElement("battle-mission-list").childCount());
+            var squads = instance.requireElement("battle-mission-squads");
+            assertTrue(squads.hasClass("mission-hidden"));
+            assertEquals(0f, squads.box().borderBox().height(), .01f);
+            assertEquals(0f, squads.box().borderBox().width(), .01f);
+            // Territory keeps its existing commander even if shared activities arrive.
+            model.updateMission(new MissionObjectiveSnapshot(List.of(territory), List.of(
+                    new MissionObjectiveSnapshot.SquadActivity(1, "First", "Clear dispatch", "Moving"))), ignored -> { });
+            instance.flush();
+            doc.advance(0);
+            assertTrue(instance.requireElement("battle-mission-squads").hasClass("mission-hidden"));
+            assertFalse(instance.requireElement("battle-conquest-command").hasClass("conquest-command-panel-hidden"));
+            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
+        }
+    }
+
+    @Test
     void sharedObjectivesLocateTheirOwnBranchAndResetCleanlyForOtherMissions() throws Exception {
         Reactor reactor = new Reactor();
         var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");

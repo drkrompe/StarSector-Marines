@@ -80,14 +80,17 @@ public final class ShepherdBasin {
                 for (int x=building.left+2; x<building.right-1; x+=4)
                     if (map.grid.isWalkable(x,y) && map.topology.getBuildingId(x,y)>0)
                         lamps.add(light(x+.5f,y+.5f,6,"camp"));
-            lamps.add(light(building.anchorCellX+.5f,building.anchorCellY+.5f,10,"camp"));
+            float entranceX=building.anchorCellX+.5f, entranceY=building.anchorCellY+.5f;
+            if (map.topology.getBuildingId(building.anchorCellX,building.anchorCellY)==0)
+                lamps.add(floodlight(entranceX,entranceY,10,"camp",building.interiorAnchorX,building.interiorAnchorY));
+            else lamps.add(light(entranceX,entranceY,10,"camp"));
         }
         // Emergency fixtures mounted at Morrow's service corners; the brighter
         // restored circuit belongs to the same cradle and pump working apron.
-        lamps.addAll(List.of(light(117,104,10,"emergency"), light(144,105,10,"emergency"),
-                light(144,125,8,"emergency"), light(117,126,8,"emergency"),
-                light(132,103,18,"yard"), light(132,128,18,"yard"),
-                light(163,118,16,"yard"), light(183,134,16,"yard")));
+        lamps.addAll(List.of(floodlight(117,104,10,"emergency",127,114), floodlight(144,105,10,"emergency",132,114),
+                floodlight(144,125,8,"emergency",132,114), floodlight(117,126,8,"emergency",127,114),
+                floodlight(132,103,18,"yard",132,114), floodlight(132,128,18,"yard",132,114),
+                floodlight(163,118,16,"yard",171,117), floodlight(183,134,16,"yard",171,117)));
         return new NightLighting(.76f, lamps, Set.of("emergency","camp"));
     }
 
@@ -95,6 +98,14 @@ public final class ShepherdBasin {
         return new NightLighting.Lamp(x,y,radius,1f,
                 circuit.equals("emergency") ? .62f : .91f,
                 circuit.equals("emergency") ? .26f : .75f, circuit);
+    }
+
+    private static NightLighting.Lamp floodlight(float x, float y, float radius, String circuit,
+                                                float targetX, float targetY) {
+        var strip=light(x,y,radius,circuit);
+        float bearing=(float)Math.toDegrees(Math.atan2(targetY-y,targetX-x));
+        return new NightLighting.Lamp(x,y,radius,strip.red(),strip.green(),strip.blue(),circuit,
+                NightLighting.Fixture.TRIPOD_FLOODLIGHT,bearing);
     }
 
     private static void requireRoute(MapResult map, int x, int y) {

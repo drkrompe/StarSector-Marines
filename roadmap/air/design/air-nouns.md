@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a gunship is the sortie that stays (Gunships): a called Mudskipper circles a point with a flank toward it and fires only out of that side; a planetary shield dome takes hostile ship-grade ordnance as flux (Overhead ships); an overhead ship may fly a low pass and a small combat hull may escort a larger one; the ship balance law is a standing law under Overhead ships; a standoff missile's released beam cannot be intercepted.
+Updated: 2026-10-14 — a gunship is the sortie that stays (Gunships): a called Mudskipper circles a point overhead and works the ground with its one turret, as an overwatch gunship does; a planetary shield dome takes hostile ship-grade ordnance as flux (Overhead ships); an overhead ship may fly a low pass and a small combat hull may escort a larger one; the ship balance law is a standing law under Overhead ships; a standoff missile's released beam cannot be intercepted.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -77,7 +77,7 @@ derived. It is intentionally separate from a craft's mission/loadout identity:
 one says how the hull moves and is shaped; the other says why this instance is
 present, who owns it, and what it can do in the battle.
 
-**A gunship** is a craft whose sortie is to circle a ground point rather than land on it or run in at it. It holds a ring of fixed radius with one flank toward the point for a bounded visit, and its guns are mounted on its beams. It is flown in its own phase, `ORBIT`, because nothing in a circling visit ends on a line: it ends on the clock the sortie was given. See **Gunships** under Roles and lifecycle.
+**A gunship** is a craft whose sortie is to circle a ground point rather than land on it or run in at it. It holds a tight ring of fixed radius over the point for a bounded visit while its turret covers the ground beneath. It is flown in its own phase, `ORBIT`, because nothing in a circling visit ends on a line: it ends on the clock the sortie was given. See **Gunships** under Roles and lifecycle.
 
 **Air appearance** is authored render state such as flight phase and apparent
 altitude. It is not a second physics body. Visual scale, offset, and engine
@@ -1293,22 +1293,20 @@ Conquest already delivered this way; every other mission now does too.
 
 **Gunships.** The sortie that is *for* working a target by staying over it. A
 called Mudskipper (Close Air Support, `command-powers-nouns.md`) enters off the
-map from the nearest edge, joins a ring of fixed radius about the targeted point
-tangent to its approach rather than flying to the point and out again, and
-circles it with one flank toward the ground for a bounded visit, then leaves the
-way it came. The visit's clock runs only while it is on the ring, so what the
-player buys is the time the guns had the ground. It holds one direction round
-for the whole visit and a slower pace than its own cruise, and the ring is sized
-so the airframe's turning circle fits inside it.
+map from the nearest edge, joins a tight ring of fixed radius about the targeted
+point tangent to its approach rather than flying to the point and out again, and
+circles overhead of it for a bounded visit, then leaves the way it came. The
+visit's clock runs only while it is on the ring, so what the player buys is the
+time the turret had the ground. It holds one direction round for the whole visit
+and a slower pace than its own cruise, and the ring is sized so the airframe's
+turning circle fits inside it.
 
-Its guns are **broadside mounts**: each rests on its own beam and fires only
-within an arc about it, and the arc turns with the hull. Of a gunship's guns
-only the flank toward the ring's centre has targets; the far flank is silent and
-rests on its beam. A target outside a mount's arc is not shot across the hull.
-That is what "fires out of the side" means here, and it is a property of the
-mount, not a special case in the weapon. The mounts are authored for the craft —
-a Mudskipper's own hull slot is a transport's aft door gun — which is the one
-place air mounts are placed by hand rather than read off the hull.
+It is an overwatch role, not a strafing one: the craft is not aimed at anything.
+It carries the hull's own turret, at the hull's own weapon slot, like any other
+armed craft, and that turret traverses freely, so circling is what lets one gun
+cover the ground from every side of the ring and keep a target in reach as the
+craft goes round. There is no special mount, arc or weapon for a gunship; a
+Mudskipper's one hardpoint is simply the thing it circles with.
 
 A gunship carries nobody and sets nothing down, borrows no berth, and is as
 exposed as any aircraft in the air: it is a sortie flown for its guns, paid for
@@ -1611,7 +1609,7 @@ worked, the same rule a fighter strike uses.
 
 **Balance law (standing).** Ship against ship in atmosphere keeps the base game's balance, with numbers and hints taken from vanilla data (shield arc and efficiency, armour, flux) rather than authored tables. Ground against ship is weaker, at least until planetary defences are built. Ship against ground is stronger: in-universe these are essentially superweapons, and ships are overpowered against the ground by design. Class and posture weights are perception inputs and never alter damage either way.
 
-**A planetary shield dome takes hostile ship-grade ordnance as flux, and nothing else.** A shield generator (a multi-cell structure, `ground-defences.md`) projects a dome of fixed radius with its own flux pool and dissipation. A warship round, warhead or lance beam, or an orbital barrage, from a side hostile to the generator's holder and landing inside the dome, is absorbed instead of detonating (`PendingDetonation.isShipGrade`; the detonation pipeline asks the dome first, so splash, wall damage and the ship's own landing FX never happen). The round that fills the pool is absorbed too; the dome then drops for its overload time, during which ordnance lands as if it were not there, and recovers empty. It stops incoming fire only: the holder's own fire, people, small arms, mech weapons, rockets and aircraft (and aircraft ordnance) pass. Either side may hold a generator; whoever holds it owns the dome, a side with combatants standing by it and none of the holder's takes it (the dome reboots), and destroying it drops the dome for good. Concentrated fire opens the sky and spaced fire never does, which is how a defended world resists ship-vs-ground superweapons without a damage nerf.
+**A planetary shield dome takes hostile ship-grade ordnance as flux, and nothing else.** A shield generator (a multi-cell structure, `ground-defences.md`) projects a dome of fixed radius with its own flux pool and dissipation. A warship round, warhead or lance beam, or an orbital barrage, from a side hostile to the generator's holder and landing inside the dome, is absorbed instead of detonating (`PendingDetonation.isShipGrade`; the detonation pipeline asks the dome first, so splash, wall damage and the ship's own landing FX never happen). The round that fills the pool is absorbed too; the dome then drops for its overload time, during which ordnance lands as if it were not there, and recovers empty. It stops incoming fire only: the holder's own fire, people, small arms, mech weapons, rockets and aircraft (and aircraft ordnance) pass. Either side may hold a generator; whoever holds it owns the dome, a side with combatants standing by it and none of the holder's takes it (the dome reboots), a taken generator changes sides with its holder (`ground-defences.md`, *Captured structures*), and destroying it drops the dome for good. Concentrated fire opens the sky and spaced fire never does, which is how a defended world resists ship-vs-ground superweapons without a damage nerf.
 
 **A warship is hittable, but only by ordnance.** It carries its hull table's own
 hit points and armour (the Onslaught's 20000 and 1750). Any hostile detonation
