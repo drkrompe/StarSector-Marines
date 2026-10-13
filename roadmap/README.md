@@ -35,6 +35,14 @@ stories and areas with no covering story yet.
 Confirmed Retreat now uses ordinary defeat settlement; its remaining live
 acceptance is tracked in `retreat-defeat-settlement.md`.
 
+`castle-campaign-lessons.md` implements the next tutorial slice: Relief's free
+technology and actual issue, Counterattack's recovered Hound and refitting,
+optional ship investment, then Junction's selected formations and heavy support.
+Its next step is live departure/re-entry acceptance. `campaign-learning-curve.md`
+tracks reward overlap, affordability, leadership versus force growth, advanced
+mech access and casualty carryover. `alpha-localization.md` is a required release
+gate; the new lessons use the catalog, with the wider UI migration still open.
+
 ### Company and progression
 
 The campaign spine already supports persistent personnel, contracts, patrons,

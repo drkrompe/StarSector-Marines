@@ -19,11 +19,8 @@ import java.util.List;
  * one line-batch flush (uniform width). Mirrors the former
  * {@code HighlightOverlay.render} immediate-mode pass exactly, now drained.
  *
- * <p>The overlay carries both a production source (selected-squad cells, fed by
- * {@code SelectionHighlightPublisher}) and debug sources (GOAP action cells,
- * captain badge — fed by the {@code @DebugOnly} squad-plan panel). This renderer
- * is source-agnostic; in a prod build only the production source is ever
- * populated.
+ * <p>The overlay carries defensive-area cues and explicit developer overlays.
+ * Unit-selection circles have their own position-following producer.
  */
 public final class HighlightRenderer {
 

@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDef
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -73,6 +74,40 @@ class SquadDefendTargetingPanelTest {
 
         assertEquals(fixture.squad.id, panel.targetingSquadId(),
                 "rescue perimeter duty must not disable player command controls");
+    }
+
+    @Test
+    void groupMovesAndAreaAssignmentsReachEverySelectedSquad() {
+        Fixture fixture = fixture();
+        try (BattleSimulation sim = fixture.sim) {
+            int other = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+            long member = sim.spawn(new EntitySpec("second", Faction.MARINE, UnitType.MARINE,
+                    8, 20).squad(other));
+            sim.getSquad(other).aliveMembers = 1;
+            sim.getSquad(other).leaderId = member;
+            fixture.selection.selectSquads(List.of(fixture.squad.id, other),
+                    fixture.squad.id, fixture.squad.leaderId, false);
+            SelectionOrders.requestMove(sim, fixture.selection, 30, 20);
+            sim.getSquadMoveOrderSystem().tick(sim);
+            for (int id : fixture.selection.getSelectedSquadIds()) {
+                assertEquals(30, sim.getSquadMoveOrderService().activeOrder(id).requestedX());
+            }
+            SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
+            panel.toggle(fixture.squad.id);
+            panel.handleInput(List.of(leftClick(
+                    Math.round(fixture.camera.cellToScreenX(30.5f)),
+                    Math.round(fixture.camera.cellToScreenY(20.5f)))));
+            sim.getSquadMoveOrderSystem().tick(sim);
+            for (int id : fixture.selection.getSelectedSquadIds()) {
+                assertInstanceOf(ActiveDefendAreaOrder.class,
+                        sim.getSquadMoveOrderService().activeOrder(id));
+            }
+            panel.toggle(fixture.squad.id);
+            fixture.selection.selectUnit(fixture.squad.id, fixture.squad.leaderId);
+            panel.update(0f);
+            assertEquals(Selection.NONE, panel.targetingSquadId(),
+                    "changing the group cancels placement even when the primary stays the same");
+        }
     }
 
     private static InputEventAPI leftClick(int x, int y) {

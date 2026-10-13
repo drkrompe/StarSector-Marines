@@ -369,6 +369,7 @@ public final class MissionResolver {
         return MissionOutcome.builder()
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
+                .fieldSalvage(sim.fieldSalvage().recovered())
                 .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)

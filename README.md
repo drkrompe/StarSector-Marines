@@ -16,6 +16,11 @@ complete gameplay loop — published as a reference for modders interested in
 custom UIs, ground-combat systems, 3D asset pipelines, or campaign-tier
 architecture in Starsector.
 
+The Alpha roadmap now tracks campaign learning and power growth alongside a
+required localization pass. Castle's post-Relief through Junction guidance uses
+resumable portrait popovers over real equipment, formation and support controls;
+live linked-campaign acceptance remains open in `castle-campaign-lessons.md`.
+
 ## Features (so far)
 
 - **Tactical battle simulation** — tile-based ground combat with fog of war

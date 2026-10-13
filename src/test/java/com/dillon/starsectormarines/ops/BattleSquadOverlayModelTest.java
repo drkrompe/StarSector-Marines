@@ -97,6 +97,15 @@ class BattleSquadOverlayModelTest {
             assertTrue(morale.width() >= 102f,
                     "morale keeps enough width for its label and bar");
 
+            model.selectionScope(3);
+            instance.flush();
+            assertEquals("ALL 3 SQUADS", instance.requireElement("battle-squad-order-label").text());
+            assertEquals("SQUAD 20", instance.requireElement("battle-squad-title").text(),
+                    "the roster and its statistics still describe the focused squad");
+            model.selectionScope(1);
+            instance.flush();
+            assertEquals("TACTICAL ORDER", instance.requireElement("battle-squad-order-label").text());
+
             model.hover("battle-squad-member-0-0");
             instance.flush();
             document.advance(0f);

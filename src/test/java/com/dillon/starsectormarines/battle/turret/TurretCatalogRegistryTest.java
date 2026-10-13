@@ -161,9 +161,10 @@ class TurretCatalogRegistryTest {
     }
 
     @Test
-    void shippedStructuresAreOneCellExceptTheFortressPlaceholder() {
+    void shippedStructuresAreOneCellExceptTheFortressStructures() {
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
-            if (structure.id.equals("structure.fortress-battery-placeholder")) {
+            if (structure.id.equals("structure.fortress-battery-placeholder")
+                    || structure.id.equals("structure.shield-generator")) {
                 assertEquals(3, structure.footprintCellsX);
                 assertEquals(3, structure.footprintCellsY);
             } else {

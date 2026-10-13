@@ -82,7 +82,7 @@ public final class LanceSweepSystem {
                     /*wallDamageRadius*/ s.halfWidth(),
                     /*spawnDustOnWallBreak*/ true,
                     /*friendlyFireImmune*/ false,
-                    /*authoredAftermath*/ true));
+                    /*authoredAftermath*/ true).asShipGrade());
         }
     }
 }

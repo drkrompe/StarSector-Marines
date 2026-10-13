@@ -51,6 +51,16 @@ final class FirstRefitModel {
         path = roster.firstRefit().chosenPath();
         refresh();
     }
+    PreparationGuide.Lesson guide() {
+        if (!FirstRefit.available(roster)) return null;
+        String copy = squadId == null ? "lessonRefitSquad" : path == null ? "lessonRefitCompare"
+                : !roster.firstRefit().claimed() ? "lessonRefitClaim" : "lessonRefitIssue";
+        return CampaignLessons.lesson(roster.firstRefit().claimed() ? 3 : path == null ? 0 : 1,
+                "lessonRefitTitle", copy,
+                List.of(path == null ? "refit-paths" : "refit-actions", "refit-squads", "refit-paths", "refit-billets", "refit-inspection"),
+                null, null);
+    }
+
     Signal<Map<String, Object>> row() { return row; }
     void selectSquad(String id) { squadId = id; feedback = ""; refresh(); }
     void selectPath(Path value) {
@@ -79,10 +89,10 @@ final class FirstRefitModel {
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null || !reviewedMembers.equals(roster.manningMemberIds(squad))
                 || !live.billets().equals(reviewed.billets())) {
-            feedback = "The squad or its equipment changed. Review the updated order before issuing.";
+            feedback = LessonCopy.text("refitOrderChanged");
         } else {
             SquadEquipmentResult result = roster.firstRefit().issue(roster, squadId, path, resources);
-            feedback = result == SquadEquipmentResult.APPLIED ? "Equipment plan saved. The squad's current marines, including wounded personnel, now carry the reviewed kit." : blocker(result);
+            feedback = result == SquadEquipmentResult.APPLIED ? LessonCopy.text("refitIssued") : blocker(result);
         }
         refresh();
     }
@@ -96,13 +106,14 @@ final class FirstRefitModel {
                 ? roster.firstRefit().preview(roster, squadId, path) : null;
         reviewedMembers = squad == null ? List.of() : List.copyOf(roster.manningMemberIds(squad));
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("title", "CASTLE / A PROPER ISSUE");
+        props.put("title", LessonCopy.text("lessonRefitTitle"));
+        props.put("conversationClasses", complete ? "refit-conversation panel" : "refit-hidden");
         props.put("progress", complete ? "4 / 4  KIT ISSUED" : squad == null ? "1 / 4  CHOOSE A SQUAD"
                 : path == null ? "2 / 4  COMPARE TWO PATHS" : !claimed ? "3 / 4  CHOOSE YOUR FREE TECHNOLOGY" : "4 / 4  FIT YOUR SQUAD");
         props.put("copy", complete
-                ? "Technology received, kit fitted. The Machine Shop can fit and swap any learned equipment for free. Try different plans in Equipment; find more specs through markets and mission rewards."
-                : !claimed ? "Wayline can transfer one equipment package as thanks for holding their checkpoint. Compare both paths, then choose one free technology transfer. Its specs are yours permanently; the Machine Shop fits them for free. The other path can be learned later through markets or mission rewards."
-                : "The transfer is yours permanently. Select a square to compare current and proposed equipment; hover an item for full specs. Fit learned equipment for free, including on wounded marines. Other technology remains available through markets and mission rewards.");
+                ? LessonCopy.text("refitCompletedCopy")
+                : !claimed ? LessonCopy.text("refitTransferCopy")
+                : LessonCopy.text("refitFittingCopy"));
         props.put("claimClasses", !claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("claimDisabled", path == null || reviewed == null);
         props.put("claimLabel", path == null ? "CHOOSE A PATH" : "LEARN " + path.label.toUpperCase(Locale.ROOT));
@@ -117,7 +128,7 @@ final class FirstRefitModel {
                 "classes", "refit-squad" + (s.id().equals(squadId) ? " refit-selected selected" : ""),
                 "select", (Runnable) () -> selectSquad(s.id()))).toList());
         props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
-                ? "No line squad. Return to Equipment to found one." : "SELECT ONE FORMATION / Wounded and understrength squads can receive equipment.");
+                ? "No line squad. Return to Equipment to found one." : LessonCopy.text("refitSquadHint"));
         pathCards = List.of(Path.values()).stream().map(p -> FleetArmoryViewModel.weaponTile(
                 "refit-path:" + p.name(), new SquadWeaponDoctrine(p.weapons,
                 "Wayline / " + p.label + (claimed ? FirstRefit.technologyKnown(roster, p) ? " / LEARNED" : " / FIND SPECS" : ""),
@@ -170,8 +181,8 @@ final class FirstRefitModel {
         props.put("comparisonClasses", reviewed == null ? "refit-hidden" : "refit-comparison");
         props.put("emptyClasses", reviewed == null ? "refit-empty panel" : "refit-hidden");
         props.put("status", !feedback.isEmpty() ? feedback
-                : !claimed ? "Choose one free transfer. Comparing paths does not learn technology or change equipment."
-                : reviewed == null ? "Choose a squad and a learned equipment path. Machine Shop fitting is free."
+                : !claimed ? LessonCopy.text("refitChooseTransfer")
+                : reviewed == null ? LessonCopy.text("refitChooseLearned")
                 : reviewed.canApply() ? "Ready to fit " + reviewedMembers.size() + " current marines in " + squad.name() + ". Free fitting and swaps; wounded personnel included."
                 : blocker(reviewed.result()));
         props.put("disabled", !claimed || complete || reviewed == null || !reviewed.canApply());
@@ -210,7 +221,7 @@ final class FirstRefitModel {
             item.put("kind", kind + change);
             item.put("title", sheet != null ? sheet.title() : kit == null ? "No current equipment" : "No special equipment");
             item.put("subtitle", sheet != null ? sheet.subtitle() : proposed && before != null
-                    ? "This plan removes the current special. You can fit learned equipment again for free." : kit == null ? "Vacant billet / no charge" : "This slot carries no special item.");
+                    ? LessonCopy.text("refitSpecialRemoved") : kit == null ? "Vacant billet / no charge" : "This slot carries no special item.");
             item.put("stats", sheet == null ? "" : sheet.stats().stream()
                     .map(stat -> stat.label() + "  " + stat.value()).collect(Collectors.joining("     ")));
             item.put("system", i == 1 && kit != null ? IntegralSystemCopy.tile(kit.armorDef()) : "");
@@ -223,9 +234,9 @@ final class FirstRefitModel {
     private static String blocker(SquadEquipmentResult result) {
         return switch (result) {
             case SQUAD_NOT_READY -> "The squad changed. Select it again to review the current roll.";
-            case STATIONED -> "This squad is stationed away from the ship. Recall it before issuing equipment.";
-            case MISSING_TEMPLATE -> "Technology not learned. Find these specs through markets or mission rewards, then fit them here for free.";
-            default -> "This order is unavailable. Select a current squad and an available equipment path.";
+            case STATIONED -> LessonCopy.text("refitStationed");
+            case MISSING_TEMPLATE -> LessonCopy.text("refitUnknownTechnology");
+            default -> LessonCopy.text("refitUnavailable");
         };
     }
 }

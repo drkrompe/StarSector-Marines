@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.awt.Color;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -39,9 +41,9 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * World-selection HUD slot. A stationary LMB gesture keeps the original click
  * behavior: nearest live unit (any faction) within a forgiveness radius wins,
  * and empty world space clears selection. Crossing a small pointer threshold
- * instead draws a selection box and chooses one player infantry squad or combat
- * mech inside it. The single winner is the candidate nearest the box center,
- * with entity id as the stable tie-break.
+ * instead selects every intersecting player squad or combat lance. The member
+ * nearest the box center becomes the primary, with entity id breaking ties.
+ * Shift extends the current player selection.
  *
  * <p>The world is the battle's squad browser. It writes the shared
  * {@link Selection}, and the selected-squad detail and GOAP diagnostic react
@@ -71,6 +73,7 @@ public final class WorldPicker implements HudPanel {
 
     private final BattleUiContext ctx;
     private boolean primaryGestureActive;
+    private boolean additiveGesture;
     private float dragStartX;
     private float dragStartY;
     private float dragCurrentX;
@@ -84,7 +87,23 @@ public final class WorldPicker implements HudPanel {
     @Override public void update(float dt) {}
 
     /** Entering another world input mode abandons any unfinished selection gesture. */
-    public void cancel() { primaryGestureActive = false; }
+    public void cancel() {
+        primaryGestureActive = false;
+        ctx.getSelection().hoverSquad(Selection.NONE);
+    }
+
+    /** Uses the same pick geometry as a click, and yields to all HUD chrome. */
+    public void updateHover(float screenX, float screenY, boolean eligible) {
+        BattleSimulation sim = ctx.getSim();
+        BattleCamera camera = ctx.getCamera();
+        long unit = eligible && sim != null && camera != null
+                && !sim.directControl().active() && camera.containsScreen(screenX, screenY)
+                ? nearestUnit(sim, camera.screenToCellX(screenX), camera.screenToCellY(screenY)) : 0L;
+        if (unit != 0L && nearestVehicle(sim, camera.screenToCellX(screenX),
+                camera.screenToCellY(screenY)) != 0L) unit = 0L;
+        ctx.getSelection().hoverSquad(unit != 0L && isDragSelectable(sim, unit)
+                ? sim.squad().squadId(unit) : Selection.NONE);
+    }
 
     @Override
     public void render(float alphaMult) {
@@ -143,6 +162,7 @@ public final class WorldPicker implements HudPanel {
             if (!camera.containsScreen(e.getX(), e.getY())) continue;
 
             primaryGestureActive = true;
+            additiveGesture = e.isShiftDown();
             dragStartX = e.getX();
             dragStartY = e.getY();
             dragCurrentX = dragStartX;
@@ -153,14 +173,15 @@ public final class WorldPicker implements HudPanel {
 
     private void completePrimaryGesture(BattleSimulation sim, BattleCamera camera) {
         if (isDragGesture()) {
-            long picked = nearestDragCandidate(sim, camera,
+            Set<Integer> squads = new LinkedHashSet<>();
+            long picked = collectDragCandidates(sim, camera, squads,
                     Math.min(dragStartX, dragCurrentX),
                     Math.min(dragStartY, dragCurrentY),
                     Math.max(dragStartX, dragCurrentX),
                     Math.max(dragStartY, dragCurrentY));
             if (picked != 0L) {
-                ctx.getSelection().selectUnit(sim.squad().squadId(picked), picked);
-            } else {
+                selectPlayerSquads(sim, squads, picked);
+            } else if (!additiveGesture) {
                 ctx.getSelection().clear();
             }
             return;
@@ -176,16 +197,31 @@ public final class WorldPicker implements HudPanel {
 
         long picked = nearestUnit(sim, worldX, worldY);
         if (picked != 0L && sim.squad().hasSquad(picked)) {
-            ctx.getSelection().selectUnit(sim.squad().squadId(picked), picked);
+            if (additiveGesture && isDragSelectable(sim, picked)) {
+                selectPlayerSquads(sim, Set.of(sim.squad().squadId(picked)), picked);
+            } else {
+                ctx.getSelection().selectUnit(sim.squad().squadId(picked), picked);
+            }
             return;
         }
         // A capital hovers over the fight, so it is picked only where no unit was.
         Warship ship = WarshipPilot.pick(sim.warships().ships(), worldX, worldY, Faction.MARINE);
         if (ship != null) {
             ctx.getSelection().selectWarship(ship);
-        } else {
+        } else if (!additiveGesture) {
             ctx.getSelection().clear();
         }
+    }
+
+    private void selectPlayerSquads(BattleSimulation sim, Set<Integer> squads, long primary) {
+        Selection selection = ctx.getSelection();
+        if (additiveGesture) {
+            selection.retainSquads(id -> {
+                Squad squad = sim.getSquad(id);
+                return squad != null && squad.faction == Faction.MARINE;
+            });
+        }
+        selection.selectSquads(squads, sim.squad().squadId(primary), primary, additiveGesture);
     }
 
     private void updateDragPointer(BattleCamera camera, float screenX, float screenY) {
@@ -271,11 +307,12 @@ public final class WorldPicker implements HudPanel {
     }
 
     /**
-     * One commandable player squad member intersecting the drag box. Infantry
+     * All commandable player squads intersecting the drag box. Infantry
      * members select their squad; mechs additionally pin the exact chassis so
      * the mech command plate retains its member-level scope.
      */
-    private static long nearestDragCandidate(BattleSimulation sim, BattleCamera camera,
+    private static long collectDragCandidates(BattleSimulation sim, BattleCamera camera,
+                                             Set<Integer> squads,
                                              float minX, float minY,
                                              float maxX, float maxY) {
         float centerX = (minX + maxX) * 0.5f;
@@ -295,6 +332,7 @@ public final class WorldPicker implements HudPanel {
                 continue;
             }
 
+            squads.add(sim.squad().squadId(unit));
             float dx = screenX - centerX;
             float dy = screenY - centerY;
             float distanceSq = dx * dx + dy * dy;

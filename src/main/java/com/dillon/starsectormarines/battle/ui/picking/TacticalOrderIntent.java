@@ -23,6 +23,8 @@ public enum TacticalOrderIntent {
     NONE("", false),
     /** Ordinary ground: go there. */
     MOVE("MOVE", true),
+    /** Each selected squad resolves the shared click through its own order authority. */
+    GROUP_ORDER("GROUP ORDER", true),
     /** A friendly transport with room: walk over and get in. */
     MOUNT("GET IN", true),
     /** The selected transport, carrying somebody: everybody out. */
@@ -60,6 +62,8 @@ public enum TacticalOrderIntent {
             }
             return MOVE;
         }
+
+        if (selection.squadCount() > 1) return GROUP_ORDER;
 
         long mech = selection.getSelectedUnitEntityId();
         if (mech != 0L && sim.world().hasMechLoadout(mech)) return MOVE;
