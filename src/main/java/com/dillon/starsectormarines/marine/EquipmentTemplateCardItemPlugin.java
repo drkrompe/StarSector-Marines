@@ -73,7 +73,9 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
         String access = accessLabel(template.accessTier());
         tooltip.addPara(MessageFormat.format(Strings.get("equipmentTemplateAccessFmt"),
                         access), pad, Misc.getHighlightColor(), access);
-        if (template.accessTier() == EquipmentAccessTier.COMMON) {
+        if (EquipmentTemplateCatalog.installed().storySource(template.id()) != null) {
+            tooltip.addPara(Strings.get("equipmentTemplateStorySourceRoute"), pad);
+        } else if (template.accessTier() == EquipmentAccessTier.COMMON) {
             tooltip.addPara(Strings.get("equipmentTemplateAccessCommonRoute"), pad);
         } else {
             tooltip.addPara(MessageFormat.format(

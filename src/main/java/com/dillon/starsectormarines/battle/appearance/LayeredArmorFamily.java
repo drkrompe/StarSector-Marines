@@ -33,7 +33,9 @@ public enum LayeredArmorFamily {
     SHIP_COMMAND,
     SHIP_ENGINEERING,
     SHIP_MEDICAL,
-    SHIP_SERVICE;
+    SHIP_SERVICE,
+    /** Articulated support shell; appended to preserve persisted appearance ordinals. */
+    ARBALEST_HEAVY;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {

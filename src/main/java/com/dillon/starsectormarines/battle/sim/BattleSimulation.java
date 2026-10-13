@@ -2690,6 +2690,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
         objectivesService.tick(o -> o.tick(this));
+        // Delayed impacts and objective callbacks run after DEMOLISH and may
+        // kill a body on the final tick. Publish their corpse/cascade reactions
+        // before topology and completion: settlement must never see a released
+        // named marine waiting for a next tick that a terminal battle cannot run.
+        deathDispatcher.drain();
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall
         // breaches or turret demolishes that happened this tick, rebuilds the
