@@ -94,3 +94,4 @@ com.dillon.starsectormarines.battle.tender.TenderBuildSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderSortieSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderPilotSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderPointDefenceSceneSnapshotSuite
+com.dillon.starsectormarines.ops.BarracksEquipmentSnapshotSuite

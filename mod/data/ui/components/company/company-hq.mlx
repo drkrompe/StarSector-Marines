@@ -15,7 +15,7 @@
       <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">DEBUG MISSIONS</button>
     </div>
 
-    <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{armoryAction}">A PROPER ISSUE / Wayline equipment patterns received. Meet Castle in the Armory.</button>
+    <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">A PROPER ISSUE / Wayline equipment patterns received. Open Equipment in Barracks to meet Castle.</button>
     <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">SECONDHAND WINGS / Castle has a lead on two surplus Aeroshuttles. Review on the Boat Deck.</button>
 
     <div id="company-hq-main" class="company-hq-main">

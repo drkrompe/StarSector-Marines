@@ -290,7 +290,7 @@ public final class MechLabScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "mech-lab-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
                 "mech-lab-room-bar", "mech-bay-navigator", "mech-previous-bay",
                 "mech-active-bay", "mech-next-bay", "mech-lab-body", "mech-asset-picker",
