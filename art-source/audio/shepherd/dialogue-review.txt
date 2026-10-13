@@ -1,0 +1,324 @@
+A WORKING SHIP â€” DIALOGUE REVIEW
+The user approved Castle's three clips, selected Vale candidate 3, then approved saving her voice and recording the nine Vale clips.
+Recorded first batch: 12 clips. Generation and decode verification are complete; listening quality review remains pending.
+
+CASTING
+Castle: retained mature British company officer, voice cuwCdnt9CKAB9XrTA1j0.
+Vale: selected candidate 3, permanent voice cZH6erlGkOyAQheipyno (Tamsin Vale — Basin Reclamation).
+All 32 Vale lines explicitly retain her selected voice ID.
+Proposed Voice Design: A woman in her late forties or fifties, a working shipyard foreman with a low,
+slightly husky register and an understated northern English accent. Clear natural speech, practical authority,
+patient warmth and dry restraint. She sounds like someone who has worked beside these crews for years.
+No theatrical menace, military parade delivery, radio filtering, background ambience or sound effects.
+Completed audition: one Voice Design preview request returned three candidates; the user selected candidate 3.
+One subsequent create-voice request saved that candidate. Audition/save responses contained no cost header.
+Audition passage: Captain, that's Morrow in the cradle. Her crew brought her down with half the controls dead.
+They came back because they knew she was worth saving. Give my technicians safe ground and we'll get her working.
+
+APPROVED AND RECORDED FIRST BATCH: 12 clips; 3 Castle and 9 Vale. One approved take per line; no automatic retries.
+Synthesis character totals (including delivery tags): Castle 484; Vale 1,282; combined 1,766.
+Castle's ground opening, first completed gun and underway report anchor the operational net.
+Vale covers power, repairs, departure instructions, both confirmed militia holds and the earned-ship payoff.
+Vale's nine TTS calls returned 514 total character-cost units and 65.76 seconds of clean source speech.
+Each approved line used one request with no retries. Per-line request IDs, costs, durations and hashes are retained.
+Synthesis uses v4 delivery tags and punctuation only; no SSML, effects tags or baked radio noise.
+Recorded subtitle durations now use measured takes. The remaining text-only lines retain estimated reading durations.
+Official direction guide: https://elevenlabs.io/docs/overview/capabilities/text-to-speech/best-practices
+
+Selected IDs:
+  basin_briefing
+  basin_cold_start_power_restored
+  basin_cold_start_turret_ready
+  basin_cold_start_complete
+  basin_passage_briefing
+  basin_passage_underway
+  basin_passage_bend_build
+  basin_passage_militia_hold_0
+  basin_passage_narrows_build
+  basin_passage_militia_hold_1
+  basin_passage_departure
+  basin_passage_complete
+
+FULL SCRIPT
+39 lines: Castle 7 / 1,028 synthesis characters; Vale 32 / 4,436; combined 5,464.
+All failure reports remain readable, with or without audio. Terminal facts cancel obsolete pending instructions.
+No new results dialogue system: existing terminal chapter hooks carry the immediate payoff.
+
+story_shepherd_salvage
+
+basin_salvage_arrival [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.arrival
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Vale here, Captain. Clear the receiving store, then the workshop. My militia will hold the ground you take. Morrow is beyond them, in her cradle.
+Synthesis: [firm, practical] Vale here, Captain. Clear the receiving store, then the workshop. My militia will hold the ground you take. Morrow is beyond them, in her cradle.
+Voice: UNCAST â€” do not generate
+
+basin_salvage_workshop [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.workshop
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, receiving store secure. Take the workshop next. Keep the company together through those salvage rows.
+Synthesis: [composed, focused] Captain, receiving store secure. Take the workshop next. Keep the company together through those salvage rows.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+basin_salvage_cradle [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.cradle
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Workshop secure. My militia will hold it. Clear Morrow's southern service access; the inspection party is waiting for your cover.
+Synthesis: [businesslike, focused] Workshop secure. My militia will hold it. Clear Morrow's southern service access; the inspection party is waiting for your cover.
+Voice: UNCAST â€” do not generate
+
+basin_salvage_hull [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.morrow_sighted
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: That's Morrow, Captain. Her crew landed her with half the controls dead. Some of those hands are back with us. They know what she's worth.
+Synthesis: [warm, quietly proud] That's Morrow, Captain. Her crew landed her with half the controls dead. Some of those hands are back with us. They know what she's worth.
+Voice: UNCAST â€” do not generate
+
+basin_salvage_road [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.road_warning
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, keep watch on the south haul road. It's the scrappers' way back into the yard. Leave company cover with the inspection party.
+Synthesis: [firm, focused] Captain, keep watch on the south haul road. It's the scrappers' way back into the yard. Leave company cover with the inspection party.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+basin_salvage_inspection [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.inspection
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Service access secure. My technicians are crossing to the hull. Keep your people near them; they need safe ground to finish the inspection.
+Synthesis: [steady, practical] Service access secure. My technicians are crossing to the hull. Keep your people near them; they need safe ground to finish the inspection.
+Voice: UNCAST â€” do not generate
+
+basin_salvage_contested [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.inspection_contested
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, hostiles at the service access. The inspection has stopped. Clear that ground and cover the technicians.
+Synthesis: [urgent, controlled] Captain, hostiles at the service access. The inspection has stopped. Clear that ground and cover the technicians.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+basin_salvage_secured [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.secured
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The drone workshop can be saved. Your claim on Morrow is protected, Captain. Shore power next, then a road out. We have something to work with.
+Synthesis: [relieved, quietly hopeful] The drone workshop can be saved. Your claim on Morrow is protected, Captain. Shore power next, then a road out. We have something to work with.
+Voice: UNCAST â€” do not generate
+
+basin_salvage_failed [LATER / TEXT AVAILABLE]
+Event: shepherd.salvage.failed
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, we've lost the inspection party. Pull back. We can return for the hull. We cannot bring those people back.
+Synthesis: [quiet, grave] Captain, we've lost the inspection party. Pull back. We can return for the hull. We cannot bring those people back.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+story_shepherd_cold_start
+
+basin_briefing [FIRST BATCH]
+Event: briefing
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, the company is already ashore in the secured yard. Escort the distribution rig to the workshop, then cover Vale's technicians at the pump. We're here to get Morrow working.
+Synthesis: [composed, focused] Captain, the company is already ashore in the secured yard. Escort the distribution rig to the workshop, then cover Vale's technicians at the pump. We're here to get Morrow working.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+basin_cold_start_company_lost [LATER / TEXT AVAILABLE]
+Event: cold_start.company_lost
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The company can no longer cover this work. Break off the repair. Any equipment delivered and shore power restored remain on our account.
+Synthesis: [grave, controlled] The company can no longer cover this work. Break off the repair. Any equipment delivered and shore power restored remain on our account.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_builders_lost [LATER / TEXT AVAILABLE]
+Event: cold_start.builders_lost
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Morrow's builders are gone. We cannot finish the road gun with this wing. Withdraw, Captain. Any delivered cargo and restored power stay on our account.
+Synthesis: [grave, practical] Morrow's builders are gone. We cannot finish the road gun with this wing. Withdraw, Captain. Any delivered cargo and restored power stay on our account.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_convoy_arrived [LATER / TEXT AVAILABLE]
+Event: cold_start.convoy_arrived
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Captain, the distribution rig is at the apron. Keep your company with it along the workshop road.
+Synthesis: [businesslike, practical] Captain, the distribution rig is at the apron. Keep your company with it along the workshop road.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_workshop [LATER / TEXT AVAILABLE]
+Event: cold_start.workshop
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The rig is delivered. Clear the pump station and cover my technicians while they reconnect shore power.
+Synthesis: [firm, focused] The rig is delivered. Clear the pump station and cover my technicians while they reconnect shore power.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_pump_started [LATER / TEXT AVAILABLE]
+Event: cold_start.pump_started
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: My technicians are working at the pump. Hold that ground, Captain. They need cover to finish the circuit.
+Synthesis: [steady, focused] My technicians are working at the pump. Hold that ground, Captain. They need cover to finish the circuit.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_power_restored [FIRST BATCH]
+Event: cold_start.power_restored
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Shore power is on. Morrow's builders are answering. Select Build Vulcan Turret and place a road gun on clear ground within reach of her drone bay.
+Synthesis: [pleased, practical] Shore power is on. Morrow's builders are answering. Select Build Vulcan Turret and place a road gun on clear ground within reach of her drone bay.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_turret_ready [FIRST BATCH]
+Event: cold_start.turret_ready
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, our first road gun is built. That's Morrow doing useful work again. Keep the approaches clear while Vale's crew repairs her workshop.
+Synthesis: [pleased, composed] Captain, our first road gun is built. That's Morrow doing useful work again. Keep the approaches clear while Vale's crew repairs her workshop.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+basin_cold_start_complete [FIRST BATCH]
+Event: cold_start.complete
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The drone workshop is running. Today's repair is finished, Captain. Now we need to walk Morrow out of this basin.
+Synthesis: [relieved, quietly proud] The drone workshop is running. Today's repair is finished, Captain. Now we need to walk Morrow out of this basin.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_crew_lost [LATER / TEXT AVAILABLE]
+Event: cold_start.crew_lost
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: We've lost the repair crew. Pull back, Captain. Any equipment delivered and power restored stay on the account. These people will not be coming back with us.
+Synthesis: [quiet, grave] We've lost the repair crew. Pull back, Captain. Any equipment delivered and power restored stay on the account. These people will not be coming back with us.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_carrier_lost [LATER / TEXT AVAILABLE]
+Event: cold_start.carrier_lost
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The distribution rig is lost. We cannot finish without that equipment. Withdraw the company, Captain.
+Synthesis: [firm, grave] The distribution rig is lost. We cannot finish without that equipment. Withdraw the company, Captain.
+Voice: UNCAST â€” do not generate
+
+basin_cold_start_approach [LATER / TEXT AVAILABLE]
+Event: cold_start.approach
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Scrappers are approaching the yard, Captain. Cover my repair crew and Morrow's builders. Those drones can be shot down.
+Synthesis: [urgent, controlled] Scrappers are approaching the yard, Captain. Cover my repair crew and Morrow's builders. Those drones can be shot down.
+Voice: UNCAST â€” do not generate
+
+story_shepherd_working_passage
+
+basin_passage_briefing [FIRST BATCH]
+Event: briefing
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Captain, Morrow can hover. Clear the pump bend, then the narrows. Build a gun at each stop before moving on. My militia will hold behind you. Cover her drive test in the eastern yard.
+Synthesis: [businesslike, quietly hopeful] Captain, Morrow can hover. Clear the pump bend, then the narrows. Build a gun at each stop before moving on. My militia will hold behind you. Cover her drive test in the eastern yard.
+Voice: UNCAST â€” do not generate
+
+basin_passage_underway [FIRST BATCH]
+Event: working_passage.underway
+Speaker: CASTLE / COMPANY COMMAND
+Subtitle: Captain, Morrow is moving under her own power. Keep the company ahead of her and clear that pump bend.
+Synthesis: [pleased, focused] Captain, Morrow is moving under her own power. Keep the company ahead of her and clear that pump bend.
+Voice: cuwCdnt9CKAB9XrTA1j0
+
+basin_passage_bend_build [FIRST BATCH]
+Event: working_passage.bend_build
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Pump bend clear. Bring Morrow up behind the company and build a road gun. Keep her builders covered, Captain.
+Synthesis: [firm, practical] Pump bend clear. Bring Morrow up behind the company and build a road gun. Keep her builders covered, Captain.
+Voice: UNCAST â€” do not generate
+
+basin_passage_narrows [LATER / TEXT AVAILABLE]
+Event: working_passage.narrows
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The pump bend has its gun. My first militia team is moving to hold it. Bring the company through the narrows.
+Synthesis: [steady, focused] The pump bend has its gun. My first militia team is moving to hold it. Bring the company through the narrows.
+Voice: UNCAST â€” do not generate
+
+basin_passage_narrows_build [FIRST BATCH]
+Event: working_passage.narrows_build
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Narrows secured. Build the next gun before moving on, Captain. We need the southern approach covered.
+Synthesis: [firm, practical] Narrows secured. Build the next gun before moving on, Captain. We need the southern approach covered.
+Voice: UNCAST â€” do not generate
+
+basin_passage_climb_out [LATER / TEXT AVAILABLE]
+Event: working_passage.climb_out
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The second gun is built. My other militia team is moving to the narrows. Clear the eastern yard for Morrow's drive test.
+Synthesis: [steady, focused] The second gun is built. My other militia team is moving to the narrows. Clear the eastern yard for Morrow's drive test.
+Voice: UNCAST â€” do not generate
+
+basin_passage_spool [LATER / TEXT AVAILABLE]
+Event: working_passage.spool
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Morrow is in the eastern yard. Cover her while the repaired drives spool. Keep the approach clear, Captain.
+Synthesis: [focused, expectant] Morrow is in the eastern yard. Cover her while the repaired drives spool. Keep the approach clear, Captain.
+Voice: UNCAST â€” do not generate
+
+basin_passage_departure [FIRST BATCH]
+Event: working_passage.departure
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Drive test complete. Morrow is climbing, Captain. Hold that approach until she's clear of the basin.
+Synthesis: [relieved, focused] Drive test complete. Morrow is climbing, Captain. Hold that approach until she's clear of the basin.
+Voice: UNCAST â€” do not generate
+
+basin_passage_complete [FIRST BATCH]
+Event: working_passage.complete
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Morrow is clear of the basin. The registry transfer is authorized, Captain. You earned her. She's a working ship again.
+Synthesis: [warm, quietly proud] Morrow is clear of the basin. The registry transfer is authorized, Captain. You earned her. She's a working ship again.
+Voice: UNCAST â€” do not generate
+
+basin_passage_failed [LATER / TEXT AVAILABLE]
+Event: working_passage.failed
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Departure aborted. Pull back, Captain. I'll recover Morrow. Your claim and completed repairs stand; we'll need another mobilization to bring her out.
+Synthesis: [grave, practical] Departure aborted. Pull back, Captain. I'll recover Morrow. Your claim and completed repairs stand; we'll need another mobilization to bring her out.
+Voice: UNCAST â€” do not generate
+
+basin_passage_company_lost [LATER / TEXT AVAILABLE]
+Event: working_passage.company_lost
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: The company can no longer cover Morrow. Break off departure. I'll recover the hull; your claim and completed repairs remain on the account.
+Synthesis: [grave, controlled] The company can no longer cover Morrow. Break off departure. I'll recover the hull; your claim and completed repairs remain on the account.
+Voice: UNCAST â€” do not generate
+
+basin_passage_builders_lost [LATER / TEXT AVAILABLE]
+Event: working_passage.builders_lost
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Morrow has no builders left for the road defenses. Break off departure, Captain. We'll recover her and fit a replacement wing.
+Synthesis: [grave, practical] Morrow has no builders left for the road defenses. Break off departure, Captain. We'll recover her and fit a replacement wing.
+Voice: UNCAST â€” do not generate
+
+basin_passage_road_team_0 [LATER / TEXT AVAILABLE]
+Event: working_passage.road_team_0
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Captain, watch the south haul approach while the builders work at the pump bend.
+Synthesis: [firm, watchful] Captain, watch the south haul approach while the builders work at the pump bend.
+Voice: UNCAST â€” do not generate
+
+basin_passage_road_team_1 [LATER / TEXT AVAILABLE]
+Event: working_passage.road_team_1
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Keep a watch on the quarry road as you clear the narrows, Captain.
+Synthesis: [firm, watchful] Keep a watch on the quarry road as you clear the narrows, Captain.
+Voice: UNCAST â€” do not generate
+
+basin_passage_road_team_2 [LATER / TEXT AVAILABLE]
+Event: working_passage.road_team_2
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Captain, keep the pump road covered behind us. We still need that hold.
+Synthesis: [firm, watchful] Captain, keep the pump road covered behind us. We still need that hold.
+Voice: UNCAST â€” do not generate
+
+basin_passage_road_team_3 [LATER / TEXT AVAILABLE]
+Event: working_passage.road_team_3
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: Hold the last approach, Captain. Morrow needs the eastern yard clear for ascent.
+Synthesis: [firm, focused] Hold the last approach, Captain. Morrow needs the eastern yard clear for ascent.
+Voice: UNCAST â€” do not generate
+
+basin_passage_militia_hold_0 [FIRST BATCH]
+Event: working_passage.militia_hold_0
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: My first militia team is in position at the pump bend, Captain. Bring your company forward when you're ready.
+Synthesis: [steady, reassuring] My first militia team is in position at the pump bend, Captain. Bring your company forward when you're ready.
+Voice: UNCAST â€” do not generate
+
+basin_passage_militia_hold_1 [FIRST BATCH]
+Event: working_passage.militia_hold_1
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Subtitle: My second militia team is holding the narrows, Captain. Keep the company with Morrow for the climb-out.
+Synthesis: [steady, reassuring] My second militia team is holding the narrows, Captain. Keep the company with Morrow for the climb-out.
+Voice: UNCAST â€” do not generate

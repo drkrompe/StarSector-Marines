@@ -12,6 +12,19 @@ class TenderCuesTest {
     private static final Faction SIDE = Faction.values()[0];
 
     @Test
+    void flightIsSoundOnlyAndRetainsItsDroneAndBay() {
+        TenderCues cues = new TenderCues();
+        cues.flight(TenderCues.Kind.LAUNCH, SIDE, 2f, 3f, 9L, 100);
+        cues.flight(TenderCues.Kind.DOCK, SIDE, 4f, 5f, 9L, 200);
+        assertEquals(2, cues.cuesThisFrame().size());
+        assertEquals(9L, cues.cuesThisFrame().get(0).id());
+        assertEquals(4f, cues.cuesThisFrame().get(1).x());
+        assertTrue(cues.recent().isEmpty(), "flight must not become a completion flourish");
+        cues.beginFrame();
+        assertTrue(cues.cuesThisFrame().isEmpty());
+    }
+
+    @Test
     void aWeldIsHeardOncePerGapNoMatterHowManyTorchesAsk() {
         TenderCues cues = new TenderCues();
         ConstructionOrder o = new ConstructionOrder(BuildOption.VULCAN_TURRET, 5.5f, 5.5f);

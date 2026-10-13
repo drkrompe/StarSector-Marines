@@ -96,6 +96,7 @@ import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
+import com.dillon.starsectormarines.battle.air.GroundMarineArrival;
 import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationSystem;
@@ -266,6 +267,16 @@ import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 public class BattleSimulation implements BattleControl, AutoCloseable {
     private final String officerAttemptId = UUID.randomUUID().toString();
     private List<MarineSeatCommitment> committedMarines = List.of();
+    private GroundMarineArrival groundMarineArrival;
+    public void setGroundMarineArrival(GroundMarineArrival arrival) { groundMarineArrival = arrival; }
+    public boolean companyStartsOnGround() { return groundMarineArrival != null; }
+    public float companyGroundStartX() { return groundMarineArrival == null ? 0 : groundMarineArrival.x; }
+    public float companyGroundStartY() { return groundMarineArrival == null ? 0 : groundMarineArrival.y; }
+    /** Realizes launch-frozen personnel once, before the first simulation tick. */
+    public void deployCompanyOnGround(List<MarineSeatCommitment> seats) {
+        if (groundMarineArrival == null) throw new IllegalStateException("No ground arrival authored");
+        airSystem.deployCompanyOnGround(groundMarineArrival, seats);
+    }
     private OfficerCommandProfile operationOfficer;
     public String officerAttemptId() { return officerAttemptId; }
     public List<MarineSeatCommitment> committedMarines() { return committedMarines; }
