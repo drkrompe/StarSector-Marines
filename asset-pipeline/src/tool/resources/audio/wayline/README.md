@@ -56,3 +56,13 @@ local source files and reuse the audio cache. Keep credentials outside the repo.
 `WaylineNarrationTest` checks recorded sources, audio hashes, receipts, manifest
 entries, sound registrations, chapter routing and public-hook coverage.
 File validation and headless tests do not replace listening in the battle mix.
+
+Thunder Run's seven `wayline_thunder_run_gunship_*` clips use the existing
+Kestrel/Liam voice (`TX3LPaxmHKxFdv7VOQHJ`) and Castle command voice
+(`cuwCdnt9CKAB9XrTA1j0`) with Eleven v4. Clean source takes and generation
+receipts are retained here; the audio manifest applies the separate COMMS
+recipe. Arrival, committed pass, actual missile launch, damage, loss, station
+and return each have their own trigger. A loss supersedes obsolete pending
+calls; the launch warning and survivor lines never imply a guaranteed crash.
+These takes have technical encoding checks; delivery and battle-mix audition
+remain part of the live play review.
