@@ -106,7 +106,7 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         boolean gunBound = fireControl && battery != null;
         Faction holder = gunBound ? battery.owner() : place.control().holder();
         boolean powered = place.aspect() == FortAspect.POWER
-                ? !place.control().contested() && (battery == null || !battery.destroyed())
+                ? FortBuildingArt.plantRuns(place.control().contested(), battery != null && battery.destroyed())
                 : fort.powered(battery != null ? battery.owner() : holder);
         float activity = art.activity(state, powered);
         boolean taken = !holder.friendlyTo(gunBound ? battery.originalOwner() : place.originalHolder());
