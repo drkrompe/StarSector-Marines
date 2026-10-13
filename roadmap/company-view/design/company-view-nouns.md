@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Engineering uses room-anchored condition badges and expandable inspection cards.
+Updated: 2026-10-13 — Engineering uses wall-anchored condition glyphs and expandable inspection cards; campaign lessons end at preparation so battle presentation leaves room for mission dialogue.
 
 ## Purpose
 
@@ -1514,13 +1514,10 @@ Briefing confirmation records preparation only when two ready selected formation
 and available Mech Support are selected; absent heavy support does not gate an
 otherwise legal infantry departure. These receipts do not own launch permission.
 
-`BattleLessonOverlay` coaches support selection and landing with the same
-portrait and a lightly shaded command-tray highlight. Only the portrait consumes
-input: world targeting, commands and battle shortcuts remain available. The
-host observes a spent Mech Support charge and an actual friendly mech on the
-field before recording delivery. Reading the heat/infantry-screen advice is a
-separate saved receipt. Debug battles are excluded. Failure to call or land
-support leaves the lesson available on a later eligible contract.
+Campaign lessons end before deployment. Battle presentation leaves the mission's
+story dialogue unobstructed by preparation popovers or command-tray spotlights.
+Mech Support remains available through its ordinary command card and landing
+controls, without a field-tutorial acknowledgement or a reminder on later contracts.
 
 New lesson prose and labels use `Strings` through `LessonCopy`; complete variable
 sentences live in the marineOps catalog. `alpha-localization.md` owns the remaining
