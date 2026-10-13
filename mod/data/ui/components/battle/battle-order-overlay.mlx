@@ -1,14 +1,10 @@
-<template props="scope,hint,attackClasses,defendClasses,attackScope,defendScope,attack,defend">
+<template props="scope,hint,defendClasses,defendScope,defend">
   <div id="battle-order-overlay" class="order-bar">
     <div id="battle-order-header" class="order-header">
       <div id="battle-order-scope" class="scope">{scope}</div>
       <div id="battle-order-hint" class="hint">{hint}</div>
     </div>
     <div id="battle-order-cards" class="order-cards">
-      <button id="battle-order-attack" class="{attackClasses}" onclick="{attack}">
-        <div id="battle-order-attack-name" class="order-name">[A] ATTACK MOVE</div>
-        <div id="battle-order-attack-scope" class="order-detail">{attackScope}</div>
-      </button>
       <button id="battle-order-defend" class="{defendClasses}" onclick="{defend}">
         <div id="battle-order-defend-name" class="order-name">[F] DEFEND AREA</div>
         <div id="battle-order-defend-scope" class="order-detail">{defendScope}</div>

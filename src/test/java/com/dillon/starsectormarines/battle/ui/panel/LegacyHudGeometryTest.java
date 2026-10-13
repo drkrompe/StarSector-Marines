@@ -92,6 +92,36 @@ class LegacyHudGeometryTest {
         assertFalse(after.contains(before.x() + 20, before.y() + 50));
     }
 
+    @Test
+    void hiddenDeveloperHudRemovesTheCenteredToolsAndLeavesTheSwitchToBringThemBack() {
+        Context context = new Context();
+        DebugTogglesPanel tools = new DebugTogglesPanel(context);
+        DebugHudSwitchPanel hudSwitch = new DebugHudSwitchPanel(context);
+        assertTrue(tools.isVisible());
+        context.debugHud = false;
+        assertFalse(tools.isVisible());
+        assertFalse(tools.blocksWorldPointer(1000, DebugHudLayout.top(context) - 8));
+        assertTrue(hudSwitch.isVisible());
+
+        int inX = (int) (DebugHudSwitchPanel.x(context.layout) + 4f);
+        int inY = (int) (DebugHudSwitchPanel.y(context.layout) + 4f);
+        AtomicBoolean missed = new AtomicBoolean();
+        hudSwitch.handleInput(List.of(event("isLMBDownEvent", inX - 200, inY, missed)));
+        assertFalse(missed.get());
+        assertFalse(context.debugHud);
+        assertFalse(hudSwitch.blocksWorldPointer(inX - 200, inY));
+
+        AtomicBoolean clicked = new AtomicBoolean();
+        assertTrue(hudSwitch.blocksWorldPointer(inX, inY));
+        hudSwitch.handleInput(List.of(event("isLMBDownEvent", inX, inY, clicked)));
+        assertTrue(clicked.get());
+        assertTrue(context.debugHud);
+        assertTrue(tools.isVisible());
+
+        hudSwitch.handleInput(List.of(event("isLMBDownEvent", inX, inY, new AtomicBoolean())));
+        assertFalse(context.debugHud);
+    }
+
     private static InputEventAPI event(String kind, int x, int y, AtomicBoolean consumed) {
         return (InputEventAPI) Proxy.newProxyInstance(InputEventAPI.class.getClassLoader(), new Class<?>[]{InputEventAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {
@@ -106,6 +136,7 @@ class LegacyHudGeometryTest {
     private static final class Context implements BattleUiContext {
         float subtitleBottom = 952f, stackBottom = 864f, developerBottom = 600f, bottomTop = 300f;
         float spanBottom = Float.NaN, requestedX, requestedWidth;
+        boolean debugHud = true;
         final BattleLayout layout = new BattleLayout((PositionAPI) Proxy.newProxyInstance(PositionAPI.class.getClassLoader(),
                 new Class<?>[]{PositionAPI.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "getWidth" -> 1920f;
@@ -119,6 +150,8 @@ class LegacyHudGeometryTest {
         @Override public BattleLayout getLayout() { return layout; }
         @Override public Selection getSelection() { return null; }
         @Override public HighlightOverlay getHighlights() { return null; }
+        @Override public boolean debugHudVisible() { return debugHud; }
+        @Override public void setDebugHudVisible(boolean visible) { debugHud = visible; }
         @Override public float topCenterContentBottom() { return subtitleBottom; }
         @Override public float topCenterStackBottom() { return stackBottom; }
         @Override public float developerHudBottom() { return developerBottom; }

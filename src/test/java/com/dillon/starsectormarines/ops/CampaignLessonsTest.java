@@ -76,6 +76,24 @@ class CampaignLessonsTest {
         }
     }
 
+    @Test void formationLessonCanBeSetAsideUntilTheCompanyGrowsAndSurvivesSave() throws Exception {
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            var roster = afterCounterattack();
+            roster.campaignLessons().reviewInvestments();
+            assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster));
+            var lesson = CampaignLessons.formations(roster, null, false, () -> {});
+            assertNotNull(lesson.later(), "A company that cannot pay the founding bill needs a way out");
+            lesson.later().run();
+            assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
+            assertNull(CampaignLessons.formations(roster, null, false, () -> {}));
+            roster = restore(roster);
+            assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster), "Setting aside persists");
+            assertEquals(1, roster.squads().stream().filter(sq -> !sq.reserve()).count(), "Guidance creates no squad");
+            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
+            assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster), "Another formation revives it");
+        }
+    }
+
     @Test void deliveryReceiptRequiresCampaignCallAndLandingAndSurvivesSave() throws Exception {
         var roster = afterCounterattack();
         var progress = roster.campaignLessons();

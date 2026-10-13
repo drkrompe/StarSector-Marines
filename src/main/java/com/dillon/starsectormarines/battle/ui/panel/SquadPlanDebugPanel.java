@@ -179,7 +179,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return detailSquad != null && ctx.getLayout() != null
+        return ctx.debugHudVisible() && detailSquad != null && ctx.getLayout() != null
                 && panelTopY() - ctx.bottomHudTop(panelX(), PANEL_W) - BattleLayout.CONTROLS_GAP >= HEADER_H;
     }
 

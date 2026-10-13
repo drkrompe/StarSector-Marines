@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -75,8 +76,8 @@ class BatteryFortStageTest {
             var at = BatteryFort.layout().at(60, 40, turn);
             BatteryFortStage.stamp(ctx, at, 0);
 
-            // Posts: three aspect cores, the platform and four nests, all tagged to fort 0.
-            assertEquals(8, ctx.defensePosts.size(), "turn " + turn);
+            // Posts: three aspect cores, the platform, a nest in each bastion and a nest on the belt, all tagged to fort 0.
+            assertEquals(4 + BatteryFort.NESTS.size() + FortBelt.nests().size(), ctx.defensePosts.size(), "turn " + turn);
             for (DefensePost post : ctx.defensePosts) assertNotNull(post.fort);
             long cores = ctx.defensePosts.stream().filter(p -> p.fort.aspect() != null).count();
             assertEquals(3, cores);
@@ -113,19 +114,22 @@ class BatteryFortStageTest {
                 assertTrue(solid > room.shape().wall().length / 2, room.purpose() + " ring is mostly open at turn " + turn);
             }
 
-            // The wall: every ring cell that is not a gate is a breachable wall; the gates are open.
+            // The wall: every cell of the trace that is wall is breachable; the gates are open.
+            int wallCells = 0;
             for (int lx = 0; lx < BatteryFort.WIDTH; lx++) {
                 for (int ly = 0; ly < BatteryFort.HEIGHT; ly++) {
-                    boolean ring = lx == 0 || ly == 0 || lx == BatteryFort.WIDTH - 1 || ly == BatteryFort.HEIGHT - 1;
-                    if (!ring) continue;
                     int[] cell = at.cell(lx, ly);
                     if (BatteryFort.isWall(lx, ly)) {
+                        wallCells++;
                         assertFalse(ctx.grid.isWalkable(cell[0], cell[1]));
                         assertEquals(BatteryFortStage.FORT_WALL_HP, ctx.grid.getWallHp(cell[0], cell[1]));
-                    } else {
-                        assertTrue(ctx.grid.isWalkable(cell[0], cell[1]), "gate cell " + lx + "," + ly);
                     }
                 }
+            }
+            assertTrue(wallCells > 300, "a real trace, not a token wall");
+            for (int[] gate : BatteryFort.GATE_CELLS) {
+                int[] cell = at.cell(gate[0], gate[1]);
+                assertTrue(ctx.grid.isWalkable(cell[0], cell[1]), "gate cell " + gate[0] + "," + gate[1]);
             }
         }
     }
@@ -148,9 +152,9 @@ class BatteryFortStageTest {
                 assertFalse(room.doors().isEmpty());
                 for (var door : room.doors()) assertTrue(reached[door.x()][door.y()], "door reachable");
             }
-            // Every fort-interior walkable cell, the platform apron included, is open to the outside.
-            for (int lx = 1; lx < BatteryFort.WIDTH - 1; lx++) {
-                for (int ly = 1; ly < BatteryFort.HEIGHT - 1; ly++) {
+            // Every walkable cell of the footprint, works, pit and belt alike, is open to the outside.
+            for (int lx = 0; lx < BatteryFort.WIDTH; lx++) {
+                for (int ly = 0; ly < BatteryFort.HEIGHT; ly++) {
                     int[] cell = at.cell(lx, ly);
                     if (ctx.grid.isWalkable(cell[0], cell[1])) {
                         assertTrue(reached[cell[0]][cell[1]], "cell " + lx + "," + ly + " enclosed at turn " + turn);
@@ -170,7 +174,7 @@ class BatteryFortStageTest {
             ctx.grid.setWalkable(cell[0], cell[1], false);
         }
         boolean[][] reached = flood(ctx.grid, 5, 5);
-        int[] inside = at.cell(23, 17);
+        int[] inside = at.cell(BatteryFort.OX + 23, BatteryFort.OY + 17);
         assertFalse(reached[inside[0]][inside[1]], "with the gates shut the wall holds the fort");
     }
 
@@ -180,7 +184,11 @@ class BatteryFortStageTest {
         BatteryFortStage stage = new BatteryFortStage();
         stage.run(ctx);
         assertEquals(2, stage.placed().size());
-        assertEquals(16, ctx.defensePosts.size(), "eight posts each");
+        int core = 4 + BatteryFort.NESTS.size();
+        int most = core + FortBelt.nests().size();
+        // The belt follows the ground it is given, so a neighbour or the map edge may take a belt nest but never a core post.
+        assertTrue(ctx.defensePosts.size() >= 2 * core && ctx.defensePosts.size() <= 2 * most,
+                "posts " + ctx.defensePosts.size());
         StructureDef battery = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID);
         long platforms = ctx.defensePosts.stream()
                 .filter(p -> p.turrets.get(0).structureId.equals(battery.id)).count();
@@ -203,18 +211,19 @@ class BatteryFortStageTest {
         GenContext ctx = field(declared(1));
         // Keep the middle of the field for a road so the fort stands to one side of it.
         boolean[][] road = new boolean[W][H];
-        for (int x = 70; x < 170; x++) for (int y = 0; y < H; y++) road[x][y] = true;
+        for (int x = 100; x < 140; x++) for (int y = 0; y < H; y++) road[x][y] = true;
         ctx.put(BspKeys.ROAD_RESERVATION, road);
         BatteryFortStage stage = new BatteryFortStage();
         stage.run(ctx);
         var at = stage.placed().get(0).placement();
         int[] centre = at.cell(BatteryFort.WIDTH / 2, BatteryFort.HEIGHT / 2);
-        int[] inside = at.cell(1, 17);
-        int[] outside = at.cell(0, 17);
+        int[] inside = at.cell(BatteryFort.OX + 2, BatteryFort.OY + 17);
+        int[] outside = at.cell(BatteryFort.OX - 3, BatteryFort.OY + 17);
         double toCentreX = W / 2.0 - centre[0];
         double toCentreY = H / 2.0 - centre[1];
         double dot = (outside[0] - inside[0]) * toCentreX + (outside[1] - inside[1]) * toCentreY;
-        assertTrue(dot > 0, "the main gate's outward direction points toward the centre of the map");
+        // A turn that would face the gate at the centre may not fit beside the road; one that faces away never wins.
+        assertTrue(dot >= 0, "the main gate's outward direction does not point away from the centre of the map");
     }
 
     @Test
@@ -248,11 +257,9 @@ class BatteryFortStageTest {
         stage.run(ctx);
         assertEquals(1, stage.placed().size());
         var at = stage.placed().get(0).placement();
-        for (int lx = 0; lx < BatteryFort.WIDTH; lx++) {
-            for (int ly = 0; ly < BatteryFort.HEIGHT; ly++) {
-                int[] cell = at.cell(lx, ly);
-                assertFalse(road[cell[0]][cell[1]], "fort cell on the road");
-            }
+        for (int[] local : BatteryFort.clearCells()) {
+            int[] cell = at.cell(local[0], local[1]);
+            assertFalse(road[cell[0]][cell[1]], "works or glacis cell on the road");
         }
         assertNull(ctx.get(BspKeys.PRECINCT_CLAIM));
     }

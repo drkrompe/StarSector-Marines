@@ -31,7 +31,7 @@ class PreparationGuideTest {
                 : new PreparationGuide.Lesson(0, "REQUIRED ORDER", "Use the highlighted order to continue.",
                 List.of("required-order"), null, null), exits::incrementAndGet, loader);
         document.layout(1920, 1080); guide.update();
-        assertNull(find(document.root(), "preparation-later"));
+        assertTrue(find(document.root(), "preparation-later").hasClass("preparation-hidden"));
         document.keyPressed(UiKey.ESCAPE, Set.of(), false); guide.update();
         assertEquals(0, exits.get());
         click(document, blocked);

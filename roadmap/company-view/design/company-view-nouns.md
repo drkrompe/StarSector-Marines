@@ -768,6 +768,9 @@ The reminder never spends cargo or changes launch rules. Explicit acknowledgemen
 is saved; leaving to buy stores or raise a squad keeps the unfinished reminder,
 and the briefing can replay it. Existing two-squad companies are told not to
 raise an unnecessary formation. Casualties do not reset acknowledgement.
+The founding bill is indivisible, so a company that cannot yet pay it is never held at the
+reminder: **Not Now** sets it aside, saved with the company, until the company has more
+formations than it did then. The briefing still states the route's own two-squad requirement.
 
 New companies receive one **First Mission Preparation** sequence with Castle:
 company ship, commissioned lift, founding field commander, and her first squad.

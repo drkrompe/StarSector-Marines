@@ -62,6 +62,9 @@ import java.util.Random;
  */
 public final class BatteryFortScene implements BehaviorScene {
 
+    private static final int OX = BatteryFort.OX;
+    private static final int OY = BatteryFort.OY;
+
     private static final int WIDTH = 150;
     private static final int HEIGHT = 100;
     private static final int TICKS = 3600;
@@ -123,7 +126,7 @@ public final class BatteryFortScene implements BehaviorScene {
         boolean assault = loop.equals("squad-takes-bunker");
         SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
                 .missionCompletion(false);
-        int[] start = terrain.cell(-8, 17);
+        int[] start = terrain.cell(BatteryFort.OX - 8, BatteryFort.OY + 17);
         if (assault) builder.squad("company").faction(Faction.MARINE).size(10).at(start[0], start[1]).primary("weapon.smg").done();
         builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, 95);
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
@@ -346,19 +349,19 @@ public final class BatteryFortScene implements BehaviorScene {
             }
             if (tick == EVENT_TICK) {
                 switch (loop) {
-                    case "gun-side-hold" -> holders(sim, "holder-", new int[][]{{33, 26}, {33, 27}, {33, 28}});
-                    case "bunker-taken" -> holders(sim, "holder-", new int[][]{{5, 8}, {5, 9}, {10, 9}});
+                    case "gun-side-hold" -> holders(sim, "holder-", new int[][]{{OX + 33, OY + 27}, {OX + 33, OY + 28}, {OX + 33, OY + 29}});
+                    case "bunker-taken" -> holders(sim, "holder-", new int[][]{{OX + 10, OY + 11}, {OX + 11, OY + 11}, {OX + 14, OY + 11}});
                     case "bunker-wrecked" -> sim.applyDamage(fort.place(FortAspect.FIRE_CONTROL).coreId(), 1e7f, 100f);
                     case "magazine-wrecked" -> {
-                        int[] ring = terrain.cell(33, 7);
+                        int[] ring = terrain.cell(OX + 35, OY + 8);
                         magazineWallHpBefore = sim.getGrid().getWallHp(ring[0], ring[1]);
                         sim.applyDamage(fort.place(FortAspect.MAGAZINE).coreId(), 1e7f, 100f);
                     }
                     case "power-cut" -> sim.applyDamage(fort.place(FortAspect.POWER).coreId(), 1e7f, 100f);
                     case "fort-taken-turns" -> {
-                        holders(sim, "bunker-", new int[][]{{5, 8}, {5, 9}, {10, 9}});
-                        holders(sim, "store-", new int[][]{{35, 8}, {36, 9}, {40, 9}});
-                        holders(sim, "plant-", new int[][]{{5, 30}, {10, 30}, {5, 31}});
+                        holders(sim, "bunker-", new int[][]{{OX + 10, OY + 11}, {OX + 11, OY + 11}, {OX + 14, OY + 11}});
+                        holders(sim, "store-", new int[][]{{OX + 37, OY + 6}, {OX + 38, OY + 6}, {OX + 42, OY + 10}});
+                        holders(sim, "plant-", new int[][]{{OX + 9, OY + 31}, {OX + 10, OY + 31}, {OX + 16, OY + 31}});
                     }
                     default -> { }
                 }
@@ -373,7 +376,7 @@ public final class BatteryFortScene implements BehaviorScene {
                 blastTick = tick;
             }
             if (loop.equals("magazine-wrecked") && tick == EVENT_TICK + 2) {
-                int[] ring = terrain.cell(33, 7);
+                int[] ring = terrain.cell(OX + 35, OY + 8);
                 magazineWallHpAfter = sim.getGrid().getWallHp(ring[0], ring[1]);
             }
             int shots = shots();

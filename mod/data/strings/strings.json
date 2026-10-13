@@ -2053,6 +2053,7 @@
 
     "lessonSpeaker": "CASTLE / COMPANY OFFICER",
     "lessonContinue": "CONTINUE",
+    "lessonLater": "NOT NOW",
     "lessonEquipment": "EQUIPMENT",
     "lessonMechLab": "MECH LAB",
     "lessonBarracks": "BARRACKS",
@@ -2077,7 +2078,7 @@
     "lessonInvestmentsCopy": "We have earned some breathing room. Engineering shows the ship repairs; the Boat Deck shows lift capacity and refits. A second bay and larger boats are useful investments, but optional. Our Hermes can make repeat trips, and Wayline supplies the heavy lift for its mech-support contract. Keep enough stores to raise and replenish the second squad.",
     "lessonFormationTitle": "FROM ONE SQUAD TO TWO",
     "lessonFormationHandoff": "Junction asks us to hold several places at once. We should bring two full squads. Let us check the Barracks, fill vacant billets and put both formations under command before choosing the deployment.",
-    "lessonFormationFound": "We need another formation. Open Found Line Squad and review the real stores bill before ordering. Buy missing Marines, supplies or food at a market. Leaving to resupply is fine; I will pick up here when you return.",
+    "lessonFormationFound": "We need another formation. Open Found Line Squad and review the real stores bill before ordering. Buy missing Marines, supplies or food at a market. Leaving to resupply is fine; I will pick up here when you return. If we cannot afford it yet, choose Not Now and earn the stores first. I will raise this again once we have another formation.",
     "lessonFormationAssign": "Both formations exist. Select them in Barracks and assign them from the commander card. Then open the mission briefing and include both in Assign Squads. Formation ownership, commander assignment and deployment selection are separate orders.",
     "lessonFormationRecover": "We have two formations, but fewer than two full squads ready. Fill vacant billets from reserves or consolidate fit marines; wounded soldiers keep their billets. Let them recover if needed. Assign both formations to command, then include them in the briefing deployment.",
     "lessonSecondTitle": "PREPARE A LARGER FORCE",

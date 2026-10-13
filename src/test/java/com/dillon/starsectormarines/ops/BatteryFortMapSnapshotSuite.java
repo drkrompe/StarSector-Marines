@@ -59,29 +59,32 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
             try (BattleSimulation sim = BattleSetup.createConquest(seed,
                     List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), false,
                     OperationTier.FIRST_CONTRACT, RiskLevel.LOW, profile)) {
-                ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+                // One label per fort on the whole map; aspect labels only in the fort's own close frame, so
+                // neighbouring forts' labels never pile up at the frame edge.
+                ReviewAnnotations.Builder overview = ReviewAnnotations.builder();
                 int n = 0;
                 for (Fort fort : sim.forts().forts()) {
+                    overview.label(Math.round(fort.battery().x()), Math.round(fort.battery().y()) + 4,
+                            "FORT " + n, ReviewStyle.NOTE);
+                    n++;
+                }
+                var whole = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT);
+                out.add(new SnapshotArtifact(String.format(Locale.ROOT, "seed-%d-whole-map.png", seed),
+                        whole.render(sim, "Battery forts / seed " + seed + " / " + n + " forts", overview.build())));
+                int i = 0;
+                for (Fort fort : sim.forts().forts()) {
+                    ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+                    float cx = fort.battery().x();
+                    float cy = fort.battery().y();
                     for (Fort.Place place : fort.places()) {
+                        cx += sim.world().x(place.coreId());
+                        cy += sim.world().y(place.coreId());
                         labels.label(Math.round(sim.world().x(place.coreId())),
                                 Math.round(sim.world().y(place.coreId())) + 3,
                                 place.aspect().label(), ReviewStyle.NOTE);
                     }
                     labels.label(Math.round(fort.battery().x()), Math.round(fort.battery().y()) + 3, "GUNS",
                             ReviewStyle.NOTE);
-                    n++;
-                }
-                var whole = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT);
-                out.add(new SnapshotArtifact(String.format(Locale.ROOT, "seed-%d-whole-map.png", seed),
-                        whole.render(sim, "Battery forts / seed " + seed + " / " + n + " forts", labels.build())));
-                int i = 0;
-                for (Fort fort : sim.forts().forts()) {
-                    float cx = fort.battery().x();
-                    float cy = fort.battery().y();
-                    for (Fort.Place place : fort.places()) {
-                        cx += sim.world().x(place.coreId());
-                        cy += sim.world().y(place.coreId());
-                    }
                     cx /= 4f;
                     cy /= 4f;
                     var close = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT, cx, cy, 84);

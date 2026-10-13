@@ -1,0 +1,359 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Trench section, mask N1 E2 S4 W8 = 0 (open arms: none). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-0",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Trench section, mask N1 E2 S4 W8 = 1 (open arms: N). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-1",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Trench section, mask N1 E2 S4 W8 = 2 (open arms: E). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-2",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Trench section, mask N1 E2 S4 W8 = 3 (open arms: NE). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-3",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Trench section, mask N1 E2 S4 W8 = 4 (open arms: S). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-4",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Trench section, mask N1 E2 S4 W8 = 5 (open arms: NS). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-5",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Trench section, mask N1 E2 S4 W8 = 6 (open arms: ES). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-6",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Trench section, mask N1 E2 S4 W8 = 7 (open arms: NES). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-7",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Trench section, mask N1 E2 S4 W8 = 8 (open arms: W). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-8",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Trench section, mask N1 E2 S4 W8 = 9 (open arms: NW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-9",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Trench section, mask N1 E2 S4 W8 = 10 (open arms: EW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-10",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "Trench section, mask N1 E2 S4 W8 = 11 (open arms: NEW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-11",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "Trench section, mask N1 E2 S4 W8 = 12 (open arms: SW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-12",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Trench section, mask N1 E2 S4 W8 = 13 (open arms: NSW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-13",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "Trench section, mask N1 E2 S4 W8 = 14 (open arms: ESW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-14",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "Trench section, mask N1 E2 S4 W8 = 15 (open arms: NESW). Channel meets each open edge at 30%-70%; the parapet continues across it, so neighbours join.",
+      "name": "doodad.fort-trench-15",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Thick two-course sandbag parapet, edge to edge: n.",
+      "name": "doodad.fort-sandbag-n",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "Thick two-course sandbag parapet, edge to edge: e.",
+      "name": "doodad.fort-sandbag-e",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "Thick two-course sandbag parapet, edge to edge: s.",
+      "name": "doodad.fort-sandbag-s",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "Thick two-course sandbag parapet, edge to edge: w.",
+      "name": "doodad.fort-sandbag-w",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "Thick two-course sandbag parapet, edge to edge: corner-ne.",
+      "name": "doodad.fort-sandbag-corner-ne",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "Thick two-course sandbag parapet, edge to edge: corner-se.",
+      "name": "doodad.fort-sandbag-corner-se",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "Thick two-course sandbag parapet, edge to edge: corner-sw.",
+      "name": "doodad.fort-sandbag-corner-sw",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "Thick two-course sandbag parapet, edge to edge: corner-nw.",
+      "name": "doodad.fort-sandbag-corner-nw",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "Concertina wire running horizontally, edge to edge.",
+      "name": "doodad.fort-wire-h",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "Concertina wire running vertically, edge to edge.",
+      "name": "doodad.fort-wire-v",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "Steel anti-tank hedgehog.",
+      "name": "doodad.fort-hedgehog",
+      "row": 1
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-0",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-1",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-3",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-4",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-5",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-6",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-7",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 8,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-8",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-9",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 10,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-10",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 11,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-11",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 12,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-12",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 13,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-13",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 14,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-14",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 15,
+      "cover": "heavy",
+      "id": "doodad.fort-trench-15",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-n",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-e",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-s",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-w",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-ne",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-se",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-sw",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-nw",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 8,
+      "cover": "light",
+      "id": "doodad.fort-wire-h",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 9,
+      "cover": "light",
+      "id": "doodad.fort-wire-v",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 10,
+      "cover": "light",
+      "id": "doodad.fort-hedgehog",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/doodads/fort-earthworks.png"
+}
