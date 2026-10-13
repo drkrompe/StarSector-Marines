@@ -46,6 +46,22 @@ colors. Its retained 1920x1080 production-compositor preview shows weapon
 clearance, independent head look, walking feet, and a 24px shoulder-unit sample.
 This establishes a first art pass, not crowded-field or live campaign acceptance.
 
+The retained `specter-battle-normal.mp4` and `specter-battle-closer.mp4` show
+twelve Specters, twelve Legionaries, and one Hound walking into a finite armed
+picket through production simulation. The fifteen-second controlled replay uses
+ordinary catalog equipment, including the Specter integral system. All 25
+friendly actors move before the first shot at 5.57 seconds, and all three
+groups fire. `specter-battle.json` retains the observations.
+
+Both views are rendered at 1920x1080 and 100% scale from the same replay.
+The normal view uses the live camera's cover fit at zoom 1 on a 112x64 map,
+the Relief map size: 17.14 pixels per cell. The closer view adds four wheel
+notches (2.0736x); it does not enlarge individual actors. The map is a controlled
+lane, not the Relief mission. Java2D drains production world commands with
+body shadows and shots, without battle HUD, selection markers, fog, or GL
+terrain relief. This makes silhouette and gait review reproducible, while
+crowded mission readability and live-host acceptance remain open.
+
 ## Acceptance
 
 - Compare one POWER_SUIT squad with two STANDARD squads under concentrated
