@@ -24,7 +24,7 @@ public final class SelectionRingRenderSystem implements RenderSystem {
                 && (sim.warships().ships().contains(ship) || tender != null && tender.grounded() && tender.anchorAlive())) {
             float radius = Math.max(1f, ship.lengthCells * 0.5f + 0.4f);
             float centerX = ship.x, centerY = ship.y;
-            if (tender != null && tender.grounded() && tender.groundDisplay() != null) {
+            if (tender != null && (tender.grounded() || tender.lowHover()) && tender.groundDisplay() != null) {
                 Tender.GroundDisplay display = tender.groundDisplay();
                 centerX = display.centerX();
                 centerY = display.centerY();

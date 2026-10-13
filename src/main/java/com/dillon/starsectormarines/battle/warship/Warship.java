@@ -196,6 +196,24 @@ public final class Warship {
     /** Seconds since the ship began dropping through the cloud deck, or negative when it did not enter that way. */
     private float entrySeconds = -1f;
     private boolean departed;
+    private boolean physicallyDeparted;
+    private float lowHoverWidth;
+    private float lowHoverHeight;
+
+    /** Keeps a recovering hull's full authored footprint clear of terrain until climb-out. */
+    public void lowHoverFootprint(float width, float height) {
+        if (!Float.isFinite(width) || !Float.isFinite(height) || width <= 0f || height <= 0f)
+            throw new IllegalArgumentException("Low hover needs a finite positive footprint");
+        lowHoverWidth = width;
+        lowHoverHeight = height;
+    }
+
+    public boolean lowHovering() { return lowHoverWidth > 0f && !departing; }
+    public float lowHoverWidth() { return lowHoverWidth; }
+    public float lowHoverHeight() { return lowHoverHeight; }
+    /** True only when propulsion carried the whole hull beyond the map, never on timeout. */
+    public boolean physicallyDeparted() { return physicallyDeparted; }
+    void markPhysicallyDeparted() { physicallyDeparted = true; markDeparted(); }
     /** Rounds left in the ship-wide pool, or {@link #UNLIMITED}. */
     private int ordnanceRemaining = UNLIMITED;
     private final List<Mount> mounts;
@@ -718,14 +736,14 @@ public final class Warship {
         double r = Math.toRadians(facingDegrees);
         float c = (float) Math.cos(r);
         float s = (float) Math.sin(r);
-        float cx = centerX();
-        float cy = centerY();
+        float cx = lowHoverWidth > 0f ? x : centerX();
+        float cy = lowHoverWidth > 0f ? y : centerY();
         float dx = px - cx;
         float dy = py - cy;
         float lx = dx * c + dy * s;
         float ly = -dx * s + dy * c;
-        float ox = Math.max(0f, Math.abs(lx) - widthCells * 0.5f);
-        float oy = Math.max(0f, Math.abs(ly) - lengthCells * 0.5f);
+        float ox = Math.max(0f, Math.abs(lx) - (lowHoverWidth > 0f ? lowHoverHeight : widthCells) * 0.5f);
+        float oy = Math.max(0f, Math.abs(ly) - (lowHoverWidth > 0f ? lowHoverWidth : lengthCells) * 0.5f);
         return (float) Math.sqrt(ox * ox + oy * oy);
     }
 

@@ -10,10 +10,10 @@ record ShepherdRecoveryWorkGuide(ShepherdRecoveryProgress progress,OpeningBroker
         case "broker"->ShepherdRecoveryCampaign.NAME;
         case "affiliation"->"Basin Reclamation Cooperative";
         case "heading"->ShepherdRecoveryCampaign.TITLE;
-        case "mission"->progress.repaired()?"Morrow repaired / departure pending":progress.claimSecured()?"NEW / Cold Start":"NEW / Salvage Rights";
-        case "payment"->progress.repaired()?"22,000 cr paid / hull remains grounded":progress.claimSecured()?"22,000 cr / repair contract":"18,000 cr + protected recovery claim";
+        case "mission"->progress.departed()?"Morrow / registry transferred":progress.repaired()?"NEW / Working Passage":progress.claimSecured()?"NEW / Cold Start":"NEW / Salvage Rights";
+        case "payment"->progress.departed()?"Named fleet hull / transfer completed":progress.repaired()?"Morrow + willing working crew / in kind":progress.claimSecured()?"22,000 cr / repair contract":"18,000 cr + protected recovery claim";
         case "location"->destination==null?"Asharu / Corvus":destination.label();
-        case "route"->progress.repaired()?"Repairs signed off. Working Passage is not yet available.":"Marine operations > Tamsin Vale";
+        case "route"->progress.departed()?"Recovery corridor reopened. Morrow joined the fleet.":progress.repaired()?"Marine operations > Tamsin Vale / departure clearance":"Marine operations > Tamsin Vale";
         case "preparation"->"Two squads recommended. Optional owned Hound. Replenish first; this work can wait.";
         case "courseDisabled"->destination==null;
         case "courseAction"->plotCourse;

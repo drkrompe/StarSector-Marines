@@ -371,10 +371,11 @@ public final class WarshipSystem {
         }
         if (!ship.departing()) return;
         ship.addDepartingSeconds(dt);
-        float margin = ship.lengthCells * 0.5f;
+        float margin = Math.max(ship.lengthCells, Math.max(ship.lowHoverWidth(), ship.lowHoverHeight())) * 0.5f;
         boolean offMap = ship.x < -margin || ship.y < -margin
                 || ship.x > sim.getGrid().getWidth() + margin || ship.y > sim.getGrid().getHeight() + margin;
-        if (offMap || ship.departingSeconds() > Warship.DEPARTURE_LIMIT_SECONDS) ship.markDeparted();
+        if (offMap) ship.markPhysicallyDeparted();
+        else if (ship.departingSeconds() > Warship.DEPARTURE_LIMIT_SECONDS) ship.markDeparted();
     }
 
     /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
@@ -819,8 +820,10 @@ public final class WarshipSystem {
      * and brakes in time to stop on the spot rather than drifting through it.
      */
     private static void moveHull(float dt, BattleSimulation sim, Warship ship) {
+        float beforeX = ship.x, beforeY = ship.y;
         if (ship.piloted()) {
             WarshipHelm.drive(ship, dt, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            enforceLowHoverClearance(sim, ship, beforeX, beforeY);
             return;
         }
         if (!ship.hasStation()) return;
@@ -855,6 +858,17 @@ public final class WarshipSystem {
             ship.x += stepX;
             ship.y += stepY;
         }
+        enforceLowHoverClearance(sim, ship, beforeX, beforeY);
+    }
+
+    private static void enforceLowHoverClearance(BattleSimulation sim, Warship ship, float x, float y) {
+        if (ship.lowHovering() && !LowHoverClearance.sweptClear(sim.getGrid(), x, y, ship.x, ship.y,
+                ship.lowHoverWidth(), ship.lowHoverHeight())) {
+            ship.x = x;
+            ship.y = y;
+            ship.velocityX = 0f;
+            ship.velocityY = 0f;
+        }
     }
 
     /**
@@ -863,6 +877,7 @@ public final class WarshipSystem {
      * to stop on the heading rather than swinging through it.
      */
     private static void turnHull(float dt, Warship ship) {
+        if (ship.lowHovering()) return;
         if (ship.piloted()) {
             WarshipHelm.steer(ship);
         } else {

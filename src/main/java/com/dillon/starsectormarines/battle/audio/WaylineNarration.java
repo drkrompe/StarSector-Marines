@@ -103,7 +103,7 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
-        if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.coldStart(mission.id)
+        if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
             return "story_corvus_cold_account";
@@ -127,6 +127,7 @@ public final class WaylineNarration {
             case COLD_ACCOUNT -> "story_corvus_cold_account";
             case SALVAGE_RIGHTS -> "story_shepherd_salvage";
             case COLD_START -> "story_shepherd_cold_start";
+            case WORKING_PASSAGE -> "story_shepherd_working_passage";
             default -> null;
         };
     }
