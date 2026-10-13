@@ -74,7 +74,7 @@ final class CompanyPreparationGuide {
 
     static PreparationGuide.Lesson headquarters(MarineOpsContext context) {
         MarineRoster roster = roster();
-        if (!CompanyPreparation.required(roster)) return null;
+        if (!CompanyPreparation.required(roster)) return CampaignLessons.handoff(roster, context, ScreenId.COMPANY_HQ);
         return handoff(roster, context);
     }
 

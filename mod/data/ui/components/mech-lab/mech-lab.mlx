@@ -178,22 +178,7 @@
 
       <div id="mech-lab-feedback" class="{feedbackClasses}">{feedbackText}</div>
       <canvas id="mech-drag-ghost" class="mech-drag-ghost" width="1920" height="1080" />
-      <div id="castle-lab-lesson" class="{lessonClasses}">
-        <div id="castle-space-above" class="lesson-space" />
-        <div id="castle-lesson-dialog" class="castle-dialog console-readout">
-          <div id="castle-lesson-title" class="label heading tone-edge castle-lesson-title">{lessonTitle}</div>
-          <div id="castle-lesson-dialogue" class="castle-dialogue">
-            <img id="castle-lab-portrait" class="castle-portrait" src="graphics/portraits/castle.png" />
-            <div id="castle-lesson-text" class="label castle-lesson-text">{lessonCopy}</div>
-          </div>
-          <div id="castle-lesson-controls" class="castle-controls">
-            <button id="castle-lesson-action" class="lesson-action console-action" onclick="{lessonAction}">{lessonActionLabel}</button>
-            <button id="castle-lesson-pause" class="lesson-action console-action" onclick="{lessonPause}">LATER</button>
-            <div id="castle-lesson-key-hint" class="label tone-muted lesson-key-hint">ESC TO CLOSE / CASTLE'S GUIDE TO REOPEN</div>
-          </div>
-        </div>
-        <div id="castle-space-below" class="lesson-space" />
-      </div>
+
     </div>
 </template>
 

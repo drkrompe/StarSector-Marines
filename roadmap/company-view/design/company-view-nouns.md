@@ -1470,3 +1470,39 @@ Equipment authoring remains bounded by collected templates and atomic free fitti
 read surfaces remain projections of their owning campaign or frozen mission
 state. A contract board may present offers and obligation clocks, but it does
 not become their authority or introduce a second clock lifecycle.
+
+
+## Campaign lesson continuity
+
+`CampaignLessons` derives post-Relief guidance from `FirstRefit`, `MechBay` and
+`CampaignLessonProgress` on `MarineRoster`. HQ, Barracks and briefing present the
+next unfinished handoff; Equipment hosts the actual first issue or founding,
+and Mech Lab reselects Wayward when reopening an unfinished fitting exercise.
+The portrait popover uses `PreparationGuide` and real `UiSpotlight` apertures.
+Return/navigation remains available for resupply; leaving never completes work.
+Barracks suspends its general management advice while campaign guidance is
+present, preserving the required founding induction's precedence.
+
+First Refit still requires its ordinary technology claim and actual equipment
+issue. The gantry lesson uses the existing once-only SRM and fit/remove/refit
+receipts. Missing Wayward does not trap the company at a nonexistent gantry.
+Optional investments are explanatory: no second bay, shuttle upgrade or paid
+workshop restoration is required by these lessons. Two-formations preparation
+uses the existing real founding bill, wounded billets and deployment minimum.
+Briefing confirmation records preparation only when two ready selected formations
+and available Mech Support are selected; absent heavy support does not gate an
+otherwise legal infantry departure. These receipts do not own launch permission.
+
+`BattleLessonOverlay` coaches support selection and landing with the same
+portrait and a lightly shaded command-tray highlight. Only the portrait consumes
+input: world targeting, commands and battle shortcuts remain available. The
+host observes a spent Mech Support charge and an actual friendly mech on the
+field before recording delivery. Reading the heat/infantry-screen advice is a
+separate saved receipt. Debug battles are excluded. Failure to call or land
+support leaves the lesson available on a later eligible contract.
+
+New lesson prose and labels use `Strings` through `LessonCopy`; complete variable
+sentences live in the marineOps catalog. `alpha-localization.md` owns the remaining
+project-wide migration. `castle-campaign-lessons.md` retains live acceptance;
+`campaign-learning-curve.md` records the wider progression gaps without silently
+changing economy or officer thresholds.
