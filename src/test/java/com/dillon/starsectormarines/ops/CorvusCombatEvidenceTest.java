@@ -78,7 +78,7 @@ class CorvusCombatEvidenceTest {
         int snapshotEveryTicks = Integer.getInteger("commander.evidence.snapshot.everyTicks", 1800);
         if (snapshotEveryTicks < 1) throw new IllegalArgumentException("snapshotEveryTicks must be positive");
         var progress = new CorvusWaylineProgress();
-        var route = CorvusWaylineCampaignTest.closedRoute(2, true);
+        var route = CorvusWaylineCampaignTest.closedRoute(true);
         var reports = new JSONArray();
         var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080)
                 .withImpactEffects().withUnitShadows();

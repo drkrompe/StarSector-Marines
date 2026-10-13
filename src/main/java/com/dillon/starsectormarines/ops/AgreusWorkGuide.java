@@ -11,12 +11,14 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
         case "broker" -> AgreusArcCampaign.NAME;
         case "affiliation" -> "House Rusk / Ko Combine concession";
         case "heading" -> AgreusArcCampaign.TITLE;
-        case "mission" -> progress.completed() ? "COMPLETE / Water Under Seal" : "NEW / Water Under Seal";
-        case "payment" -> progress.completed() ? "26,000 cr / settled once" : "26,000 cr / victory fee / no suit award";
+        case "mission" -> progress.warrantCompleted() ? "COMPLETE / Limited Warrant" : progress.completed() ? "NEW / Limited Warrant" : "NEW / Water Under Seal";
+        case "payment" -> progress.warrantCompleted() ? "56,000 cr settled / Recovered Specter entitlement fulfilled"
+                : progress.completed() ? "30,000 cr + Recovered Specter card / qualifying victory" : "26,000 cr / victory fee / no suit award";
         case "location" -> destination == null ? "Agreus / Arcadia" : destination.label();
-        case "route" -> progress.completed() ? "North Weir restored. Rusk will contact us when the next contract is ready."
-                : destination == null ? AgreusArcCampaign.accessReason() : "Marine operations > Baronet Elian Rusk / North Weir";
-        case "preparation" -> progress.completed() ? "Confirmed employer losses: " + progress.techniciansLost() + " technicians, " + progress.militiaLost() + " constables, " + progress.repairLoadsLost() + " loads."
+        case "route" -> progress.warrantCompleted() ? "Learn the Recovered Specter cargo card, then choose Tri-Tachyon Specter Protection in the Armory. Further yard work awaits a new commission."
+                : destination == null ? AgreusArcCampaign.accessReason() : "Marine operations > Baronet Elian Rusk / " + (progress.completed() ? "Limited Warrant" : "North Weir");
+        case "preparation" -> progress.warrantCompleted() ? "Issued gear is unchanged. Already learned or carried cards satisfy the award; selling a card does not renew it. Recovered equipment is below military issue."
+                : progress.completed() ? "Review Rusk's bounded procurement warrant. Two squads, fitted boats and a working tender. Protect the supplier and bring the calibration load back. No deadline or yard agreement."
                 : "Vale's departure reference, forwarded by Mara. Two squads, fitted boats and an owned working tender required. Replenish before leaving Corvus; no deadline.";
         case "courseDisabled" -> destination == null;
         case "courseAction" -> plotCourse;

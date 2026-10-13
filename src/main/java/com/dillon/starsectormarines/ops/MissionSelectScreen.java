@@ -149,7 +149,7 @@ public final class MissionSelectScreen implements Screen {
                         : progress!=null && progress.claimSecured()
                             ? progress.shorePower() ? "Power's on. We've still got work to do before she can fly."
                                 : "My people are back in the workshop. Now let's get them some power."
-                            : "Venn gave me your name. There's a ship here you might want to look at. First, though, I need my people back in their workshop.");
+                            : "Venn gave me your name. I have a load to get out of that basin, and someone else has taken an interest. She said you could clear the way.");
             props.put("brokerProgress",progress!=null && progress.departed()?"COMPLETE / MORROW REGISTRY TRANSFERRED":progress!=null && progress.repaired()?"WORKING PASSAGE / DEPARTURE CLEARANCE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
     }
 
@@ -163,9 +163,14 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
         props.put("brokerRole", "HOUSE RUSK / KO COMBINE CONCESSION");
-        props.put("brokerIntroduction", AgreusArcCampaign.REFERRAL);
-        props.put("brokerProgress", p != null && p.completed()
-                ? "NORTH WEIR RESTORED / 26,000 CR SETTLED / Rusk will contact us when the next contract is ready."
+        props.put("brokerIntroduction", p != null && p.warrantCompleted()
+                ? "Rusk: The service archive and calibration load are accounted for. Your fee and the refurbishment pattern settle the Low Quay contract."
+                : p != null && p.completed()
+                ? "Rusk: North Weir is working. Recover the Low Quay service archive and calibration kit under my supplier guarantee, and your company may retain the Recovered Specter pattern. Read the warrant before deploying."
+                : AgreusArcCampaign.REFERRAL);
+        props.put("brokerProgress", p != null && p.warrantCompleted()
+                ? "NORTH WEIR RESTORED / LIMITED WARRANT COMPLETE / 56,000 CR SETTLED / Recovered Specter entitlement fulfilled. Learn the cargo card, then choose an Armory fitting. Further yard work is not yet commissioned."
+                : p != null && p.completed() ? "NORTH WEIR RESTORED / LIMITED WARRANT AVAILABLE / Review the procurement terms below; no yard agreement is selected."
                 : "NORTH WEIR / WATER UNDER SEAL" + (accessReason == null || accessReason.isBlank() ? "" : " / " + accessReason));
     }
     static void putAgreusReferral(Map<String, Object> props) {
@@ -194,14 +199,9 @@ public final class MissionSelectScreen implements Screen {
 
     static void putSupplyRoute(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission, boolean accessible) {
         props.put("missionSummary", "BROKEN SUPPLY ROUTE");
-        props.put("brokerIntroduction", route == null ? "Mara Venn: Iona Serr has two outlying crews cut off. Open the Junction dossier to begin." : route.status());
+        props.put("brokerIntroduction", route == null ? "Mara Venn: Iona Serr needs the freight corridor reopened. Open the Junction dossier to begin." : route.status());
         props.put("brokerProgress", route == null ? "NEW DISPATCH / IONA SERR" : "Story paid: " + route.storyPayment() + " cr / recurring paid: " + route.recurringPayment() + " cr");
         if (route != null && !accessible) props.put("brokerIntroduction", "Accepted work remains on " + route.planetName() + ". Access is unavailable; operations paused.");
-        if (SupplyRouteCampaign.choice(selectedMission) == BrokenSupplyRouteProgress.LIFT || route != null && route.branch() == BrokenSupplyRouteProgress.LIFT) {
-            props.put("brokerPortrait", SupplyRouteCampaign.IONA_PORTRAIT);
-            props.put("brokerName", "Iona Serr");
-            props.put("brokerRole", "WAYLINE / DISPATCH COORDINATOR");
-        }
     }
 
     static Map<String, Object> previewProps() {
@@ -313,7 +313,7 @@ public final class MissionSelectScreen implements Screen {
                             + "  ·  " + recommended
                             + (recommended == 1 ? " squad" : " squads") + active,
                     ShepherdRecoveryProgress.workingPassage(mission.id) ? "MORROW"
-                            : (SupplyRouteCampaign.recovery(mission) || SupplyRouteCampaign.freight(mission)) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
+                            : SupplyRouteCampaign.freight(mission) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -384,11 +384,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailFlavor", present ? mission.flavor :
                 "The selected operation's scale, field-presence limit, opposition, lift, and payout will appear here before you enter deployment planning.");
         props.put("detailRows", present ? detailRows(mission) : List.of());
-        int choice = SupplyRouteCampaign.choice(mission);
-        props.put("choiceSummary", SupplyRouteCampaign.choiceSummary(mission));
-        props.put("choiceClasses", choice == 0 ? "choice-consequence choice-hidden" : "choice-consequence console-well");
-        props.put("briefLabel", choice == BrokenSupplyRouteProgress.LIFT ? "COMMIT SUPPORT TO RILL"
-                : choice == BrokenSupplyRouteProgress.RELAY ? "COMMIT SUPPORT TO FREIGHT" : "BRIEF & DEPLOY");
+        props.put("briefLabel", "BRIEF & DEPLOY");
         props.put("briefDisabled", !present);
         props.put("briefAction", brief);
         props.put("declineDisabled", !present);
@@ -396,6 +392,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
+                detailRow("force", "Company", "2 full regular squads recommended / minimum 4 ready each / fitted boats"),
+                detailRow("support", "Recovery party", "Owned tender; 4 constables and 1 supplier technician"),
+                detailRow("claim", "Low Quay", "Authenticate records, recover the calibration kit, escort its load to egress"),
+                detailRow("terms", "Limited warrant", "Deploy accepts the printed recovery terms; no debt-enforcement or yard-management agreement"),
+                detailRow("payout", "Victory award", "30,000 credits + Recovered Specter card once / explicit learning and fitting"));
         if (AgreusArcCampaign.isBattle(mission)) return List.of(
                 detailRow("force", "Company", "2 squads / minimum 4 ready each / your fitted boats"),
                 detailRow("support", "Construction", "Actual owned eligible tender required; 8 constables and 2 technicians"),
@@ -424,9 +426,7 @@ public final class MissionSelectScreen implements Screen {
                 detailRow("force", "Company commitment", "2 squads recommended / at least 4 ready in each of two squads"),
                 detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
                 detailRow("opposition", "Opposition", "Local raiders / no fighter or mech support"),
-                detailRow("payout", "Payment on victory", SupplyRouteCampaign.recovery(mission)
-                        ? "4,000 + 500 per recovered person / maximum 10,000 cr"
-                        : SupplyRouteCampaign.freight(mission) ? "6,000 + 4,000 per delivered carrier / maximum 18,000 cr"
+                detailRow("payout", "Payment on victory", SupplyRouteCampaign.freight(mission) ? "6,000 + 4,000 per delivered carrier / maximum 18,000 cr"
                         : NumberFormat.getIntegerInstance().format(mission.payout) + " credits"));
         int multiplier = mission.cashMultiplier & 0xFF;
         if (multiplier <= 0) multiplier = 100;
@@ -453,8 +453,6 @@ public final class MissionSelectScreen implements Screen {
         Map<String, Object> props = new LinkedHashMap<>();
         putCompanyNews(props, List.of(), () -> { });
         putBroker(props, null);
-        props.put("choiceSummary", "");
-        props.put("choiceClasses", "choice-consequence choice-hidden");
         props.put("briefLabel", "BRIEF & DEPLOY");
         props.put("screenTitle", "Marine Operations");
         props.put("clientHeader", "Clients");
@@ -566,15 +564,6 @@ public final class MissionSelectScreen implements Screen {
 
     private void briefSelected() {
         if (context != null && context.getSelectedMission() != null) {
-            int choice = SupplyRouteCampaign.choice(context.getSelectedMission());
-            if (choice != 0) {
-                BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
-                if (route != null && SupplyRouteCampaign.atSite(context.planet) && route.commit(choice)) {
-                    context.setSelectedMission(SupplyRouteCampaign.offers(route).get(0));
-                    installDocument();
-                }
-                return;
-            }
             context.goTo(ScreenId.BRIEFING);
         }
     }

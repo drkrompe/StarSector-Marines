@@ -16,12 +16,15 @@ import java.util.Set;
 /** Basin Reclamation's local contract, introduced by Mara after the Corvus account. */
 public final class ShepherdRecoveryCampaign {
     public static final String NAME="Tamsin Vale", TITLE="A WORKING SHIP / BASIN RECLAMATION";
-    public static final String BRIEF="Tamsin Vale: Most of what I need is still in that Colossus, Captain. Pumps, machine tools, stock for the shops. We had to leave it all when the shooting started. There's another crew inside now. They say we abandoned it. I was getting our people out. "
-            +"Morrow's the Shepherd in the cradle. Her crew got her home, but she won't be going anywhere without some work. Get us back into the yard, see her repaired and bring her out, and she's yours. "
-            +"Our permit's in order. I'd still rather have those holds emptied before a Hegemony inspector wants a look. Easier to settle this while it's just us. "
-            +"Start with the receiving store, then the workshop. I'll have militia follow you in. Our two technicians need a clear way to Morrow's southern service access and someone to watch their backs while they inspect her. Keep an eye on the south haul road; that's how the scrappers have been getting in. "
-            +"Get the technicians in. They'll tell us what we've got to work with.";
-    public static final String COLD_BRIEF="Tamsin Vale: I've got the distribution rig waiting at the apron. Get it to the workshop, then clear the pump station for our technicians. Once they've connected shore power, we'll have the yard lights and Morrow's drone bay back. "
+    public static final String BRIEF="Vale: We found a shipment in the Colossus. The hold was still sealed. Then the shooting started, and I had to get my people out. There's another crew in there now. They say we abandoned it.\n"
+            +"Castle: There's no manifest in the file.\n"
+            +"Vale: Our handlers have it. You're getting them back to work and keeping the road open.\n"
+            +"Castle: Then add the Shepherd to our terms. The two fees stand. She's our fee for clearing the road out.\n"
+            +"Vale: Morrow is still our ship, Castle. And neither of us knows what it'll take to get her flying.\n"
+            +"Castle: We got Second Wind flying. Supply the parts and fitters; we'll cover them and clear the road. We'll take our chances with whatever comes out of that cradle.\n"
+            +"Vale: The road stays open for my haulers. You don't leave when the fitters do. Agree to that, and you can have her once she's clear of the basin. The Colossus stays with us.\n\n"
+            +"Vale: Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.";
+    public static final String COLD_BRIEF="Tamsin Vale: I've got the distribution rig waiting at the apron. Get it to the workshop, then clear the pump station for our technicians. Once they've connected shore power, we'll see what Morrow's builders can still do. The yard lights should come back with them. "
             +"There's ground outside her east bay for a road gun. Select Build Vulcan Turret and choose a clear spot the builders can reach. Keep them covered while they work; we'll need that gun while the fitters finish inside. "
             +"I've only a few people on the south haul and quarry roads. Don't leave them out there alone if the scrappers push through. Help them back to the inner line. "
             +"If we have to stop, we won't have to redo a finished delivery or power connection. I'd rather send for another repair party than lose this one trying to hurry.";

@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StorySceneTest {
     static Mission campaign(DebugMissionCatalog.Scenario scenario) {
+        if (scenario == DebugMissionCatalog.Scenario.LAST_LIFT || scenario == DebugMissionCatalog.Scenario.CREW_RECOVERY)
+            return scenario.mission();
         String route = BrokenSupplyRouteProgress.PREFIX;
         String id = switch (scenario) {
             case RELIEF -> OpeningOperationKind.RELIEF.missionId;
@@ -67,13 +69,13 @@ class StorySceneTest {
         assertNull(StoryScene.forMission(Mission.builder(mission).source(MissionSource.GENERATED).build()));
     }
 
-    @Test void choicesPreviewTheirDestinationWithoutCommittingAndUnknownIdsKeepFallback() {
+    @Test void directFreightOfferPreviewsItsDestinationAndUnknownIdsKeepFallback() {
         var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         String id = route.missionId();
         route.begin(id); route.settle(id, true, null);
         var choices = SupplyRouteCampaign.offers(route);
-        assertEquals(2, choices.size());
-        assertEquals(List.of(StoryScene.RILL, StoryScene.THUNDER), choices.stream().map(StoryScene::forMission).toList());
+        assertEquals(1, choices.size());
+        assertEquals(List.of(StoryScene.THUNDER), choices.stream().map(StoryScene::forMission).toList());
         for (var choice : choices)
             assertNull(StoryScene.forMission(Mission.builder(choice).source(MissionSource.GENERATED).build()));
         for (String bad : List.of("supply_route_v1_4_0_0", "supply_route_v1_5_0_1",

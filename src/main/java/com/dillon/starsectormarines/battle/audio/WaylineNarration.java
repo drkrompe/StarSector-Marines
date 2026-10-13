@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.ops.CorvusChapter;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.fs.starfarer.api.Global;
 import org.json.JSONArray;
@@ -26,7 +27,7 @@ import java.util.regex.Pattern;
 public final class WaylineNarration {
     public static final String PATH = "data/marines/wayline_narration.json";
     private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
-            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1-4])_0_[1-9][0-9]*");
+            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([14])_0_[1-9][0-9]*");
     private static final Map<Integer, String> SUPPLY_CHAPTERS = Map.of(
             BrokenSupplyRouteProgress.JUNCTION, "story_supply_route_junction",
             BrokenSupplyRouteProgress.LIFT, "story_supply_route_last_lift",
@@ -111,13 +112,13 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
-        if (AgreusArcCampaign.isBattle(mission)) return "story_agreus_water_under_seal";
+        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
         if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
             return "story_corvus_cold_account";
         // Retry IDs vary; the historical chapter does not. Job zero excludes recurring work
-        // even if a caller accidentally labels it STORY. Choice dossiers are not battle briefings.
+        // even if a caller accidentally labels it STORY. Only active campaign battle identities receive chapter briefings.
         Matcher attempt = SUPPLY_STORY_ID.matcher(mission.id);
         if (attempt.matches()) return SUPPLY_CHAPTERS.get(Integer.parseInt(attempt.group(1)));
         return null;

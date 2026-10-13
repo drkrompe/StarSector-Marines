@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Opening militia kit and staged checkpoint engagement.
+Updated: 2026-10-13 — Relief militia kit and assembly apron; direct freight sequence and Castle's Low Quay recovery bargain.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -40,13 +40,21 @@ tax law or proof that every official is corrupt. The armed occupiers are the
 immediate opponent; Hegemony forces do not become enemies through this contract.
 This urgency supplies a motive to hire outside protection, not a hidden expiry,
 inspection timer, faction-relation change or permission for fleet bombardment.
-The broken Colossus against the northern rear canyon wall is the yard's grounded
-cargo and equipment depot, surrounded by valuable hull scrap. These stores and
-working installations are the scrappers' prize and the cooperative's reason to
-pay for reopening the basin. The cooperative keeps that larger asset and the
-yard; its smaller tender Morrow is the agreed payment in kind for all three
-contracts. The Colossus grants no fleet member, extra salvage objective or cargo
-inventory. Contract and settlement readouts make the exchange explicit.
+The broken Colossus against the northern rear canyon wall holds a shipment the
+cooperative found before evacuating, surrounded by ordinary yard stores and hull
+scrap. Vale prioritizes access to that shipment and refuses to share its manifest
+with hired security. Its contents, legality and value remain unauthored: neither
+contraband nor rare schematics are confirmed, and secrecy is not proof of either.
+The cooperative keeps the Colossus, shipment and yard. Castle introduces Morrow
+into the bargain as contingent salvage in place of a third cash fee. Vale resists
+parting with an owned tender and commits parts and fitters only with continued
+company cover and an open haul road. Neither party can promise the damaged ship's
+condition before inspection. Castle's experience rebuilding Second Wind explains
+her willingness to take that risk. A working gun in Cold Start reveals the
+repaired workshop's practical value to the company; this is a new use for ordinary
+machinery, not a secretly exceptional hull or a change to the Shepherd's market
+price. The Colossus grants no fleet member, extra objective or cargo inventory.
+Contract and settlement readouts make the fees and conditional transfer explicit.
 Both parties have a business to sustain. The company sells security, escort and
 repair cover for chapter fees and the ship; Vale supplies technicians, equipment
 and militia to recover the cooperative's larger source of income. Keeping skilled
@@ -59,7 +67,7 @@ declare their political position. Exact fees, ownership and retry conditions sta
 clear in the accompanying readouts. This adds no casualty penalties, cargo
 rewards or free replacement ship.
 Completion of the Corvus arc and acknowledgement of its aftermath precede the offer;
-neither Broken Supply Route branch changes eligibility. Hound survival is optional.
+the supply-route outcome does not change eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
 boats, with two squads recommended and two four-person squads as its minimum.
@@ -184,8 +192,37 @@ work without company protection. Lost cargo or both technicians ends the attempt
 Confirmed employer losses persist; later mobilizations explicitly provide a new
 repair party and load. Company, boat and called-ship losses follow their ordinary
 settlement paths. Only the active attempt's complete physical receipt earns the
-26,000-credit fee once. The completed North Weir dossier grants no suit pattern,
-procurement warrant or later chapter before that contract exists.
+26,000-credit fee once. The completed North Weir dossier offers Limited Warrant;
+it does not itself grant a suit pattern.
+
+**Limited Warrant** is the Low Quay bonded-stores recovery. Rusk's readable
+civil-security procurement terms precede deployment. His supplier guarantee
+covers named surplus service files, calibration tooling and compatible stock;
+it grants no military procurement status, planetary police commission, civilian
+seizure right or orbital-fire authority. Yard management and debt enforcement
+require a separate agreement, which this recovery does not choose.
+
+Two full regular squads are recommended, with the same minimum selected force,
+fitted lift and owned-tender preparation as North Weir. Four constables cover
+the approach and one supplier technician authenticates the calibration work.
+Company infantry must secure the records office, protect eight uninterrupted
+seconds of work there and in the separate calibration cage, then escort the
+physical, vulnerable calibration carrier to the western apron. The cage also
+requires the living technician. A finite Cask Runner rearguard contests the exit;
+killing every raider is not the victory condition. Return requires the archive,
+kit and surviving company presence. Loss of the load, or the technician before
+kit recovery, fails the attempt.
+
+Authenticated records persist after withdrawal or defeat. Replacement attempts
+explicitly fund new calibration stock and personnel; confirmed losses remain
+recorded. Only the active attempt's complete recovery receipt earns 30,000
+credits and one Recovered Specter cargo template card. Already learned or carried
+knowledge satisfies the award without another copy; sale or discard cannot
+renew the entitlement. Learning the card and fitting equipment are separate
+player actions. Learning also exposes the matching Tri-Tachyon Specter Protection
+sheet, so the first recovered assault pattern is usable without an Arbalest
+reward. No equipment is automatically issued. The next yard chapter and its
+Arbalest award remain separate work in `a-small-war.md`.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
@@ -307,10 +344,9 @@ growing capability tangible. Purchased craft are celebrated only after delivery.
 No chapter declares the player's finances secure or their roster intact.
 
 The supply-route finale gives a pause before the Corvus pursuit. Freight receipts
-support renewed commercial work; rescued people support Iona's continuing recovery
-arrangement. Each account retains its losses and the forgone branch. Exhausted
-failures remain failures. The subsequent introduction reads the persistent story
-ledger, including recoveries or deliveries on earlier attempts.
+support renewed commercial work, while the account retains confirmed losses.
+Exhausted failures remain failures. The subsequent introduction reads the
+persistent freight ledger, including deliveries on earlier attempts.
 
 Asharu turns reaction into investigation. Blind Watch is the confidence crest:
 intelligence and preparation let the company choose the target and disable the
@@ -333,51 +369,31 @@ an offer or reading HQ does not mutate a save. Later office movement never moves
 accepted work: an inaccessible frozen site pauses deployment, and HQ retains
 its name with an explanation. Older completed Wayline saves start uncommitted.
 
-Junction victory pays 12,000 credits once and opens two inspectable requests.
-Only **Commit support to Rill** or **Commit support to Freight** issues the
-permanent support order. Inspection, Back and terrain preparation do not choose.
-The cooperative funds one recovery mobilization; the other crew receives a
-withdrawal order. Spare company boats, defeat, delay and reload do not reverse
-that commercial decision. There is no menu timer or hidden faction penalty.
-Commitment alone earns neither money nor recurring access. The commitment
-panel remains visible beside its button, outside scrollable briefing prose.
-It explicitly names Last Lift as the rescue branch's last story chapter, its
-successful Crew Recovery unlock, and the forgone Thunder Run path.
-The freight choice names Thunder Run, the successful Route Security
-unlock, and Rill's lost escort without inventing deaths. Each branch has one distinct finale: civilian escort and boarding at Rill, or
-physical cargo delivery along the freight corridor.
+Junction victory pays 12,000 credits once and opens **Thunder Run** directly.
+The company clears the junction, escorts Wayline's freight and then proceeds to
+The Corvus Account. There is no support-choice menu, Rill withdrawal order or
+unchosen rescue consequence in this sequence. Last Lift's evacuation concept is
+reserved for a later campaign operation whose placement and designation remain
+undecided; it grants no current campaign posting or Crew Recovery unlock.
 
-- **Last Lift** promises 4,000 credits plus 500 per cumulatively rescued person,
-  at most 10,000, once on qualifying victory. Rescued and confirmed dead workers
-  persist across defeated attempts; only stranded people enter another battle.
-  Exhausting the cohort without victory closes the actual result without payment
-  or an unlock. Successful rescue leaves this commercial route suspended and
-  establishes Iona's **Crew Recovery** arrangement. Thunder Run is not undertaken.
-- **Thunder Run** begins immediately on freight commitment and closes that branch.
-  Junction is the common territorial setup; no second capture-and-hold chapter or
-  separate relay fee precedes the convoy. Three identified employer cargo
-  carriers have persistent delivered, lost and awaiting-transport states.
-  Retry fields only unresolved carriers. A qualifying victory accounts for all
-  active cargo with a surviving company presence and at least one delivery
-  across the job. It pays 6,000 plus 4,000 per cumulative delivery, at most
-  18,000, once, and establishes Mara's **Route Security** arrangement. Exhausted
-  cargo on a defeated sortie closes the actual result without payment or an
-  unlock. Older saves already closed after Relay Nine retain Route Security;
-  unfinished, unlaunched Relay Nine commitments migrate directly to the convoy
-  finale without inventing a relay victory or paying for a skipped battle. A saved
-  active Relay Nine attempt keeps its identity and agreed award through settlement,
-  then proceeds to Thunder Run even after defeat. Prior payments, cargo receipts,
-  frozen sites and recurring entitlements survive migration.
+Thunder Run is the freight finale. No second capture-and-hold chapter or separate
+relay fee precedes the convoy. Three identified employer cargo carriers have
+persistent delivered, lost and awaiting-transport states. A retry fields only
+unresolved carriers. A qualifying victory accounts for all active cargo with a
+surviving company presence and at least one delivery across the job. It pays
+6,000 plus 4,000 per cumulative delivery, at most 18,000, once, and establishes
+Mara's **Route Security** arrangement. Exhausted cargo on a defeated sortie closes
+the actual result without payment or an unlock. Pre-release branch-save migration
+is not supported.
 
-Recurring offers carry new job and attempt identities. Crew Recovery receives a
-new twelve-person ledger for each job and the same rescue formula; a retry keeps
-that job's stranded identities. Route Security uses the Relay Nine capture-and-hold battlefield and pays 12,000
-per successful new job. Recurring results retain aggregate rescue/loss and payment records without
-resetting the story crew or replaying a chapter bonus. The completed dossier
-separates historical results from the current posting. Existing Wayline
-repeatables and unrelated contracts remain available.
+Recurring Route Security offers carry new job and attempt identities, use the
+Relay Nine capture-and-hold battlefield and pay 12,000 per successful new job.
+Recurring results retain payment records without resetting the story freight or
+replaying a chapter bonus. The completed dossier separates historical results
+from the current posting. Existing Wayline repeatables and unrelated contracts
+remain available.
 
-All four operations recommend twenty-four marines. They accept at least two
+Both chapters and Route Security recommend twenty-four marines. They accept at least two
 selected squads with four ready marines each, using acting NCOs where necessary.
 One to four owned fitted boats cycle until the selected named force is delivered;
 partial final trips contain only real selected personnel. Issued equipment,
@@ -387,7 +403,7 @@ area. Six-seat loads and later ferry trips reunite into their original campaign
 squad, preserving its NCO, fire-team billets and command group; a berth is not
 a separate tactical destination. Arrival assembly counts every member once and
 releases the squad's duty when its committed strength has landed.
-Employer militia and the twelve-seat civilian pickup remain separate forces.
+Employer militia remain a separate force.
 Wayline supplies heavy lift for the company's active mech lance on these chapters
 and their recurring jobs. Mech Support carries only owned chassis with their
 frozen installed equipment; an empty bay grants no substitute walker. The company
@@ -395,11 +411,11 @@ selects the support power in its briefing and calls it onto clear ground during
 battle. Arriving mechs join that operation's mission commander and remain eligible
 for optional direct control. Fighter cover and other strategic powers remain absent.
 
-The arc owns a versioned save record, including its frozen site, commitment,
+The arc owns a versioned save record, including its frozen site, chapter progression,
 current job and attempt, story outcome and awards. Unknown or inconsistent
 records fail closed. Terrain surveys read prospective identities; acceptance
 starts the attempt only after construction and the roster overlay succeed.
-Settlement consumes the frozen mission and rescue/freight identities once before the
+Settlement consumes the frozen mission and freight identities once before the
 ordinary credits, personnel and lost-boat writeback. Duplicate or foreign results
 cannot repeat any of those writes. Outcome presentation is not reward authority.
 This is local commercial fiction: no vanilla market ownership, population,
@@ -407,10 +423,9 @@ stability, industry or trade simulation is changed.
 
 ## Wayline across Corvus
 
-**The Corvus Account** follows either closed Broken Supply Route branch,
-including a recovery or freight run whose finite ledger ended in failure.
-Mara's correspondence preserves that account; it never claims the unchosen
-operation succeeded or invents casualties. Existing recurring arrangements
+**The Corvus Account** follows the closed Thunder Run account, including a
+freight run whose finite ledger ended in failure. Mara's correspondence preserves
+actual deliveries and losses without inventing casualties. Existing recurring arrangements
 remain at their original site.
 
 The arc concerns **Sable Wake**, a mod-authored pirate crew selling Wayline's
@@ -554,18 +569,18 @@ The dossier, HQ lead and results carry the story in readable text.
 
 ## Illustrated location records
 
-Each of the five authored chapters has a wide location illustration: the
-Wayline checkpoint, occupied freight depot, Junction Dispatch, Rill motor pool,
-and Relay Nine. The selected story dossier replaces its generic planetary scope
-with this location file; the two branch requests have their own scenes before
-commitment. Portraits continue to identify the correspondent.
+The active opening and supply-route chapters have wide location illustrations:
+the Wayline checkpoint, occupied freight depot, Junction Dispatch and freight
+corridor. The selected story dossier replaces its generic planetary scope with
+this location file. The Rill motor-pool illustration remains with the shelved
+evacuation concept; Relay Nine identifies the separate territorial battlefield. Portraits continue to identify the correspondent.
 
 A debrief can retain that same pre-operation location image as an explicitly
 labelled archive beside the frozen outcome and personnel report. It is not a
 picture of the result: it promises neither surviving militia, a completed rescue,
 nor an intact player boat. The tactical survey still owns actual map geometry.
-Recurring jobs do not borrow historical story scenes or depict the old Rill
-cohort. Unknown chapters retain the ordinary presentation.
+Recurring jobs retain their own mission identities and never depict a historical
+rescue cohort as a new job. Unknown chapters retain the ordinary presentation.
 
 ## Small-company promise
 
@@ -771,11 +786,11 @@ for that chapter. It has no required airfield, fighter or mech complement,
 resource production, open-ended reinforcement layer or free garrison sorties.
 This is a mission-scoped exception, not a lower risk setting for a large siege.
 
-**Open the Junction** is the common battle in Broken Supply Route.
+**Open the Junction** begins Broken Supply Route.
 Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
 four required territories. Dispatch is the canonical command post. Decorative
 warehouses and the roads toward Rill and Relay Nine add no capture requirements.
-Those roads do not choose the later campaign branch. The weigh-house has a
+Those roads add no campaign decision. The weigh-house has a
 T-shaped service wing; offset freight rooms face the maintenance access, and
 an L-shaped depot encloses a northern loading recess. The broad central
 warehouse still screens long sightlines, and the maintenance reserve retains
@@ -806,8 +821,8 @@ employer lift is separately identified. Victory requires all four territories
 held together and a company participant in play, including committed inbound
 personnel. Killing every raider alone does not close the mission.
 
-**Relay Nine** is the battlefield for recurring Route Security and preserved
-legacy battles. It is not a required story chapter between Junction and Thunder Run. Its western apron, Power Yard,
+**Relay Nine** is the battlefield for recurring Route Security and detached
+authoring fixtures. It is not a required story chapter between Junction and Thunder Run. Its western apron, Power Yard,
 Freight Gate and Relay Hall are four required territories, with the hall as the
 canonical command post. The hall guarantees opposed direct-road and loading-road
 entrances. Decorative service buildings add no objectives. Company boats retain
@@ -990,9 +1005,15 @@ Start, actual player landing, each released leg, freight commitment, rear cleara
 heavy lead advancement, each cargo delivery/loss and terminal results publish once-only story hooks. Hidden ambush deployment remains
 observer-only, ready for a future sighting-aware dialogue adapter.
 
-## Authored evacuation chapters
+## Reserved evacuation concept
 
-**Last Lift** returns for Rill's twelve workers after the Junction choice. The
+The mission previously called **Last Lift** is reserved for later in the campaign.
+Its future designation, location, contact and progression gate remain undecided.
+Its factory, map, artwork, narration and detached debug scenarios remain reusable;
+its old Rill framing is retained authoring material, not an active Wayline chapter.
+Crew Recovery is likewise a detached variation without a campaign entitlement.
+The concept preserves twelve stranded workers and a physical escort-and-boarding
+objective. The
 motor pool, loading-street crossing, covered maintenance lane and southern apron
 form one authored corridor. Six employer militia hold the shelter approach;
 twelve raiders occupy blocking posts and two finite six-person reserves enter
@@ -1025,8 +1046,9 @@ rescue events keep their existing aggregate population semantics.
 Settlement accepts the active attempt identity once, including after reload.
 A retry contains exactly the remaining stranded identities. No remaining people
 closes the chapter with its actual result; previous rescue on a defeated sortie
-does not manufacture a victory. A later qualifying victory may earn the single
-chapter entitlement of 4,000 credits plus 500 per cumulatively rescued worker.
+does not manufacture a victory. The retained prototype award is
+4,000 credits plus 500 per cumulatively rescued worker on qualifying victory;
+a future campaign placement must explicitly authorize its reward and unlocks.
 Defeat, withdrawal, duplicate results and foreign or stale attempts earn none.
 The record does not itself add cargo, credits or personnel: the campaign launch
 and settlement adapters retain those external-write responsibilities.
@@ -1071,10 +1093,10 @@ replay Mara's historic chapter dialogue accidentally.
 The battle publishes facts without running presentation callbacks or consuming
 randomness. Both story arcs map public keys to recorded character dialogue
 after simulation advance, with mission-speech precedence as defined in
-`battle-radio-nouns.md`. All six chapter briefings play on entry with Replay
-and Stop controls; readable briefing text remains available. Mara gives the
-operational radio briefing for Rill in her own voice; Iona remains its written
-correspondent.
+`battle-radio-nouns.md`. Active chapter briefings play on entry with Replay
+and Stop controls; readable briefing text remains available. The retained evacuation prototype has Mara's operational
+recordings and Iona's written correspondence; a future placement must revisit
+those cast and setting assumptions.
 
 Battle lines cover starts, actual landings, place proximity, Relief militia
 losses, territorial gains and reversals, established militia holds, escort
@@ -1086,8 +1108,8 @@ do not promise that every worker survived or every load arrived.
 
 Broken Supply Route's historical job resolves each valid attempt identity to
 one stable chapter recording set. Repeat attempts reuse wording that remains
-true when only stranded workers or unresolved loads return. Branch-choice
-dossiers and recurring jobs cannot replay historical chapter narration.
+true when only unresolved loads return. Recurring jobs cannot replay historical
+chapter narration. Detached evacuation recordings retain their own scenario keys.
 
 Mara's cast assignment is Mora - Gritty and Enigmatic, ElevenLabs voice
 `YHcCpa6SBWnKDaCPZJQR`, recorded with `eleven_v4`. The narration catalog retains
@@ -1129,8 +1151,8 @@ must validate arrival timing, actual lift requirements, force ratios, and
 briefing claims. Both chapters have production-factory headless replay evidence;
 actual campaign loadouts and the linked live sequence remain to be accepted.
 `broken-supply-route.md` tracks remaining live campaign acceptance for the
-follow-on arc. Its four factories, campaign choice, named deployment, rescue/freight
-ledgers and one-time settlement have headless evidence; that does not establish
+follow-on arc. Junction, Thunder Run and recurring Route Security have named
+deployment, freight-ledger and one-time settlement headless evidence; that does not establish
 live host behavior, travel access or in-game save/load acceptance.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.

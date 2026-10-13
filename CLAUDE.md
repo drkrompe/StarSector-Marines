@@ -187,7 +187,7 @@ Do not run builds or leave generated task files there.
   road reserve. Source frames remain 1920x1080. These are factory-loadout
   battle controls; campaign offers, roster launch and settlement are separate.
   `-Pmission=supply-route` checks the campaign construction/roster-overlay seam
-  for Junction, Last Lift, Thunder Run and recurring Route Security on the Relay Nine map
+  for Junction, Thunder Run and recurring Route Security on the Relay Nine map
   with eight/twenty-four named marines.
   It verifies fitted airframes, exact named seats and untouched employer/civilian
   craft across mixed lift, paired six-seat boats and repeated single-boat trips.
@@ -1113,6 +1113,7 @@ The discovered suite ids and default output directories are:
 | `ship-command-ui` | Production ship selector and contextual build tray at 1920×1080/100%, remote Move/Hold/Auto, physical turret construction, takeover handback and Cold Start's grounded power gate; controlled fixtures, not Working Passage or campaign ownership acceptance | `build/snapshots/ship-command-ui/` |
 | `working-passage` | Production departure mission with named companies and fitted boats, full-size low-hover Morrow, two construction stops, militia holds and physical climb-out; absent arrival, withheld construction, withdrawal/retry and disabled-ship controls. 1920×1080/100%, detached playback rather than live campaign acceptance; report in `build/reports/working-passage/playback.txt` | `build/snapshots/working-passage/` |
 | `water-under-seal` | Production North Weir contract with named regular squads, fitted boats, physical cargo and technician work, an owned-source tender call and actual road-gun construction. Includes absent arrival, withheld construction, cargo/technician loss and withdrawal/replacement controls; 1920×1080/100%, detached evidence rather than live campaign travel/save acceptance. | `build/snapshots/water-under-seal/` |
+| `limited-warrant` | Low Quay recovery with 24 named regular marines and fitted boats: three ordinary seeds, absent arrival, lost cargo/technician and withdrawal with replacement attempts. Physical recovery receipts feed once-only settlement; briefing, battle and debrief frames at 1920x1080/100%. Detached evidence, not live host save/reload; report in `build/reports/limited-warrant/playback.txt`. | `build/snapshots/limited-warrant/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `pod-battle` | Actual catalog Arbalest missile-pod launches alongside Legionary infantry and Hound, movement and primary combat verdicts; 1920x1080 at 100% scale, normal and closer lossless PNG sequences at 15 fps plus launch detail at 30 fps | `build/snapshots/pod-battle/` |
 | `equipment-mounts` | Catalog-equipped Aegis and Arbalest missile pods, Specter emitter, Legionary control, articulation and weapon clearance; enlarged and normal world-scale samples with twelve lossless frames at 1920x1080, 100% scale | `build/snapshots/equipment-mounts/` |

@@ -71,7 +71,7 @@ class ThunderRunEvidenceTest {
             var fixture = cases.getJSONObject(ci); String name = fixture.getString("id");
             Path dir = output.resolve(name); Files.createDirectories(dir);
             var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-            String id = route.missionId(); route.begin(id); route.settle(id, true, null); route.commit(3);
+            String id = route.missionId(); route.begin(id); route.settle(id, true, null);
             if (fixture.optBoolean("retry")) {
                 id=route.missionId();route.begin(id);
                 route.settle(id,false,null,new FreightRunProgress.Outcome(route.freight().previewAttempt(),List.of(0),List.of(1),false));
