@@ -57,13 +57,13 @@ class BattleDirectTenderStatusTest {
 
     @Test
     void theOptionCardListsTheRealOptionAndCallsTheEmptySlotsSoon() {
-        assertEquals(4, BuildOption.ALL.size(), "the text below assumes four options; update it with the list");
+        assertEquals(5, BuildOption.ALL.size(), "the text below assumes five options; update it with the list");
         ShipCard option = card("OPTION", Notice.NONE);
         assertEquals("[1] VULCAN TURRET", option.detail());
         assertEquals("SELECTED", option.state());
-        assertEquals("[2]OK [3]OK [4]OK", option.resource());
+        assertEquals("[2]OK [3]OK [4]OK [5]OK", option.resource());
         ShipCard empty = BattleDirectTenderStatus.optionCard(TenderPilot.OPTION_SLOTS);
-        assertEquals("[5] EMPTY", empty.detail());
+        assertEquals("[6] EMPTY", empty.detail());
         assertEquals("SOON", empty.state());
         assertEquals(Tone.WARN, empty.tone());
     }
