@@ -12,6 +12,9 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
@@ -219,6 +222,16 @@ public final class HeadlessArmoryPreviewRenderer {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {
                     loaded.registerSpecialEquipment(def.id(), sprite(carrier.spritePath()));
+                }
+            }
+            MarineArmorCatalogRegistry armorRegistry = MarineArmorCatalogRegistry.installed();
+            if (armorRegistry != null) {
+                for (MarineArmorCatalogDef armor : armorRegistry.all()) {
+                    IntegralSystemDef system = armor.integralSystem();
+                    if (system != null && system.carrierLayer() != null) {
+                        loaded.registerIntegralSystem(system.id(),
+                                sprite(system.carrierLayer().spritePath()));
+                    }
                 }
             }
             return loaded;

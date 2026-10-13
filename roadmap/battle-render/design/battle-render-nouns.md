@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — modular infantry articulates shoulder shells; observed grounded surfaces admit night lighting without revealing ground.
+Updated: 2026-10-13 — equipped suit hardware follows shoulder articulation; observed grounded surfaces admit night lighting without revealing ground.
 
 ## Vocabulary
 
@@ -114,6 +114,21 @@ preserves the body under articulation. Ordinary weapons paint below the torso
 and shells; an over-shoulder launcher paints above them but below the helmet.
 An armor family without separate shells retains its ordinary composition.
 Articulation never changes collision, durability, or equipment identity.
+
+An equipped integral system may carry a separate hardware sprite. Its catalog
+presentation selects an actor, torso, or left/right shoulder attachment;
+shoulder attachments inherit the actual shell joint's position, scale, and
+bearing, never helmet look. An armor without a separate shell uses the matching
+torso registration instead of borrowing another family's shoulder animation.
+Offsets remain local to the selected attachment. Live battle and Armory compose
+the same equipped definition through the same layer helper.
+
+Carried hardware remains present while idle, active, recharging, or empty. A
+running-system timer is not a firing animation clock. Under-body hardware paints
+before the torso; over-body hardware paints after its shoulder shells and before
+foreground handheld equipment and the helmet. The suit mount neither consumes
+the carried special slot nor hides the primary. Capability effects, shots, and
+projectile origins continue to come from the simulation.
 
 The direct-control aim lane is read-only world presentation derived from current
 firing origins, pointer aim, and deterministic structural terrain. Live and
