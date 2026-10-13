@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.ArmoryRangeTrial;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ops.battleview.OfficerCapacityCanvas;
 import com.dillon.starsectormarines.ops.battleview.OfficerRankCanvas;
 import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
@@ -81,9 +84,19 @@ public final class FleetArmoryScreen implements Screen {
     private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
     private View view = View.SQUADS;
+    private PositionAPI position;
+    private ArmoryRangeTrial rangeTrial;
+    private BattleScreen rangeScreen;
+    private final MutableSignal<Boolean> rangeDisabled = reactor.signal(true);
+    private final MutableSignal<String> rangeHint = reactor.signal("");
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
+        this.position = position;
+        if (rangeScreen != null) {
+            rangeScreen.attach(position, null, dismissDialog);
+            return;
+        }
         context = ctx;
         this.dismissDialog = dismissDialog;
         viewport = MarineOpsUiViewport.from(position);
@@ -293,6 +306,9 @@ public final class FleetArmoryScreen implements Screen {
         props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("inspection", viewModel.inspection());
+        props.put("testLoadout", (Runnable) this::testLoadout);
+        props.put("rangeDisabled", rangeDisabled);
+        props.put("rangeHint", rangeHint);
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
@@ -463,6 +479,12 @@ public final class FleetArmoryScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        if (rangeScreen != null) {
+            rangeScreen.advance(dt);
+            if (rangeScreen.rangeFinished()) closeRange();
+            return;
+        }
+        refreshRangeAvailability();
         int currentHour = campaignHour();
         if (currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
@@ -491,16 +513,23 @@ public final class FleetArmoryScreen implements Screen {
 
     @Override
     public void render(float alphaMult) {
+        if (rangeScreen != null) { rangeScreen.render(alphaMult); return; }
         if (document != null && viewport != null) document.render(viewport, alphaMult);
     }
 
     @Override
     public void processInput(List<InputEventAPI> events) {
+        if (rangeScreen != null) {
+            rangeScreen.processInput(events);
+            if (rangeScreen.rangeFinished()) closeRange();
+            return;
+        }
         if (input != null) input.process(events);
     }
 
     @Override
     public void detach() {
+        closeRange();
         if (viewModel != null) viewModel.cancelOrganization();
         if (document != null) document.deactivateInput();
         if (specSheets != null) specSheets.clear();
@@ -519,6 +548,48 @@ public final class FleetArmoryScreen implements Screen {
         boundSquadCards = null;
         boundOrganizationTargets = null;
         input = null;
+    }
+
+    private void refreshRangeAvailability() {
+        if (viewModel == null || context == null) return;
+        String reason = viewModel.rangeUnavailableReason();
+        var deck = context.companyDeck();
+        if (reason.isEmpty() && deck == null) reason = Strings.get("armoryRangeMissing");
+        if (reason.isEmpty() && !deck.ready()) reason = Strings.get("armoryRangePreparing");
+        if (reason.isEmpty() && ArmoryRangeTrial.availableRoom(deck) == null) reason = Strings.get("armoryRangeMissing");
+        rangeDisabled.set(!reason.isEmpty());
+        rangeHint.set(reason.isEmpty() ? Strings.get("armoryRangeHint") : reason);
+    }
+
+    private void testLoadout() {
+        refreshRangeAvailability();
+        if (rangeDisabled.peek()) return;
+        var candidate = viewModel.rangeCandidate();
+        var deck = context.companyDeck();
+        var room = ArmoryRangeTrial.availableRoom(deck);
+        if (candidate == null || room == null) return;
+        document.deactivateInput();
+        rangeTrial = new ArmoryRangeTrial(deck.map(), room, candidate.name(), candidate.loadout());
+        rangeScreen = new BattleScreen(rangeTrial);
+        try {
+            rangeScreen.attach(position, null, dismissDialog);
+            if (rangeScreen.rangeFinished()) closeRange();
+        } catch (RuntimeException failure) {
+            closeRange();
+            throw failure;
+        }
+    }
+
+    private void closeRange() {
+        if (rangeScreen != null) rangeScreen.detach();
+        rangeScreen = null;
+        if (rangeTrial != null) rangeTrial.close();
+        rangeTrial = null;
+        if (document != null && position != null) {
+            viewport = MarineOpsUiViewport.from(position);
+            document.layout(viewport.documentWidth(), viewport.documentHeight());
+            input = new StarsectorUiInputAdapter(document, viewport);
+        }
     }
 
     private enum View { SQUADS, FIRETEAMS, DESIGNER, ARMOR_COMPARISON, FIRST_REFIT }

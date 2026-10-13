@@ -20,6 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  */
 class SquadExperienceStandardTest {
 
+    @Test
+    void prospectiveArmorUsesItsIssuedBandWithoutChangingTheMarine() {
+        MarineSoldier soldier = soldierWearing(MarineArmorPattern.MILITIA);
+        var proposed = soldierWearing(MarineArmorPattern.RED_ELITE).armorDef();
+        var trial = SquadExperienceStandard.profileForArmor(soldier, proposed);
+        assertEquals(soldier.aptitude(), trial.aptitude());
+        assertEquals(ExperienceTier.ELITE, trial.experienceTier());
+        assertEquals(ExperienceTier.REGULAR, soldier.profile().experienceTier());
+    }
+
     private static MarineSoldier soldierWearing(MarineArmorPattern armor) {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(1);

@@ -403,6 +403,14 @@ prize decks ever need to differ, the difference is expressed as a parameter of
 the family. A second generator for the company's own ship would immediately drift
 from the one that has to stay tactically honest.
 
+The armory's **Test Loadout** is a disposable practice exception to the shared
+home scene: it copies an undamaged range compartment, its fitted materials,
+furnishings, and physical lanes into an isolated simulation. The copied room's
+exits are closed. An in-service practice point supplies the starting position
+and target; hulls without such a room cannot offer the trial. Free manual fire
+may alter the copy but never the cached home deck or its crew. Returning drops
+the copy, leaving ordinary ship life and campaign state authoritative.
+
 ## Facilities, capacity, and growth
 
 A facility's **capacity is its working fixtures**. The number of berths in the

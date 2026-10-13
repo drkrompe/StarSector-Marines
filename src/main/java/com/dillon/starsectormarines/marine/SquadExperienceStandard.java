@@ -52,6 +52,12 @@ public final class SquadExperienceStandard {
         return new SoldierProfile(soldier.aptitude(), bandFor(soldier).minimumXp);
     }
 
+    /** Prospective fitting keeps the person's aptitude and uses the proposed suit's issued band. */
+    public static SoldierProfile profileForArmor(MarineSoldier soldier, MarineArmorCatalogDef armor) {
+        return new SoldierProfile(soldier == null ? SoldierAptitude.STEADY : soldier.aptitude(),
+                bandForArmorTier(armor == null ? 0 : armor.tier()).minimumXp);
+    }
+
     /**
      * The band an armour tier fields. The four authored tiers line up one-to-one
      * with the four bands, which is why no promotion or distribution rule is
