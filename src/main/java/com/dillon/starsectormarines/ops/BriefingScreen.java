@@ -693,12 +693,16 @@ public class BriefingScreen implements Screen {
                 controls.add(conquestControl("debug-warship-side", "WARSHIP DEBUG · side",
                         debugWarship.side() == Faction.MARINE ? "Marine (friendly)" : "Defender (hostile)",
                         false, false, this::toggleDebugWarshipSide, this::toggleDebugWarshipSide));
-                controls.add(conquestControl("debug-warship-mode", "WARSHIP DEBUG · mode",
-                        debugWarship.mode().label, false, false,
-                        this::toggleDebugWarshipMode, this::toggleDebugWarshipMode));
-                controls.add(conquestControl("debug-warship-flux", "WARSHIP DEBUG · flux",
-                        debugWarship.flux() ? "On" : "Off", false, false,
-                        this::toggleDebugWarshipFlux, this::toggleDebugWarshipFlux));
+                // A friendly pick is a stock source for the Ship on Station power (director, flux and
+                // station are the power's own); mode and flux apply only to the hostile launch install.
+                if (debugWarship.side() == Faction.DEFENDER) {
+                    controls.add(conquestControl("debug-warship-mode", "WARSHIP DEBUG · mode",
+                            debugWarship.mode().label, false, false,
+                            this::toggleDebugWarshipMode, this::toggleDebugWarshipMode));
+                    controls.add(conquestControl("debug-warship-flux", "WARSHIP DEBUG · flux",
+                            debugWarship.flux() ? "On" : "Off", false, false,
+                            this::toggleDebugWarshipFlux, this::toggleDebugWarshipFlux));
+                    }
             }
         }
         int maxTransports = Math.max(0, mission.requiredDrops);
@@ -2170,7 +2174,7 @@ public class BriefingScreen implements Screen {
     /** "recon_ping" → "Recon Ping". */
     private static String prettifyId(String id) {
         StringBuilder s = new StringBuilder();
-        for (String part : id.split("_")) {
+        for (String part : id.replace(':', '_').split("_")) {
             if (part.isEmpty()) continue;
             if (s.length() > 0) s.append(' ');
             s.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));

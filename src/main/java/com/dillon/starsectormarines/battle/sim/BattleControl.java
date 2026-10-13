@@ -19,6 +19,10 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.warship.MissionStance;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
 import java.util.List;
 
@@ -193,4 +197,16 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** The posed barrel must reach open space before a mount spends its trigger. */
     boolean canFireMechMount(long shooter, MechWeaponMount mount);
+
+    /** Puts an overhead ship over the battle; it fires from the next tick. */
+    default void addWarship(Warship ship) {}
+
+    /** Puts a drone tender over the battle, its hull among the warships and its drones launching. */
+    default void addTender(Tender tender) {}
+
+    /** The map's traversal axis, which decides which edge a side's overhead ship arrives from. */
+    default TraversalAxis shipAxis() { return TraversalAxis.WEST_TO_EAST; }
+
+    /** What the player's company is doing about the objective: attacking it or holding it. */
+    default MissionStance companyStance() { return MissionStance.ATTACK; }
 }
