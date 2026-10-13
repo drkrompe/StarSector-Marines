@@ -7,6 +7,24 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SalvagePlacementTest {
+    @Test void authoredFindStaysInsideItsAreaDespiteLandingAndObjectiveProximity() {
+        var grid = new NavigationGrid(120, 80);
+        for (int y = 0; y < 80; y++) for (int x = 0; x < 120; x++) grid.setWalkableFloor(x, y);
+        var pads = List.of(new LandingPad(25, 38, 8, 3, LandingPad.Approach.WEST));
+        var site = new SalvagePlacement.Site(SalvageResource.METALS,
+                new SalvagePlacement.Cell(45, 36), 36, 35, 50, 38);
+        var candidates = List.of(new SalvagePlacement.Cell(44, 36), new SalvagePlacement.Cell(46, 36),
+                new SalvagePlacement.Cell(105, 60), new SalvagePlacement.Cell(75, 10));
+        var targets = List.of(new SalvagePlacement.Cell(51, 30));
+        var finds = SalvagePlacement.place(grid, pads, candidates, targets, 42, List.of(site));
+        var metals = finds.stream().filter(c -> c.resource == SalvageResource.METALS).findFirst().orElseThrow();
+        assertEquals(44, metals.cellX);
+        assertEquals(36, metals.cellY);
+        assertEquals(1, finds.stream().filter(c -> c.resource == SalvageResource.METALS).count());
+        assertThrows(IllegalStateException.class, () -> SalvagePlacement.place(grid, pads,
+                List.of(new SalvagePlacement.Cell(105, 60)), targets, 42, List.of(site)));
+    }
+
     @Test void excludesLandingObjectivesAndDisconnectedSitesWithoutChangingNavigation() {
         var grid = new NavigationGrid(120, 80);
         for (int y = 0; y < 80; y++) for (int x = 0; x < 100; x++) grid.setWalkableFloor(x,y);

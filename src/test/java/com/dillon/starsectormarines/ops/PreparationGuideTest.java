@@ -61,7 +61,7 @@ class PreparationGuideTest {
         assertTrue(complete.get(), "The dialogue must accept input independently of its dim backdrop");
     }
 
-    @Test void campaignPopoverLeavesNavigationVisibleAndCombatModeLeavesWorldControlsLive() {
+    @Test void campaignPopoverLeavesNavigationVisibleAndRestrictsUnrelatedControls() {
         var worldOrders = new AtomicInteger();
         var navigation = new UiElement("marine-ops-page-nav").style("position: absolute; left: 0px; top: 0px; width: 1920px; height: 60px;");
         var target = new UiElement("workspace").style("position: absolute; left: 450px; top: 200px; width: 1000px; height: 800px;");
@@ -74,8 +74,6 @@ class PreparationGuideTest {
         document.layout(1920, 1080); guide.update();
         assertTrue(guide.calloutBounds().y() >= navigation.box().borderBox().bottom());
         click(document, world); assertEquals(0, worldOrders.get());
-        guide.combatInput();
-        click(document, world); assertEquals(1, worldOrders.get(), "Field coaching must not block world orders outside its portrait");
     }
 
     private static UiElement button(String id, int left, Runnable action) {

@@ -7,7 +7,7 @@ Written: 2026-08-23
 | Story | Status | Outcome |
 |---|---|---|
 | `campaign-learning-curve.md` | PLANNED | Track equipment reward collisions, affordability, officer XP versus force growth, advanced mech access and casualty carryover; first tutorial slice in `castle-campaign-lessons.md`. |
-| `shepherd-recovery.md` | IN PROGRESS | Salvage Rights campaign recovery is playable; Cold Start repair battle and Working Passage ownership handoff remain. |
+| `shepherd-recovery.md` | IN PROGRESS | Salvage Rights and Cold Start campaign recovery are playable; bounded construction/combat evidence, live acceptance and Working Passage ownership handoff remain. |
 | `wayline-corvus.md` | IN PROGRESS | Combat playback finds Raid/Assault execution stalls and severe Sabotage losses; fixes, balance and live campaign acceptance remain. |
 | `first-contract-discovery.md` | READY FOR LIVE ACCEPTANCE | Jangala broker, linked opening sequence and HQ course guidance are implemented; verify campaign navigation, fallback and save/reload. |
 | `opening-ladder-live-acceptance.md` | READY | Both chapters have authored maps and headless fitted-boat controls; live-check the linked sequence, lift, losses, and retry. |

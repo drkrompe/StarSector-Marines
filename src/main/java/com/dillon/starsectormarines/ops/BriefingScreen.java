@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+
 import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 
@@ -986,6 +988,11 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.coldStart(mission.id)) return List.of(
+                BriefingViewModel.info("basin-cargo", "Repair cargo", "Distribution rig / escort from apron to workshop", ""),
+                BriefingViewModel.info("basin-crew", "Repair crew", "2 technicians / protect at pump and grounded hull", ""),
+                BriefingViewModel.info("basin-yard", "Construction", "Morrow's grounded drone bay / enabled by shore power", ""),
+                BriefingViewModel.info("basin-militia", "Militia", "8 / cooperative yard security", ""));
         if(ShepherdRecoveryCampaign.isBattle(mission))return List.of(
                 BriefingViewModel.info("basin-militia","Militia","8 / holds workshop after company secures it",""),
                 BriefingViewModel.info("basin-crew","Inspection party","2 technicians / protect at Morrow's south access",""),

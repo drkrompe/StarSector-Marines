@@ -13,6 +13,7 @@ import java.util.List;
 final class CompanyNotices {
     enum Notice {
         SHEPHERD_RECOVERY("shepherd-recovery", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "Mara's introduction to Tamsin Vale"),
+        COLD_START("shepherd-cold-start", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "Tamsin Vale / Cold Start"),
         SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Secondhand Wings"),
         SECOND_BAY("second-bay", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Second bay restoration"),
         FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "Castle's first refit"),
@@ -35,6 +36,7 @@ final class CompanyNotices {
         var found = new ArrayList<>(unread(roster, CompanyBayRestoration.state(CompanyShipDesignation.aboard())));
         var recovery = ShepherdRecoveryCampaign.current();
         add(found, roster, Notice.SHEPHERD_RECOVERY, recovery != null && !recovery.claimSecured());
+        add(found, roster, Notice.COLD_START, recovery != null && recovery.claimSecured() && !recovery.repaired());
         return List.copyOf(found);
     }
 
