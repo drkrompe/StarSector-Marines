@@ -36,6 +36,7 @@ public final class CerberusCompanyStart implements Script {
         cargo.addSupplies(TRAVEL_SUPPLIES);
         cargo.addFuel(Math.min(40, cargo.getMaxFuel()));
         sector.getPersistentData().put(SHIP_KEY, ship.getId());
+        CompanyPrologue.begin(sector.getPersistentData());
         PlanetAPI planet = destination();
         if (planet != null) {
             if (fleet.getContainingLocation() != planet.getContainingLocation()) {
@@ -48,6 +49,7 @@ public final class CerberusCompanyStart implements Script {
         fleet.setTransponderOn(true);
         fleet.getFleetData().setSyncNeeded();
         sector.getIntelManager().addIntel(new CompanyFoundingIntel());
+        CompanyProloguePresenter.install();
     }
 
     public static String startingShipId() {
