@@ -84,7 +84,10 @@ Updated: 2026-10-13 — squad selection uses position-following ground circles b
   circuits and local fixture pools. It retains readable ambient terrain and
   shares the ordinary world-render path across live and headless hosts. Circuit
   restoration replaces its presentation state; it never grants observation,
-  alters targeting or changes navigation. Ship-compartment lighting is separate.
+  alters targeting or changes navigation. Outdoor floodlights have grounded supports
+  and oriented heads that remain visible when unpowered; interior strips retain
+  their separate fixture identity. Appearance never changes the authored light pool.
+  Ship-compartment lighting is separate.
 
 ## Ownership and flow
 
@@ -128,6 +131,11 @@ otherwise a valid simulation event may have no drawable body. Carried
 special-equipment poses may remain dry drills. Route ownership, interruption, and
 whether an action has physical consequences remain simulation concerns; the render
 pipeline never manufactures a shot.
+
+Mission readouts occupy a final `MISSION_MARKERS` annotation layer, above lighting
+and physical effects. Their beacons, progress and bitmap labels are public mission
+information, not surfaces for night shading; moving them never moves the physical
+world or grants visibility. Both live and headless hosts consume the same commands.
 
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → HAZARDS → SMOKE → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it. A cell that current clear-air observation would reveal but smoke actually conceals receives half the ordinary fog shadow, then smoke paints above it with a bounded opacity boost. This exposes a muted terrain silhouette as context while leaving the actual cell unrevealed and its actors hidden; naturally unseen smoke remains under ordinary fog.
 
