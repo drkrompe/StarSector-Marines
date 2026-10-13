@@ -5,6 +5,13 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
@@ -17,6 +24,8 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneHostPass;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneFrame;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
+import com.dillon.starsectormarines.ops.battleview.RenderContext;
+import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -24,12 +33,14 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.EnumSet;
 
 /** Opt-in map authoring acceptance. No battle, repair timer or campaign reward is simulated here. */
 public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
@@ -48,6 +59,12 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                 verify(map, visit);
                 checked++;
                 if (surface != SurfacePalette.ARID || seed != 14101) continue;
+                if (visit == ShepherdBasin.Visit.SALVAGE_RIGHTS) {
+                    playerVisibility(frames, renderer, map, "hull", 131, 103, 131, 127, 131, 105, 131, 115);
+                    // Scrap is see-through cover: the concealment control must be
+                    // beyond ordinary marine sight, not immediately behind it.
+                    playerVisibility(frames, renderer, map, "scrap", 105, 149, 145, 161, 105, 151, 125, 155);
+                }
                 String name = visit.name().toLowerCase(Locale.ROOT).replace('_','-');
                 try (var scene = new ShipDeckBattleScene(map, 0)) {
                     frames.add(new SnapshotArtifact(name + ".png", renderer.renderHostPass(daylight(scene.pass(
@@ -82,6 +99,58 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
         }
         System.out.println("[shepherd-basin] " + checked + " maps: connected outdoor ground, doors, berths, build plots and freight clearance; grounded hull removed only for Working Passage.");
         return frames;
+    }
+
+    /** The authored basin through the normal player fog pass, with no omniscient reveal. */
+    private static void playerVisibility(List<SnapshotArtifact> frames, HeadlessUiRenderer renderer,
+                                         MapResult map, String name, int observerX, int observerY,
+                                         int hostileX, int hostileY, int nearX, int nearY,
+                                         int centerX, int centerY) throws Exception {
+        try (var scene = new ShipDeckBattleScene(map, 0)) {
+            BattleSimulation sim = scene.simulation();
+            sim.setMissionCompletionEnabled(false);
+            if (sim.getRoster().liveCount() != 0 || sim.getFogOfWar().isCellRevealed(nearX, nearY))
+                throw new IllegalStateException("Unobserved basin evidence must begin without a vision contributor");
+            if (sim.getTopology().nightLighting() == null)
+                throw new IllegalStateException("Player basin evidence requires the authored outdoor night lighting");
+            sim.spawn(new EntitySpec("hidden-far-side", Faction.DEFENDER, UnitType.MARINE,
+                    hostileX, hostileY).moveSpeed(0));
+            frames.add(new SnapshotArtifact("player-" + name + "-unobserved.png",
+                    renderer.renderHostPass(playerPass(sim, centerX, centerY), 1920, 1080)));
+            sim.spawn(new EntitySpec("near-edge-observer", Faction.MARINE, UnitType.MARINE,
+                    observerX, observerY).moveSpeed(0));
+            for (int tick = 0; tick < 9; tick++) sim.advance(BattleSimulation.TICK_DT);
+            if (!sim.getFogOfWar().isCellRevealed(nearX, nearY)
+                    || sim.getFogOfWar().isCellRevealed(hostileX, hostileY)
+                    || sim.getFogOfWar().getUnitVisibility(0) != FogOfWarService.VIS_HIDDEN
+                    || sim.getRoster().liveCount() != 2)
+                throw new IllegalStateException("Player " + name
+                        + " evidence requires an exposed near surface and a living hidden hostile: nearRevealed="
+                        + sim.getFogOfWar().isCellRevealed(nearX, nearY)
+                        + ", hostileCellRevealed=" + sim.getFogOfWar().isCellRevealed(hostileX, hostileY)
+                        + ", hostileVisibility=" + sim.getFogOfWar().getUnitVisibility(0)
+                        + ", liveCount=" + sim.getRoster().liveCount());
+            frames.add(new SnapshotArtifact("player-" + name + "-observed.png",
+                    renderer.renderHostPass(playerPass(sim, centerX, centerY), 1920, 1080)));
+        }
+    }
+
+    private static BattleSceneHostPass playerPass(BattleSimulation sim, int centerX, int centerY) {
+        return new BattleSceneHostPass() {
+            public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {
+                BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+                camera.setViewport(0, 0, viewport.width(), viewport.height(), 32);
+                camera.centerOn(centerX, centerY);
+                var context = new RenderContext(sim, camera, null, alpha, 0, false,
+                        new HighlightOverlay(), new Selection(), BattleRenderHostProfile.HEADLESS_BATTLE);
+                return new BattleSceneFrame(context, EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS,
+                        RenderLayer.UNIT_SHADOWS, RenderLayer.FOG, RenderLayer.UNITS,
+                        RenderLayer.ROOFS, RenderLayer.NIGHT_LIGHTING));
+            }
+            public void draw(CanvasHostViewport viewport, float alpha) {
+                throw new UnsupportedOperationException("Snapshot collection only");
+            }
+        };
     }
 
     private static void verify(MapResult map, ShepherdBasin.Visit visit) {

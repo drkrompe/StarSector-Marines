@@ -1,0 +1,102 @@
+# Forts — defences you have to take apart
+
+Status: DRAFT
+
+Written: 2026-10-14
+
+Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
+law), then the "Authored relationships within a compound" section of `compound-programs.md`,
+which is the layout machinery a fort is built from. `hard-installation-first-map-feature.md`
+(the local shield relay) is one fort described before forts existed; it folds into this
+direction rather than shipping as a separate model.
+
+## What the owner asked for
+
+Templated forts for the ground-defence emplacements: standing works that need ground forces
+or overwhelming force to take out, and that can be shut down aspect by aspect.
+
+## The problem with a bare structure
+
+What ships today is a structure standing in a field: a battery with a fire-control radius
+around it, a generator with a capture radius around it, nests scattered across open ground.
+Each is one thing with one switch, so a battle against it is one decision — walk a squad
+onto the switch or shoot the box. There is no approach, no inside, no choice of which part
+to break, and nothing a ship and a squad do for each other.
+
+## What a fort is
+
+A **fort** is an authored compound layout built around one defensive purpose, from the same
+rotatable-group machinery the maintenance outpost uses. It owns its local geometry — a wall
+with gates, a protected interior, buildings with doors and windows — and a mission declares
+which forts a battle carries the way it declares structures now. Map generation places what
+was declared and connects the gates to the road network; it never decides how many.
+
+A fort is made of **aspects**. An aspect is one function the fort performs, housed in one
+place that can be reached, and each aspect can be shut down on its own:
+
+| Aspect | Housed in | Shut down by | What stops |
+|---|---|---|---|
+| Guns | the battery platform | destroying it | the battery, permanently |
+| Fire control | a bunker inside the wall | taking it (capture as today) or wrecking it | aim — the guns fall silent while it is not the holder's |
+| Magazine | a hardened store | wrecking it (it goes up) | sustained fire: the guns fire out ready rounds, then stop |
+| Power | a plant or capacitor bank | taking or wrecking it | everything that draws on it — the dome, the guns' traverse, fire control's sensors |
+| Emitter | the shield generator | destroying it | the dome, permanently |
+| Sensors | a mast or radar | wrecking it | the envelope shrinks to what the fort can see by eye |
+
+Capture is the existing rule: an aspect belongs to whoever holds its place unopposed, either
+side may hold it, and a captured aspect works for its new holder. Nothing is special about
+attacker or defender.
+
+## Two ways in
+
+**Ground forces.** Breach a gate or a wall, fight through the interior, and take or wreck
+the aspects that matter. A squad that takes fire control silences the guns without
+destroying them, and keeps them for its own side. This is the marine's job and the reason a
+fort has an inside.
+
+**Overwhelming force.** Ship-to-ground is a super weapon, and a fort is what makes that
+cost something. Sustained ship fire and barrage overload the dome; while it is down, the
+fort's walls and aspects are open to ship-grade fire, and enough of it wrecks them from
+above. It costs time under the battery's envelope, flux, and a ship's hull — so it is a
+real alternative, never a free one.
+
+The two help each other. A squad inside cuts the power and the dome drops for the fleet; a
+barrage that overloads the dome lets a squad's boats land inside the wall. A fort that can
+be cracked only one way is a puzzle with one answer.
+
+## The family
+
+- **Battery fort** — the platform, fire control, a magazine, and power. Nests on the wall.
+- **Shield fort** — the generator, power, and a control room. This is the local shield relay
+  of `hard-installation-first-map-feature.md`: one node of the world's shield, covering its
+  own ground.
+- **Redoubt** — a walled nest cluster with a small command post; anti-air and anti-infantry,
+  no ship-grade guns.
+- **Citadel** — a battery and a shield fort sharing one wall and one power plant, so cutting
+  the power drops the dome over the guns at the same moment it slows them.
+
+A mission declares forts by kind; a bare structure stays available to scenes, debug, and
+missions that want one.
+
+## Defaults (the owner may overturn these)
+
+- **Power is local to a fort.** A citadel shares power because it is one fort; separate forts
+  do not feed each other. A world-wide grid is a later choice, not a starting assumption.
+- **Walls are breachable** by demolition and by ship-grade fire while the dome is down,
+  using the existing wall-health machinery.
+- **Aspects do not respawn.** A wrecked aspect stays wrecked for the battle; a taken one can
+  be retaken.
+
+## Slices
+
+1. **Fort layout family** — one battery fort as an authored compound layout (wall, gates,
+   platform, fire-control bunker, magazine, power), placed when a mission declares it.
+   Fire control moves from a radius around the platform to its bunker.
+2. **Aspects as dependencies** — power feeds guns, sensors and dome; the magazine feeds
+   sustained fire; each aspect's state is readable on the map.
+3. **Shield fort** — folds the local shield relay story in; the dome's emitter and power.
+4. **Redoubt and citadel.**
+5. **Command awareness** — `DefenceStructureTactics` reasons about aspects (which one to take
+   or wreck first for the effect wanted) using only what a side knows.
+6. **Art** — the fort's buildings and aspect states through the geometry-first loop, with
+   animated parts as layers.

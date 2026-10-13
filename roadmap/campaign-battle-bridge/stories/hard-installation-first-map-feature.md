@@ -5,7 +5,8 @@ Written: 2026-08-23
 
 Updated: 2026-10-14 — the planetary-shield signal (`TargetProfile.planetaryShield`) is built, see `ground-defences.md`; map placement remains.
 
-Read `campaign-battle-bridge-nouns.md` before changing this story.
+Read `campaign-battle-bridge-nouns.md` before changing this story. `forts.md` folds this relay
+into the shield fort (its slice 3); build it there rather than as a separate model.
 
 ## Problem
 

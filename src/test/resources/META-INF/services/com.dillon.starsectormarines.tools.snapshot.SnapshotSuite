@@ -1,5 +1,6 @@
 com.dillon.starsectormarines.ops.battleview.ArmorySnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SpecterLayerSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.EquipmentMountSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SpecterBattleSnapshotSuite
 com.dillon.starsectormarines.ops.TurretSnapshotSuite
 com.dillon.starsectormarines.ops.UiSnapshotSuite

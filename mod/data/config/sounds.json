@@ -508,6 +508,11 @@
 		{"file":"sounds/battle/explosions/marines_explosion_muffled_distant.ogg","pitch":1,"volume":0.8},
 	],
 
+	# ----- Rook field rifle -----
+	"marines_rook_rifle_fire":[
+		{"file":"sounds/battle/small-arms/marines_rook_rifle_fire.ogg","pitch":1,"volume":0.7},
+	],
+
 	# ----- small arms: rifle shots (pool of 2) + reload -----
 	"marines_smallarms_rifle":[
 		{"file":"sounds/battle/small-arms/marines_smallarms_rifle_01.ogg","pitch":1,"volume":0.7},
