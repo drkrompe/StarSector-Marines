@@ -77,7 +77,7 @@ class SquadOrderTargetingPanelTest {
     }
 
     @Test
-    void groupMovesAndAreaAssignmentsReachEverySelectedSquad() {
+    void groupAreaAssignmentsReachEverySelectedSquad() {
         Fixture fixture = fixture();
         try (BattleSimulation sim = fixture.sim) {
             int other = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
@@ -88,14 +88,6 @@ class SquadOrderTargetingPanelTest {
             fixture.selection.selectSquads(List.of(fixture.squad.id, other),
                     fixture.squad.id, fixture.squad.leaderId, false);
             SquadOrderTargetingPanel panel = new SquadOrderTargetingPanel(fixture);
-            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
-            panel.handleInput(List.of(leftClick(
-                    Math.round(fixture.camera.cellToScreenX(30.5f)),
-                    Math.round(fixture.camera.cellToScreenY(20.5f)))));
-            sim.getSquadMoveOrderSystem().tick(sim);
-            for (int id : fixture.selection.getSelectedSquadIds()) {
-                assertEquals(30, sim.getSquadMoveOrderService().activeOrder(id).requestedX());
-            }
             panel.toggle(fixture.squad.id);
             panel.handleInput(List.of(leftClick(
                     Math.round(fixture.camera.cellToScreenX(30.5f)),
@@ -114,11 +106,10 @@ class SquadOrderTargetingPanelTest {
     }
 
     @Test
-    void switchingModesAndRightClickCancelWithoutSubmittingAnOrder() {
+    void rightClickAndRepeatedToggleCancelWithoutSubmittingAnOrder() {
         Fixture fixture = fixture();
         try (BattleSimulation sim = fixture.sim) {
             var panel = new SquadOrderTargetingPanel(fixture);
-            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
             panel.toggle(fixture.squad.id, Mode.DEFEND_AREA);
             assertEquals(Mode.DEFEND_AREA, panel.mode());
             var cancel = mouseEvent(300, 200, "isRMBDownEvent");
@@ -127,8 +118,8 @@ class SquadOrderTargetingPanelTest {
             assertEquals(true, cancel.isConsumed());
             sim.getSquadMoveOrderSystem().tick(sim);
             assertEquals(null, sim.getSquadMoveOrderService().activeOrder(fixture.squad.id));
-            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
-            panel.toggle(fixture.squad.id, Mode.ATTACK_MOVE);
+            panel.toggle(fixture.squad.id, Mode.DEFEND_AREA);
+            panel.toggle(fixture.squad.id, Mode.DEFEND_AREA);
             assertEquals(Mode.NONE, panel.mode());
         }
     }

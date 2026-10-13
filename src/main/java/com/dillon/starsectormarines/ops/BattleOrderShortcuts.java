@@ -17,8 +17,7 @@ final class BattleOrderShortcuts {
         for (InputEventAPI event : events) {
             if (event.isConsumed() || (!event.isKeyDownEvent() && !event.isKeyUpEvent())) continue;
             int key = event.getEventValue();
-            Mode mode = key == Keyboard.KEY_Q ? Mode.ATTACK_MOVE
-                    : key == Keyboard.KEY_F ? Mode.DEFEND_AREA : Mode.NONE;
+            Mode mode = key == Keyboard.KEY_F ? Mode.DEFEND_AREA : Mode.NONE;
             if (mode == Mode.NONE) continue;
             if (event.isKeyUpEvent()) {
                 if (held.remove(key)) event.consume();
