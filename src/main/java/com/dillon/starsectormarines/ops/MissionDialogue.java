@@ -72,6 +72,10 @@ public final class MissionDialogue {
     }
 
     public static void put(Map<String, Object> props, String prefix, Mission mission) {
+        // The caller can supply empty-state or referral prose instead of the mission's flavor.
+        // Resolve that binding too when no recognized speaker produces structured turns.
+        if (props.get(prefix + "Flavor") instanceof String flavor)
+            props.put(prefix + "Flavor", Strings.resolve(flavor));
         List<Turn> turns = turns(mission);
         var rows = new ArrayList<Row>();
         for (int i = 0; i < turns.size(); i++) {

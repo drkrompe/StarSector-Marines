@@ -63,14 +63,15 @@ rule, and the boundary with the player's own colonies — is
 marines and mechs, preserving named squads and deliberate regular-equipment
 choices. `power-suit-field-acceptance.md` owns its mission balance, live
 persistence and distinct-art acceptance. Recovered Specter/Arbalest test patterns
-and an eight-regular/four-suit section support that pass. Their planned story
+and an eight-regular/four-suit section support that pass. Their story
 introduction is `a-small-war.md`: five operations on existing Agreus in nearby Arcadia after the
 Shepherd actually joins the fleet, with recovered suit patterns and a crude
 pirate boarding rig. `agreus-latchkey.md` develops Baronet Rusk's local concession
 under Ko Combine administration, the Greyhook flotilla and the yard workers caught
-between them. The referral and first North Weir contract are implemented; test
-the live transition from Corvus, owned tender support and settlement before
-extending the warrant and equipment-reward chapters.
+between them. The referral, North Weir and Limited Warrant are implemented.
+Test the live transition from Corvus, owned tender support, recovery settlement,
+then learning and explicitly fitting the Recovered Specter reward. Chapters 3–5
+and later suit rewards remain planned.
 
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the
@@ -81,10 +82,11 @@ separate recurring jobs. Relief has an authored freight checkpoint and finite
 road arrivals; Counterattack has a larger freight depot with a joint gate-to-yard
 advance, rear guards and a contact-driven reserve. Both have fitted-boat headless
 replays. Next, complete the linked opening arc's live campaign acceptance. The
-follow-on arc now connects Junction to an explicit evacuation/freight choice,
-actual campaign squads and fitted boats, saved rescue/freight outcomes, one-time
-rewards and separate recurring work. Junction branches directly to Last Lift or Thunder
-Run; the latter supplies a larger corridor and physical employer convoy delivery. `broken-supply-route.md` tracks its live acceptance.
+follow-on arc connects Junction directly to Thunder Run with actual campaign
+squads and fitted boats, saved freight outcomes, one-time rewards and separate
+Route Security work. Thunder Run supplies a larger corridor and physical employer
+convoy delivery. Last Lift's evacuation concept is reserved for later campaign
+reuse, with placement and designation undecided. `broken-supply-route.md` tracks its live acceptance.
 The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.

@@ -53,20 +53,20 @@ public final class SquadEquipmentDoctrines {
             weaponDoctrine(FIELD_SECURITY_WEAPONS, "Dockside Issue",
                     "Twelve basic field rifles. Specialist weapons must be learned before fitting.",
                     team(
-                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                            starterWeapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                            starterWeapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),
+                            starterWeapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            starterWeapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),
             weaponDoctrine(LUDDIC_PATH_ASSAULT_WEAPONS, "Luddic Path Assault Equipment",
                     "Recovered and improvised close-assault weapons built around breach tools.",
                     team(
@@ -268,6 +268,10 @@ public final class SquadEquipmentDoctrines {
 
     private static List<SquadWeaponIssue> team(SquadWeaponIssue... issues) {
         return List.of(issues);
+    }
+
+    private static SquadWeaponIssue starterWeapon(String role, String weaponId) {
+        return new SquadWeaponIssue(role, weaponId, EquipmentGrade.SURPLUS, null);
     }
 
     private static SquadWeaponIssue weapon(String role, String weaponId) {

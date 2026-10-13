@@ -80,6 +80,13 @@ public interface BattleView {
     /** Records that the cell was in view when a command was disclosed its structures; see {@link #structureSighted}. */
     default void noteStructureSighted(int x, int y) { }
 
+    /**
+     * Whether the ambient work service owns this unit: it is at its bench, or stood down from it for a while and due
+     * back. Such a unit is a works crew member, not a combatant on strength, and the unit dispatcher does not run it
+     * while the work holds it, so an order to it is not carried out.
+     */
+    default boolean ambientHeld(long unit) { return false; }
+
     /** Whether this structure has changed hands: held ground, which is not a person and so is not forces in play. */
     default boolean isCapturedStructure(long id) { return false; }
 

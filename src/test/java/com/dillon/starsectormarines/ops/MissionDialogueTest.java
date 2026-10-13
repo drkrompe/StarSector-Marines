@@ -97,6 +97,30 @@ class MissionDialogueTest {
         }
         assertEquals("vale", mission.dialogue.get(0).speakerKey());
     }
+
+    @Test
+    void genericCatalogProseResolvesWithoutReplacingCallerProvidedFallback() throws Exception {
+        String reference = "@missionSelectTheSelectedOperationSScaleFieldPresence";
+        var mission = Mission.builder().flavor(reference).build();
+        try (var translated = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
+            for (String prefix : List.of("detail", "mission")) {
+                var props = new HashMap<String, Object>();
+                props.put(prefix + "Flavor", mission.flavor);
+                MissionDialogue.put(props, prefix, mission);
+                assertTrue(rows(props.get(prefix + "Dialogue")).isEmpty());
+                assertTrue(((String) props.get(prefix + "Flavor")).startsWith("Translated "));
+                assertEquals("", props.get(prefix + "FlavorStyle"));
+
+                props.put(prefix + "Flavor", "No contract selected.");
+                MissionDialogue.put(props, prefix, null);
+                assertEquals("No contract selected.", props.get(prefix + "Flavor"));
+
+                props.put(prefix + "Flavor", reference);
+                MissionDialogue.put(props, prefix, null);
+                assertTrue(((String) props.get(prefix + "Flavor")).startsWith("Translated "));
+            }
+        }
+    }
     @SuppressWarnings("unchecked")
     private static List<MissionDialogue.Row> rows(Object value) {
         return (List<MissionDialogue.Row>) value;

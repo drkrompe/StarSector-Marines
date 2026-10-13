@@ -58,8 +58,14 @@ public final class OperationRadio {
     }
 
     public record Actor(String id, String label, String call, String ack, String readback,
-                        Map<Cue, List<String>> reports) {
+                        Map<Cue, List<String>> reports, String portrait) {
+        public Actor(String id, String label, String call, String ack, String readback,
+                     Map<Cue, List<String>> reports) {
+            this(id, label, call, ack, readback, reports, "");
+        }
+
         public Actor {
+            portrait = portrait == null ? "" : portrait;
             Map<Cue, List<String>> copy = new EnumMap<>(Cue.class);
             reports.forEach((cue, ids) -> copy.put(cue, List.copyOf(ids)));
             reports = Map.copyOf(copy);
@@ -118,7 +124,7 @@ public final class OperationRadio {
         }
     }
 
-    public record Transmission(Line line, String speaker) { }
+    public record Transmission(Line line, String speaker, String portrait) { }
     private static final class Pending {
         final int squadId;
         final AssignmentKey assignment;
@@ -178,7 +184,7 @@ public final class OperationRadio {
                 reports.put(cue, ids);
             }
             actors.add(new Actor(actor.getString("id"), actor.getString("label"), actor.getString("call"),
-                    actor.getString("ack"), actor.getString("readback"), reports));
+                    actor.getString("ack"), actor.getString("readback"), reports, actor.optString("portrait", "")));
         }
         Map<AssignmentKind, String> instructions = new EnumMap<>(AssignmentKind.class);
         JSONObject orders = root.getJSONObject("instructions");
@@ -300,7 +306,9 @@ public final class OperationRadio {
 
     private Transmission transmission(String id, Actor actor) {
         Line line = catalog.lines().get(id);
-        return new Transmission(line, line.speaker().equals("command") ? "COMPANY COMMAND" : actor.label());
+        boolean command = line.speaker().equals("command");
+        return new Transmission(line, command ? "COMPANY COMMAND" : actor.label(),
+                command ? "graphics/portraits/castle.png" : actor.portrait());
     }
 
     private Transmission start(Transmission transmission) {

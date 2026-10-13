@@ -1,10 +1,10 @@
 # A Small War
 
-Status: IN PROGRESS — post-Shepherd referral and Water Under Seal implemented; live campaign acceptance and Chapters 2–5 remain.
+Status: IN PROGRESS — post-Shepherd referral, Water Under Seal and Limited Warrant implemented; live campaign acceptance and Chapters 3–5 remain.
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — first playable North Weir mobilization; remaining warrant, equipment rewards and yard agreement retain their planned scope.
+Updated: 2026-10-13 — Limited Warrant opens the Recovered Specter cargo-card route; later suit rewards and yard agreement remain planned.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -140,8 +140,8 @@ account. Rebalance the whole ledger against a casualty-carryover run.
 The playable first pass uses two existing Recovered Specter wearers among the
 regular Salt Knives. Replace those two fittings with the distinct Boarding Jack
 when its pattern and layered art are validated; do not describe the interim kit
-as that unfinished pattern. The current completed dossier records Rusk's
-sponsorship without offering Limited Warrant or granting equipment.
+as that unfinished pattern. The completed dossier records Rusk's sponsorship
+and opens Limited Warrant without granting equipment.
 
 **Purpose:** establish why this client needs us and show crude powered opponents
 before awarding our own. The company can succeed using the regular equipment
@@ -527,10 +527,12 @@ Those would be separate campaign mechanics with their own consequences.
    hostile and changed-administration markets. Verify no duplicate world entities,
    arbitrary house alias, ownership change or silent relocation. Accept airless
    presentation, the actual build-site guidance and loss-aware replacement attempts.
-3. Deliver Limited Warrant with readable acceptance, named roster/fitted boats,
-   preservation objectives and the first card. Verify decline, retreat, replacement
-   mobilization, duplicate result and save/reload. Its offer follows the completed
-   North Weir record only when this chapter is implemented.
+3. Live-test Limited Warrant's readable terms, named roster/fitted boats, physical
+   recovery and first card. Verify leaving the offer, retreat, replacement
+   mobilization, duplicate result and save/reload, including an existing completed
+   North Weir save. Learn the cargo card, explicitly fit Tri-Tachyon Specter
+   Protection, then deploy those same named people. Detached battle and reward
+   checks do not substitute for live host persistence acceptance.
 4. Deliver Chapter 3 and the ordinary Armory lesson. Compare regular, all-Specter
    and mixed companies without inventing a shell inventory or changing lift costs.
 5. Build and validate Boarding Jack's data, layered visuals and existing-system

@@ -283,12 +283,6 @@ final class BriefingViewModel {
             props.put("rewardTerms", "6,000 + 4,000 per carrier delivered / once on victory");
             return;
         }
-        if (SupplyRouteCampaign.recovery(mission)) {
-            props.put("rewardHeader", "CREW RECOVERY AUTHORIZATION");
-            props.put("rewardValue", "Up to 10,000 credits");
-            props.put("rewardTerms", "4,000 + 500 per recovered person / once on victory");
-            return;
-        }
         props.put("rewardHeader", mission.source.isDebug() ? "SIMULATION CONTRACT" : "CONTRACT AUTHORIZATION");
         props.put("rewardValue", payment > 0 ? String.format(Locale.ROOT, "%,d credits", payment) : "No credit payment");
         int salvage = mission.contractSalvageNegotiated & 0xff;

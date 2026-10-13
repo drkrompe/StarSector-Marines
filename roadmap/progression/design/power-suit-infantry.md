@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-13 — per-marine mixed issue and planned Agreus recovered-suit progression.
+Updated: 2026-10-13 — Limited Warrant introduces Recovered Specter before later support rewards.
 
 ## Purpose
 
@@ -72,25 +72,27 @@ confirm those relationships rather than assume them from a unit test.
 
 ## Protection and counterplay
 
-The planned first introduction belongs after the Shepherd has completed its
+The first story introduction belongs after the Shepherd has completed its
 recovery and joined the player's fleet. `a-small-war.md` sends the company to
 existing Agreus in nearby Arcadia, where Baronet Rusk's bounded procurement warrant and
 the company's construction capability make recovered suit technology obtainable.
 `agreus-latchkey.md` owns that local setting and cast. Completing A Cold Account, securing
 the grounded hull, or finishing Cold Start repairs is not this milestone.
-Working Passage and the Agreus arc remain separate unfinished story work; no
-suit reward is attached to those earlier victories.
+Working Passage's actual handover leads to North Weir and then Limited Warrant;
+no suit reward is attached to those earlier victories.
 
 Recovered Specter and Arbalest patterns form the initial tier-III step, with
 lower protection and weaker or shorter-lived systems than the tier-IV military
 patterns. A mixed section is an available transition before a full suit section;
 it is a composition choice, not a finite inventory of four shells. Collected
-technology still permits ordinary free fitting. The planned arc rewards recovered
-Specter, recovered Arbalest and then a proposed pirate Boarding Jack sidegrade;
-its story owns that sequence and calibration targets. The two existing recovered
-templates declare that future story owner and remain outside random faction acquisition.
-Explicit development controls can teach them for campaign-loop testing without
-completing a story or automatically changing anyone's issued kit.
+technology still permits ordinary free fitting. Limited Warrant now awards the
+Recovered Specter cargo card. Learning it teaches the matching Tri-Tachyon Specter
+Protection sheet, enabling explicit assault-suit fitting before the support reward.
+The subsequent Recovered Arbalest and proposed pirate Boarding Jack rewards remain
+planned; `a-small-war.md` owns their sequence and calibration targets. Both existing
+recovered templates remain outside random faction acquisition. Explicit development
+controls also support campaign-loop testing; neither route automatically changes
+anyone's issued kit.
 
 Existing military suit sources can still precede that story through patron and
 victory thresholds. A strict story-first progression needs the later obtainable

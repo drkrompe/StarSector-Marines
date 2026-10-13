@@ -164,9 +164,14 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
         props.put("brokerRole", Strings.get("missionSelectHOUSERUSKKOCOMBINECONCESSION"));
-        props.put("brokerIntroduction", AgreusArcCampaign.REFERRAL);
-        props.put("brokerProgress", p != null && p.completed()
-                ? Strings.get("missionSelectNORTHWEIRRESTORED26000CRSETTLED")
+        props.put("brokerIntroduction", p != null && p.warrantCompleted()
+                ? Strings.get("missionSelectRuskTheServiceArchiveAndCalibrationLoadAre")
+                : p != null && p.completed()
+                ? Strings.get("missionSelectRuskNorthWeirIsWorkingRecoverTheLow")
+                : AgreusArcCampaign.REFERRAL);
+        props.put("brokerProgress", p != null && p.warrantCompleted()
+                ? Strings.get("missionSelectNORTHWEIRRESTOREDLIMITEDWARRANTCOMPLETE56000")
+                : p != null && p.completed() ? Strings.get("missionSelectNORTHWEIRRESTOREDLIMITEDWARRANTAVAILABLEReviewThe")
                 : Strings.format("missionSelectAgreusProgress", accessReason == null || accessReason.isBlank()
                         ? "" : Strings.format("missionSelectAccessSuffix", accessReason)));
     }
@@ -196,14 +201,9 @@ public final class MissionSelectScreen implements Screen {
 
     static void putSupplyRoute(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission, boolean accessible) {
         props.put("missionSummary", Strings.get("missionSelectBROKENSUPPLYROUTE"));
-        props.put("brokerIntroduction", route == null ? Strings.get("missionSelectMaraVennIonaSerrHasTwoOutlying") : route.status());
+        props.put("brokerIntroduction", route == null ? Strings.get("missionSelectMaraVennIonaSerrNeedsTheFreightCorridor") : route.status());
         props.put("brokerProgress", route == null ? Strings.get("missionSelectNEWDISPATCHIONASERR") : Strings.format("missionSelectRoutePayments", NumberFormat.getIntegerInstance().format(route.storyPayment()), NumberFormat.getIntegerInstance().format(route.recurringPayment())));
         if (route != null && !accessible) props.put("brokerIntroduction", Strings.format("missionSelectRoutePaused", route.planetName()));
-        if (SupplyRouteCampaign.choice(selectedMission) == BrokenSupplyRouteProgress.LIFT || route != null && route.branch() == BrokenSupplyRouteProgress.LIFT) {
-            props.put("brokerPortrait", SupplyRouteCampaign.IONA_PORTRAIT);
-            props.put("brokerName", "Iona Serr");
-            props.put("brokerRole", Strings.get("missionSelectWAYLINEDISPATCHCOORDINATOR"));
-        }
     }
 
     static Map<String, Object> previewProps() {
@@ -242,11 +242,11 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailMeta", "Jangala  ·  First Contract  ·  1 squad recommended");
         props.put("detailFlavor", "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
         props.put("detailRows", List.of(
-                detailRow("tier", "Operation scale", "First Contract"),
-                detailRow("presence", "Field presence", "1 squad active · reserve held off-map"),
-                detailRow("opposition", "Opposition", "Regular core · veterans possible"),
-                detailRow("lift", "Lift required", "2 sorties"),
-                detailRow("payout", "Payout", "20,500 credits")));
+                detailRow("tier", Strings.get("missionSelectOperationScale"), Strings.get("missionSelectTierFIRST_CONTRACT")),
+                detailRow("presence", Strings.get("missionSelectFieldPresence"), "1 squad active · reserve held off-map"),
+                detailRow("opposition", Strings.get("missionSelectOpposition"), "Regular core · veterans possible"),
+                detailRow("lift", Strings.get("missionSelectLiftRequired"), "2 sorties"),
+                detailRow("payout", Strings.get("missionSelectPayout"), "20,500 credits")));
         props.put("briefDisabled", false);
         props.put("briefAction", none);
         props.put("declineDisabled", false);
@@ -314,7 +314,7 @@ public final class MissionSelectScreen implements Screen {
                             ? Strings.get("missionSelectRepeatable") : mission.source == MissionSource.STORY
                             ? Strings.get("missionSelectStory") : tierName(mission.tier), recommended, active),
                     ShepherdRecoveryProgress.workingPassage(mission.id) ? "MORROW"
-                            : (SupplyRouteCampaign.recovery(mission) || SupplyRouteCampaign.freight(mission)) ? Strings.format("missionSelectMaximumCredits", credits.format(payout)) : Strings.format("missionSelectCompactCredits", credits.format(payout)), () -> select.accept(mission)));
+                            : SupplyRouteCampaign.freight(mission) ? Strings.format("missionSelectMaximumCredits", credits.format(payout)) : Strings.format("missionSelectCompactCredits", credits.format(payout)), () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -384,11 +384,7 @@ public final class MissionSelectScreen implements Screen {
                 Strings.get("missionSelectTheSelectedOperationSScaleFieldPresence"));
         MissionDialogue.put(props, "detail", mission);
         props.put("detailRows", present ? detailRows(mission) : List.of());
-        int choice = SupplyRouteCampaign.choice(mission);
-        props.put("choiceSummary", SupplyRouteCampaign.choiceSummary(mission));
-        props.put("choiceClasses", choice == 0 ? "choice-consequence choice-hidden" : "choice-consequence console-well");
-        props.put("briefLabel", choice == BrokenSupplyRouteProgress.LIFT ? Strings.get("missionSelectCOMMITSUPPORTTORILL")
-                : choice == BrokenSupplyRouteProgress.RELAY ? Strings.get("missionSelectCOMMITSUPPORTTOFREIGHT") : Strings.get("missionSelectBRIEFDEPLOY"));
+        props.put("briefLabel", Strings.get("missionSelectBRIEFDEPLOY"));
         props.put("briefDisabled", !present);
         props.put("briefAction", brief);
         props.put("declineDisabled", !present);
@@ -396,6 +392,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
+                detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelect2FullRegularSquadsRecommendedMinimum4Ready")),
+                detailRow("support", Strings.get("missionSelectRecoveryParty"), Strings.get("missionSelectOwnedTender4ConstablesAnd1SupplierTechnician")),
+                detailRow("claim", Strings.get("missionSelectLowQuay"), Strings.get("missionSelectAuthenticateRecordsRecoverTheCalibrationKitEscortIts")),
+                detailRow("terms", Strings.get("missionSelectLimitedWarrant"), Strings.get("missionSelectDeployAcceptsThePrintedRecoveryTermsNoDebt")),
+                detailRow("payout", Strings.get("missionSelectVictoryAward"), Strings.get("missionSelect30000CreditsRecoveredSpecterCardOnceExplicit")));
         if (AgreusArcCampaign.isBattle(mission)) return List.of(
                 detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelect2SquadsMinimum4ReadyEachYour")),
                 detailRow("support", Strings.get("missionSelectConstruction"), Strings.get("missionSelectActualOwnedEligibleTenderRequired8Constables")),
@@ -423,9 +425,7 @@ public final class MissionSelectScreen implements Screen {
                 detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.get("missionSelect2SquadsRecommendedAtLeast4Ready")),
                 detailRow("lift", Strings.get("missionSelectCompanyLift"), Strings.get("missionSelect14FittedBoatsTripsFollowThe")),
                 detailRow("opposition", Strings.get("missionSelectOpposition"), Strings.get("missionSelectLocalRaidersNoFighterOrMechSupport")),
-                detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), SupplyRouteCampaign.recovery(mission)
-                        ? Strings.get("missionSelect4000500PerRecoveredPersonMaximum")
-                        : SupplyRouteCampaign.freight(mission) ? Strings.get("missionSelect60004000PerDeliveredCarrier")
+                detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), SupplyRouteCampaign.freight(mission) ? Strings.get("missionSelect60004000PerDeliveredCarrier")
                         : Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         int multiplier = mission.cashMultiplier & 0xFF;
         if (multiplier <= 0) multiplier = 100;
@@ -452,8 +452,6 @@ public final class MissionSelectScreen implements Screen {
         MissionDialogue.put(props, "detail", null);
         putCompanyNews(props, List.of(), () -> { });
         putBroker(props, null);
-        props.put("choiceSummary", "");
-        props.put("choiceClasses", "choice-consequence choice-hidden");
         props.put("briefLabel", Strings.get("missionSelectBRIEFDEPLOY"));
         props.put("screenTitle", Strings.get("missionSelectMarineOperations"));
         props.put("clientHeader", Strings.get("missionSelectClients"));
@@ -518,8 +516,8 @@ public final class MissionSelectScreen implements Screen {
 
     private static String operationName(Mission mission) {
         if (!SupplyRouteCampaign.owns(mission.id)) return Strings.get(mission.type.displayKey);
-        return Strings.get(SupplyRouteCampaign.recovery(mission) ? "missionSelectOperationRecovery"
-                : SupplyRouteCampaign.freight(mission) ? "missionSelectOperationFreight" : "missionSelectOperationCapture");
+        return Strings.get(SupplyRouteCampaign.freight(mission)
+                ? "missionSelectOperationFreight" : "missionSelectOperationCapture");
     }
 
     private static String fieldPresence(FieldPresencePolicy policy) {
@@ -579,15 +577,6 @@ public final class MissionSelectScreen implements Screen {
 
     private void briefSelected() {
         if (context != null && context.getSelectedMission() != null) {
-            int choice = SupplyRouteCampaign.choice(context.getSelectedMission());
-            if (choice != 0) {
-                BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
-                if (route != null && SupplyRouteCampaign.atSite(context.planet) && route.commit(choice)) {
-                    context.setSelectedMission(SupplyRouteCampaign.offers(route).get(0));
-                    installDocument();
-                }
-                return;
-            }
             context.goTo(ScreenId.BRIEFING);
         }
     }

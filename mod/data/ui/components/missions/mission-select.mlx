@@ -1,4 +1,4 @@
-<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,choiceClasses,choiceSummary,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -92,10 +92,6 @@
             </div>
           </div>
         </div>
-        <div id="mission-choice-consequence" class="{choiceClasses}">
-          <div id="mission-choice-heading" class="label heading tone-accent">{i18n.missionSelectBranchCommitment}</div>
-          <div id="mission-choice-copy" class="label choice-copy">{choiceSummary}</div>
-        </div>
         <div id="mission-detail-actions" class="mission-detail-actions console-command-rail">
           <button id="mission-brief" class="mission-brief good-surface" disabled="{briefDisabled}" onclick="{briefAction}">
             <div id="mission-brief-signal" class="console-command-signal" />
@@ -116,10 +112,6 @@
 <style>
   .company-news { padding: 5px 10px; color: #ffd464; border-color: #aa8742; }
   .company-news.hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
-  .choice-consequence { flex-direction: column; height: 90px; padding: 10px; gap: 6px; border-width: 1px; }
-  #mission-choice-heading { height: 16px; }
-  .choice-copy { height: 54px; white-space: normal; }
-  .choice-hidden { height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
   .mission-select-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-select-header { flex-direction: row; height: 58px; padding: 8px 10px; gap: 10px; border-width: 2px; }

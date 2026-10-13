@@ -6,6 +6,21 @@
 	# Starsector merges later JSONs on top.
 
 	"marineOps": {
+    "missionSelectRuskTheServiceArchiveAndCalibrationLoadAre": "Rusk: The service archive and calibration load are accounted for. Your fee and the refurbishment pattern settle the Low Quay contract.",
+    "missionSelectRuskNorthWeirIsWorkingRecoverTheLow": "Rusk: North Weir is working. Recover the Low Quay service archive and calibration kit under my supplier guarantee, and your company may retain the Recovered Specter pattern. Read the warrant before deploying.",
+    "missionSelectNORTHWEIRRESTOREDLIMITEDWARRANTCOMPLETE56000": "NORTH WEIR RESTORED / LIMITED WARRANT COMPLETE / 56,000 CR SETTLED / Recovered Specter entitlement fulfilled. Learn the cargo card, then choose an Armory fitting. Further yard work is not yet commissioned.",
+    "missionSelectNORTHWEIRRESTOREDLIMITEDWARRANTAVAILABLEReviewThe": "NORTH WEIR RESTORED / LIMITED WARRANT AVAILABLE / Review the procurement terms below; no yard agreement is selected.",
+    "missionSelectMaraVennIonaSerrNeedsTheFreightCorridor": "Mara Venn: Iona Serr needs the freight corridor reopened. Open the Junction dossier to begin.",
+    "missionSelect2FullRegularSquadsRecommendedMinimum4Ready": "2 full regular squads recommended / minimum 4 ready each / fitted boats",
+    "missionSelectRecoveryParty": "Recovery party",
+    "missionSelectOwnedTender4ConstablesAnd1SupplierTechnician": "Owned tender; 4 constables and 1 supplier technician",
+    "missionSelectLowQuay": "Low Quay",
+    "missionSelectAuthenticateRecordsRecoverTheCalibrationKitEscortIts": "Authenticate records, recover the calibration kit, escort its load to egress",
+    "missionSelectLimitedWarrant": "Limited warrant",
+    "missionSelectDeployAcceptsThePrintedRecoveryTermsNoDebt": "Deploy accepts the printed recovery terms; no debt-enforcement or yard-management agreement",
+    "missionSelectVictoryAward": "Victory award",
+    "missionSelect30000CreditsRecoveredSpecterCardOnceExplicit": "30,000 credits + Recovered Specter card once / explicit learning and fitting",
+
     "briefingMissionContact": "Mission contact",
     "briefingRoleWayline": "WAYLINE",
     "briefingRoleCompanyOperations": "COMPANY OPERATIONS",
@@ -17,7 +32,6 @@
 
     "shepherdInspectionLosses": "Previous inspection losses: {0}. Vale has assigned a replacement party; the dead remain on the roll.",
 
-    "missionSelectOperationRecovery": "ESCORT / BOARDING",
     "missionSelectOperationFreight": "CONVOY / BREAKTHROUGH",
     "missionSelectOperationCapture": "CAPTURE / HOLD",
     "missionSelectFieldUnrestricted": "Unrestricted field presence",
@@ -94,9 +108,7 @@
     "missionSelectTheListeningPostIsSilentYourCompany": "The listening post is silent. Your company has put us in reach of Sable Wake's dispatch compound. This next job needs a different kind of care.",
     "missionSelectSABLEWAKEROUTEINTERDICTION": "SABLE WAKE / ROUTE INTERDICTION",
     "missionSelectBROKENSUPPLYROUTE": "BROKEN SUPPLY ROUTE",
-    "missionSelectMaraVennIonaSerrHasTwoOutlying": "Mara Venn: Iona Serr has two outlying crews cut off. Open the Junction dossier to begin.",
     "missionSelectNEWDISPATCHIONASERR": "NEW DISPATCH / IONA SERR",
-    "missionSelectWAYLINEDISPATCHCOORDINATOR": "WAYLINE / DISPATCH COORDINATOR",
     "missionSelectUnavailable": "Unavailable",
     "missionSelectIndependentBroker": "Independent broker",
     "missionSelectGarrisonContract": "Garrison Contract",
@@ -108,8 +120,6 @@
     "missionSelectSelectAContract": "Select a contract",
     "missionSelectChooseARowInTheContractList": "Choose a row in the contract list.",
     "missionSelectTheSelectedOperationSScaleFieldPresence": "The selected operation's scale, field-presence limit, opposition, lift, and payout will appear here before you enter deployment planning.",
-    "missionSelectCOMMITSUPPORTTORILL": "COMMIT SUPPORT TO RILL",
-    "missionSelectCOMMITSUPPORTTOFREIGHT": "COMMIT SUPPORT TO FREIGHT",
     "missionSelectBRIEFDEPLOY": "BRIEF & DEPLOY",
     "missionSelectCompany": "Company",
     "missionSelect2SquadsMinimum4ReadyEachYour": "2 squads / minimum 4 ready each / your fitted boats",
@@ -140,7 +150,6 @@
     "missionSelect2SquadsRecommendedAtLeast4Ready": "2 squads recommended / at least 4 ready in each of two squads",
     "missionSelectOpposition": "Opposition",
     "missionSelectLocalRaidersNoFighterOrMechSupport": "Local raiders / no fighter or mech support",
-    "missionSelect4000500PerRecoveredPersonMaximum": "4,000 + 500 per recovered person / maximum 10,000 cr",
     "missionSelect60004000PerDeliveredCarrier": "6,000 + 4,000 per delivered carrier / maximum 18,000 cr",
     "missionSelectOperationScale": "Operation scale",
     "missionSelectFieldPresence": "Field presence",
@@ -161,7 +170,6 @@
     "missionSelectBoard": "CONTRACT BOARD",
     "missionSelectBack": "BACK",
     "missionSelectBarracks": "BARRACKS",
-    "missionSelectBranchCommitment": "ONE MOBILIZATION / BRANCH COMMITMENT",
     "missionSelectCollapse": "COLLAPSE",
 
     "armoryRangeTestLoadout": "Test Loadout",
@@ -290,7 +298,7 @@
     "gearCatalogArmorCorpsmanDisplayName": "Corpsman field rig",
     "gearCatalogArmorFieldFatiguesDescription": "Domain-pattern vac fatigues remain the working uniform of crews, militias, and cash-poor infantry. Local factories preserve the seals; unrestricted movement comes at the price of dangerous exposure.",
     "gearCatalogArmorFieldFatiguesDisplayName": "Domain-pattern vac fatigues",
-    "gearCatalogArmorFieldFatiguesLore": "The founding issue: twelve basic Ward security kits over field fatigues. Thin protection and a firing brace keep the squad serviceable, but there are no scout sensors, assault shells, or support harnesses. New equipment specifications open those roles.",
+    "gearCatalogArmorFieldFatiguesLore": "The founding issue: twelve worn Cordon shells over field fatigues. Surplus plates provide basic protection, with no integral systems, scout sensors, assault shells, or support harnesses. New equipment specifications improve the issue and open those roles.",
     "gearCatalogArmorFleetCombatLore": "Hegemony protection tables privilege standardized, repairable plate over elegant integration. Legionary suits dominate the establishment and Bastion laminates fill the remaining powered billets, giving the whole squad the weight to take contact and keep its formation.",
     "gearCatalogArmorFleetCombatProvenance": "Hegemony line formations",
     "gearCatalogArmorFoundryBreakerDescription": "Foundry-breakers begin as cargo exoskeletons and end beneath welded ship plate, illicit servos, and whatever shock padding a raider cell can steal. The crude mass takes extraordinary punishment before coming apart, but offers poor resistance and nearly no tactical grace.",
