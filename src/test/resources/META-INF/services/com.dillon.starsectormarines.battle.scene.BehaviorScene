@@ -27,6 +27,7 @@ com.dillon.starsectormarines.battle.warship.WarshipPostureScene
 com.dillon.starsectormarines.battle.warship.WarshipSupportFireScene
 com.dillon.starsectormarines.battle.warship.WarshipInterceptScene
 com.dillon.starsectormarines.battle.warship.WarshipVsAirScene
+com.dillon.starsectormarines.battle.warship.WarshipAirStrikeScene
 com.dillon.starsectormarines.battle.warship.WarshipPilotScene
 com.dillon.starsectormarines.battle.tender.TenderBuildScene
 com.dillon.starsectormarines.battle.tender.TenderStanceScene

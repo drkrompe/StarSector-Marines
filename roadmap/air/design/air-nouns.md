@@ -1846,12 +1846,17 @@ sticky posture (air superiority, support, intercept, bombard, withdraw) from a
 threat picture and the ship's stance on the objective, and set only the
 parameters of the machinery described here: the director's areas, an
 opportunity range, a flux ceiling, a station. It issues ordinary orders and
-changes no weapon's damage. Honest state today: a warship's weapons may fire at
-aircraft by the rule above, but aircraft cannot hurt a warship except through
-the ordnance that happens to land on it, and ground defences cannot hurt one at
-all, so the air-superiority posture still enters on a mission-declared threat,
-hostile ships or two armed craft and has no air threat to a ship that is more
-than incidental.
+changes no weapon's damage. A warship's weapons may fire at
+aircraft by the rule above, and hostile strike aircraft can now hurt a warship:
+the dispatchers (field sorties and committed wings) treat a hostile hull as a
+candidate target ahead of the ground, provided the craft's ordnance gets
+through that hull's armour at all and fewer than two of the side's craft are
+already working it. The craft flies the ordinary attack run at the hull's
+centre and its rounds land as ordinary detonations, so the hull's own shield
+and armour rule answer them; there is no second damage route and the ship is
+still not an entity. The threat picture counts an armed craft only where it can
+hurt, and shield type scales its weight (none, then front, then omni, fear it
+less in that order). Ground defences still cannot hurt a warship at all.
 
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
