@@ -79,7 +79,9 @@ commitment.
   mech lance through the ordinary air-delivery and landed-roster paths.
   Valkyries and ground-support fittings are production sources. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
-  iteration support.
+  iteration support. A **commander-called mech drop** is the same delivery paid from a mission allowance instead
+  of command points: see `mechs-nouns.md` and `reinforcement-nouns.md`; it is not a command power and the player's
+  power is unchanged.
 - **Emergency Resupply** calls a vulnerable utility shuttle that leaves a
   finite persistent supply cache. Tarsus and Atlas hulls are its player sources.
 - **Orbital Barrage** targets a zone, presents a warning, then resolves a heavy
