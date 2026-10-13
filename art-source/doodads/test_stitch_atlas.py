@@ -90,6 +90,7 @@ class StitchAtlasTest(unittest.TestCase):
                                 "order": 2,
                                 "footprintCells": [1, 2],
                                 "preferredWallSide": "w",
+                                "fightingPosition": "Parapet",
                             },
                         }
                     }
@@ -118,6 +119,8 @@ class StitchAtlasTest(unittest.TestCase):
             self.assertEqual([0, 1], [manifest["doodads"][1]["col"], manifest["doodads"][1]["row"]])
             self.assertEqual([1, 2], manifest["doodads"][1]["footprintCells"])
             self.assertEqual("W", manifest["doodads"][1]["preferredWallSide"])
+            self.assertEqual("parapet", manifest["doodads"][1]["fightingPosition"])
+            self.assertNotIn("fightingPosition", manifest["doodads"][0])
 
     def test_rejects_unknown_preferred_wall_side(self):
         with tempfile.TemporaryDirectory() as directory:

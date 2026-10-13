@@ -84,6 +84,12 @@ public final class TilesetExport {
          * placement no amount of cover data prevents.
          */
         public String preferredWallSide = "";
+        /**
+         * Prepared-ground role -- {@code trench} or {@code parapet} -- or empty where the piece
+         * is not part of a fighting position. Declared here so a re-export keeps it; the game
+         * classifies by this property and never by id.
+         */
+        public String fightingPosition = "";
         public boolean included = true;
         /**
          * The block this piece belongs to, or empty for a doodad. A block member
@@ -889,6 +895,9 @@ public final class TilesetExport {
             }
             if (!entry.preferredWallSide.isEmpty()) {
                 o.put("preferredWallSide", entry.preferredWallSide);
+            }
+            if (!entry.fightingPosition.isEmpty()) {
+                o.put("fightingPosition", entry.fightingPosition);
             }
             if (entry.footprintX != 1 || entry.footprintY != 1) {
                 o.put("footprintCells", new JSONArray().put(entry.footprintX).put(entry.footprintY));

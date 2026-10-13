@@ -80,6 +80,7 @@ class TilesetDocumentTest {
         doc.entries.get(0).ballisticHalfHeight = 0.42;
         doc.entries.get(0).fogSurface = List.of("#.");
         doc.entries.get(0).preferredWallSide = "N";
+        doc.entries.get(0).fightingPosition = "trench";
 
         Path path = dir.resolve("ship.tileset-authoring.json");
         doc.write(path);
@@ -88,6 +89,8 @@ class TilesetDocumentTest {
         assertEquals(0.42, console.ballisticHalfHeight, 1e-9);
         assertEquals(List.of("#."), console.fogSurface);
         assertEquals("N", console.preferredWallSide);
+        assertEquals("trench", console.fightingPosition);
+        assertEquals("", TilesetDocument.read(path).entries.get(1).fightingPosition);
         assertNull(TilesetDocument.read(path).entries.get(1).ballisticHalfHeight,
                 "a piece nobody judged stays unjudged rather than acquiring a default");
     }
@@ -103,6 +106,7 @@ class TilesetDocumentTest {
         document().write(path);
         assertFalse(Files.readString(path).contains("ballisticHalfHeight"));
         assertFalse(Files.readString(path).contains("preferredWallSide"));
+        assertFalse(Files.readString(path).contains("fightingPosition"));
     }
 
     @Test

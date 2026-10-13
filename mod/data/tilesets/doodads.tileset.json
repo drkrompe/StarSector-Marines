@@ -7,56 +7,64 @@
       "col": 0,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-straight-n",
       "col": 1,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-corner-ne",
       "col": 2,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-straight-w",
       "col": 3,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-straight-e",
       "col": 4,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-corner-sw",
       "col": 5,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-straight-s",
       "col": 6,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.sandbag-corner-se",
       "col": 7,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.3
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
     },
     {
       "id": "doodad.industrial-crate-stack",

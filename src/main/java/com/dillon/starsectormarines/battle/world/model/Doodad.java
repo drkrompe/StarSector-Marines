@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.model;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
+import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
 import java.util.List;
 import java.util.Collections;
 
@@ -37,6 +38,10 @@ import java.util.Collections;
 public final class Doodad {
     private String definitionId;
     private List<String> fogSurface = List.of();
+    private FightingPositionRole fightingPosition = FightingPositionRole.NONE;
+
+    /** Prepared-ground role declared by the catalog definition; {@link FightingPositionRole#NONE} for everything else. */
+    public FightingPositionRole fightingPosition() { return fightingPosition; }
 
     /** Stable catalog identity, or null for legacy coordinate-only placements. */
     public String definitionId() { return definitionId; }
@@ -113,6 +118,7 @@ public final class Doodad {
                 def.sourceCellPx, quarterTurns, mirrored);
         this.definitionId = def.id;
         this.fogSurface = def.fogSurface;
+        this.fightingPosition = def.fightingPosition;
     }
 
     public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns) {
@@ -125,6 +131,7 @@ public final class Doodad {
                 def.sourceCellPx, normalizeTurns(quarterTurns));
         this.definitionId = def.id;
         this.fogSurface = def.fogSurface;
+        this.fightingPosition = def.fightingPosition;
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -227,6 +234,7 @@ public final class Doodad {
                 footprintCellsY, preferredWallSide, sourceCellPx, quarterTurns, mirrored);
         copy.definitionId = definitionId;
         copy.fogSurface = fogSurface;
+        copy.fightingPosition = fightingPosition;
         return copy;
     }
 

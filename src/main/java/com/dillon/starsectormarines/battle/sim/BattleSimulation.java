@@ -72,6 +72,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -1493,6 +1494,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
     public int getDoodadCoverAt(int x, int y) {
         return doodadService.getDoodadCoverAt(x, y);
+    }
+
+    @Override
+    public FightingPositionIndex fightingPositions() {
+        return doodadService.fightingPositions();
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }

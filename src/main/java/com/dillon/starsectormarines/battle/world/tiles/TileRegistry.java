@@ -269,9 +269,17 @@ public final class TileRegistry {
                 fogSurface = new ArrayList<>();
                 for (int r = 0; r < mask.length(); r++) fogSurface.add(mask.getString(r));
             }
+            FightingPositionRole fightingPosition;
+            try {
+                fightingPosition = FightingPositionRole.fromJson(o.optString("fightingPosition", null));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException("TileRegistry: doodad '" + id
+                        + "' has invalid fightingPosition", e);
+            }
             doodadsById.put(id, new DoodadDef(
                     id, sheet, col, row, cover, ballisticHalfHeight,
-                    footprintCellsX, footprintCellsY, preferredWallSide, cellPx, fogSurface));
+                    footprintCellsX, footprintCellsY, preferredWallSide, cellPx, fogSurface,
+                    fightingPosition));
             sourceById.put(id, source);
         }
     }

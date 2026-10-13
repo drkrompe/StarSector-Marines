@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.model;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileCover;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -36,6 +37,9 @@ public final class DoodadService {
     private final PropDamage destructibleProps;
     /** Mutable overlay cover stays separate from append-only props so shattered rocks can release it. */
     private TileCover[] natureCoverOnCell;
+    /** Derived from the standing props; replaced wholesale (never mutated) when they change. */
+    private volatile FightingPositionIndex fightingPositions;
+    private volatile boolean fightingPositionsStale = true;
 
     /**
      * Per-cell, per-facing cover for static props. Mutable nature, crate and registered equipment cover
@@ -83,6 +87,7 @@ public final class DoodadService {
 
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
+        this.fightingPositions = FightingPositionIndex.empty(grid.getWidth(), grid.getHeight());
         this.destructibleCover = new CoverPropDamage(grid, doodads);
         this.naturalProps = new NaturalPropDamage(grid, doodads);
         this.rocks = new RockDamage(grid, doodads);
@@ -104,6 +109,7 @@ public final class DoodadService {
         boolean removableProp = destructibleProps.register(doodads.size(), d, TileRegistry.installed());
         naturalProps.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
+        if (d.fightingPosition() != FightingPositionRole.NONE) fightingPositionsStale = true;
         if (d.cover <= 0 || removablePhysicalCover) return;
         ensureCoverStorage();
         for (int dy = 0; dy < d.footprintCellsY; dy++) {
@@ -121,7 +127,29 @@ public final class DoodadService {
     }
 
     public CoverPropDamage.Result damageCoverProp(int x, int y, int amount) {
-        return destructibleCover.damage(x, y, amount);
+        CoverPropDamage.Result result = destructibleCover.damage(x, y, amount);
+        // A destroyed parapet can split or dissolve a run; a merely damaged one still stands.
+        if (result == CoverPropDamage.Result.DESTROYED) fightingPositionsStale = true;
+        return result;
+    }
+
+    /**
+     * The battle's current fighting positions. Rebuilt from the live props on the first
+     * read after a prepared-ground prop is added or destroyed, never per tick. Callers
+     * should ask again rather than hold the result across ticks.
+     */
+    public FightingPositionIndex fightingPositions() {
+        if (fightingPositionsStale) {
+            synchronized (this) {
+                if (fightingPositionsStale) {
+                    // Clear first so a change landing mid-build re-arms the flag rather than being lost.
+                    fightingPositionsStale = false;
+                    fightingPositions = FightingPositionIndex.build(grid.getWidth(), grid.getHeight(),
+                            doodads, grid::isWalkable);
+                }
+            }
+        }
+        return fightingPositions;
     }
 
     public CoverPropDamage.Result damageProp(int x, int y, int amount, long attack, PropDamage.ClearedCell cleared) {
