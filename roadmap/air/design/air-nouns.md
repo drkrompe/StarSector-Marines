@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — an entering ship drops through the cloud deck and a departing one climbs into it (presentation only).
+Updated: 2026-10-13 — the ship balance law is a standing law under Overhead ships.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1568,6 +1568,8 @@ command power that committed it (`command-powers-nouns.md`); the entity carries
 a faction and no allegiance logic of its own. What it fires at is chosen by a
 director from the densest concentration of opposing force not already being
 worked, the same rule a fighter strike uses.
+
+**Balance law (standing).** Ship against ship in atmosphere keeps the base game's balance, with numbers and hints taken from vanilla data (shield arc and efficiency, armour, flux) rather than authored tables. Ground against ship is weaker, at least until planetary defences are built. Ship against ground is stronger: in-universe these are essentially superweapons, and ships are overpowered against the ground by design. Class and posture weights are perception inputs and never alter damage either way.
 
 **A warship is hittable, but only by ordnance.** It carries its hull table's own
 hit points and armour (the Onslaught's 20000 and 1750). Any hostile detonation
