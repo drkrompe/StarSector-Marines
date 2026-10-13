@@ -185,7 +185,9 @@ capital that is not another ship.
    their ordnance are not touched (decided: the dome is ship-grade only). Capture: combatants
    within the capture radius and none of the holder's friends take it after the capture time, the
    holder's friends alone wind it back, and a taken dome reboots for 4 s; the structure
-   changes sides with its holder (see *Captured structures* below). Destroying the generator drops the dome.
+   changes sides with its holder (see *Captured structures* below). Destroying the generator drops the dome. Inside a
+   shield fort (`forts.md`) the dome is governed instead: the fort's control room decides its holder and its power
+   plant decides whether it is up, and the capture ring does not apply.
    Look: `ShieldDomeRenderSystem` (HAZARDS) draws the dome as a shader (`ShieldDomeShader`), an
    energy bubble seen from above in the warship shield's cyan for the player's side and red for the
    enemy's: a bright fresnel-like rim over a faint interior, a drifting hex field with a slow shimmer

@@ -33,8 +33,8 @@ reuse a barrage cooldown as fake counter-battery risk.
 1. Add an explicit heavy-battery presence/tier signal at the existing target
    profile resolution boundary.
 2. Place one bounded fire-control emplacement through the Conquest recipe,
-   reusing the hard-installation placement and compound-ownership seam proven
-   by `hard-installation-first-map-feature.md`.
+   reusing the fort placement and aspect-capture seam proven by the shield fort
+   in `forts.md`.
 3. While the intact emplacement is defender-held or contested, Orbital Barrage
    remains in the deck but cannot be targeted anywhere. The denial reason is
    **fleet held at standoff by active surface-to-orbit fire control**.
