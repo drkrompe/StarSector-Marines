@@ -30,7 +30,11 @@ class MissionDefencePolicyTest {
         assertEquals(0, declared.batteries());
         assertEquals(MissionDefencePolicy.CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM,
                 declared.fortCount(FortKind.BATTERY_FORT));
-        assertEquals(MissionDefencePolicy.CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE, declared.shieldGenerator());
+        // ... and its declared shield generator as a shield fort (CONQUEST_SHIELD_AS_FORT), never both.
+        assertEquals(MissionDefencePolicy.CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE && !MissionDefencePolicy.CONQUEST_SHIELD_AS_FORT,
+                declared.shieldGenerator());
+        assertEquals(MissionDefencePolicy.CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE && MissionDefencePolicy.CONQUEST_SHIELD_AS_FORT ? 1 : 0,
+                declared.fortCount(FortKind.SHIELD_FORT));
         assertEquals(MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM, declared.nests());
 
         GroundDefences nestsOnly = MissionDefencePolicy.declare(of(MissionType.CONQUEST),
@@ -51,6 +55,10 @@ class MissionDefencePolicyTest {
         assertEquals(false, dial.shieldGenerator());
         assertEquals(2, dial.fortCount(FortKind.BATTERY_FORT));
         assertEquals(false, dial.isNone());
+        GroundDefences shieldDial = DebugDefences.SHIELD_FORT.declaration();
+        assertEquals(1, shieldDial.fortCount(FortKind.SHIELD_FORT));
+        assertEquals(false, shieldDial.shieldGenerator());
+        assertEquals(0, shieldDial.fortCount(FortKind.BATTERY_FORT));
         assertEquals(false, GroundDefences.NONE.withForts(FortKind.BATTERY_FORT, 1).isNone());
         assertEquals(true, GroundDefences.NONE.withForts(FortKind.BATTERY_FORT, 0).isNone());
     }

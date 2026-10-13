@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BatteryFortStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
@@ -116,7 +116,7 @@ public final class BatteryFortScene implements BehaviorScene {
         ctx.put(BspKeys.BUILDINGS, BuildingFloodFill.populate(topology, 7L));
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL.withDeclaredDefences(
                 new GroundDefences(0, false).withForts(FortKind.BATTERY_FORT, 1)));
-        BatteryFortStage stage = new BatteryFortStage();
+        FortStage stage = new FortStage();
         stage.run(ctx);
         return new FortSceneWorld(grid, topology, List.copyOf(ctx.defensePosts), stage.placed().get(0).placement());
     }

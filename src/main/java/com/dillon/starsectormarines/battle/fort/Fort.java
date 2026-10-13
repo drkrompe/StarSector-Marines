@@ -105,7 +105,7 @@ public final class Fort {
     }
 
     private final int id;
-    private final FortKind kind;
+    private FortKind kind;
     private final Map<FortAspect, Place> places = new EnumMap<>(FortAspect.class);
     private final List<Long> nests = new ArrayList<>();
     private FortressBattery battery;
@@ -114,6 +114,11 @@ public final class Fort {
 
     Fort(int id, FortKind kind) {
         this.id = id;
+        this.kind = kind;
+    }
+
+    /** A fort learns its kind from the centrepiece that is tagged to it: a platform or an emitter. */
+    void become(FortKind kind) {
         this.kind = kind;
     }
 
@@ -166,6 +171,31 @@ public final class Fort {
 
     void markMagazineBlown() {
         magazineBlown = true;
+    }
+
+    // -------------------------------------------------------------------------------------------- shield fort
+
+    /** The shield generator's entity id, or {@code 0} for a fort that has none. */
+    public long emitterId() {
+        Place p = places.get(FortAspect.EMITTER);
+        return p == null ? 0L : p.coreId();
+    }
+
+    /**
+     * The side the dome protects: whoever holds the control room. A fort with no control room, or one wrecked, keeps
+     * the side that held it last ({@code current}), because a wrecked room hands the dome to nobody.
+     */
+    public Faction domeHolder(Faction current) {
+        Place p = places.get(FortAspect.CONTROL_ROOM);
+        if (p == null || p.wrecked) return current;
+        return p.control.holder();
+    }
+
+    /** Whether the dome is up for the side that holds it: the emitter stands and the power is that side's to draw on. */
+    public boolean domePowered(Faction holder) {
+        Place emitter = places.get(FortAspect.EMITTER);
+        if (emitter != null && emitter.wrecked) return false;
+        return powered(holder);
     }
 
     /** False once the fire-control bunker core is wrecked; the guns then have nothing to obey. */

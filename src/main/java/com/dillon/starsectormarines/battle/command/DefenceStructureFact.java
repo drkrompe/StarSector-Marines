@@ -28,6 +28,10 @@ public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction hold
         this(kind, cellX, cellY, holder, originalHolder, threatened, reachCells, cellX, cellY);
     }
 
-    /** The two structure kinds a command can be sent to take, wreck or hold. */
-    public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR }
+    /**
+     * The structure kinds a command can be sent to take, wreck or hold. {@code SHIELD_GENERATOR} is where the dome is
+     * held (the generator's capture ring, or a shield fort's control room); {@code FORT_POWER} is a fort's power plant,
+     * which a side takes or wrecks to drop a dome that is not its own.
+     */
+    public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR, FORT_POWER }
 }
