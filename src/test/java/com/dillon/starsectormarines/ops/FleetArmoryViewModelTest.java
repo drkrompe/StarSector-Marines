@@ -54,6 +54,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FleetArmoryViewModelTest {
 
+    @Test
+    void rangeUsesSelectedMarineAndProposedKitWithoutIssuingOrCampaignIdentity() throws Exception {
+        MarineRoster roster = fullSquad();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel model = new FleetArmoryViewModel(reactor, roster);
+        MarineSquad squad = roster.squadById(model.selectedSquadId());
+        var soldier = roster.soldierById(roster.manningMemberIds(squad).get(4));
+        var issued = soldier.armorDef();
+        model.armorDoctrineTiles().get().get(0).select().run();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
+        try (var instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
+            UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
+            instance.styles().forEach(document::addStyleSheet);
+            document.layout(1920, 1080);
+            UiElement billet = instance.requireElement("loadout-billet:4");
+            document.pointerDown(centerX(billet), centerY(billet));
+            document.pointerUp(centerX(billet), centerY(billet));
+            instance.flush();
+            var trial = model.rangeCandidate();
+            assertNotNull(trial);
+            assertEquals(soldier.name(), trial.name());
+            assertEquals(soldier.aptitude(), trial.loadout().soldierProfile.aptitude());
+            assertEquals(model.currentSquadEquipmentPreview().billet(4).armorDef().armorCapacity(),
+                    trial.loadout().armorCapacity);
+            assertEquals(model.currentSquadEquipmentPreview().billet(4).primaryDef().id,
+                    trial.loadout().primaryWeaponId);
+            assertEquals(model.currentSquadEquipmentPreview().billet(4).armorDef().integralSystem(),
+                    trial.loadout().integralSystem);
+            assertNull(trial.loadout().campaignSoldierId);
+            assertNull(trial.loadout().campaignSquad);
+            assertSame(issued, soldier.armorDef());
+            roster.applySoldierOutcome(Map.of(soldier.id(), MarineSoldierStatus.WIA), 100f, 1f);
+            model.refresh();
+            assertNull(model.rangeCandidate(), "a wounded marine cannot be borrowed for practice");
+        }
+    }
+
     private static final List<String> COMPONENTS = List.of(
             "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/armory/fleet-armory.mlx",
@@ -718,6 +755,9 @@ class FleetArmoryViewModelTest {
 
     private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("testLoadout", (Runnable) () -> {});
+        props.put("rangeDisabled", false);
+        props.put("rangeHint", "Try this marine's proposed equipment. Escape returns here; practice changes nothing.");
         props.put("firstRefitClasses", "hidden");
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());

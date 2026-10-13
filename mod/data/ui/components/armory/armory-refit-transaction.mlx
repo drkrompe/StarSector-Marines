@@ -1,4 +1,4 @@
-<template props="inspection,feedbackText,feedbackClasses">
+<template props="inspection,feedbackText,feedbackClasses,testLoadout,rangeDisabled,rangeHint">
   <div id="refit-transaction" class="loadout-workspace">
     <div id="loadout-summary" class="panel loadout-summary">{inspection.summary}</div>
     <div id="loadout-workspace-body" class="loadout-workspace-body">
@@ -20,7 +20,11 @@
         </div>
       </div>
       <div id="loadout-inspection" class="loadout-inspection">
-        <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
+        <div id="loadout-range-row" class="loadout-range-row">
+          <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
+          <button id="armory-test-loadout" class="loadout-range-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
+        </div>
+        <div id="armory-range-hint" class="loadout-range-hint tone-muted">{rangeHint}</div>
         <div class="loadout-column-headings" id="loadout-column-headings"><div class="tone-edge" id="loadout-current-heading">{i18n.openingUiLoadoutCurrentIssue}</div><div class="tone-accent" id="loadout-proposed-heading">{i18n.openingUiLoadoutProposedIssue}</div></div>
         <div id="loadout-item-list" class="loadout-item-list">
           <div each="item in inspection.items" key="{item.id}" id="{item.id}" class="{item.classes}" style="{item.style}">
@@ -69,6 +73,10 @@
   .loadout-billet-icon { width: 0px; flex-grow: 1; height: 44px; pointer-events: none; }
   .loadout-state { height: 24px; white-space: normal; }
   .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
+  .loadout-range-row { flex-direction: row; height: 28px; gap: 8px; }
+  .loadout-range-row .loadout-heading { width: 0px; flex-grow: 1; }
+  .loadout-range-action { width: 124px; height: 28px; }
+  .loadout-range-hint { height: 32px; white-space: normal; }
   .loadout-column-headings { flex-direction: row; height: 20px; gap: 8px; }
   .loadout-column-headings div { width: 0px; flex-grow: 1; padding: 2px 8px; }
   .loadout-item-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }

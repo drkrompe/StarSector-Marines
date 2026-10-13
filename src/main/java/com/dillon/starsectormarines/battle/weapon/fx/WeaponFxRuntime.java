@@ -45,20 +45,26 @@ public final class WeaponFxRuntime {
 
     static FxCompositionContext muzzleContext(ShotEvent shot) {
         return new FxCompositionContext(shot.fromX, shot.fromY,
-                bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY),
+                launchBearing(shot),
                 false, eventSeedTime(shot));
     }
 
     static FxCompositionContext launchContext(ShotEvent shot) {
         return new FxCompositionContext(shot.fromX, shot.fromY,
-                bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY),
+                launchBearing(shot),
                 false, eventSeedTime(shot));
     }
 
     static FxCompositionContext impactContext(ShotEvent shot, boolean wallImpact) {
         return new FxCompositionContext(shot.toX, shot.visualToY(),
-                bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY),
+                shot.guidedFlight != null ? shot.guidedFlight.visualBearingDegrees()
+                        : bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY),
                 wallImpact, eventSeedTime(shot));
+    }
+
+    private static float launchBearing(ShotEvent shot) {
+        return shot.guidedFlight != null ? shot.guidedFlight.launchBearingDegrees
+                : bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY);
     }
 
     private static float eventSeedTime(ShotEvent shot) {
