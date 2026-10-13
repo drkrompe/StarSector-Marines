@@ -7,11 +7,9 @@ import java.util.Set;
 /** Batch orchestration over the existing exact squad issue; no new equipment economy. */
 public final class BarracksEquipmentIssue {
     private final MarineRoster roster;
-    private final EquipmentIssueResources resources;
 
     public BarracksEquipmentIssue(MarineRoster roster, EquipmentIssueResources resources) {
         this.roster = roster;
-        this.resources = resources;
     }
 
     public Plan preview(Set<String> ids) {
@@ -33,16 +31,13 @@ public final class BarracksEquipmentIssue {
             entries.add(new Entry(squad.id(), weapons, armor, eligible, reason));
         }
         boolean valid = !ids.isEmpty() && entries.size() == ids.size();
-        return new Plan(List.copyOf(entries), total, valid && resources.canAfford(total));
+        return new Plan(List.copyOf(entries), total, valid);
     }
 
-    /** Revalidates all eligible squads and pays the combined bill before issuing any kit. */
+    /** Revalidates all eligible squads before the Machine Shop fits their known equipment. */
     public Result apply(Set<String> ids) {
         Plan plan = preview(ids);
         if (!plan.affordable() || plan.eligible() == 0) return new Result(0, plan.skipped(), false);
-        if (!plan.cost().isZero() && !resources.spend(plan.cost())) {
-            return new Result(0, plan.skipped(), false);
-        }
         // Campaign commands run on one thread: nothing yields between preflight and commit.
         for (Entry entry : plan.entries()) {
             if (!entry.eligible()) continue;

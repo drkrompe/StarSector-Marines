@@ -55,7 +55,7 @@ class FirstRefitModelTest {
         assertNull(model.sheet(true, 2));
         var special = ((List<Map<String, Object>>) model.row().get().get("proposedItems")).get(2);
         assertTrue(special.get("kind").toString().contains("REMOVE"));
-        assertTrue(special.get("subtitle").toString().contains("no material refund"));
+        assertTrue(special.get("subtitle").toString().contains("for free"));
         roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(11), MarineSoldierStatus.KIA), 10f, 5f);
         model.selectBillet(11);
         assertNull(model.sheet(false, 0));
@@ -64,7 +64,7 @@ class FirstRefitModelTest {
         assertFalse(roster.firstRefit().complete());
     }
 
-    @Test void lostCargoAtCommitDoesNotCompleteLessonAndShowsExactShortfall() {
+    @Test void fittingDoesNotRequireAPayment() {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         EquipmentIssueResources resources = new EquipmentIssueResources() {
@@ -74,7 +74,6 @@ class FirstRefitModelTest {
         var model = new FirstRefitModel(new Reactor(), roster, resources, id -> { });
         model.claim(); model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         model.selectPath(Path.STEADY_LINE); model.issue();
-        assertFalse(roster.firstRefit().complete());
-        assertTrue(model.row().get().get("status").toString().contains("Nothing has been spent"));
+        assertTrue(roster.firstRefit().complete());
     }
 }

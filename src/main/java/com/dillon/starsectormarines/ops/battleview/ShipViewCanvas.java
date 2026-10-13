@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph.Compartment;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -68,6 +69,13 @@ public final class ShipViewCanvas implements CanvasProducer {
     private final CompanyDeck ship;
     private BattleCamera camera;
     private RoomPurpose focus;
+    private Compartment focusedRoom, selectedRoom;
+    public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; }
+    public Compartment roomAt(float x, float y) {
+        if (camera == null || !camera.containsScreen(x, y) || !ship.ready()) return null;
+        int cx = (int) Math.floor(camera.screenToCellX(x)), cy = (int) Math.floor(camera.screenToCellY(y));
+        return ship.rooms().compartments().stream().filter(r -> r.contains(cx, cy)).findFirst().orElse(null);
+    }
 
     /** Applied on draw, when the generated deck and viewport are both ready. */
     public void focus(RoomPurpose purpose) { focus = purpose; }
@@ -162,8 +170,10 @@ public final class ShipViewCanvas implements CanvasProducer {
         camera.setViewport(rect.screenX(), rect.screenY(),
                 rect.width(), rect.height(), baseCell);
 
-        if (focus != null) {
-            var room = ship.room(focus);
+        if (focus != null || focusedRoom != null) {
+            var room = focusedRoom != null ? focusedRoom : ship.room(focus);
+            selectedRoom = room;
+            focusedRoom = null;
             if (room != null) {
                 float target = Math.min(rect.width() / (room.width() + 8f), rect.height() / (room.depth() + 8f));
                 camera.zoomAt((float) (Math.log(target / camera.cellPxSize()) / Math.log(1.2)),
@@ -179,6 +189,7 @@ public final class ShipViewCanvas implements CanvasProducer {
         if (!context.hostPass(aboard.pass(view, ShipDeckBattleScene.DECK_LAYERS))) {
             context.fillRect(0f, 0f, width, height, BACKGROUND);
         }
+        drawSelection(context, rect);
     }
 
     /**
@@ -201,6 +212,15 @@ public final class ShipViewCanvas implements CanvasProducer {
      * thereafter slides her against the deck at a rate set by the stretch, and
      * the wrong way entirely in the vertical.
      */
+    private void drawSelection(CanvasContext context, CanvasHostViewport rect) {
+        if (selectedRoom == null) return;
+        var room = selectedRoom;
+        float x = rect.canvasXForScreen(camera.cellToScreenX(room.left()));
+        float y = rect.canvasYForScreen(camera.cellToScreenY(room.bottom() + 1));
+        context.strokeRect(x, y, room.width() * camera.cellPxSize() / rect.scaleX(),
+                room.depth() * camera.cellPxSize() / rect.scaleY(), new Color(0xC8, 0xB4, 0x73), 2f);
+    }
+
     private void drawHull(CanvasContext context, CanvasHostViewport rect,
                           int cellsAcross, int cellsDown) {
         String hullArt = ship.ship() == null ? null : ship.ship().art();

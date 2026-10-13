@@ -110,7 +110,6 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<String> selectedArmorDoctrineId;
     private final MutableSignal<EquipmentPickerKind> equipmentPickerKind;
     private final MutableSignal<LoadoutFilter> loadoutFilter;
-    private final MutableSignal<Boolean> issuableOnly;
     private final MutableSignal<Integer> domainRevision;
     private final MutableSignal<Boolean> organizing;
     private final MutableSignal<Set<String>> organizationSelectedSquadIds;
@@ -157,7 +156,6 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> weaponPickerPanelClasses;
     private final ComputedSignal<String> armorPickerPanelClasses;
     private final ComputedSignal<List<LoadoutFilterOption>> loadoutFilters;
-    private final ComputedSignal<LoadoutFilterOption> issuableFilter;
     private final ComputedSignal<String> loadoutBrowserSummary;
     private final ComputedSignal<List<ArmorComparisonCard>> armorComparisonCards;
     private final ComputedSignal<String> armorComparisonSummary;
@@ -222,7 +220,6 @@ public final class FleetArmoryViewModel {
                 : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         equipmentPickerKind = reactor.signal(EquipmentPickerKind.WEAPON);
         loadoutFilter = reactor.signal(LoadoutFilter.ALL);
-        issuableOnly = reactor.signal(Boolean.FALSE);
         domainRevision = reactor.signal(0);
         organizing = reactor.signal(false);
         organizationSelectedSquadIds = reactor.signal(Set.of());
@@ -330,7 +327,6 @@ public final class FleetArmoryViewModel {
                 == EquipmentPickerKind.ARMOR
                 ? "doctrine-slot" : "doctrine-slot picker-hidden");
         loadoutFilters = reactor.computed(this::buildLoadoutFilters);
-        issuableFilter = reactor.computed(this::buildIssuableFilter);
         loadoutBrowserSummary = reactor.computed(this::buildLoadoutBrowserSummary);
         armorComparisonCards = reactor.computed(this::buildArmorComparisonCards);
         armorComparisonSummary = reactor.computed(this::buildArmorComparisonSummary);
@@ -393,7 +389,6 @@ public final class FleetArmoryViewModel {
     public Signal<String> weaponPickerPanelClasses() { return weaponPickerPanelClasses; }
     public Signal<String> armorPickerPanelClasses() { return armorPickerPanelClasses; }
     public Signal<List<LoadoutFilterOption>> loadoutFilters() { return loadoutFilters; }
-    public Signal<LoadoutFilterOption> issuableFilter() { return issuableFilter; }
     public Signal<String> loadoutBrowserSummary() { return loadoutBrowserSummary; }
     public Signal<List<ArmorComparisonCard>> armorComparisonCards() { return armorComparisonCards; }
     public Signal<String> armorComparisonSummary() { return armorComparisonSummary; }
@@ -403,7 +398,6 @@ public final class FleetArmoryViewModel {
     public String selectedArmorDoctrineId() { return selectedArmorDoctrineId.peek(); }
     public EquipmentPickerKind equipmentPickerKind() { return equipmentPickerKind.peek(); }
     public LoadoutFilter loadoutFilter() { return loadoutFilter.peek(); }
-    public boolean issuableOnly() { return issuableOnly.peek(); }
     public String selectedSquadName() {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         return squad != null ? squad.name() : "Squad";
@@ -429,10 +423,7 @@ public final class FleetArmoryViewModel {
         return () -> loadoutFilter.set(filter);
     }
 
-    /** Hides every loadout whose issue would cost more cargo than the fleet has. */
-    public Runnable toggleIssuableOnlyAction() {
-        return () -> issuableOnly.update(on -> !Boolean.TRUE.equals(on));
-    }
+
 
 
     public Runnable reinforceSelectedSquadAction() {
@@ -822,8 +813,6 @@ public final class FleetArmoryViewModel {
                     doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON,
                     maximumWeaponTier(doctrine), doctrine.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
-            if (issuableOnly.get() && !affordable(
-                    doctrine.id(), selectedArmorDoctrineId.get())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
             List<DoctrineSpan> issue = weaponDistributionSpans(id, doctrine);
             tiles.add(doctrineTile(id, doctrine.id().equals(selected),
@@ -845,8 +834,6 @@ public final class FleetArmoryViewModel {
                     plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
                     maximumArmorTier(issued), plan.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
-            if (issuableOnly.get() && !affordable(
-                    selectedWeaponDoctrineId.get(), plan.id())) continue;
             String id = "armor-doctrine:" + plan.id();
             // The authored tier is what the sheet IS; the issued band is what
             // this company would actually put in the field today. Showing both
@@ -880,23 +867,7 @@ public final class FleetArmoryViewModel {
         return List.copyOf(ranked);
     }
 
-    /**
-     * Whether issuing this pairing to the selected squad costs no more cargo
-     * than the fleet is carrying.
-     *
-     * <p>Deliberately narrower than {@link SquadEquipmentPreview#canApply()}. A
-     * stationed or under-strength squad cannot be issued anything at all, and
-     * hiding every tile behind that would turn the picker into an empty list
-     * with no explanation — the apply row already says why. This asks only the
-     * supplies question, and a preview that stopped before pricing reports no
-     * cost, so those squads keep a full list to browse.
-     */
-    private boolean affordable(String weaponDoctrineId, String armorDoctrineId) {
-        SquadEquipmentPreview preview = roster.previewSquadEquipment(
-                selectedSquadId.get(), weaponDoctrineId, armorDoctrineId,
-                equipmentIssueResources);
-        return preview.availableCargo().covers(preview.issueCost());
-    }
+
 
     private static DoctrineTile doctrineTile(
             String id, boolean selected, String name, int rating,
@@ -951,21 +922,7 @@ public final class FleetArmoryViewModel {
         return List.copyOf(filters);
     }
 
-    /**
-     * The supplies filter, kept out of the rarity row above it because the two
-     * are different kinds of control. Rarity is a radio — exactly one band at a
-     * time — and this is a switch that narrows whichever band is showing. Put
-     * side by side they read as six alternatives, and a player who pressed
-     * "Common" then "Ready" would reasonably expect the first to have been
-     * turned off.
-     */
-    private LoadoutFilterOption buildIssuableFilter() {
-        boolean on = Boolean.TRUE.equals(issuableOnly.get());
-        return new LoadoutFilterOption("loadout-supply-filter",
-                on ? "Supplies on hand" : "Any supply cost",
-                on ? "supply-filter selected" : "supply-filter",
-                toggleIssuableOnlyAction());
-    }
+
 
     private String buildLoadoutBrowserSummary() {
         int known = equipmentPickerKind.get() == EquipmentPickerKind.WEAPON
@@ -1884,9 +1841,7 @@ public final class FleetArmoryViewModel {
 
     private static String squadEquipmentMessage(SquadEquipmentPreview preview) {
         return switch (preview.result()) {
-            case APPLIED -> preview.issueCost().isZero()
-                    ? "No material charge  ·  Current kit matches; vacant billets store the plan only."
-                    : "Ready to issue  ·  Wounded included; vacant billets cost nothing.";
+            case APPLIED -> "Machine Shop fitting is free  ·  Try and swap any learned equipment.";
             case INVALID_SQUAD -> "Select a line squad.";
             case SQUAD_NOT_READY -> "The squad changed. Review its current roll.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
@@ -1895,7 +1850,7 @@ public final class FleetArmoryViewModel {
             case MISSING_TEMPLATE ->
                     "Blocked  ·  One or more required equipment templates are not known.";
             case INSUFFICIENT_CARGO ->
-                    "Blocked  ·  Material shortages are marked below.";
+                    "The order changed. Review the current squad.";
         };
     }
 

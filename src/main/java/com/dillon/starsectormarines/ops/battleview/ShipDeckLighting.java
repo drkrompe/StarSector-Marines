@@ -27,7 +27,7 @@ final class ShipDeckLighting {
         if (graph != null) for (var room : graph.compartments()) {
             for (int y = room.top(); y <= room.bottom(); y++) for (int x = room.left(); x <= room.right(); x++)
                 if (room.contains(x, y)) owners[y * width + x] = room.id();
-            boolean emergency = graph.damaged(room.id());
+            boolean emergency = graph.emergencyLighting(room.id());
             int number = 0;
             for (int x = room.left() + 1; x <= room.right(); x += 6) {
                 for (int y : new int[]{room.top(), room.bottom()}) {
@@ -64,12 +64,12 @@ final class ShipDeckLighting {
                     } else if (d2 < second) { second = d2; selected[index + 1] = id; }
                 }
                 // Emergency lamps throw short pools; healthy circuits spread usable light farther.
-                float spread = graph != null && owner >= 0 && graph.damaged(owner) ? 9f : 18f;
+                float spread = graph != null && owner >= 0 && graph.emergencyLighting(owner) ? 9f : 18f;
                 float a = (float) Math.exp(-nearest / spread), b = (float) Math.exp(-second / spread);
                 // Overlapping fixtures soften local faults instead of exposing a nearest-lamp boundary.
                 if (a + b > 0f) { pool[index] = a * a / (a + b); pool[index + 1] = a * b / (a + b); }
             }
-            cells[y * width + x] = new Cell(x, y, graph != null && owner >= 0 && graph.damaged(owner), selected, pool);
+            cells[y * width + x] = new Cell(x, y, graph != null && owner >= 0 && graph.emergencyLighting(owner), selected, pool);
         }
     }
 
