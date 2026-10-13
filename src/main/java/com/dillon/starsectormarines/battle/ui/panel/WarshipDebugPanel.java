@@ -117,7 +117,7 @@ public final class WarshipDebugPanel implements HudPanel {
         }
     }
 
-    /** A tender's keys: build at the cursor, cancel the builds, recall or deploy the defence drones. */
+    /** A tender's keys: build at the cursor, cancel the builds, recall or deploy the defence drones, cycle the stance. */
     private boolean handleTenderKey(Tender tender, int key) {
         if (key == FIRE_KEY) {
             BattleCamera camera = ctx.getCamera();
@@ -134,6 +134,10 @@ public final class WarshipDebugPanel implements HudPanel {
         }
         if (key == FLUX_KEY) {
             DebugTender.toggleDefence(tender);
+            return true;
+        }
+        if (key == MISSILE_PRESET_KEY) {
+            DebugTender.cycleStance(tender);
             return true;
         }
         return false;

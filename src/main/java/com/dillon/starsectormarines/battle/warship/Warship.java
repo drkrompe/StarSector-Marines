@@ -765,15 +765,15 @@ public final class Warship {
         stationTo(route[routeIndex][0], route[routeIndex][1]);
     }
 
-    boolean hasStation() {
+    public boolean hasStation() {
         return hasStation;
     }
 
-    float stationX() {
+    public float stationX() {
         return stationX;
     }
 
-    float stationY() {
+    public float stationY() {
         return stationY;
     }
 

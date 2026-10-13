@@ -121,6 +121,7 @@ public final class TenderSystem {
             }
             tickDefence(t, dt, sim);
             t.pointDefence().tick(dt, sim, t);
+            TenderDirector.direct(t, sim, dt);
             tickOrders(t, dt, sim);
             tickBuilders(t, dt, sim);
         }

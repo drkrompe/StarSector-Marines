@@ -71,6 +71,7 @@ public final class Tender implements DroneAnchor {
     int defenceSquadId = -1;
     float launchClock;
     float builderClock;
+    float directorClock;
     final TenderFlight flight = new TenderFlight();
     private boolean helmed;
     private boolean defenceOutBeforeHelm = true;
@@ -415,8 +416,8 @@ public final class Tender implements DroneAnchor {
         String work = o == null ? "idle" : String.format(Locale.ROOT, "%s %s %d%%%s",
                 o.option().label(), o.phase(), Math.round(o.fraction() * 100f), o.contested() ? " CONTESTED" : "");
         return String.format(Locale.ROOT,
-                "TENDER %s  hull %d%%  shield %s  %s  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
-                ship.faction == Faction.MARINE ? "[friendly]" : "[hostile]",
+                "TENDER %s  %s  hull %d%%  shield %s  %s  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
+                ship.faction == Faction.MARINE ? "[friendly]" : "[hostile]", ship.stance(),
                 Math.round(ship.hullFraction() * 100f), ship.shieldState(),
                 metered() ? "charges " + stock : "builds free",
                 builders.size() + builderReserve, builderComplement,
