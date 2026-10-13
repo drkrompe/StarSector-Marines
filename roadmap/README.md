@@ -64,6 +64,13 @@ The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 
+After A Cold Account, Basin Reclamation offers Salvage Rights on Asharu: a night
+recovery contract with actual company lift, allied holders, an inspection party
+and a persistent claim on the grounded Shepherd. `shepherd-recovery.md` covers
+the remaining Cold Start repair battle and Working Passage departure, including
+their construction tutorial and fleet-ownership handoff. Their geography is
+authored; those two battles and the three-chapter live campaign pass remain open.
+
 ### Battle tier
 
 Mission command has one shared architecture and separate enduring strategy

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Relief establishes the first paid company job and Mara's continuing commercial relationship, alongside Castle's equipment lesson.
+Updated: 2026-10-13 — Basin Reclamation's recovery claim, night work sites and inspection-party consequences.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -15,7 +15,7 @@ withdrawing the work.
 
 ## Story arcs, chapters, and recurring work
 
-**A Working Ship** is the planned post-**A Cold Account** recovery arc on Asharu.
+**A Working Ship** is the post-**A Cold Account** recovery arc on Asharu.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
 Cooperative**, an authored local Independent employer. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
@@ -25,13 +25,27 @@ and evacuated; surviving hands return with the repair party. Armed scrappers
 occupy the abandoned yard. That outfit is the opposition, not scavengers as a
 whole; the overhead battle and local claims are mod-authored history.
 The cooperative's local permit is not planetary government authority. Completion of
-the Corvus arc and acknowledgement of its aftermath precede the proposed offer;
+the Corvus arc and acknowledgement of its aftermath precede the offer;
 neither Broken Supply Route branch changes eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
-**Working Passage**. Their authored geography and serviced-yard variants exist;
-chapter battles, campaign unlocks, partial-repair persistence and exactly-once
-fleet transfer remain open in `shepherd-recovery.md`. The map slice grants no
-fleet member or construction capability by itself.
+**Working Passage**. Salvage Rights uses the company's selected marines and fitted
+boats, with two squads recommended and two four-person squads as its minimum.
+Cooperative militia hold gains; a physical inspection party follows only after
+the company secures the cradle. The protected claim requires safe working time,
+living company cover and a surviving technician. A finite response comes along
+the haul road; victory does not require hunting every surviving scrapper.
+The fixed 18,000-credit payment and recovery claim settle once per accepted victory.
+Failed attempts preserve company and technician losses; a retry is a new contract
+attempt with a replacement cooperative inspection party, not resurrected crew.
+The original Morrow crew's complement and casualties are not inferred from that party.
+
+Salvage Rights and Cold Start take place at night. Lamps belong to occupied camp
+interiors, entrances and the wreck's service points; open ground remains dark.
+Lighting changes presentation, not perception or navigation. Cold Start's designed
+power-restoration beat brings the yard circuit online. Working Passage departs by day.
+The latter two chapter battles, partial repairs and exactly-once fleet transfer
+remain open in `shepherd-recovery.md`. A recovery claim grants no fleet member or
+construction capability by itself.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

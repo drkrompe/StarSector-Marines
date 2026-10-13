@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
@@ -119,12 +120,25 @@ public final class MissionSelectScreen implements Screen {
         putDetail(props, selectedMission, this::briefSelected, this::collapseSelected);
         if (!referral.isEmpty()) putReferral(props, office, referral);
         BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
+        if(selectedClient!=null && "marines_tamsin_vale".equals(selectedClient.contactId)) {
+            putShepherd(props, ShepherdRecoveryCampaign.current());
+        }
         if (OpeningBroker.isContact(selectedClient) && script != null && WaylineArc.stage(script.roster()) == WaylineArc.Stage.COMPLETE) {
             if (CorvusWaylineCampaign.atSite(context.planet))
                 putCorvus(props, route, selectedMission);
             else putSupplyRoute(props, route, selectedMission, SupplyRouteCampaign.destination() != null);
         }
         return props;
+    }
+
+    static void putShepherd(Map<String,Object> props, ShepherdRecoveryProgress progress) {
+            props.put("missionSummary",ShepherdRecoveryCampaign.TITLE);
+            props.put("brokerClasses","broker-dossier console-readout");
+            props.put("brokerPortrait",OpeningBroker.CREST);
+            props.put("brokerName",ShepherdRecoveryCampaign.NAME);
+            props.put("brokerRole","BASIN RECLAMATION COOPERATIVE / INDEPENDENT");
+            props.put("brokerIntroduction","Mara made the introduction. This contract is with our cooperative: recover Morrow and reopen our corridor. The repaired ship is payment in kind after all three operations; the fixed yard remains ours.");
+            props.put("brokerProgress",progress!=null && progress.claimSecured()?"CLAIM SECURED / REPAIRS NEXT":"SALVAGE RIGHTS / NIGHT RECOVERY");
     }
 
     static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {
@@ -345,6 +359,11 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if(ShepherdRecoveryCampaign.isBattle(mission))return List.of(
+                detailRow("force","Company","2 squads recommended / optional owned mech"),
+                detailRow("support","Cooperative","8 militia / 2 inspection technicians"),
+                detailRow("claim","Agreement","Secure the claim now; earn the repaired ship after all three operations"),
+                detailRow("payout","Payment on victory",NumberFormat.getIntegerInstance().format(mission.payout)+" credits"));
         if (CorvusWaylineCampaign.isBattle(mission)) return List.of(
                 detailRow("force", "Company commitment", MissionForceEnvelope.recommendedSquads(mission)
                         + " squads recommended / minimum two squads with four ready each"),

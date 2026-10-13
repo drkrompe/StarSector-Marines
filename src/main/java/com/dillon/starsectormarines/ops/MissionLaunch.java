@@ -233,6 +233,10 @@ public final class MissionLaunch {
             if (!CorvusWaylineCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to the Corvus chapter's destination before deploying.");
         }
+        if (ShepherdRecoveryCampaign.owns(m.id)) {
+            ShepherdRecoveryCampaign.requireCurrent(m);
+            if(!ShepherdRecoveryCampaign.atSite(ctx.planet))throw new IllegalStateException("Travel to Asharu before deploying.");
+        }
         boolean detachedDebugWorld = m.source.isDebug() && (ctx == null || ctx.planet == null);
         boolean enemyHasHeavyArmor = !detachedDebugWorld && !CorvusWaylineCampaign.isBattle(m)
                 && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
@@ -244,7 +248,7 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile marketProfile = (detachedDebugWorld ? TargetProfile.NEUTRAL : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+        TargetProfile marketProfile = (detachedDebugWorld ? TargetProfile.NEUTRAL : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
@@ -279,7 +283,9 @@ public final class MissionLaunch {
         Detachment constructionDetachment = det;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
-        if (CorvusWaylineCampaign.isBattle(m)) {
+        if (ShepherdRecoveryCampaign.isBattle(m)) {
+            builder=()->BattleSetup.createSalvageRights(seed,constructionDetachment.shuttleManifest,profile);
+        } else if (CorvusWaylineCampaign.isBattle(m)) {
             fixture = CorvusWaylineCampaign.requireCurrent(m).chapter().fixture(seed, constructionDetachment.shuttleManifest, profile);
             builder = fixture::build;
         } else if (SupplyRouteCampaign.isBattle(m)) {
@@ -384,7 +390,7 @@ public final class MissionLaunch {
     static HostileShipReport hostileShipFor(Mission m, TargetProfile profile, String defenderFactionId,
                                             ShipSupportSource declared) {
         if (defenderFactionId == null || defenderFactionId.isEmpty() || m.source == MissionSource.STATIONING
-                || CorvusWaylineCampaign.isBattle(m)) return HostileShipReport.declared(declared);
+                || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)) return HostileShipReport.declared(declared);
         try {
             boolean campaign = !m.source.isDebug();
             return HostileShipSelection.resolve(declared, campaign, profile,
@@ -460,11 +466,12 @@ public final class MissionLaunch {
             CommandPowerResources liveResources = m.source.isDebug() ? CommandPowerResources.FREE
                     : new CampaignCommandPowerResources();
             boolean supplyRoute = SupplyRouteCampaign.isBattle(m);
-            if (CorvusWaylineCampaign.isBattle(m)
+            boolean shepherd = ShepherdRecoveryCampaign.isBattle(m);
+            if ((CorvusWaylineCampaign.isBattle(m) || shepherd)
                     && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                 throw new IllegalStateException("Select at least two squads with four ready marines each.");
             BrokenSupplyRouteProgress route = supplyRoute ? SupplyRouteCampaign.requireCurrent(m) : null;
-            if (supplyRoute) {
+            if (supplyRoute || shepherd) {
                 if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                     throw new IllegalStateException("Select at least two squads with four ready marines each.");
                 deployment.applyToAuthoredPlayerLift(sim);
@@ -475,7 +482,7 @@ public final class MissionLaunch {
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
             if (authoredDebugLift) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, supplyRoute || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, supplyRoute || shepherd || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
@@ -488,6 +495,7 @@ public final class MissionLaunch {
 
             if (route != null && !route.begin(m.id)) throw new IllegalStateException("This supply-route attempt has already launched.");
             if (CorvusWaylineCampaign.isBattle(m)) CorvusWaylineCampaign.begin(m);
+            if (shepherd) ShepherdRecoveryCampaign.begin(m);
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();

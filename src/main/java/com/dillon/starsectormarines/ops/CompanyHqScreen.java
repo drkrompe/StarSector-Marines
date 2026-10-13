@@ -68,6 +68,8 @@ public final class CompanyHqScreen implements Screen {
             document.layout(viewport.documentWidth(), viewport.documentHeight());
         }
         if (preparationGuide != null) preparationGuide.update();
+        if (ShepherdRecoveryCampaign.current() != null)
+            CompanyNotices.Notice.SHEPHERD_RECOVERY.review(CompanyPreparationGuide.roster());
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -139,7 +141,7 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void onOpeningCourse() {
-        OpeningBroker.Destination destination = CorvusWaylineCampaign.current() != null
+        OpeningBroker.Destination destination = ShepherdRecoveryCampaign.current()!=null ? ShepherdRecoveryCampaign.destination() : CorvusWaylineCampaign.current() != null
                 ? CorvusWaylineCampaign.destination() : SupplyRouteCampaign.destination();
         if (destination == null || destination.planet() == null) return;
         Global.getSector().getCampaignUI().layInCourseForNextStep(destination.planet());

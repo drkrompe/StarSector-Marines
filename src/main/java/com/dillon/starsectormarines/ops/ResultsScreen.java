@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
@@ -74,6 +75,11 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     }
 
     @Override protected void onDetach() {
+        if(presentedOutcome!=null && presentedOutcome.missionSource==MissionSource.STORY
+                && MissionDebriefConversation.coldAccount(presentedOutcome)) {
+            var script=CampaignStateScript.getInstance();
+            if(script!=null && script.state().corvusWayline!=null)script.state().corvusWayline.acknowledgeAftermath();
+        }
         debriefNarration.stop();
         resultMarkup = null;
     }
@@ -226,6 +232,16 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             var route = SupplyRouteCampaign.current();
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);
+        }
+        if(outcome!=null && outcome.salvageRights!=null) {
+            props.put("storyClasses","story-dispatch console-readout");
+            props.put("storyPortrait",OpeningBroker.CREST);
+            props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
+            props.put("storyProgress",outcome.victory?"RECOVERY CLAIM SECURED / SHIP STILL GROUNDED":"INSPECTION UNFINISHED / RETRY AVAILABLE");
+            props.put("storyMessage",(outcome.victory?
+                    "The drone workshop can be saved. Your payment is released and the recovery claim is protected. Our militia will hold the workshop. Morrow still needs shore power, repairs and a clear departure corridor; no ship has entered your fleet. Vale is arranging the repair mobilization.":
+                    "Bring your company home. No claim or payment is awarded. Confirmed company and inspection losses remain on record; Vale will assign a new party for another attempt.")
+                    +" Inspection technicians lost: "+outcome.salvageRights.crewLost()+".");
         }
     }
 

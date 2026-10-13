@@ -25,7 +25,7 @@ final class SecondSquadPreparation {
                 && roster.readyCount(s) == MarineSquad.CAPACITY).count();
         long formations = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
         int ready = roster.lineReadySoldiers().size();
-        String requirements = SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission)
+        String requirements = SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission)
                 ? "The launch minimum is two squads with four ready marines each."
                 : "Check the briefing's deployment requirements before committing.";
         StringBuilder copy = new StringBuilder("Commander, we are taking on larger jobs. This operation recommends ")

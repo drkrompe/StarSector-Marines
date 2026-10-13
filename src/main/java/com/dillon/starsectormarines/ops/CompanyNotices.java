@@ -12,6 +12,7 @@ import java.util.List;
 /** Unread opportunities, never another owner of rewards, eligibility or payment. */
 final class CompanyNotices {
     enum Notice {
+        SHEPHERD_RECOVERY("shepherd-recovery", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "Mara's introduction to Tamsin Vale"),
         SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Secondhand Wings"),
         SECOND_BAY("second-bay", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Second bay restoration"),
         FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "Castle's first refit"),
@@ -31,7 +32,10 @@ final class CompanyNotices {
     static List<Notice> current() {
         MarineRoster roster = CompanyPreparationGuide.roster();
         if (roster == null || Global.getSector() == null) return List.of();
-        return unread(roster, CompanyBayRestoration.state(CompanyShipDesignation.aboard()));
+        var found = new ArrayList<>(unread(roster, CompanyBayRestoration.state(CompanyShipDesignation.aboard())));
+        var recovery = ShepherdRecoveryCampaign.current();
+        add(found, roster, Notice.SHEPHERD_RECOVERY, recovery != null && !recovery.claimSecured());
+        return List.copyOf(found);
     }
 
     /** Funds and docking do not hide a newly unlocked opportunity. */
@@ -54,7 +58,7 @@ final class CompanyNotices {
     static String summary(List<Notice> notices) {
         if (notices.isEmpty()) return "";
         Notice first = notices.get(0);
-        String room = first.page == MarineOpsPageNav.Page.BOAT_DECK ? "BOATS"
+        String room = first.page == MarineOpsPageNav.Page.HQ ? "HQ" : first.page == MarineOpsPageNav.Page.BOAT_DECK ? "BOATS"
                 : first.page == MarineOpsPageNav.Page.MECH_LAB ? "MECH LAB" : "BARRACKS";
         return "NEW / " + room + ": " + first.label
                 + (notices.size() > 1 ? "  (+" + (notices.size() - 1) + ")" : "");

@@ -41,7 +41,8 @@ public final class DebugMissionCatalog {
         CREW_RECOVERY("Repeatable work", "Crew Recovery", "A fresh rescue manifest; no previous rescues or losses.", 2, true),
         ROUTE_SECURITY("Repeatable work", "Route Security", "A fresh relay security contract.", 2, true),
         VETERANS_JOB("Independent stories", "The Veteran's Job", "Raid the broker's cache and extract.", 3, false),
-        SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false);
+        SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
+        SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", 2, false);
         public final String group, title, description;
         public final int squads;
         public final boolean hound;
@@ -73,9 +74,11 @@ public final class DebugMissionCatalog {
                 case ROUTE_SECURITY -> "R4";
                 case VETERANS_JOB -> "S1";
                 case SILENT_COLONY -> "E1";
+                case SALVAGE_RIGHTS -> "02";
             };
         }
         public String location() {
+            if(this==SALVAGE_RIGHTS)return "Asharu";
             if (corvus() != null) return corvus().planetName;
             return this == VETERANS_JOB || this == SILENT_COLONY ? "Unfixed site" : "Jangala";
         }
@@ -93,6 +96,7 @@ public final class DebugMissionCatalog {
                 case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY -> "Repeatable work / Outside the numbered story sequence";
                 case VETERANS_JOB -> "Standalone story / Location varies in campaign";
                 case SILENT_COLONY -> "Campaign event / Location varies in campaign";
+                case SALVAGE_RIGHTS -> "A Working Ship 1 of 3 / After Garnir 01";
             };
         }
         public Mission mission() {
@@ -167,6 +171,7 @@ public final class DebugMissionCatalog {
         if (chapter != null) return chapter.fixture(seed, manifest, chapter.profile(chapter.surface)).build();
         TargetProfile profile = new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
         return switch (scenario) {
+            case SALVAGE_RIGHTS -> BattleSetup.createSalvageRights(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
             case RELIEF, MILITIA_RELIEF -> BattleSetup.createOpeningOperation(seed, manifest, 1, OpeningOperationKind.RELIEF, profile, false);
             case COUNTERATTACK, DEPOT_CLEARANCE -> BattleSetup.createOpeningOperation(seed, manifest, 1, OpeningOperationKind.COUNTERATTACK, profile, scenario == Scenario.COUNTERATTACK);
             case JUNCTION -> BattleSetup.createJunction(seed, manifest, profile);

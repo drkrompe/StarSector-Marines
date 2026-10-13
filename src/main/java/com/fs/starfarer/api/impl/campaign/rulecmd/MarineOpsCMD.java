@@ -3,6 +3,7 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
 import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
+import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -41,7 +42,7 @@ public class MarineOpsCMD extends BaseCommandPlugin {
         String sub = params.get(0).getString(memoryMap);
         if ("storySite".equals(sub)) {
             return dialog.getInteractionTarget() instanceof PlanetAPI planet
-                    && CorvusWaylineCampaign.atSite(planet);
+                    && (CorvusWaylineCampaign.atSite(planet) || ShepherdRecoveryCampaign.atSite(planet));
         }
         if ("open".equals(sub)) {
             if (CompanyYardCMD.openRequired(dialog, memoryMap)) return true;

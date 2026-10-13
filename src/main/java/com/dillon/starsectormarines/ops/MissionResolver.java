@@ -300,7 +300,7 @@ public final class MissionResolver {
         int payoutEarned = SupplyRouteCampaign.isBattle(mission)
                 ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome(),
                         sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
-                : CorvusWaylineCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
+                : CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
                 : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
@@ -367,6 +367,7 @@ public final class MissionResolver {
         int specialtyRecovery = OfficerMissionResult.salvageBonus(officers, victory, marinesEngaged);
 
         return MissionOutcome.builder()
+                .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))
@@ -466,6 +467,10 @@ public final class MissionResolver {
         if (CorvusWaylineCampaign.owns(outcome.missionId)
                 && (cargo == null || CorvusWaylineCampaign.settle(outcome) < 0)) {
             LOG.info("MarineOps: refused stale or invalid Corvus outcome " + outcome.missionId);
+            return;
+        }
+        if (ShepherdRecoveryCampaign.owns(outcome.missionId) && (cargo==null || ShepherdRecoveryCampaign.settle(outcome)<0)) {
+            LOG.info("MarineOps: refused stale or invalid recovery outcome "+outcome.missionId);
             return;
         }
         if (cargo != null) {

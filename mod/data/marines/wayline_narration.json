@@ -6,6 +6,51 @@
   "voiceSettings": {},
   "lines": [
     {
+      "id": "basin_salvage_arrival", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.arrival",
+      "text": "Vale here. The lit buildings are occupied. Clear the receiving store, then the repair workshop. Our militia will follow your gains; they are not racing you to Morrow.",
+      "durationSeconds": 12, "priority": 10, "expiresSeconds": 25, "speaker": "TAMSIN VALE / BASIN RECLAMATION", "portrait": "", "voiced": false
+    },
+    {
+      "id": "basin_salvage_workshop", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.workshop",
+      "text": "Receiving store clear. Take the workshop next. Leave the salvage rows alone unless someone is using them to shoot at you.",
+      "durationSeconds": 10, "priority": 10, "expiresSeconds": 25, "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false
+    },
+    {
+      "id": "basin_salvage_cradle", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.cradle",
+      "text": "Workshop secure. My militia are moving up to hold it. Take the southern service access at Morrow; the inspection party will wait until you have secured it.",
+      "durationSeconds": 12, "priority": 15, "expiresSeconds": 30, "speaker": "TAMSIN VALE / BASIN RECLAMATION", "portrait": "", "voiced": false
+    },
+    {
+      "id": "basin_salvage_hull", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.morrow_sighted",
+      "text": "Her crew put her down there with half the controls dead. Some of them are working with our repair team. They know what can be saved.",
+      "durationSeconds": 12, "priority": 10, "expiresSeconds": 30, "speaker": "TAMSIN VALE / BASIN RECLAMATION", "portrait": "", "voiced": false
+    },
+    {
+      "id": "basin_salvage_road", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.road_warning",
+      "text": "Keep a watch on the south haul road. That is the scrappers' route back to the yard. Do not leave the inspection party without company cover.",
+      "durationSeconds": 11, "priority": 12, "expiresSeconds": 40, "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false
+    },
+    {
+      "id": "basin_salvage_inspection", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.inspection",
+      "text": "Service access secured. Our technicians are crossing now. Keep your company near the work area and stop the road response. They can only inspect while the ground is safe.",
+      "durationSeconds": 12, "priority": 15, "expiresSeconds": 35, "speaker": "TAMSIN VALE / BASIN RECLAMATION", "portrait": "", "voiced": false
+    },
+    {
+      "id": "basin_salvage_contested", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.inspection_contested",
+      "text": "Break off the inspection. Hostiles at the service access. Company, clear them out and keep our people covered.",
+      "durationSeconds": 9, "priority": 20, "expiresSeconds": 20, "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false
+    },
+    {
+      "id": "basin_salvage_secured", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.secured",
+      "text": "Drone workshop is recoverable. The claim is protected. She still needs shore power and a clear road out, but now we know what we are working for.",
+      "durationSeconds": 12, "priority": 30, "expiresSeconds": 30, "speaker": "TAMSIN VALE / BASIN RECLAMATION", "portrait": "", "voiced": false, "terminal": true
+    },
+    {
+      "id": "basin_salvage_failed", "missionId": "story_shepherd_salvage", "event": "shepherd.salvage.failed",
+      "text": "We've lost the inspection party. Pull the company out. This claim can wait; those people cannot be replaced by a line on an invoice.",
+      "durationSeconds": 11, "priority": 30, "expiresSeconds": 30, "speaker": "CASTLE / COMPANY OPERATIONS", "portrait": "graphics/portraits/castle.png", "voiced": false, "terminal": true
+    },
+    {
       "id": "marines_mara_relief_briefing",
       "missionId": "story_opening_relief",
       "event": "briefing",
