@@ -745,7 +745,9 @@ public class BattleSprites {
         loadLayeredFamily(LayeredArmorFamily.PALATINE, "palatine", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.FURNACE_LINE, "furnace-line", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.REAVER, "reaver", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.SPECTER_HEAVY, "specter-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.SPECTER_HEAVY, "specter-heavy",
+                loadLayeredSprite(MODULAR_ROOT + "armor/specter-heavy/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.BULWARK_HEAVY, "bulwark-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.RELIQUARY_HEAVY, "reliquary-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.LIONS_MANTLE, "lions-mantle", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);

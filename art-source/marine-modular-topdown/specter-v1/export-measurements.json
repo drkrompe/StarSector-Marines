@@ -1,0 +1,168 @@
+{
+  "source_dimensions": [
+    1672,
+    941
+  ],
+  "source_sha256": "abec03220ff7c1cedf4f9ac0ba232f0eaea2d767ba4aa45377e350cdf50de2ee",
+  "material_id_sha256": "959ecb4f70853f48d7d9a994dbd5abd4c2ae689d6352609585f5c18716e3bcf2",
+  "parts": {
+    "body": {
+      "cut": [
+        80,
+        245,
+        770,
+        695
+      ],
+      "content_bounds_in_cut": [
+        20,
+        24,
+        657,
+        427
+      ],
+      "source_content_bounds": [
+        100,
+        269,
+        737,
+        672
+      ],
+      "material_bounds": [
+        75,
+        242,
+        851,
+        730
+      ],
+      "registration_scale": [
+        0.8208762886597938,
+        0.8258196721311475
+      ],
+      "registration_translation": [
+        38.43427835051546,
+        69.15163934426229
+      ],
+      "protected_cyan_source_pixels": 442,
+      "protected_dark_source_pixels": 75636,
+      "protected_regions": [
+        {
+          "id": "rear-left-vent-mesh",
+          "bounds": [
+            324,
+            607,
+            388,
+            651
+          ]
+        },
+        {
+          "id": "rear-right-vent-mesh",
+          "bounds": [
+            451,
+            607,
+            515,
+            651
+          ]
+        }
+      ],
+      "protected_region_source_pixels": 5632,
+      "export_size": [
+        150,
+        95
+      ],
+      "casing_coverage": 0.46227381358825537
+    },
+    "head": {
+      "cut": [
+        890,
+        285,
+        1170,
+        555
+      ],
+      "content_bounds_in_cut": [
+        26,
+        28,
+        252,
+        244
+      ],
+      "source_content_bounds": [
+        916,
+        313,
+        1142,
+        529
+      ],
+      "material_bounds": [
+        957,
+        318,
+        1237,
+        581
+      ],
+      "registration_scale": [
+        0.8071428571428572,
+        0.8212927756653993
+      ],
+      "registration_translation": [
+        143.5642857142857,
+        51.82889733840307
+      ],
+      "protected_cyan_source_pixels": 398,
+      "protected_dark_source_pixels": 15543,
+      "protected_regions": [],
+      "protected_region_source_pixels": 0,
+      "export_size": [
+        72,
+        69
+      ],
+      "casing_coverage": 0.5507632662951296
+    },
+    "foot": {
+      "cut": [
+        1350,
+        305,
+        1570,
+        620
+      ],
+      "content_bounds_in_cut": [
+        25,
+        25,
+        195,
+        292
+      ],
+      "source_content_bounds": [
+        1375,
+        330,
+        1545,
+        597
+      ],
+      "material_bounds": [
+        1375,
+        327,
+        1589,
+        655
+      ],
+      "registration_scale": [
+        0.794392523364486,
+        0.8140243902439024
+      ],
+      "registration_translation": [
+        282.71028037383167,
+        63.8140243902439
+      ],
+      "protected_cyan_source_pixels": 0,
+      "protected_dark_source_pixels": 18652,
+      "protected_regions": [],
+      "protected_region_source_pixels": 0,
+      "export_size": [
+        38,
+        52
+      ],
+      "casing_coverage": 0.42538699690402476
+    }
+  },
+  "body_socket_bounds": [
+    307,
+    307,
+    530,
+    513
+  ],
+  "body_socket_center": [
+    418.5,
+    410.0
+  ]
+}

@@ -89,16 +89,19 @@ component inventory, lances, Mech Lab, and Mech Support authority.
 
 ## Visual direction
 
-The first asset should be the XIV shock battlesuit. Its language is utilitarian
-Domain-derived service hardware, as established in `hegemony-lore-guide.md`.
-It must read as a person encased in a powered shell at ordinary battle scale:
+The first layered asset is the Specter. Its restrained composite silhouette is
+the selected direction; the exploratory Foundry-breaker is too cartoonish and
+does not establish an accepted production silhouette. Every suit must read as
+a person encased in a powered shell at ordinary battle scale:
 a helmet seated between broad shoulders, a continuous torso with a compact
 backpack power unit, visible elbow and knee articulation, and two walking legs.
 Keep enough human proportion that it cannot be mistaken for a Hound chassis.
 The retained exploratory sheet is `art-source/marine-modular-topdown/power-suit-concept.png`;
 the adjacent `.prompt.txt` records the built-in ImageGen prompt and source dimensions.
 
-The top-down silhouette should be broader and heavier than Legionary line armor,
+The XIV shock battlesuit retains utilitarian Domain-derived service hardware,
+as established in `hegemony-lore-guide.md`. Its top-down silhouette should be
+broader and heavier than Legionary line armor,
 with a clear armored collar, square shoulder caps, slab forearm protection and
 reinforced lower legs. Use the XIV's muted oxide red and charcoal, or military
 gray/olive service variants, warm worn plate edges,
@@ -108,14 +111,24 @@ or weapons that imply unimplemented hardpoints. The ordinary handheld primary
 must remain legible against the torso. Shoulder equipment belongs to the issued
 integral system and is present only where the composition contract calls for it.
 
-The second concept is the Specter: narrower articulated limbs, smooth composite
+The Specter uses narrower articulated limbs, smooth composite
 shoulder shells, a compact dark power pack, sealed seams, and small sensor
 clusters. It keeps the readable powered frame but gives up slab volume for
 mobility. Blue or pale technical accents identify corporate manufacture without
-using a glowing whole-body effect to imply permanent shielding. Its predictive
+using a glowing whole-body effect to imply permanent shielding. Casing colors
+may vary independently of dark joints, hardware, and sensor accents. Its predictive
 breach treatment remains a temporary capability with an ordinary expiry.
 
-The third concept is the Foundry-breaker: mismatched welded ship plate over
+The top-down production contract keeps the body shell, helmet, feet, and weapon
+separate. The helmet looks independently inside the collar; the two feet move
+independently beneath the body. Handheld weapons remain swappable infantry
+equipment. Paint variants share identical silhouettes and registration so color
+never changes articulation or physical geometry. Slate, olive, oxide, and sand
+provide the first casing palette; campaign cosmetic selection remains a separate
+design decision. Source plates, material masks, geometry, and export recipes
+belong together under `art-source/marine-modular-topdown/specter-v1/`.
+
+The Foundry-breaker needs a more grounded revision: mismatched welded ship plate over
 a visible cargo exoframe, irregular shoulder mass, load-bearing struts, guarded
 hoses, crude welding seams, and a salvaged power pack. Rust, soot, industrial
 yellow remnants, and dull steel identify origin. Irregularity must not make the
