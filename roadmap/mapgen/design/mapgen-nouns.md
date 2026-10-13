@@ -292,7 +292,11 @@ southern hills replace outer filler blocks, leaving low-ground infantry routes
 behind the roadside facilities. Missile batteries stand on complete summit
 caps along the northern hills, overlooking the two convoy legs. They have no
 infantry approach, valley gun court or capture duty: their placement presents
-an elevated threat to aircraft. Their foundations and destruction leave the
+an elevated threat to aircraft. Cleared concrete hardstands, sandbag perimeters,
+radar and power equipment, and grouped supply stores make each a prepared SAM
+compound. Flat surface overlays and every equipment footprint stay on complete
+summit cells; dressing never grants access or extends across cliff faces.
+Their foundations and destruction leave the
 underlying terrain impassable. Cross streets remain full-width cuts through
 the hills, and the entire western staging and boat approach stays clear.
 Finished berths, interior anchors and the road-reserve approaches remain
