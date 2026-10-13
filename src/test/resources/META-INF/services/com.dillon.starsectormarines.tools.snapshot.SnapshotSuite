@@ -102,3 +102,5 @@ com.dillon.starsectormarines.battle.warship.ShipSupportCallSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HostileShipSupportSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipArrivalSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipLowPassSceneSnapshotSuite
+
+com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsSceneSnapshotSuite

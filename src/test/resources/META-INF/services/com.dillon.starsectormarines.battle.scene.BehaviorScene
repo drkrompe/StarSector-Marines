@@ -38,3 +38,5 @@ com.dillon.starsectormarines.battle.warship.ShipSupportCallScene
 com.dillon.starsectormarines.battle.warship.HostileShipSupportScene
 com.dillon.starsectormarines.battle.warship.ShipArrivalScene
 com.dillon.starsectormarines.battle.warship.ShipLowPassScene
+
+com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsScene

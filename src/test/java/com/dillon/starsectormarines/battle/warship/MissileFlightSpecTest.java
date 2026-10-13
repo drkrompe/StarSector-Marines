@@ -175,4 +175,31 @@ class MissileFlightSpecTest {
         assertEquals(175f, reaper.damageRadiusPx(), 0f);
         assertEquals(350f, reaper.explosionRadiusPx(), 0f);
     }
+
+    @Test
+    void theInstalledMultiWarheadMissilesSayWhetherTheyMaySplitEarlyAndWhetherTheyFlank() {
+        InstalledVanillaData.install();
+        VanillaWeapon hurricane = VanillaWeapons.get("hurricane");
+        assumeTrue(hurricane != null, "the game install is not available");
+        assertTrue(hurricane.flight().mirv().canSplitEarly());
+        assertTrue(VanillaWeapons.get("sabot").flight().mirv().canSplitEarly());
+        assertTrue(!VanillaWeapons.get("hydra").flight().mirv().canSplitEarly());
+        assertTrue(VanillaWeapons.get("hydra").flight().mirv().flanks());
+        assertEquals(1050f, VanillaWeapons.get("hydra").flight().mirv().flankApproachPx(), 0f);
+        assertTrue(!hurricane.flight().mirv().flanks());
+    }
+
+    @Test
+    void theInstalledDragonfireStandsOffAndPaintsBeforeItsBeam() {
+        InstalledVanillaData.install();
+        VanillaWeapon dragon = VanillaWeapons.get("dragon");
+        assumeTrue(dragon != null, "the game install is not available");
+        MissileFlightSpec.Standoff standoff = dragon.flight().standoff();
+        assertNotNull(standoff);
+        assertEquals(700f, standoff.standoffPx(), 0f);
+        assertEquals(3f, standoff.paintSeconds(), 0f);
+        assertEquals(1f, standoff.fireSeconds(), 0f);
+        assertEquals("dragon_payload", standoff.payloadWeaponId());
+        assertNull(VanillaWeapons.get("harpoon").flight().standoff());
+    }
 }
