@@ -32,9 +32,9 @@ standardizes bills across rooms.
 - Replenishment remains a separate explicit order: ready named reserves first,
   then cargo Marines, with exact available draw and remaining vacancies disclosed.
   Filling vacancies does not claim full combat readiness while WIA remain.
-- Equipment issue remains separate and cargo-backed. Explain which selected
+- Equipment fitting remains separate and free for learned technology. Explain which selected
   squads are skipped and why. Wounded and understrength squads can receive kit;
-  only occupied billets incur equipment charges, and recovery state is unchanged.
+  occupied billets receive kit without material charges, and recovery state is unchanged.
 - Preserve selection when visiting a selected squad's Armory workspace. Expose
   the existing squad-founding route clearly from an empty Barracks; moving the
   founding transaction itself is not required for this bounded pickup.
@@ -76,7 +76,7 @@ the mission/tutorial session continues to own battle teaching and opening conten
    stale plans cannot partially move personnel. Repeating Apply cannot replay a plan.
 3. Limited reserves/cargo produce an honest partial refill and explicit shortfall;
    a squad with eight ready and four WIA has zero replaceable vacancies.
-4. Selected equipment issue explains all skipped squads and the combined bill.
+4. Selected equipment issue explains all skipped squads and free fitting.
 5. Results with/without salvage and Retreat reach preparation without forfeiting
    an unreviewed claim or settling twice. The player can return to local work.
 6. First-use guide, dismissal, replay and save compatibility are checked. No

@@ -49,33 +49,17 @@ class BarracksEquipmentIssueTest {
         assertNull(squads.get(1).squadProfileId());
     }
 
-    @Test void combinedBillIsPaidOnceAndShortageCannotPartiallyIssue() {
+    @Test void batchFittingWorksWithEmptyCargoAndNeverPays() {
         var squads = squads(2);
         var ids = Set.of(squads.get(0).id(), squads.get(1).id());
-        var profile = profile();
-        roster.assignSquadProfile(ids, profile.id());
-        var cargo = new Cargo();
+        var profile = profile(); roster.assignSquadProfile(ids, profile.id());
+        var cargo = new Cargo(); cargo.accept = false;
         var issue = new BarracksEquipmentIssue(roster, cargo);
-        var bill = issue.preview(ids).cost();
-        assertFalse(bill.isZero());
-        cargo.available = roster.previewSquadEquipment(squads.get(0).id(), profile.weaponDoctrineId(),
-                profile.armorDoctrineId(), EquipmentIssueResources.UNLIMITED).issueCost();
-        var original = squads.stream().map(MarineSquad::armorDoctrineId).toList();
-        assertFalse(issue.apply(ids).succeeded());
-        assertEquals(0, cargo.payments);
-        assertEquals(original, squads.stream().map(MarineSquad::armorDoctrineId).toList());
-        cargo.available = bill;
-        cargo.accept = false;
-        assertFalse(issue.apply(ids).succeeded());
-        assertEquals(original, squads.stream().map(MarineSquad::armorDoctrineId).toList());
-        cargo.accept = true;
-        assertEquals(new BarracksEquipmentIssue.Result(2, 0, true), issue.apply(ids));
-        assertEquals(1, cargo.payments);
-        assertEquals(bill, cargo.paid);
         assertTrue(issue.preview(ids).cost().isZero());
+        assertEquals(new BarracksEquipmentIssue.Result(2, 0, true), issue.apply(ids));
         assertTrue(squads.stream().allMatch(s -> profile.id().equals(s.squadProfileId())));
         assertTrue(issue.apply(ids).succeeded());
-        assertEquals(1, cargo.payments, "conforming equipment incurs no further charge");
+        assertEquals(0, cargo.payments);
     }
 
     @Test void recoveringSquadsReceiveKitWhileStationedAndStaleSelectionsRemainBlocked() {

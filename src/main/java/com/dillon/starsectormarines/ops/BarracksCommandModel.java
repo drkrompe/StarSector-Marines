@@ -203,14 +203,14 @@ public final class BarracksCommandModel {
             var plan = equipment.preview(selected);
             return plan.eligible() + " eligible / " + plan.skipped() + " skipped";
         });
-        bind(reactor, "issueCost", () -> equipment.preview(selected).cost().display());
+        bind(reactor, "issueCost", () -> "Machine Shop fitting is free for learned equipment.");
         bind(reactor, "issueDisabled", () -> {
             var plan = equipment.preview(selected);
             return plan.eligible() == 0 || !plan.affordable();
         });
         bind(reactor, "issueReason", () -> {
             var plan = equipment.preview(selected);
-            if (!selected.isEmpty() && !plan.affordable()) return "Insufficient cargo for the combined bill.";
+            if (!selected.isEmpty() && !plan.affordable()) return "Select current squads to fit.";
             return plan.entries().stream().filter(e -> !e.eligible())
                     .map(e -> roster.squadById(e.squadId()).name() + ": " + e.reason())
                     .reduce((a, b) -> a + "\n" + b).orElse("Ready squads receive their assigned equipment. Personnel orders never change kit.");
@@ -582,7 +582,7 @@ public final class BarracksCommandModel {
         var result = equipment.apply(selected);
         if (guideVisible() && guideStep == 4 && result.succeeded()) guideStep = 5;
         feedback = result.succeeded() ? "Issued equipment to " + result.issued() + " squads; " + result.skipped() + " skipped."
-                : "Issue blocked. Check personnel readiness, known equipment and the combined cargo bill.";
+                : "Fitting blocked. Check stationed squads and required technology.";
         changed.run();
     }
     public boolean guideVisible() {
@@ -728,7 +728,7 @@ public final class BarracksCommandModel {
             return reviewedTransfers.canApply() ? "Check the projected strengths, then Apply Transfers when satisfied. The guide advances after the order succeeds." : reviewedTransfers.reason() + " Next continues without transferring anyone.";
         }
         if (guideStep == 3) return recruitment().replace("\n", " / ") + ". Fill Vacancies if needed, or Next to continue.";
-        return "Review the equipment bill and skipped-squad reasons, then Issue Assigned Equipment. Next continues without spending cargo.";
+        return "Review the assigned equipment and skipped-squad reasons, then Issue Assigned Equipment. The Machine Shop fits learned equipment for free.";
     }
 
     private CompanyManagementGuide.Line guideLine() {

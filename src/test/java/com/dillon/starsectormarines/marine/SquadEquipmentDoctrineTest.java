@@ -361,42 +361,22 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
-    void squadIssueConsumesChangedIncomingCargoAtomicallyAndMatchingKitIsFree() {
+    void squadFittingAndRepeatedSwapsNeverConsultOrSpendCargo() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
-        TestResources resources = new TestResources(EquipmentTemplateCost.ZERO);
-        List<WeaponDef> priorWeapons = roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList();
-
-        SquadEquipmentPreview blocked = roster.previewSquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources);
-        assertFalse(blocked.issueCost().isZero());
-        assertEquals(SquadEquipmentResult.INSUFFICIENT_CARGO, blocked.result());
-        assertEquals(SquadEquipmentResult.INSUFFICIENT_CARGO, roster.applySquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources));
-        assertEquals(0, resources.spendCalls);
-        assertNull(squad.weaponDoctrineId());
-        assertEquals(priorWeapons, roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList());
-
-        resources.available = blocked.issueCost();
-        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources));
-        assertEquals(1, resources.spendCalls);
-        assertEquals(EquipmentTemplateCost.ZERO, resources.available);
-
-        SquadEquipmentPreview matching = roster.previewSquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources);
-        assertEquals(EquipmentTemplateCost.ZERO, matching.issueCost());
-        assertTrue(matching.canApply());
-        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources));
-        assertEquals(1, resources.spendCalls);
+        EquipmentIssueResources resources = new EquipmentIssueResources() {
+            public EquipmentTemplateCost available() { throw new AssertionError("Fitting must not read cargo"); }
+            public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not charge cargo"); }
+        };
+        for (String weapons : List.of(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)) {
+            var preview = roster.previewSquadEquipment(squad.id(), weapons, SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources);
+            assertTrue(preview.canApply());
+            assertTrue(preview.issueCost().isZero());
+            assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(), weapons,
+                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources));
+            assertEquals(weapons, squad.weaponDoctrineId());
+        }
     }
 
     @Test

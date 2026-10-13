@@ -20,8 +20,8 @@ collections/objects and maps them to stable equipment-template ids without
 stripping capabilities from old saves.
 
 **There is no counted armoury inventory, and nothing should add one back.**
-Equipment is owned as permanent template cards; issuing kit against a card
-spends fleet cargo through `EquipmentTemplateCost`. The former print-stock
+Equipment is owned as permanent technology specs; the Machine Shop fits and swaps
+learned kit freely without reading or spending fleet cargo. The former print-stock
 economy — a per-item owned count, per-soldier allocation reserved against it,
 and fabrication materials to print more — was deleted once it had no live
 callers left. Anything that needs to cost the player materiel must reach the
@@ -56,8 +56,8 @@ write them directly:
 Squad **equipment doctrine assignment is authored state**, not another derived
 rollup. `MarineSquad` holds one weapon doctrine id and one armor doctrine id;
 `MarineRoster.applySquadEquipment` changes both only after the complete
-twelve-billet template and cargo transaction succeeds. It prices changed incoming
-kit, never refunds removed kit, and spends nothing until the full issue can commit.
+twelve-billet technology validation succeeds. Fitting is free; stationing and
+unknown technology remain blockers.
 `MarineArmory` persists a custom **weapon** definition catalog while built-ins
 remain immutable fixtures; authoring consumes nothing but may reference only
 collected templates. **There is no custom armour catalog and nothing should add
@@ -74,8 +74,8 @@ state consumed by deployment and battle.
 Built-in starter definitions are exact distributions, not best-fit suggestions.
 Their first billet in each four-person team receives the leader's scarce weapon and
 armor issue. `MarineArmory` must seed or repair every matching template card on new
-and migrated saves; the campaign resource authority separately decides whether the
-fleet has enough cargo to materialize that baseline pair.
+and migrated saves; the campaign founding authority separately charges for personnel and baseline
+stores when raising a new squad. Equipment fitting itself is free.
 
 Equipment-template acquisition enters the campaign through a parameterized
 special cargo item. Its data is the stable equipment-template id; learning it
