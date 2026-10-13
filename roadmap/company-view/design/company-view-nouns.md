@@ -271,12 +271,9 @@ carry Service Rooks. Both omit carried specials, disclosed in the review.
 Armor still resolves from the company's owned patterns through the ordinary role
 and tradition rules. These are a bounded introduction to the existing catalog,
 not a separate equipment economy or a restriction on later Armory authorship.
-Milspec infantry primaries consume supplies rather than restricted heavy armaments.
-Their supply costs retain the value of the military issue while keeping its
-materials available through civilian trade. With the opening collection, both paths require only supplies and machinery,
-so the lesson can be provisioned through ordinary legal trade on Jangala. Masterwork
-weapons, heavy suits and specialized hardware retain their catalog requirements;
-a later owned armor pattern can change the resolved order and its visible bill.
+All learned infantry equipment is freely fitted and swapped by the Machine Shop.
+No supplies, armaments, machinery, or credits are charged for fitting; technology
+acquisition remains the progression gate. Workshop restoration does not gate fitting.
 
 After Relief, the debrief prominently announces the available equipment upgrade
 and opens Castle's lesson directly. The notice remains on later non-debug
@@ -286,16 +283,16 @@ their existing ownership.
 
 The player accepts the patterns, selects an actual line squad, chooses one path,
 and reviews twelve clickable equipment squares in three fire-team columns of
-four billets, alongside Cost, Available and Short by. The grid uses the Barracks'
+four billets, alongside current and proposed equipment. The grid uses the Barracks'
 current-equipment icons, with wounded and vacant slots identified. Selecting a
 square displays current and proposed weapon, armor and
 special equipment side by side, using existing equipment sprites and the shared
 catalog spec sheets. Core stats stay visible; hover expands field notes and suit
 systems. The review explicitly marks unchanged kit, replacements, removed specials,
-and unoccupied plan-only slots. Only explicit Issue commits the ordinary cargo-backed transaction.
+and unoccupied plan-only slots. Only explicit Issue commits the ordinary free fitting transaction.
 Wounds and vacancies never block assignment or issue. Current occupants, including
 WIA personnel, receive the reviewed equipment; empty slots retain the plan and
-incur no charge. Stationing and material shortages remain blockers. Successful issue completes the saved
+incur no charge. Stationing and unknown technology remain blockers. Successful issue completes the saved
 lesson once and offers inspection of the squad's three fire teams. Leaving and
 returning preserves reward and completion; older saves may claim the uncollected
 reward without losing existing gear. The lesson never gates the next mission.
@@ -367,25 +364,15 @@ fixed-scale capability meters beside exact values. Those scales use catalog ceil
 three visible billets, so cycling an item produces a meaningful at-a-glance change
 and team selection cannot rewrite the comparison baseline.
 
-Issue is explicit and atomic. The preview prices only changed incoming equipment;
-unchanged kit is free and removed kit grants no cargo refund. Wounded personnel
-can receive kit without changing their status or recovery timer. Vacant slots
-retain the twelve-billet plan without creating or charging for gear; even an
-empty line squad can save its plan. New recruits retain their actual issued kit
-until an explicit refit pays for any changes. A stationed squad,
-a missing equipment template card, or insufficient
-supplies, heavy armaments, heavy machinery, or food leaves cargo, both doctrine ids,
-and every marine's existing kit untouched. Success spends the complete cargo cost,
-writes both ids together, and materializes each occupied billet's exact issue onto
-`MarineSoldier`, which remains the battle-facing state consumed by deployment.
-Later inventory changes do not silently optimize or reshuffle that result.
-The issue surface renders each nonzero line as a live-spec commodity icon with
-available / required quantities and marks shortages in place. Names, paths, and
-inventory quantities remain projections of the commodity registry and cargo
-authority, not a Fleet Armory-owned material catalog. The squad gallery and issue
-workspace also keep a compact stock strip visible outside those per-action bills;
-the strip summarizes the commodities those operations can spend without changing
-the atomic issue preview.
+Issue is explicit and atomic. The Machine Shop freely fits any learned equipment;
+it neither reads nor spends fleet cargo, and removing kit grants no cargo refund.
+Wounded personnel can receive kit without changing status or recovery time. Vacant
+slots retain the twelve-billet plan; even an empty line squad can save its plan.
+New recruits retain their actual kit until an explicit free refit. Stationing or
+missing technology leaves both doctrine ids and all current kit untouched. Success
+writes both ids together and materializes occupied billets on `MarineSoldier`, the
+battle-facing state consumed by deployment. Collection changes never silently
+optimize that result. Founding and personnel logistics retain their own costs.
 
 Built-in weapon definitions are authored deterministic distributions rather than
 live best-fit allocators. This makes faction-flavored profiles such as **Luddic
@@ -398,8 +385,7 @@ card.
 Armour deliberately has no equivalent. A tactic sheet is a role mix plus a
 tradition, resolved against owned stock every time it is read
 (`role-and-access.md`), so it cannot be frozen and there is nothing for a player
-to author into it. Cargo, readiness, and stationing constrain the
-later squad issue.
+to author into it. Technology ownership and stationing constrain later squad issue.
 
 Catalogued armour patterns form explicit capability bands rather than a single
 faction ladder. Tier I is the universal unpowered baseline. Tiers II, III, and IV
@@ -417,8 +403,7 @@ The early **Frontier Security Equipment** and **Frontier Patchwork Protection**
 pair deliberately spend scarce pulse rifles and militia plate on the first billet
 of Alpha, Bravo, and Charlie while their line marines retain field rifles and
 unplated fatigues. Starting and migrated armories collect every template referenced
-by that exact issue; the live cargo preview remains honest about the cost to
-materialize it.
+by that exact issue; the Machine Shop fits that learned equipment freely.
 
 **Corporate Blacksite Breach** is the built-in player assault profile:
 its twelve exact billets contain one Shattercap frag carrier, so its authored
@@ -434,7 +419,7 @@ squad issue clears stale per-team assignment ids so only one equipment authority
 
 Equipment template cards are literal permanent collectibles owned by Progression.
 They are not a deck, hand, consumable, or squad definition. Definitions remain
-reusable intent; base-game fleet cargo pays only when changed kit is materialized.
+reusable intent; the Machine Shop fits learned equipment freely.
 The browser may give rare known entries stronger borders, color, and provenance copy
 to make acquisition feel rewarding, but those effects never change definition contents
 or combat rules.
@@ -784,14 +769,11 @@ counted separately. Compact stock and enlistment amounts expose the distinction,
 with hover details explaining the transfer. Replacements and
 equipment issue are separate explicit orders, so assigning a role never silently spends.
 
-Equipment issue previews the combined existing refit bill for eligible selected
-squads. Incomplete, recovering and stationed formations are explicitly skipped.
-The whole eligible bill must be affordable and paid before any of those squads
-change kit; there is no partial issue caused by cargo shortage. Current template
-ownership and exact issued equipment remain authoritative. A compact stock strip
-shows the fleet's current supplies, armaments, machinery, and food separately from
-the combined bill. This introduces no
-finite rifle or suit stock, automatic purchasing, or new inventory economy.
+Equipment fitting applies the reviewed plans freely to eligible selected squads,
+including wounded and understrength formations. Stationed squads and plans missing
+technology remain blocked. Current template ownership and exact issued equipment
+remain authoritative. This introduces no finite rifle or suit stock or automatic
+purchasing; personnel and founding costs remain separate.
 
 The individual drill-down retains the physical quarters, twelve-billet muster,
 and formation **service record**. Each occupied muster card pairs the marine's
@@ -1202,8 +1184,7 @@ that depot only while interacting with its accessible working planetary port,
 checks the whole order, then consumes local stock before cargo. The existing
 fabrication and squad-founding adapters share that authority. It does not replenish
 on reload or on another conversion; unused stock remains at its planet. Ordinary
-starts and saves receive none. Equipment issue and enlistment retain their existing
-cargo authorities. Castle explains the local stores; workshop labels use available
+starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
 stores rather than claiming every counted item is in the hold.
 
 Second Wind's original starting hull reserves a second shuttle bay from the start.
@@ -1363,7 +1344,7 @@ production vehicle deployment seam exists.
 - Fire-team membership is derived from billet order and never persisted twice.
 - Fire teams are equipment/AI/lift units, not player command targets.
 - Weapon and armor doctrines are reusable squad designs authored from collected
-  templates; every changed issue remains bounded by ordinary fleet cargo.
+  templates; learned equipment is freely fitted by the Machine Shop.
 - Mech weapon assemblies and subsystems are finite physical stock; installed copies
   remain counted, while their fabrication spends player cargo through one campaign
   authority. The Mech Lab cannot create a second inventory or commodity-art catalog.
@@ -1394,7 +1375,7 @@ than adding a second one, and none of them makes the room the owner of what the
 company has. Recovering a downed boat's hull or crew is deliberately not on that
 list: a lost boat is lost.
 
-Equipment authoring remains bounded by collected templates and atomic cargo-backed assignment;
+Equipment authoring remains bounded by collected templates and atomic free fitting;
 read surfaces remain projections of their owning campaign or frozen mission
 state. A contract board may present offers and obligation clocks, but it does
 not become their authority or introduce a second clock lifecycle.

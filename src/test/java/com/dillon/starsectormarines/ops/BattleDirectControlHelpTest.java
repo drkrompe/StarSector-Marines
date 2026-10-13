@@ -63,6 +63,23 @@ class BattleDirectControlHelpTest {
     }
 
     @Test
+    void tenderListsItsRealBindingsAndNoneOfTheCapitalsGunsOrMarineEquipment() {
+        var lines = BattleDirectControlHelp.lines(Carrier.TENDER);
+        assertTrue(has(lines, "WASD", "ShipFly"));
+        assertTrue(has(lines, "LMB hold", "TenderBuild"));
+        assertTrue(has(lines, "RMB", "TenderDrones"));
+        assertTrue(has(lines, "1", "TenderOption"));
+        assertTrue(has(lines, "2 3 4", "TenderSoon"));
+        assertTrue(has(lines, "X", "TenderCancel"));
+        assertTrue(has(lines, "E", "ShipShield"));
+        assertTrue(has(lines, "Tab / Esc", "TenderLeave"));
+        assertTrue(has(lines, "", "TenderSeen"));
+        assertFalse(lines.stream().anyMatch(l -> l.textKey().contains("ShipGuns")
+                || l.textKey().contains("ShipMissiles") || l.keys().equals("G") || l.keys().contains("Shift")));
+        assertEquals("TENDER CONTROLS", COPY.apply(BattleDirectControlHelp.titleKey(Carrier.TENDER)));
+    }
+
+    @Test
     void marineMechAndApcListOnlyTheirOwnBindings() {
         var marine = BattleDirectControlHelp.lines(Carrier.MARINE);
         assertTrue(has(marine, "LMB hold", "MarineFire"));

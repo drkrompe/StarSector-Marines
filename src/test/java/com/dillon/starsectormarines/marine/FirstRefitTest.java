@@ -40,11 +40,11 @@ class FirstRefitTest {
             var preview = roster.previewSquadEquipment(squad.id(), path.weapons, path.armor);
             assertEquals(0, preview.issueCost().heavyArmaments(), "The opening refit must use legal civilian-market cargo");
             assertEquals(0, preview.issueCost().food());
-            assertTrue(preview.issueCost().supplies() > 0);
+            assertTrue(preview.issueCost().isZero());
             Hold hold = new Hold(preview.issueCost());
             assertEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
             assertEquals(EquipmentTemplateCost.ZERO, hold.stock);
-            assertEquals(1, hold.spends);
+            assertEquals(0, hold.spends);
             for (int i = 0; i < 12; i++) {
                 var soldier = roster.soldierById(roster.manningMemberIds(squad).get(i));
                 assertEquals(preview.billet(i).primaryId(), soldier.primaryId());
@@ -53,19 +53,19 @@ class FirstRefitTest {
             }
             assertFalse(FirstRefit.available(roster));
             assertEquals(SquadEquipmentResult.INVALID_SQUAD, roster.firstRefit().issue(roster, squad.id(), path, hold));
-            assertEquals(1, hold.spends);
+            assertEquals(0, hold.spends);
         }
     }
 
-    @Test void shortagesAndStationingLeaveTheOrderUnspent() {
-        for (int condition = 0; condition < 2; condition++) {
+    @Test void stationingLeavesTheOrderUnchanged() {
+        {
             MarineRoster roster = claimed();
             var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
             var soldier = roster.soldierById(roster.manningMemberIds(squad).get(0));
             var path = FirstRefit.Path.STEADY_LINE;
             String oldWeapon = soldier.primaryId(), oldArmor = soldier.armorId(), oldDoctrine = squad.weaponDoctrineId();
-            Hold hold = new Hold(condition == 0 ? EquipmentTemplateCost.ZERO : new EquipmentTemplateCost(1000, 1000, 1000, 1000));
-            if (condition == 1) squad.setStationingContractId(1);
+            Hold hold = new Hold(EquipmentTemplateCost.ZERO);
+            squad.setStationingContractId(1);
             assertNotEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
             assertEquals(0, hold.spends);
             assertEquals(oldWeapon, soldier.primaryId());
@@ -92,7 +92,7 @@ class FirstRefitTest {
         Hold hold = new Hold(preview.issueCost());
         assertEquals(SquadEquipmentResult.APPLIED, roster.firstRefit().issue(roster, squad.id(), path, hold));
         assertTrue(roster.firstRefit().complete());
-        assertEquals(1, hold.spends);
+        assertEquals(0, hold.spends);
         assertEquals(EquipmentTemplateCost.ZERO, hold.stock);
         assertEquals(MarineSoldierStatus.WIA, wounded.status());
         assertEquals(recovery, wounded.unavailableUntilDay());
@@ -104,7 +104,7 @@ class FirstRefitTest {
         assertTrue(roster.previewSquadEquipment(squad.id(), path.weapons, path.armor).issueCost().isZero());
     }
 
-    @Test void emptySquadStoresItsPlanForFreeAndReplacementsNeedTheirOwnIssue() {
+    @Test void emptySquadStoresItsPlanAndReplacementsCanBeFittedForFree() {
         var roster = new MarineRoster();
         var squad = roster.createSquad();
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
@@ -117,7 +117,7 @@ class FirstRefitTest {
         assertEquals(0, roster.manningCount(squad));
         roster.recruitToSquad(squad.id(), 1);
         var next = roster.previewSquadEquipment(squad.id(), path.weapons, path.armor);
-        assertFalse(next.issueCost().isZero(), "A saved plan cannot manufacture free upgraded kit for later recruits");
+        assertTrue(next.issueCost().isZero(), "Replacement equipment is also free once learned");
     }
 
     @Test void savedRewardAndCompletionSurviveReloadAndMissingLegacyStateIsSafe() throws Exception {

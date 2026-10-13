@@ -31,7 +31,7 @@ import java.util.function.Predicate;
 final class BattleDirectControlStatus {
     private BattleDirectControlStatus() { }
 
-    enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP }
+    enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
     enum FireKind { SINGLE, BURST, PACKET, INDIRECT }
     enum WeaponState { BURST, CYCLING, LOADED, EMPTY }
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
@@ -157,6 +157,9 @@ final class BattleDirectControlStatus {
 
     static Snapshot snapshot(BattleSimulation sim) {
         if (sim == null || !sim.directControl().active()) return Snapshot.EMPTY;
+        if (sim.directControl().controlledTender() != null) {
+            return BattleDirectTenderStatus.snapshot(sim.directControl());
+        }
         if (sim.directControl().warshipControl()) {
             return BattleDirectWarshipStatus.snapshot(sim, sim.directControl().controlledWarship());
         }
