@@ -11,7 +11,12 @@ import com.fs.starfarer.api.ui.TooltipMakerAPI;
 
 /** The saved start's directions; progress is read from the real variant and company. */
 public final class CompanyFoundingIntel extends BaseIntelPlugin {
-    @Override public String getName() { return "Castle: A home for the company"; }
+    @Override public String getName() {
+        var destination = CerberusCompanyStart.destination();
+        return CerberusCompanyStart.conversionRequired()
+                ? "Second Wind: " + (destination == null ? "Find a working spaceport" : "Reach " + destination.getName())
+                : "Castle: A home for the company";
+    }
     @Override public String getIcon() { return CompanyManagementGuide.portrait(); }
     @Override public SectorEntityToken getMapLocation(SectorMapAPI map) { return CerberusCompanyStart.destination(); }
     @Override public void createIntelInfo(TooltipMakerAPI info, ListInfoMode mode) {
@@ -21,6 +26,9 @@ public final class CompanyFoundingIntel extends BaseIntelPlugin {
     @Override public void createSmallDescription(TooltipMakerAPI info, float width, float height) {
         info.addImage(CompanyManagementGuide.portrait(), 96, 96, 0);
         info.addPara("CASTLE / COMPANY OFFICER", 8);
+        info.addPara("Second Wind carried your crew away from an abandoned mining colony. "
+                + "You got her flying; Castle kept the crew supplied. Now the pooled money must "
+                + "turn a patched freighter into a livelihood. Ship repairs and trained recruits come first.", 8);
         info.addPara(CerberusCompanyStart.instructions(), 8);
         var depot = CerberusCompanyStart.depot();
         if (depot != null) {

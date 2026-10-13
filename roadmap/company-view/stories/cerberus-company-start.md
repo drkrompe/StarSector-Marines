@@ -2,10 +2,13 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
+Updated: 2026-10-12 — Second Wind origin prologue and destination handoff added; live start/save acceptance remains.
 
 ## Outcome
 
 An explicit new-game choice puts the player in command of an unconverted Cerberus.
+The illustrated Second Wind prologue introduces the mining-colony escape, the
+crew's trust in their captain, and Castle's practical plan to fund a new company.
 Castle directs the player to a populated planet with a working spaceport. There the
 player reviews and pays for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
@@ -50,6 +53,15 @@ cannot replenish it. Ordinary starts receive no depot.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
   captain, no automatic company designation or preinstalled conversion.
 - Begin in space with a reachable planetary destination and Castle's portrait guidance.
+- A fresh selection opens the illustrated prologue once, when the campaign map is
+  available; other dialogs and menus are never replaced. Back/Continue preserve
+  progress, while Skip and the final course action finish it permanently. A load
+  resumes an opted-in unfinished prologue, but never opts in an established save.
+- Final course, objective text and Intel marker share the accessible destination;
+  Jangala-specific contact and Corvus copy are absent for fallback ports. No port
+  leaves a readable spaceport requirement and an exit instead of a dead button.
+- Review all six production pages at 1920x1080 and 100% scale through the
+  `company-prologue` snapshot suite. Live host dismissal and save/load remain open.
 - Refuse installation in space, on stations, at inaccessible or nonworking ports,
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and

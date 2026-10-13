@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- room-condition restoration and persistent unread room opportunities.
+Updated: 2026-10-12 -- Second Wind origin prologue, room-condition restoration and persistent unread room opportunities.
 
 ## Purpose
 
@@ -1166,6 +1166,23 @@ The optional Cerberus company start is selected through vanilla character creati
 It gives the player one unconverted Cerberus, 15,000 credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
+A new selection first opens **Second Wind**, a skippable illustrated bridge prologue
+with Castle's portrait and readable dialogue. The crew escaped an independent mining
+colony after its operator withdrew. They restored a grounded Cerberus; the player
+earned command by organizing the escape, while Castle supplied port and convoy
+logistics experience. Earlier player biography remains open. Pooled savings and
+Castle's finite prepaid consignment explain the starting means. Civilian crew keep
+the ship running; trained Marines must still be mustered through preparation.
+
+Jangala is a practical first berth, with an old yard contact and regular traffic,
+not a promise of Hegemony protection. The prologue uses the actual accessible
+destination and adjusts its copy if Jangala is unavailable. Its final action plots
+that course and returns to the campaign. The Intel log retains the origin and
+next real preparation instruction. Page progress and explicit completion or skip
+survive saves; ordinary starts and pre-prologue saves do not opt in on load.
+The opening grants no resources, repairs, conversion, recruits or mission progress.
+Its bridge illustration is presentation, not a new hull-condition authority.
+
 A reviewed 5,000-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
 preparation preflight and resumes lift, Mira, squad founding and assignment.
