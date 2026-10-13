@@ -150,6 +150,7 @@ public final class ReliefCheckpoint {
 
     private static void freight(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
+        rearWorkingYards(yard);
         // Inspection lay-by beside the gate, leaving both attacker approaches open.
         yard.bay(90, 23, 95, 26);
         yard.prop(91, 24, "parked-utility-truck", 0);
@@ -165,6 +166,38 @@ public final class ReliefCheckpoint {
         // Relay power is outside its doors, on the apron-facing service strip.
         yard.prop(72, 52, "industrial-cable-reel", 0);
         yard.prop(76, 52, "industrial-drum-cluster", 0);
+    }
+
+    /** Working courts occupy the apron shoulders; the road and assembly crossing stay open. */
+    private static void rearWorkingYards(StoryServiceYard yard) {
+        // Incoming freight: separate stacks, a loader aisle, and gates onto the service lane.
+        yard.gravel(41, 43, 63, 53);
+        yard.fence(41, 43, 63, 53);
+        for (int x : new int[]{44, 54}) {
+            yard.bay(x - 1, 45, x + 5, 51);
+            yard.cargo(x, 46);
+            yard.cargo(x, 50);
+        }
+        yard.prop(50, 47, "stores-cargo-loader", 0);
+        yard.prop(60, 46, "industrial-pallet-stack", 0);
+        yard.prop(60, 50, "industrial-dumpster", 0);
+
+        // Delivery vehicles face the shared maneuvering aisle, away from the boat stands.
+        for (int x : new int[]{42, 49, 56}) yard.bay(x, 16, x + 5, 21);
+        yard.prop(43, 18, "parked-cargo-truck", 1);
+        yard.prop(50, 18, "parked-flatbed-truck", 1);
+        yard.prop(57, 18, "parked-box-van", 1);
+        yard.cargo(43, 23);
+        yard.prop(51, 24, "industrial-pallet-stack", 0);
+        yard.prop(57, 24, "industrial-pipe-bundle", 0);
+
+        // A compact repair strip makes the wall edge useful without closing the yard.
+        yard.gravel(41, 13, 62, 14);
+        yard.prop(43, 13, "industrial-machine-tool", 0);
+        yard.prop(46, 13, "industrial-cable-reel", 0);
+        yard.prop(51, 13, "industrial-generator", 0);
+        yard.prop(55, 13, "industrial-drum-cluster", 0);
+        yard.prop(59, 13, "industrial-scrap-pile", 0);
     }
 
     private static void pave(GenContext c, int l, int t, int r, int b, GroundKind ground) {
