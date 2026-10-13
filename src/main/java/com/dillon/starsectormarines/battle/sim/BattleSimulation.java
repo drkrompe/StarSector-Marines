@@ -599,12 +599,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // A fort's fire control is its bunker, not the ground round the guns: that is where a commander
                 // sends a squad, and a bunker already wrecked is nothing to take.
                 if (bunker.wrecked() || !rosterService.isAliveById(bunker.coreId())) continue;
+                int seenX = (int) Math.floor(battery.x());
+                int seenY = (int) Math.floor(battery.y());
                 out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
                         (int) Math.floor(rosterService.world().x(bunker.coreId())),
                         (int) Math.floor(rosterService.world().y(bunker.coreId())),
                         battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
-                        FORT_BUNKER_REACH_CELLS,
-                        (int) Math.floor(battery.x()), (int) Math.floor(battery.y())));
+                        FORT_BUNKER_REACH_CELLS, seenX, seenY,
+                        battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT));
+                // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
+                addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
+                addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
                 continue;
             }
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
@@ -625,6 +630,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     Math.round(dome.captureRadius())));
         }
         return out;
+    }
+
+    /** One of a battery fort's supporting aspects as a fact, unless it is already wrecked. */
+    private void addBatteryFortAspect(List<DefenceStructureFact> out, FortressBattery battery, FortAspect aspect,
+                                      DefenceStructureFact.Kind kind, int seenX, int seenY) {
+        Fort.Place place = battery.fort().place(aspect);
+        if (place == null || place.wrecked() || !rosterService.isAliveById(place.coreId())) return;
+        out.add(new DefenceStructureFact(kind,
+                (int) Math.floor(place.x()), (int) Math.floor(place.y()),
+                place.control().holder(), place.originalHolder(), place.control().contested(),
+                FORT_BUNKER_REACH_CELLS, seenX, seenY, battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT));
     }
 
     /** The shield fort whose emitter is generator {@code id}, or {@code null} for a bare generator. */
@@ -648,14 +664,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
                     (int) Math.floor(room.x()), (int) Math.floor(room.y()),
                     room.control().holder(), dome.originalHolder(), room.control().contested(),
-                    FORT_BUNKER_REACH_CELLS, seenX, seenY));
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT));
         }
         Fort.Place plant = fort.place(FortAspect.POWER);
         if (plant != null && !plant.wrecked() && rosterService.isAliveById(plant.coreId())) {
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FORT_POWER,
                     (int) Math.floor(plant.x()), (int) Math.floor(plant.y()),
                     plant.control().holder(), dome.originalHolder(), plant.control().contested(),
-                    FORT_BUNKER_REACH_CELLS, seenX, seenY));
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT));
         }
     }
 
