@@ -24,6 +24,8 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -923,6 +925,7 @@ public final class BattleFixtureJson {
         if (profile.declaredDefences().siting() != FortSitingPolicy.LEFTOVER_GROUND) {
             encoded.put("declaredFortSiting", profile.declaredDefences().siting().name());
         }
+if (!profile.declaredMechDrops().isNone()) {            encoded.put("declaredMechDrops", mechDropsToJson(profile.declaredMechDrops()));        }
         return encoded;
     }
 
@@ -968,7 +971,46 @@ public final class BattleFixtureJson {
                 new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
-                        declaredForts(encoded)).withSiting(declaredSiting(encoded)));
+                        declaredForts(encoded)).withSiting(declaredSiting(encoded)),
+                declaredMechDrops(encoded));
+    }
+
+    /** The mech-lance allowances a mission declared, by side name; written only when there is one. */
+    private static JSONObject mechDropsToJson(MechDropDeclaration declaration) throws Exception {
+        JSONObject sides = new JSONObject();
+        for (Map.Entry<Faction, MechDropAllowance> side : declaration.allowances().entrySet()) {
+            JSONObject allowance = new JSONObject();
+            allowance.put("lances", side.getValue().lances());
+            JSONArray lance = new JSONArray();
+            for (MechVariant variant : side.getValue().lance()) lance.put(variant.name());
+            allowance.put("lance", lance);
+            if (side.getValue().debugCallTick() >= 0) {
+                allowance.put("debugCallTick", side.getValue().debugCallTick());
+            }
+            sides.put(side.getKey().name(), allowance);
+        }
+        return sides;
+    }
+
+    /** The allowances a fixture declares; a fixture that predates mech drops, or names none, declares none. */
+    private static MechDropDeclaration declaredMechDrops(JSONObject encoded) throws Exception {
+        JSONObject sides = encoded.optJSONObject("declaredMechDrops");
+        if (sides == null) return MechDropDeclaration.NONE;
+        MechDropDeclaration declaration = MechDropDeclaration.NONE;
+        for (Iterator<?> names = sides.keys(); names.hasNext();) {
+            String name = (String) names.next();
+            JSONObject allowance = sides.getJSONObject(name);
+            List<MechVariant> lance = new ArrayList<>();
+            JSONArray variants = allowance.getJSONArray("lance");
+            for (int i = 0; i < variants.length(); i++) {
+                lance.add(enumValue(MechVariant.class, variants.getString(i), "mech variant"));
+            }
+            declaration = declaration.with(enumValue(Faction.class, name, "faction"),
+                    new MechDropAllowance(allowance.getInt("lances"), lance,
+                            allowance.has("debugCallTick")
+                                    ? allowance.getInt("debugCallTick") : MechDropAllowance.NO_DEBUG_CALL));
+        }
+        return declaration;
     }
 
     /** How a fixture sites its forts; a fixture that predates siting, or states none, leaves them on leftover ground. */

@@ -1,9 +1,15 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+
+import java.util.List;
 
 /**
  * Decides which ground defences a mission's battle carries. This is the one place the decision is made: map
@@ -55,6 +61,31 @@ public final class MissionDefencePolicy {
      * a field to cross rather than a wall. Change freely once play settles how thick the network should be.
      */
     static final int CONQUEST_NESTS_WHEN_MARKET_HAS_THEM = 12;
+
+    /**
+     * Mech lances a Conquest lets its marine commander call to the drop zone. UNTUNED first-pass mission-design
+     * choice: two, because one lance is a point to be lost and the phased assault wants a base of fire and a
+     * replacement. Change freely once play settles how much armour a muster can ask for; see {@code phased-assault.md}.
+     */
+    static final int CONQUEST_MARINE_MECH_LANCES = 2;
+
+    /** The composition of each Conquest lance: one anchor, two skirmishers, one support. UNTUNED. */
+    static final List<MechVariant> CONQUEST_MECH_LANCE =
+            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO);
+
+    /**
+     * The mech lances each side's commander may call down on its own authority. A mission's explicit
+     * {@link Mission#mechDrop} statement (today the DEBUG dial) wins; otherwise a Conquest gives its marines
+     * {@link #CONQUEST_MARINE_MECH_LANCES}; every other mission type declares none.
+     */
+    public static MechDropDeclaration declareMechDrops(Mission mission) {
+        if (mission.mechDrop != null) return mission.mechDrop.declaration();
+        if (mission.type == MissionType.CONQUEST) {
+            return MechDropDeclaration.NONE.with(Faction.MARINE,
+                    new MechDropAllowance(CONQUEST_MARINE_MECH_LANCES, CONQUEST_MECH_LANCE));
+        }
+        return MechDropDeclaration.NONE;
+    }
 
     /**
      * The defences this mission declares.

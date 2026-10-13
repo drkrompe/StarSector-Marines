@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
+Updated: 2026-10-13 — a commander may call a mech lance from a mission-declared allowance.
 
 ## Purpose
 
@@ -59,6 +59,13 @@ increasing an encounter's total armored threat.
   configured together in the Mech Lab. One selected active squad becomes
   the payload when a sourced Mech Support power is committed. It is distinct
   from the battle-lifetime lance that realizes that payload after landing.
+- A **commander-called mech drop** delivers a lance by the same air delivery a Mech Support power uses, but is called by
+  a side's commander and paid from a **mech-drop allowance** the mission declared (a count of lances and the lance
+  composition, like `GroundDefences`). It spends no command points or charges, is claimed for the calling commander
+  rather than the player, and lands as an ordinary claimed machine squad that commander plans. The marines' lance
+  descends from orbit onto the drop zone as the marine lift does; another side's crosses the map edge. It is symmetric
+  (the ledger is keyed by faction) and only a Conquest declares one today, for its marines (untuned). The player's
+  power and a commander's call share one payload and unloading path and never draw on each other.
 - A **field works** is a vehicle bay on a battle map that is building a chassis
   rather than only sheltering one. It is the only structure on a map that makes
   a unit. It owns what is on its stocks; it does not own the berths it stands

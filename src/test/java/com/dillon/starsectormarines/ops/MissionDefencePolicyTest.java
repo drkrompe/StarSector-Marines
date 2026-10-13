@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -93,5 +96,33 @@ class MissionDefencePolicyTest {
 
         Mission fortress = Mission.builder().type(MissionType.SABOTAGE).defences(DebugDefences.FORTRESS).build();
         assertEquals(DebugDefences.FORTRESS.declaration(), MissionDefencePolicy.declare(fortress, TargetProfile.NEUTRAL));
+    }
+
+    @Test
+    void conquestGivesItsMarinesAFirstPassLanceAllowanceAndNobodyElseAny() {
+        MechDropDeclaration conquest = MissionDefencePolicy.declareMechDrops(of(MissionType.CONQUEST));
+        assertEquals(MissionDefencePolicy.CONQUEST_MARINE_MECH_LANCES, conquest.forSide(Faction.MARINE).lances());
+        assertEquals(MissionDefencePolicy.CONQUEST_MECH_LANCE, conquest.forSide(Faction.MARINE).lance());
+        assertEquals(MechDropAllowance.NONE, conquest.forSide(Faction.DEFENDER));
+
+        // Every other mission type declares none, whatever the market holds.
+        assertEquals(MechDropDeclaration.NONE, MissionDefencePolicy.declareMechDrops(of(MissionType.SABOTAGE)));
+        assertEquals(MechDropDeclaration.NONE, MissionDefencePolicy.declareMechDrops(of(MissionType.ASSAULT)));
+    }
+
+    @Test
+    void anExplicitMechDropStatementBeatsThePolicyBothWays() {
+        Mission stripped = Mission.builder().type(MissionType.CONQUEST).mechDrop(DebugMechDrop.NONE).build();
+        assertEquals(MechDropDeclaration.NONE, MissionDefencePolicy.declareMechDrops(stripped));
+
+        Mission one = Mission.builder().type(MissionType.SABOTAGE).mechDrop(DebugMechDrop.ONE_LANCE).build();
+        assertEquals(1, MissionDefencePolicy.declareMechDrops(one).forSide(Faction.MARINE).lances());
+        Mission two = Mission.builder().type(MissionType.CONQUEST).mechDrop(DebugMechDrop.TWO_LANCES).build();
+        assertEquals(2, MissionDefencePolicy.declareMechDrops(two).forSide(Faction.MARINE).lances());
+
+        Mission atOnce = Mission.builder().type(MissionType.CONQUEST).mechDrop(DebugMechDrop.ONE_LANCE_AT_ONCE).build();
+        MechDropAllowance called = MissionDefencePolicy.declareMechDrops(atOnce).forSide(Faction.MARINE);
+        assertEquals(1, called.lances());
+        assertEquals(true, called.debugCallTick() >= 0);
     }
 }
