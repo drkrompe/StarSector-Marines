@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Shepherd dialogue distinguishes individual salvage crews and leaves exact terms in contract readouts; live campaign acceptance remains open.
+Updated: 2026-10-13 - Castle negotiates contingent Morrow salvage against Vale's undisclosed Colossus shipment; live campaign acceptance remains open.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -40,13 +40,21 @@ tax law or proof that every official is corrupt. The armed occupiers are the
 immediate opponent; Hegemony forces do not become enemies through this contract.
 This urgency supplies a motive to hire outside protection, not a hidden expiry,
 inspection timer, faction-relation change or permission for fleet bombardment.
-The broken Colossus against the northern rear canyon wall is the yard's grounded
-cargo and equipment depot, surrounded by valuable hull scrap. These stores and
-working installations are the scrappers' prize and the cooperative's reason to
-pay for reopening the basin. The cooperative keeps that larger asset and the
-yard; its smaller tender Morrow is the agreed payment in kind for all three
-contracts. The Colossus grants no fleet member, extra salvage objective or cargo
-inventory. Contract and settlement readouts make the exchange explicit.
+The broken Colossus against the northern rear canyon wall holds a shipment the
+cooperative found before evacuating, surrounded by ordinary yard stores and hull
+scrap. Vale prioritizes access to that shipment and refuses to share its manifest
+with hired security. Its contents, legality and value remain unauthored: neither
+contraband nor rare schematics are confirmed, and secrecy is not proof of either.
+The cooperative keeps the Colossus, shipment and yard. Castle introduces Morrow
+into the bargain as contingent salvage in place of a third cash fee. Vale resists
+parting with an owned tender and commits parts and fitters only with continued
+company cover and an open haul road. Neither party can promise the damaged ship's
+condition before inspection. Castle's experience rebuilding Second Wind explains
+her willingness to take that risk. A working gun in Cold Start reveals the
+repaired workshop's practical value to the company; this is a new use for ordinary
+machinery, not a secretly exceptional hull or a change to the Shepherd's market
+price. The Colossus grants no fleet member, extra objective or cargo inventory.
+Contract and settlement readouts make the fees and conditional transfer explicit.
 Both parties have a business to sustain. The company sells security, escort and
 repair cover for chapter fees and the ship; Vale supplies technicians, equipment
 and militia to recover the cooperative's larger source of income. Keeping skilled
