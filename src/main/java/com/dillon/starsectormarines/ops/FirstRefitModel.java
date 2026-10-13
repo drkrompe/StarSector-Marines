@@ -44,6 +44,8 @@ final class FirstRefitModel {
     FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Consumer<String> inspect) {
         this.roster = roster; this.resources = resources; this.inspect = inspect;
         row = reactor.signal(Map.of());
+        var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
+        if (squads.size() == 1) squadId = squads.get(0).id();
         path = roster.firstRefit().chosenPath();
         refresh();
     }
@@ -99,7 +101,7 @@ final class FirstRefitModel {
                 : "The transfer is yours permanently. Select a square to compare current and proposed equipment; hover an item for full specs. Fit learned equipment for free, including on wounded marines. Other technology remains available through markets and mission rewards.");
         props.put("claimClasses", !claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("claimDisabled", path == null || reviewed == null);
-        props.put("claimLabel", path == null ? "CHOOSE A TECHNOLOGY PATH ABOVE" : "ACCEPT " + path.label.toUpperCase(Locale.ROOT) + " TECHNOLOGY / FREE");
+        props.put("claimLabel", path == null ? "CHOOSE A PATH" : "LEARN " + path.label.toUpperCase(Locale.ROOT));
         props.put("issueClasses", claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
         props.put("laterLabel", complete ? "ARMORY GALLERY" : "ARMORY GALLERY / Continue later");

@@ -77,11 +77,15 @@
         </div>
       </div>
       <div id="refit-status" class="refit-status tone-edge">{lesson.status}</div>
+      <div id="refit-actions" class="refit-actions">
       <button id="refit-claim" class="{lesson.claimClasses}" disabled="{lesson.claimDisabled}" onclick="{lesson.claim}">{lesson.claimLabel}</button>
-      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">FIT TO SQUAD / FREE</button>
+      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">FIT SQUAD / FREE</button>
+      </div>
     </div>
-    <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">INSPECT ISSUED SQUAD / Alpha, Bravo, Charlie</button>
+    <div id="refit-footer" class="refit-actions">
+    <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">INSPECT SQUAD</button>
     <button id="refit-later" class="refit-later" onclick="{backToSquads}">{lesson.laterLabel}</button>
+    </div>
   </div>
 </template>
 <style>
@@ -130,7 +134,8 @@
   .refit-item-stats { height: 20px; }
   .refit-item-system { height: 38px; white-space: normal; }
   .refit-status { height: 28px; white-space: normal; }
-  .refit-action { height: 26px; padding: 6px 12px; border-width: 1px; font-family: heading; }
-  .refit-later { height: 22px; padding: 4px 12px; border-width: 1px; }
+  .refit-actions { flex-direction: row; height: 40px; gap: 12px; }
+  .refit-action { width: 260px; height: 26px; padding: 6px 12px; border-width: 1px; font-family: heading; }
+  .refit-later { width: 260px; height: 22px; padding: 4px 12px; border-width: 1px; }
   .refit-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>
