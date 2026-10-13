@@ -25,6 +25,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "breathing", "label": "Breathing", "durationMs": 900, "layers": [
@@ -32,6 +34,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.085], "scale": [1.0, 1.0], "angleDegrees": 46.5, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.11], "scale": [0.8, 0.8], "angleDegrees": -0.6, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.261728, -0.000765], "scale": [1.12, 1.12], "angleDegrees": -0.6, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.263958, -0.00627], "scale": [1.12, 1.12], "angleDegrees": -0.6, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.09], "scale": [0.8, 0.8], "angleDegrees": 0.6, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -44,6 +48,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "aimed", "label": "Aimed", "durationMs": 120, "layers": [
@@ -51,6 +57,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.18062, 0.18223], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -21.579, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.192397, 0.108246], "scale": [1.12, 1.12], "angleDegrees": -26.579, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.276978, -0.134389], "scale": [1.12, 1.12], "angleDegrees": -15.579, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04758, 0.05438], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -63,6 +71,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.14, -0.34], "scale": [1.0, 1.0], "angleDegrees": 3.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.145, 0.205], "scale": [1.0, 1.0], "angleDegrees": 82.0, "pivot": [0.5, 0.745], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [-0.02, -0.08], "scale": [0.8, 0.8], "angleDegrees": -4.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.276881, 0.014638], "scale": [1.12, 1.12], "angleDegrees": -11.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.251738, 0.037819], "scale": [1.12, 1.12], "angleDegrees": 3.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [-0.007, 0.116], "scale": [0.8, 0.8], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "right-stride", "label": "Right stride", "durationMs": 220, "layers": [
@@ -70,6 +80,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.14, -0.13], "scale": [1.0, 1.0], "angleDegrees": 3.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.205, 0.055], "scale": [1.0, 1.0], "angleDegrees": 38.0, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.02, -0.16], "scale": [0.8, 0.8], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.251738, -0.042181], "scale": [1.12, 1.12], "angleDegrees": 11.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.276881, -0.065362], "scale": [1.12, 1.12], "angleDegrees": -3.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.014, 0.032], "scale": [0.8, 0.8], "angleDegrees": -4.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -82,6 +94,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.2099, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.292, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -20.854, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.19527, 0.105793], "scale": [1.12, 1.12], "angleDegrees": -25.854, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.277138, -0.130883], "scale": [1.12, 1.12], "angleDegrees": -14.854, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.048, 0.095], "scale": [0.8, 0.8], "angleDegrees": 0.982, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "recoil", "label": "Recoil", "durationMs": 100, "layers": [
@@ -89,6 +103,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.26846, 0.02643], "scale": [1.0, 1.0], "angleDegrees": 3.376, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.037, -0.16], "scale": [0.8, 0.8], "angleDegrees": -22.306, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.160077, 0.052165], "scale": [1.12, 1.12], "angleDegrees": -24.306, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.307321, -0.19363], "scale": [1.12, 1.12], "angleDegrees": -14.306000000000001, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.08053, 0.04768], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "recover", "label": "Recover", "durationMs": 100, "layers": [
@@ -96,6 +112,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.23553, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -16.645, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.211315, 0.090852], "scale": [1.12, 1.12], "angleDegrees": -21.645, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.27719, -0.110513], "scale": [1.12, 1.12], "angleDegrees": -10.645, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.044, 0.084], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -113,6 +131,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.28, 0.05], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.5385], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "aimed", "label": "Launcher aimed", "durationMs": 270, "layers": [
@@ -120,6 +140,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.3333, -0.02885], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5385], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -33.21, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.14243, 0.142348], "scale": [1.12, 1.12], "angleDegrees": -38.21, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.26839, -0.189934], "scale": [1.12, 1.12], "angleDegrees": -27.21, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.05344, 0.02275], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -132,6 +154,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.30277, 0.06656], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5385], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -34.592, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.136061, 0.145707], "scale": [1.12, 1.12], "angleDegrees": -39.592, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.266625, -0.196387], "scale": [1.12, 1.12], "angleDegrees": -28.592, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.06489, 0.01893], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "backblast", "label": "Backblast recoil", "durationMs": 160, "layers": [
@@ -139,6 +163,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.14, -0.22], "scale": [1.0, 1.0], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.3333, -0.00752], "scale": [1.0, 1.0], "angleDegrees": 2.0, "pivot": [0.5, 0.5385], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.02, -0.14], "scale": [0.8, 0.8], "angleDegrees": -36.262, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.12009, 0.113433], "scale": [1.12, 1.12], "angleDegrees": -38.262, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.274231, -0.237832], "scale": [1.12, 1.12], "angleDegrees": -28.262, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.09252, 0.02802], "scale": [0.8, 0.8], "angleDegrees": -5.736, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "lower", "label": "Lower to carry", "durationMs": 120, "layers": [
@@ -146,6 +172,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.28, 0.05], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.5385], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -19.359, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.212696, 0.067601], "scale": [1.12, 1.12], "angleDegrees": -19.359, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.283295, -0.106666], "scale": [1.12, 1.12], "angleDegrees": -19.359, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.053, 0.072], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -163,6 +191,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.75], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "braced", "label": "Braced", "durationMs": 220, "layers": [
@@ -170,6 +200,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.14, -0.22], "scale": [1.0, 1.0], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.75], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -18.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.204725, 0.100546], "scale": [1.12, 1.12], "angleDegrees": -25.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.275173, -0.123728], "scale": [1.12, 1.12], "angleDegrees": -11.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04, 0.07], "scale": [0.8, 0.8], "angleDegrees": 2.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -182,6 +214,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.14, -0.22], "scale": [1.0, 1.0], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.75], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -18.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.204725, 0.100546], "scale": [1.12, 1.12], "angleDegrees": -25.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.275173, -0.123728], "scale": [1.12, 1.12], "angleDegrees": -11.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04, 0.07], "scale": [0.8, 0.8], "angleDegrees": 2.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "recoil", "label": "Heavy recoil", "durationMs": 110, "layers": [
@@ -189,6 +223,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.15, -0.21], "scale": [1.0, 1.0], "angleDegrees": 6.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png", "offset": [0.1733, 0.08], "scale": [1.0, 1.0], "angleDegrees": 2.0, "pivot": [0.5, 0.75], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.025, -0.15], "scale": [1.0, 1.0], "angleDegrees": -21.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.176861, 0.057618], "scale": [1.12, 1.12], "angleDegrees": -23.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.296017, -0.17746], "scale": [1.12, 1.12], "angleDegrees": -13.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.06, 0.06], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "recover", "label": "Recover", "durationMs": 120, "layers": [
@@ -196,6 +232,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.14, -0.22], "scale": [1.0, 1.0], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.75], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": -18.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.20627, 0.09579], "scale": [1.12, 1.12], "angleDegrees": -23.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.277336, -0.11707], "scale": [1.12, 1.12], "angleDegrees": -12.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04, 0.07], "scale": [1.0, 1.0], "angleDegrees": 2.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "lower", "label": "Lower to carry", "durationMs": 100, "layers": [
@@ -203,6 +241,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.75], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -220,6 +260,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20, "visible": false },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/ui/armory/special-smoke-grenades.png", "offset": [-0.16, 0.02], "scale": [0.024, 0.024], "angleDegrees": -30.0, "pivot": [0.5, 0.5], "z": 35 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
@@ -228,6 +270,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.13, -0.21], "scale": [1.0, 1.0], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20, "visible": false },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [-0.02, -0.13], "scale": [0.8, 0.8], "angleDegrees": 20.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.303426, -0.119837], "scale": [1.12, 1.12], "angleDegrees": 20.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.190584, 0.059968], "scale": [1.12, 1.12], "angleDegrees": 20.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/ui/armory/special-smoke-grenades.png", "offset": [-0.2, -0.04], "scale": [0.024, 0.024], "angleDegrees": -55.0, "pivot": [0.5, 0.5], "z": 35 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [-0.035, 0.06], "scale": [0.8, 0.8], "angleDegrees": -8.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
@@ -236,6 +280,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.15, -0.26], "scale": [1.0, 1.0], "angleDegrees": 6.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20, "visible": false },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.025, -0.1], "scale": [0.8, 0.8], "angleDegrees": -24.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.17182, 0.104195], "scale": [1.12, 1.12], "angleDegrees": -24.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.308445, -0.109632], "scale": [1.12, 1.12], "angleDegrees": -24.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/ui/armory/special-smoke-grenades.png", "offset": [0.0, 0.32], "scale": [0.024, 0.024], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 35 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04, 0.09], "scale": [0.8, 0.8], "angleDegrees": 8.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
@@ -244,6 +290,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20, "visible": false },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.01, -0.11], "scale": [0.8, 0.8], "angleDegrees": -10.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.230372, 0.040515], "scale": [1.12, 1.12], "angleDegrees": -10.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.287355, -0.050775], "scale": [1.12, 1.12], "angleDegrees": -10.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/ui/armory/special-smoke-grenades.png", "offset": [0.0, 0.48], "scale": [0.024, 0.024], "angleDegrees": 15.0, "pivot": [0.5, 0.5], "z": 35 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.02, 0.085], "scale": [0.8, 0.8], "angleDegrees": 4.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
@@ -252,6 +300,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20, "visible": false },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/ui/armory/special-smoke-grenades.png", "offset": [0.0, 0.48], "scale": [0.024, 0.024], "angleDegrees": 15.0, "pivot": [0.5, 0.5], "z": 35, "visible": false },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
@@ -270,12 +320,16 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/fx/satchel-charge-armed.png", "offset": [-0.24, -0.08], "scale": [0.04545, 0.04545], "angleDegrees": -18.0, "pivot": [0.5, 0.5], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
                 { "id": "reach", "label": "Reach", "durationMs": 320, "layers": [
                   { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.15, -0.25], "scale": [1.0, 1.0], "angleDegrees": -6.0, "pivot": [0.5, 0.5], "z": 10 },
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.15, -0.21], "scale": [1.0, 1.0], "angleDegrees": 6.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.02, -0.1], "scale": [0.8, 0.8], "angleDegrees": -22.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.183826, 0.097202], "scale": [1.12, 1.12], "angleDegrees": -22.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.303608, -0.099734], "scale": [1.12, 1.12], "angleDegrees": -22.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/battle/fx/satchel-charge-armed.png", "offset": [-0.04, 0.2], "scale": [0.04545, 0.04545], "angleDegrees": -6.0, "pivot": [0.5, 0.5], "z": 35 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04, 0.025], "scale": [0.8, 0.8], "angleDegrees": -6.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
@@ -283,6 +337,8 @@
                   { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.16, -0.26], "scale": [1.0, 1.0], "angleDegrees": -7.0, "pivot": [0.5, 0.5], "z": 10 },
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.16, -0.2], "scale": [1.0, 1.0], "angleDegrees": 7.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.03, -0.08], "scale": [0.8, 0.8], "angleDegrees": -30.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.144397, 0.14365], "scale": [1.12, 1.12], "angleDegrees": -30.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.310885, -0.119207], "scale": [1.12, 1.12], "angleDegrees": -30.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "special", "sprite": "graphics/battle/fx/satchel-charge-armed.png", "offset": [0.0, 0.32], "scale": [0.04545, 0.04545], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 35 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.06, 0.0], "scale": [0.8, 0.8], "angleDegrees": -10.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] },
@@ -291,6 +347,8 @@
                   { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
                   { "id": "special", "sprite": "graphics/battle/fx/satchel-charge-armed.png", "offset": [-0.24, -0.08], "scale": [0.04545, 0.04545], "angleDegrees": -18.0, "pivot": [0.5, 0.5], "z": 20 },
                   { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
                   { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
                 ] }
               ]
@@ -364,6 +422,8 @@
             { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
             { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
             { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/body.png", "offset": [0.0, -0.06], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, 0.046488], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+            { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, 0.046488], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
             { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/head.png", "offset": [0, 0.046375], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
           ] }
         ] }

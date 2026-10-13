@@ -283,10 +283,11 @@ final class BattleHudOverlayModel {
     Presentation updateMission(MissionObjectiveSnapshot snapshot, Consumer<MissionObjectiveSnapshot.Marker> locate) {
         if (snapshot.objectives().isEmpty()) return new Presentation(false, false);
         objectivePanelClasses.set(OBJECTIVE_PANEL_HIDDEN);
-        commandPanelClasses.set(COMMAND_PANEL_HIDDEN);
+        boolean territorial = snapshot.objectives().stream().allMatch(i -> i.id().startsWith("territory-"));
+        if (!territorial) commandPanelClasses.set(COMMAND_PANEL_HIDDEN);
         missionClasses.set("mission-panel");
-        missionSquadClasses.set("mission-squads-panel");
-        missionSquadStyle.set("height: " + (snapshot.squads().isEmpty() ? 44 : 256) + "px;");
+        missionSquadClasses.set(territorial || snapshot.squads().isEmpty() ? "mission-squads-panel mission-hidden" : "mission-squads-panel");
+        missionSquadStyle.set(territorial || snapshot.squads().isEmpty() ? "height: 0px; width: 0px; padding: 0px; border-width: 0px;" : "height: 256px;");
         int count = Math.min(2, snapshot.objectives().size());
         missionPanelStyle.set("height: " + (33 + count * 174) + "px;");
         missionListStyle.set("height: " + (count * 174) + "px;");
@@ -313,7 +314,8 @@ final class BattleHudOverlayModel {
                 case "blocker" -> item.blocker().isEmpty() ? "" : item.blocker();
                 case "classes" -> "mission-card " + (item.state() == MissionObjectiveSnapshot.State.COMPLETE ? "mission-complete"
                         : item.state() == MissionObjectiveSnapshot.State.FAILED ? "mission-failed" : "mission-active");
-                case "progressStyle" -> "width: " + Math.round(item.progress() * 100) + "%;";
+                case "progressStyle" -> "width: " + Math.round(Math.max(0, Math.min(1, item.progress())) * 100) + "%;";
+                case "trackStyle" -> item.progress() < 0 ? "height: 0px; opacity: 0; overflow: hidden;" : "";
                 case "locate" -> locate;
                 case "disabled" -> item.focus() == null;
                 default -> {

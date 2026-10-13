@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "facing": "north",
+  "source": "../specter-v1/source.png",
+  "source_canvas": [1672, 941],
+  "source_body_bounds": [100, 269, 737, 672],
+  "export_canvas": [150, 95],
+  "registration": "All body parts retain the same source crop and complete export canvas; never trim or recenter shoulders.",
+  "body_master": {"scale": 1.12, "offset": [0.0, -0.06], "pivot": [0.5, 0.5]},
+  "head": {"reuse": "specter-v1", "offset": [0.0, 0.046375], "scale": 1.0, "pivot": [0.5, 0.5]},
+  "foot": {"reuse": "specter-v1"},
+  "shoulders": {
+    "left-shoulder": {
+      "export_name": "shoulder-left.png",
+      "cut_polygon": [[242, 265], [285, 287], [291, 306], [278, 341], [264, 412], [249, 478], [226, 519], [203, 526], [116, 503], [95, 423], [102, 370], [107, 315], [183, 282]],
+      "hinge_source": [269.0, 410.0],
+      "pivot": [0.2653061224489796, 0.34987593052109184],
+      "parent_offset": [-0.2346938775510204, 0.09507857733664183],
+      "transform_space": "ACTOR",
+      "mastered_offset": [-0.26285714285714284, 0.04648800661703886],
+      "mastered_scale": 1.12
+    },
+    "right-shoulder": {
+      "export_name": "shoulder-right.png",
+      "cut_polygon": [[595, 265], [552, 287], [546, 306], [559, 341], [573, 412], [588, 478], [611, 519], [634, 526], [721, 503], [742, 423], [735, 370], [730, 315], [654, 282]],
+      "hinge_source": [568.0, 410.0],
+      "pivot": [0.7346938775510204, 0.34987593052109184],
+      "parent_offset": [0.2346938775510204, 0.09507857733664183],
+      "transform_space": "ACTOR",
+      "mastered_offset": [0.26285714285714284, 0.04648800661703886],
+      "mastered_scale": 1.12
+    }
+  },
+  "backing": {
+    "art": "ImageGen-authored dark undersuit only; original caps and central torso stay authoritative",
+    "required_overlap_source_pixels": 40,
+    "motion_envelope": {"translation_sw": 0.04, "rotation_degrees": 8.0},
+    "preserve_socket_alpha": true,
+    "preserve_original_outer_alpha": true
+  },
+  "coordinate_note": "Source Y points down. Actor offset Y points forward. parent_offset is a geometry calculation relative to torso, not an implicit renderer parent. Authored shoulder transforms use ACTOR space with mastered_offset and mastered_scale; pose tracks carry torso motion explicitly."
+}

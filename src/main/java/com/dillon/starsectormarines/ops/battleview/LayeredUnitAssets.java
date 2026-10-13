@@ -14,6 +14,9 @@ import java.util.Map;
 public final class LayeredUnitAssets {
     public final LayeredSpriteCache body;
     public final LayeredSpriteCache head;
+    /** Optional independent armor shells; absent for monolithic armor families. */
+    public final LayeredSpriteCache shoulderLeft;
+    public final LayeredSpriteCache shoulderRight;
     public final LayeredSpriteCache foot;
     public final LayeredSpriteCache foreClaw;
     public final LayeredSpriteCache rifle;
@@ -38,6 +41,24 @@ public final class LayeredUnitAssets {
                              LayeredSpriteCache muzzleFlash,
                              LayeredSpriteCache surplusRifle,
                              LayeredSpriteCache masterworkDmr) {
+        this(body, head, foot, foreClaw, rifle, laserGun, smg, dmr,
+                rocketLauncher, antiMaterielRifle, muzzleFlash, surplusRifle,
+                masterworkDmr, null, null);
+    }
+
+    public LayeredUnitAssets(LayeredSpriteCache body, LayeredSpriteCache head,
+                             LayeredSpriteCache foot, LayeredSpriteCache foreClaw,
+                             LayeredSpriteCache rifle, LayeredSpriteCache laserGun,
+                             LayeredSpriteCache smg, LayeredSpriteCache dmr,
+                             LayeredSpriteCache rocketLauncher,
+                             LayeredSpriteCache antiMaterielRifle,
+                             LayeredSpriteCache muzzleFlash,
+                             LayeredSpriteCache surplusRifle,
+                             LayeredSpriteCache masterworkDmr,
+                             LayeredSpriteCache shoulderLeft,
+                             LayeredSpriteCache shoulderRight) {
+        this.shoulderLeft = shoulderLeft;
+        this.shoulderRight = shoulderRight;
         this.body = body;
         this.head = head;
         this.foot = foot;
@@ -81,7 +102,7 @@ public final class LayeredUnitAssets {
      */
     public List<LayeredSpriteCache> layers() {
         List<LayeredSpriteCache> all = new ArrayList<>(List.of());
-        Collections.addAll(all, body, head, foot, foreClaw, rifle, laserGun, smg, dmr,
+        Collections.addAll(all, body, head, foot, foreClaw, shoulderLeft, shoulderRight, rifle, laserGun, smg, dmr,
                 rocketLauncher, antiMaterielRifle, muzzleFlash);
         for (EnumMap<EquipmentGrade, LayeredSpriteCache> variants : gradeWeapons.values()) {
             all.addAll(variants.values());

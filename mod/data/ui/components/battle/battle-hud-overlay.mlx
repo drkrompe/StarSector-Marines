@@ -70,7 +70,7 @@
             <div id="{card.stepsId}" class="label mission-steps">{card.steps}</div>
             <div id="{card.instructionId}" class="mission-instruction">{card.instruction}</div>
             <div id="{card.progressTextId}" class="label mission-secondary">{card.progressText}</div>
-            <div id="{card.trackId}" class="objective-progress-track"><div id="{card.progressId}" class="objective-progress-fill" style="{card.progressStyle}" /></div>
+            <div id="{card.trackId}" class="objective-progress-track" style="{card.trackStyle}"><div id="{card.progressId}" class="objective-progress-fill" style="{card.progressStyle}" /></div>
             <div id="{card.blockerId}" class="mission-blocker">{card.blocker}</div>
           </div>
         </div>

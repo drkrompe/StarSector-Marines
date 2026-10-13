@@ -25,5 +25,17 @@ class SalvageRightsProgressTest {
     @Test void lossOfInspectionPartyFailsEvenWithAllEnemiesDead(){
         var p=inspection();p.advance(1,true,false,false,false,true);assertEquals(FAILED,p.phase());
     }
+    @Test void captureRequiresFourContinuousSecondsAndPublishesItsActualGates(){
+        var p=new SalvageRightsProgress();
+        p.advance(2,true,false,false,true,false);
+        assertEquals(2,p.capture());assertTrue(p.companyAtTarget());assertFalse(p.contested());
+        p.advance(1,true,true,false,true,false);
+        assertEquals(0,p.capture());assertTrue(p.contested());
+        p.advance(3,true,false,true,true,true);
+        assertEquals(RECEIVING,p.phase());assertEquals(3,p.capture());
+        assertTrue(p.engineerPresent());assertTrue(p.responseCommitted());
+        p.advance(1,true,false,true,true,true);
+        assertEquals(WORKSHOP,p.phase());assertEquals(0,p.capture());
+    }
     private SalvageRightsProgress inspection(){var p=new SalvageRightsProgress();for(int i=0;i<3;i++)p.advance(4,true,false,false,true,false);return p;}
 }

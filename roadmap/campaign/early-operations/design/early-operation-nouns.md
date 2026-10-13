@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — campaign guidance ends at preparation, leaving battle story beats unobstructed.
+Updated: 2026-10-13 — recovery building duties clear actual interiors; campaign guidance ends at preparation.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -34,6 +34,17 @@ Cooperative militia hold gains; a physical inspection party follows only after
 the company secures the cradle. The protected claim requires safe working time,
 living company cover and a surviving technician. A finite response comes along
 the haul road; victory does not require hunting every surviving scrapper.
+The receiving store and repair workshop are secured by four continuous seconds
+of company combatants occupying their actual interiors without a hostile
+combatant inside. Empty ground or enemy entry resets that occupation clock.
+Exterior recesses in a concave building's enclosing rectangle do not count as
+its interior. Company squads approach the centers of its bounded rooms and
+clear those rooms after entering; arriving near an entrance or corner does not
+mean the building has been cleared. The map outlines that same interior, with
+its beacon and Locate destination on a central walkable floor cell.
+Those duties use public room geometry and
+the company's own presence, preserving player orders and keeping hidden hostile
+positions outside mission command.
 The fixed 18,000-credit payment and recovery claim settle once per accepted victory.
 Failed attempts preserve company and technician losses; a retry is a new contract
 attempt with a replacement cooperative inspection party, not resurrected crew.
