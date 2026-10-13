@@ -137,7 +137,8 @@ class IntegralSystemPolicyTest {
 
         JSONObject standoffOnAnAssist = breacherAssistJson()
                 .put("policy", SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT.key)
-                .put("minimumStandoffCells", 5.0);
+                .put("minimumStandoffCells", 5.0)
+                .put("squadSalvoIntervalSeconds", 1.5);
         JSONException assistFailure = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(standoffOnAnAssist, "armor.test"));
         assertTrue(assistFailure.getMessage().contains(SpecialAiPolicy.EXPOSED_UNDER_FIRE.key),
@@ -908,6 +909,7 @@ class IntegralSystemPolicyTest {
                 .put("resource", "ammunition")
                 .put("policy", SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT.key)
                 .put("minimumStandoffCells", 5.0)
+                .put("squadSalvoIntervalSeconds", 1.5)
                 .put("durationSeconds", 1.0)
                 .put("startingAmmo", 2)
                 .put("weaponId", "weapon.micro-missile");

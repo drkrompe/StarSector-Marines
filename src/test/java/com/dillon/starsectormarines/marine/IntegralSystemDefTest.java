@@ -333,6 +333,22 @@ class IntegralSystemDefTest {
                 .put("shieldedArcDegrees", 120.0);
     }
 
+    @Test
+    void podRequiresPositiveAuthoredSquadSpacing() throws JSONException {
+        JSONObject missing = missilePod();
+        missing.remove("squadSalvoIntervalSeconds");
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(missing, "armor.test"));
+        assertTrue(failure.getMessage().contains("squadSalvoIntervalSeconds"));
+        for (double invalid : new double[] {0.0, -1.0}) {
+            JSONObject bad = missilePod().put("squadSalvoIntervalSeconds", invalid);
+            assertThrows(JSONException.class,
+                    () -> IntegralSystemDef.parse(bad, "armor.test"));
+        }
+        assertEquals(1.5f, IntegralSystemDef.parse(missilePod(), "armor.test")
+                .sightedStandoff().squadSalvoIntervalSeconds());
+    }
+
     private static JSONObject missilePod() throws JSONException {
         return new JSONObject()
                 .put("id", "system.test-pod")
@@ -343,6 +359,7 @@ class IntegralSystemDefTest {
                 .put("resource", "ammunition")
                 .put("policy", "sighted-standoff-contact")
                 .put("minimumStandoffCells", 5.0)
+                .put("squadSalvoIntervalSeconds", 1.5)
                 .put("durationSeconds", 1.0)
                 .put("startingAmmo", 2)
                 .put("weaponId", "weapon.micro-missile");

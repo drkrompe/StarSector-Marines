@@ -208,6 +208,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** MLX-authored player-facing command chrome: time controls and capture state. */
     private BattleHudOverlay retainedOverlay;
     private BattleDirectControlOverlay directControlOverlay;
+    private BattleManualObjectiveOverlay manualObjectives;
     private final BattleDirectControlInput directControlInput = new BattleDirectControlInput();
     private BattleSimulation directControlSimulation;
     private boolean directControlHudActive;
@@ -548,6 +549,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION,
                     0.72f, 1.0f, loc, new Vector2f(0f, 0f));
         }
+        for (var blast : sim.getRollingBlastsThisFrame()) {
+            renderer.getImpactFx().spawnRollingBlast(blast);
+            renderer.getGroundLights().spawnHeavyImpact(blast.x(), blast.y(), blast.radius(), null);
+        }
         // Drain wreck smoke puffs the sim queued this tick — each entry is
         // {x, y, radiusCells}. Same scaled clock means wrecks stop smoking
         // when the sim pauses.
@@ -651,6 +656,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
         if (directControlOverlay != null) directControlOverlay.detach();
+        if (manualObjectives != null) manualObjectives.detach();
         // Release the decal accumulator's FBO + color texture. Without this, an
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
@@ -851,6 +857,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                     () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f), this::selectDirectWeapon);
         }
         directControlOverlay.attach(position, sim, speedMultiplier);
+        if (manualObjectives == null) manualObjectives = new BattleManualObjectiveOverlay();
+        manualObjectives.attach(position, sim);
     }
 
     private void toggleSquadOrderTargeting(SquadOrderTargetingPanel.Mode mode) {
@@ -1315,6 +1323,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedOrderOverlay != null) retainedOrderOverlay.processInput(events);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
         }
+        if (manualObjectives != null) manualObjectives.processInput(events);
         if (directControlOverlay != null) directControlOverlay.processInput(events);
         // HUD gets first crack after retained chrome so a click on a squad row doesn't
         // also pan the camera or hit a future world-picker on the cells the
@@ -1422,6 +1431,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             ensureRetainedOverlay(getSim());
         }
         if (directControlOverlay != null) directControlOverlay.update(0f, getSim(), speedMultiplier);
+        if (manualObjectives != null) manualObjectives.update(0f, getSim());
     }
 
     private void syncDirectControl() {
@@ -1432,6 +1442,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             exitDirectControl();
         }
         if (directControlOverlay != null) directControlOverlay.update(0f, sim, speedMultiplier);
+        if (manualObjectives != null) manualObjectives.update(0f, sim);
     }
 
     private void setBattleSpeed(float requested) {
@@ -1526,6 +1537,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {
         if (directControlOverlay != null
                 && directControlOverlay.blocksWorldPointer(screenX, screenY)) return true;
+        if (manualObjectives != null && manualObjectives.blocksWorldPointer(screenX, screenY)) return true;
         if (directControlInput.active()) return false;
         return hud != null && hud.blocksWorldPointer(screenX, screenY)
                 || retainedOverlay != null
@@ -1659,6 +1671,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
         }
+        if (manualObjectives != null) manualObjectives.render(alphaMult);
         if (directControlOverlay != null) directControlOverlay.render(alphaMult);
         storySubtitles.render(alphaMult);
 

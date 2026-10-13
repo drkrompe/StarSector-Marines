@@ -7,6 +7,7 @@ class AirCrashMotionTest {
     @Test void fallingCarriesTheActualVelocityRatherThanTheNoseDirection() {
         var body = new AirBody();
         body.vx = 6f; body.vy = -8f; body.facingDegrees = 90f;
+        AirCrashMotion.beginFall(body, .3f);
         AirCrashMotion.fall(body, AirCrashMotion.FALL_SECONDS);
         assertEquals(9.6f, body.x, .001f);
         assertEquals(-12.8f, body.y, .001f);
@@ -25,11 +26,26 @@ class AirCrashMotionTest {
         assertEquals(0f, stepped.speed());
     }
 
-    @Test void aStationaryCraftDoesNotAcquireInventedForwardMomentum() {
+    @Test void hoverLossAcceleratesIntoASkidRatherThanReceivingAnInstantKick() {
         var body = new AirBody();
-        AirCrashMotion.fall(body, AirCrashMotion.FALL_SECONDS);
+        AirCrashMotion.beginFall(body, .5f);
+        assertEquals(0f, body.speed());
+        AirCrashMotion.fall(body, .8f);
+        assertEquals(4f, body.speed(), .001f);
+        assertEquals(1.6f, body.x, .001f);
+        AirCrashMotion.fall(body, .8f);
+        assertEquals(8f, body.speed(), .001f);
+        assertEquals(6.4f, body.x, .001f);
         assertTrue(AirCrashMotion.skid(body, 1f));
-        assertEquals(0f, body.x);
+        assertEquals(10.4f, body.x, .001f);
         assertEquals(0f, body.y);
+    }
+
+    @Test void aSlowMovingCraftTipsAlongItsExistingMotion() {
+        var body = new AirBody(); body.vy = -2f;
+        AirCrashMotion.beginFall(body, .1f);
+        AirCrashMotion.fall(body, AirCrashMotion.FALL_SECONDS);
+        assertEquals(0f, body.vx, .001f);
+        assertEquals(-8f, body.vy, .001f);
     }
 }

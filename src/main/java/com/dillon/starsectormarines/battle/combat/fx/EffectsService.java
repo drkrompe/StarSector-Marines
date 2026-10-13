@@ -67,7 +67,7 @@ public final class EffectsService {
 
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     private final List<SmokePlume> smokePlumes = new ArrayList<>();
-    private final List<CrashBurst> crashBursts = new ArrayList<>();
+    private final List<RollingBlast> rollingBlastsThisFrame = new ArrayList<>();
     /** Identity membership keeps the ordinary plume data object and smoke-only API unchanged. */
     private final Set<SmokePlume> cannonPlumes = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -114,37 +114,31 @@ public final class EffectsService {
                 180f, .05f, scale, 24f));
     }
 
-    /** Fuel thrown forward by ground contact: two spreading arms after the primary impact. */
+    /** Emit a filled, irregular fan from the hull's current ground contact, including its centre. */
     public void spawnCrashBlastFan(float x, float y, float vx, float vy, float hullRadius) {
         float speed = (float) Math.hypot(vx, vy);
         if (speed < .5f) return;
         float forwardX = vx / speed, forwardY = vy / speed;
-        float reach = Math.max(5f, Math.min(14f, hullRadius * 3f + 4f));
-        for (int step = 1; step <= 7; step++) {
-            float progress = step / 7f;
-            float forward = reach * progress;
-            float sideways = forward * .6f;
-            for (int side : new int[]{-1, 1}) {
-                crashBursts.add(new CrashBurst(
-                        x + forwardX * forward - forwardY * sideways * side,
-                        y + forwardY * forward + forwardX * sideways * side,
-                        .9f + .5f * progress, .10f + (step - 1) * .12f));
-            }
+        float scale = Math.max(1.1f, Math.min(2.5f, hullRadius * .65f));
+        // A hot core follows the actual sliding hull; the other lobes fill the cone, not its outline.
+        rollingBlastsThisFrame.add(new RollingBlast(x, y, scale * 1.25f, vx * .8f, vy * .8f));
+        for (int lobe = 0; lobe < 4; lobe++) {
+            float angle = (lobe + rng.nextFloat()) / 4f * 1.9f - .95f;
+            float forward = (rng.nextFloat() - .5f) * hullRadius;
+            float sideways = (rng.nextFloat() - .5f) * hullRadius * 1.4f;
+            float travel = Math.max(4f, speed * (.6f + rng.nextFloat() * .35f));
+            float along = (float) Math.cos(angle) * travel;
+            float across = (float) Math.sin(angle) * travel;
+            rollingBlastsThisFrame.add(new RollingBlast(
+                    x + forwardX * forward - forwardY * sideways,
+                    y + forwardY * forward + forwardX * sideways,
+                    scale * (.65f + rng.nextFloat() * .55f),
+                    forwardX * along - forwardY * across,
+                    forwardY * along + forwardX * across));
         }
     }
 
-    private static final class CrashBurst {
-        final float x, y, scale;
-        float delay;
-
-        CrashBurst(float x, float y, float scale, float delay) {
-            this.x = x;
-            this.y = y;
-            this.scale = scale;
-            this.delay = delay;
-        }
-    }
-
+    public List<RollingBlast> getRollingBlastsThisFrame() { return rollingBlastsThisFrame; }
     /** Live smoking wrecks. Read-only — callers iterate; mutation happens through {@link #spawnSmokingWreck} and {@link #tickWrecks(float)}. */
     public List<SmokingWreck> getSmokingWrecks() {
         return Collections.unmodifiableList(smokingWrecks);
@@ -245,6 +239,7 @@ public final class EffectsService {
         fireBurstsThisFrame.clear();
         wallDustsThisFrame.clear();
         heavyImpactsThisFrame.clear();
+        rollingBlastsThisFrame.clear();
         ordnanceReleasesThisFrame.clear();
     }
 
@@ -308,15 +303,6 @@ public final class EffectsService {
      * already pulls from that list each frame.
      */
     public void tickPlumes(float dt) {
-        for (int i = crashBursts.size() - 1; i >= 0; i--) {
-            CrashBurst burst = crashBursts.get(i);
-            burst.delay -= dt;
-            if (burst.delay > 0f) continue;
-            spawnHeavyImpact(burst.x, burst.y, burst.scale);
-            spawnPropDamage(burst.x, burst.y, PropDamage.Effect.FIRE, burst.scale * 4f);
-            spawnPropDamage(burst.x, burst.y, PropDamage.Effect.DUST, burst.scale * 4f);
-            crashBursts.remove(i);
-        }
         for (int i = smokePlumes.size() - 1; i >= 0; i--) {
             SmokePlume p = smokePlumes.get(i);
             p.remainingLifetime -= dt;
