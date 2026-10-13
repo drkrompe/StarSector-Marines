@@ -1,5 +1,5 @@
 {
-  "cellPx": 64,
+  "cellPx": 32,
   "cells": [{
     "col": 0,
     "description": "Large inert Colossus cargo wreck with torn holds and recognizable paired engine arms. Preserve the complete image frame. fogSurface uses alpha>=128 in at least20% of source-cell pixels, bottom-first worldY rows; regenerate with basin-colossus-fog-surface.py. It observes opaque hull surfaces without creating navigation or LOS geometry.",

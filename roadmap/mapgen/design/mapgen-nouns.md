@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — mountain basins continue beyond map edges; summit dressing preserves permanent terrain and cliff rims.
+Updated: 2026-10-13 — impassable excavations retain open sight and recessed banks; the Shepherd basin includes its Colossus cargo wreck.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -451,11 +451,14 @@ vehicle stops and approach routes, rather than changing a spline file alone.
 ## Authored natural terrain
 
 A **terrain plan** is an ordered collection of area-brush strokes. A stroke raises
-an inaccessible mass or erases part of one; its radius sweeps continuously between
-sampled points, so a fast drag cannot leave disconnected dabs. Later strokes win.
+an inaccessible mass, excavates an inaccessible depression or erases relief;
+its radius sweeps continuously between sampled points, so a fast drag cannot
+leave disconnected dabs. Raising and excavation occupy separate fields. Erasing
+clears both, and repainting can restore either. Opposing visible relief cannot
+overlap: a change from mountain to trench first erases the earlier shape.
 A retained seed and ruggedness shape the boundary without rerolling the map.
 
-The mass has one tactical identity: non-walkable, opaque natural terrain. It is
+The raised mass has one tactical identity: non-walkable, opaque natural terrain. It is
 not a building and receives no roof, wall artwork or destructible structure.
 Natural-solid navigation flags survive routing copies and refuse wall damage.
 Ground vehicles and infantry read the ordinary grid; aircraft keep their own
@@ -472,6 +475,15 @@ blocked navigation cells; its clipped contours shape the talus, cliff face and
 summit across cell interiors. Visible edges do not snap to whole tiles. Rock
 and grass-topped or glacial finishes change material, never the footprint. The surrounding
 low ground remains the map's own surface.
+
+An **excavation** is a recessed trench or crash gouge, not a mountain painted
+dark. Its clipped inner banks face into the hollow and descend to a shaded
+rock or ice floor. The center-sampled depression is impassable to infantry and
+ground vehicles but passes sight and direct rounds across it. Its edge grants
+no firing cover; visible depth is not a wall height. The permanent natural
+protection prevents damage from opening a crossing, while ordinary terrain
+and prop rules retain authority over any actual obstruction placed above it.
+Depressed floors are never summits and cannot acquire summit trees or guns.
 
 Terrain placement is generation-time work, not runtime construction. It
 preflights its entire visible footprint before mutation, refusing roads,
@@ -590,9 +602,11 @@ remains, and preserves the original ground. A blast spends damage once per
 formation. Large continuous ridges remain permanent terrain masses; their
 material resemblance to destructible formations does not grant them durability.
 
-Canyons and crevasses require a separate movement/visibility contract: a void
-can prevent crossing while leaving sight across it open. They must not be
-represented by an opaque raised mass merely to obtain impassability.
+Canyons, crevasses and crash gouges use the excavation contract when their
+void prevents crossing while leaving sight across it open. They must not be
+represented by an opaque raised mass merely to obtain impassability. A place
+requiring traversable banks or a playable lower floor needs a separate access
+and elevation model; an excavation supplies neither.
 
 ## City, station, and ship families
 
@@ -1346,7 +1360,7 @@ ground.
 
 ## Boundaries
 
-The **Shepherd recovery basin** is a 304 by 176 authored industrial landscape
+The **Shepherd recovery basin** is a 304 by 224 authored industrial landscape
 shared across three visits. Its worn road, rear service loop, natural ridges,
 four west-facing freight berths and varied repair buildings stay in the same
 places. Organized shipbreaking beds and sorted hull sections line the service
@@ -1355,13 +1369,20 @@ yard's older work pattern. Morrow's landing scars, failed shore equipment and
 crew evacuation muster explain the recoverable hull. Scrap sections own ordinary
 solid prop footprints and cover; shallow scars are visual damage only. Dressing
 preserves work aisles, boat approaches, cargo routes and construction plots and
-persists across visits without granting additional salvage rewards.
+persists across visits without granting additional salvage rewards. A large
+crashed Colossus lies along the northern canyon wall. Its torn cargo holds,
+spilled equipment and long excavated impact gouge explain the yard's valuable
+raider prize. The gouge is permanent, impassable and transparent to sight;
+the wreck's explicit body and engine arms provide actual opaque obstruction.
+The transparent rear gap does not become an invisible rectangular cover field.
+The wreck persists as scenery across all visits, not a second reward objective.
 `ShepherdBasin` adds servicing equipment on Cold Start and leaves the
 static hull's cradle empty on Working Passage. Its hull is an inert catalog
 doodad with an explicit 24 by 20-cell solid grounded footprint, large enough to
 read as a crewed workshop ship. This authored ground scale is intentionally
-larger than the compressed overhead flight scale; the future battle host owns repair
-progress and any live tender. Named work destinations and suggested construction
+larger than the compressed overhead flight scale. The production chapter hosts
+own repair progress and the live tender, whose full grounded footprint remains
+until physical climb-out. Named work destinations and suggested construction
 plots do not silently become capture objectives. The opt-in `shepherd-basin`
 evidence suite proves furnished access, connected outdoor ground, berth clearance,
 open work plots and cargo routes. It does not establish moving ship clearance or
