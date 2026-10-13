@@ -17,6 +17,7 @@ import java.util.Map;
 
 /** Runtime catalog of stable, data-authored special-equipment identities. */
 public final class SpecialEquipmentRegistry {
+    public static final String SCRAP_ROCKET_ID = "special.scrap-rocket";
 
     private static final Logger LOG = Global.getLogger(SpecialEquipmentRegistry.class);
 
