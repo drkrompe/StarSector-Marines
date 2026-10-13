@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
+import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
@@ -52,6 +54,7 @@ public final class MissionObjectiveProjection {
                 if (sim.getColdAccount() == null) items.add(MissionObjectiveFamilies.raid(raid));
             } else if (objective instanceof SalvageRightsSequence salvage) items.add(buildingFootprint(
                     MissionObjectiveFamilies.salvage(salvage),sim.getTopology(),sim.getGrid(),salvage.targetBuilding()));
+            else if (objective instanceof WaterUnderSealSequence weir) items.add(weirFootprints(MissionObjectiveFamilies.waterUnderSeal(weir), sim.getTopology(), sim.getGrid()));
             else if (objective instanceof ColdStartSequence repair) {
                 items.add(MissionObjectiveFamilies.coldStart(repair));
                 for (var post : repair.pickets()) items.add(MissionObjectiveFamilies.coldStartPicket(post));
@@ -137,6 +140,25 @@ public final class MissionObjectiveProjection {
                 item.progressText(),item.progress(),item.blocker(),markers,item.focusMarkerId());
     }
 
+    /** Switch outlines use the same occupied room mask as the work referee. */
+    static Item weirFootprints(Item item, CellTopology topology, NavigationGrid grid) {
+        var markers = new ArrayList<Marker>();
+        for (var marker : item.markers()) {
+            if (!marker.id().equals("weir-north") && !marker.id().equals("weir-south")) { markers.add(marker); continue; }
+            boolean north = marker.id().equals("weir-north");
+            var cells = new ArrayList<Cell>();
+            for (int y = north ? 68 : 35; y <= (north ? 78 : 45); y++) for (int x = 74; x <= 86; x++)
+                if (NorthWeir.insideRoom(topology, x, y, north)) cells.add(new Cell(x, y));
+            int x = marker.x(), y = marker.y(); double best = Double.MAX_VALUE;
+            for (var cell : cells) if (grid.isWalkable(cell.x(), cell.y())) {
+                double distance = Math.hypot(cell.x() - marker.x(), cell.y() - marker.y());
+                if (distance < best) { best = distance; x = cell.x(); y = cell.y(); }
+            }
+            markers.add(new Marker(marker.id(), marker.name(), x, y, marker.status(), marker.state(), cells));
+        }
+        return new Item(item.id(), item.name(), item.state(), item.phase(), item.steps(), item.instruction(),
+                item.progressText(), item.progress(), item.blocker(), markers, item.focusMarkerId());
+    }
     public static Item payload(ExtractionPayloadObjective p, CivilianEvacuationSystem.Progress evacuation) {
         State state = p.isFailed() ? State.FAILED : p.isComplete() ? State.COMPLETE : State.ACTIVE;
         String phase = switch (p.extractionPhase()) {

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
@@ -510,6 +511,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         workingPassage = new WorkingPassageSequence(tender, militia, reserve, storyBeats);
         addObjective(workingPassage);
     }
+    private WaterUnderSealSequence waterUnderSeal;
+    public WaterUnderSealSequence getWaterUnderSeal() { return waterUnderSeal; }
+    public void installWaterUnderSeal(int technicians, long carrier, List<Integer> militia, List<EntitySpec> reserve) {
+        if (simTickIndex != 0 || waterUnderSeal != null) throw new IllegalStateException("Install Water Under Seal once at setup");
+        waterUnderSeal = new WaterUnderSealSequence(technicians, carrier, militia, reserve, storyBeats);
+        addObjective(waterUnderSeal);
+    }
     private ColdStartSequence coldStart;
     public ColdStartSequence getColdStart() { return coldStart; }
     public void installColdStart(int engineers, long carrier, List<EntitySpec> reserve, boolean delivered, boolean powered) {
@@ -722,7 +730,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (depotHold == null ? 0 : depotHold.pendingMembers())
                 + (salvageRights == null ? 0 : salvageRights.pendingMembers())
                 + (coldStart == null ? 0 : coldStart.pendingMembers())
-                + (workingPassage == null ? 0 : workingPassage.pendingMembers());
+                + (workingPassage == null ? 0 : workingPassage.pendingMembers())
+                + (waterUnderSeal == null ? 0 : waterUnderSeal.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2826,6 +2835,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
         if (workingPassage != null) workingPassage.advance(this);
+        if (waterUnderSeal != null) waterUnderSeal.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions

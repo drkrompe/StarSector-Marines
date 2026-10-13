@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
+import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
+import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
@@ -10,6 +12,7 @@ import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 
 import com.dillon.starsectormarines.battle.world.gen.fortress.MaintenanceOutpost;
 
@@ -1454,6 +1457,65 @@ public final class BattleSetup {
         return sim;
     }
 
+
+    /** Agreus repair mobilization. Construction is supplied only by a committed fleet tender called in battle. */
+    public static BattleSimulation createWaterUnderSeal(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("Water Under Seal requires one to four fitted company boats");
+        MapResult map = NorthWeir.generate(seed, profile);
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(WaterUnderSealCommand.issuer(Faction.MARINE), "Company fitted weir lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        for (int[] guard : new int[][]{{78,42},{82,75}}) {
+            var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Salt Knife switch watch", post, rng);
+        }
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, 32, 59, 8), Faction.ALLY, "North Weir constable", null, rng);
+        List<Integer> militia = new ArrayList<>();
+        for (var squad : sim.getSquads()) if (squad.faction == Faction.ALLY) {
+            militia.add(squad.id);
+            if (!sim.handoffSquadCommand(squad.id, OpeningOperationCommand.issuer(Faction.ALLY), CommandAuthority.MISSION_COMMAND,
+                    WaterUnderSealCommand.issuer(Faction.ALLY), null, "Constables inherit reopened services"))
+                throw new IllegalStateException("Constable command handoff failed");
+        }
+        int technicians = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        for (int[] cell : pickSpawnCluster(map.grid, 28, 59, 2))
+            sim.spawn(new EntitySpec("North Weir replacement repair technician", Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1])
+                    .squad(technicians).role(UnitRole.PATROL));
+        sim.getSquad(technicians).originalSize = 2;
+        sim.claimSquadCommand(technicians, CommandAuthority.MISSION_COMMAND, WaterUnderSealCommand.issuer(Faction.ALLY), "Edek's identified repair watch");
+        List<EntitySpec> reserve = new ArrayList<>();
+        for (int batch = 0; batch < 2; batch++) for (int[] cell : pickSpawnCluster(map.grid, 170, batch == 0 ? 88 : 94, 6)) {
+            var member = makeOpeningMilitia("Salt Knife road element " + batch + " / " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL);
+            if (reserve.size() < 2) WaterUnderSealIssue.recoveredAssaultRig(member, MarineArmorCatalogRegistry.require("armor.specter-recovered"));
+            reserve.add(member);
+        }
+        long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(9, 59));
+        sim.convoy().body(carrier).teleport(9, 59, 0f);
+        sim.installWaterUnderSeal(technicians, carrier, militia, reserve);
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new WaterUnderSealCommand(faction), WaterUnderSealCommand.disclosure(sim.getWaterUnderSeal()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(WaterUnderSealCommand.issuer(Faction.MARINE), "Company support joins weir protection"));
+        return sim;
+    }
     /** Repair mobilization already ashore at the recovered basin, with optional reserve boats and one physical cargo carrier. */
     public static BattleSimulation createColdStart(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean cargoDelivered, boolean shorePower) {
         if(manifest==null || manifest.size()>4)

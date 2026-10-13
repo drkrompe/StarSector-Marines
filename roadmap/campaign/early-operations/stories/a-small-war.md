@@ -1,10 +1,10 @@
 # A Small War
 
-Status: PLANNED — authored post-Shepherd arc on existing Agreus; its missions and story rewards remain unimplemented.
+Status: IN PROGRESS — post-Shepherd referral and Water Under Seal implemented; live campaign acceptance and Chapters 2–5 remain.
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — relocated to existing Agreus in nearby Arcadia; local concession under Ko Combine administration.
+Updated: 2026-10-13 — first playable North Weir mobilization; remaining warrant, equipment rewards and yard agreement retain their planned scope.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -44,8 +44,8 @@ one example, not a requirement that any squad share one suit or equipment set.
 The lead follows **Working Passage's successful departure and actual fleet
 handover of Morrow**. Cold Account, the recovery claim, Cold Start repairs, a
 debug grant, and simply purchasing another Shepherd do not establish that history.
-Working Passage is still unimplemented; this arc must remain unavailable until
-its real handover exists. `shepherd-recovery.md` owns that prerequisite.
+The gate reads Working Passage's actual handover receipt. `shepherd-recovery.md`
+retains the prerequisite's live campaign and save/reload acceptance.
 
 Vale recommends the company through her parts-trading connection to Latchkey.
 Mara forwards the introduction; Rusk becomes the client. Vale's reference names
@@ -137,6 +137,12 @@ account. Rebalance the whole ledger against a casualty-carryover run.
 
 ## 1 — Water Under Seal
 
+The playable first pass uses two existing Recovered Specter wearers among the
+regular Salt Knives. Replace those two fittings with the distinct Boarding Jack
+when its pattern and layered art are validated; do not describe the interim kit
+as that unfinished pattern. The current completed dossier records Rusk's
+sponsorship without offering Limited Warrant or granting equipment.
+
 **Purpose:** establish why this client needs us and show crude powered opponents
 before awarding our own. The company can succeed using the regular equipment
 that brought it through the Shepherd recovery.
@@ -153,7 +159,7 @@ technicians travel through the ordinary convoy/escort path; they stop at contact
    work area is uncontested and protected by company troops.
 3. Bring the selected tender up to safe working range and begin one useful road
    gun. A finite Salt Knife party approaches along the maintenance road while
-   construction is underway. Two Boarding Jack wearers support it; cover,
+   construction is underway. Two crude powered wearers support it; cover,
    flanking and concentrated ordinary fire must
    remain viable answers. No surprise demand for an unowned anti-tank weapon.
 4. Protect the builders through completion. A precommitted second element of the
@@ -513,18 +519,18 @@ Those would be separate campaign mechanics with their own consequences.
 
 ## Implementation order and acceptance
 
-1. Finish and verify Working Passage's exactly-once handover and actual support
-   eligibility. Test sale/loss and a different owned tender before connecting this lead.
-2. Resolve existing Agreus and its market, then initialize stable story contacts
-   and local sites for new and existing saves. Verify plotted travel from Corvus,
-   missing/inaccessible/changed-administration handling and idempotent initialization.
-   Create no duplicate world entities and change no vanilla ownership or diplomacy.
-   Bind Rusk's authored story identity once; do not alias an arbitrary generated
-   house or silently revive a dormant one. Verify airless-site presentation with
-   regular and powered infantry before authoring the outdoor encounters.
-3. Deliver Chapters 1-2 with named roster/fitted boats, tender construction,
-   preservation objectives, warrant acceptance and the first card. Verify decline,
-   retreat, replacement mobilization, duplicate result and save/reload.
+1. Live-test Working Passage's handover through HQ correspondence, normal travel
+   from Corvus to Agreus, Rusk's first offer and Water Under Seal settlement.
+   Verify save/reload before travel, during preparation and after victory; sale/loss
+   of Morrow, a different owned tender and changes to that ship after briefing.
+2. Live-check Agreus access in new and existing saves, including missing, hidden,
+   hostile and changed-administration markets. Verify no duplicate world entities,
+   arbitrary house alias, ownership change or silent relocation. Accept airless
+   presentation, the actual build-site guidance and loss-aware replacement attempts.
+3. Deliver Limited Warrant with readable acceptance, named roster/fitted boats,
+   preservation objectives and the first card. Verify decline, retreat, replacement
+   mobilization, duplicate result and save/reload. Its offer follows the completed
+   North Weir record only when this chapter is implemented.
 4. Deliver Chapter 3 and the ordinary Armory lesson. Compare regular, all-Specter
    and mixed companies without inventing a shell inventory or changing lift costs.
 5. Build and validate Boarding Jack's data, layered visuals and existing-system
@@ -541,5 +547,6 @@ Those would be separate campaign mechanics with their own consequences.
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not
 ElevenLabs jobs. Portraits, location art, voice production and native 1920x1080 / 100%
-UI-scale previews require their own authored assets and acceptance. This document
-changes the design; it does not deploy the authored contacts or playable arc.
+UI-scale previews require their own authored assets and acceptance. Headless
+evidence does not establish live travel, host save/reload or campaign-overhaul
+compatibility; keep those acceptance items open until observed in the game.

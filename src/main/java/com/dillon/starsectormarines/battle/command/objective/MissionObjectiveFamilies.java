@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.State;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
+import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
+import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
@@ -118,6 +121,41 @@ public final class MissionObjectiveFamilies {
                 blocker,sequence.targetX(),sequence.targetY());
     }
 
+    public static Item waterUnderSeal(WaterUnderSealSequence sequence) {
+        var p = sequence.progress(); var phase = p.phase(); var milestones = p.report(true, 0, 0);
+        var state = state(sequence);
+        boolean build = phase == WaterUnderSealProgress.Phase.CONSTRUCTION;
+        var order = sequence.tender() == null ? null : sequence.tender().current();
+        boolean building = build && order != null && Math.hypot(order.siteX() - sequence.buildX(), order.siteY() - sequence.buildY()) < 12;
+        float duration = phase == WaterUnderSealProgress.Phase.ESCORT ? WaterUnderSealProgress.UNLOAD_SECONDS
+                : phase == WaterUnderSealProgress.Phase.NORTH_ROOM || phase == WaterUnderSealProgress.Phase.SOUTH_ROOM
+                ? WaterUnderSealProgress.RECONNECT_SECONDS : 0;
+        String focus = switch (phase) {
+            case ESCORT -> "weir-escort"; case NORTH_ROOM -> "weir-north"; case SOUTH_ROOM -> "weir-south"; default -> "weir-road-gun";
+        };
+        String blocker = p.terminal() ? "" : build && !sequence.tenderAvailable() ? p.positionLost() ? "Call another already committed tender source, or withdraw for a new mobilization." : "Call the selected owned tender using Ship on Station."
+                : build && !building ? p.positionLost() ? "Replace the destroyed road gun: select the surviving tender and place another Vulcan turret at the marked position." : "Select the tender, choose Build Vulcan Turret, and place it in the marked road position."
+                : building && order.contested() ? "Clear known hostiles near the construction site and protect the builders."
+                : phase == WaterUnderSealProgress.Phase.ESCORT && !p.carrierArrived() ? "The repair load must physically reach the isolation switch."
+                : !p.safeWork() ? duration > 0 ? "Keep company troops and living technicians in the marked work area, uncontested."
+                : "Keep company troops at the road position, clear hostile pressure, and protect the repair watch in the secured gallery."
+                : phase == WaterUnderSealProgress.Phase.ATTACK ? "Defend the road gun until Edek confirms handover." : "";
+        return new Item("water-under-seal", "North Weir", state, phase.name(), "Repair load > North switch > South switch > Road gun > Handover",
+                sequence.displayName(), duration > 0 ? timed("Protected work", p.work(), duration)
+                        : building ? "Construction / " + Math.round(100 * order.fraction()) + "%"
+                        : phase == WaterUnderSealProgress.Phase.ATTACK ? "Hold the road position" : sequence.displayName(),
+                duration > 0 ? p.work() / duration : building ? order.fraction() : -1, blocker,
+                List.of(new Marker("weir-escort", "Repair-load escort rally", sequence.escortRallyX(), sequence.escortRallyY(), "ESCORT", state),
+                        new Marker("weir-isolation", "Isolation switch / repair load", NorthWeir.ISOLATION_X, NorthWeir.ISOLATION_Y,
+                                milestones.cargoDelivered() ? "DELIVERED" : "UNLOAD HERE", milestones.cargoDelivered() ? State.COMPLETE : state),
+                        new Marker("weir-north", "North switching room", NorthWeir.NORTH_X, NorthWeir.NORTH_Y,
+                                milestones.northRoomReconnected() ? "RECONNECTED" : "PROTECTED WORK", milestones.northRoomReconnected() ? State.COMPLETE : state),
+                        new Marker("weir-south", "South switching room", NorthWeir.SOUTH_X, NorthWeir.SOUTH_Y,
+                                milestones.southRoomReconnected() ? "RECONNECTED" : "PROTECTED WORK", milestones.southRoomReconnected() ? State.COMPLETE : state),
+                        new Marker("weir-road-gun", "Maintenance road gun / build here", sequence.buildX(), sequence.buildY(),
+                                milestones.turretConstructed() ? "COMMISSIONED" : "BUILD HERE", milestones.turretConstructed() ? State.COMPLETE : state,
+                                List.of(), 8)).stream().filter(marker -> !milestones.cargoDelivered() || !marker.id().equals("weir-escort")).toList(), focus);
+    }
     public static Item coldStart(ColdStartSequence sequence) {
         var p = sequence.progress();
         float duration = switch (p.phase()) {
