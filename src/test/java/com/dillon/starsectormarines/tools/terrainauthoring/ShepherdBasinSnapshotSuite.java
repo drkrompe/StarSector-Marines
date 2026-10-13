@@ -100,6 +100,12 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("colossus-wreck-daylight.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(147,155,112,63,1920,1080))),1920,1080)));
+                    if (visit == ShepherdBasin.Visit.WORKING_PASSAGE) {
+                        frames.add(new SnapshotArtifact("colossus-crash-trench.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(37,128,216,96,1920,1080))),1920,1080)));
+                        frames.add(new SnapshotArtifact("colossus-trench-banks.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(102,155,96,54,1920,1080))),1920,1080)));
+                    }
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("working-passage-narrows.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(166,68,128,72,1920,1080))),1920,1080)));
@@ -224,11 +230,20 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
         if (cargoWrecks.size() != 1 || cargoWrecks.get(0).footprintCellsX != 60
                 || cargoWrecks.get(0).footprintCellsY != 48)
             throw new IllegalStateException("Basin lost its full-size Colossus cargo wreck");
-        // The aft U is genuinely empty between the twin engines. The cargo
-        // body's broad middle remains ordinary opaque, impassable scenery.
-        if (!grid.isWalkable(183,189) || !reached[grid.index(183,189)]
+        // The aft U exposes the deep trench between the engines: nobody may
+        // cross it, but only the actual hull blocks sight and direct fire.
+        if (grid.isWalkable(183,189) || !grid.isSeeThrough(183,189)
+                || !map.topology.terrainSurface().isExcavated(183,189)
                 || grid.isWalkable(217,189) || grid.isSeeThrough(217,189))
-            throw new IllegalStateException("Colossus body or open aft gap lost its physical shape");
+            throw new IllegalStateException("Colossus body or recessed aft gap lost its physical shape");
+        for (int[] at : new int[][]{{60,178},{100,183},{145,188},{174,189}})
+            if (grid.isWalkable(at[0],at[1]) || !grid.isSeeThrough(at[0],at[1])
+                    || !map.topology.terrainSurface().isExcavated(at[0],at[1])
+                    || map.topology.terrainSurface().isFullSummit(at[0],at[1]))
+                throw new IllegalStateException("Crash trench lost its impassable, open-sight depression");
+        for (int[] at : new int[][]{{73,162},{123,164},{174,166},{199,160},{243,176}})
+            if (!grid.isWalkable(at[0],at[1]) || !reached[grid.index(at[0],at[1])])
+                throw new IllegalStateException("Crash trench severed the service approach at " + at[0] + "," + at[1]);
         for(int y=105;y<=124;y++)for(int x=119;x<=142;x++)
             if(grid.isWalkable(x,y)!=(visit==ShepherdBasin.Visit.WORKING_PASSAGE))
                 throw new IllegalStateException("Large recovery hull left the wrong navigation footprint");
