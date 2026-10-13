@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 
+import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.battle.audio.NarrationSequence;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -300,6 +301,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             rows.add(row("result-boats-lost", trimLabel(copy.apply("resultsBoatsLostLabel")),
                     formatBoatsLost(outcome), "tone-danger"));
         }
+        if (!outcome.shipsCalled.isEmpty()) {
+            rows.add(row("result-ships-called", trimLabel(copy.apply("resultsShipsCalledLabel")),
+                    shipsCalledSummary(outcome), anyShipCrippled(outcome) ? "tone-danger" : "tone-accent"));
+        }
         if (!outcome.officers.isEmpty()) {
             for (OfficerMissionResult officer : outcome.officers) {
                 rows.add(row("result-officer-" + officer.officer().id(), "Officer",
@@ -435,6 +440,27 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         }
         return MessageFormat.format(Strings.get("resultsEvacuationFmt"),
                 outcome.representativesEvacuated, outcome.evacuationRepresentatives);
+    }
+
+    static boolean anyShipCrippled(MissionOutcome outcome) {
+        for (ShipSupportResult ship : outcome.shipsCalled) if (ship.destroyed()) return true;
+        return false;
+    }
+
+    /**
+     * The ships called over the battle and what became of each: hull left, or crippled with
+     * the floor hull it limped home at ({@link ShipSupportSettlement#HULL_FLOOR}).
+     */
+    static String shipsCalledSummary(MissionOutcome outcome) {
+        if (outcome == null || outcome.shipsCalled.isEmpty()) return "—";
+        StringBuilder out = new StringBuilder();
+        for (ShipSupportResult ship : outcome.shipsCalled) {
+            if (out.length() > 0) out.append(", ");
+            int hull = Math.round((ship.destroyed() ? ShipSupportSettlement.HULL_FLOOR : ship.hullFraction()) * 100f);
+            out.append(MessageFormat.format(Strings.get(ship.destroyed() ? "resultsShipCrippledFmt" : "resultsShipHullFmt"),
+                    ship.shipName(), hull));
+        }
+        return out.toString();
     }
 
     static String formatBoatsLost(MissionOutcome outcome) {

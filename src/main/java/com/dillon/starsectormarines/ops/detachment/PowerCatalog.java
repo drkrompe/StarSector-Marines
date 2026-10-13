@@ -198,7 +198,8 @@ public final class PowerCatalog {
         if (ship == null || ship.getVariant() == null || ship.getHullSpec() == null) return null;
         String name = ship.getShipName() != null ? ship.getShipName() : "Support ship";
         ShipSupportSource frozen = ShipSupportSource.ofVariant(ship.getVariant(), name, false);
-        return ShipSupportSource.of(frozen.hullId(), ship.getHullSpec().getHullSize(), name, frozen.weapons());
+        ShipSupportSource source = ShipSupportSource.of(frozen.hullId(), ship.getHullSpec().getHullSize(), name, frozen.weapons());
+        return source == null ? null : source.withMemberId(ship.getId());
     }
 
     /** The stock ship an employer offers as {@code ship_on_station:<hull>}; null for any other id. */
