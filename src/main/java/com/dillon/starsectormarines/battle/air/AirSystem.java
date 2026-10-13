@@ -423,6 +423,25 @@ public class AirSystem {
     }
 
     /**
+     * Puts a gunship into the air: a {@code type} hull that flies in from {@code (entryX, entryY)},
+     * rings {@code (centreX, centreY)} with a flank toward it for
+     * {@link GunshipOrbit#STATION_SECONDS}, and leaves by {@code (exitX, exitY)}.
+     *
+     * <p>Armed with {@link GunshipArmament}'s broadside guns rather than the hull's own door gun,
+     * and given no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down.
+     */
+    public long spawnGunship(ShuttleType type, Faction faction,
+                             float centreX, float centreY, float entryX, float entryY,
+                             float exitX, float exitY) {
+        long id = spawnSortie(type, faction, centreX, centreY, entryX, entryY, exitX, exitY, 0f);
+        ShuttleMission mission = world.mission(id);
+        AirBody body = world.kinematics(id);
+        GunshipOrbit.begin(mission, body.x, body.y, body.facingDegrees);
+        attachTurrets(id, GunshipArmament.mounts(type, body.facingDegrees));
+        return id;
+    }
+
+    /**
      * Gives a fresh craft the columns that make it a body worth shooting at:
      * who it belongs to, how much of it there is, and how much skin is over
      * that.
@@ -983,6 +1002,21 @@ public class AirSystem {
                     }
                     break;
 
+                case ORBIT: {
+                    // Round the ring at the ring's pace. The clock runs only here, so the visit
+                    // is the time the guns actually had the ground and not the glide in.
+                    float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.lzX, mission.lzY,
+                            mission.orbitRadius, mission.orbitClockwise);
+                    AirSteeringSystem.steer(body, ahead[0], ahead[1], SteeringMode.CRUISE,
+                            GunshipOrbit.paced(flight, body.speed(), dt), dt);
+                    world.setAltitudeT(id, 1f);
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    mission.orbitSecondsLeft -= dt;
+                    if (mission.orbitSecondsLeft <= 0f) beginEgress(mission, body);
+                    break;
+                }
+
                 case RETURNING: {
                     // An approach, and it is flown. The path from where the
                     // aircraft is to the threshold pointing down the strip is
@@ -1101,6 +1135,22 @@ public class AirSystem {
                     break;
 
                 case INCOMING:
+                    if (mission.gunship) {
+                        // Not coming to a point at all: joining a ring about it. The carrot is the
+                        // tangent point while the craft is still outside, so it arrives on the ring
+                        // already heading round it rather than at the centre and then out again.
+                        float[] join = GunshipOrbit.carrot(body.x, body.y, mission.lzX, mission.lzY,
+                                mission.orbitRadius, mission.orbitClockwise);
+                        AirSteeringSystem.steer(body, join[0], join[1], SteeringMode.CRUISE, flight, dt);
+                        world.setAltitudeT(id, 1f);
+                        world.setFlightPhase(id, world.flightPhase(id)
+                                + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                        if (GunshipOrbit.onTheRing(body.x, body.y, mission.lzX, mission.lzY,
+                                mission.orbitRadius)) {
+                            mission.state = ShuttleState.ORBIT;
+                        }
+                        break;
+                    }
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, flight, dt);
                     if (mission.strikeSortie) {
                         // A strike is not descending to anything. The approach
@@ -1379,9 +1429,21 @@ public class AirSystem {
                 aim.target = roster.isAliveById(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
+                if (mt.hasLimitedArc()) {
+                    // A broadside gun fires out of its own side: the field of fire turns with
+                    // the hull, so the arc is re-laid every tick from where the hull now points.
+                    aim.arcCentreDeg = mt.restBearingDeg(body.facingDegrees);
+                    aim.arcHalfWidthDeg = mt.arcHalfWidthDeg;
+                }
 
                 TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
+                if (mt.hasLimitedArc() && aim.target == 0L) {
+                    // Nothing to shoot: the barrel comes back to the beam rather than sitting
+                    // wherever its last target left it as the hull swings on round the ring.
+                    aim.facingDegrees = TurretAim.slewToward(aim.facingDegrees, aim.arcCentreDeg,
+                            aim.turnRateDegPerSec * dt);
+                }
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
                 mt.setTarget(aim.target);

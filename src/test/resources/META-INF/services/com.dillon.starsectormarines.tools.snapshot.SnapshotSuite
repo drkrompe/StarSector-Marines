@@ -1,5 +1,6 @@
 com.dillon.starsectormarines.ops.battleview.ArmorySnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SpecterLayerSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.SpecterBattleSnapshotSuite
 com.dillon.starsectormarines.ops.TurretSnapshotSuite
 com.dillon.starsectormarines.ops.UiSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.PowerSuitSnapshotSuite
@@ -120,3 +121,4 @@ com.dillon.starsectormarines.battle.salvage.FieldSalvageSnapshotSuite
 com.dillon.starsectormarines.ops.OpeningLocalizationSnapshotSuite
 com.dillon.starsectormarines.ops.EngineeringOverlaySnapshotSuite
 com.dillon.starsectormarines.ops.ColdStartSnapshotSuite
+com.dillon.starsectormarines.battle.air.CloseAirSupportSceneSnapshotSuite
