@@ -73,6 +73,11 @@ public class MarineRoster implements Serializable {
     }
     public boolean secondSquadPreparationSeen() { return secondSquadPreparationSeen; }
     public void acknowledgeSecondSquadPreparation() { secondSquadPreparationSeen = true; }
+    private CampaignLessonProgress campaignLessons;
+    public CampaignLessonProgress campaignLessons() {
+        if (campaignLessons == null) campaignLessons = new CampaignLessonProgress();
+        return campaignLessons;
+    }
     private FirstRefit firstRefit;
     public FirstRefit firstRefit() {
         if (firstRefit == null) firstRefit = new FirstRefit();

@@ -70,6 +70,7 @@ public final class MechLabScreen implements Screen {
     private MechLabViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
+    private PreparationGuide preparationGuide;
     private MarkupInstance markupInstance;
     /**
      * This screen's spec-sheet bindings. It is not a {@code MissionFlowMlxScreen},
@@ -116,9 +117,11 @@ public final class MechLabScreen implements Screen {
             viewModel.refresh();
             syncGantryScene();
         }
+        viewModel.resumeCampaignLesson();
         refreshBayPresentation();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
+        if (preparationGuide != null) preparationGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -129,11 +132,10 @@ public final class MechLabScreen implements Screen {
         SpecSheetBinder candidateSheets = null;
         try {
             requireWiredElements(candidate);
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard());
-            TutorialModal.bind(built, candidate, viewModel::labGuideVisible,
-                    "castle-lab-lesson", "mech-lab-root", viewModel::dismissLabPrompt, this::close);
+            preparationGuide = PreparationGuide.install(built, viewModel::campaignLesson, this::close);
             // The doll is not the deck scene: it composes a machine at rest
             // against its own backdrop, so it loads what it draws. Everything
             // the deck itself paints is the deck's own business.
@@ -561,6 +563,7 @@ public final class MechLabScreen implements Screen {
         if (document != null) {
             document.advance(dt);
             if (dollElement != null) document.canvases().invalidate(dollElement);
+            if (preparationGuide != null) preparationGuide.update();
         }
     }
 
@@ -594,6 +597,7 @@ public final class MechLabScreen implements Screen {
             document.releasePointerCapture();
             if (ghostElement != null) document.canvases().invalidate(ghostElement);
             if (dollElement != null) document.canvases().invalidate(dollElement);
+            if (preparationGuide != null) preparationGuide.update();
         }
         viewModel.cancelWeaponDrag();
     }
