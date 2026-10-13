@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import java.nio.file.Path;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -10,6 +14,10 @@ import java.io.ObjectOutputStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SecondSquadPreparationTest {
+    private HeadlessStrings strings;
+    @BeforeEach void strings() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
+    @AfterEach void closeStrings() { strings.close(); }
+
     static Mission junction() {
         return Mission.builder().id("supply_route_v1_1_0_0").name("Open the Junction")
                 .source(MissionSource.STORY).type(MissionType.ASSAULT).tier(OperationTier.FIRST_CONTRACT).build();
@@ -38,14 +46,14 @@ class SecondSquadPreparationTest {
         var roster = new MarineRoster();
         for (int i = 0; i < 2; i++) { var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 6); }
         var lesson = SecondSquadPreparation.lesson(junction(), roster, SquadFoundingResources.NONE, false, () -> {});
-        assertTrue(lesson.copy().contains("already have two formations"));
+        assertTrue(lesson.copy().contains("existing formations"));
         assertEquals(12, roster.lineReadySoldiers().size());
     }
     @Test void preparedCompanyNeedsNoExtraSquadAndAcknowledgementSurvivesSave() throws Exception {
         var roster = new MarineRoster();
         for (int i = 0; i < 2; i++) { var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12); }
         var lesson = SecondSquadPreparation.lesson(junction(), roster, SquadFoundingResources.NONE, false, () -> {});
-        assertTrue(lesson.copy().contains("no new squad is needed"));
+        assertTrue(lesson.copy().contains("no need to raise another"));
         roster.acknowledgeSecondSquadPreparation();
         var bytes = new ByteArrayOutputStream();
         try (var out = new ObjectOutputStream(bytes)) { out.writeObject(roster); }

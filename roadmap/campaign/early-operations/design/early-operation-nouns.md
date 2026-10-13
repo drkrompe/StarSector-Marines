@@ -930,3 +930,15 @@ live host behavior, travel access or in-game save/load acceptance.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.
 Shipped implementation evidence is in `shipped.md`.
+
+
+### First campaign learning bridge
+
+`castle-campaign-lessons.md` connects Relief's technology choice and actual issue
+to Counterattack's recovered Hound, physical SRM refitting, optional ship
+investments, Junction's selected two-squad force and first heavy-support call.
+Guidance resumes from saved company transactions and learning receipts across
+entry screens; it neither awards replacement gifts nor owns mission unlocks.
+The power/cost/promotion audit and later three/four-squad lessons are open in
+`campaign-learning-curve.md`. Existing Corvus tuning and Shepherd construction
+acceptance remain on their own stories.

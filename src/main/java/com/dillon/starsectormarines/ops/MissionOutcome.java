@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
@@ -40,6 +41,7 @@ public final class MissionOutcome {
     public final LastLiftProgress.Outcome lastLiftOutcome;
     public final FreightRunProgress.Outcome freightOutcome;
     public final WaylineHoundRecovery.Report waylineHound;
+    public final List<SalvageCache.Recovered> fieldSalvage;
     public final String officerAttemptId;
     public final List<OfficerMissionResult> officers;
     public final boolean        victory;
@@ -149,6 +151,7 @@ public final class MissionOutcome {
         this.lastLiftOutcome    = b.lastLiftOutcome;
         this.freightOutcome = b.freightOutcome;
         this.waylineHound = b.waylineHound;
+        this.fieldSalvage = List.copyOf(b.fieldSalvage);
         this.victory            = b.victory;
         this.officerAttemptId = b.officerAttemptId;
         this.officers = List.copyOf(b.officers);
@@ -229,6 +232,8 @@ public final class MissionOutcome {
         private SalvageRightsSequence.Report salvageRights;
         public Builder salvageRights(SalvageRightsSequence.Report report){salvageRights=report;return this;}
         private WaylineHoundRecovery.Report waylineHound;
+        private List<SalvageCache.Recovered> fieldSalvage = List.of();
+        public Builder fieldSalvage(List<SalvageCache.Recovered> finds) { this.fieldSalvage = List.copyOf(finds); return this; }
         private boolean victory;
         private String missionId;
         private String missionName;

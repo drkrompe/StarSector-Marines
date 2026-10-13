@@ -37,6 +37,12 @@ public record WarshipSoundCue(Kind kind, String soundId, float x, float y, float
         /** A ship was sent on a low pass: the burn, once. */
         LOW_PASS_ROAR,
         /** A ship came onto its low-pass line at speed: the report that rolls across the ground, once. */
-        LOW_PASS_REPORT
+        LOW_PASS_REPORT,
+        /** A planetary shield dome took ship-grade ordnance as flux (rate-limited per dome). */
+        DOME_ABSORB,
+        /** A dome filled and dropped, or its generator was destroyed: the shield-burnout report. */
+        DOME_DROP,
+        /** A dome came back after an overload or a reboot. */
+        DOME_RISE
     }
 }

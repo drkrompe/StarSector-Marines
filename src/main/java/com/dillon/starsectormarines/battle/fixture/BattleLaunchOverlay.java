@@ -103,5 +103,6 @@ public record BattleLaunchOverlay(
         simulation.setCommandPowers(commandPowers.stream()
                 .map(CommandPowerCommitment::toPower).toList());
         simulation.setCommandPowerResources(resources);
+        simulation.installFieldSalvage();
     }
 }

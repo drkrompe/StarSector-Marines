@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -205,8 +206,42 @@ public final class WarshipSystem {
         hazards.clear();
     }
 
+    /** The hazards a mission declared; the live envelopes of ground batteries are {@link #batteryHazards()}. */
     public List<CapitalHazard> capitalHazards() {
         return Collections.unmodifiableList(hazards);
+    }
+
+    private final Map<Object, CapitalHazard> batteryEnvelopes = new LinkedHashMap<>();
+
+    /**
+     * Registers (or moves) the live firing envelope of a ground battery under {@code key}. Unlike a declared hazard it
+     * belongs to the battery's fire control, which withdraws it when the battery falls silent, so a mission clearing
+     * its own hazards never removes it.
+     */
+    public void setBatteryHazard(Object key, Faction owner, float x, float y, float radius) {
+        if (!(radius > 0f)) throw new IllegalArgumentException("an envelope needs a radius");
+        batteryEnvelopes.put(key, new CapitalHazard(owner, x, y, radius));
+    }
+
+    /** Withdraws the envelope registered under {@code key}; a no-op when there is none. */
+    public void clearBatteryHazard(Object key) {
+        batteryEnvelopes.remove(key);
+    }
+
+    /** The live envelopes of ground batteries that can fire now. */
+    public List<CapitalHazard> batteryHazards() {
+        return List.copyOf(batteryEnvelopes.values());
+    }
+
+    /**
+     * Whether a hull of {@code length} cells hovering at {@code (x, y)} would sit inside a live battery envelope
+     * hostile to {@code side}. The same test the standoff pushes a station out by, for whoever chooses a station.
+     */
+    public boolean insideBatteryEnvelope(Faction side, float x, float y) {
+        for (CapitalHazard h : batteryEnvelopes.values()) {
+            if (h.owner().hostileTo(side) && Math.hypot(x - h.x(), y - h.y()) < h.radius()) return true;
+        }
+        return false;
     }
 
     public List<Warship> ships() {
@@ -550,11 +585,23 @@ public final class WarshipSystem {
         if (lead != null) {
             keepStation(ship, lead, picture);
         } else if (ship.profile().standoff()) {
-            float[] station = standoffStation(ship, ship.profile().standoffScale());
+            float[] station = standoffStation(ship, ship.profile().standoffScale(), true, true);
             if (station != null) ship.standoffTo(station[0], station[1]);
+        } else if (respectsBatteries(ship)) {
+            // Any other posture still keeps clear of a battery that can reach it. The pushed station is worked out
+            // from the station the mission gave, so it neither flaps nor strands the ship once the battery is silent.
+            float[] station = standoffStation(ship, 1f, false, true);
+            if (station != null) ship.standoffTo(station[0], station[1]);
+            else ship.endStandoff();
         } else {
             ship.endStandoff();
         }
+    }
+
+    /** Whether a live battery envelope is a hazard this ship's doctrine keeps its station out of. */
+    private boolean respectsBatteries(Warship ship) {
+        return !batteryEnvelopes.isEmpty() && ship.hasDoctrine() && !ship.departing()
+                && ship.posture() != WarshipPosture.WITHDRAW;
     }
 
     /**
@@ -611,15 +658,23 @@ public final class WarshipSystem {
         return STANDOFF_MARGIN_CELLS * marginScale + lengthCells * 0.5f;
     }
 
-    /** Where to hover to be clear of every hazard hostile to the ship, or {@code null} when the station already is. */
-    private float[] standoffStation(Warship ship, float marginScale) {
-        float sx = ship.hasStation() ? ship.stationX() : ship.x;
-        float sy = ship.hasStation() ? ship.stationY() : ship.y;
+    /**
+     * Where to hover to be clear of every hazard hostile to the ship, or {@code null} when the station already is.
+     * {@code declared} and {@code batteries} choose which hazards count; with batteries alone the search starts
+     * from the station the mission gave, not from one a standoff already moved.
+     */
+    private float[] standoffStation(Warship ship, float marginScale, boolean declared, boolean batteries) {
+        float[] origin = batteries && !declared ? ship.missionStation() : null;
+        float sx = origin != null ? origin[0] : ship.hasStation() ? ship.stationX() : ship.x;
+        float sy = origin != null ? origin[1] : ship.hasStation() ? ship.stationY() : ship.y;
         boolean moved = false;
         float clear = standoffClearance(marginScale, ship.lengthCells);
+        List<CapitalHazard> all = new ArrayList<>();
+        if (declared) all.addAll(hazards);
+        if (batteries) all.addAll(batteryEnvelopes.values());
         for (int pass = 0; pass < 3; pass++) {
             boolean pushed = false;
-            for (CapitalHazard hazard : hazards) {
+            for (CapitalHazard hazard : all) {
                 if (!hazard.owner().hostileTo(ship.faction)) continue;
                 float dx = sx - hazard.x();
                 float dy = sy - hazard.y();
@@ -639,6 +694,40 @@ public final class WarshipSystem {
             if (!pushed) break;
         }
         return moved ? new float[]{sx, sy} : null;
+    }
+
+    /**
+     * A ground installation fires one round of {@code weapon} at {@code target}, from {@code (mx, my)}. The round
+     * is an ordinary shell in flight, so it is drawn, can be shot down by the hull's point defence and is met by the
+     * shield first and the armour second; the only difference from a ship's own shot is that it lands on hulls
+     * alone. The aim leads the hull by its drift over the flight, and the weapon's own cone is the miss.
+     *
+     * @return the flight time of the round in seconds, or {@code -1} when the weapon cannot be fired this way
+     *         (a beam, a missile or point defence)
+     */
+    public float fireFromGround(VanillaWeapon weapon, Faction side, float mx, float my, Warship target) {
+        if (weapon == null || weapon.beam() || weapon.missile() || weapon.pointDefenceOnly() || target.destroyed()) return -1f;
+        float speed = Math.max(1f, WarshipScale.cells(weapon.projectileSpeedPx()));
+        float cx = target.centerX();
+        float cy = target.centerY();
+        float flight = (float) Math.hypot(cx - mx, cy - my) / speed;
+        float ax = cx + target.velocityX * flight;
+        float ay = cy + target.velocityY * flight;
+        float dx = ax - mx;
+        float dy = ay - my;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float miss = dist * (float) Math.tan(Math.toRadians(weapon.spreadDegrees() * 0.5f))
+                * (random.nextFloat() - 0.5f) * 2f;
+        float lx = ax + (dist > 0f ? -dy / dist : 0f) * miss;
+        float ly = ay + (dist > 0f ? dx / dist : 0f) * miss;
+        float visual = Math.max(1f, WarshipScale.cells(weapon.explosionRadiusPx()));
+        float blast = Math.max(1f, WarshipScale.cells(weapon.damageRadiusPx()));
+        MissilePath path = MissilePath.straight(mx, my, lx, ly, speed);
+        shells.add(new WarshipShell(weapon, side, null, mx, my, lx, ly, path, visual,
+                weapon.damagePerShot(), penetration(weapon.damageType()), blast, null, null, 0f, null, 0f)
+                .againstHullsOnly());
+        if (cueAllowed(weapon, FIRE_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.FIRE, weapon.fireSoundId(), mx, my);
+        return path.totalSeconds();
     }
 
     private static int hostilesWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
@@ -906,10 +995,10 @@ public final class WarshipSystem {
             PendingDetonation beam = shell.takeBeamRelease();
             if (beam != null) {
                 sim.detonateNow(beam);
-                if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                if (!beam.wasAbsorbed() && cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                     cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
                 }
-                if (beam.damage >= HEAVY_IMPACT_DAMAGE) {
+                if (!beam.wasAbsorbed() && beam.damage >= HEAVY_IMPACT_DAMAGE) {
                     sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
                 }
             }
@@ -921,11 +1010,15 @@ public final class WarshipSystem {
             }
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
-            sim.detonateNow(landing);
-            if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+            if (shell.hullOnly()) {
+                onDetonation(landing, sim);
+            } else {
+                sim.detonateNow(landing);
+            }
+            if (!landing.wasAbsorbed() && cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
             }
-            if (landing.damage >= HEAVY_IMPACT_DAMAGE) {
+            if (!landing.wasAbsorbed() && landing.damage >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
             }
         }
@@ -960,10 +1053,10 @@ public final class WarshipSystem {
             strikes.remove(i);
             PendingDetonation det = strike.detonation();
             sim.detonateNow(det);
-            if (cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
+            if (!det.wasAbsorbed() && cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), strike.aimX, strike.aimY);
             }
-            if (det.damage >= HEAVY_IMPACT_DAMAGE) {
+            if (!det.wasAbsorbed() && det.damage >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(strike.aimX, strike.aimY, strike.visualCells, strike.weapon.explosionColor());
             }
         }
@@ -1584,10 +1677,10 @@ public final class WarshipSystem {
                 /*wallDamageRadius*/ blastCells,
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
-                /*authoredAftermath*/ heavy);
+                /*authoredAftermath*/ heavy).asShipGrade();
     }
 
-    static float penetration(String damageType) {
+    public static float penetration(String damageType) {
         return switch (damageType) {
             case "KINETIC" -> PENETRATION_KINETIC;
             case "HIGH_EXPLOSIVE" -> PENETRATION_EXPLOSIVE;

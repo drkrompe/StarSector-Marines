@@ -1,0 +1,64 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.field-salvage-metals",
+      "included": true,
+      "note": "Open recovery skid containing metals. Field salvage pickup art only; battle ledger owns discovery and collection. Not ordinary storage scenery.",
+      "rect": [
+        0,
+        256,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.field-salvage-machinery",
+      "included": true,
+      "note": "Open recovery skid containing machinery. Field salvage pickup art only; battle ledger owns discovery and collection. Not ordinary storage scenery.",
+      "rect": [
+        512,
+        256,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.field-salvage-supplies",
+      "included": true,
+      "note": "Open recovery skid containing supplies. Field salvage pickup art only; battle ledger owns discovery and collection. Not ordinary storage scenery.",
+      "rect": [
+        1024,
+        256,
+        512,
+        512
+      ]
+    }
+  ],
+  "gridCols": 3,
+  "gridRows": 1,
+  "idPrefix": "doodad.field-salvage",
+  "note": "Three geometry-guided open salvage recovery skids: metals, machinery, supplies. Measured 1536x1024 RGBA; three stable pieces at alpha thresholds 16/40/96/160. Art is centered in three 512px square frames beginning at y256; cuts retain full frame and original alpha (background RGB is irrelevant). Built-in ImageGen reskin of templates/field-salvage-guide.png; exact prompt retained beside this file. Dedicated pickup visuals, never included in ordinary scenery pools; zero cover and no ballistic height. No existing sheet or identity replaced.",
+  "sheet": "art-source/tilesets/field-salvage.raw.png",
+  "sheetName": "field-salvage"
+}
