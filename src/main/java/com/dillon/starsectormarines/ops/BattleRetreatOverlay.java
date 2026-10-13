@@ -87,6 +87,10 @@ final class BattleRetreatOverlay {
         if (document != null && viewport != null) document.render(viewport, alphaMult);
     }
 
+    BattleHudSurface surface() {
+        return document != null && viewport != null ? new BattleHudSurface(document, viewport) : null;
+    }
+
     void processInput(List<InputEventAPI> events) {
         if (input == null || events == null) return;
         input.process(events);

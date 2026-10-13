@@ -1383,6 +1383,14 @@ infantry and do not also apply the older abstract turret threat drain. Destroyin
 the emplacement removes its future fire; a mission must not script a shoot-down
 regardless of whether the guns survived.
 
+An authored fixed AA mount may stand entirely on a terrain summit. Its air
+firing line clears the continuous supporting hill from that origin, then
+resumes ordinary structural obstruction: a separate ridge or intervening
+building still blocks. A missile may likewise clear that launch hill before
+entering ordinary flight; leaving it ends that exemption. This narrow mount
+contract grants no ground sight, walkability, height bonus or generic hill
+traversal. The summit stays blocked after the emplacement is destroyed.
+
 `ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared
 arrival area, squad grouping, and departure behavior belong to the mission's

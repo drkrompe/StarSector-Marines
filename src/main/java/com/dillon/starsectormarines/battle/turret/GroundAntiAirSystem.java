@@ -15,7 +15,17 @@ public final class GroundAntiAirSystem {
     private final List<Round> rounds = new ArrayList<>();
     private record Round(long shooter, long target, float damage, float penetration, int arrival) {}
     private final List<Missile> missiles = new ArrayList<>();
-    private record Missile(long shooter, long target, WeaponDef weapon, ShotEvent shot, GuidedMissile flight) {}
+    private static final class Missile {
+        final long shooter, target;
+        final WeaponDef weapon;
+        final ShotEvent shot;
+        final GuidedMissile flight;
+        boolean clearingLaunchHill;
+        Missile(long shooter, long target, WeaponDef weapon, ShotEvent shot, GuidedMissile flight, boolean summit) {
+            this.shooter = shooter; this.target = target; this.weapon = weapon;
+            this.shot = shot; this.flight = flight; clearingLaunchHill = summit;
+        }
+    }
 
     public void tick(BattleSimulation sim) {
         advanceMissiles(sim);
@@ -56,10 +66,11 @@ public final class GroundAntiAirSystem {
             float dy = sim.world().y(candidate) - sim.world().y(id);
             float distance = dx * dx + dy * dy;
             if (distance > nearest || distance < weapon.minRange * weapon.minRange) continue;
-            // The same structural air line used by aircraft guns; a roof directly below the craft
-            // is not an intervening building. Fog never grants or denies a weapon's line of fire.
-            if (!TurretAim.airFireLineClear(sim.getGrid(), sim.world().cellX(id), sim.world().cellY(id),
-                    (int) sim.world().x(candidate), (int) sim.world().y(candidate), 0f, 4f)) continue;
+            // A summit mount clears its supporting hill. Beyond it, structural air LOS applies;
+            // a roof directly below the aircraft is not an intervening building.
+            if (!TurretAim.summitAirFireLineClear(sim.getGrid(), sim.getTopology(),
+                    sim.world().cellX(id), sim.world().cellY(id),
+                    (int) sim.world().x(candidate), (int) sim.world().y(candidate), 4f)) continue;
             target = candidate;
             nearest = distance;
         }
@@ -85,7 +96,9 @@ public final class GroundAntiAirSystem {
                     false, sim.identity().faction(id), weapon.guidance.lifetime(), structure, null, null, null,
                     0f, false, null, id);
             shot.guidedFlight = flight;
-            missiles.add(new Missile(id, target, weapon, shot, flight));
+            var terrain = sim.getTopology().terrainSurface();
+            boolean summit = terrain != null && terrain.isFullSummit(sim.world().cellX(id), sim.world().cellY(id));
+            missiles.add(new Missile(id, target, weapon, shot, flight, summit));
             sim.telemetry().recordRoundFired(id);
             sim.postShot(shot);
             return;
@@ -125,9 +138,11 @@ public final class GroundAntiAirSystem {
                 flight.remaining = 0f;
             }
             // Once at flight height, the round clears low structures just as the aircraft does.
-            // A low launch leg must not tunnel through a solid wall or mountain face.
+            // A summit launch clears its own supporting mass only until it leaves that mass.
             int cx = (int) Math.floor(flight.x), cy = (int) Math.floor(flight.y);
-            if (flight.z < 1f && sim.getGrid().inBounds(cx, cy)
+            if (missile.clearingLaunchHill && !TurretAim.terrainMassAt(sim.getGrid(), sim.getTopology(), cx, cy))
+                missile.clearingLaunchHill = false;
+            if (flight.z < 1f && !missile.clearingLaunchHill && sim.getGrid().inBounds(cx, cy)
                     && sim.getGrid().blocksStructuralLineOfSight(cx, cy)) flight.remaining = 0f;
             missile.shot.toX = flight.x; missile.shot.toY = flight.y; missile.shot.toZ = flight.z;
             if (flight.remaining <= 0f) it.remove();

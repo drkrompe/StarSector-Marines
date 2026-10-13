@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — remote ship selection and construction share strategic input; takeover retains mission readouts.
+Updated: 2026-10-13 — battle surfaces share occupied bounds; ship commands, dialogue, diagnostics and manual controls preserve input ownership.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -485,11 +485,12 @@ framebuffer pixels; the conversion observes Starsector UI scale and flips the
 top-left document Y axis exactly once. A headless target applies the same clip in
 document pixels.
 
-Story dialogue has a non-interactive subtitle panel inset from the battlefield's
-top-left corner, showing the contact's existing portrait beside the speaker name
+Story dialogue has a non-interactive subtitle panel centred above the battlefield
+between the left command and right objective rails, showing the contact's existing portrait beside the speaker name
 and retaining the complete line while the recording plays. It remains visible
 in direct control and when audio is muted. The panel
-uses the shared theme and does not consume world-selection input. Its lifetime
+uses the shared theme and blocks world gestures through its opaque area without
+offering controls of its own. Its lifetime
 and factual validity follow the presentation queue in `battle-radio-nouns.md`.
 
 The standalone battle treats HUD chrome as an overlay rather than as space removed
@@ -558,7 +559,12 @@ the current objective without issuing a tactical order; completion and progress
 remain mission-owned. Essential mission meaning never requires debug visibility.
 The Conquest command readout uses semantic target labels to keep internal zone IDs out of the player HUD.
 Legacy scenes without group identities retain the approach view. Tick Profile
-and DEBUG share one centred developer cluster.
+and DEBUG share one centred developer cluster below active dialogue and comms.
+Temporary comms notices reserve their own space beneath dialogue; ship diagnostics
+follow the developer cluster. Squad diagnostics start below the actual mission
+rail. Optional diagnostics shrink or yield when the active player controls leave
+insufficient room, rather than covering those controls. Top-docked direct-control
+equipment also clears active dialogue.
 The selected player squad replaces the force plate with a 3-column by 4-slot
 fire-team roster; its default cards expose health and equipment shorthand while
 hover reveals the marine's full primary, special equipment, suit system, profile,
@@ -587,6 +593,12 @@ the compound's authoritative capture room until capture completes; a Marine-held
 opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
+
+Selection and control-mode changes immediately refresh both visible surfaces and
+their input bounds. Hidden controls release their captures. Opaque controls own
+new clicks, camera drags and wheel input within their bounds; a camera drag begun
+in the world can finish across chrome. The turret authoring workspace is modal:
+ordinary battle controls yield until it closes.
 
 A compact bottom contextual bar above fleet support exposes **Attack Move [A]**
 and **Defend Area [F]** for commandable infantry and Mech selections. Clicking a

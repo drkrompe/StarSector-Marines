@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -180,7 +179,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return detailSquad != null;
+        return detailSquad != null && ctx.getLayout() != null
+                && panelTopY() - ctx.bottomHudTop(panelX(), PANEL_W) - BattleLayout.CONTROLS_GAP >= HEADER_H;
     }
 
     @Override
@@ -246,12 +246,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     /** Top edge, below the retained time/objective rail. */
     private float panelTopY() {
-        BattleLayout l = ctx.getLayout();
-        return l.controlsY + l.controlsH
-                - (ctx.getSim() != null && ctx.getSim().getObjectives().stream().anyMatch(ExtractionPayloadObjective.class::isInstance)
-                    ? 444f : BattleLayout.COMMAND_RAIL_H) - BattleLayout.CONTROLS_GAP;
+        return ctx.rightHudBottom() - BattleLayout.CONTROLS_GAP;
     }
-
     private float panelY() {
         return panelTopY() - detailPanelHeight();
     }
@@ -262,8 +258,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
      * entire right edge into a developer console.
      */
     private float maxPanelHeight() {
-        BattleLayout l = ctx.getLayout();
-        float floor = l.backY + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP;
+        float floor = ctx.bottomHudTop(panelX(), PANEL_W) + BattleLayout.CONTROLS_GAP;
         return Math.max(HEADER_H,
                 Math.min(MAX_PANEL_H, panelTopY() - floor));
     }
@@ -1115,7 +1110,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public void handleInput(List<InputEventAPI> events) {
-        if (events == null || detailSquad == null) return;
+        if (events == null || !isVisible()) return;
         // The only retained action in the consolidated diagnostic is DUMP.
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
@@ -1132,6 +1127,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
         detailScroll.handleWheel(events,
                 panelX(), panelY(), PANEL_W, detailPanelHeight(),
                 SCROLL_PX_PER_NOTCH);
+        for (InputEventAPI event : events) {
+            if (event.isConsumed()) continue;
+            if ((event.isLMBDownEvent() || event.isLMBUpEvent() || event.isRMBDownEvent()
+                    || event.isRMBUpEvent() || event.isMouseScrollEvent())
+                    && blocksWorldPointer(event.getX(), event.getY())) event.consume();
+        }
     }
 
     /**

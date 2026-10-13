@@ -111,6 +111,10 @@ final class BattlePowerOverlay {
         }
     }
 
+    BattleHudSurface surface() {
+        return !suppressed && presentation.visible() && document != null && viewport != null ? new BattleHudSurface(document, viewport) : null;
+    }
+
     void processInput(List<InputEventAPI> events) {
         if (suppressed || !presentation.visible() || input == null || events == null) return;
         // RMB remains a world-level cancel gesture, even directly over the tray.

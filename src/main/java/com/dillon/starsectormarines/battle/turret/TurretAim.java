@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 /**
  * Shared turret aim/fire loop — used by both static {@link MapTurret}s
@@ -189,7 +190,7 @@ public final class TurretAim {
      */
     public static boolean airLosVisible(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                         float originRadius, float endpointRadius) {
-        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, true);
+        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, true, null);
     }
 
     /**
@@ -200,12 +201,26 @@ public final class TurretAim {
      */
     public static boolean airFireLineClear(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                            float originRadius, float endpointRadius) {
-        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, false);
+        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, false, null);
+    }
+
+    /** A fixed summit mount clears its own continuous supporting hill, then uses ordinary air LOS. */
+    public static boolean summitAirFireLineClear(NavigationGrid grid, CellTopology topology,
+                                                int x0, int y0, int x1, int y1, float endpointRadius) {
+        return airLineClear(grid, x0, y0, x1, y1, 0f, endpointRadius, false, topology);
+    }
+
+    public static boolean terrainMassAt(NavigationGrid grid, CellTopology topology, int x, int y) {
+        if (!grid.inBounds(x, y) || !grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)
+                || topology.terrainSurface() == null) return false;
+        for (int layer = 2; layer < 8; layer++)
+            if (topology.terrainSurface().patch(x, y, layer) != null) return true;
+        return false;
     }
 
     private static boolean airLineClear(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                         float originRadius, float endpointRadius,
-                                        boolean smokeBlocks) {
+                                        boolean smokeBlocks, CellTopology launchTerrain) {
         float ro2 = originRadius > 0f ? originRadius * originRadius : -1f;
         float re2 = endpointRadius > 0f ? endpointRadius * endpointRadius : -1f;
         int dx = Math.abs(x1 - x0);
@@ -215,10 +230,13 @@ public final class TurretAim {
         int err = dx - dy;
         int x = x0;
         int y = y0;
+        boolean originMass = launchTerrain != null && terrainMassAt(grid, launchTerrain, x0, y0)
+                && launchTerrain.terrainSurface().isFullSummit(x0, y0);
         while (true) {
+            if (originMass && !terrainMassAt(grid, launchTerrain, x, y)) originMass = false;
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
             if (!endpoint && smokeBlocks && grid.hasTransientOpacity(x, y)) return false;
-            if (!endpoint && grid.blocksStructuralLineOfSight(x, y)) {
+            if (!endpoint && !originMass && grid.blocksStructuralLineOfSight(x, y)) {
                 float distSqOrigin = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
                 float distSqEnd    = (float) ((x - x1) * (x - x1) + (y - y1) * (y - y1));
                 boolean nearOrigin = ro2 >= 0f && distSqOrigin <= ro2;
