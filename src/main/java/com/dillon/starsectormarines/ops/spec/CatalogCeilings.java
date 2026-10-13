@@ -48,6 +48,7 @@ public final class CatalogCeilings {
 
     private static volatile float weaponDamage;
     private static volatile float weaponRange;
+    private static volatile float weaponPenetration;
     private static volatile float specialDamage;
     private static volatile float specialRange;
     private static volatile float armorCapacity;
@@ -82,6 +83,15 @@ public final class CatalogCeilings {
             }
         }
         weaponRange = scanned;
+        return scanned;
+    }
+
+    /** Highest authored penetration among marine primaries; grade does not scale it. */
+    public static float weaponPenetration() {
+        if (weaponPenetration > 0f) return weaponPenetration;
+        float scanned = 1f;
+        for (WeaponDef weapon : marinePrimaries()) scanned = Math.max(scanned, weapon.penetration);
+        weaponPenetration = scanned;
         return scanned;
     }
 
@@ -228,6 +238,7 @@ public final class CatalogCeilings {
     public static void reset() {
         weaponDamage = 0f;
         weaponRange = 0f;
+        weaponPenetration = 0f;
         specialDamage = 0f;
         specialRange = 0f;
         armorCapacity = 0f;
