@@ -1516,8 +1516,16 @@ field before recording delivery. Reading the heat/infantry-screen advice is a
 separate saved receipt. Debug battles are excluded. Failure to call or land
 support leaves the lesson available on a later eligible contract.
 
-New lesson prose and labels use `Strings` through `LessonCopy`; complete variable
-sentences live in the marineOps catalog. `alpha-localization.md` owns the remaining
+Opening and company-screen prose and labels use `Strings`; `LessonCopy` delegates
+its complete variable messages to `Strings.format`. The marineOps catalog owns
+copy, including markup labels through `{i18n.key}`. Formatting uses MessageFormat
+numbered arguments (and choice patterns for quantities); plain `get` preserves
+literal apostrophes. Existing printf-based cost displays retain printf patterns.
+Rank/specialty labels and `@key` boat catalog display fields resolve when read,
+not during static initialization. The management guide stores titleKey/textKey
+beside stable narration IDs; synthesis text is recording direction, not UI copy.
+Saved identifiers, authored/player names and resource transactions are independent
+of translated display text. `alpha-localization.md` owns the remaining
 project-wide migration. `castle-campaign-lessons.md` retains live acceptance;
 `campaign-learning-curve.md` records the wider progression gaps without silently
 changing economy or officer thresholds.

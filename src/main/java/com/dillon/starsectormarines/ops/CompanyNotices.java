@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
@@ -12,19 +13,20 @@ import java.util.List;
 /** Unread opportunities, never another owner of rewards, eligibility or payment. */
 final class CompanyNotices {
     enum Notice {
-        SHEPHERD_RECOVERY("shepherd-recovery", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "Mara's introduction to Tamsin Vale"),
-        SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Secondhand Wings"),
-        SECOND_BAY("second-bay", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Second bay restoration"),
-        FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "Castle's first refit"),
-        HOUND_INDUCTION("hound-induction", MarineOpsPageNav.Page.MECH_LAB, ScreenId.MECH_LAB, "Wayward gantry induction");
+        SHEPHERD_RECOVERY("shepherd-recovery", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesMaraSIntroductionToTamsinVale"),
+        SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "openingCompanyNoticesSecondhandWings"),
+        SECOND_BAY("second-bay", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "openingCompanyNoticesSecondBayRestoration"),
+        FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "openingCompanyNoticesCastleSFirstRefit"),
+        HOUND_INDUCTION("hound-induction", MarineOpsPageNav.Page.MECH_LAB, ScreenId.MECH_LAB, "openingCompanyNoticesWaywardGantryInduction");
 
-        final String id, label;
+        final String id, labelKey;
         final MarineOpsPageNav.Page page;
         final ScreenId screen;
         Notice(String id, MarineOpsPageNav.Page page, ScreenId screen, String label) {
-            this.id = id; this.page = page; this.screen = screen; this.label = label;
+            this.id = id; this.page = page; this.screen = screen; this.labelKey = label;
         }
         void review(MarineRoster roster) { if (roster != null) roster.reviewCompanyNotice(id); }
+        String label() { return Strings.get(labelKey); }
     }
 
     private CompanyNotices() { }
@@ -58,9 +60,8 @@ final class CompanyNotices {
     static String summary(List<Notice> notices) {
         if (notices.isEmpty()) return "";
         Notice first = notices.get(0);
-        String room = first.page == MarineOpsPageNav.Page.HQ ? "HQ" : first.page == MarineOpsPageNav.Page.BOAT_DECK ? "BOATS"
-                : first.page == MarineOpsPageNav.Page.MECH_LAB ? "MECH LAB" : "BARRACKS";
-        return "NEW / " + room + ": " + first.label
-                + (notices.size() > 1 ? "  (+" + (notices.size() - 1) + ")" : "");
+        String room = first.page == MarineOpsPageNav.Page.HQ ? Strings.get("openingCompanyNoticesHq") : first.page == MarineOpsPageNav.Page.BOAT_DECK ? Strings.get("openingCompanyNoticesBoats")
+                : first.page == MarineOpsPageNav.Page.MECH_LAB ? Strings.get("openingCompanyNoticesMechLab") : Strings.get("openingCompanyNoticesBarracks");
+        return Strings.format("openingCompanyNoticesNew", room, first.label(), (notices.size() > 1 ? "  (+" + (notices.size() - 1) + ")" : ""));
     }
 }

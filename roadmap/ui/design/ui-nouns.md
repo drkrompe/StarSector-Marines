@@ -867,3 +867,13 @@ does not substitute for the others.
   a flag day across every Marine Ops screen.
 - A new kind of catalog item becomes a spec-sheet subject by gaining one copy
   factory; every bound screen shows it without change.
+
+### Localized markup copy
+
+Every MLX scope exposes read-only `i18n`: `{i18n.key}` resolves the marineOps
+catalog through `Strings.get`, including inside nested components without a
+forwarded prop. It is a reserved name and cannot be overridden by component
+props. Missing keys retain the existing visible-key diagnostic. Bindings resolve
+at construction/rebuild; switching translation mods uses the ordinary game reload.
+Parameterized text is formatted in the owning view model as a complete message,
+then bound as a prop. CSS classes, element IDs and handlers remain technical tokens.
