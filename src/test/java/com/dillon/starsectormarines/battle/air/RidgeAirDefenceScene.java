@@ -78,16 +78,33 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
             int launches = 0, curvedSamples = 0, firstDamage = -1, firstLaunch = -1;
             var firingBatteries = new HashSet<Long>();
             float initialHp = sim.world().hp(aircraft);
+            var encounter = new LinkedHashMap<String, Number>();
             for (int tick = 0; tick < 3000; tick++) {
                 radio.advance(BattleSimulation.TICK_DT, log.events(), false, false);
                 for (var shot : sim.getShotsThisFrame()) if (guns.contains(shot.shooterId)) {
                     launches++;
                     firingBatteries.add(shot.shooterId);
-                    if (firstLaunch < 0) firstLaunch = tick;
+                    String battery = "battery" + sim.world().cellX(shot.shooterId);
+                    if (!encounter.containsKey(battery + "LaunchTick")) {
+                        position(encounter, battery + "Launch", sim, aircraft, tick);
+                        encounter.put(battery + "Range", sim.turretState().structure(shot.shooterId).mount.weapon.range);
+                        encounter.put(battery + "LaunchDistance", Math.hypot(
+                                sim.world().x(aircraft) - sim.world().x(shot.shooterId),
+                                sim.world().y(aircraft) - sim.world().y(shot.shooterId)));
+                    }
+                    if (firstLaunch < 0) {
+                        firstLaunch = tick;
+                        position(encounter, "firstLaunch", sim, aircraft, tick);
+                    }
                 }
                 for (var shot : sim.getActiveShots()) if (shot.guidedFlight != null && shot.guidedFlight.z > .5f) curvedSamples++;
                 if (firstDamage < 0 && (mission.destroyed || sim.world().isAlive(aircraft)
-                        && sim.world().hp(aircraft) < initialHp)) firstDamage = tick;
+                        && sim.world().hp(aircraft) < initialHp)) {
+                    firstDamage = tick;
+                    position(encounter, "firstDamage", sim, aircraft, tick);
+                }
+                if (mission.destroyed && !encounter.containsKey("lossTick"))
+                    position(encounter, "loss", sim, aircraft, tick);
                 if (tick % 12 == 0 && tick < 1800) frames.frame(loop, sim, tick,
                         "Thunder Run / " + loop + " / missile launches " + launches + " / " + mission.state);
                 frames.advanced(loop, sim, tick);
@@ -95,6 +112,7 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
                 pass.tick(sim);
             }
             var metrics = new LinkedHashMap<String, Number>(playback);
+            metrics.putAll(encounter);
             metrics.putAll(Map.of("launches", launches, "guidedSamples", curvedSamples,
                     "firstDamageTick", firstDamage, "firingBatteries", firingBatteries.size()));
             return new SceneReport(id(), loop, 3000, List.of(
@@ -117,6 +135,14 @@ public final class RidgeAirDefenceScene implements BehaviorScene {
                             && mission.state == ShuttleState.ORBIT, "state=" + mission.state)),
                     metrics);
         }
+    }
+
+    private static void position(Map<String, Number> metrics, String event, BattleSimulation sim,
+                                 long aircraft, int tick) {
+        var body = sim.world().kinematics(aircraft);
+        metrics.put(event + "Tick", tick);
+        metrics.put(event + "X", body.x);
+        metrics.put(event + "Y", body.y);
     }
 
     private static boolean radioMatches(StoryBeatLog log, boolean cleared) {

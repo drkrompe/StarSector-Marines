@@ -160,6 +160,8 @@ class ThunderRunEvidenceTest {
                 int sharedDefenseTargets = 0;
                 boolean orderReplaced = true;
                 JSONArray samples = new JSONArray();
+                JSONArray kestrelEncounter = new JSONArray();
+                int observedKestrelBeats = 0;
                 if (name.equals("ordinary-9301")) {
                     var checkpoint = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,270,73,164);
                     var marks = ReviewAnnotations.builder();
@@ -216,6 +218,14 @@ class ThunderRunEvidenceTest {
                     if (column.phase() == 3) for (var shot : sim.getShotsThisFrame())
                         if (escorts.contains(shot.shooterId) && firstFinalShot < 0) firstFinalShot = sim.getSimTickIndex();
                     int tick = sim.getSimTickIndex();
+                    var kestrelBeats = sim.getStoryBeats().stream()
+                            .filter(e -> e.id().startsWith("supply_route.thunder_run.gunship_")).toList();
+                    while (observedKestrelBeats < kestrelBeats.size()) {
+                        var beat = kestrelBeats.get(observedKestrelBeats++);
+                        var body = sim.world().kinematics(sim.getWaylineGunship().aircraft());
+                        kestrelEncounter.put(new JSONObject().put("event", beat.id()).put("tick", beat.tick())
+                                .put("x", body.x).put("y", body.y));
+                    }
                     for (var shot : sim.getShotsThisFrame())
                         if (shot.weaponDef() != null && "weapon.scrap-rocket".equals(shot.weaponDef().id)) openingRocketShots++;
                     if (rearStart < 0 && sim.getStoryBeats().stream().anyMatch(e -> e.id().endsWith("road_batch_17"))) {
@@ -374,6 +384,7 @@ class ThunderRunEvidenceTest {
                         .put("roadGunsDestroyedAt", new JSONObject(gunDown.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue))))
                         .put("intactFreightBypass",bypass).put("freightRoadClear",true)
                         .put("kestrelLaunched", sim.getWaylineGunship().launched()).put("kestrelLost", sim.getWaylineGunship().lost())
+                        .put("kestrelEncounter", kestrelEncounter)
                         .put("airWrecks", sim.getAirfieldService().groundWrecks().size())
                         .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot);
                 if(column.outcome()!=null) {
