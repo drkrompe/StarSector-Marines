@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+
 import com.dillon.starsectormarines.battle.world.gen.fortress.MaintenanceOutpost;
 
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -1321,8 +1324,11 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim, localMilitiaCells, Faction.ALLY,
                     "local", reliefPost, rng);
         }
+        // Relief meets a Rook-equipped starter company arriving four at a time.
+        // Keep its entire finite assault at that weapon tier, including road arrivals.
         if (depot == null) spawnOpeningMilitiaSquads(sim, raiderCells, Faction.DEFENDER,
-                "raider", null, rng);
+                "raider", null, rng, OPENING_FIRETEAM_SIZE,
+                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
         else {
             spawnOpeningMilitiaSquads(sim, raiderCells.subList(0, 8), Faction.DEFENDER, "yard-raider", null, rng);
             spawnOpeningMilitiaSquads(sim, raiderCells.subList(8, 12), Faction.DEFENDER, "depot-raider", null, rng, 2);
@@ -1614,8 +1620,11 @@ public final class BattleSetup {
                                                   String prefix, Random rng) {
         List<EntitySpec> force = new ArrayList<>();
         for (int[] cell : pickSpawnCluster(map.grid, entry.x(), entry.y(), OPENING_FIRETEAM_SIZE)) {
-            force.add(makeOpeningMilitia(prefix + "-" + force.size(), Faction.DEFENDER,
-                    cell[0], cell[1], rng).role(UnitRole.PATROL));
+            EntitySpec raider = makeOpeningMilitia(prefix + "-" + force.size(), Faction.DEFENDER,
+                    cell[0], cell[1], rng).role(UnitRole.PATROL);
+            raider.primaryWeapon(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
+                    raider.equipmentGrade, raider.soldierProfile);
+            force.add(raider);
         }
         return force;
     }
@@ -3371,6 +3380,12 @@ public final class BattleSetup {
     private static void spawnOpeningMilitiaSquads(
             BattleSimulation sim, List<int[]> cells, Faction faction,
             String idPrefix, TacticalNode post, Random rng, int fireteamSize) {
+        spawnOpeningMilitiaSquads(sim, cells, faction, idPrefix, post, rng, fireteamSize, null);
+    }
+
+    private static void spawnOpeningMilitiaSquads(
+            BattleSimulation sim, List<int[]> cells, Faction faction,
+            String idPrefix, TacticalNode post, Random rng, int fireteamSize, WeaponDef primary) {
         boolean localGarrison = post != null;
         Squad squad = null;
         int squadMembers = 0;
@@ -3403,6 +3418,7 @@ public final class BattleSetup {
                     faction, cell[0], cell[1], rng)
                     .role(localGarrison ? UnitRole.GARRISON : UnitRole.PATROL)
                     .squad(squad.id);
+            if (primary != null) unit.primaryWeapon(primary, unit.equipmentGrade, unit.soldierProfile);
             if (localGarrison) unit.home(cell[0], cell[1]);
             sim.spawn(unit);
             squadMembers++;
