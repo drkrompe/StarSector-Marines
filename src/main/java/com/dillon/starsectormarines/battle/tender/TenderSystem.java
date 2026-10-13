@@ -14,10 +14,8 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.warship.Warship;
 
 import java.util.ArrayList;
@@ -58,8 +56,8 @@ public final class TenderSystem {
     /** A builder this close to the site is working it. */
     static final float WORK_RADIUS = 3.2f;
     /**
-     * Hostile units this close to a site stop the work on it and send the builders
-     * home. Wider than any rifle's reach (a DMR is 32), because a builder that
+     * Hostile units the tender's side knows of ({@link TenderThreat}) this close to a site
+     * stop the work on it and send the builders home. Wider than any rifle's reach (a DMR is 32), because a builder that
      * waits to be shot at from outside the old radius is a builder lost for
      * nothing; the screen's job is to clear the ground so the work can resume.
      */
@@ -235,6 +233,7 @@ public final class TenderSystem {
     // ---- orders ------------------------------------------------------------------------------
 
     private void tickOrders(Tender t, float dt, BattleSimulation sim) {
+        t.blockedSeconds = Math.max(0f, t.blockedSeconds - dt);
         t.sweep();
         ConstructionOrder o = t.current();
         if (o == null) return;
@@ -300,7 +299,13 @@ public final class TenderSystem {
             t.retire(o, "no builders left");
             return;
         }
-        boolean contested = hostileNear(sim, t.faction(), o.siteX(), o.siteY()) || outOfReach(t, o);
+        if (TenderThreat.anyHit(t.builders, world, t.builderHp) | t.builderLostSinceLastLook()) {
+            t.blockedSeconds = TenderThreat.BLOCK_SECONDS;
+        }
+        o.underFire(t.underFire());
+        float[] known = TenderThreat.known(sim, t);
+        boolean contested = t.underFire() || TenderThreat.near(known, o.siteX(), o.siteY(), THREAT_CELLS)
+                || outOfReach(t, o);
         // Builders stood down for a threat come back out once the ground is clear.
         if (!contested) deployBuilders(t, dt, sim);
         int crew = t.builderComplement();
@@ -315,20 +320,6 @@ public final class TenderSystem {
         return t.piloted() && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
     }
 
-    private static boolean hostileNear(BattleSimulation sim, Faction side, float x, float y) {
-        UnitRosterService roster = sim.getRoster();
-        World world = sim.world();
-        long[] dense = roster.denseArray();
-        float r2 = THREAT_CELLS * THREAT_CELLS;
-        for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            long u = dense[i];
-            if (!side.hostileTo(roster.identity().faction(u))) continue;
-            float dx = world.x(u) - x;
-            float dy = world.y(u) - y;
-            if (dx * dx + dy * dy <= r2) return true;
-        }
-        return false;
-    }
 
     // ---- builders ----------------------------------------------------------------------------
 

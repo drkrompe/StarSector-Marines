@@ -39,6 +39,7 @@ public final class ConstructionOrder {
     private float standoffX;
     private float standoffY;
     private boolean contested;
+    private boolean underFire;
     private String failure = "";
 
     public ConstructionOrder(BuildOption option, float siteX, float siteY) {
@@ -79,9 +80,18 @@ public final class ConstructionOrder {
         return Math.min(1f, progressSeconds / option.buildSeconds());
     }
 
-    /** Whether hostile people stood at the site on the last tick, so no work was done. */
+    /** Whether the work was stopped on the last tick (a known hostile near, a builder hit, or the pilot out of reach). */
     public boolean contested() {
         return contested;
+    }
+
+    /** Whether the work is stopped because a builder was hit: the site is blocked, not merely watched. */
+    public boolean underFire() {
+        return underFire;
+    }
+
+    void underFire(boolean underFire) {
+        this.underFire = underFire;
     }
 
     /** Why the order failed, or the empty string. */

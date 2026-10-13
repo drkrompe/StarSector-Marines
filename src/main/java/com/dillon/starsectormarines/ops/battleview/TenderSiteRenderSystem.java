@@ -27,6 +27,7 @@ public final class TenderSiteRenderSystem implements RenderSystem {
     private static final int BEADS = 9;
     private static final float MARKER_CELLS = 0.9f;
     private static final float ARC_CELLS = 1.4f;
+    private static final int UNDER_FIRE_PULSE_TICKS = 15;
 
     private final PolyMesh mesh = new PolyMesh(256);
 
@@ -58,6 +59,7 @@ public final class TenderSiteRenderSystem implements RenderSystem {
                     PolyTess.appendArc(mesh, sx, sy, arc - 3f, arc, order.fraction(), ARC_SEGMENTS,
                             r, g, b, 0.9f * ctx.alphaMult);
                 }
+                if (order.underFire()) appendUnderFire(ctx, sx, sy, marker);
                 if (working) appendTorches(ctx, tender, order, sx, sy);
                 float tx = camera.cellToScreenX(tender.bayX());
                 float ty = camera.cellToScreenY(tender.bayY());
@@ -70,6 +72,18 @@ public final class TenderSiteRenderSystem implements RenderSystem {
             }
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.HAZARDS, mesh);
+    }
+
+    /**
+     * A site whose builders were hit: a red ring that pulses out from the marker twice a second
+     * for as long as the site is blocked, so the reason the work stopped reads at a glance.
+     */
+    private void appendUnderFire(RenderContext ctx, float sx, float sy, float marker) {
+        int tick = ctx.sim.getSimTickIndex();
+        float phase = Math.floorMod(tick, UNDER_FIRE_PULSE_TICKS) / (float) UNDER_FIRE_PULSE_TICKS;
+        float radius = marker * (1.1f + 0.9f * phase);
+        PolyTess.appendAnnulus(mesh, sx, sy, radius - 2f, radius, RING_SEGMENTS * 4,
+                1f, 0.15f, 0.1f, (1f - phase) * 0.9f * ctx.alphaMult);
     }
 
     /**

@@ -520,7 +520,8 @@ it does not have. The shield (E) is the warship's.
   A laid site waits until the pilot has flown within 16 cells of it ("fly closer"), then the
   builders launch. If the pilot flies farther than 26 cells from a working site the builders
   go home and the work stops ("out of range"), as a threat stands it down. Everything else
-  about the work is the tender's: the clock, the crew, the threat stand-down.
+  about the work is the tender's: the clock, the crew, the threat stand-down (a known hostile
+  near reads STOOD DOWN; a builder hit reads UNDER FIRE until the site has been quiet for a few seconds).
 - **Handback** is the warship's, plus the tender's own: the hull returns to its prior director,
   station or route; every site the pilot laid is withdrawn (a hand order does not outlive the
   hand; builders already out fly home); and the defence drones return to whatever they were
