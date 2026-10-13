@@ -458,8 +458,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final long generationSeed;
     private FieldSalvage fieldSalvage = new FieldSalvage(List.of());
     private boolean salvageInstalled;
+    private List<SalvagePlacement.Site> fieldSalvageSites = List.of();
 
     public FieldSalvage fieldSalvage() { return fieldSalvage; }
+    public List<SalvagePlacement.Site> fieldSalvageSites() { return fieldSalvageSites; }
+
+    public void setFieldSalvageSites(List<SalvagePlacement.Site> sites) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Author salvage sites before launch installs finds");
+        fieldSalvageSites = List.copyOf(sites);
+    }
 
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
     public void installFieldSalvage() {

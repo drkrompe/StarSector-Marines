@@ -366,7 +366,8 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadFamily(LayeredArmorFamily.REAVER, INFANTRY_ROOT + "armor/reaver/",
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.SPECTER_HEAVY, INFANTRY_ROOT + "armor/specter-heavy/",
-                foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+                layer(INFANTRY_ROOT + "armor/specter-heavy/foot.png"), null,
+                rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.BULWARK_HEAVY, INFANTRY_ROOT + "armor/bulwark-heavy/",
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.RELIQUARY_HEAVY, INFANTRY_ROOT + "armor/reliquary-heavy/",

@@ -37,6 +37,10 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        return List.of(renderSelection(context, true), renderSelection(context, false));
+    }
+
+    private SnapshotArtifact renderSelection(SnapshotContext context, boolean group) throws Exception {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                 new HeadlessBattleSceneRenderer(context.modRoot(), true));
@@ -51,6 +55,7 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
             Selection selection = new Selection();
             selection.selectSquads(List.of(world.squadId("alpha"), world.squadId("bravo")),
                     world.squadId("alpha"), world.members("alpha")[0], false);
+            if (!group) selection.selectUnit(world.squadId("alpha"), world.members("alpha")[2]);
             selection.hoverSquad(world.squadId("hover"));
             BattleSceneHostPass pass = new BattleSceneHostPass() {
                 @Override public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {
@@ -68,7 +73,8 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
             BufferedImage image = renderer.renderHostPass(pass, 1920, 1080);
             Reactor reactor = new Reactor();
             BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { });
-            model.update(sim, selection.getSelectedSquadId(), Selection.NONE);
+            model.update(sim, selection.getSelectedSquadId(), Selection.NONE,
+                    selection.getSelectedUnitEntityId(), selection.squadCount() == 1);
             model.selectionScope(selection.squadCount());
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                     List.of(BattleSquadOverlay.COMPONENT_PATH));
@@ -84,7 +90,7 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
                 graphics.drawImage(plate, 12, 800, null);
                 graphics.dispose();
             }
-            return List.of(new SnapshotArtifact("selected-and-hovered.png", image));
+            return new SnapshotArtifact(group ? "selected-and-hovered.png" : "single-member-focus.png", image);
         }
     }
 }
