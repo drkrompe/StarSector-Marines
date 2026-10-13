@@ -27,7 +27,7 @@
             <div id="{team.strengthId}" class="label fireteam-strength">{team.strength}</div>
           </div>
           <div id="{team.membersId}" class="fireteam-members">
-            <div each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}">
+            <button each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}" disabled="{member.disabled}" onclick="{member.selectAction}">
               <div id="{member.lineId}" class="member-line">
                 <div id="{member.nameId}" class="label member-name">{member.name}</div>
                 <div id="{member.primaryId}" class="label member-primary">{member.primary}</div>
@@ -36,7 +36,7 @@
               <div id="{member.hpTrackId}" class="member-hp-track">
                 <div id="{member.hpId}" class="member-hp-fill" style="{member.hpStyle}" />
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — world selection supports squad groups and ground selection circles.
+Updated: 2026-10-13 — single-squad member cards select the exact takeover candidate.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -599,7 +599,12 @@ center and owns the defensive behavior.
 
 The direct-control entry plate reserves a stable position above the taller of
 infantry and Mech/lance selection panels. It offers takeover of an exact eligible
-player Marine, combat Mech, or deployed APC. Its button or C enters; C or Escape
+player Marine, combat Mech, or deployed APC. With one infantry squad selected,
+clicking a populated fire-team card focuses that exact soldier without changing
+the squad command scope. An amber card and the soldier’s ground ring identify
+the focus; empty cards and group-selection cards do not change it. Selection
+offers a takeover candidate but does not bypass simulation eligibility.
+Its button or Tab enters; Tab or Escape
 returns authority to autonomous behavior. The action camera follows the controlled body with smooth, bounded cursor
 look-ahead beyond a dead zone and retains wheel zoom; carrier-specific movement and firing obey
 `direct-control-nouns.md`.
