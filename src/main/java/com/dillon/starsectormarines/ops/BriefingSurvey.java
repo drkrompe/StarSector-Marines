@@ -1,12 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
-import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
-import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
-import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
-import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.ops.battleview.ColdAccountMarkers;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -102,31 +98,26 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
                 markers.add(new Marker(marker.label(), (int) marker.x(), (int) marker.y(), false));
             objectives.add(intervention.displayName());
         }
-        for (Objective objective : sim.getObjectives()) {
-            if (objective.owningFaction() != Faction.MARINE) continue;
-            int x = -1, y = -1;
-            if (objective instanceof ChargeSiteObjective site) { x = site.cellX(); y = site.cellY(); }
-            else if (objective instanceof RaidObjective raid) {
-                if (sim.getColdAccount() != null) continue;
-                markers.add(new Marker("1 / SEIZE", raid.targetCellX(), raid.targetCellY(), false));
-                markers.add(new Marker("2 / RETURN", raid.egressCellX(), raid.egressCellY(), false));
-                objectives.add("1 / Seize " + raid.targetName() + "; hold uncontested for "
-                        + Math.round(raid.serviceDuration()) + " seconds");
-                objectives.add("2 / Return to the landing zone to extract");
-                continue;
+        var picture = MissionObjectiveProjection.capture(sim);
+        if (!picture.objectives().isEmpty()) {
+            // Authored names and actual trigger locations have one public projection.
+            // Dense strategic surveys retain their footprint summary rather than stack labels.
+            if (picture.objectives().size() <= 8) {
+                markers.removeIf(marker -> !marker.landing());
+                objectives.clear();
+                for (var item : picture.objectives()) {
+                    for (var marker : item.markers())
+                        markers.add(new Marker(marker.name(), marker.x(), marker.y(), false));
+                    objectives.add(item.name() + (item.steps().isBlank() ? "" : " / " + item.steps()));
+                    objectives.add(item.instruction());
+                }
+                if (sim.getThunderRun() != null)
+                    markers.add(new Marker("FREIGHT EXIT", ThunderRunCompound.WIDTH - 8, 75, false));
+                if (sim.getColdAccount() != null) for (var marker : ColdAccountMarkers.forPhase(
+                        sim.getColdAccount().phase(), sim.getColdAccount().layout(), sim.getColdAccount().companyRecovered()))
+                    if (marker.kind() == ColdAccountMarkers.Kind.DANGER)
+                        markers.add(new Marker(marker.label(), (int) marker.x(), (int) marker.y(), false));
             }
-            else if (objective instanceof ExtractionPayloadObjective payload) {
-                var item = MissionObjectiveProjection.payload(payload, sim.getCivilianEvacuationProgress());
-                for (var marker : item.markers()) markers.add(new Marker(marker.name(), marker.x(), marker.y(), false));
-                objectives.add(item.name() + " / " + item.steps());
-                objectives.add(item.instruction());
-                continue;
-            }
-            if (x >= 0 && y >= 0) {
-                String label = "OBJ" + (objectives.size() + 1);
-                markers.add(new Marker(label, x, y, false));
-                objectives.add(label + " / " + objective.displayName());
-            } else if (objectives.isEmpty()) objectives.add(objective.displayName());
         }
         return new BriefingSurvey(width, height, terrain, areas, markers, sim.getLaneRoutes(), objectives);
     }

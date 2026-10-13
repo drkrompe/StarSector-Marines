@@ -522,8 +522,8 @@ Player-facing Conquest command intent occupies the top-left opposite the top-rig
 time/objective rail. When organizational groups are published, this bounded
 readout shows named leaders, deployed squad strength, task and regrouping state;
 additional groups are explicitly summarized rather than extending over the
-battlefield. Extraction, civilian rescue (including Last Lift), and Silent Colony
-use a shared public mission picture: named objective branches, current step,
+battlefield. Story sequences, territorial capture, sabotage, Raid, Extraction, civilian rescue
+(including Last Lift), and Silent Colony use a shared public mission picture: named objective branches, current step,
 completion conditions, measured progress, and observed blockers. The briefing,
 world beacons, and per-objective Locate action refer to the same authored places;
 shelter beacons identify the entrance where release is triggered. A moving
@@ -539,9 +539,14 @@ messages. The left rail lists friendly squad assignments and local contact,
 scrolling when needed instead of silently dropping squads. Player orders take
 precedence immediately. Assigned task is distinct from confirmed execution.
 Both surfaces remain bounded and preserve a clickable battlefield between them.
-This common presentation is extensible by mission family; other families retain
-their current displays until adapted. `shared-mission-objectives.md` tracks that
-remaining migration.
+Map beacons show the current step's measured timer or count, plus the actual
+blocking requirement when work cannot advance. Untimed actions carry an instruction
+instead of an invented percentage. Readouts stay legible above night atmosphere;
+live and headless hosts paint the same bitmap text. A point beacon is a locator,
+not a capture radius. Public territorial gates distinguish clearing opposition
+from an uncontested capture clock. Completed steps clear obsolete blockers.
+The common presentation remains extensible by mission family;
+`shared-mission-objectives.md` tracks remaining live acceptance.
 
 Raid's right rail instead projects its two objective steps,
 seizure progress and return instruction. Numbered world markers and the briefing

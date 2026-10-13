@@ -29,12 +29,13 @@ renderer never derives them from targets, paths, or cooldowns.
 
 ## Composition and paint order
 
-The ordinary order is feet, weapon, body, head, muzzle flash. Feet remain fully
+The ordinary order is feet, weapon, torso, optional left and right shoulder
+shells, head, muzzle flash. Feet remain fully
 occluded at rest and alternate a short tip reveal from the locomotion phase.
 The weapon translates and rotates between a 45-degree carry and the aimed
 right-shoulder registration; firing adds transform recoil and a transient flash.
 
-Rocket fire uses feet, body, launcher, head, firing FX. This is a pose-specific
+Rocket fire uses feet, torso, shoulder shells, launcher, head, firing FX. This is a pose-specific
 occlusion change: the launcher crosses above the right shoulder while the helmet
 still paints above the launcher and retains independent look rotation.
 
@@ -58,14 +59,21 @@ with any body at runtime. Unit type supplies only a default:
   own compact and precision layers; generic combatants use the rifle layer; an
   active weapon-like special aim uses either the rocket-launcher or AMR layer.
 
-Specter has its own body, helmet, and boot textures. The boot is drawn twice
+Specter has its own torso, independent left/right shoulder shells, helmet, and
+boot textures. The shoulders retain the torso's 150x95 canvas, with separate
+inner hinge pivots. Authored clips alternate their stride and articulate each
+shell for aim, recoil, and bracing. Armor mastering carries that motion through
+the torso registration; helmet look never turns the shoulders. Dark flexible
+backing fills beneath the moving shells. Families without shoulder assets keep
+their existing composition. The boot is drawn twice
 through the existing independent foot transforms; weapons retain their shared
 equipment textures. Its compact helmet is registered inside the authored body
 socket by armor mastering. Other families retain the shared infantry boot.
 The slate casing is the runtime default. Matching olive, oxide, and sand assets
 live under `variants/armor/specter-heavy/paints/`; these are baked art variants,
 not a saved campaign color selector. The deterministic source and material-mask
-recipe is `art-source/marine-modular-topdown/specter-v1/export_assets.py`.
+recipe is `art-source/marine-modular-topdown/specter-v2/export_assets.py`, which
+retains the v1 source shells and palette masks.
 
 Weapon equipment grades fall back to their family's registered sprite and animation.
 Authored exact-grade overrides currently demonstrate the ends of the scale: a battered

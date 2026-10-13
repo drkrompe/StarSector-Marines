@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -62,6 +63,15 @@ public interface BattleView {
 
     /** Committed ground forces whose authored arrival is still pending. */
     default int pendingGroundArrivals(Faction faction) { return 0; }
+
+    /**
+     * The battle's ground-defence structures as they truly are, for the disclosure adapters that decide which of them a
+     * given command may know of. Never a command's own input. Empty when the battle has none.
+     */
+    default List<DefenceStructureFact> defenceStructures() { return List.of(); }
+
+    /** Whether this structure has changed hands: held ground, which is not a person and so is not forces in play. */
+    default boolean isCapturedStructure(long id) { return false; }
 
     NavigationGrid getGrid();
 

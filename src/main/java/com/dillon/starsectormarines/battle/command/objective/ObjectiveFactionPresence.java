@@ -41,7 +41,8 @@ public final class ObjectiveFactionPresence {
         if (factions == null || factions.isEmpty()) return false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
-            if (factions.contains(sim.identity().faction(unit)) && groundEligible.test(unit)) return true;
+            if (factions.contains(sim.identity().faction(unit)) && !sim.isCapturedStructure(unit)
+                    && groundEligible.test(unit)) return true;
         }
         for (Faction faction : factions) if (sim.pendingGroundArrivals(faction) > 0) return true;
         if (sim.survivorPickup() != null && factions.stream().anyMatch(f -> sim.survivorPickup().survivingCount(f) > 0)) return true;

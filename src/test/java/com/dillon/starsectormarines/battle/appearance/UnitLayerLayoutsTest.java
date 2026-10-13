@@ -3,12 +3,14 @@ package com.dillon.starsectormarines.battle.appearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationDriver;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument;
 import com.dillon.starsectormarines.tools.layerauthoring.CompositionRenderer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -17,6 +19,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class UnitLayerLayoutsTest {
 
@@ -109,6 +112,132 @@ class UnitLayerLayoutsTest {
             assertNotNull(clip, id);
             assertNotNull(clip.sample(0f).layer("body"), id);
             assertNotNull(clip.sample(0f).layer("head"), id);
+        }
+    }
+
+    @Test
+    void specterShouldersAlternateStrideAndBraceIndependently() throws Exception {
+        UnitLayerLayouts layouts = load();
+        AnimationClip walking = layouts.clip("marine-line", "rifle", "walking");
+        LayerPose leftStride = walking.sample(0f);
+        LayerPose rightStride = walking.sample(0.5f);
+
+        assertEquals(-7f, leftStride.layer("left-shoulder").angleDegrees()
+                - leftStride.layer("body").angleDegrees(), 0.000001f);
+        assertEquals(7f, rightStride.layer("left-shoulder").angleDegrees()
+                - rightStride.layer("body").angleDegrees(), 0.000001f);
+        assertEquals(7f, leftStride.layer("right-shoulder").angleDegrees()
+                - leftStride.layer("body").angleDegrees(), 0.000001f);
+        LayerPose braced = layouts.clip("marine-line", "anti-materiel", "firing").sample(0f);
+        assertNotEquals(braced.layer("left-shoulder").angleDegrees(),
+                braced.layer("right-shoulder").angleDegrees());
+        LayerPose recoil = layouts.clip("marine-line", "rifle", "firing").sample(65f / 265f);
+        assertEquals(8f, recoil.layer("right-shoulder").angleDegrees()
+                - recoil.layer("body").angleDegrees(), 0.00001f);
+    }
+
+    @Test
+    void shoulderMasteringFollowsTorsoRegistrationAndPreservesWeaponAndHelmet() throws Exception {
+        Path path = Path.of("mod/data/appearance/unit-layer-layouts.appearance.json");
+        JSONObject json = new JSONObject(Files.readString(path));
+        var units = json.getJSONArray("units");
+        for (int i = 0; i < units.length(); i++) {
+            JSONObject unit = units.getJSONObject(i);
+            if (!unit.getString("id").equals("armor-master-specter-heavy")) continue;
+            var layers = unit.getJSONArray("variants").getJSONObject(0)
+                    .getJSONArray("animations").getJSONObject(0)
+                    .getJSONArray("frames").getJSONObject(0).getJSONArray("layers");
+            for (int j = 0; j < layers.length(); j++) {
+                JSONObject layer = layers.getJSONObject(j);
+                if (layer.getString("id").equals("body")) layer.put("angleDegrees", 90);
+                if (layer.getString("id").endsWith("-shoulder")) {
+                    JSONArray offset = layer.getJSONArray("offset");
+                    double x = offset.getDouble(0);
+                    double y = offset.getDouble(1) + 0.06;
+                    layer.put("offset", new JSONArray().put(-y).put(x - 0.06));
+                    layer.put("angleDegrees", 90);
+                }
+            }
+        }
+        UnitLayerLayouts layouts = UnitLayerLayouts.parse(json);
+        LayerPose original = layouts.clip("marine-line", "rifle", "walking").sample(0f);
+        LayerPose mastered = layouts.applyArmorMastering(original,
+                LayeredArmorFamily.SPECTER_HEAVY, LayeredArmorFamily.PALATINE);
+        LayerTransform shoulder = original.layer("left-shoulder");
+        LayerTransform originalBody = original.layer("body");
+        LayerTransform body = mastered.layer("body");
+
+        assertEquals(body.offsetX() - (shoulder.offsetY() - originalBody.offsetY()),
+                mastered.layer("left-shoulder").offsetX(), 0.00001f);
+        assertEquals(body.offsetY() + shoulder.offsetX() - originalBody.offsetX(),
+                mastered.layer("left-shoulder").offsetY(), 0.00001f);
+        assertEquals(shoulder.angleDegrees() + 90,
+                mastered.layer("left-shoulder").angleDegrees(), 0.00001f);
+        assertEquals(original.layer("primary"), mastered.layer("primary"));
+        LayerPose helmetControl = layouts.applyArmorMastering(original,
+                LayeredArmorFamily.PALATINE, LayeredArmorFamily.PALATINE);
+        assertEquals(helmetControl.layer("head"), mastered.layer("head"));
+        assertEquals(original.layer("left-foot"), mastered.layer("left-foot"));
+    }
+
+    @Test
+    void rotatingOnlyMasterTorsoPreservesTheAbsoluteNeutralShoulderAssembly() throws Exception {
+        Path path = Path.of("mod/data/appearance/unit-layer-layouts.appearance.json");
+        JSONObject json = new JSONObject(Files.readString(path));
+        JSONArray units = json.getJSONArray("units");
+        for (int i = 0; i < units.length(); i++) {
+            JSONObject unit = units.getJSONObject(i);
+            if (!unit.getString("id").equals("armor-master-specter-heavy")) continue;
+            JSONArray layers = unit.getJSONArray("variants").getJSONObject(0)
+                    .getJSONArray("animations").getJSONObject(0)
+                    .getJSONArray("frames").getJSONObject(0).getJSONArray("layers");
+            for (int j = 0; j < layers.length(); j++) {
+                JSONObject layer = layers.getJSONObject(j);
+                if (layer.getString("id").equals("body")) layer.put("angleDegrees", 90);
+            }
+        }
+        UnitLayerLayouts layouts = UnitLayerLayouts.parse(json);
+        LayerPose neutral = layouts.clip("marine-line", "rifle", "idle").sample(0f);
+        LayerPose mastered = layouts.applyArmorMastering(neutral,
+                LayeredArmorFamily.SPECTER_HEAVY, LayeredArmorFamily.PALATINE);
+        LayerPose master = layouts.clip("armor-master-specter-heavy", "field-loadout", "idle")
+                .sample(0f);
+        for (String id : new String[] {"left-shoulder", "right-shoulder"}) {
+            assertEquals(master.layer(id).offsetX(), mastered.layer(id).offsetX(), 0.000001);
+            assertEquals(master.layer(id).offsetY(), mastered.layer(id).offsetY(), 0.000001);
+            assertEquals(master.layer(id).angleDegrees(), mastered.layer(id).angleDegrees(), 0.000001);
+        }
+    }
+
+    @Test
+    void specterShoulderWorkbenchPreviewMatchesRuntimeMastering() throws Exception {
+        UnitLayerLayouts layouts = load();
+        AuthoringDocument authoring = AuthoringDocument.load(Path.of("."));
+        var specter = authoring.units().stream()
+                .filter(unit -> unit.id().equals("armor-master-specter-heavy"))
+                .findFirst().orElseThrow();
+        var walking = specter.previewVariants().stream()
+                .filter(variant -> variant.id().equals("rifle"))
+                .flatMap(variant -> variant.animations().stream())
+                .filter(animation -> animation.id().equals("walking"))
+                .findFirst().orElseThrow();
+        CompositionRenderer renderer = new CompositionRenderer(Path.of("."));
+        for (float phase : new float[] {0f, 0.25f, 0.5f}) {
+            var editor = renderer.composeAnimationPreview(specter,
+                    renderer.samplePhase(walking, phase));
+            LayerPose runtime = layouts.applyArmorMastering(
+                    layouts.clip("marine-line", "rifle", "walking").sample(phase),
+                    LayeredArmorFamily.SPECTER_HEAVY, LayeredArmorFamily.SPECTER_HEAVY);
+            for (String id : new String[] {"left-shoulder", "right-shoulder"}) {
+                var editorLayer = editor.layers().stream()
+                        .filter(layer -> layer.id().equals(id)).findFirst().orElseThrow();
+                LayerTransform runtimeLayer = runtime.layer(id);
+                assertEquals(runtimeLayer.offsetX(), editorLayer.offsetX(), 0.000001);
+                assertEquals(runtimeLayer.offsetY(), editorLayer.offsetY(), 0.000001);
+                assertEquals(runtimeLayer.angleDegrees(), editorLayer.angleDegrees(), 0.000001);
+                assertEquals(runtimeLayer.pivotX(), editorLayer.pivotX(), 0.000001);
+                assertEquals(runtimeLayer.pivotY(), editorLayer.pivotY(), 0.000001);
+            }
         }
     }
 

@@ -1,0 +1,5 @@
+{
+  "source_dimensions": [1578, 997],
+  "body_bounds": [1, 0, 1578, 989],
+  "measurement": "Accepted raw backing alpha bounds at threshold 24. Half-open crop registered to original v1 body canvas; no central generated pixels are sampled."
+}

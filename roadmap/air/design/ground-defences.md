@@ -4,14 +4,13 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 4 built, with painted art for the battery and the generator; placement authority moved from map generation to the mission (a mission declares batteries and a shield generator, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 5 built, battery and generator painted; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
-G5, the declared capital hazard and standoff), `ship-support.md`, and the two
-command-power stories `shielded-fire-support-zones.md` and
-`orbital-battery-fire-support-lock.md` first. This doc says what a world's ground
+G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
+story `orbital-battery-fire-support-lock.md` first. This doc says what a world's ground
 defences are in a battle. The fortress battery and the shield generator are built; the
-defence nests are not.
+defence nests are built too: all five slices are in, with art, AI awareness and tuning outstanding.
 
 ## What the owner asked for
 
@@ -72,7 +71,8 @@ once.
   ground. Infantry fight under it normally.
 - **How it is beaten.** Two ways, and both are the point: concentrate enough ship fire
   to overload it and land rounds in the gap, or send marines to take or wreck the
-  generator (the relay of `shielded-fire-support-zones.md` is this structure).
+  generator. Orbital Barrage is ordinary ship-grade ordnance to a dome: it fires and an up dome
+  absorbs it (decided by the owner); it is not refused at targeting.
 - **Vanilla figures.** Vanilla gives the planetary shield no combat numbers, so the
   dome's capacity and dissipation are authored starting figures, tuned in play. This is
   the one place the law's "numbers from vanilla" has nothing to read.
@@ -184,8 +184,8 @@ capital that is not another ship.
    for its overload time and recovers empty. Small arms, mech weapons, rockets, aircraft and
    their ordnance are not touched (decided: the dome is ship-grade only). Capture: combatants
    within the capture radius and none of the holder's friends take it after the capture time, the
-   holder's friends alone wind it back, and a taken dome reboots for 4 s; the entity's own faction
-   never changes, so the holder is the service's record. Destroying the generator drops the dome.
+   holder's friends alone wind it back, and a taken dome reboots for 4 s; the structure
+   changes sides with its holder (see *Captured structures* below). Destroying the generator drops the dome.
    Look: `ShieldDomeRenderSystem` (HAZARDS) in the warship shield's cyan for the player's side and
    red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
    an enemy dome draws only where the map has been seen. Sounds are the game's own
@@ -194,12 +194,71 @@ capital that is not another ship.
    garrison (`ShieldGeneratorPlacement.nearKeep`); which missions declare one is
    `MissionDefencePolicy`'s call. All figures are first-pass and **untuned** (1500 flux, 60 per second, 9 s
    overload, 16 cells). Evidence: `ShieldDomeServiceTest` and the `shield-dome` scene (control,
-   dome, destroyed). Still to do: AI awareness (no squad is sent to take or wreck a generator and nothing orders a
-   defender to retake one; a taken generator is still shot by its original side's enemies because
-   its entity faction is fixed), a campaign mission that places one for a market-held
-   shield, and the barrage-targeting preview showing a dome (barrage is absorbed, not denied, so
-   `shielded-fire-support-zones.md`'s denial contract needs reconciling with the owner's decision).
-5. **Defence nests**: the dispersed posts, sized by the mission's declaration (a count to add to `GroundDefences`); anti-air already exists.
+   dome, destroyed). Barrage is not denied by a dome: it fires and an up dome absorbs it. The barrage
+   targeting preview outlines each hostile dome the player has seen (reach, up or down, pool share) and
+   marks an aim point under one "absorbed by dome" while leaving it legal. Still to do: a campaign mission
+   that places one for a market-held shield.
+5. **Defence nests** (built): the dispersed posts, sized by the mission's declaration. As built:
+   - *Declaration.* `GroundDefences.nests` is the count; zero is none, and a fixture that predates it reads as none
+     (`declaredNests` in fixture JSON). `MissionDefencePolicy` is still the one place it is decided: Conquest reads the
+     market's Ground Defenses signal and declares `CONQUEST_NESTS_WHEN_MARKET_HAS_THEM` (12 on the canonical map), an
+     untuned first-pass mission-design choice; every other type declares none unless a mission states it. The DEBUG
+     "Ground defences" dial has a `NESTS` option back (the earlier GROUND option declared nothing and was dropped), and
+     `FORTRESS` now includes nests with its batteries and generator.
+   - *Placement.* `DefenceNestStage` runs after the battery stage and places exactly the declared count, drawing no
+     random numbers. A nest is the ordinary light defence post (vent ring, one sealed mount) stamped by
+     `DefensePostStamper`, so nothing parallel exists; the guns are the catalog's own emplacements, dual flak
+     alternating with heavy machine gun (anti-air, then anti-infantry). Nests are unmanned, as the overwatch towers are:
+     no guard-post node, so no defender roster change. Sites are open outdoor ground that fits the post footprint in the
+     middle or deep band; each pick is the site furthest from every post and nest already standing (distance counted up
+     to a spacing set by the map's area and the declared count), ties to the ground nearest the centre. Fewer are placed
+     if the ground cannot hold them.
+   - *Behaviour.* Nothing new: every turret already reaches aircraft (`EngagementService.reachesAltitude`) and drains
+     the air-threat field, and a turret's round still glances off a capital, so a nest threatens aircraft and people
+     and not a ship. Either side holds them: the spawn path, not the stage, gives a post its side.
+   - *Evidence.* `DefenceNestStageTest` (rule, determinism, spread, shortfall) and the `defence-nest-field` scene: a
+     control boat lands and a section stands untouched; with a field the boat is shot down and the section is cut down;
+     a capital over the field loses nothing.
+   - *Still to do.* Nest art (they use the light post's vent ring), manning, faction-specific gun choice, and tuning of
+     count, spacing and guns against play.
+
+## Command awareness
+
+Both Conquest commanders treat a structure they know of as work (`DefenceStructureTactics`, shared by `ConquestCommand`
+and `ConquestDefenderCommand`; nothing in it is special to attacker or defender). Three roles, in priority order:
+**defend** (its own structure is pressed: a contested fire control, a capture under way), **retake** (a structure built
+for this side that an enemy now holds) and **take** (an enemy structure this side has seen). The order is the ordinary
+attack move to the structure's doorstep (area defence for *defend*): an own-force destination naming no hostile identity or
+position, so a squad takes the structure by standing there or wrecks it by shooting it, whichever the fight allows.
+
+*Knowledge.* The structure facts a commander is given are disclosed by perspective (`ConquestCommandFacts.structures`):
+a side is told of a structure it built, one it holds, and, for the company, one the player's fog has revealed. The other
+side is never told of an enemy structure it has not built or held, so a commander cannot be sent to ground it has no
+reason to know exists. Pressure on an own structure is own-side knowledge.
+
+*Budget.* Modest and untuned: at most two squads (`DefenceStructureTactics.MAX_TASKS`) are detached at once, one per
+structure, nearest first, and a squad that already carries the order keeps it. The attacker offers only lane work (not
+squads committed to a compound capture or in a command group) and only while the lane phases are running, never during
+the keep or final-compound convergence; the defender draws on its unselected reserve after the track response has
+chosen. Directive reasons `DEFENCE_STRUCTURE_TAKE/RETAKE/DEFEND` explain the order in selected-squad UI, dumps and traces.
+A battle with no structures plans exactly as before.
+
+*Evidence.* The `defence-structure-command` scene (take, no-commander control, own-structure control, retake) and
+`DefenceStructureTacticsTest`. Not built: coordinating more than one squad per structure, escorting a ship's call on a
+dome, using a taken structure's own effect (a held battery's lock) as a reason to prioritise, and tuning.
+
+## Captured structures
+
+A structure that changes hands changes sides: when a dome's capture completes or a battery's fire control
+passes to another holder, the entity's faction follows (`UnitRosterService.reassignFaction`, reached through
+`BattleSimulation.followStructureHolder`). Everything that reads a unit's side then agrees: its old side's
+enemies stop shooting it and its new holder's enemies start, its ordinary mount (a battery keeps its mortar)
+fights for the new holder, bars, markers and the dome's colour read the new side, and it joins or leaves the
+fog contributors with its side. This is the one exception to an identity faction being immutable, allowed only
+for a static structure outside any squad. A structure that has ever changed hands is held ground and not a person:
+the personnel ledgers in `MissionResolver` and the "forces in play" test behind elimination objectives skip it
+(`UnitRosterService.isCapturedStructure`), so a captured generator is neither a marine casualty nor a reason a
+wiped company is still fighting. A structure that never changes hands is counted exactly as before.
 
 ## Decided
 
