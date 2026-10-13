@@ -1430,6 +1430,14 @@ public class MarineRoster implements Serializable {
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;
         migrateLegacySquadEquipmentIntent();
+        // Old saves had assigned sheets but no separate sheet-knowledge ledger.
+        // Preserve their intent without learning or replacing any equipment.
+        for (MarineSquad squad : squads) {
+            if (squad != null && SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId()) != null) {
+                armory.acquireArmorPlan(squad.armorDoctrineId());
+            }
+        }
+        if (firstRefit != null) firstRefit.repairArmorPlanKnowledge(armory);
         for (MarineSoldier soldier : soldiers) {
             if (squadForSoldier(soldier.id()) == null) assignToSquad(soldier);
         }

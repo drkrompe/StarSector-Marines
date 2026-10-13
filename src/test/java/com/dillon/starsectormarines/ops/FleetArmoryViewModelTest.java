@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
+import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -119,6 +121,43 @@ class FleetArmoryViewModelTest {
         assertEquals(issues.size(), issues.stream().distinct().count());
         assertEquals(before, members.stream().map(id -> roster.soldierById(id).armorDef().id()).toList(),
                 "learning specifications must not silently fit existing personnel");
+    }
+
+    @Test
+    void scoutAcquisitionCannotPopulateTheBrowserWithUnlearnedFactionSheets() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(12);
+        FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster);
+        model.showArmorPickerAction().run();
+        assertEquals("1 known", model.loadoutBrowserSummary().get());
+
+        roster.armory().unlockArmor(MarineArmorPattern.BLUE_SCOUT);
+        model.refresh();
+
+        assertEquals(2, model.armorDoctrineTiles().get().size());
+        assertTrue(tileIds(model.armorDoctrineTiles().get()).containsAll(List.of(
+                "armor-doctrine:" + SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
+                "armor-doctrine:" + SquadEquipmentDoctrines.RECON_ARMOR)));
+        assertEquals("2 known", model.loadoutBrowserSummary().get());
+        assertTrue(roster.soldiers().stream().allMatch(
+                person -> MarineArmorPattern.MILITIA.id.equals(person.armorId())),
+                "learning a sheet or specification must not issue new kit");
+    }
+
+    @Test
+    void waylineRefitExposesItsLearnedScreenWithoutUnrelatedFactionFormations() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(12);
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        assertTrue(roster.firstRefit().claim(roster, FirstRefit.Path.FORWARD_SCREEN));
+        FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster);
+        model.showArmorPickerAction().run();
+
+        assertEquals(2, model.armorDoctrineTiles().get().size());
+        assertTrue(tileIds(model.armorDoctrineTiles().get()).containsAll(List.of(
+                "armor-doctrine:" + SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
+                "armor-doctrine:" + FirstRefit.Path.FORWARD_SCREEN.armor)));
+        assertEquals("2 known", model.loadoutBrowserSummary().get());
     }
 
     @Test

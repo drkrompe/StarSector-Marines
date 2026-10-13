@@ -155,7 +155,7 @@ class FirstRefitTest {
             assertEquals(path == FirstRefit.Path.FORWARD_SCREEN, roster.armory().ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
             var other = path == FirstRefit.Path.STEADY_LINE ? FirstRefit.Path.FORWARD_SCREEN : FirstRefit.Path.STEADY_LINE;
             assertFalse(roster.firstRefit().claim(roster, other));
-            assertEquals(SquadEquipmentResult.MISSING_TEMPLATE,
+            assertEquals(SquadEquipmentResult.UNKNOWN_ARMOR_DOCTRINE,
                     roster.applySquadEquipment(squad, other.weapons, other.armor));
             assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad, path.weapons, path.armor));
         }

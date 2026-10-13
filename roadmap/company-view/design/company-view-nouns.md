@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Surviving boat damage now grounds lift for bounded campaign recovery, with optional paid acceleration and resumable Castle guidance.
+Updated: 2026-10-13 — equipment browsers require learned tactic sheets; boat recovery and Castle guidance remain part of company preparation.
 
 ## Purpose
 
@@ -350,11 +350,15 @@ Weapon Loadouts and Tactic Sheets share the right-hand browser. A new company's
 only weapon choice is **Dockside Issue**, twelve Service Rooks; its only tactic
 sheet is **Watchman's Kit**, twelve Ward security kits over field fatigues.
 Starting specifications remain Rook, field
-fatigues, and Ward; no specialist weapon or suit is granted. Armor plans that resolve
-to the same ordered twelve issued patterns appear as one choice. As learned suits
-make their issues differ, those choices appear. Deduplication is presentation only:
-existing plans, saved profiles, collected specifications, and issued equipment remain
-intact. Unknown equipment has no revealing placeholder.
+fatigues, and Ward; no specialist weapon or suit is granted. A tactic sheet must
+first be learned through its associated equipment acquisition or story transfer,
+then be resolvable from owned patterns. Merely being able to substitute Ward or
+Janus into its billets does not unlock another faction's sheet. Among learned
+sheets, plans that resolve to the same ordered twelve issued patterns appear as
+one choice; the assigned sheet remains the visible representative. Grouping is
+presentation only and never grants knowledge. Saved assignments, profiles,
+collected specifications, and issued equipment remain intact. Unknown equipment
+has no revealing placeholder.
 
 Each weapon card leads with counted battlefield categories and shows each named
 weapon quantity with its equipment sprite. Tactic cards show the resolved armor
@@ -402,7 +406,8 @@ card.
 Armour deliberately has no equivalent. A tactic sheet is a role mix plus a
 tradition, resolved against owned stock every time it is read
 (`role-and-access.md`), so it cannot be frozen and there is nothing for a player
-to author into it. Technology ownership and stationing constrain later squad issue.
+to author into it. Sheet knowledge, technology ownership, and stationing constrain
+later squad issue and profile creation through the same company authority.
 
 Catalogued armour patterns form explicit capability bands rather than a single
 faction ladder. Tier I is the universal unpowered baseline. Tiers II, III, and IV
@@ -416,11 +421,10 @@ Those differences live on concrete armor-pattern stats and twelve-billet issue, 
 on a hidden faction modifier or set bonus.
 Edits remain a draft until **Save as New**, so a definition already assigned to a
 squad never silently refits its materialized equipment.
-The early **Frontier Security Equipment** and **Frontier Patchwork Protection**
-pair deliberately spend scarce pulse rifles and militia plate on the first billet
-of Alpha, Bravo, and Charlie while their line marines retain field rifles and
-unplated fatigues. Starting and migrated armories collect every template referenced
-by that exact issue; the Machine Shop fits that learned equipment freely.
+Starting armories collect only Service Rook, field fatigues, and Ward security kit.
+Save repair retains previously learned specifications and assigned formations but
+does not seed specialist gear or the unlearned faction-sheet library. The Machine
+Shop fits learned equipment freely.
 
 **Corporate Blacksite Breach** is the built-in player assault profile:
 its twelve exact billets contain one Shattercap frag carrier, so its authored
@@ -430,8 +434,8 @@ twelve exact billets before the same issue transaction can commit.
 Legacy four-billet templates, three-template arrangements, and their persisted ids
 remain readable compatibility input for existing saves; they are no longer writable
 player intent and have no Fleet Armory UI. Load migration composes each complete
-legacy three-template intent into deterministic player-owned Weapon and Armor
-definitions without rewriting any marine's current kit. The first later successful
+legacy three-template intent into a deterministic player-owned weapon definition
+and the starter tactic sheet without rewriting any marine's current kit. The first later successful
 squad issue clears stale per-team assignment ids so only one equipment authority remains.
 
 Equipment template cards are literal permanent collectibles owned by Progression.

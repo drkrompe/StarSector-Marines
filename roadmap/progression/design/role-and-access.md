@@ -6,7 +6,7 @@ data, doctrine as a role mix resolved against access, and the Armory surface
 that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-10-13 — explicit mixed-class billets and recovered suit access preserve deliberate squad composition.
+Updated: 2026-10-13 — acquired sheet knowledge precedes issue resolution; mixed-class billets preserve deliberate squad composition.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -301,6 +301,14 @@ A plan is presented as a **tactic sheet**: the player assigns one to a squad, an
 it equips the whole squad at once. That framing is the model made sayable — a
 sheet is a way of organising twelve marines, and it is bought once and kept,
 while the kit inside it improves as the company does.
+
+Sheet knowledge is a permanent permission alongside equipment specifications.
+Only Watchman's Kit is known at company founding. Explicit signature-equipment
+acquisitions and story lessons teach further sheets. The resolver answers what
+a learned sheet would issue; the ability to resolve arbitrary catalog intent is
+not evidence that the company has learned it. Role fallback remains available
+inside a learned sheet, so knowledge and quality stay separate. Existing assigned
+formations survive save migration without unlocking every unused catalog entry.
 
 Each sheet in the Armory therefore shows two lines that must never be confused:
 
