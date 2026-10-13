@@ -1014,7 +1014,7 @@ public class MarineRoster implements Serializable {
         refreshLeadership();
     }
 
-    /** Headless/debug preview with no cargo constraint. Campaign callers provide resources. */
+    /** Previews free fitting of permanently learned equipment technology. */
     public SquadEquipmentPreview previewSquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId) {
         return previewSquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
@@ -1022,8 +1022,8 @@ public class MarineRoster implements Serializable {
     }
 
     /**
-     * Previews one squad-wide issue as permanent template ownership plus the cargo cost
-     * of changed incoming equipment. Removed equipment is not refunded.
+     * Previews one squad-wide issue against permanent technology ownership.
+     * The Machine Shop fits known equipment without reading or spending fleet cargo.
      */
     public SquadEquipmentPreview previewSquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId,
@@ -1066,11 +1066,6 @@ public class MarineRoster implements Serializable {
             return new SquadEquipmentPreview(SquadEquipmentResult.STATIONED, billets);
         }
 
-        List<String> memberIds = manningMemberIds(squad);
-        // WIA personnel still occupy billets and can receive equipment aboard.
-        // Vacancies retain the assigned plan without manufacturing or charging for kit.
-        List<MarineSoldier> members = memberIds.stream().map(this::soldierById).toList();
-
         boolean ownsTemplates = true;
         for (SquadEquipmentBillet billet : billets) {
             ownsTemplates &= armory.ownsPrimaryTemplate(billet.primaryId(), billet.grade())
@@ -1078,33 +1073,11 @@ public class MarineRoster implements Serializable {
                     && (billet.specialEquipmentId() == null
                     || armory.ownsSpecialTemplate(billet.specialEquipmentId()));
         }
-        EquipmentTemplateCost cost = EquipmentTemplateCost.ZERO;
-        for (int index = 0; index < members.size(); index++) {
-            MarineSoldier soldier = members.get(index);
-            SquadEquipmentBillet billet = billets.get(index);
-            if (!soldier.primaryId().equals(billet.primaryId())
-                    || soldier.primaryGrade() != billet.grade()) {
-                cost = cost.plus(EquipmentTemplateCatalog
-                        .primary(billet.primaryId(), billet.grade()).issueCost());
-            }
-            if (!soldier.armorId().equals(billet.armorId())) {
-                cost = cost.plus(EquipmentTemplateCatalog.armor(billet.armorId()).issueCost());
-            }
-            if (!Objects.equals(soldier.specialEquipmentId(),
-                    billet.specialEquipmentId()) && billet.specialEquipmentId() != null) {
-                cost = cost.plus(EquipmentTemplateCatalog
-                        .special(billet.specialEquipmentId()).issueCost());
-            }
-        }
-        EquipmentTemplateCost available = resources.available();
-        SquadEquipmentResult result = !ownsTemplates
-                ? SquadEquipmentResult.MISSING_TEMPLATE
-                : available.covers(cost)
-                ? SquadEquipmentResult.APPLIED : SquadEquipmentResult.INSUFFICIENT_CARGO;
-        return new SquadEquipmentPreview(result, billets, cost, available);
+        return new SquadEquipmentPreview(ownsTemplates ? SquadEquipmentResult.APPLIED
+                : SquadEquipmentResult.MISSING_TEMPLATE, billets);
     }
 
-    /** Headless/debug apply with no cargo constraint. Campaign callers provide resources. */
+    /** Fits known equipment without a material charge. */
     public SquadEquipmentResult applySquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId) {
         return applySquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
@@ -1124,7 +1097,7 @@ public class MarineRoster implements Serializable {
                 EquipmentIssueResources.UNLIMITED, primaryGrades);
     }
 
-    /** Applies both definitions after the complete template and cargo transaction succeeds. */
+    /** Applies both definitions after validating the complete technology plan. */
     public SquadEquipmentResult applySquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId,
             EquipmentIssueResources resources) {
@@ -1138,9 +1111,6 @@ public class MarineRoster implements Serializable {
         SquadEquipmentPreview preview = previewSquadEquipment(
                 squadId, weaponDoctrineId, armorDoctrineId, resources, primaryGrades);
         if (!preview.canApply()) return preview.result();
-        if (!preview.issueCost().isZero() && !resources.spend(preview.issueCost())) {
-            return SquadEquipmentResult.INSUFFICIENT_CARGO;
-        }
         MarineSquad squad = squadById(squadId);
         List<String> memberIds = manningMemberIds(squad);
         for (int index = 0; index < memberIds.size(); index++) {

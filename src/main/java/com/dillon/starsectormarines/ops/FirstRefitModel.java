@@ -102,11 +102,11 @@ final class FirstRefitModel {
         props.put("progress", complete ? "4 / 4  KIT ISSUED" : !claimed ? "1 / 4  WAYLINE'S CONSIGNMENT"
                 : squad == null ? "2 / 4  CHOOSE A SQUAD" : path == null ? "3 / 4  CHOOSE A PATH" : "4 / 4  REVIEW AND ISSUE");
         props.put("copy", complete
-                ? "That is what the last job bought us: a better-equipped squad. Their names and command stay the same; the weapons and suits on the roll are what they will take into the next fight. Inspect Alpha, Bravo and Charlie in the Armory. You can use either plan again; future changes pay their own material bill."
+                ? "That is what the last job bought us: a better-equipped squad. Their names and command stay the same; the weapons and suits on the roll are what they will take into the next fight. Inspect Alpha, Bravo and Charlie in the Armory. The Machine Shop can fit and swap any learned equipment for free."
                 : !claimed ? "Mara sent over the patterns her quartermaster could spare: Milspec Stalwart automatics, Milspec Lancer pulse rifles and Janus scout suits. We held their checkpoint. Now Wayline can help us put better kit on our people. Accept the patterns, then we will refit one squad together."
-                : squad == null ? "Choose a squad to equip. Wounded marines can receive gear while recovering; a squad does not need to be full. We only charge for changed equipment issued to people on its current roll."
+                : squad == null ? "Choose a squad to equip. Wounded marines can receive gear while recovering; a squad does not need to be full. The Machine Shop fits learned equipment at no material charge."
                 : path == null ? "Two plans, Captain. Steady Line puts more weight behind holding ground. Forward Screen puts more scouts ahead of us. Each plans weapons and armor for twelve billets; select one to review the issue to your current marines."
-                : "Select a billet to compare its current and proposed equipment. Hover an item for its full spec sheet. Milspec weapons use supplies; the bill below also includes armor materials. Wounded marines can equip now, and vacant slots store the plan for free. Issue to squad applies the whole order.");
+                : "Select a billet to compare its current and proposed equipment. Hover an item for its full spec sheet. The Machine Shop fits learned equipment for free. Wounded marines can equip now, and vacant slots store the plan for free. Issue to squad applies the whole order.");
         props.put("showcaseClasses", !claimed ? "refit-showcase" : "refit-hidden");
         props.put("claimClasses", !claimed ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", claimed && !complete ? "refit-work" : "refit-hidden");
@@ -184,7 +184,7 @@ final class FirstRefitModel {
         }
         props.put("costs", costs);
         props.put("billHeading", reviewed == null ? "Choose a squad and a path to review costs."
-                : reviewed.issueCost().isZero() && reviewed.canApply() ? "No material charge. Vacant slots receive no gear."
+                : reviewed.issueCost().isZero() && reviewed.canApply() ? "MACHINE SHOP / Free fitting from learned technology."
                 : "MATERIAL BILL / Cost | Available | Short by");
         props.put("shortfall", reviewed == null ? "" : shortage(reviewed.issueCost(), resources.available()));
         props.put("status", !feedback.isEmpty() ? feedback : reviewed == null ? "Selection spends nothing. Both paths remain available."
@@ -226,7 +226,7 @@ final class FirstRefitModel {
             item.put("kind", kind + change);
             item.put("title", sheet != null ? sheet.title() : kit == null ? "No current equipment" : "No special equipment");
             item.put("subtitle", sheet != null ? sheet.subtitle() : proposed && before != null
-                    ? "Current special is removed; no material refund." : kit == null ? "Vacant billet / no charge" : "This slot carries no special item.");
+                    ? "This plan removes the current special. You can fit learned equipment again for free." : kit == null ? "Vacant billet / no charge" : "This slot carries no special item.");
             item.put("stats", sheet == null ? "" : sheet.stats().stream()
                     .map(stat -> stat.label() + "  " + stat.value()).collect(Collectors.joining("     ")));
             item.put("system", i == 1 && kit != null ? IntegralSystemCopy.tile(kit.armorDef()) : "");
