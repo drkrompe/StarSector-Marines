@@ -1,0 +1,40 @@
+<template props="cards,score">
+  <div id="manual-objectives" class="manual-objectives">
+    <div id="manual-objective-heading" class="manual-heading">
+      <div id="manual-objective-title" class="heading">MISSION OBJECTIVES</div>
+      <div id="manual-objective-score" class="score">{score}</div>
+    </div>
+    <div id="manual-objective-list" class="manual-list">
+      <div each="card in cards" key="{card.id}" id="{card.id}" class="{card.classes}">
+        <div id="{card.nameId}" class="heading mission-name">{card.name}</div>
+        <div id="{card.phaseId}" class="mission-phase">{card.phase}</div>
+        <div id="{card.stepsId}" class="mission-steps">{card.steps}</div>
+        <div id="{card.instructionId}" class="mission-instruction">{card.instruction}</div>
+        <div id="{card.progressTextId}" class="mission-progress-text">{card.progressText}</div>
+        <div id="{card.trackId}" class="mission-track" style="{card.trackStyle}">
+          <div id="{card.progressId}" class="mission-fill" style="{card.progressStyle}" />
+        </div>
+        <div id="{card.blockerId}" class="mission-blocker">{card.blocker}</div>
+      </div>
+    </div>
+  </div>
+</template>
+<style>
+  .manual-objectives { width: 344px; height: 374px; padding: 7px; gap: 6px; border-width: 1px; border-color: #727b79; background-color: #141e19ee; }
+  .manual-heading { width: 100%; height: 18px; flex-direction: row; gap: 4px; }
+  .heading { font-family: heading; color: #d4ddd5; }
+  .score { flex-grow: 1; text-align: right; color: #78d494; }
+  .manual-list { width: 100%; height: 350px; gap: 6px; overflow: scroll; }
+  .mission-card { width: 100%; height: 156px; padding: 5px; gap: 3px; border-width: 1px; border-color: #806b35; background-color: #15231fee; }
+  .mission-name { width: 100%; height: 18px; overflow: hidden; }
+  .mission-phase { width: 100%; height: 15px; font-family: heading; color: #ffd464; }
+  .mission-steps { width: 100%; height: 15px; color: #a7ccc4; overflow: hidden; }
+  .mission-instruction { width: 100%; height: 36px; white-space: normal; overflow: hidden; color: #d4ddd5; }
+  .mission-progress-text { width: 100%; height: 15px; color: #a8b6c6; }
+  .mission-track { width: 100%; height: 3px; flex-direction: row; background-color: #29352f; }
+  .mission-fill { height: 3px; background-color: #ffd464; }
+  .mission-blocker { width: 100%; height: 30px; white-space: normal; overflow: hidden; color: #efb283; }
+  .mission-complete { border-color: #78d494; }
+  .mission-complete .mission-phase { color: #78d494; }
+  .mission-failed { border-color: #e98b83; }
+</style>

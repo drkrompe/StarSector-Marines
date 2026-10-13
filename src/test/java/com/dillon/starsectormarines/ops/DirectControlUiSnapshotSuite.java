@@ -171,6 +171,13 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             for (int y = 0; y < height; y += 48) graphics.drawLine(0, y, width, y);
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            var objectiveReactor = new Reactor();
+            var objectives = new BattleManualObjectiveModel(objectiveReactor);
+            objectives.update(BattleManualObjectiveOverlayTest.preview());
+            try (var markup = build(modRoot, objectiveReactor, BattleManualObjectiveOverlay.COMPONENT_PATH,
+                    BattleManualObjectiveOverlay.COMPONENT, objectives.props())) {
+                draw(graphics, renderer, markup, layout.manualObjectives(), layout.host(), uiScale);
+            }
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
                     snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
                 draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);

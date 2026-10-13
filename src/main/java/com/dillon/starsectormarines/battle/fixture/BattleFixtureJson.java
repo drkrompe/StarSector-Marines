@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -48,6 +49,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -886,6 +888,13 @@ public final class BattleFixtureJson {
         encoded.put("declaredBatteries", profile.declaredDefences().batteries());
         encoded.put("declaredShieldGenerator", profile.declaredDefences().shieldGenerator());
         encoded.put("declaredNests", profile.declaredDefences().nests());
+        if (!profile.declaredDefences().forts().isEmpty()) {
+            JSONObject forts = new JSONObject();
+            for (Map.Entry<FortKind, Integer> fort : profile.declaredDefences().forts().entrySet()) {
+                forts.put(fort.getKey().name(), fort.getValue());
+            }
+            encoded.put("declaredForts", forts);
+        }
         return encoded;
     }
 
@@ -930,7 +939,20 @@ public final class BattleFixtureJson {
                 // The mission's declaration, optional and none for a fixture that predates it.
                 new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
-                        encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0));
+                        encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
+                        declaredForts(encoded)));
+    }
+
+    /** The forts a fixture declares by kind; a fixture that predates forts, or states none, declares none. */
+    private static Map<FortKind, Integer> declaredForts(JSONObject encoded) throws Exception {
+        Map<FortKind, Integer> forts = new EnumMap<>(FortKind.class);
+        JSONObject declared = encoded.optJSONObject("declaredForts");
+        if (declared == null) return forts;
+        for (Iterator<?> kinds = declared.keys(); kinds.hasNext();) {
+            String name = (String) kinds.next();
+            forts.put(enumValue(FortKind.class, name, "fort kind"), declared.getInt(name));
+        }
+        return forts;
     }
 
     private static <E extends Enum<E>> E enumValue(
