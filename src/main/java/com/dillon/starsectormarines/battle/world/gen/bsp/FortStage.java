@@ -520,7 +520,19 @@ public final class FortStage implements GenStage {
                     draw.earth(c.x(), c.y());
                     draw.sandbag(c.x(), c.y(), c.dx(), c.dy(), c.cornerDx(), c.cornerDy());
                 }
-                case WIRE -> draw.concertina(c.x(), c.y(), c.dx() != 0);
+                case WIRE -> {
+                    draw.concertina(c.x(), c.y(), c.dx() != 0);
+                    // A single strand is a hairline at game scale: lay a second row beside it on bare glacis.
+                    for (int side = 1; side >= -1; side -= 2) {
+                        int lx = c.x() - c.dy() * side;
+                        int ly = c.y() + c.dx() * side;
+                        int[] beside = at.cell(lx, ly);
+                        if (taken.contains(FortDressing.key(beside[0], beside[1]))) continue;
+                        if (ctx.grid.inBounds(beside[0], beside[1])
+                                && ctx.topology.getGroundKind(beside[0], beside[1]) == GroundKind.COURTYARD) continue;
+                        if (draw.concertina(lx, ly, c.dx() != 0)) break;
+                    }
+                }
                 case NEST -> {
                     draw.earth(c.x(), c.y());
                     emitNest(ctx, cell, fortId, at, nestNumber++);
@@ -544,18 +556,18 @@ public final class FortStage implements GenStage {
         // way in turns once and the guns are never open to a straight shot from the gate.
         int px = BatteryFort.PLATFORM[0], py = BatteryFort.PLATFORM[1];
         for (int dx = -3; dx <= 3; dx++) for (int dy = -3; dy <= 3; dy++) d.gravel(px + dx, py + dy);
-        d.ring(px - 1, py - 1, 3, 3, 3, -1, 0, py, 3);
-        d.ring(px - 1, py - 1, 3, 3, 5, 0, -1, px, 3);
+        d.thickRing(px - 1, py - 1, 3, 3, 3, -1, 0, py, 3);
+        d.thickRing(px - 1, py - 1, 3, 3, 5, 0, -1, px, 3);
 
         // The fire-control bunker is low and hardened: one ring of bags a step off its walls, open at its door.
         int[] bunker = BatteryFort.floor(FortAspect.FIRE_CONTROL);
         int[] bunkerDoor = BatteryFort.door(FortAspect.FIRE_CONTROL);
-        d.ring(bunker[0] - 1, bunker[1] - 1, bunker[2] + 2, bunker[3] + 2, 2, 0, 1, bunkerDoor[0], 3);
+        d.thickRing(bunker[0] - 1, bunker[1] - 1, bunker[2] + 2, bunker[3] + 2, 2, 0, 1, bunkerDoor[0], 3);
         // The magazine stands apart from the guns inside a double berm.
         int[] mag = BatteryFort.floor(FortAspect.MAGAZINE);
         int[] magDoor = BatteryFort.door(FortAspect.MAGAZINE);
-        d.ring(mag[0] - 1, mag[1] - 1, mag[2] + 2, mag[3] + 2, 2, 0, 1, magDoor[0], 3);
-        d.ring(mag[0] - 1, mag[1] - 1, mag[2] + 2, mag[3] + 2, 4, 0, 1, magDoor[0], 3);
+        d.thickRing(mag[0] - 1, mag[1] - 1, mag[2] + 2, mag[3] + 2, 2, 0, 1, magDoor[0], 3);
+        d.thickRing(mag[0] - 1, mag[1] - 1, mag[2] + 2, mag[3] + 2, 4, 0, 1, magDoor[0], 3);
 
         // Firing lines inside each gate cover the baffle, so a breach still has to cross open ground.
         d.line(ox + 9, oy + 15, ox + 9, oy + 19, -1, 0);
@@ -609,7 +621,7 @@ public final class FortStage implements GenStage {
         // The control room is low and hardened: one ring of bags a step off its walls, open at its door.
         int[] room = ShieldFort.floor(FortAspect.CONTROL_ROOM);
         int[] roomDoor = ShieldFort.door(FortAspect.CONTROL_ROOM);
-        d.ring(room[0] - 1, room[1] - 1, room[2] + 2, room[3] + 2, 2, 0, 1, roomDoor[0], 3);
+        d.thickRing(room[0] - 1, room[1] - 1, room[2] + 2, room[3] + 2, 2, 0, 1, roomDoor[0], 3);
 
         // The power plant's fenced yard, with its plant standing in it.
         int[] plant = ShieldFort.floor(FortAspect.POWER);

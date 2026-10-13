@@ -141,7 +141,9 @@ under the units). Machinery on the roof runs only while the building stands and 
 radar, the plant's turbine fans and glow, the magazine's vent fans and warning lamps. A taken building flies the holder's
 banner and takes a wash of the holder's colour. Gatehouse towers carry embrasured caps while their walls stand, the gate
 carries folded leaves, and neither draws over a breach. A new fort kind adds data (a `buildingArt` block per aspect) and a
-layout, not renderer code. Retained sources: `art-source/fort-buildings/`.
+layout, not renderer code. Retained sources: `art-source/fort-buildings/`. Art is authored with the door on one edge; a plan whose door is on the other
+edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick and belt wire is two rows.
+The wire sprite itself is still pale on earth and wants a bolder reskin; the shield fort has no gatehouse pieces yet.
 
 ## Slices
 
