@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import java.util.List;
 import java.util.Objects;
+import java.text.NumberFormat;
 
 /** Read-only conversations selected from the settled mission, never reward or completion authority. */
 final class MissionDebriefConversation {
@@ -23,6 +24,7 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (waterUnderSeal(outcome)) return "NORTH WEIR / CASTLE & RUSK";
         if (outcome != null && outcome.workingPassage != null) return "REGISTRY TRANSFER / CASTLE & VALE";
         if (outcome != null && outcome.coldStart != null) return "COLD START / CASTLE & VALE";
         if (outcome != null && outcome.salvageRights != null) return "RECOVERY AGREEMENT / CASTLE & VALE";
@@ -31,6 +33,7 @@ final class MissionDebriefConversation {
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
                 recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Registry accepted. Morrow is ours. Hull, workshop, and a very long list of maintenance jobs."),
                 recoveryLine("departure-corridor", false, "The corridor is ours again. Keep her working, Castle. That is what those ships were built for."),
@@ -64,6 +67,37 @@ final class MissionDebriefConversation {
         return List.of("orders", "consideration", "one_ship", "payroll", "way_out", "debt")
                 .stream().map(beat -> catalog.find("story_corvus_cold_account", "debrief.cold_account." + beat))
                 .filter(Objects::nonNull).toList();
+    }
+
+    private static boolean waterUnderSeal(MissionOutcome outcome) {
+        return outcome != null && outcome.missionSource == MissionSource.STORY
+                && AgreusArcCampaign.owns(outcome.missionId) && outcome.waterUnderSeal != null;
+    }
+
+    private static List<WaylineNarration.Line> weirLines(MissionOutcome outcome) {
+        var report = outcome.waterUnderSeal;
+        String cost = "Company casualties: " + outcome.marinesLost + ". Constables lost: " + report.militiaLost()
+                + ". Technicians lost: " + report.techniciansLost() + ". Keep those people on the record beside the work.";
+        if (outcome.victory) return List.of(
+                weirLine("secured", true, "The repair load reached the isolation switch. Both rooms are reconnected and the road gun is commissioned. The company resolved the attack; North Weir is working again."),
+                weirLine("invoice", false, "Your invoice is honored: " + NumberFormat.getIntegerInstance().format(outcome.payoutEarned) + " credits. This was security work within my concession; the Combine's administration remains its own."),
+                weirLine("cost", true, cost),
+                weirLine("closure", false, "You have my sponsorship for the work you completed. Put your company in order. I will contact you when the next contract is ready."));
+        String work = "The north room " + (report.northRoomReconnected() ? "was reconnected" : "was not reconnected")
+                + "; the south room " + (report.southRoomReconnected() ? "was reconnected" : "was not reconnected") + ". "
+                + (report.cargoLost() ? "The repair load was destroyed." : "No repair-load loss is confirmed.");
+        return List.of(
+                weirLine("withdrawal", true, "North Weir has not been handed over. " + work),
+                weirLine("unpaid", false, "The completion fee is unpaid. A return to North Weir will be a new mobilization: fresh repair cargo and a replacement technician party. No unfinished field work is signed off."),
+                weirLine("cost", true, cost),
+                weirLine("retry", false, "Replenish your people and boats, and bring a working tender. The contract can wait until your company is ready."));
+    }
+
+    private static WaylineNarration.Line weirLine(String beat, boolean castle, String text) {
+        return new WaylineNarration.Line("weir-debrief-" + beat, "story_agreus_water_under_seal",
+                "debrief.water_under_seal." + beat, text, 10f, 10, 15f, List.of(),
+                castle ? "CASTLE / COMPANY OPERATIONS" : "BARONET ELIAN RUSK / HOUSE RUSK",
+                castle ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
     }
 
     private static boolean firstContract(MissionOutcome outcome) {

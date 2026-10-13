@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
+import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -80,6 +81,10 @@ public final class PowerCatalog {
     /** Resolve powers and, when sourced, configure Mech Support from campaign inventory. */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
                                              List<MechDeploymentSpec> configuredMechs) {
+        if (AgreusArcCampaign.isBattle(m)) {
+            var tenders = AgreusConstructionSupport.sources(committedShips);
+            return tenders.isEmpty() ? List.of() : List.of(new ShipOnStation(tenders));
+        }
         // Wayline arranges the heavy lift, but supplies no free chassis. Empty
         // bays must not fall through MechSupport's legacy debug default.
         if (SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)) {
