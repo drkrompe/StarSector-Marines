@@ -6,7 +6,7 @@
     </div>
     <div id="battle-order-cards" class="order-cards">
       <button id="battle-order-attack" class="{attackClasses}" onclick="{attack}">
-        <div id="battle-order-attack-name" class="order-name">[A] ATTACK MOVE</div>
+        <div id="battle-order-attack-name" class="order-name">[Q] ATTACK MOVE</div>
         <div id="battle-order-attack-scope" class="order-detail">{attackScope}</div>
       </button>
       <button id="battle-order-defend" class="{defendClasses}" onclick="{defend}">

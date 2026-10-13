@@ -13,16 +13,16 @@ class BattleOrderShortcutsTest {
     @Test void heldKeyArmsOnceAndReleaseAllowsTheNextPress() {
         var shortcuts = new BattleOrderShortcuts();
         List<Mode> actions = new ArrayList<>();
-        var down = event(Keyboard.KEY_A, true, false);
-        var repeat = event(Keyboard.KEY_A, true, false);
+        var down = event(Keyboard.KEY_Q, true, false);
+        var repeat = event(Keyboard.KEY_Q, true, false);
         shortcuts.process(List.of(down, repeat), true, actions::add);
         assertEquals(List.of(Mode.ATTACK_MOVE), actions);
         assertTrue(down.isConsumed());
         assertTrue(repeat.isConsumed());
-        var up = event(Keyboard.KEY_A, false, false);
+        var up = event(Keyboard.KEY_Q, false, false);
         shortcuts.process(List.of(up), false, actions::add);
         assertTrue(up.isConsumed());
-        shortcuts.process(List.of(event(Keyboard.KEY_A, true, false),
+        shortcuts.process(List.of(event(Keyboard.KEY_Q, true, false),
                 event(Keyboard.KEY_F, true, false)), true, actions::add);
         assertEquals(List.of(Mode.ATTACK_MOVE, Mode.ATTACK_MOVE, Mode.DEFEND_AREA), actions);
     }
@@ -30,17 +30,27 @@ class BattleOrderShortcutsTest {
     @Test void hiddenModifiedConsumedAndUnrelatedKeysPassThrough() {
         var shortcuts = new BattleOrderShortcuts();
         List<Mode> actions = new ArrayList<>();
-        var hidden = event(Keyboard.KEY_A, true, false);
+        var hidden = event(Keyboard.KEY_Q, true, false);
         shortcuts.process(List.of(hidden), false, actions::add);
         assertFalse(hidden.isConsumed());
         var modified = event(Keyboard.KEY_F, true, true);
         var unrelated = event(Keyboard.KEY_W, true, false);
-        var consumed = event(Keyboard.KEY_A, true, false);
+        var consumed = event(Keyboard.KEY_Q, true, false);
         consumed.consume();
         shortcuts.process(List.of(modified, unrelated, consumed), true, actions::add);
         assertFalse(modified.isConsumed());
         assertFalse(unrelated.isConsumed());
         assertTrue(actions.isEmpty());
+    }
+
+    @Test void cameraPanKeysAreNeverClaimed() {
+        var shortcuts = new BattleOrderShortcuts();
+        List<Mode> actions = new ArrayList<>();
+        var keys = List.of(event(Keyboard.KEY_W, true, false), event(Keyboard.KEY_A, true, false),
+                event(Keyboard.KEY_S, true, false), event(Keyboard.KEY_D, true, false));
+        shortcuts.process(keys, true, actions::add);
+        assertTrue(actions.isEmpty());
+        keys.forEach(key -> assertFalse(key.isConsumed()));
     }
 
     private static InputEventAPI event(int key, boolean down, boolean modified) {

@@ -600,7 +600,7 @@ new clicks, camera drags and wheel input within their bounds; a camera drag begu
 in the world can finish across chrome. The turret authoring workspace is modal:
 ordinary battle controls yield until it closes.
 
-A compact bottom contextual bar above fleet support exposes **Attack Move [A]**
+A compact bottom contextual bar above fleet support exposes **Attack Move [Q]**
 and **Defend Area [F]** for commandable infantry and Mech selections. Clicking a
 button or pressing its shortcut arms the next world click; pressing the same
 shortcut again cancels. Attack Move uses the existing move/context order path,
