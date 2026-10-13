@@ -20,8 +20,9 @@ import java.util.function.Consumer;
  * <h2>Buffered, not synchronous</h2>
  *
  * Publish does not invoke handlers inline. Events accumulate in {@link #pending}
- * and are fanned out by {@link #drain()}, which the sim calls once per tick at a
- * fixed phase (where the demolition passes used to scan the roster). This is
+ * and are fanned out by {@link #drain()} at serial phase boundaries. The sim
+ * retains the early demolition drain and drains late impact/objective deaths
+ * before topology publication and battle completion. This is
  * deliberate:
  *
  * <ul>
@@ -29,8 +30,8 @@ import java.util.function.Consumer;
  *       the {@code APPLY_DAMAGE} queue drain, AoE detonations, off-tick external
  *       strafing). Buffering decouples <em>when a death is recorded</em> from
  *       <em>when its reaction runs</em>, so handlers always run at one known,
- *       serial phase regardless of which path killed the unit — exactly the
- *       end-of-tick timing the batch demolition systems had.</li>
+ *       serial boundary regardless of which path killed the unit. Late deaths
+ *       cannot depend on another tick after the battle completes.</li>
  *   <li>By drain time every unit that died this tick is fully dead, so a handler
  *       that queries sibling state (e.g. "are all turrets on this post down?")
  *       sees the same settled picture the per-tick scan did.</li>
@@ -81,8 +82,8 @@ public final class DeathDispatcher {
      * Fans every buffered event out to every handler in publish-then-subscribe
      * order. Drains in waves until quiescent: events published <em>by</em> a
      * handler during fan-out are themselves fanned out before {@code drain}
-     * returns (same tick). Idempotent on an empty buffer; called once per tick
-     * at the death-reaction phase. Allocation-free — the two buffers are reused
+     * returns (same tick). Idempotent on an empty buffer, including the second
+     * boundary's drain when no late deaths occurred. Allocation-free — the two buffers are reused
      * and swapped, never reallocated.
      */
     public void drain() {

@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.intel;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -36,6 +40,7 @@ import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
+import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.SectorMapAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 
@@ -65,6 +70,9 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     public static final String TAG = "marines_campaign_debug";
     private static final String TITLE = "Marines Debug";
+
+    private static final String BTN_LEARN_RECOVERED_SUITS = "learn-recovered-suit-tests";
+    private static final String BTN_LEARN_MILITARY_SUITS = "learn-military-suit-tests";
 
     private static final String BTN_TOGGLE_BYPASS  = "toggle-bypass";
     private static final String BTN_TOGGLE_FILTER  = "toggle-filter";
@@ -96,6 +104,9 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     /** What the last vanilla-raid spawn button reported; shown under those buttons. */
     private String lastRaidSpawnResult;
+
+    /** Feedback for an explicit developer technology grant, not an issued refit. */
+    private String lastSuitLearnResult;
 
     @Override
     protected String getName() {
@@ -220,6 +231,18 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         addVanillaRaidButtons(ui);
         ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
+
+        if (DevConfig.CAMPAIGN_DEBUG_INTEL) {
+            ui.addSectionHeading(Strings.get("debugPowerSuitHeading"), Color.WHITE,
+                    new Color(40, 40, 40), Alignment.LMID, 14f);
+            ui.addPara(Strings.get("debugPowerSuitLearningNote"), Color.LIGHT_GRAY, 8f);
+            boolean rosterAvailable = Global.getSector() != null && MarineRosterScript.getInstance() != null;
+            ui.addButton(Strings.get("debugPowerSuitLearnRecovered"), BTN_LEARN_RECOVERED_SUITS,
+                    320f, 24f, 8f).setEnabled(rosterAvailable);
+            ui.addButton(Strings.get("debugPowerSuitLearnMilitary"), BTN_LEARN_MILITARY_SUITS,
+                    320f, 24f, 8f).setEnabled(rosterAvailable);
+            if (lastSuitLearnResult != null) ui.addPara(lastSuitLearnResult, Color.LIGHT_GRAY, 4f);
+        }
 
         // ---- Contracts list ----
         ui.addSectionHeading("Contracts", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
@@ -470,7 +493,17 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         if (script == null) return;
         CampaignState s = script.state();
 
-        if (BTN_TOGGLE_BYPASS.equals(buttonId)) {
+        if (BTN_LEARN_RECOVERED_SUITS.equals(buttonId) || BTN_LEARN_MILITARY_SUITS.equals(buttonId)) {
+            if (!DevConfig.CAMPAIGN_DEBUG_INTEL) return;
+            MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+            if (rosterScript == null) {
+                lastSuitLearnResult = Strings.get("debugPowerSuitNoRoster");
+            } else {
+                int learned = learnSuitTestPatterns(rosterScript.roster().armory(),
+                        BTN_LEARN_MILITARY_SUITS.equals(buttonId));
+                lastSuitLearnResult = Strings.format("debugPowerSuitLearned", learned);
+            }
+        } else if (BTN_TOGGLE_BYPASS.equals(buttonId)) {
             s.debugBypassHouseGating = !s.debugBypassHouseGating;
         } else if (BTN_TOGGLE_FILTER.equals(buttonId)) {
             filterToLocalSystem = !filterToLocalSystem;
@@ -542,6 +575,20 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         }
 
         ui.updateUIForItem(this);
+    }
+
+    /** Explicit test acquisition uses permanent template ownership and never changes issued kit. */
+    @DebugOnly
+    static int learnSuitTestPatterns(MarineArmory armory, boolean military) {
+        if (!DevConfig.CAMPAIGN_DEBUG_INTEL || armory == null) return 0;
+        List<String> patterns = military
+                ? List.of("armor.specter-heavy", "armor.arbalest")
+                : List.of("armor.specter-recovered", "armor.arbalest-recovered");
+        int learned = 0;
+        for (String pattern : patterns) {
+            if (armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(pattern))) learned++;
+        }
+        return learned;
     }
 
     /**

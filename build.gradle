@@ -152,7 +152,7 @@ test {
                 'squad-firing-evidence',
                 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
-                'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence',
+                'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence'
     }
     testLogging {
@@ -226,6 +226,7 @@ def commanderEvidenceTags = [
         'thunder-run': 'thunder-run-command-evidence',
         'last-lift': 'last-lift-command-evidence',
         'supply-route': 'supply-route-campaign-evidence',
+        'power-suit-campaign': 'power-suit-campaign-evidence',
         corvus: 'corvus-command-evidence',
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
@@ -346,6 +347,7 @@ tasks.register('commanderEvidence', Test) {
                 'thunder-run': 'thunderrun.command.evidence',
                 'last-lift': 'lastlift.command.evidence',
                 'supply-route': 'supplyroute.command.evidence',
+                'power-suit-campaign': 'powersuit.campaign.evidence',
                 corvus: 'corvus.command.evidence',
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
@@ -395,7 +397,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, relief, counterattack, junction, relay-nine, thunder-run, last-lift, supply-route, corvus, raid, or extraction')
+                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, relief, counterattack, junction, relay-nine, thunder-run, last-lift, supply-route, power-suit-campaign, corvus, raid, or extraction')
         }
     }
     testLogging {
