@@ -12,7 +12,10 @@ import com.dillon.starsectormarines.battle.infantry.LaneSidestep;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.mech.MechCombatantBehavior;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
+import com.dillon.starsectormarines.battle.mech.MechTargeting;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -66,11 +69,23 @@ public final class DefendArea implements Action {
             return ActionStatus.FAILURE;
         }
 
-        long target = sim.targetOf(member);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+        boolean mech = sim.world().hasMechLoadout(member);
+        long target;
+        if (mech) {
+            // A mech's weapons are triggered by the mech fire pass, not by the
+            // fire intent a marine's shot is queued through, so the order has
+            // to pull that trigger itself or the chassis holds its circle and
+            // watches the enemy walk up to it.
+            target = MechTargeting.refreshTarget(member, sim);
             sim.world().setTargetId(member, target);
+            if (target != 0L) fireMechWeapons(member, target, sim);
+        } else {
+            target = sim.targetOf(member);
+            if (target == 0L
+                    || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+                target = sim.getTacticalScoring().findBestTarget(member);
+                sim.world().setTargetId(member, target);
+            }
         }
         if (target != 0L) return engageInsideArea(member, target, squad, sim);
 
@@ -82,6 +97,17 @@ public final class DefendArea implements Action {
                 : quietPosition(member, squad, sim);
         moveToward(member, destination[0], destination[1], sim);
         return ActionStatus.RUNNING;
+    }
+
+    /** Fires every mount that is in band on {@code target}, from wherever the mech stands. */
+    private static void fireMechWeapons(long member, long target, BattleControl sim) {
+        float distance = TacticalScoring.cellDistance(
+                sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
+        if (distance > sim.world().attackRange(member)) return;
+        MechLoadoutComponent loadout = sim.world().mechLoadout(member);
+        MechCombatantBehavior.tryFireMechWeapons(member, loadout, target, distance, sim,
+                sim.getTacticalScoring().hasClearShot(member, target));
     }
 
     private ActionStatus engageInsideArea(long member, long target, Squad squad,
@@ -124,7 +150,10 @@ public final class DefendArea implements Action {
             } else {
                 PatrolMotion.hold(member, sim);
             }
-            sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
+            // A mech has already fired through its own weapon pass.
+            if (!sim.world().hasMechLoadout(member)) {
+                sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
+            }
             return ActionStatus.RUNNING;
         }
 
