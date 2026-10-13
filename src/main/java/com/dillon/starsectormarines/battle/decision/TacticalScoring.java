@@ -2307,6 +2307,19 @@ public final class TacticalScoring {
                 currentTick);
     }
 
+    /**
+     * Whether any remembered contact was refreshed within {@link #HOLD_AFTER_LOS_TICKS},
+     * by sight or by sound. Read off the squad's own beliefs rather than its contact
+     * picture, which is bounded to the picture radius and keyed to one primary: this
+     * asks only whether the squad has current evidence of anyone, wherever they are.
+     */
+    public static boolean hasFreshBelief(Squad squad, int currentTick) {
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (currentTick - contact.lastSeenTick() <= HOLD_AFTER_LOS_TICKS) return true;
+        }
+        return false;
+    }
+
     /** True when HOLD means plant the whole advancing squad and receive contact. */
     public static boolean shouldHardHoldAdvance(Squad squad,
                                                 SquadContactPicture picture,
