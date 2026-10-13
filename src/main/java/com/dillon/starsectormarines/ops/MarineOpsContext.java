@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger;
 import com.dillon.starsectormarines.campaign.systems.PolityThreatQuery;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem.RaidThreat;
 import com.dillon.starsectormarines.marine.CampaignBoat;
+import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -455,7 +456,15 @@ public class MarineOpsContext {
      * the navigation shell, headquarters' own tiles, and whatever comes next.
      */
     public void goTo(ScreenId screen) {
-        if (screen != null && screen.aboard() && !shipReady()) return;
+        MarineRoster roster = CompanyPreparationGuide.roster();
+        screen = CompanyPreparationRoute.resolve(screen, roster,
+                selectedMission != null && selectedMission.source.isDebug());
+        if (screen != null && screen.aboard() && !shipReady()) {
+            if (!CompanyPreparation.required(roster)) return;
+            screen = ScreenId.COMPANY_HQ;
+        }
+        if (screen == ScreenId.BARRACKS && CompanyPreparation.required(roster))
+            officerInductionRequested = true;
         this.currentScreen = screen;
     }
 

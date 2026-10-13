@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
+import com.dillon.starsectormarines.ops.detachment.HostileFleetStatus;
+import com.dillon.starsectormarines.ops.detachment.HostileShipSelection;
+import com.fs.starfarer.api.combat.ShipAPI.HullSize;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -126,8 +129,18 @@ public final class HostileShipSupportScene implements BehaviorScene {
         sim.random().setSeed(20261014L);
         sim.setTacticalMap(new TacticalMap(List.of(new TacticalNode(TacticalNode.Kind.COMMAND_POST,
                 KEEP_X, KEEP_Y, KEEP_X - 2, KEEP_Y - 2, KEEP_X + 2, KEEP_Y + 2, Faction.DEFENDER, 70, 6, true))));
-        // The launch seam's decision, taken the way the launch takes it: from the world's profile.
-        ShipSupportSource hostile = HostileShipSupport.sourceFor(world(low ? 1 : 5));
+        // The launch seam's decision, taken the way the campaign launch takes it: the world's profile and a
+        // free defending fleet that has an Onslaught in it, through the same selection.
+        HostileShipSelection.Fleet patrol = new HostileShipSelection.Fleet() {
+            @Override public String name() { return "Hegemony Defense Fleet"; }
+            @Override public HostileFleetStatus status() { return HostileFleetStatus.AVAILABLE; }
+            @Override public List<HostileShipSelection.Candidate> ships() {
+                return List.of(new HostileShipSelection.Candidate(
+                        ShipSupportSource.stock("onslaught", "onslaught_Standard", "HSS Anvil of Kanta", false),
+                        "Onslaught", HullSize.CAPITAL_SHIP, 40f));
+            }
+        };
+        ShipSupportSource hostile = HostileShipSelection.choose(world(low ? 1 : 5), List.of(patrol)).sourceOrNull();
         if (hostile != null) sim.installHostileShipSupport(hostile, false, null);
         Supplies resources = new Supplies();
         if (loop.equals("both-ships")) {
@@ -159,7 +172,7 @@ public final class HostileShipSupportScene implements BehaviorScene {
                     t.hostile == null && !t.warned && sim.warships().ships().isEmpty(),
                     "warned " + t.warned + ", ships over the battle " + sim.warships().ships().size()));
         } else {
-            verdicts.add(Verdict.of("a-defended-world-names-its-owners-hull",
+            verdicts.add(Verdict.of("a-defended-world-fields-the-fleets-capital",
                     run.source() != null && run.source().hullId().equals("onslaught") && !run.source().weapons().isEmpty(),
                     run.source() == null ? "no source" : run.source().hullId() + " with " + run.source().weapons().size() + " weapons"));
             verdicts.add(Verdict.of("called-on-the-threat-not-the-timer",

@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-13
-Updated: 2026-10-14 — slice 5 (low pass) is built, and slice 3's planet tint is wired through the battle's surface palette; slices 1-5 are all in. Needs a live look at pace, wake and audio.
+Updated: 2026-10-14 — slice 6 built: the hostile ship is the largest eligible hull of a free defending fleet in the target system; slices 1-6 are built.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -111,6 +111,13 @@ In the order they are worth building:
 4. **Hostile ship support** (built): the defender's ship on the same mechanism, offered by
    the target profile, with a warning beat and a ground marker. See *Slice 4 as built*.
 5. **Low pass** (built): the order, its flight, fire, cost, bindings and presentation; see *Slice 5 as built*.
+6. **The hostile ship comes from somewhere** (built; see *Slice 6 as built*). Formerly a defended world above a threshold
+   simply had a stock hull. The owner's counters (below) need the enemy's ship to be a
+   real ship in the campaign that the player can keep busy elsewhere. The defender's
+   source is drawn from an actual fleet of the defending faction in the target's system
+   (its largest eligible hull, frozen like the company's), and none is offered when no
+   such fleet is present, or when it is engaged, broken or drawn off. Other missions
+   hand the same input in by declaration, so the difference stays thin.
 
 ## Open questions for the owner
 
@@ -172,13 +179,7 @@ the station, takes `MissionStance.DEFEND` whatever the company's stance is, and 
 the company's ship: director, doctrine, brawler flux, 90 s on station, departs. Nothing
 about the ship differs; only who supplies it and who decides when.
 
-**Who gets one.** `HostileShipSupport.sourceFor(TargetProfile)` at launch (`MissionLaunch`):
-a world whose `defenseLevel` is at least 4 (about 0 to 7; a battle station with ground
-defences or heavy batteries clears it) fields a frozen stock hull by owning faction:
-Tri-Tachyon and Persean League send a Paragon, every other owner an Onslaught, and pirates
-and the Luddic Path send none. The company's own `stationedStrength` is not counted (it is
-the company's contribution to the colony, not the world's). No ship for a stationed
-company's colony, a Corvus chapter (it scripts its own), or a mission with no named defender
+**Who gets one.** A world whose `defenseLevel` is at least 4 (about 0 to 7; a battle station with ground defences or heavy batteries clears it) may call a ship; which ship is slice 6 (a real fleet's hull, not a stock table). The company's own `stationedStrength` is not counted (it is the company's contribution to the colony, not the world's). No ship for a stationed company's colony, a Corvus chapter (it scripts its own), or a mission with no named defender
 (supply routes, the opening operations, silent colony, civilian rescue).
 
 **When.** A battle-level observer, `HostileShipSupport`, ticked next to the other mission
@@ -213,9 +214,11 @@ flak (G3).
 
 1. The thresholds are drafts: defence level 4, threat radius 30 cells, 180 s contact timeout,
    six seconds of warning. A live look should say whether six seconds is enough to react to.
-2. Does a defender's ship want a counter besides aircraft? Today the company's answers are its
-   own ship's tender flak, strike craft, or leaving the ground; the ship cannot be shot by
-   ground weapons.
+2. *Decided (owner):* a defender's ship is meant to be that dangerous; it is a late-campaign
+   threat, and a company that meets one without an answer should lose the ground. The
+   counters are friendly forces (an employer's or ally's own ships and strike craft), the
+   company's own capital in atmosphere, and keeping the enemy's ship bogged down elsewhere so
+   it never comes (slice 6). Ground weapons do not become a counter; the balance law stands.
 3. Should a lost hostile ship count for the battle (a morale or score beat)? Not built.
 4. Mission types whose defender is not the market owner (relief, counterattack) take the same
    profile-based ship; whether some missions should opt out is undecided.
@@ -283,3 +286,63 @@ cannot be credited.
    starts one.
 3. Aircraft and ground fire against a passing ship are unchanged; whether a burn should make it harder to hit
    is open.
+
+## Slice 6 as built
+
+The defender's ship is a real ship. At launch (`MissionLaunch.hostileShipFor`, on the UI thread with the
+rest of the capture) a campaign mission searches the defending faction's fleets in the target planet's
+star system (`HostileShipFleets`, the live adapter) and hands the battle one frozen `ShipSupportSource`;
+the stock faction table (Paragon / Onslaught) and the pirates / Luddic Path exclusion are gone, since a
+real pirate or Path capital is a legitimate source. The company's `PowerCatalog.shipSourceOf` supplies the
+eligibility and the frozen fitted variant (cruiser or capital with a ground-reaching gun), then drops the
+member id: an enemy hull has nothing of ours to settle against, so nothing is written back.
+
+**Present.** In the target's containing location, of the defending faction (the profile's faction, so the
+debug faction override still names who defends), not the player's, not empty, not hidden. Fighter wings,
+mothballed ships and tenders never count.
+
+**Free (`HostileFleetStatus.classify`).** In precedence: in a battle with anyone (`getBattle()`, the
+player included) is IN_BATTLE; despawning, or on `GO_TO_LOCATION_AND_DESPAWN`, is DESPAWNING; the AI
+fleeing is FLEEING; the `$core_fleetBusy` flag, an `INTERCEPT`, `FOLLOW`, `RAID_SYSTEM`, `RESUPPLY` or
+`DELIVER_*` assignment, or a `GO_TO_LOCATION` / `ATTACK_LOCATION` whose destination is not the target world
+is BUSY. Anything else (patrolling, defending, orbiting, holding, standing down, heading for or attacking
+the target itself, no assignment) is AVAILABLE. Only AVAILABLE fleets lend their ship.
+
+**Pick.** Largest size first (capital over cruiser), then the member's fleet-point cost; across all free
+fleets. No free eligible hull means no hostile ship, whatever the defence level.
+
+**Defence gate kept.** `defenseLevel >= 4` still decides whether the world can call for a ship at all. A
+fleet in the system is the means; the defended world is the command that calls it, and without the gate
+every system patrol's cruiser would answer every battle in its system. Below the gate nothing is searched
+and the briefing says nothing.
+
+**Thin difference.** `HostileShipSelection.resolve(declared, campaign, profile, fleets)`: a declared
+source wins and nothing is searched; a debug, scenario or employer-scripted mission (`MissionSource.isDebug`
+or a declaration) hands the same input in by declaration, and the battle code (`installHostileShipSupport`,
+the observer, the call) is identical. The briefing's hostile debug pick still replaces the source as before.
+No mission authors a declaration yet (a `Mission` field was avoided on purpose: missions are persisted);
+`hostileShipFor` takes it as a parameter and is the seam a scripted mission will use.
+
+**Briefing.** A "Hostile ship" row in the mission rows (`HostileShipIntel`, strings in `strings.json`):
+"<ship>, <hull>, with the <fleet> - expect it over the battle.", or "<ship>, <hull>, with the <fleet>, is
+<engaged in battle | withdrawing | fleeing | committed elsewhere>; it will not answer this battle.", or "No
+hostile capital in the system." The fleet is read when the briefing captures its scenario and the launch
+consumes that capture, so the line is exactly what the battle is given; leaving the briefing and returning
+re-reads the system.
+
+**Evidence.** `HostileShipSelectionTest` (largest picked, weight tie-break, busy passed over, held reports
+and reasons, absent, tender excluded, defence gate, declaration, status classification), `HostileShipIntelTest`,
+`HostileShipSupportTest`, and the `hostile-ship-support` scene, which now takes its ship through the
+selection from a fake free fleet.
+
+### Open questions (slice 6)
+
+1. Writeback: a called-and-destroyed hostile ship does not cripple or remove the real fleet member. The
+   frozen source has no member id by design; settlement would need an id that survives to the outcome and a
+   fleet-side result, and killing an enemy capital in one ground battle is a reward the owner has not asked for.
+2. Needs a live campaign look: whether `getCurrentAssignment()` reads as expected for real patrol, station and
+   raid fleets (above all that defence fleets at a market are not almost always classed BUSY), what
+   `getName()` yields for the fleet in the briefing, and how often a free eligible capital exists at all.
+3. Fleets are searched system-wide, not by distance to the target; whether a fleet at the far edge of the
+   system should still count is open.
+4. The assignment table is a draft; fleets of unusual mod assignments fall through to AVAILABLE.

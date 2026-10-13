@@ -8,6 +8,7 @@ Updated: 2026-10-14 — ship escort built (lead-ship relation, lead-weighted thr
 
 | Story | State | Outcome |
 | --- | --- | --- |
+| `ground-defences.md` (direction, DRAFT) | DRAFT — awaiting owner answers | Ground defences as three things from the market: defence nests, fortress batteries with ship-grade guns whose envelope a ship must respect, and a shield generator whose dome soaks ship fire until overloaded; marines open the sky by taking fire control and generators. Gap G5. |
 | `fighter-air-entities.md` | ACTIVE — the overlay class and the profile's dead tuning are gone; the package rename remains | Fighters are ordinary air entities flying ordinary sorties. Committed wings arrive on an `AirCorridor` from off the map and are dispatched by `AirCoverSystem`. |
 | `air-manual-acceptance.md` | PLANNED | Verify centre-of-gravity rotation, hardpoint placement and per-mount sight, and thrust-weighted engine effects together in a live battle. |
 | `warship-on-station.md` | PLANNED | A Paragon hovers over the battle and sweeps its laser lance across compounds, razing walls, roofs and units, friendly fire included. |

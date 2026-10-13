@@ -93,7 +93,8 @@ public final class ShipTransferScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         document = built;
-        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.ship(viewModel, context), this::close);
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(
+                CompanyPreparationGuide.roster(), CompanyPreparationGuide.ship(viewModel, context), this::close), this::close);
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();

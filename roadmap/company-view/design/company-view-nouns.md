@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- Engineering and mess welfare restoration; Second Wind's Harker's Claim origin and Nessa Venn yard connection, protected founding stores and Barracks equipment discovery.
+Updated: 2026-10-12 -- Required preparation recaptures alternate entrances and explains how to resume reserved depot orders after leaving.
 
 ## Purpose
 
@@ -1245,6 +1245,17 @@ The depot does not replenish
 on reload or on another conversion; unused stock remains at its planet. Ordinary
 starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
 stores rather than claiming every counted item is in the hold.
+
+Leaving a room or its planet dialog spends no stores and completes no preparation
+step. Re-entering through the company shortcut, mission board, or a direct room
+link resumes the required step derived from the saved company: ship, lift, Mira,
+formation, then assignment. HQ may present the same guided handoff. Required
+preparation does not interrupt an active battle, settlement, or developer mission.
+If a remaining order needs reserved stores that are currently ashore, Castle names
+their depot planet and offers Return to Depot, plotting its course and closing the
+company screen. The player docks there and opens Marine operations from the planet
+menu to restore access. This guidance never grants replacement stock or spends the
+bill; the ordinary confirmed workshop order remains the only consumer.
 
 Second Wind's original starting hull reserves a second shuttle bay from the start.
 It is sealed and damaged, supplies no usable berth, and stays visibly distinct

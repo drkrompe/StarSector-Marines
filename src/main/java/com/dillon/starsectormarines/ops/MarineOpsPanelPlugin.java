@@ -105,6 +105,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // view is a camera on the company ship, so until the player has chosen
         // one there is no operations screen to open — the choice is the screen.
         if (!CompanyShipDesignation.quartered()) ctx.goTo(ScreenId.SHIP_TRANSFER);
+        else ctx.goTo(ctx.getCurrentScreen()); // Recapture default and externally seeded entrances alike.
     }
 
     public void setOnBack(Runnable dismissDialog) {
