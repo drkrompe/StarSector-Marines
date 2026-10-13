@@ -63,7 +63,8 @@ final class MarineOpsThemes {
                 button:active { background-color: #222c2a; border-style: inset; }
                 button:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 button:disabled { opacity: 0.38; }
-                .doctrine-card-active:disabled, .lance-order-card-active:disabled { opacity: 1; }
+                .doctrine-card-active:disabled, .lance-order-card-active:disabled, .member-card:disabled { opacity: 1; }
+                .member-card.member-empty:disabled { opacity: 0.28; }
                 .good-surface { background-color: #132b22; border-color: #78d494; }
                 .warning-surface { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
@@ -297,7 +298,8 @@ final class MarineOpsThemes {
                 button:active { background-color: #2185b4; }
                 button:focus-visible { border-color: #ffe45c; }
                 button:disabled { opacity: 0.32; }
-                .doctrine-card-active:disabled, .lance-order-card-active:disabled { opacity: 1; }
+                .doctrine-card-active:disabled, .lance-order-card-active:disabled, .member-card:disabled { opacity: 1; }
+                .member-card.member-empty:disabled { opacity: 0.28; }
                 .good-surface { background-color: #06361b; border-color: #78ff9d; }
                 .warning-surface { background-color: #3a3018; border-color: #ffe45c; color: #ffe45c; }
                 .danger-surface { background-color: #501c16; border-color: #ff9d91; }
