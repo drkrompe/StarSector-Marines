@@ -787,4 +787,11 @@
 	"marines_op_viper_acknowledge_03":[{"file": "sounds/battle/operation-radio/marines_op_viper_acknowledge_03.ogg", "pitch": 1, "volume": 0.8}],
 	"marines_op_viper_combat_02":[{"file": "sounds/battle/operation-radio/marines_op_viper_combat_02.ogg", "pitch": 1, "volume": 0.8}],
 	"marines_op_viper_combat_03":[{"file": "sounds/battle/operation-radio/marines_op_viper_combat_03.ogg", "pitch": 1, "volume": 0.8}],
+	"wayline_thunder_run_gunship_inbound": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_inbound.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_thunder_run_gunship_pass_committed": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_pass_committed.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_thunder_run_gunship_missile_warning": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_missile_warning.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_thunder_run_gunship_on_station": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_on_station.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_thunder_run_gunship_hit": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_hit.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_thunder_run_gunship_lost": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_lost.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_thunder_run_gunship_returned": [{"file": "sounds/story/wayline/wayline_thunder_run_gunship_returned.ogg", "pitch": 1, "volume": 1.0}]
 }

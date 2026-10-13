@@ -213,6 +213,12 @@ public final class ThunderRunCompound {
                 for (int dx = -3; dx <= 3; dx++) circulation[x + dx][y] = true;
             }
         }
+        // Both batteries also overlook the gap crossed by Wayline's committed ridge pass.
+        // Reserve optional vegetation along those sight lanes; cliffs and structures remain solid.
+        for (Cell gun : ANTI_AIR_POSTS) for (int y = gun.y; y <= 24; y++) {
+            int x = Math.round(gun.x + (160f - gun.x) * (y - gun.y) / (24f - gun.y));
+            for (int dx = -3; dx <= 3; dx++) circulation[x + dx][y] = true;
+        }
         c.put(BspKeys.ROAD_RESERVATION, circulation);
     }
 

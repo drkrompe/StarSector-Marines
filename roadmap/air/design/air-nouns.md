@@ -1368,6 +1368,10 @@ gunship in the sense that law forbids, because nothing was delivered to get it.
 An employer may instead supply and direct a mission gunship. It remains an
 ordinary vulnerable aircraft with the same weapons, damage and crash rules;
 its ownership grants no player card, cost, crew seats or campaign airframe.
+A mission may give its incoming gunship a committed waypoint pass before it
+joins the station. Ordinary steering flies each leg; it grants no immunity,
+teleportation or predetermined damage. Actual guided-AA launches against the
+craft publish its missile-warning fact for observed story responses.
 Its controller may move the orbit center from friendly progress and public
 mission state. Retasking preserves the remaining station time and the chosen
 orbit direction. See Kestrel in `early-operation-nouns.md`.
