@@ -703,6 +703,7 @@ public class AirSystem {
         else {
             mission.crashSeconds = 0f;
             mission.crashStartAltitude = world.altitudeT(id);
+            AirCrashMotion.beginFall(body, rng.nextFloat());
             effects.spawnBurningSmokePlume(body.x,
                     body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)));
         }
@@ -848,6 +849,12 @@ public class AirSystem {
                             && onMap && airframeCookOff != null) {
                         airframeCookOff.crash(id, body.x, body.y, world.airFaction(id), frame.targetRadiusCells(),
                                 body.vx, body.vy);
+                    }
+                    if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
+                            && before >= AirCrashMotion.FALL_SECONDS && onMap && body.speed() > .5f
+                            && (int) ((before - AirCrashMotion.FALL_SECONDS) / .18f)
+                            != (int) ((mission.crashSeconds - AirCrashMotion.FALL_SECONDS) / .18f)) {
+                        effects.spawnCrashBlastFan(body.x, body.y, body.vx, body.vy, frame.targetRadiusCells());
                     }
                     if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
                             && AirCrashMotion.skid(body, dt - airborneSeconds)) {

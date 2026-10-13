@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Shared resource bills separate persistent stock from order costs; Engineering inspection and campaign preparation retain their existing authorities.
+Updated: 2026-10-13 — Planned boat recovery distinguishes automatic campaign-day repairs, optional paid acceleration and permanent loss of installed fittings.
 
 ## Purpose
 
@@ -562,7 +562,8 @@ legacy deck without an established ship receives its historical complement once.
 **A boat that was shot down is gone.** Reads preserve vacant berths. Moving to
 another hull compacts compatible survivors but never fills vacancies for free;
 incompatible and surplus boats are left behind and reported. Every replacement
-requires the ordinary workshop bill.
+requires the ordinary workshop bill, creates a new identity at standard fit, and
+never recovers the destroyed aircraft's installed fittings.
 
 **Who was aboard went down with her.** The marines still aboard on the sortie
 that was lost are fallen, and roll the same outcome as a marine shot on the
@@ -764,8 +765,12 @@ exempt. Once complete, later losses never re-lock the tutorial. Readiness and li
 checks still apply to each mission. The lesson takes precedence over the optional
 replenishment guide. `first-mission-preparation.md` and
 `castle-officer-induction.md` retain live acceptance; narration remains a separate
-production pass. Persistent surviving boat condition and repair bills remain
-planned in `boat-condition-and-repairs.md`.
+production pass. Persistent surviving boat condition remains planned in
+`boat-condition-and-repairs.md`: automatic recovery takes at most two campaign
+days, with optional resource spending to expedite it. Surviving boats retain
+identity and fittings. Castle teaches waiting versus spending without requiring
+a purchase. This ordinary recovery is separate from the opening wreck and
+ship-facility restoration orders; those retain their costs and story gates.
 
 Barracks opens on company formations grouped by their home officer, with an
 independent acting-NCO group for squads without an officer. Commander portraits,
