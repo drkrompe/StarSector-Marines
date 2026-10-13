@@ -1432,7 +1432,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
         fogOfWar.setBuildings(buildings);
     }
-    public void addDoodad(Doodad d) { doodadService.addDoodad(d); }
+    public void addDoodad(Doodad d) {
+        doodadService.addDoodad(d);
+        if (d.hasFogSurface()) fogOfWar.registerSolidProp(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY);
+    }
 
     /** Publishes rendered nature-overlay metadata into tactical and ballistic cover without adding render doodads. */
     public void addNatureOverlayCover(TileRegistry registry) {

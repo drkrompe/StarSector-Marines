@@ -39,7 +39,7 @@ final class NightLightingRenderSystem implements RenderSystem {
             for (int sy=0; sy<steps; sy++) for (int sx=0; sx<steps; sx++) {
                 float px=x+(sx+.5f)/steps, py=y+(sy+.5f)/steps;
                 int cellIndex = y * ground.getWidth() + x;
-                float pool=useFog && !fog.cellRevealedArray()[cellIndex]
+                float pool=useFog && !fog.cellShownArray()[cellIndex]
                         ? 0f : sample(pools,px,py);
                 float x0=Math.round(camera.cellToScreenX(x+(float)sx/steps));
                 float x1=Math.round(camera.cellToScreenX(x+(sx+1f)/steps));
@@ -56,7 +56,7 @@ final class NightLightingRenderSystem implements RenderSystem {
         for (var lamp:night.lamps()) {
             if (!visible.contains((int)lamp.x(),(int)lamp.y())) continue;
             if (useFog
-                    && !fog.cellRevealedArray()[(int)lamp.y()*fog.gridWidth()+(int)lamp.x()]) continue;
+                    && !fog.cellShownArray()[(int)lamp.y()*fog.gridWidth()+(int)lamp.x()]) continue;
             float x=camera.cellToScreenX(lamp.x()), y=camera.cellToScreenY(lamp.y()), px=camera.cellPxSize();
             if (lamp.fixture() == NightLighting.Fixture.TRIPOD_FLOODLIGHT) {
                 floodlight(out, lamp, x, y, px, night.powered(lamp), ctx.alphaMult);

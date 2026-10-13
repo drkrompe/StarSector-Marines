@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — structural surfaces are observable at the sight boundary; canopy presentation does not reveal the forest behind them.
+Updated: 2026-10-13 — ground a few cells in from an observed large prop face is shown; the rest of its footprint stays fogged.
 
 Read `stories.md` for open work.
 
@@ -92,10 +92,14 @@ A solid prop has one visible surface. When observation reaches an opaque cell
 belonging to that surface, its sprite paints above terrain fog. Physical props
 default to their full footprint; authored masks describe irregular shapes or
 override that default. Trees use their canopy geometry for intact and damaged
-states. Only the sprite is lit: its empty pixels, the ground beneath it, other
-props behind it and hostile actors continue to use the ordinary reveal bitmap.
-This never expands observation, opens a roof or passes sight through the
-obstacle. Flat debris and floor decorations retain ordinary ground fog.
+states. The sprite is lit, and so is the **near-side ground** of a large prop:
+the footprint cells within a few cells of one the player already sees, shown so
+that art which does not fill its footprint does not leave a black square beside
+the face being looked at. The far side of the footprint, the ground and props
+behind it, and hostile actors continue to use the ordinary reveal bitmap. The
+shown bitmap exists for fog and night drawing only; sight, unit visibility and
+roofs keep reading the reveal bitmap. This never expands observation, opens a
+roof or passes sight through the obstacle. Flat debris and floor decorations retain ordinary ground fog.
 Opening or closing a structural sight blocker invalidates stationary
 observation through the same opacity revision used by smoke, so a felled tree
 or breached wall exposes its new sightline on the next vision update.
