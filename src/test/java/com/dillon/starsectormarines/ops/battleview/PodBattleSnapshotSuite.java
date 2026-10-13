@@ -75,7 +75,11 @@ public final class PodBattleSnapshotSuite implements SnapshotSuite {
                         if (shot.shooterFaction != Faction.MARINE || shot.shooterId == 0L
                                 || shot.primaryWeaponDef == null || !podWeapon.equals(shot.primaryWeaponDef.id)) continue;
                         if (detailShooter == 0L) detailShooter = shot.shooterId;
-                        if (capturedTick >= 15 && shot.shooterId == detailShooter) {
+                        // Squad rotation may not return to the opening carrier before contact ends.
+                        // The opening carrier frames the nearby squad's pre-roll; the accepted
+                        // actual launch then centers its own carrier for the launch and follow-through.
+                        if (capturedTick >= 15) {
+                            detailShooter = shot.shooterId;
                             firstDetailTick = capturedTick;
                             selectedLaunchTick[0] = capturedTick;
                             detail.addAll(preRoll);
