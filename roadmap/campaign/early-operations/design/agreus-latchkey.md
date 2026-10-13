@@ -1,17 +1,32 @@
-# Vesper Reach
+# Latchkey District on Agreus
 
-Status: DRAFT — original setting direction for the post-Shepherd paramilitary arc.
+Status: DRAFT — original local setting direction on an existing vanilla world for the post-Shepherd paramilitary arc.
 
 Written: 2026-10-13
 
+Updated: 2026-10-13 — relocated the local conflict to canonical Agreus in Arcadia.
+
 ## Scope and provenance
 
-Vesper Reach, Brackwater, House Rusk and every named local person or organization
-below are original Marine Operations proposals. They are neither Starsector canon
-nor shipped campaign content. Independent decentralization, pirate predation and
-fragmented procurement follow `faction-lore-nouns.md`,
-`independents-lore-guide.md` and `pirates-lore-guide.md`; the specific charter,
-economy and military arrangements are mod direction.
+**Agreus in Arcadia** is existing Starsector 0.98a content. The installed vanilla
+`Arcadia.java` identifies entity `agreus` as a barren moon of the ice giant
+Syrinx, with **Syrinx Passage**, **Syrinx Relay** and **Citadel Arcadia** nearby.
+`data/campaign/econ/arcadia.json` gives Agreus an Independent size-five market,
+cold and no-atmosphere conditions, extensive ruins, a megaport, tech-mining and
+refining. `descriptions.csv` entries `planet_agreus` and `station_arcadia`
+establish Ko Combine planetary administration, major shipbreaking and reconstruction,
+crater-arcologies and transport tubes, and a Hegemony logistics center capable
+of projecting fleet power throughout the system. These installed files are
+read-only primary references, not mod-authored claims.
+
+House Rusk, Greyhook, every named local person below and the **Latchkey District**
+with all its named surface sites are **MOD-AUTHORED** proposals. The concession,
+lease arbitration and local security arrangements are invented beneath Ko Combine
+administration; Rusk is neither Agreus's sovereign nor a substitute for that
+administration. Independent decentralization, pirate predation and fragmented
+procurement follow `faction-lore-nouns.md`, `independents-lore-guide.md` and
+`pirates-lore-guide.md`. This document proposes no new system, planet, moon,
+station, belt or relay.
 
 This document owns the enduring place and cast. `a-small-war.md` owns the finite
 chapter sequence, player commitments, mission acceptance and reward schedule.
@@ -21,109 +36,108 @@ political and truthful-presentation boundaries.
 
 The company arrives after Morrow actually joins the fleet. A recovery claim,
 grounded construction capability or completed repair job cannot substitute for
-that departure. Vesper is the first sustained commitment beyond the familiar
-Corvus circuit: the company's new working ship makes reaching and supporting a
-remote client credible, while neither ship nor sponsor makes it a military power.
+that departure. Agreus is the first sustained commitment beyond the familiar
+Corvus circuit: the company's new working ship makes supporting this client
+credible, while neither ship nor sponsor makes it a military power.
 
 ## A place worth keeping
 
-**Vesper Reach** is a fringe system around a dim orange star. Its settlements are
-small, mutually dependent and beyond dependable patrol coverage. It has enough
-industry to keep freighters working and too little surplus to replace a ruined
-yard. There is no single Independent government for the system.
+Agreus's industrial environment supplies the setting: stripped hulls on cold lava
+plains, quarantined reactor pits, inhabited crater-arcologies and enclosed transit
+routes to processing yards. The Latchkey District is one invented concession
+within that larger economy. Its repair work matters to the people dependent on
+it without defining the whole moon's industry or government.
 
-**Brackwater** is its cold, marginally habitable industrial outworld. Thin sunlight,
-sleet and corrosive coastal brine make outdoor work costly. People can breathe
-outside with protection appropriate to the weather; ordinary settlements still
-need heated interiors, treated water and reliable power. It is a difficult home,
-not an airless battlefield disguised as a town.
+**Silt Basin** is an enclosed industrial coolant and reclamation complex, not an
+open-water estuary. Settling tanks, recovered-fluid treatment and heat exchange
+serve adjacent hull-breaking and repair facilities. Imported food, medicine and
+life-support stock remain essential. Workers know which pumps keep reclamation
+usable and which reclaimed part can run one more season. A quiet shift is marked
+by cranes, floodlights and condensate inside sealed service halls.
 
-The inhabited coast lies around the **Silt Basin**, an estuary fed by mineral
-runoff. Ore processing, hull breaking and reclaimed machinery support a
-small repair economy. Imported food and medicine remain essential. Workers know
-which pumps keep the basin usable and which reclaimed part can run one more season.
-A quiet shift is marked by cranes, floodlights and steam over black water.
+**Low Quay** is the district's pressure-habitat port quarter: bonded stores,
+freight offices, a clinic, boarding rooms and a lease-arbitration office. House
+Rusk maintains administrative rooms above a working customs shed. The baronet
+has an office overlooking overdue cargo rather than a palace overlooking subjects.
 
-**Low Quay** is the public port town: bonded stores, freight offices, a clinic,
-boarding houses and the charter court. House Rusk maintains its administrative
-rooms above a working customs shed. The baronet has an office overlooking overdue
-cargo rather than a palace overlooking obedient subjects.
+**Latchkey Yard** stands along the elevated freight route beyond the habitat
+quarter. It repairs small commercial hulls and manufactures replacement assemblies
+from recovered stock. A workers' association operates its leased machinery and
+shared service spaces. Rusk holds a secured district claim under the Combine's
+administration; the crews have the knowledge that makes possession valuable.
 
-**Latchkey Yard** stands inland along the elevated freight road. It repairs small
-commercial hulls and manufactures replacement assemblies from recovered stock.
-A workers' association operates its leased machinery and shared service spaces.
-Its title and its productive life are distinct: Rusk holds the secured claim,
-while the crews have the knowledge that makes possession valuable.
+**The Cinder Steps** are old furnace terraces between yard and reclamation plant.
+Workers occupy sealed galleries and pressure habitats beside processing sheds,
+active district heating and buried service routes. Households remain woven through
+industry; an enemy compound can sit beside somebody's livelihood.
 
-**The Cinder Steps** are the old furnace terraces between yard and estuary. Settled
-workers live beside redundant processing sheds, active district heating and buried
-service galleries. Their geography should show households woven through industry;
-there is no clean line separating an enemy compound from somebody's livelihood.
+**North Weir** controls coolant diversion and power distribution to the basin.
+Maintenance roads connect protected switching rooms, enclosed channels and pumping
+housings. Losing it interrupts work, heat and essential services. Its importance
+comes from the people and machinery it serves, not an unexplained strategic label.
 
-**North Weir** controls brine diversion and power distribution to the basin. It is
-a narrow utility site with maintenance roads, protected switching rooms and spill
-channels. Losing it interrupts work and heat. Its importance comes from the people
-and machinery it serves, not an unexplained strategic label.
+**Black Sluice** is the basin complex's outer fuel and dispatch apron. Protected
+tanks, a customs causeway and transfer records link district cargo to outbound
+tenders. Greyhook exploits this commercial infrastructure to move prizes and
+sustain levies; losing it breaks a local operation without destroying its fleet.
+The retained dockside names are local industrial usage, not evidence of a sea.
 
-**Black Sluice** is the basin's outer fuel and dispatch pier. Its sheltered tanks,
-customs causeway and transfer records make it a useful link between shore cargo
-and outbound tenders. Greyhook uses that existing commercial infrastructure to
-move its prizes and sustain the levies; losing it would break a local operation
-without destroying the flotilla's other berths.
+Open yards are airless and cold. Exterior workers and combatants use appropriate
+pressure protection; occupied interiors have life support. Tactical art, equipment
+presentation and correspondence must respect those conditions. This setting does
+not add oxygen consumption, suit sealing costs or a separate survival mechanic.
 
-## The system beyond the coast
+## Arcadia beyond the district
 
-**Tallow Anchorage** is a small independent freight and refueling station. Its
-operators sell berths and stores to whoever can satisfy their guarantees, and
-refuse to underwrite a war. Rusk needs its incoming manifests; Voss needs its fuel
-and discreet intermediaries. Its merchants can tighten terms, withhold information
-or insist on escorts without becoming Rusk's auxiliary government.
+**Syrinx Passage** provides an existing approach associated with Agreus.
+**Syrinx Relay** is an existing Hegemony communications installation. Public route
+and relay access do not grant hidden tactical intelligence; a dispatch record or
+transmission needs an actual attributed source before Castle can use it.
 
-**The Widow's Belt** contains worked-out rocks and abandoned prospecting structures.
-Traffic uses known beacon routes through it. Greyhook crews conceal tender berths
-among old extraction docks, moving stores when a site is exposed. Local pilots
-know the ordinary lanes; reliable knowledge of a concealed berth must be earned.
+**Citadel Arcadia** is an existing Hegemony logistics and military center around
+Syrinx. Its patrol power is real. Greyhook survives through concealed transfers,
+false documentation, coerced local access and short opportunistic raids among
+industrial traffic and salvage; it does not openly control the system or rely on
+an unexplained absence of Hegemony fleets. The authored local conflict grants no
+Hegemony endorsement, unlimited response force or free naval supremacy.
 
-**Dross**, Brackwater's barren outer moon, hosts disused sorting facilities and a
-remote transfer yard. Freight lifted from the surface can be repackaged here before
-joining outbound ships. It gives the conflict an offworld industrial location
-without requiring another inhabited planet or a sector-spanning pirate empire.
+Vanilla `data/campaign/starmap.json` places Corvus at `(400, -9400)` and Arcadia
+at `(-2500, -11900)`. At 2,000 hyperspace units per light-year, their anchor
+separation is approximately **1.914 LY**. This is a nearby move outside Corvus,
+not a remote frontier expedition; actual travel and local maneuvering still cost
+fuel, supplies and time. The first referral names Agreus and its actual course,
+with commercial preparation advice rather than a promise of safe passage.
 
-The **Long Lantern** is a civilian navigation relay on the outer approach. Its
-maintenance cooperative publishes warnings and convoy windows. Damaged or coerced
-operators create uncertain travel, not magical isolation. Any tactical intelligence
-from its records requires an actual recovered or transmitted source.
+Bind the authored contact and district to existing entity `agreus` and resolve
+its actual market through the entity. Never guess a market ID, create a duplicate
+market or overwrite vanilla world generation. New and existing saves initialize
+the authored story identity once. Accepted work freezes its real site; a missing
+or inaccessible Agreus pauses the work rather than moving these people elsewhere.
 
-The Reach lies far enough from Corvus that fuel, supplies, replenishment and time
-away from other work matter. The first referral includes a known destination and
-commercial route advice, not a promise that the crossing is safe. Accepted work
-belongs to the actual Reach sites; a missing or inaccessible destination pauses
-that work rather than relocating these characters to a convenient world.
+Orbital access does not resolve possession. Yard machines, service galleries,
+local records and occupied habitats must remain useful after the firing. Neither
+local side has capital-fleet supremacy; wider fleet authorities remain present.
+Ground fighting secures entrances, utilities, traffic and working space under
+ordinary lift, fleet risk and finite support constraints.
 
-Orbital access opens possibilities but does not resolve possession. The yard's
-machines, service galleries, local records and occupied heating district survive
-only if someone discriminates between the prize and its surroundings. Neither
-side owns a capital fleet capable of flattening every obstacle without cost.
-Ground fighting is about securing entrances, utilities, traffic and working space
-that must still function when the firing ends. Ordinary lift, fleet risk and
-finite support remain real; the fiction supplies no free naval supremacy.
+## House Rusk and its concession
 
-## House Rusk and its charter
-
-**House Rusk** is a minor local commercial house associated with Brackwater. Its
+**House Rusk** is a minor local commercial house holding a district concession
+on Agreus beneath the Ko Combine administration. Its
 material power is a cluster of secured loans, port leases, processing interests
-and rights under the local charter. Those assets confer bargaining strength and
-responsibilities. They do not make it owner of every resident or spokesman for
+and rights under an authored district concession and lease agreement. Those assets
+confer bargaining strength and responsibilities. They do not make it owner of every resident or spokesman for
 all Independents.
 
-**Baronet Elian Rusk** holds a personal title recognized by that charter. Addressing
+**Baronet Elian Rusk** holds a personal title recognized as a local courtesy in
+the authored concession community. Addressing
 him as baronet is local courtesy and political history, not a new universal house
 rank, a faction commission or evidence of sector nobility. The authored title must
 not silently promote the house in the living world's political model.
 
 Rusk can fund a limited series of contracts, release a small depot of restricted
 security equipment and mobilize quay constables and estate guards. His guards
-know their posts and stores; they cannot police the whole belt or sustain an
+know their posts and stores; they cannot police Agreus or the system or sustain an
 expeditionary army. Paid shipping services are commercial arrangements, not an
 unlimited reserve of employer transports or soldiers.
 
@@ -133,7 +147,8 @@ secured interest in Latchkey. Both aims are public enough to appear in agreement
 
 Latchkey's arrears are real. Rusk advanced money for replacement machinery after
 a major furnace failure; interrupted sailings and pirate levies then prevented
-scheduled repayment. The charter court has authorized repossession. The workers
+scheduled repayment. A mod-authored lease-arbitration proceeding under Combine
+administration has authorized repossession. The workers
 dispute the proposed operating terms and accounting, rather than possessing a
 secret document that makes every debt vanish.
 
@@ -146,11 +161,12 @@ that distinction before accepting an enforcement commitment.
 
 ## Elian Rusk: manner, strengths and flaws
 
-Rusk inherited the charter interest young and learned the business by handling
+Rusk inherited the concession interest young and learned the business by handling
 freight failures and insurance arguments. He is comfortable reading a repair
 estimate and uncomfortable admitting that the people repairing it have political
 claims of their own. His clothes are good, repeatedly mended and poorly suited
-to the sleet he insists on walking through without an escort umbrella.
+to inspection shifts in the chilled service galleries, where he insists on carrying
+his own pressure gear.
 
 His voice is measured and precise. He names an obligation, a date and a person
 responsible; when frightened, he becomes more formal. He remembers a dead driver's
@@ -169,7 +185,7 @@ not acquit his policy, and ownership need not prove secret cruelty.
 
 **Designer-only intention:** Rusk wants the restored yard to secure his house's
 survival and improve its standing. He fears that bargaining away control now
-will teach every creditor and neighboring interest that his charter is hollow.
+will teach every creditor and neighboring interest that his concession is insecure.
 These are writing guides, not facts Castle may announce without evidence.
 
 ## The referral and the equipment ceiling
@@ -203,7 +219,7 @@ the equipment authorities, not this setting's biographies.
 
 ## Greyhook flotilla
 
-**Greyhook** is a coalition of free captains, boarders and shore outfits organized
+**Greyhook** is a coalition of free captains, boarders and ground outfits organized
 around Captain Sera Voss's ability to assign prizes, settle shares and obtain
 repairs. It is a local flotilla with fragile agreements, not all pirates speaking
 with one voice. Its wealth rests on stolen cargo, ransom, forced levies and access
@@ -219,7 +235,7 @@ They work in paired entries behind short suppressive bursts, use cutters and
 close-range weapons, and preserve an exit. Dull charcoal pressure gear, pale hook
 marks and repaired rigid plates distinguish them from a military uniform.
 
-**The Salt Knives**, led by shore boss **Daro Pell**, collect levies and intimidate
+**The Salt Knives**, led by yard boss **Daro Pell**, collect levies and intimidate
 loading crews. They mass rifle fire from prepared corners and rush a shaken line.
 Orange salvage webbing and mismatched work coats identify their dockside origin.
 Their territorial grudges can make them hold ground Voss would prefer to abandon.
@@ -254,7 +270,7 @@ worker in the same decision. An opposing officer can respect her competence
 without endorsing what she does with it.
 
 **Designer-only intention:** Voss wants stable repair access more than a ruined
-Brackwater. She believes a frightened yard will supply it more reliably than an
+Latchkey District. She believes a frightened yard will supply it more reliably than an
 independent one. As the company threatens that access, coalition discipline frays;
 her tightening demands cause conflict rather than uncovering a harmless true cause.
 

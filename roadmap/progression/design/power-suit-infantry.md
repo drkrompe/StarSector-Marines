@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-13 — per-marine mixed issue and planned Vesper Reach recovered-suit progression.
+Updated: 2026-10-13 — per-marine mixed issue and planned Agreus recovered-suit progression.
 
 ## Purpose
 
@@ -74,11 +74,11 @@ confirm those relationships rather than assume them from a unit test.
 
 The planned first introduction belongs after the Shepherd has completed its
 recovery and joined the player's fleet. `a-small-war.md` sends the company to
-Brackwater in Vesper Reach, where Baronet Rusk's bounded procurement warrant and
+existing Agreus in nearby Arcadia, where Baronet Rusk's bounded procurement warrant and
 the company's construction capability make recovered suit technology obtainable.
-`vesper-reach.md` owns that setting and cast. Completing A Cold Account, securing
+`agreus-latchkey.md` owns that local setting and cast. Completing A Cold Account, securing
 the grounded hull, or finishing Cold Start repairs is not this milestone.
-Working Passage and the Vesper arc remain separate unfinished story work; no
+Working Passage and the Agreus arc remain separate unfinished story work; no
 suit reward is attached to those earlier victories.
 
 Recovered Specter and Arbalest patterns form the initial tier-III step, with

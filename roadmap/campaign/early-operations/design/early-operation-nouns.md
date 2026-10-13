@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Kestrel support and physical crash aftermath; planned post-handover Vesper Reach arc.
+Updated: 2026-10-13 - Kestrel support and physical crash aftermath; planned post-handover arc on existing Agreus.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -78,12 +78,12 @@ departure chapter. A recovery claim grants no fleet member or general constructi
 capability by itself.
 
 **A Small War** is the planned next arc after that actual fleet handover. Vale's
-reference leads through Mara to **Baronet Elian Rusk** on **Brackwater**, in the
-new **Vesper Reach** system. His bounded procurement warrant introduces recovered
-suit patterns through local work against the **Greyhook flotilla**. Equipment
+reference leads through Mara to **Baronet Elian Rusk** on **Agreus**, in the
+nearby **Arcadia** system. His local concession under Ko Combine administration
+supports a bounded procurement warrant and recovered suit rewards through work against the **Greyhook flotilla**. Equipment
 is issued to individual marines and can be mixed within existing squads. The
 company also chooses who controls access to the liberated Latchkey Yard; earned
-patterns remain learned on either route. `vesper-reach.md` owns the original
+patterns remain learned on either route. `agreus-latchkey.md` owns the local
 setting and cast; `a-small-war.md` owns the unimplemented chapters, agreements,
 rewards and acceptance. No earlier Shepherd milestone substitutes for departure.
 
