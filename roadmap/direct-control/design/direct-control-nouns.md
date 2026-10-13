@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-12 — a drone Tender is flown through the warship seam with build and drone buttons; hover-only help tab explains each carrier's controls.
+Updated: 2026-10-14 — the Warship pilot has a low pass on F (see Warship carrier); a drone Tender is flown through the warship seam with build and drone buttons; hover-only help tab explains each carrier's controls.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -464,7 +464,12 @@ scout. Number keys are commands rather than weapon choices: 1 holds fire (lays n
 drops the director's ground, stops the director), 2 hands targeting to the ship's own
 director or takes it back, 3 steps the missile preset, 4 steps the ground-fire policy
 (all, heavy only, none). E raises or drops the shield, leaving its automatic mode, on a
-hull that has one. The policy was chosen over the flux toggle for key 4 because turning
+hull that has one. F sends the ship on a **low pass** (`ship-support.md`, slice 5): a fast, low run
+from where the hull is to the cursor, on ground the player has observed, its guns working a corridor
+of the line and nothing else, charged twice its flying time in station time. The pilot keeps the helm
+throughout (the hull's travel is the pass's until it ends; laying ground is suspended and the previous
+areas are given back after), key 1 silences the pass's guns, and a hull with too little station time
+left, or already passing or leaving, refuses it. The tender does not have the key. The policy was chosen over the flux toggle for key 4 because turning
 flux off would be free ammunition; the policy only withholds fire. Tab and Escape are
 unchanged, strategic chrome hides as for the other carriers, and pause, chrome and
 lost focus zero the drive demand without dropping ground already laid.
@@ -485,7 +490,8 @@ than an order and stays as the pilot left it. Switching the director on for a sh
 was never on flux puts it on its hull's flux, as it would any directed ship.
 
 The equipment strip shows hull above armour, the flux gauge in the heat row, and
-read-only cards for the gun battery, lances, missile battery, point defence, shield and
+read-only cards for the gun battery, lances, missile battery, point defence, shield, the low pass
+(`[F] LOW PASS`: ready, running in, passing, or no time, with the station seconds left) and
 the automation (director, missile preset, ground-fire policy), each with its laid area
 or a no-area/auto note and a readiness fill. Armour is a rating in this model and is
 never spent down, so its line is shown whole. The camera frames the hull by its beam so

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -38,7 +39,7 @@ final class ShipAtmosphereFx {
 
     /** Whether the ship has any atmosphere to draw this frame. */
     static boolean active(Warship ship) {
-        return ship.arrivedFromAbove() || ship.departing();
+        return ship.arrivedFromAbove() || ship.departing() || ship.lowPass() != null;
     }
 
     /**
@@ -78,6 +79,50 @@ final class ShipAtmosphereFx {
         }
         float ring = WarshipAtmosphere.ringProgress(entry);
         if (ring >= 0f && ring < 1f) drawRing(out, cam, cellPx, alpha, ship, tint, cx, ring);
+        LowPass pass = ship.lowPass();
+        if (pass != null) drawPassDust(out, cam, cellPx, alpha, ship, tint, soft, pass);
+    }
+
+    /** Spacing of the puffs the pass leaves along its line, in cells. */
+    private static final float PASS_PUFF_SPACING = 3f;
+
+    /**
+     * The dust a low pass kicks along its line: puffs fixed in the world at regular distances along
+     * the line, each born as the hull went over it and settling over {@link WarshipAtmosphere#PASS_DUST_SECONDS}.
+     * Age is how far behind the hull's progress along the line it lies, at the pass speed, plus the time since
+     * the pass ended, so a frame is a function of the ship's state alone and the trail lingers after the run.
+     */
+    private void drawPassDust(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship,
+                              WarshipAtmosphere.Tint tint, SpriteAPI soft, LowPass pass) {
+        float head = pass.progress();
+        if (head <= 0f) return;
+        float speed = Math.max(LowPass.passSpeed(ship.maxSpeed), 0.5f);
+        float ended = Math.max(pass.endedSeconds(), 0f);
+        float[] dust = tint.dust();
+        float px = -pass.directionY();
+        float py = pass.directionX();
+        int last = (int) Math.floor(head / PASS_PUFF_SPACING);
+        int first = Math.max(0, (int) Math.floor((head - WarshipAtmosphere.PASS_TRAIL_CELLS) / PASS_PUFF_SPACING));
+        for (int k = first; k <= last; k++) {
+            float s = k * PASS_PUFF_SPACING;
+            float age = (head - s) / speed + ended;
+            float fresh = WarshipAtmosphere.passDust(age);
+            if (fresh < 0.01f) continue;
+            float spread = Math.min(1f, age / WarshipAtmosphere.PASS_DUST_SECONDS);
+            for (int side = 0; side < 2; side++) {
+                float a = WarshipAtmosphere.scatter(ship.hullId, ship.faction.ordinal(), k * 2 + side + 700);
+                float b = WarshipAtmosphere.scatter(ship.hullId, ship.faction.ordinal(), k * 2 + side + 900);
+                float dir = side == 0 ? -1f : 1f;
+                // Blown out to either side of the line and widening as it settles.
+                float lateral = dir * (1.5f + ship.widthCells * 0.18f + spread * (3f + 5f * a));
+                float x = pass.startX() + pass.directionX() * (s + (b - 0.5f) * PASS_PUFF_SPACING) + px * lateral;
+                float y = pass.startY() + pass.directionY() * (s + (b - 0.5f) * PASS_PUFF_SPACING) + py * lateral;
+                float size = (5f + 9f * spread) * (0.7f + 0.6f * a) * cellPx;
+                // Lightened, like a shock front's dust: a kicked-up cloud is brighter than the ground it came off.
+                out.addSprite(RenderLayer.SMOKE, soft, cam.cellToScreenX(x), cam.cellToScreenY(y),
+                        size, size, 0f, lighten(dust[0]), lighten(dust[1]), lighten(dust[2]), 0.95f * fresh * alpha);
+            }
+        }
     }
 
     private void drawRing(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship,
@@ -133,6 +178,43 @@ final class ShipAtmosphereFx {
         if (cover > 0.01f) drawWisps(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, cover, t);
         float heat = Math.max(glow, 0.8f * trail);
         if (heat > 0.01f) drawHeat(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, glow, trail);
+        LowPass pass = ship.lowPass();
+        if (pass != null && pass.blend() > 0.01f) {
+            drawPassWake(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, WarshipAtmosphere.passWake(pass.blend()));
+        }
+    }
+
+    /**
+     * The louder wake of a hull on a low pass: a long hot streak astern of the engines, and a pair of vapour
+     * streams off the beam edges where the air is torn, both scaling with the pass's blend so the wake builds
+     * with the run and dies away after it.
+     */
+    private void drawPassWake(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship,
+                              WarshipAtmosphere.Tint tint, SpriteAPI soft, float[] cx,
+                              float nx, float ny, float wake) {
+        float length = ship.lengthCells;
+        float width = Math.max(ship.widthCells, length * 0.4f);
+        float[] g = tint.glow();
+        float[] v = tint.vapour();
+        float rot = ship.facingDegrees;
+        float streak = length * (1.6f + 2.4f * wake);
+        float centreAstern = length * 0.5f + streak * 0.5f;
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, soft,
+                cam.cellToScreenX(cx[0] - nx * centreAstern), cam.cellToScreenY(cx[1] - ny * centreAstern),
+                Math.max(width, length * 0.3f) * 0.9f * cellPx, streak * cellPx, rot,
+                g[0], g[1], g[2], 0.6f * wake * alpha);
+        float sideX = -ny;
+        float sideY = nx;
+        float vapourLen = length * (1.2f + 2.0f * wake);
+        float vapourCentre = length * 0.35f + vapourLen * 0.5f;
+        for (int side = -1; side <= 1; side += 2) {
+            float edge = width * 0.5f * side;
+            out.addSprite(RenderLayer.SHUTTLES, soft,
+                    cam.cellToScreenX(cx[0] + sideX * edge - nx * vapourCentre),
+                    cam.cellToScreenY(cx[1] + sideY * edge - ny * vapourCentre),
+                    width * 0.35f * cellPx, vapourLen * cellPx, rot,
+                    v[0], v[1], v[2], 0.4f * wake * alpha);
+        }
     }
 
     private void drawWisps(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship,

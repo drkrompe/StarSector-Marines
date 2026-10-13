@@ -75,7 +75,7 @@ public final class WarshipPilot {
     public static void apply(Warship ship, Hands hands, int mapWidth, int mapHeight,
                              BiPredicate<Integer, Integer> revealed) {
         ship.pilotMove(hands.moveX(), hands.moveY());
-        if (!hands.aimKnown()) return;
+        if (!hands.aimKnown() || ship.lowPassing()) return;
         int cx = (int) Math.floor(hands.aimX());
         int cy = (int) Math.floor(hands.aimY());
         if (cx < 0 || cy < 0 || cx >= mapWidth || cy >= mapHeight || !revealed.test(cx, cy)) return;
@@ -90,10 +90,31 @@ public final class WarshipPilot {
         ship.layArea(group, WarshipOrder.FireOnArea.saturating(x, y, AREA_RADIUS_CELLS, true));
     }
 
+    /**
+     * The pilot's low pass: a fast, low run from where the hull is to the cursor, guns on whatever
+     * crosses the line (see {@link LowPass}). Refused when the cursor is off the map or on ground the
+     * player has not observed (the fog rule a laid area uses, since a pass fires on what it crosses), when
+     * the line is shorter than {@link LowPass#MIN_LENGTH_CELLS}, when the ship is already passing or
+     * leaving, or when it has less station time than the pass would cost. Friendly ground under the line is
+     * not refused: a pass is a show of force, and a round on friendlies hurts them as ever.
+     *
+     * @return whether the ship set off
+     */
+    public static boolean lowPass(Warship ship, Hands hands, int mapWidth, int mapHeight,
+                                  BiPredicate<Integer, Integer> revealed) {
+        if (ship == null || !hands.aimKnown()) return false;
+        int cx = (int) Math.floor(hands.aimX());
+        int cy = (int) Math.floor(hands.aimY());
+        if (cx < 0 || cy < 0 || cx >= mapWidth || cy >= mapHeight || !revealed.test(cx, cy)) return false;
+        LowPass plan = LowPass.plan(ship.x, ship.y, ship.x, ship.y, hands.aimX(), hands.aimY(), mapWidth, mapHeight);
+        return plan != null && ship.beginLowPass(plan);
+    }
+
     /** Carries out a one-shot command; false when the ship cannot do it (no shield, no missiles). */
     public static boolean command(Warship ship, Command command) {
         switch (command) {
             case HOLD_FIRE -> {
+                ship.silenceLowPass();
                 ship.clearLaidAreas();
                 ship.pilotDirector(false);
                 ship.order(WarshipOrder.HoldFire.INSTANCE);

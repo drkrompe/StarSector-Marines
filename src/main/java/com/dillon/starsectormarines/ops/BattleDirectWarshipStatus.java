@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import com.dillon.starsectormarines.battle.warship.WarshipPilot;
@@ -86,6 +87,7 @@ final class BattleDirectWarshipStatus {
         if (!ship.shieldType().equals("none")) {
             cards.add(shieldCard(ship));
         }
+        cards.add(passCard(ship));
         cards.add(automationCard(ship));
         return new WarshipStatus(cards, flux(ship));
     }
@@ -189,6 +191,24 @@ final class BattleDirectWarshipStatus {
         return new ShipCard("SHIELD", "[E] SHIELD", ship.shieldType().toUpperCase(Locale.ROOT)
                 + (ship.shieldAuto() ? " AUTO" : " HELD"), Math.round(ship.shieldLevel() * 100f) + "%",
                 state, tone, ship.shieldLevel());
+    }
+
+    /** The low pass: the key, what it would cost in station time at the least, and whether one is flying. */
+    static ShipCard passCard(Warship ship) {
+        LowPass pass = ship.lowPass();
+        float left = ship.stationSecondsRemaining();
+        String time = left == Float.POSITIVE_INFINITY ? "" : Math.round(left) + " s station";
+        if (ship.lowPassing()) {
+            boolean onLine = pass.onLine();
+            return new ShipCard("PASS", "[F] LOW PASS", onLine ? "ON THE LINE" : "RUNNING IN", time,
+                    onLine ? "PASSING" : "RUN-IN", Tone.BUSY,
+                    Math.max(0f, Math.min(1f, pass.progress() / Math.max(1f, pass.length()))));
+        }
+        float least = LowPass.stationCost(LowPass.secondsToCover(LowPass.MIN_LENGTH_CELLS,
+                ship.maxSpeed, ship.acceleration));
+        boolean affordable = left == Float.POSITIVE_INFINITY || left >= least;
+        return new ShipCard("PASS", "[F] LOW PASS", "TO CURSOR  x2 TIME", time,
+                affordable ? "READY" : "NO TIME", affordable ? Tone.READY : Tone.WARN, affordable ? 1f : 0f);
     }
 
     private static ShipCard automationCard(Warship ship) {

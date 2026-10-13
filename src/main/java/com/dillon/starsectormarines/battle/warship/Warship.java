@@ -869,6 +869,12 @@ public final class Warship {
     /** Counts station time down while on station; returns whether the ship is now due to leave. */
     boolean spendStationTime(float dt) {
         if (departing || stationSecondsRemaining == Float.POSITIVE_INFINITY) return false;
+        if (lowPassing()) {
+            // A low pass keeps no station: every second of it is charged at the pass rate, and the
+            // ship is never sent away mid-run; the departure, if the time is spent, follows the pass.
+            stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - LowPass.STATION_COST_FACTOR * dt);
+            return false;
+        }
         if (!isMoving()) stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - dt);
         return stationSecondsRemaining <= 0f;
     }
@@ -1023,6 +1029,89 @@ public final class Warship {
         if (a.shieldAuto()) shield.auto(true);
         else shield.raise(a.shieldUp());
         dropAims();
+    }
+
+    // ---- the low pass: a fast, low run along a line with no station -------------------------------------
+
+    private LowPass lowPass;
+    /** The areas a pilot had laid when a pass began, given back when it ends. */
+    private final EnumMap<FireGroup, WarshipOrder.FireOnArea> laidBeforePass = new EnumMap<>(FireGroup.class);
+
+    /** The pass the ship is flying or has just flown (its wake still showing), or {@code null}. Read by presentation. */
+    public LowPass lowPass() {
+        return lowPass;
+    }
+
+    /** Whether the ship is flying a low pass now: running in to its line or on it. */
+    public boolean lowPassing() {
+        return lowPass != null && lowPass.active();
+    }
+
+    /**
+     * Whether a pass of {@code plan} may begin: a live hull that is not leaving, not already passing, with
+     * station time left to pay for it (an unbounded stay always can). The cost is
+     * {@link LowPass#STATION_COST_FACTOR} seconds of station time for each second flown, run-in included.
+     */
+    public boolean canLowPass(LowPass plan) {
+        if (plan == null || destroyed() || departing || departed || lowPassing()) return false;
+        if (stationSecondsRemaining == Float.POSITIVE_INFINITY) return true;
+        return stationSecondsRemaining >= plan.estimatedCost(x, y, maxSpeed, acceleration);
+    }
+
+    /**
+     * Sends the ship on {@code plan}. Its pilot, director, station and route are not touched: the pass
+     * overrides the hull's travel and the guns' ground for as long as it flies, then gives both back
+     * (the ship returns to its station or route, or is flown by its pilot again). Returns false when
+     * {@link #canLowPass} refuses.
+     */
+    public boolean beginLowPass(LowPass plan) {
+        if (!canLowPass(plan)) return false;
+        lowPass = plan;
+        laidBeforePass.clear();
+        laidBeforePass.putAll(laid);
+        silencedPass = false;
+        return true;
+    }
+
+    private boolean silencedPass;
+
+    /** Stops the pass's guns for the rest of the run (the pilot's hold-fire); the flight carries on. */
+    public void silenceLowPass() {
+        silencedPass = true;
+        if (lowPassing()) restoreLaidAfterPass();
+    }
+
+    /** Whether the pass's guns have been held. */
+    boolean lowPassSilenced() {
+        return silencedPass;
+    }
+
+    /** Keeps the pass's firing circle on {@code (cx, cy)}, for every battery the ship has. */
+    void layPassFire(float cx, float cy) {
+        for (FireGroup g : FireGroup.values()) {
+            if (!hasBattery(g)) continue;
+            WarshipOrder.FireOnArea have = laid.get(g);
+            if (have != null && Math.abs(have.x() - cx) < 0.5f && Math.abs(have.y() - cy) < 0.5f
+                    && have.radius() == LowPass.CORRIDOR_HALF_WIDTH_CELLS) continue;
+            layArea(g, new WarshipOrder.FireOnArea(cx, cy, LowPass.CORRIDOR_HALF_WIDTH_CELLS, false));
+        }
+    }
+
+    /** Ends the pass's flight: its guns' ground is given back as it was. The wake stays for the presentation to fade. */
+    void finishLowPass() {
+        if (!silencedPass) restoreLaidAfterPass();
+    }
+
+    private void restoreLaidAfterPass() {
+        clearLaidAreas();
+        for (Map.Entry<FireGroup, WarshipOrder.FireOnArea> e : laidBeforePass.entrySet()) layArea(e.getKey(), e.getValue());
+        laidBeforePass.clear();
+        headingChosen = false;
+    }
+
+    /** Drops the pass once it has nothing left to show. */
+    void clearLowPass() {
+        lowPass = null;
     }
 
     private void dropAims() {

@@ -186,6 +186,11 @@ public final class DebugWarship {
         ship.order(WarshipOrder.FireOnArea.saturating(cellX, cellY, AREA_RADIUS_CELLS, true));
     }
 
+    /** A low pass from where the ship is to the cell, on the debug panel's key; false when the ship cannot or the line is too short. */
+    public static boolean passTo(BattleSimulation sim, Warship ship, float cellX, float cellY) {
+        return sim.warships().orderLowPass(sim, ship, ship.x, ship.y, cellX, cellY);
+    }
+
     /** Sends the ship to hover over the cell, leaving any route it was flying. */
     public static void goTo(Warship ship, float cellX, float cellY) {
         ship.flyRoute(null, false);

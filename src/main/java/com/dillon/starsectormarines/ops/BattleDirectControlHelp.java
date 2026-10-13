@@ -74,6 +74,7 @@ final class BattleDirectControlHelp {
                 add(out, "3", "ShipPreset");
                 add(out, "4", "ShipPolicy");
                 add(out, "E", "ShipShield");
+                add(out, "F", "ShipPass");
                 add(out, "Tab / Esc", "Leave");
                 add(out, "", "ShipLaid");
                 add(out, "", "ShipSeen");
@@ -81,6 +82,7 @@ final class BattleDirectControlHelp {
                 add(out, "", "ShipFlux");
                 add(out, "", "ShipLances");
                 add(out, "", "ShipPd");
+                add(out, "", "ShipPassCost");
             }
             case TENDER -> {
                 add(out, "WASD", "ShipFly");

@@ -5,5 +5,7 @@ public enum DirectControlAbility {
     SHIELD,
     SMOKE,
     /** A tender pilot's X key: withdraw every unfinished build site. */
-    CANCEL_BUILDS
+    CANCEL_BUILDS,
+    /** A warship pilot's F key: a fast, low pass from the hull to the cursor. */
+    LOW_PASS
 }
