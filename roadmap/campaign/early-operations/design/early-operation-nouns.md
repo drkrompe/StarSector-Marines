@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Colossus yard stakes, Cold Start ground arrival and outer pickets, and Agreus referral with the North Weir contract; live campaign acceptance remains open.
+Updated: 2026-10-13 - Shepherd contract interests and neutral commercial position in Hegemony space; live campaign acceptance remains open.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -24,7 +24,15 @@ fighting overhead. Morrow's crew made an emergency landing in their own cradle
 and evacuated; surviving hands return with the repair party. Armed scrappers
 occupy the abandoned yard. That outfit is the opposition, not scavengers as a
 whole; the overhead battle and local claims are mod-authored history.
-The cooperative's local permit is not planetary government authority.
+The cooperative works in Hegemony-dominated Corvus without acting for the
+Hegemony or seeking a fight with it. Vale's local recovery permit is not planetary
+government authority. She wants the salvage moving before official scrutiny,
+fees or contested claims consume her margin, and before pirates or rival outfits
+see a larger opportunity. That is her commercial assessment, not a new canonical
+tax law or proof that every official is corrupt. The armed occupiers are the
+immediate opponent; Hegemony forces do not become enemies through this contract.
+This urgency supplies a motive to hire outside protection, not a hidden expiry,
+inspection timer, faction-relation change or permission for fleet bombardment.
 The broken Colossus against the northern rear canyon wall is the yard's grounded
 cargo and equipment depot, surrounded by valuable hull scrap. These stores and
 working installations are the scrappers' prize and the cooperative's reason to
@@ -32,6 +40,14 @@ pay for reopening the basin. The cooperative keeps that larger asset and the
 yard; its smaller tender Morrow is the agreed payment in kind for all three
 contracts. The Colossus grants no fleet member, extra salvage objective or cargo
 inventory. The contract and settled correspondence make the exchange explicit.
+Both parties have a business to sustain. The company sells security, escort and
+repair cover for chapter fees and the ship; Vale supplies technicians, equipment
+and militia to recover the cooperative's larger source of income. Keeping skilled
+people alive preserves those businesses as well as mattering to the characters.
+Castle accounts for company pay, supplies and losses; Vale is responsible for her
+own crews. Neither employer goodwill nor the company's help makes their interests
+identical. Written offers and debriefs state the bargain without adding extra
+casualty penalties, cargo rewards or a free replacement ship.
 Completion of the Corvus arc and acknowledgement of its aftermath precede the offer;
 neither Broken Supply Route branch changes eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
@@ -74,6 +90,8 @@ work needs another mobilization. Confirmed technician losses remain on the accou
 and replacement technicians are new cooperative personnel. A qualifying repair
 victory pays the agreed 22,000 credits once. Withdrawal or defeat can preserve
 completed field work without claiming repair victory or paying the chapter fee.
+Returning briefings describe the remaining work. An opening recording that orders
+an already completed delivery is withheld; the written briefing remains available.
 
 Restored power enables a mission-provided construction command card backed by
 Morrow's grounded drone bay. The captain chooses a clear exterior plot; ordinary
@@ -1062,7 +1080,11 @@ an explicit authoring command, never a build or gameplay network operation.
 Credentials stay in the author's local environment, outside shipped content.
 Unrecorded characters must receive an explicit voice assignment before synthesis;
 they cannot inherit the catalog host's voice. Text-only drafts remain readable
-and silent until recordings have been reviewed and packaged.
+and silent until recordings have been reviewed and packaged. Junction and Thunder Run
+have recorded dialogue for every authored player line, including Castle's defense
+instructions and Kestrel's support and emergency calls. Aircraft emergencies use
+the explicit interruption policy in `battle-radio-nouns.md`; routine guidance
+cannot defer a missile warning until after the aircraft has gone down.
 
 Shepherd recovery uses Castle for company guidance and Tamsin Vale for the yard's
 repair and departure work. Vale's retained voice is `cZH6erlGkOyAQheipyno`;

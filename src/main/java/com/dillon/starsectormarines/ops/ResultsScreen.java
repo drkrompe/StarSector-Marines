@@ -261,7 +261,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
             props.put("storyProgress",outcome.victory?"RECOVERY CLAIM SECURED / SHIP STILL GROUNDED":"INSPECTION UNFINISHED / RETRY AVAILABLE");
             props.put("storyMessage",(outcome.victory?
-                    "The drone workshop can be saved. "+(outcome.missionSource.isDebug()?"Training record only; no campaign claim or payment is issued. ":"Your payment is released and the recovery claim is protected. ")+"Our militia will hold the workshop. Morrow still needs shore power, repairs and a clear departure corridor; no ship has entered your fleet. Cold Start is available from Vale when your company is ready.":
+                    "The drone workshop can be saved. "+(outcome.missionSource.isDebug()?"Training record only; no campaign claim or payment is issued. ":"Your payment is released and the recovery claim is protected. ")+"The inspection is signed off. I'll arrange the workshop watch and repair party. Morrow still needs shore power, repairs and a clear departure corridor; no ship has entered your fleet. Cold Start is available when your company is ready.":
                     "Bring your company home. No claim or payment is awarded. Confirmed company and inspection losses remain on record; Vale will assign a new party for another attempt.")
                     +" Inspection technicians lost: "+outcome.salvageRights.crewLost()+".");
         }

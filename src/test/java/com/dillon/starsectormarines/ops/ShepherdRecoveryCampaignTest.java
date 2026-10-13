@@ -79,8 +79,8 @@ class ShepherdRecoveryCampaignTest {
             var lines = MissionDebriefConversation.lines(result, catalog);
             assertEquals(4, lines.size());
             assertTrue(lines.stream().noneMatch(WaylineNarration.Line::voiced));
-            assertEquals(losses > 0, lines.get(2).text().contains("lost people"));
-            assertTrue(lines.get(1).text().contains("after the repair and departure contracts"));
+            assertEquals(losses > 0, lines.get(2).text().contains("inspection losses"));
+            assertTrue(lines.get(1).text().contains("finishing the repairs and departure"));
         }
     }
 

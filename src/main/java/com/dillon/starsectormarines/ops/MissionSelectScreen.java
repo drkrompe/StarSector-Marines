@@ -401,8 +401,11 @@ public final class MissionSelectScreen implements Screen {
                 detailRow("payout","Payment in kind","Morrow / Shepherd construction tender / willing minimum crew"));
         if(ShepherdRecoveryCampaign.isBattle(mission))return List.of(
                 detailRow("force","Company","2 squads recommended / optional owned mech"),
-                detailRow("support","Cooperative","8 militia / 2 inspection technicians"),
-                detailRow("claim","Agreement","Secure the claim now; earn the repaired ship after all three operations"),
+                detailRow("support","Cooperative",ShepherdRecoveryProgress.coldStart(mission.id)
+                        ? "14 militia / 2 repair technicians" : "8 militia / 2 inspection technicians"),
+                detailRow("claim","Agreement",ShepherdRecoveryProgress.coldStart(mission.id)
+                        ? "Claim protected; complete repairs and departure to earn Morrow"
+                        : "Secure the claim now; earn the repaired ship after all three operations"),
                 detailRow("payout","Payment on victory",NumberFormat.getIntegerInstance().format(mission.payout)+" credits"));
         if (CorvusWaylineCampaign.isBattle(mission)) return List.of(
                 detailRow("force", "Company commitment", MissionForceEnvelope.recommendedSquads(mission)

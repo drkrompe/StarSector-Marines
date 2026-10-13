@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 - Conquest sites its declared forts as barriers on the approach (`FortSitingPolicy`, `FortSiting`, reserved ground); battery fort and shield fort commanders choose aspects (`FortTactics`); fort buildings drawn by function; shield fort built (slice 3); redoubt/citadel remain.
+Updated:  2026-10-13 - Conquest sites its declared forts as barriers on the approach (`FortSitingPolicy`, `FortSiting`, reserved ground); fort aspect cores are not opportunity targets (fort restraint), commanders read demolition capability from their live squads and remember forts they have sighted; commanders choose which aspect to take, wreck or stand to at for the effect wanted (battery and shield forts); fort buildings drawn by function with intact, damaged, wrecked and taken states, bolder wire, a taken plant keeps running; shield fort built (slice 3), folding in the local shield relay; redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -181,18 +181,47 @@ follow from who holds an aspect and who built it, relative to the side choosing.
 - **Defence.** A pressed aspect is stood to at, the most critical first (bunker, power, magazine for a battery; plant,
   control room for a shield fort), and a single axis of assault draws a second squad. A lost aspect built for the
   side is retaken in the same order: the bunker restores the guns, the plant restores a dome.
-- **Law.** Demolition capability is an input to the choice (`Candidate.demolition`); the commanders do not yet read it
-  from live squads, so in play every pick is a take and the wreck branch is exercised by unit tests only.
+- **Law.** Demolition capability is an input to the choice (`Candidate.demolition`). It is read from the commander's own
+  living squads: a squad is able to wreck while any member carries a contact-demolition satchel kit with a use left
+  (`DemolitionKit`, the same definition the squad's own plant logic uses), which is own-force knowledge and never a
+  read of an enemy. A wreck pick is only ever given to such a squad, and the order it receives is the ordinary attack
+  move to the aspect's doorstep carrying a wreck permission (`ObjectiveAssignment.wreckAuthorised`), a flag and not a
+  named target, so the knowledge laws are untouched. Where the choice is a take, no permission is given.
 - **What a lane discloses.** Sighting the platform (battery) or generator (shield) discloses every aspect of the fort,
   so a commander only reasons about a fort the company has actually looked at. A lane that never comes within sight of
   it, or that stops at a wall, leaves the fort undisclosed, and the commander has nothing to choose. This, not a failure
   to commit, is what an earlier autonomous attempt in the small scene arena was seeing; the commander scenes come in on
   the lane that reaches the fort's gate.
-- **A hostile emitter is shot in passing.** A squad that sees the generator holds and fires on it as on any hostile
-  contact, and the emitter can be destroyed this way (900 hit points; eight SMGs in the scene took it to a third in about
-  a minute). Wrecking the emitter ends the dome for good and leaves the plant and control room with nothing to do. The
-  shield scene's commander loop therefore comes in by the postern nearest the plant, away from the keep; a lane past
-  the keep ends with the emitter wrecked instead.
+- **Memory of a sighting.** A fort a company has once had in view stays disclosed to its commander when the squad looks
+  away. Disclosure by sight alone made the control-room task appear and vanish as the squad walked in and out of view of
+  the generator, and a squad whose order flickered between the task and the lane never arrived.
+
+## Built: fort restraint
+
+A squad that merely sees a fort's emitter used to fire on it like any hostile contact (eight SMGs took it from 900 to
+about a third of its hit points in a minute), permanently ending the dome and pre-empting the commander's choice between
+taking the power, taking the control room and wrecking. Wrecking an aspect is permanent for both sides and capturing it
+is usually the better prize, so **the cores of a fort's aspects are not opportunity targets**: the bunker, the magazine,
+the power plant, the control room and the shield emitter. (`FortRestraint`)
+
+- **What is restrained.** Only aspect cores. The battery platform (the guns), the wall nests and every unit stay ordinary
+  targets, so a fort still defends itself. A bare shield generator or battery with no fort is unchanged.
+- **Symmetric.** Nothing in the rule knows attacker from defender. Whoever is hostile to the core leaves it alone, and a
+  held core is not an enemy to its holder anyway.
+- **How.** A restrained core is left out of the hostile-combatant index, so it is not a candidate in target acquisition,
+  in the opportunity pass, in a squad's threat awareness or in force counts, and a squad holds no contact that it may not
+  shoot (so there is no standoff with an emitter). It is still in every other query, so rounds, fog and splash still find
+  the body. Whole-neighbourhood pickers (satchel plant, rocket, mech targeting) ask the same rule before committing.
+- **What lifts it, for a squad and a core.** The squad's executing order ends within six cells of the core and is either a
+  commander's fort task that says wreck, or an order the player gave (a player pointing a squad at a building is asking
+  for it). The squad is then offered the core as an ordinary candidate. Leave for one building is not leave for the next.
+- **No exception for "it is shooting us" or "it is the only thing left".** A core never shoots, and a squad with nothing it
+  may shoot waits for its commander; the battle's own objectives decide when it ends.
+- **Out of scope.** Ships and aircraft choose targets by their own rules (a barrage can still destroy a core, which is the
+  overwhelming-force route), as do grenade and round splash that lands near one.
+- **Control.** `-Dbattle.fort.restraint=false` makes every core an ordinary target; the shield-fort scene runs the same
+  view with the switch off to show that the squad would have shot it. The scene's commander loop now comes in by the main
+  gate, past the keep.
 
 ## Built: building art by function
 

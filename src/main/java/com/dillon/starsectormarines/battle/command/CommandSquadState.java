@@ -34,7 +34,46 @@ public record CommandSquadState(
         int[] memberZoneIds,
         int[] memberCellXs,
         int[] memberCellYs,
+        CommandGroupIdentity commandGroup,
+        boolean demolition) {
+
+    /**
+     * Compatibility seam for a row that says nothing of the squad's kit: it carries no demolition capability.
+     * {@code demolition} on the full row is whether any living member carries a charge to destroy a building with.
+     */
+    public CommandSquadState(
+        int squadId,
+        Faction faction,
+        int aliveMembers,
+        float centroidX,
+        float centroidY,
+        int anchorCellX,
+        int anchorCellY,
+        int currentZoneId,
+        UnitRole role,
+        boolean localContact,
+        boolean underFireRecently,
+        boolean moraleBroken,
+        String currentGoal,
+        String currentAction,
+        String executionSuspension,
+        ObjectiveAssignment assignment,
+        CommandDirective directive,
+        int activePathMembers,
+        int movingMembers,
+        int coveredFromPrimaryMembers,
+        int primaryEngageableMembers,
+        int primaryEngageableFireTeams,
+        String contactPosture,
+        String contactDoctrine,
+        String contactInitiative,
+        int coolingDownMembers,
+        int[] memberZoneIds,
+        int[] memberCellXs,
+        int[] memberCellYs,
         CommandGroupIdentity commandGroup) {
+        this(squadId, faction, aliveMembers, centroidX, centroidY, anchorCellX, anchorCellY, currentZoneId, role, localContact, underFireRecently, moraleBroken, currentGoal, currentAction, executionSuspension, assignment, directive, activePathMembers, movingMembers, coveredFromPrimaryMembers, primaryEngageableMembers, primaryEngageableFireTeams, contactPosture, contactDoctrine, contactInitiative, coolingDownMembers, memberZoneIds, memberCellXs, memberCellYs, commandGroup, false);
+    }
 
     /** Compatibility seam for strategies without persistent command groups. */
     public CommandSquadState(

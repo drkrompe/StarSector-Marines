@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import java.util.List;
 import java.util.function.Consumer;
 
-/** Mission speech finishes each started line and takes precedence over incidental radio chatter. */
+/** Mission speech owns the radio; explicitly urgent calls can interrupt routine instructions. */
 public final class StoryNarrationPlayer {
     private final StoryNarrationQueue queue;
     private final NarrationPlayer player;
@@ -30,9 +30,8 @@ public final class StoryNarrationPlayer {
     public void advance(float realSeconds, List<StoryBeatLog.Event> events, boolean paused, boolean complete) {
         player.advance(realSeconds);
         queue.advance(realSeconds, events, complete);
-        // Supersession and completion affect only unspoken instructions. Never stop a sentence here.
-        if (paused && !complete || player.busy()) return;
-        Line next = queue.poll();
+        if (paused && !complete) return;
+        Line next = queue.poll(player.current());
         if (next == null) return;
         beforeStart.accept(next);
         player.start(next);

@@ -6,7 +6,7 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Ordered brush intent in cell-center coordinates. A raised mass is wholly inaccessible. */
+/** Ordered brush intent in cell-center coordinates. Raised masses and excavations are inaccessible. */
 public record TerrainPlan(int width, int height, Finish finish, double faceDepth,
                           double ruggedness, long seed, List<Stroke> strokes) {
     public enum Finish { ROCK, GRASS_TOP, ICE;
@@ -15,8 +15,12 @@ public record TerrainPlan(int width, int height, Finish finish, double faceDepth
             case ROCK -> "Rock escarpment"; case GRASS_TOP -> "Grass-topped cliff"; case ICE -> "Glacial ice ridge";
         }; }
     }
-    public enum Mode { RAISE, ERASE;
-        @Override public String toString() { return this==RAISE?"Raise terrain":"Erase / cut a pass"; }
+    public enum Mode { RAISE, ERASE, EXCAVATE;
+        @Override public String toString() { return switch (this) {
+            case RAISE -> "Raise terrain";
+            case ERASE -> "Erase / cut a pass";
+            case EXCAVATE -> "Excavate impassable trench";
+        }; }
     }
     public record Point(double x, double y) {
         public Point {

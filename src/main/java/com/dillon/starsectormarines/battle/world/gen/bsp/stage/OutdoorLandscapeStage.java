@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
@@ -187,7 +188,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static boolean terrainVisible(GenContext c, int x, int y) {
         var terrain = c.topology.terrainSurface();
         if (terrain == null) return false;
-        for (int layer = 0; layer < 8; layer++) if (terrain.patch(x, y, layer) != null) return true;
+        for (int layer = 0; layer < TerrainSurface.LAYERS; layer++) if (terrain.patch(x, y, layer) != null) return true;
         return false;
     }
 

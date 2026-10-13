@@ -6,16 +6,27 @@ import java.util.Arrays;
 public final class TerrainField {
     private final int width, height;
     private final double[] values;
-    private TerrainField(int width,int height,double[] values) { this.width=width;this.height=height;this.values=values; }
+    private final double[] excavations;
+    private TerrainField(int width,int height,double[] values,double[] excavations) {
+        this.width=width;this.height=height;this.values=values;this.excavations=excavations;
+    }
     public double corner(int x,int y) { return values[y*(width+1)+x]; }
     public double center(int x,int y) { return (corner(x,y)+corner(x+1,y+1))*.5; }
-    public boolean blocked(int x,int y) { return center(x,y)>=0; }
+    public boolean raised(int x,int y) { return center(x,y)>=0; }
+    public double excavationCorner(int x,int y) { return excavations[y*(width+1)+x]; }
+    public boolean excavated(int x,int y) { return (excavationCorner(x,y)+excavationCorner(x+1,y+1))*.5>=0; }
+    public boolean blocked(int x,int y) { return raised(x,y) || excavated(x,y); }
     public double maximum(int x,int y) { return Math.max(Math.max(corner(x,y),corner(x+1,y)),Math.max(corner(x,y+1),corner(x+1,y+1))); }
+    public double excavationMaximum(int x,int y) {
+        return Math.max(Math.max(excavationCorner(x,y),excavationCorner(x+1,y)),
+                Math.max(excavationCorner(x,y+1),excavationCorner(x+1,y+1)));
+    }
     public int width() { return width; }
     public int height() { return height; }
     public static TerrainField build(TerrainPlan plan) {
         int w=plan.width(),h=plan.height(),vw=w+1;
         double[] field=new double[vw*(h+1)]; Arrays.fill(field,-128);
+        double[] excavations=new double[field.length]; Arrays.fill(excavations,-128);
         double[] strokeField=new double[field.length];
         for (var stroke:plan.strokes()) {
             Arrays.fill(strokeField,-128); double reach=stroke.radius()+4;
@@ -41,9 +52,16 @@ public final class TerrainField {
                 double noise=Math.sin(x*.59+Math.sin(y*.37)+phase)*.65+Math.sin(y*1.13-x*.34+phase)*.25
                         +Math.sin(x*2.1+y*1.8+phase)*.10;
                 double value=strokeField[at]+plan.ruggedness()*1.4*noise;
-                field[at]=stroke.mode()==TerrainPlan.Mode.RAISE?Math.max(field[at],value):Math.min(field[at],-value);
+                switch (stroke.mode()) {
+                    case RAISE -> field[at]=Math.max(field[at],value);
+                    case EXCAVATE -> excavations[at]=Math.max(excavations[at],value);
+                    case ERASE -> {
+                        field[at]=Math.min(field[at],-value);
+                        excavations[at]=Math.min(excavations[at],-value);
+                    }
+                }
             }
         }
-        return new TerrainField(w,h,field);
+        return new TerrainField(w,h,field,excavations);
     }
 }

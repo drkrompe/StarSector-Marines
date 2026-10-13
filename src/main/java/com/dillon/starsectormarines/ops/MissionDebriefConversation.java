@@ -36,23 +36,31 @@ final class MissionDebriefConversation {
         if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
                 recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Registry accepted. Morrow is ours. Hull, workshop, and a very long list of maintenance jobs."),
-                recoveryLine("departure-corridor", false, "The corridor is ours again. The Colossus stores and our yard stay with the cooperative; Morrow is the agreed payment for bringing that work back. Keep her working, Castle."),
-                recoveryLine("departure-crew", true, "The berth offer stands for willing working hands. We will carry enough fleet crew for her minimum complement; nobody is being signed into a marine squad."),
-                recoveryLine("departure-cost", false, outcome.marinesLost > 0 || outcome.workingPassage.militiaLost() > 0?"Keep the people we lost on the record with the ship we brought out.":"A working ship, and a road we can use again."));
+                recoveryLine("departure-corridor", false, outcome.missionSource.isDebug()
+                        ? "The contract would leave the Colossus stores, yard and haul road with us. The company's final payment would be Morrow; this exercise makes no transfer."
+                        : "The Colossus stores, yard and haul road stay with us. Morrow is your final payment, as agreed. Now I can put our crews back to work. If the Hegemony comes asking about the salvage, I'll answer for our claims."),
+                recoveryLine("departure-crew", true, outcome.missionSource.isDebug()
+                        ? "A contracted departure would include berth offers to willing working hands. Fleet crew, on our payroll, with the ship's upkeep ours from handover."
+                        : "We'll honor the berth offers to her willing working hands. Fleet crew, on our payroll. Her upkeep is our problem from here. You bought a working yard; we earned a working ship."),
+                recoveryLine("departure-cost", false, outcome.marinesLost > 0 || outcome.workingPassage.militiaLost() > 0?"And people paid for it. Keep their names with the contract record, Castle. I'll see to ours.":"That's a bargain I can take back to the shops. Keep her working, Castle."));
         if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
                 recoveryLine("first-gun", true, "That is a position we do not have to fill with another squad. Keep the crew covered. Let the machine do its job."),
                 recoveryLine("repair-complete", false, "Drone bay answers. Pumps hold pressure. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow stays in the cradle until we clear her departure corridor."),
-                recoveryLine("repair-cost", true, outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
-                        ? "Put the people we lost on the roll before we count the machinery."
-                        : "The work is signed off. We still have a ship to bring home."),
-                recoveryLine("departure-pending", false, "Working Passage is ready when your company is. Replenish your company; the recovery claim and completed repairs remain protected."));
+                recoveryLine("repair-cost", true, outcome.missionSource.isDebug()
+                        ? "Keep the exercise losses in the review. A contracted company has to cover supplies and crew pay before committing to departure."
+                        : outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
+                            ? "Account for our losses before we commit again. That fee has to keep the company in the field. We still have a ship to bring out."
+                            : "Repair fee accounted for. Supplies and crew pay first; then we finish earning that ship."),
+                recoveryLine("departure-pending", false, "I need that road carrying salvage before another outfit decides to stake a claim. I'll supply the holders; your company clears the passage. Replenish before we go. Your claim and the completed repairs stand."));
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
                 recoveryLine("registry", true, "Put Morrow's registry in the agreement. We bring your crews back to work; when this ship flies, it flies with us."),
-                recoveryLine("terms", false, "Morrow's hull and drone workshop, after the repair and departure contracts. We keep the broken Colossus, its cargo and equipment, and the fixed yard. Reopening that work is worth the smaller tender. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"Today's payment is released; the claim is protected.")),
+                recoveryLine("terms", false, "The Colossus holds more work than our shops can handle. We keep her stores and the yard; you earn Morrow by finishing the repairs and departure. That's why I'm willing to part with her. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"The inspection fee is released. Your claim is protected.")),
                 recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
-                        ? "We lost people getting that inspection done. Put their names beside ours before anyone starts dividing the machinery."
-                        : "Your inspection team is back. Let's keep doing it that way. What gets her power back?"),
-                recoveryLine("power", false, "The pump road and a replacement distribution rig. We can wake the drone bay on shore power. I'll arrange the repair mobilization. Get your company ready."));
+                        ? "Record the inspection losses with ours. We need skilled hands for the next job; machinery alone won't get her flying. What gets her power back?"
+                        : outcome.missionSource.isDebug()
+                            ? "Inspection exercise signed off. What would get her power back?"
+                            : "Inspection signed off. The company has a fee and a claim worth finishing. What gets her power back?"),
+                recoveryLine("power", false, "A replacement distribution rig and shore power from the pumps. I'll supply the repair party. We pay our way in Hegemony space, but I would rather be unloading cargo than explaining its value to an inspector. Get your company ready."));
         if (firstContract(outcome)) return List.of(
                 firstContractLine("receipt", true, "Payment's in. I checked twice. Our first Wayline contract, Captain. Someone's paid us to do what we said we would."),
                 firstContractLine("names", false, "The drivers asked who'd answered the call. I gave them your company's name. They'll remember it."),

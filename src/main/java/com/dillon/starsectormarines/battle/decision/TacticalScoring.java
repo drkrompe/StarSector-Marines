@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.world.TacticalNodeQueries;
+import com.dillon.starsectormarines.battle.fort.FortRestraint;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -24,6 +25,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Sector;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -634,6 +636,7 @@ public final class TacticalScoring {
                 selfSquadId, excludeFromCrowding, shooterAirRadius, allowNoLos,
                 minRange, maxRange);
         unitIndex.forEachHostileCombatantByRing(selfX, selfY, selfFaction, scan);
+        offerLiftedFortCores(scan, selfFaction, selfSquadId);
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         if (profile != null) {
             profile.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_VISIT, scan.visits);
@@ -641,6 +644,46 @@ public final class TacticalScoring {
             profile.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_RAY, scan.rays);
         }
         return scan.best != 0L ? scan.best : scan.bestAny;
+    }
+
+    /**
+     * Hands the scan the fort cores {@code squadId} has been told it may wreck. The hostile-combatant index leaves
+     * every fort core out (see {@link FortRestraint}), so a squad with leave to wreck one is offered it here, and
+     * the scan then weighs it like any other candidate: it has to be seen, in range and worth its distance.
+     */
+    private void offerLiftedFortCores(TargetScan scan, Faction selfFaction, int squadId) {
+        FortRestraint restraint = unitIndex.restraint();
+        if (!restraint.any() || squadId == Squad.NO_SQUAD) return;
+        Squad squad = roster.getSquad(squadId);
+        if (squad == null) return;
+        World world = roster.world();
+        LongArrayList cores = restraint.cores();
+        for (int i = 0, n = cores.size(); i < n; i++) {
+            long core = cores.getLong(i);
+            if (!liftedCore(selfFaction, squad, core)) continue;
+            scan.accept(core, world.x(core), world.y(core));
+        }
+    }
+
+    /** Whether {@code core} is a live fort core hostile to {@code selfFaction} that {@code squad} may fire on. */
+    private boolean liftedCore(Faction selfFaction, Squad squad, long core) {
+        if (!roster.isAliveById(core) || !selfFaction.hostileTo(roster.identity().faction(core))) return false;
+        World world = roster.world();
+        return FortRestraint.lifts(squad, world.cellX(core), world.cellY(core));
+    }
+
+    /**
+     * Whether {@code shooter} may fire on {@code target} as far as fort restraint goes: always, unless the target is
+     * a fort core the shooter's squad has not been told to wreck. Callers that find targets by a whole-neighbourhood
+     * gather rather than through the hostile-combatant index (a satchel, a rocket) ask this before committing.
+     */
+    public boolean mayEngage(long shooter, long target) {
+        FortRestraint restraint = unitIndex.restraint();
+        if (!restraint.restrains(target)) return true;
+        if (!roster.squad().hasSquad(shooter)) return false;
+        World world = roster.world();
+        return FortRestraint.lifts(roster.getSquad(roster.squad().squadId(shooter)),
+                world.cellX(target), world.cellY(target));
     }
 
     /** Unknown contacts beyond sight cannot win, but remembered contacts retain their full reach. */
@@ -1565,7 +1608,8 @@ public final class TacticalScoring {
             if (candidate == excludedTarget || candidate == self) continue;
             if (!roster.isAliveById(candidate)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(candidate))
-                    || !roster.identity().type(candidate).combatant) continue;
+                    || !roster.identity().type(candidate).combatant
+                    || unitIndex.restraint().restrains(candidate)) continue;
             int cx = world.cellX(candidate);
             int cy = world.cellY(candidate);
             if (!canSeePair(grid, sx, sy, cx, cy,
@@ -1651,7 +1695,8 @@ public final class TacticalScoring {
             if (u == exclude || u == self) continue;
             if (!roster.isAliveById(u)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(u))
-                    || !roster.identity().type(u).combatant) continue;
+                    || !roster.identity().type(u).combatant
+                    || unitIndex.restraint().restrains(u)) continue;
             if (Float.isFinite(currentDistance)
                     && !(cellDistance(selfX, selfY, world.x(u), world.y(u))
                     + RETARGET_DISTANCE_MARGIN < currentDistance)) continue;
@@ -1702,6 +1747,15 @@ public final class TacticalScoring {
         LongBucket candidates = OPPORTUNITY_CANDIDATES.get();
         unitIndex.gatherHostileCombatants(selfX, selfY,
                 range + RETARGET_QUERY_PADDING, selfFaction, candidates);
+        FortRestraint restraint = unitIndex.restraint();
+        if (restraint.any() && roster.squad().hasSquad(self)) {
+            Squad squad = roster.getSquad(roster.squad().squadId(self));
+            LongArrayList cores = restraint.cores();
+            for (int i = 0, n = cores.size(); squad != null && i < n; i++) {
+                long core = cores.getLong(i);
+                if (liftedCore(selfFaction, squad, core)) candidates.add(core);
+            }
+        }
 
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
@@ -1972,6 +2026,7 @@ public final class TacticalScoring {
         for (int i = 0, n = scratch.size; i < n; i++) {
             long enemy = scratch.ids[i];
             if (!roster.isAliveById(enemy) || !roster.identity().type(enemy).combatant) continue;
+            if (unitIndex.restraint().restrains(enemy)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(enemy))) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
@@ -3614,6 +3669,7 @@ public final class TacticalScoring {
             long u = dense[i];
             if (!selfFaction.hostileTo(roster.identity().faction(u))) continue;
             if (!roster.identity().type(u).combatant) continue;
+            if (unitIndex.restraint().restrains(u)) continue;
             sumX += world.cellX(u);
             sumY += world.cellY(u);
             count++;
@@ -3786,6 +3842,7 @@ public final class TacticalScoring {
             long u = units.ids[i];
             if (!selfFaction.hostileTo(roster.identity().faction(u))) continue;
             if (!roster.identity().type(u).combatant) continue;
+            if (unitIndex.restraint().restrains(u)) continue;
             units.ids[write++] = u;
         }
         // In-place truncate: LongBucket.size is the live count, so dropping it
