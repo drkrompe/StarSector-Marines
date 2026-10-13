@@ -202,7 +202,8 @@ invalidating unrelated clean audio. Talon Two retains the same source voice as
 infantry actor Kestrel Two, but has a distinct face in a flight helmet and a
 narrower, more compressed and saturated cockpit radio treatment. The treatment
 belongs to his transmissions; other speakers mentioning the aircraft retain
-their own presentation. It does not change pitch or speech timing.
+their own presentation. A modest downward pitch shift further distinguishes
+the pilot while preserving speech timing.
 Alternating story speakers may instead use
 a clean dialogue loudness treatment,
 with a shared target and peak ceiling; source takes remain untouched.
