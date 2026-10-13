@@ -615,8 +615,8 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -703,8 +703,8 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -791,8 +791,8 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 350
@@ -2199,8 +2199,8 @@
           "squadId": "reinforced-squad-09",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 100
@@ -2287,8 +2287,8 @@
           "squadId": "reinforced-squad-09",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2375,8 +2375,8 @@
           "squadId": "reinforced-squad-09",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2727,8 +2727,8 @@
           "squadId": "reinforced-squad-11",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2815,8 +2815,8 @@
           "squadId": "reinforced-squad-11",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2903,8 +2903,8 @@
           "squadId": "reinforced-squad-11",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -4311,8 +4311,8 @@
           "squadId": "reinforced-squad-17",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -4399,8 +4399,8 @@
           "squadId": "reinforced-squad-17",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 350
@@ -4487,8 +4487,8 @@
           "squadId": "reinforced-squad-17",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 350
