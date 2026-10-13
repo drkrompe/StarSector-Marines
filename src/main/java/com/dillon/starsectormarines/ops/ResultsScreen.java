@@ -234,7 +234,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storySender","BASIN RECLAMATION / CONTRACT RECORD");
             props.put("storyProgress",passage.departed()?"MORROW / PHYSICAL CLIMB-OUT CONFIRMED":passage.disabled()?"CRITICAL DISABLE / DEPARTURE ABORTED":"DEPARTURE INCOMPLETE");
             props.put("storyMessage",(outcome.victory
-                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Contract settled. Morrow and a minimum working crew join your fleet as the final payment in kind. The cooperative retains the Colossus, its stores and the reopened yard. No additional cash payment.")
+                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Contract settled. Morrow and a minimum working crew join your fleet as the final payment in kind. The cooperative retains the Colossus, its shipment and the reopened yard. No additional cash payment.")
                     : "The claim and completed repairs remain. Vale will recover and refit the same grounded hull for another departure; confirmed losses remain on the account.") + " Cooperative militia lost: "+passage.militiaLost()+".");
         }
         if(outcome!=null && outcome.coldStart!=null) {

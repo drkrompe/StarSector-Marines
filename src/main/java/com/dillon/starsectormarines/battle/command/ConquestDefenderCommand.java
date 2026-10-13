@@ -155,6 +155,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         final int coolingDownMembers;
         final int[] memberZoneIds;
         final boolean demolition;
+        final boolean crew;
+        final boolean machine;
         final CommandDirective originalDirective;
         ObjectiveAssignment assignedObjective;
 
@@ -184,6 +186,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             coolingDownMembers = state.coolingDownMembers();
             memberZoneIds = state.memberZoneIds();
             demolition = state.demolition();
+            crew = state.crew();
+            machine = state.machine();
             originalDirective = state.directive();
             assignedObjective = state.assignment();
         }
@@ -619,7 +623,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         List<String> notes = new ArrayList<>();
         List<DefenceStructureTactics.Candidate> offered = new ArrayList<>();
         for (PlanningSquad squad : candidates) {
-            if (selected.contains(squad.id)) continue;
+            if (selected.contains(squad.id) || squad.crew || squad.machine) continue;
             offered.add(new DefenceStructureTactics.Candidate(squad.id, squad.anchorCellX, squad.anchorCellY,
                     squad.originalDirective != null ? squad.originalDirective.assignment() : null,
                     squad.demolition));

@@ -149,7 +149,7 @@ public final class MissionSelectScreen implements Screen {
                         : progress!=null && progress.claimSecured()
                             ? progress.shorePower() ? "Power's on. We've still got work to do before she can fly."
                                 : "My people are back in the workshop. Now let's get them some power."
-                            : "Venn gave me your name. There's a ship here you might want to look at. First, though, I need my people back in their workshop.");
+                            : "Venn gave me your name. I have a load to get out of that basin, and someone else has taken an interest. She said you could clear the way.");
             props.put("brokerProgress",progress!=null && progress.departed()?"COMPLETE / MORROW REGISTRY TRANSFERRED":progress!=null && progress.repaired()?"WORKING PASSAGE / DEPARTURE CLEARANCE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
     }
 
