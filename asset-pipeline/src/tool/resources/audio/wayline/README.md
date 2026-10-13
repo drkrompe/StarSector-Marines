@@ -60,8 +60,9 @@ File validation and headless tests do not replace listening in the battle mix.
 Thunder Run's seven `wayline_thunder_run_gunship_*` clips use the existing
 Talon Two/Liam voice (`TX3LPaxmHKxFdv7VOQHJ`) and Castle command voice
 (`cuwCdnt9CKAB9XrTA1j0`) with Eleven v4. Clean source takes and generation
-receipts are retained here; the audio manifest applies the separate COMMS
-recipe. Arrival, committed pass, actual missile launch, damage, loss, station
+receipts are retained here; the audio manifest applies AIR_COMMS to Talon Two's
+ten Junction/Thunder Run transmissions, while other speakers keep COMMS.
+Arrival, committed pass, actual missile launch, damage, loss, station
 and return each have their own trigger. A loss supersedes obsolete pending
 calls; the launch warning and survivor lines never imply a guaranteed crash.
 These takes have technical encoding checks; delivery and battle-mix audition
@@ -72,3 +73,9 @@ Kestrel Two. The two roles currently share the Liam voice but use separate
 recording banks and delivery direction. Stable gunship sound and event IDs do
 not encode the callsign. Mission briefings and other speakers' references use
 the same aviation name.
+
+The pilot's flight-helmet portrait is `graphics/portraits/talon-two.png`.
+AIR_COMMS narrows the voice to a 420–2500 Hz radio band, drives compression and
+soft saturation harder, and filters the resulting high harmonics again. It
+preserves source recordings, pitch and phrase timing; no paid synthesis is
+needed to revise this treatment. Only generated Ogg files receive the filter.

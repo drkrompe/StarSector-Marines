@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Infantry radio faces follow the speaking actor; authored emergency calls can interrupt routine mission instructions.
+Updated: 2026-10-13 — Talon Two flight portrait and cockpit radio treatment distinguish the aviation speaker from infantry.
 
 Read `stories.md` for the open-work board.
 
@@ -198,7 +198,12 @@ Clean generated masters remain separate from a shared offline comms profile:
 band limiting, moderate compression, subtle saturation and peak limiting. The
 profile is an optional audio-manifest treatment and participates in the encode
 cache key. Changing it rebuilds treated clips without regenerating speech or
-invalidating unrelated clean audio. Alternating story speakers may instead use
+invalidating unrelated clean audio. Talon Two retains the same source voice as
+infantry actor Kestrel Two, but has a distinct face in a flight helmet and a
+narrower, more compressed and saturated cockpit radio treatment. The treatment
+belongs to his transmissions; other speakers mentioning the aircraft retain
+their own presentation. It does not change pitch or speech timing.
+Alternating story speakers may instead use
 a clean dialogue loudness treatment,
 with a shared target and peak ceiling; source takes remain untouched.
 Runtime playback needs no provider account,

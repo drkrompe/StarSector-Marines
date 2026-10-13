@@ -89,6 +89,14 @@ public final class ProcessAudioTask {
                     + "asoftclip=type=tanh:threshold=0.65:oversample=2,volume=2.5,"
                     + "alimiter=limit=0.89:level=false:latency=true"));
         }
+        if (processing == AudioManifest.Processing.AIR_COMMS) {
+            // Narrow cockpit radio, with a driven microphone. Preserve pitch and phrase timing.
+            // Filter again after saturation so its harmonics do not restore the clean high end.
+            options.addAll(List.of("-af", "highpass=f=420:p=2,lowpass=f=2500:p=2,"
+                    + "acompressor=threshold=0.06:ratio=6:attack=3:release=70:makeup=3,"
+                    + "asoftclip=type=tanh:threshold=0.38:oversample=4,volume=3,"
+                    + "lowpass=f=2500:p=2,alimiter=limit=0.85:level=false:latency=true"));
+        }
         if (processing == AudioManifest.Processing.DIALOGUE) {
             // Match alternating speakers without modifying the retained clean generation takes.
             options.addAll(List.of("-af", "loudnorm=I=-20:TP=-2:LRA=7"));
