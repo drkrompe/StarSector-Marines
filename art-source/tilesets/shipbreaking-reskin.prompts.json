@@ -1,0 +1,37 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "id": "shepherd",
+      "source": "art-source/templates/shepherd-vanilla-guide.png",
+      "transparent_background": true,
+      "prompt": "Use case: precise-object-edit. Production top-down 2D game sprite restoration / faithful high-resolution reskin. The supplied 78x92 sprite is the authoritative Starsector Shepherd drone tender, the edit target and geometry guide, not merely inspiration. Reconstruct this EXACT ship at high resolution, ideally 1536x1792 or larger, in the exact same straight-overhead orthographic camera, centered full canvas, orientation, proportions and silhouette. Preserve every major hull section: ochre rust-brown industrial plating, asymmetrical exposed dark machinery, two large dark rounded volumes along the left upper portion, narrow central beige spine, small piping and edge protrusions; keep their locations identical to the reference. Add crisp believable micro-detail to its already present panels, bolted plates, seams, grilles, hoses and mechanical bays. Worn functional salvage tug, recoverable and repairable, no major new damage. Sharp illustrated pre-rendered tactical game art, restrained material shading, diffuse neutral illumination so the game can light it. Do not enlarge into blurred pixels: redraw edges and surface details cleanly. Do not redesign, mirror, rotate, tilt or add perspective. Preserve genuine transparent space outside the exact ship and in silhouette gaps; no backdrop, ground, light pool, cast floor shadow, fog, black rectangular backing, labels or text. Keep entire ship visible, modest original-equivalent margin, no detached additions. Native transparent RGBA.",
+      "acceptedOutput": "art-source/tilesets/shepherd-recovery.raw.png",
+      "acceptedSizePx": [
+        1155,
+        1362
+      ],
+      "shippedAtlasSizePx": [
+        1280,
+        1536
+      ]
+    },
+    {
+      "id": "scrap",
+      "source": "art-source/templates/basin-scrap-vanilla-guide.png",
+      "transparent_background": true,
+      "prompt": "Use case: precise-object-edit. Production overhead game sprite sheet high-resolution reconstruction. The supplied 128x128 image is an authoritative 4 columns by 4 rows sheet of sixteen individual Starsector derelict spacecraft scrap sprites. Reconstruct the SAME SIXTEEN shapes and their exact grid positions in a 2048x2048 transparent sheet (each cell 512x512); retain all clear cell gutters and proportional in-cell margins. Preserve the silhouette, orientation, placement, mechanical identity and torn openings of EACH original scrap piece. In particular keep all pieces isolated, none crossing a cell border. Faithfully up-res the worn industrial shipbreaker's salvage: gray/cream and muted maroon hull fragments, folded plating, split engine casings, exposed curved ribs, pipes and broken machinery, with crisp convincing seams, torn sheet-metal edges and mechanical detail that the tiny sources imply. High-quality top-down orthographic painted/pre-rendered tactical-game assets; no isometric perspective or side view. Diffuse neutral lighting, subdued realistic metal palette, restrained wear, readable large masses. These are separate physical objects placed on an existing game ground, so absolutely no floors, pedestals, background, checkerboard pixels, grid lines, text, labels, framing, fog, broad shadows or glow. Preserve genuine transparent background and holes between ribs. No extra pieces, no rearrangement, no rotations, no cartoon outlines. Exact 4x4 sheet and all sixteen sprites fully contained in respective cells.",
+      "initialOutput": "art-source/templates/basin-scrap-detail-guide.png",
+      "cleanupRecord": "art-source/tilesets/shipbreaking-reskin-cleanup.prompt.txt",
+      "acceptedOutput": "art-source/tilesets/basin-ship-scrap.raw.png",
+      "acceptedSizePx": [
+        1254,
+        1254
+      ],
+      "shippedAtlasSizePx": [
+        832,
+        2432
+      ]
+    }
+  ]
+}
