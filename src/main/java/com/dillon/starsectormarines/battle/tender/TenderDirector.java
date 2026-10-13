@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.ObjectiveBias;
+import com.dillon.starsectormarines.battle.warship.Warship;
 
 import java.util.Arrays;
 import java.util.List;
@@ -283,7 +284,9 @@ public final class TenderDirector {
      * moves to its idle station. Returns the plan acted on, for evidence.
      */
     static Plan direct(Tender t, BattleSimulation sim, float dt) {
-        if (t.grounded() || t.piloted() || t.ship().departing() || t.ship().stance() == MissionStance.HOLD) return Plan.NONE;
+        if (t.grounded() || t.piloted() || t.ship().departing()
+                || t.ship().remoteOrder() != Warship.RemoteOrder.NONE
+                || t.ship().stance() == MissionStance.HOLD) return Plan.NONE;
         t.directorClock += dt;
         if (t.directorClock < DECIDE_SECONDS) return Plan.NONE;
         t.directorClock = 0f;

@@ -147,6 +147,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlSession;
+import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
@@ -654,6 +655,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FortressBatteryService fortressBatteries = new FortressBatteryService();
     private final FortressBatterySystem fortressBatterySystem = new FortressBatterySystem();
     private final TenderSystem tenders = new TenderSystem();
+    private final ShipCommandService shipCommands = new ShipCommandService();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
@@ -1859,6 +1861,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return tenders;
     }
 
+    public ShipCommandService shipCommands() { return shipCommands; }
+
     /** Lance sweeps in progress, for presentation and evidence. */
     public LanceSweepSystem lanceSweeps() {
         return lanceSweeps;
@@ -2517,6 +2521,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // which every reader samples live at the moment a round resolves.
         deployedCover.tick(TICK_DT, this);
         // Tenders launch and recover their drones, fly to a site and stand its structure up.
+        shipCommands.drain(warships.ships(), tenders.tenders(), Faction.MARINE, grid,
+                (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
         closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
