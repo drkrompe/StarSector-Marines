@@ -23,6 +23,7 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (outcome != null && outcome.workingPassage != null) return "REGISTRY TRANSFER / CASTLE & VALE";
         if (outcome != null && outcome.coldStart != null) return "COLD START / CASTLE & VALE";
         if (outcome != null && outcome.salvageRights != null) return "RECOVERY AGREEMENT / CASTLE & VALE";
         if (firstContract(outcome)) return "FIRST CONTRACT / CASTLE & MARA";
@@ -30,13 +31,18 @@ final class MissionDebriefConversation {
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
+                recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Registry accepted. Morrow is ours. Hull, workshop, and a very long list of maintenance jobs."),
+                recoveryLine("departure-corridor", false, "The corridor is ours again. Keep her working, Castle. That is what those ships were built for."),
+                recoveryLine("departure-crew", true, "The berth offer stands for willing working hands. We will carry enough fleet crew for her minimum complement; nobody is being signed into a marine squad."),
+                recoveryLine("departure-cost", false, outcome.marinesLost > 0 || outcome.workingPassage.militiaLost() > 0?"Keep the people we lost on the record with the ship we brought out.":"A working ship, and a road we can use again."));
         if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
                 recoveryLine("first-gun", true, "That is a position we do not have to fill with another squad. Keep the crew covered. Let the machine do its job."),
                 recoveryLine("repair-complete", false, "Drone bay answers. Pumps hold pressure. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow stays in the cradle until we clear her departure corridor."),
                 recoveryLine("repair-cost", true, outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
                         ? "Put the people we lost on the roll before we count the machinery."
                         : "The work is signed off. We still have a ship to bring home."),
-                recoveryLine("departure-pending", false, "Working Passage is not yet available. Replenish your company; the recovery claim and completed repairs remain protected."));
+                recoveryLine("departure-pending", false, "Working Passage is ready when your company is. Replenish your company; the recovery claim and completed repairs remain protected."));
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
                 recoveryLine("registry", true, "Put Morrow's registry in the agreement. We bring your crews back to work; when this ship flies, it flies with us."),
                 recoveryLine("terms", false, "Hull and drone workshop, after the repair and departure contracts. The fixed yard stays with the cooperative. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"Today's payment is released; the claim is protected.")),

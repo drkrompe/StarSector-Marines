@@ -231,14 +231,15 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float baseAlpha = ctx.alphaMult * WARSHIP_SHADOW_ALPHA * sun.shadowStrength();
         for (Warship ship : ships) {
-            ShuttleSpriteCache hull = sprites.spriteByPath(ship.spritePath);
+            ShuttleSpriteCache hull = sprites.spriteByPath(ship.lowHoverWidth() > 0f
+                    ? "graphics/tilesets/shepherd-recovery.png" : ship.spritePath);
             if (hull == null) continue;
             // A ship dropping through the deck, or climbing back into it, casts from higher up: the
             // shadow lies further down-sun, softer and thinner, and closes on the hull as it settles.
             float lift = WarshipAtmosphere.lift(ship.entrySeconds(), ship.departingSeconds(), ship.departing());
             // On a low pass it skims: the shadow lies close under the hull, sharp and dense.
             LowPass pass = ship.lowPass();
-            float skim = pass == null ? 0f : pass.blend();
+            float skim = ship.lowHovering() ? 1f : pass == null ? 0f : pass.blend();
             float reach = sun.reachCells(WarshipAtmosphere.altitudeCells(
                     WARSHIP_SHADOW_ALTITUDE_CELLS * WarshipAtmosphere.passShadowAltitudeFactor(skim), lift));
             float alpha = baseAlpha * WarshipAtmosphere.shadowDensity(lift)
@@ -249,10 +250,15 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             float s = (float) Math.sin(rad);
             float shadowX = ship.x + (ship.pivotX * c - ship.pivotY * s) - sun.dirX() * reach;
             float shadowY = ship.y + (ship.pivotX * s + ship.pivotY * c) - sun.dirY() * reach;
+            if (ship.lowHoverWidth() > 0f) {
+                shadowX = ship.x - sun.dirX() * reach;
+                shadowY = ship.y - sun.dirY() * reach;
+            }
             if (!view.visible(shadowX, shadowY, ship.lengthCells * Math.max(1f, hull.aspect))) continue;
-            float pxH = ship.lengthCells * cellPx;
+            float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells) * cellPx;
+            float aspect = ship.lowHoverWidth() > 0f ? ship.lowHoverHeight() / ship.lowHoverWidth() : hull.aspect;
             if (soft < 0.02f) {
-                emit(out, hull.sprite, cam, shadowX, shadowY, pxH * hull.aspect, pxH,
+                emit(out, hull.sprite, cam, shadowX, shadowY, pxH * aspect, pxH,
                         ship.facingDegrees, alpha);
                 continue;
             }
@@ -264,7 +270,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             for (int ring = 0; ring < SHADOW_PENUMBRA_LAYERS; ring++) {
                 float grow = 1f + soft * SHADOW_PENUMBRA_GROWTH * ring;
                 float share = 1f / (1f + ring * (0.6f + soft)) / total;
-                emit(out, hull.sprite, cam, shadowX, shadowY, pxH * hull.aspect * grow, pxH * grow,
+                emit(out, hull.sprite, cam, shadowX, shadowY, pxH * aspect * grow, pxH * grow,
                         ship.facingDegrees, alpha * share);
             }
         }

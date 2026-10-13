@@ -240,7 +240,8 @@ public final class WarshipRenderSystem implements RenderSystem {
     }
 
     private void drawHull(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship) {
-        ShuttleSpriteCache hull = sprites.spriteByPath(ship.spritePath);
+        ShuttleSpriteCache hull = sprites.spriteByPath(ship.lowHoverWidth() > 0f
+                ? "graphics/tilesets/shepherd-recovery.png" : ship.spritePath);
         if (hull == null) return;
         float rad = (float) Math.toRadians(ship.facingDegrees);
         float c = (float) Math.cos(rad);
@@ -249,12 +250,14 @@ public final class WarshipRenderSystem implements RenderSystem {
         // gravity, in the hull frame; the hull rotates about its CoG.
         float hx = ship.x + (ship.pivotX * c - ship.pivotY * s);
         float hy = ship.y + (ship.pivotX * s + ship.pivotY * c);
-        float pxH = ship.lengthCells * cellPx;
+        if (ship.lowHoverWidth() > 0f) { hx = ship.x; hy = ship.y; }
+        float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells) * cellPx;
+        float pxW = ship.lowHoverWidth() > 0f ? ship.lowHoverHeight() * cellPx : pxH * hull.aspect;
         // A battered hull darkens toward charcoal as its hit points go.
         float tint = 0.4f + 0.6f * ship.hullFraction();
         out.addSprite(RenderLayer.SHUTTLES, hull.sprite,
                 cam.cellToScreenX(hx), cam.cellToScreenY(hy),
-                pxH * hull.aspect, pxH, ship.facingDegrees,
+                pxW, pxH, ship.facingDegrees,
                 tint, tint, tint, alpha);
     }
 

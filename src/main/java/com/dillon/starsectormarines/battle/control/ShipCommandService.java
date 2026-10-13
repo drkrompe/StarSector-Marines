@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderPilot;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.LowHoverClearance;
 import com.dillon.starsectormarines.battle.warship.WarshipPosture;
 
 import java.util.ArrayList;
@@ -55,6 +56,8 @@ public final class ShipCommandService {
         if (eligible != Notice.NONE) return eligible;
         int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
         if (!Float.isFinite(x) || !Float.isFinite(y) || !grid.inBounds(cx, cy)) return Notice.OFF_MAP;
+        if (ship.lowHovering() && !LowHoverClearance.sweptClear(grid, ship.x, ship.y, x, y,
+                ship.lowHoverWidth(), ship.lowHoverHeight())) return Notice.BLOCKED;
         return revealed.test(cx, cy) ? Notice.NONE : Notice.UNSEEN;
     }
 

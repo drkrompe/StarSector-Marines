@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
@@ -52,6 +53,7 @@ public final class MissionObjectiveProjection {
             } else if (objective instanceof SalvageRightsSequence salvage) items.add(buildingFootprint(
                     MissionObjectiveFamilies.salvage(salvage),sim.getTopology(),sim.getGrid(),salvage.targetBuilding()));
             else if (objective instanceof ColdStartSequence repair) items.add(MissionObjectiveFamilies.coldStart(repair));
+            else if (objective instanceof WorkingPassageSequence passage) items.add(MissionObjectiveFamilies.workingPassage(passage));
             else if (objective instanceof DepotHoldSequence depot) items.add(MissionObjectiveFamilies.depot(depot));
             else if (objective instanceof ColdAccountIntervention intervention) items.add(MissionObjectiveFamilies.coldAccount(intervention,
                     sim.getObjectives().stream().filter(RaidObjective.class::isInstance)

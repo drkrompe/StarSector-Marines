@@ -234,6 +234,16 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);
         }
+        if(outcome!=null && outcome.workingPassage!=null) {
+            var passage=outcome.workingPassage;
+            props.put("storyClasses","story-dispatch console-readout");
+            props.put("storyPortrait",OpeningBroker.CREST);
+            props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
+            props.put("storyProgress",passage.departed()?"MORROW / PHYSICAL CLIMB-OUT CONFIRMED":passage.disabled()?"CRITICAL DISABLE / DEPARTURE ABORTED":"DEPARTURE INCOMPLETE");
+            props.put("storyMessage",(outcome.victory
+                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Registry accepted. Morrow joins your fleet once, with willing working crew covering her minimum complement. The corridor belongs to the cooperative. Hull, workshop, and a very long list of maintenance jobs.")
+                    : "The claim and completed repairs remain. Vale will recover and refit the same grounded hull for another departure; confirmed losses remain on the account.") + " Cooperative militia lost: "+passage.militiaLost()+".");
+        }
         if(outcome!=null && outcome.coldStart!=null) {
             var repair=outcome.coldStart;
             props.put("storyClasses","story-dispatch console-readout");
@@ -241,7 +251,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
             props.put("storyProgress",outcome.victory?"REPAIRS COMPLETE / SHIP STILL GROUNDED":"REPAIR MOBILIZATION UNFINISHED");
             props.put("storyMessage",(outcome.victory?
-                    "The drone bay answers and the pumps hold pressure. "+(outcome.missionSource.isDebug()?"Training record only; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow remains grounded; Working Passage is not yet available and no fleet ship is awarded.":
+                    "The drone bay answers and the pumps hold pressure. "+(outcome.missionSource.isDebug()?"Training record only; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow remains grounded; Working Passage is now available for departure clearance.":
                     "Bring your company home. No repair payment is awarded. Vale will assign replacement cooperative personnel. Completed delivery and shore power remain on record; unfinished work needs another mobilization.")
                     +" Cargo delivered: "+repair.cargoDelivered()+". Shore power restored: "+repair.shorePower()+". Turret constructed this sortie: "+repair.turretConstructed()+". Repair technicians lost: "+repair.crewLost()+".");
         }
