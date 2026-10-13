@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
+import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 
 import java.util.EnumMap;
@@ -40,12 +41,12 @@ public final class MissionForceEnvelope {
         return mission != null
                 && (mission.source == MissionSource.GENERATED
                         || mission.source == MissionSource.POLITY_DEFENCE
-                        || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission))
+                        || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission))
                 && mission.type != MissionType.CONQUEST;
     }
 
     public static int minimumPersonnel(Mission mission, int authoredSeats) {
-        if (SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission)) return 8;
+        if (SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)) return 8;
         return allowsUnderstrength(mission)
                 ? MINIMUM_READY_PERSONNEL : Math.max(0, authoredSeats);
     }
@@ -63,7 +64,7 @@ public final class MissionForceEnvelope {
      * jump required by its three simultaneous lanes and sustained ferry battle.
      */
     public static int recommendedSquads(Mission mission) {
-        if(ShepherdRecoveryCampaign.isBattle(mission))return 2;
+        if (ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)) return 2;
         if (CorvusWaylineCampaign.isBattle(mission)) return CorvusWaylineProgress.forMission(mission.id).squads;
         if (mission != null && SupplyRouteCampaign.owns(mission.id)) return 2;
         return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;

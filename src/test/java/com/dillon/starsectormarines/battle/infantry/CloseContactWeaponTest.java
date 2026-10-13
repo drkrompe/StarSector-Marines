@@ -153,7 +153,9 @@ class CloseContactWeaponTest {
     void theBreachingChannelAppliesBoundedContactWorkWithNoSplash() {
         BattleSimulation sim = openArena(24, 12);
         long breacher = carrier(sim, cutter(), Faction.MARINE, 5, 5);
-        long emplacement = turret(sim, 6, 5);
+        // Keep this damage-accounting target alive so its remaining durability is readable.
+        long emplacement = sim.spawn(MapTurret.create("contact-work-target", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 6, 5).health(cutter().damage() + 1f));
         long neighbour = turret(sim, 7, 5);
         float before = sim.world().hp(emplacement);
         float armorBefore = sim.world().armor(emplacement);

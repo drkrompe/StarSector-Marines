@@ -145,6 +145,8 @@ final class CompanyHqViewModel {
             props.put("openingGuide", new CorvusWaylineWorkGuide(CorvusWaylineCampaign.current(), CorvusWaylineCampaign.destination(), openingCourse));
         if(ShepherdRecoveryCampaign.current()!=null)
             props.put("openingGuide",new ShepherdRecoveryWorkGuide(ShepherdRecoveryCampaign.current(),ShepherdRecoveryCampaign.destination(),openingCourse));
+        if (AgreusArcCampaign.current() != null)
+            props.put("openingGuide", new AgreusWorkGuide(AgreusArcCampaign.current(), AgreusArcCampaign.destination(), openingCourse));
         props.put("firstRefitClasses", FirstRefit.available(rosterScript == null ? null : rosterScript.roster())
                 ? "hq-wings console-action" : "hidden");
         props.put("wingsClasses", SecondhandWingsCampaign.available(rosterScript == null ? null : rosterScript.roster())

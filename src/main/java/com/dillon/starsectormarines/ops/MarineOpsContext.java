@@ -876,6 +876,12 @@ public class MarineOpsContext {
     /** Adds an ordinary faction contact only when its authored projection is non-empty. */
     private static void appendIfWorkExists(List<Client> out, PlanetAPI planet,
                                            Client client) {
+        if (AgreusArcCampaign.atSite(planet) && client.patronHouseId == -1L
+                && Factions.INDEPENDENT.equals(client.factionId)) {
+            out.add(new Client(client.factionId, AgreusArcCampaign.NAME, OpeningBroker.CREST,
+                    client.repLevel, client.locked, client.lockReason, -1L, AgreusArcCampaign.CONTACT_ID));
+            return;
+        }
         boolean referral = client.patronHouseId == -1L && Factions.INDEPENDENT.equals(client.factionId)
                 && OpeningBroker.introductionPending() && OpeningBroker.current() != null;
         if (referral || !MissionGenerator.generate(planet, client).isEmpty()) {

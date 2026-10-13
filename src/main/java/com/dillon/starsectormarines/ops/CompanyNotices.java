@@ -13,6 +13,7 @@ import java.util.List;
 /** Unread opportunities, never another owner of rewards, eligibility or payment. */
 final class CompanyNotices {
     enum Notice {
+        AGREUS_REFERRAL("agreus-referral", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesAgreusReferral"),
         SHEPHERD_RECOVERY("shepherd-recovery", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesMaraSIntroductionToTamsinVale"),
         WORKING_PASSAGE("shepherd-working-passage", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesWorkingPassage"),
         COLD_START("shepherd-cold-start", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesColdStart"),
@@ -38,6 +39,8 @@ final class CompanyNotices {
         if (roster == null || Global.getSector() == null) return List.of();
         var found = new ArrayList<>(unread(roster, CompanyBayRestoration.state(CompanyShipDesignation.aboard())));
         var recovery = ShepherdRecoveryCampaign.current();
+        var agreus = AgreusArcCampaign.current();
+        add(found, roster, Notice.AGREUS_REFERRAL, agreus != null && !agreus.completed());
         add(found, roster, Notice.SHEPHERD_RECOVERY, recovery != null && !recovery.claimSecured());
         add(found, roster, Notice.COLD_START, recovery != null && recovery.claimSecured() && !recovery.repaired());
         add(found, roster, Notice.WORKING_PASSAGE, recovery != null && recovery.repaired() && !recovery.departed());
