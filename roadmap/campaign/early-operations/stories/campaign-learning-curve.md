@@ -20,7 +20,7 @@ Read `early-operation-nouns.md`, `meta-progression.md` and
 | Blind Watch | Three squads; 30,000 credits | Divide objective duties; revisit leadership and specialty training |
 | Cold Account | Four squads; 42,000 credits | Restore billets, prepare leadership, extract under intervention |
 | A Working Ship | Planned Shepherd and construction | Protect builders, establish positions, hand off ground |
-| A Small War | Planned recovered Specter, recovered Arbalest and pirate Boarding Jack; two-to-three-squad recommendation | Mix individual equipment within existing squads; use builders and allied holders to sustain a district commitment |
+| A Small War | Limited Warrant awards Recovered Specter; recovered Arbalest and pirate Boarding Jack remain planned; two-to-three-squad recommendation | Mix individual equipment within existing squads; use builders and allied holders to sustain a district commitment |
 
 Record availability, explanation, actual configuration and actual field use
 separately. Also record total campaign victories and side jobs: story position
@@ -55,5 +55,5 @@ alone cannot describe the player's equipment or cash.
 
 `shepherd-recovery.md` owns the planned construction arc. This story does not
 claim its maps already award a working fleet ship or unlock construction.
-`a-small-war.md` owns the planned expedition to Agreus in nearby Arcadia and its initial fee
+`a-small-war.md` owns the expedition to Agreus in nearby Arcadia and its initial fee
 ledger; its three patterns, travel and casualty pressure need campaign acceptance.
