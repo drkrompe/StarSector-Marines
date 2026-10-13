@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- room-condition restoration and persistent unread room opportunities.
+Updated: 2026-10-12 -- Barracks owns equipment discovery, editing routes and unread equipment notices.
 
 ## Purpose
 
@@ -12,10 +12,10 @@ Company view makes the player's force legible as an organization wherever a
 decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
-player-order layer. Barracks, Fleet Armory, Mech Lab and Boat Deck are deliberate
-authoring seams. Barracks organizes officer commands and saved squad profiles,
-and issues explicit replenishment orders. Fleet Armory authors detailed equipment
-and founds formations. Mech Lab and Boat Deck refit their persistent machines.
+player-order layer. Barracks, Mech Lab and Boat Deck are deliberate authoring
+seams. Barracks organizes officer commands and saved squad profiles, and issues
+explicit replenishment orders. Its Equipment workspace retains Fleet Armory
+authoring and formation founding. Mech Lab and Boat Deck refit their persistent machines.
 Each surface acts through the corresponding campaign authority.
 
 This domain owns the shared language and presentation shape of the company. It
@@ -129,10 +129,10 @@ comes from the owning feature; money and docking requirements never turn unread
 news into invisible news. Existing saves discover currently available unread
 opportunities once. The retained shell presents these facts without owning rewards.
 
-The retained Company -> Squad -> Fire Team hierarchy is shared across two rooms
-with different intent. Barracks opens on officer commands and an independent
+Barracks is the single troop-management entry point. Its Equipment workspace
+retains the Company -> Squad -> Fire Team editing hierarchy. Barracks opens on officer commands and an independent
 acting-NCO group, with squad selection for bulk orders. Inspecting one squad
-visits its assigned quarters and muster. Fleet Armory is the detailed
+visits its assigned quarters and muster. Equipment opens the existing Fleet Armory
 inspect/edit path for equipment definitions, exact billet comparison, and issue.
 Its selectable company and squad cards retain readiness, recovery, and reinforcement
 in formation context. A reinforcement control is a secondary card action; selecting
@@ -162,7 +162,13 @@ command display distinguishes current squads from incoming assignments and shows
 overflow against the rank cap before Apply. Unassigned carries an explicit
 operation-commander or acting-NCO fallback rather than a fictional officer portrait or capacity.
 
-Fleet Armory is the only Armory route. The former Armory Administration shell,
+The Armory has no separate top-level tab. Barracks owns its Equipment entry,
+and Equip Squad opens the selected squad directly. Returning preserves the
+Barracks selection and drill-down. Equipment news marks both the Barracks tab
+and its Equipment entry; entering Barracks alone does not acknowledge the lesson.
+The existing editor and inventory transactions remain authoritative.
+
+Fleet Armory is the only detailed equipment editor. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,
 and embedded Mech Lab were retired rather than retained as duplicate UI. Personnel
 reinforcement now lives on formation cards. Mech Lab has returned as its own retained
@@ -258,7 +264,7 @@ fallback without choosing an operation commander in advance.
 ## Squad equipment doctrines
 
 **A Proper Issue** is Castle's optional first squad-refit lesson after the story
-victory in Hold Until Relieved. The debrief and HQ point to the Armory; its
+victory in Hold Until Relieved. The debrief opens the equipment lesson directly and HQ points to Barracks; its
 opening conversation and gallery resume action keep the offer discoverable.
 Accepting Wayline's consignment permanently learns Milspec Stalwart and Lancer
 patterns and the Janus scout suit, plus two reusable weapon plans. Acceptance
@@ -1072,9 +1078,10 @@ request, then closes the HQ rather than routing through those screens itself.
 Company surfaces are places aboard the player's flagship rather than abstract
 application modules. Company HQ is the bridge command station and the nerve center
 for the whole organization. A persistent top shell exposes `RETURN`, `HQ`, `BARRACKS`,
-`ARMORY`, and `MECH LAB`, marks the occupied room, and carries the precise location context at the
-right. `RETURN` closes the shipboard UI; room routes move directly between top-level
-surfaces. Armory company, squad, and fire-team breadcrumbs remain page-specific below
+`MECH LAB`, and `BOATS`, marks the occupied room, and carries the precise location context at the
+right. `RETURN` closes top-level rooms; within Equipment it returns to the caller.
+Room routes move directly between top-level surfaces. Equipment remains selected
+under Barracks. Company, squad, and fire-team breadcrumbs remain page-specific below
 that shell, while the bottom of every room is reserved for its own content. Future
 Briefing Room, medical, logistics, or fabrication surfaces should join the
 same spatial navigation vocabulary only when their real destination exists. A screen
@@ -1148,17 +1155,13 @@ loses an opportunity. Responding to an obligation follows the same deployment
 route as its campaign event notice. Long lists state hidden counts, and missing
 derived inputs are explained rather than silently collapsed.
 
-The HQ introduces no persisted state and no second company hierarchy. Opening its
-Armory transition first shows the owned-company collection as a responsive grid of
-literal selectable portrait cards. Selecting one enters a company-specific squad
-gallery; selecting a squad then exposes its three fire teams, named-marine viewer,
-two squad doctrine slots, and one exact issue action. A breadcrumb keeps the
-completed company and squad levels directly reachable while drilling down. A
-company or squad card is only a presentation container over canonical roster
-authority; neither creates parallel organization. Until a
-multi-company campaign authority exists, the first grid contains exactly the one real
-campaign roster rather than fixture companies. The HQ roster area remains the host
-that the formation, whereabouts, and contract-board stories will expand.
+The HQ introduces no persisted state and no second company hierarchy. Troop
+management routes into Barracks. Its Equipment entry opens the squad equipment
+gallery; Equip Squad bypasses the gallery for the inspected squad's three fire
+teams, named-marine viewer, two squad doctrine slots, and exact issue action.
+Breadcrumbs retain editor navigation, while the Barracks tab returns to the
+personnel workspace. These containers project the canonical roster; none creates
+parallel organization or another inventory economy.
 
 ## Cerberus founding start and planetary stores
 

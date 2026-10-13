@@ -1,9 +1,9 @@
 <template props="firstRefitClasses,openFirstRefit,companySummary,squadGalleryCards,cargoStockRows,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / FLEET MARINE COMPANY" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / FLEET MARINE COMPANY" />
 
     <div id="squad-breadcrumb" class="panel">
-      <button id="squad-breadcrumb-companies" onclick="{back}">Companies</button>
+      <button id="squad-breadcrumb-companies" onclick="{back}">Back</button>
       <div id="squad-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
       <div id="squad-breadcrumb-company" class="breadcrumb-current label tone-edge">Fleet Marine Company</div>
       <div id="squad-breadcrumb-separator-squads" class="breadcrumb-separator label tone-muted">/</div>
@@ -11,7 +11,7 @@
     </div>
 
     <div id="squad-overview-intro" class="panel">
-      <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
+      <div id="squad-overview-heading" class="label heading tone-edge">EQUIPMENT WORKSPACE</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
       <div id="squad-overview-copy" class="label tone-muted">{organization.galleryCopy}</div>
     </div>

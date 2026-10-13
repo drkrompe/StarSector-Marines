@@ -31,7 +31,7 @@
           </button>
           <button id="mission-armory" onclick="{armoryAction}">
             <div id="mission-armory-signal" class="console-command-signal" />
-            <div id="mission-armory-legend" class="console-key-legend">ARMORY</div>
+            <div id="mission-armory-legend" class="console-key-legend">BARRACKS</div>
             <img id="mission-armory-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
           </button>
         </div>

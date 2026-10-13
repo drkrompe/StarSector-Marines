@@ -32,7 +32,7 @@ class MarineOpsPageNavTest {
             var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(document::addStyleSheet);
             document.layout(1400, 60);
-            List<String> ids = List.of("page-nav-barracks", "page-nav-armory", "page-nav-mech-lab", "page-nav-boats");
+            List<String> ids = List.of("page-nav-barracks", "page-nav-mech-lab", "page-nav-boats");
             for (String id : ids) {
                 assertTrue(markup.requireElement(id).hasClass("page-nav-absent"));
                 click(document, markup.requireElement(id));
@@ -50,7 +50,7 @@ class MarineOpsPageNavTest {
                 assertFalse(markup.requireElement(id).hasClass("page-nav-waiting"));
                 click(document, markup.requireElement(id));
             }
-            assertArrayEquals(new int[]{1, 1, 1, 1}, counts, "Original retained controls must open all newly available rooms");
+            assertArrayEquals(new int[]{1, 0, 1, 1}, counts, "Original retained controls must open all newly available rooms");
             assertSame(boatButton, markup.requireElement("page-nav-boats"));
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.SHIP_TRANSFER, rooms::get,
                     List.of(CompanyNotices.Notice.SECONDHAND_WINGS));
@@ -66,7 +66,13 @@ class MarineOpsPageNavTest {
             assertEquals(2, counts[3]);
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.SHIP_TRANSFER, rooms::get);
             assertTrue(boatButton.hasClass("page-nav-absent"));
-            assertFalse(markup.requireElement("page-nav-armory").hasClass("page-nav-absent"));
+            assertFalse(markup.requireElement("page-nav-barracks").hasClass("page-nav-absent"));
+            assertThrows(IllegalArgumentException.class, () -> markup.requireElement("page-nav-armory"));
+            MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.ARMORY, rooms::get,
+                    List.of(CompanyNotices.Notice.FIRST_REFIT));
+            assertTrue(markup.requireElement("page-nav-barracks").hasClass("page-nav-current"));
+            assertTrue(markup.requireElement("page-nav-barracks").hasClass("page-nav-new"));
+            assertEquals(ScreenId.BARRACKS, CompanyNotices.Notice.FIRST_REFIT.screen);
         }
     }
 

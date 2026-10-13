@@ -222,7 +222,7 @@ public final class BoatDeckScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "boat-deck-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
                 "boat-deck-room-bar", "boat-deck-room-name", "boat-bay-navigator",
                 "boat-previous-bay", "boat-active-bay", "boat-next-bay",
