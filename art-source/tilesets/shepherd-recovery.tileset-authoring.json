@@ -1,14 +1,27 @@
 {
   "sheetName": "shepherd-recovery",
   "sheet": "art-source/tilesets/shepherd-recovery.raw.png",
-  "cellPx": 32,
+  "cellPx": 64,
   "idPrefix": "shepherd-recovery",
   "outputSheet": "graphics/tilesets/shepherd-recovery.png",
-  "note": "Unmodified Starsector 0.98a-RC8 graphics/ships/drone_tender.png from the installed game. Inert grounded hull, packed through tileset_export. User-directed grounded scale: 20 beam x 24 length cells, rotated to 24x20 in the basin. The hull supports 15 minimum/30 maximum crew, 100 cargo and a drone bay in installed ship_data.csv. This is deliberately larger than compressed overhead flight scale. The future live low-hover recovery ship must match this presence until climb-out; it is not implemented by this scenery prop. Quarter-turn belongs to placement.",
-  "entries": [{
-    "id": "doodad.shepherd-recovery-hull", "rect": [0,0,78,92],
-    "included": true, "cover": "heavy", "ballisticHalfHeight": 1.5,
-    "footprintCells": [20,24],
-    "note": "Grounded Shepherd in a recovery cradle. Preserve the whole vanilla hull; not a live fleet ship or automatic construction source."
-  }]
+  "note": "Faithful built-in ImageGen high-detail reskin of the installed Starsector 0.98a-RC8 graphics/ships/drone_tender.png. The retained vanilla geometry reference is art-source/templates/shepherd-vanilla-guide.png; exact prompts are in shipbreaking-reskin.prompts.json. Accepted RGBA master is 1155x1362; whole-frame export at 64px/cell preserves fine detail for close ground cameras. Grounded scale remains 20 beam x24 length cells, rotated to 24x20 in the basin. The inert hull supports the same blocked ground footprint and recovery story; this art does not replace the flying ship or change gameplay.",
+  "entries": [
+    {
+      "id": "doodad.shepherd-recovery-hull",
+      "rect": [
+        0,
+        0,
+        1155,
+        1362
+      ],
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.5,
+      "footprintCells": [
+        20,
+        24
+      ],
+      "note": "Grounded Shepherd in a recovery cradle. Preserve the whole vanilla hull; not a live fleet ship or automatic construction source."
+    }
+  ]
 }
