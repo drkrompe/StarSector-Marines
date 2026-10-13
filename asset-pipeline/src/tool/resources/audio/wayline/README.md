@@ -75,7 +75,9 @@ not encode the callsign. Mission briefings and other speakers' references use
 the same aviation name.
 
 The pilot's flight-helmet portrait is `graphics/portraits/talon-two.png`.
-AIR_COMMS narrows the voice to a 420–2500 Hz radio band, drives compression and
+AIR_COMMS lowers the voice by two semitones while preserving phrase timing,
+narrows it to a 420–2500 Hz radio band, drives compression and
 soft saturation harder, and filters the resulting high harmonics again. It
-preserves source recordings, pitch and phrase timing; no paid synthesis is
+preserves source recordings; no paid synthesis is
 needed to revise this treatment. Only generated Ogg files receive the filter.
+Encoding AIR_COMMS requires an FFmpeg build with librubberband enabled.
