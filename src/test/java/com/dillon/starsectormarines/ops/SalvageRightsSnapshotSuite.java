@@ -21,12 +21,15 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import java.awt.Color;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
@@ -126,18 +129,20 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         var renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         var progress = new ShepherdRecoveryProgress();
         var mission = ShepherdRecoveryCampaign.offer(progress, "Asharu");
-        var board = MissionSelectScreen.previewProps();
         Runnable none = () -> { };
-        board.put("locationLabel", "Asharu / Corvus");
-        board.put("clients", List.of(new MissionSelectScreen.ClientRow("client-vale", "client-vale-name", "client-vale-rep",
-                OpeningBroker.CREST, "client-card selected", "Tamsin Vale", "Basin Reclamation Cooperative", false, none)));
-        board.put("missionHeader", "Basin Reclamation Cooperative");
-        board.put("missions", MissionSelectScreen.missionRows(List.of(mission), mission, ignored -> { }));
-        board.put("stationingRows", List.of());
-        MissionSelectScreen.putDetail(board, mission, none, none);
-        MissionSelectScreen.putShepherd(board, progress);
+        var board = boardProps(progress, mission);
         frames.add(document(context, renderer, "contract-board.png", MissionSelectScreen.COMPONENT_PATHS,
                 MissionSelectScreen.ROOT_COMPONENT, board));
+
+        addBriefingFrames(context, renderer, mission, frames);
+        try (var strings = new HeadlessStrings(context.modRoot(), SalvageRightsSnapshotSuite::expandDialogueCopy)) {
+            var translatedMission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
+            var translatedBoard = boardProps(new ShepherdRecoveryProgress(), translatedMission);
+            frames.add(document(context, renderer, "contract-board-expanded.png", MissionSelectScreen.COMPONENT_PATHS,
+                    MissionSelectScreen.ROOT_COMPONENT, translatedBoard));
+            frames.add(document(context, renderer, "contract-board-expanded-conversation-end.png", MissionSelectScreen.COMPONENT_PATHS,
+                    MissionSelectScreen.ROOT_COMPONENT, translatedBoard));
+        }
 
         var result = MissionOutcome.builder().mission(mission).victory(true).payoutEarned(18000)
                 .marinesEngaged(24).marinesLost(4).alliesEngaged(10).alliesLost(0)
@@ -158,6 +163,110 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                 "data/ui/components/company/company-hq.mlx"), "company-hq", hq));
     }
 
+    private static Map<String, Object> boardProps(ShepherdRecoveryProgress progress, Mission mission) {
+        var board = MissionSelectScreen.previewProps();
+        Runnable none = () -> { };
+        board.put("locationLabel", "Asharu / Corvus");
+        board.put("clients", List.of(new MissionSelectScreen.ClientRow("client-vale", "client-vale-name", "client-vale-rep",
+                OpeningBroker.CREST, "client-card selected", MissionDialogue.speakerName("Vale"), "Basin Reclamation Cooperative", false, none)));
+        board.put("missionHeader", "Basin Reclamation Cooperative");
+        board.put("missions", MissionSelectScreen.missionRows(List.of(mission), mission, ignored -> { }));
+        board.put("stationingRows", List.of());
+        MissionSelectScreen.putDetail(board, mission, none, none);
+        MissionSelectScreen.putShepherd(board, progress);
+        return board;
+    }
+
+    /** Append 35% copy without modifying MessageFormat or printf placeholders. */
+    private static String expandDialogueCopy(String text) {
+        if (text.isBlank()) return text;
+        int extra = Math.max(2, (int) Math.ceil(text.length() * .35));
+        return text + " " + "extended ".repeat(extra / 9 + 1).substring(0, extra).stripTrailing();
+    }
+
+    private void addBriefingFrames(SnapshotContext context, HeadlessUiRenderer renderer, Mission mission,
+                                   List<SnapshotArtifact> frames) throws Exception {
+        var props = BriefingViewModel.campaignPreviewProps(false);
+        props.put("missionTitle", mission.name);
+        props.put("missionKicker", "SALVAGE RIGHTS / ASHARU");
+        MissionDialogue.put(props, "mission", mission);
+        BriefingViewModel.putReward(props, mission);
+        BriefingViewModel.putFactionIdentity(props, "employer", "Basin Reclamation Cooperative", null);
+        BriefingViewModel.putFactionIdentity(props, "opposition", "Competing salvage crew", null);
+        BriefingViewModel.putForceComparison(props, mission.tier, mission.risk, 24, 24);
+        props.put("personnelSummary", "Established / 2 squads / 24 ready marines");
+        BriefingViewModel.putLandingCraft(props, mission,
+                List.of(FittedBoat.standard(ShuttleType.AEROSHUTTLE), FittedBoat.standard(ShuttleType.AEROSHUTTLE)),
+                24, "Second Wind");
+        props.put("missionRows", List.of(
+                BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
+                BriefingViewModel.info("inspection", "Inspection", "Protect both technicians at Morrow's southern service access", "")));
+        props.put("employerRows", List.of(
+                BriefingViewModel.info("basin-militia", "Vale's militia", "Follow the company into the receiving store and workshop", ""),
+                BriefingViewModel.info("basin-technicians", "Inspection party", "Two technicians / Morrow's southern service access", "")));
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BriefingScreen.COMPONENT_PATHS);
+        try (var instance = loader.reloadAndBuild(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
+            BriefingViewModel.applyVisibility(instance, props);
+            var document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
+            instance.styles().forEach(document::addStyleSheet);
+            frames.add(new SnapshotArtifact("predeployment-briefing.png", renderer.renderRelative(document,
+                    1920, 1080, 1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
+            var dialogue = instance.requireElement("mission-dialogue");
+            assertDialogueGeometry(document, dialogue);
+            var pane = instance.requireElement("mission-overview-copy");
+            var last = dialogue.children().get(dialogue.children().size() - 1);
+            pane.scrollTop(Math.max(0f, last.box().borderBox().bottom() - pane.box().contentBox().bottom()));
+            frames.add(new SnapshotArtifact("predeployment-briefing-conversation-end.png", renderer.renderRelative(document,
+                    1920, 1080, 1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
+            assertTrue(last.box().borderBox().bottom() <= pane.box().contentBox().bottom() + 1f,
+                    "The last authored turn must be reachable through the production briefing scroll pane");
+        }
+    }
+
+    private static void assertDialogueGeometry(UiDocument document, UiElement dialogue) {
+        assertFalse(dialogue.children().isEmpty(), "The authored Vale/Castle exchange must be projected");
+        float previousBottom = Float.NEGATIVE_INFINITY;
+        var speakerColors = new HashMap<String, Color>();
+        for (var turn : dialogue.children()) {
+            var speakerWrap = turn.children().get(0);
+            var speaker = speakerWrap.children().get(0);
+            var body = turn.children().get(1);
+            assertTrue(turn.box().borderBox().y() >= previousBottom,
+                    "Wrapped dialogue turns must not overlap");
+            var turnBox = turn.box().contentBox();
+            assertTrue(turnBox.height() > 0f, "A dialogue turn must reserve its painted text height");
+            assertTrue(speakerWrap.box().borderBox().y() >= turnBox.y() - 0.5f,
+                    "The speaker belongs inside its turn");
+            assertTrue(body.box().borderBox().bottom() <= turnBox.bottom() + 0.5f,
+                    "Each turn must contain the complete painted body, rather than merely ordering zero-height boxes");
+            assertTrue(turn.box().borderBox().bottom() <= dialogue.box().contentBox().bottom() + 0.5f,
+                    "The dialogue container must reserve the height of every turn");
+            assertTrue(body.box().borderBox().y() >= speakerWrap.box().borderBox().bottom(),
+                    "Dialogue text must follow its complete speaker label");
+            assertEquals(Color.WHITE, body.textColor(), "Spoken dialogue stays white");
+            assertTextFits(document, body);
+            if (!speaker.text().isBlank()) {
+                assertTextFits(document, speaker);
+                assertTrue(speaker.box().borderBox().bottom() <= speakerWrap.box().contentBox().bottom() + 0.5f,
+                        "The name wrapper must reserve every wrapped name line");
+                var prior = speakerColors.putIfAbsent(speaker.text(), speaker.textColor());
+                if (prior != null) assertEquals(prior, speaker.textColor(), "A speaker retains one name color");
+            }
+            previousBottom = turn.box().borderBox().bottom();
+        }
+        assertTrue(new HashSet<>(speakerColors.values()).size() >= 2,
+                "Vale and Castle must retain distinct name colors");
+    }
+    private static void assertTextFits(UiDocument document, UiElement label) {
+        var font = document.styles().fontFor(label);
+        assertNotNull(font);
+        var content = label.box().contentBox();
+        assertTrue(content.width() > 0f, "A text label needs positive wrapping width");
+        float paintedHeight = font.wrapLines(label.text(), content.width()).size() * font.getLineHeight();
+        assertTrue(paintedHeight > 0f && content.height() + 0.5f >= paintedHeight,
+                "The label must reserve its actual painted line height: " + label.id());
+    }
+
     private SnapshotArtifact document(SnapshotContext context, HeadlessUiRenderer renderer, String filename,
                                       List<String> paths, String root, Map<String,Object> props) throws Exception {
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), paths);
@@ -166,8 +275,30 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             var document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return new SnapshotArtifact(filename, renderer.renderRelative(document,1920,1080,1f,
-                    MarineOpsUiViewport.REFERENCE_WIDTH,MarineOpsUiViewport.REFERENCE_HEIGHT));
+            var image = renderer.renderRelative(document,1920,1080,1f,
+                    MarineOpsUiViewport.REFERENCE_WIDTH,MarineOpsUiViewport.REFERENCE_HEIGHT);
+            if (root.equals(MissionSelectScreen.ROOT_COMPONENT)) {
+                var dialogue = instance.requireElement("mission-dialogue");
+                assertDialogueGeometry(document, dialogue);
+                for (String id : List.of("mission-brief", "mission-back")) {
+                    var control = instance.requireElement(id).box().borderBox();
+                    var viewport = document.root().box().contentBox();
+                    assertTrue(control.width() > 0f && control.height() > 0f
+                                    && control.x() >= viewport.x() && control.y() >= viewport.y()
+                                    && control.right() <= viewport.right() && control.bottom() <= viewport.bottom(),
+                            "The translated contract board keeps its primary controls visible: " + id);
+                }
+                if (filename.contains("conversation-end")) {
+                    var pane = instance.requireElement("mission-detail-copy");
+                    var last = dialogue.children().get(dialogue.children().size() - 1);
+                    pane.scrollTop(Math.max(0f, last.box().borderBox().bottom() - pane.box().contentBox().bottom()));
+                    image = renderer.renderRelative(document,1920,1080,1f,
+                            MarineOpsUiViewport.REFERENCE_WIDTH,MarineOpsUiViewport.REFERENCE_HEIGHT);
+                    assertTrue(last.box().borderBox().bottom() <= pane.box().contentBox().bottom() + 1f,
+                            "Expanded final dialogue remains accessible through the contract board scroll pane");
+                }
+            }
+            return new SnapshotArtifact(filename, image);
         }
     }
 }

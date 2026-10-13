@@ -41,6 +41,8 @@ public final class Mission {
     public final OperationTier tier;
     public final String        requirements;
     public final String        flavor;
+    /** Optional authored conversation; flavor remains its plain-text projection. */
+    public final List<MissionDialogue.Turn> dialogue;
     public final float         normalizedX;
     public final float         normalizedY;
     public final FlybyRoster   clientFighterSupport;
@@ -253,7 +255,8 @@ public final class Mission {
                 b.tier != null ? b.tier : OperationTier.forRisk(b.risk),
                 b.type != null ? b.type.tierFloor : null);
         this.requirements = b.requirements;
-        this.flavor       = b.flavor;
+        this.dialogue     = b.dialogue == null ? List.of() : List.copyOf(b.dialogue);
+        this.flavor       = dialogue.isEmpty() ? b.flavor : MissionDialogue.transcript(dialogue);
         this.normalizedX  = b.normalizedX;
         this.normalizedY  = b.normalizedY;
         this.clientFighterSupport = b.clientFighterSupport != null
@@ -330,6 +333,7 @@ public final class Mission {
         private OperationTier tier;
         private String requirements = "";
         private String flavor = "";
+        private List<MissionDialogue.Turn> dialogue = List.of();
         private float normalizedX;
         private float normalizedY;
         private FlybyRoster clientFighterSupport = FlybyRoster.EMPTY;
@@ -379,6 +383,7 @@ public final class Mission {
             this.tier = m.tier;
             this.requirements = m.requirements;
             this.flavor = m.flavor;
+            this.dialogue = m.dialogue;
             this.normalizedX = m.normalizedX;
             this.normalizedY = m.normalizedY;
             this.clientFighterSupport = m.clientFighterSupport;
@@ -456,6 +461,14 @@ public final class Mission {
 
         public Builder flavor(String flavor) {
             this.flavor = flavor;
+            this.dialogue = List.of();
+            return this;
+        }
+
+        /** Replaces the plain flavor with one ordered, reusable authored conversation. */
+        public Builder dialogue(List<MissionDialogue.Turn> dialogue) {
+            this.dialogue = List.copyOf(dialogue);
+            this.flavor = MissionDialogue.transcript(this.dialogue);
             return this;
         }
 

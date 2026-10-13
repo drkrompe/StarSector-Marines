@@ -34,6 +34,7 @@ public final class WaylineNarration {
             BrokenSupplyRouteProgress.THUNDER, "story_supply_route_thunder_run");
     private static WaylineNarration builtins = new WaylineNarration(List.of());
     private final Map<String, Line> lines = new LinkedHashMap<>();
+    private final Map<String, List<Line>> briefings = new LinkedHashMap<>();
 
     public record Line(String id, String missionId, String event, String text,
                        float durationSeconds, int priority, float expiresSeconds,
@@ -69,7 +70,10 @@ public final class WaylineNarration {
         for (Line line : entries) {
             if (lines.putIfAbsent(line.missionId() + "/" + line.event(), line) != null)
                 throw new IllegalArgumentException("Duplicate narration event: " + line.event());
+            if (line.event().equals("briefing") || line.event().startsWith("briefing."))
+                briefings.computeIfAbsent(line.missionId(), ignored -> new ArrayList<>()).add(line);
         }
+        briefings.replaceAll((missionId, turns) -> List.copyOf(turns));
     }
 
     public static WaylineNarration builtins() { return builtins; }
@@ -142,5 +146,9 @@ public final class WaylineNarration {
     }
 
     public Line find(String missionId, String event) { return lines.get(missionId + "/" + event); }
+    /** Briefing turns retain their authored catalog order, including the legacy single recording. */
+    public List<Line> briefing(String missionId) {
+        return briefings.getOrDefault(missionId, List.of());
+    }
     public List<Line> lines() { return List.copyOf(lines.values()); }
 }

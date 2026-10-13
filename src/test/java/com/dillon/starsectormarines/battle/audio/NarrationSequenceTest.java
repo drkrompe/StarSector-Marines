@@ -6,6 +6,26 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NarrationSequenceTest {
+    @Test void currentIdentityFollowsTurnsCompletionAndReplay() {
+        var sequence = new NarrationSequence(new NarrationPlayer(line -> null));
+        var mara = new WaylineNarration.Line("mara", "chapter", "briefing", "One", 1, 1, 10, List.of());
+        var castle = new WaylineNarration.Line("castle", "chapter", "briefing.castle", "Two", 1, 1, 10,
+                List.of(), "CASTLE / COMPANY OPERATIONS", "graphics/portraits/castle.png");
+        sequence.start(List.of(mara, castle));
+        sequence.advance(0);
+        assertEquals(mara, sequence.current());
+        sequence.advance(2);
+        assertEquals(castle, sequence.current());
+        sequence.advance(2);
+        assertNull(sequence.current());
+        assertFalse(sequence.busy());
+        sequence.start(List.of(mara, castle));
+        sequence.advance(0);
+        assertEquals(mara, sequence.current());
+        sequence.stop();
+        assertNull(sequence.current());
+        assertFalse(sequence.busy());
+    }
     @Test void mutedConversationFinishesTurnsAndStopDiscardsPendingSpeech() {
         var heard = new ArrayList<String>();
         var sequence = new NarrationSequence(new NarrationPlayer(line -> { heard.add(line.id()); return null; }));

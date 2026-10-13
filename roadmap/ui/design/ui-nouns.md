@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — battle surfaces share occupied bounds; ship commands, dialogue, diagnostics and manual controls preserve input ownership.
+Updated: 2026-10-13 — authored mission dialogue shares speaker identity across contract previews, briefings and recorded turns.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -380,15 +380,26 @@ objective and lanes instead of labelling every berth and building; the accompany
 summary retains strategic-site counts. Small objective-driven missions identify
 their actual target sites and extraction endpoints.
 
-Wayline's voiced chapter briefings begin Mara's recorded narration on entry and
-expose Replay Briefing and Stop Voice in the command rail. A compact contact panel
-above the dossier shows her existing portrait and name, distinct from the force's
-selected officers. Its speaking indicator follows narration playback, including
-replay, stop and natural completion; the portrait remains as the recording's
-identity while idle. Other missions reserve no speaker-panel or voice-control
-space. Text remains available independently of playback; terrain refreshes and
-viewport changes do not restart the recording.
+Authored mission conversations retain ordered turns with stable character identities.
+The contract preview and pre-mission briefing read the same authored dialogue:
+speaker names carry stable character colors, while the dialogue body stays white.
+Content-sized columns enclose their in-flow descendants, including wrapped text,
+padding and gaps; explicit collapsed branches and positioned overlays retain their
+own sizing. Scroll extent follows these complete boxes rather than painted overflow.
+Unattributed prose remains readable without inventing a speaker. Optional mission
+dialogue is immutable; legacy plain flavor remains supported, and a surface never
+requires audio to reveal the contract's meaning.
 
+Recorded chapter briefings begin on entry and expose Replay Briefing and Stop
+Voice in the command rail. A compact contact panel above the dossier shows the
+current recorded speaker's existing portrait, name and role, distinct from the
+force's selected officers. Ordered recordings may change speakers between turns;
+the contact panel follows each turn rather than retaining the opening speaker.
+Its speaking indicator follows replay, stop and natural completion. The first
+recording's identity returns while idle. Missions without a recording reserve no
+contact-panel or voice-control space. Terrain refreshes and viewport changes
+preserve the current turn and do not restart playback. Authored correspondence
+and procedural comms-officer reports remain distinct narrative sources.
 Preparation runs asynchronously from campaign-free captured construction inputs.
 The briefing pins its seed, shows a pending survey while generation runs, and
 requires a ready scenario before deployment. Relevant input changes supersede the

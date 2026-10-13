@@ -145,8 +145,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/company-hq.mlx");
     private static final List<String> MISSION_SELECT_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-dialogue.mlx",
             "data/ui/components/missions/mission-select.mlx");
     private static final List<String> MISSION_BRIEFING_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-dialogue.mlx",
             "data/ui/components/missions/mission-briefing.mlx");
     private static final List<String> SQUAD_DEPLOYMENT_COMPONENTS = List.of(
             "data/ui/components/missions/squad-deployment.mlx");

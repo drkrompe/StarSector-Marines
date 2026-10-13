@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.ops.detachment.AgreusConstructionSupport;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 
-import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.NarrationSequence;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -175,6 +175,7 @@ public class BriefingScreen implements Screen {
     private static final Logger LOG = Global.getLogger(BriefingScreen.class);
     static final String ROOT_COMPONENT = "mission-briefing";
     static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/mission-dialogue.mlx",
             "data/ui/components/missions/mission-briefing.mlx");
 
     private static final Color FRAME_COLOR   = new Color(0x4A, 0x6B, 0x8C);
@@ -273,7 +274,7 @@ public class BriefingScreen implements Screen {
     private boolean commandDeckInitialized;
     /** Developer controls are opt-in and never consume briefing width on entry. */
     private boolean debugDrawerExpanded;
-    private final NarrationPlayer narration = new NarrationPlayer();
+    private final NarrationSequence narration = new NarrationSequence();
     private boolean narrationAutoplay;
 
     /**
@@ -441,13 +442,14 @@ public class BriefingScreen implements Screen {
         props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission) + "  ·  "
                 + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
         props.put("missionTitle", mission.name);
-        WaylineNarration.Line briefingLine = briefingNarration();
+        WaylineNarration.Line briefingLine = displayedBriefingNarration();
         BriefingViewModel.putNarration(props, briefingLine, narration.busy());
         if (briefingLine != null) {
             props.put("replayNarrationAction", (Runnable) () -> narration.start(briefingNarration()));
             props.put("stopNarrationAction", (Runnable) narration::stop);
         }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
+        MissionDialogue.put(props, "mission", mission);
         props.put("missionRows", retainedMissionRows(mission));
         BriefingViewModel.putReward(props, mission);
         putFactionIdentities(props, mission);
@@ -2455,7 +2457,7 @@ public class BriefingScreen implements Screen {
             narration.start(briefingNarration());
         }
         narration.advance(dt);
-        if (markupInstance != null) BriefingViewModel.updateNarration(markupInstance, narration.busy());
+        if (markupInstance != null) BriefingViewModel.updateNarration(markupInstance, displayedBriefingNarration(), narration.busy());
         if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
             surveyComplete = true;
             if (survey.failure() != null) LOG.warn("Briefing terrain generation failed", survey.failure());
@@ -2489,11 +2491,17 @@ public class BriefingScreen implements Screen {
         input = null;
     }
 
-    private WaylineNarration.Line briefingNarration() {
+    private WaylineNarration.Line displayedBriefingNarration() {
+        if (narration.current() != null) return narration.current();
+        List<WaylineNarration.Line> lines = briefingNarration();
+        return lines.isEmpty() ? null : lines.get(0);
+    }
+
+    private List<WaylineNarration.Line> briefingNarration() {
         Mission mission = ctx != null ? ctx.getSelectedMission() : null;
         if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.coldStart(mission.id)
-                && !recordedBriefingApplies(mission, ShepherdRecoveryCampaign.current())) return null;
-        return WaylineNarration.builtins().find(WaylineNarration.storyMissionId(mission), "briefing");
+                && !recordedBriefingApplies(mission, ShepherdRecoveryCampaign.current())) return List.of();
+        return WaylineNarration.builtins().briefing(WaylineNarration.storyMissionId(mission));
     }
 
     /** The recorded escort opening cannot describe work already completed on a prior sortie. */

@@ -1,4 +1,4 @@
-<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,choiceClasses,choiceSummary,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,choiceClasses,choiceSummary,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -7,7 +7,7 @@
         <div id="mission-select-location" class="label tone-muted">{locationLabel}</div>
       </div>
       <button id="mission-company-news" class="{companyNewsClasses}" onclick="{companyNewsAction}">{companyNewsLabel}</button>
-      <div id="mission-select-purpose" class="label heading tone-accent">CONTRACT BOARD</div>
+      <div id="mission-select-purpose" class="label heading tone-accent">{i18n.missionSelectBoard}</div>
       <img id="mission-select-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
     </div>
     <div id="mission-select-body" class="mission-select-body">
@@ -26,12 +26,12 @@
         <div id="mission-client-footer" class="mission-client-footer console-command-rail">
           <button id="mission-back" onclick="{backAction}">
             <div id="mission-back-signal" class="console-command-signal" />
-            <div id="mission-back-legend" class="console-key-legend">BACK</div>
+            <div id="mission-back-legend" class="console-key-legend">{i18n.missionSelectBack}</div>
             <img id="mission-back-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
           </button>
           <button id="mission-armory" onclick="{armoryAction}">
             <div id="mission-armory-signal" class="console-command-signal" />
-            <div id="mission-armory-legend" class="console-key-legend">BARRACKS</div>
+            <div id="mission-armory-legend" class="console-key-legend">{i18n.missionSelectBarracks}</div>
             <img id="mission-armory-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
           </button>
         </div>
@@ -81,7 +81,10 @@
           <div id="mission-detail-kicker" class="label heading tone-accent">{detailKicker}</div>
           <div id="mission-detail-title" class="label title mission-detail-title">{detailTitle}</div>
           <div id="mission-detail-meta" class="label tone-muted mission-detail-meta">{detailMeta}</div>
-          <div id="mission-detail-flavor" class="label mission-detail-flavor console-well">{detailFlavor}</div>
+          <div id="mission-detail-flavor" class="label mission-detail-flavor console-well" style="{detailFlavorStyle}">{detailFlavor}</div>
+          <div id="mission-detail-dialogue" class="mission-detail-flavor console-well" style="{detailDialogueStyle}">
+            <mission-dialogue turns="{detailDialogue}" />
+          </div>
           <div id="mission-detail-rows" class="mission-detail-rows">
             <div each="row in detailRows" key="{row.id}" id="{row.id}" class="detail-row console-readout">
               <div id="{row.labelId}" class="label heading tone-muted detail-label">{row.label}</div>
@@ -90,7 +93,7 @@
           </div>
         </div>
         <div id="mission-choice-consequence" class="{choiceClasses}">
-          <div id="mission-choice-heading" class="label heading tone-accent">ONE MOBILIZATION / BRANCH COMMITMENT</div>
+          <div id="mission-choice-heading" class="label heading tone-accent">{i18n.missionSelectBranchCommitment}</div>
           <div id="mission-choice-copy" class="label choice-copy">{choiceSummary}</div>
         </div>
         <div id="mission-detail-actions" class="mission-detail-actions console-command-rail">
@@ -101,7 +104,7 @@
           </button>
           <button id="mission-collapse" disabled="{declineDisabled}" onclick="{declineAction}">
             <div id="mission-collapse-signal" class="console-command-signal" />
-            <div id="mission-collapse-legend" class="console-key-legend">COLLAPSE</div>
+            <div id="mission-collapse-legend" class="console-key-legend">{i18n.missionSelectCollapse}</div>
             <img id="mission-collapse-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
           </button>
         </div>
