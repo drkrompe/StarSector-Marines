@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FirstRefit.Path;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
@@ -36,6 +37,7 @@ final class FirstRefitModel {
     private Path path;
     private SquadEquipmentPreview reviewed;
     private List<String> reviewedMembers = List.of();
+    private List<FleetArmoryViewModel.DoctrineTile> pathCards = List.of();
     private String feedback = "";
     private int selectedBillet;
     private FireTeamBillet currentKit;
@@ -85,6 +87,8 @@ final class FirstRefitModel {
         refresh();
     }
 
+    List<FleetArmoryViewModel.DoctrineTile> pathCards() { return pathCards; }
+
     void refresh() {
         boolean claimed = roster.firstRefit().claimed(), complete = roster.firstRefit().complete();
         MarineSquad squad = roster.squadById(squadId);
@@ -114,12 +118,11 @@ final class FirstRefitModel {
                 "select", (Runnable) () -> selectSquad(s.id()))).toList());
         props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
                 ? "No line squad. Return to Equipment to found one." : "SELECT ONE FORMATION / Wounded and understrength squads can receive equipment.");
-        props.put("paths", List.of(Path.values()).stream().map(p -> Map.<String, Object>of(
-                "id", "refit-path:" + p.name(), "headingId", "refit-path-heading:" + p.name(),
-                "copyId", "refit-path-copy:" + p.name(), "label", (p == path ? "SELECTED / " : "") + p.label
-                        + (claimed ? FirstRefit.technologyKnown(roster, p) ? " / LEARNED" : " / FIND SPECS" : ""), "copy", p.description,
-                "classes", "refit-path" + (p == path ? " refit-selected selected" : ""),
-                "select", (Runnable) () -> selectPath(p))).toList());
+        pathCards = List.of(Path.values()).stream().map(p -> FleetArmoryViewModel.weaponTile(
+                "refit-path:" + p.name(), new SquadWeaponDoctrine(p.weapons,
+                "Wayline / " + p.label + (claimed ? FirstRefit.technologyKnown(roster, p) ? " / LEARNED" : " / FIND SPECS" : ""),
+                p.description, FirstRefit.weapons(p)), p == path, () -> selectPath(p))).toList();
+        props.put("paths", pathCards);
         List<Map<String, Object>> billets = new ArrayList<>();
         currentKit = null; proposedKit = null;
         String selectedName = "Choose a squad and a path to compare equipment.";

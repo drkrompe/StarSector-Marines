@@ -195,7 +195,7 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
-    void starterDefinitionsConcentrateBetterIssueOnEachFireTeamLeader() {
+    void starterDefinitionUsesOnlyEntryLevelWeapons() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
         SquadEquipmentPreview preview = roster.previewSquadEquipment(
@@ -205,7 +205,7 @@ class SquadEquipmentDoctrineTest {
         assertTrue(preview.canApply());
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             int leader = team * MarineSquad.TEAM_SIZE;
-            assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), preview.billet(leader).primaryDef());
+            assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), preview.billet(leader).primaryDef());
             // Armour is issued per billet ROLE now, from what the roster owns,
             // so the pattern is not fixed by the plan. A starter company owns no
             // recon or support kit at all, which is the resolver's documented
@@ -233,7 +233,7 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
-    void fireSupportDoctrineIssuesOneSquadAutomaticPerTeamFromStarterStock() {
+    void learnedFireSupportDoctrineIssuesOneSquadAutomaticPerTeam() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
 
@@ -447,6 +447,7 @@ class SquadEquipmentDoctrineTest {
 
     private static MarineRoster fullSquad() {
         MarineRoster roster = new MarineRoster();
+        EquipmentTestFixtures.learnServiceKit(roster.armory());
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         return roster;
     }

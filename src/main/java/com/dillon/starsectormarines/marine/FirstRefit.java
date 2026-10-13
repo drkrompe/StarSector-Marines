@@ -11,7 +11,7 @@ import java.util.List;
 public final class FirstRefit implements Serializable {
     public enum Path {
         STEADY_LINE("Steady Line", "wayline:steady-line", SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR,
-                "Learn Milspec Stalwart automatics. Three gunners anchor the squad, with line armor and support rigs from your collection."),
+                "Learn Milspec Stalwart automatics. Three gunners anchor nine riflemen. Protection uses the armor specs you know."),
         FORWARD_SCREEN("Forward Screen", "wayline:forward-screen", SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR,
                 "Learn Milspec Lancer pulse rifles and Janus scout suits. Six pulse rifles and five scout billets trade line protection for eyes and mobility.");
         public final String label, weapons, armor, description;
@@ -58,7 +58,7 @@ public final class FirstRefit implements Serializable {
         return true;
     }
 
-    private static List<SquadWeaponIssue> weapons(Path path) {
+    public static List<SquadWeaponIssue> weapons(Path path) {
         List<SquadWeaponIssue> issues = new ArrayList<>();
         for (int i = 0; i < MarineSquad.CAPACITY; i++) {
             boolean upgraded = path == Path.STEADY_LINE ? i % 4 == 3 : i % 4 < 2;
