@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -30,6 +31,21 @@ import java.util.function.Supplier;
 final class ArmorySpecSheets {
 
     private ArmorySpecSheets() { }
+
+    /** Fixed comparison positions resolve their sheets again after every billet or draft change. */
+    static void bindInspection(SpecSheetBinder binder, MarkupInstance markup,
+                               Signal<Map<String, Object>> inspection) {
+        for (int kind = 0; kind < 3; kind++) for (String side : List.of("current", "proposed")) {
+            int index = kind;
+            bind(binder, markup, "loadout-item:" + kind + ":" + side, () -> inspectionSheet(inspection, index, side));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static SpecSheet inspectionSheet(Signal<Map<String, Object>> inspection, int kind, String side) {
+        var items = (List<Map<String, Object>>) inspection.get().get("items");
+        return (SpecSheet) ((Map<String, Object>) items.get(kind).get(side)).get("sheet");
+    }
 
     /** The four equipment labels on each marine dossier. */
     static void bindMarineCards(SpecSheetBinder binder, MarkupInstance markup,
