@@ -30,7 +30,9 @@ class TurretAuthoringDocumentTest {
     @Test
     void crossCatalogEditsValidateSaveAndReloadTogether() throws Exception {
         copyCatalogs(temporary);
-        String preservedCatalogLine = "\"catalog\": { \"displayName\": \"Vulcan Cannon\", \"modelName\": \"Vulcan\", \"designation\": \"VUL\", \"designationTiered\": false }";
+        String preservedCatalogLine = Files.readAllLines(temporary.resolve(TurretAuthoringDocument.WEAPON_PATH))
+                .stream().filter(line -> line.contains("\"designation\": \"VUL\""))
+                .findFirst().orElseThrow();
         TurretAuthoringDocument document = TurretAuthoringDocument.load(temporary);
         // No catalog-count pin: this test is about a cross-catalog edit
         // surviving save and reload, and authoring a ninth structure is not a

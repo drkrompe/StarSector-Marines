@@ -217,7 +217,7 @@ class WeaponRegistryParityTest {
                 1, 0f, 0.42f, 0.75f, 48f);
         assertPresentation(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), new Color(0xFF, 0xD0, 0x88),
                 ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
-                "light_autocannon_fire");
+                "marines_rook_rifle_fire");
         assertEquals(0.65f, WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).tracerTailCells(), EPS);
         assertEquals("Field Rifle", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).displayName());
         assertEquals("Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).modelName());

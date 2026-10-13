@@ -134,26 +134,37 @@ public final class AirframeCookOffSystem {
         ignite(airframe, x, y, faction);
     }
 
+    public void crash(long airframe, float x, float y, Faction faction, float hullRadius) {
+        ignite(airframe, x, y, faction, Math.max(BLAST_RADIUS_CELLS, Math.min(8f, hullRadius + 3f)), true);
+    }
+
     private void ignite(long airframe, float x, float y, Faction faction) {
+        ignite(airframe, x, y, faction, BLAST_RADIUS_CELLS, false);
+    }
+
+    private void ignite(long airframe, float x, float y, Faction faction, float radius, boolean crash) {
         if (!burned.add(airframe)) return;
-        effects.spawnHeavyImpact(x, y, BLAST_RADIUS_CELLS);
-        effects.spawnSmokingWreck((int) Math.floor(x), (int) Math.floor(y));
+        if (crash) effects.spawnVehicleWreck(x, y, radius * 2f, radius);
+        else {
+            effects.spawnHeavyImpact(x, y, radius);
+            effects.spawnSmokingWreck((int) Math.floor(x), (int) Math.floor(y));
+        }
         detonations.detonateNow(new PendingDetonation(
                 // Nobody is credited: what kills anyone here is the aircraft's
                 // own fuel, and the round that opened the tank was fired at
                 // the aircraft. An attacker earns the airframe, not the burns.
                 CombatTelemetryService.NO_ATTACKER,
                 x, y, /*remainingTime*/ 0f,
-                BLAST_RADIUS_CELLS, BLAST_DAMAGE, BLAST_PENETRATION,
-                WALL_DAMAGE, faction, /*aerialDelivery*/ false,
-                WALL_DAMAGE_RADIUS_CELLS, /*spawnDustOnWallBreak*/ true,
+                radius, crash ? BLAST_DAMAGE * 1.5f : BLAST_DAMAGE, BLAST_PENETRATION,
+                crash ? WALL_DAMAGE * 2 : WALL_DAMAGE, faction, /*aerialDelivery*/ crash,
+                crash ? radius : WALL_DAMAGE_RADIUS_CELLS, /*spawnDustOnWallBreak*/ true,
                 // Friendly fire on. A fire does not check anybody's colours,
                 // and the ground crew walking out to the aircraft is exactly
                 // who is standing close enough to find that out.
                 /*friendlyFireImmune*/ false,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
                 /*authoredAftermath*/ false,
-                airframesOnTheirBerths()));
+                crash ? new long[0] : airframesOnTheirBerths()));
     }
 
     /**

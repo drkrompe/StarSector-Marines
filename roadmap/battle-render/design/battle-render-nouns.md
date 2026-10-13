@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — shoulder-pod firing presentation follows committed physical launches.
+Updated: 2026-10-13 — shoulder-pod firing follows committed launches; observed grounded surfaces admit night lighting without revealing ground.
 
 ## Vocabulary
 
@@ -147,6 +147,14 @@ Within a layer, producer submission order is paint order. Across layers, enum or
 
 The standalone host normally renders every layer. A host can request a subset through the same pipeline, but it must supply the camera and context each selected producer needs; omitting a layer does not manufacture unavailable state. This is how the combat bridge presents ground content in vanilla combat without forking the ground renderer. The Mech Lab uses the seam as `GROUND + DOODADS`, then `UNITS`; Barracks adds `SHOTS` to its actor pass so retained overlays can sit between physical room content and live range activity. The live host drains those commands through Starsector/OpenGL; headless UI evidence collects the same systems and replays their sprite, sheet-quad, fill, and line commands through Java2D. The headless camera receives the canvas's actual content-box extent, and its resolved commands paint one-for-one in that box; the authored canvas surface must not apply a second non-uniform stretch that turns square battle cells into rectangles. Its embedded frame profile suppresses HP bars and surface-relief FBO work; fog is absent because these hosts do not request the fog layer.
 
+Player-view headless evidence retains battle visibility, fog-clipped outdoor
+lighting and unit decorations through the same producers as the live battle.
+Its host declines GL residency and surface-relief targets, so the strict
+Java2D drain receives the ordinary streamed commands without silently dropping
+unsupported custom operations. The graphics drain does not decide whether a
+lamp may illuminate unseen ground; that policy belongs to the host's player
+view independently of its rendering backend.
+
 An embedded scene may seek a battle-owned ambient task route before collecting a
 pure pose frame, or it may advance a bounded simulation when authored activity needs
 real time-dependent state. In the latter case an ambient primary-fire beat enters the
@@ -177,7 +185,19 @@ props use their rectangular footprint by default, while irregular canopies
 carry authored masks. Sprite alpha preserves fog in gaps and around the prop,
 and the reveal bitmap remains unchanged. Actors, terrain and further props in
 its shadow remain concealed. This presentation uses actual observation, never
-the smoke-free counterfactual. Flat debris keeps ordinary ground fog.
+the smoke-free counterfactual. Flat debris keeps ordinary ground fog. A grounded
+ship is subject to the same rule: seeing its near solid surface admits its
+whole artwork, even when its center and far side are unobserved. Its physical
+footprint remains impassable and opaque; admitting the artwork grants neither
+observation nor a firing lane through the hull.
+
+Night lighting admits lamp pools over the opaque cells of that observed prop's
+surface footprint, including cells whose ground remains unobserved. This is a
+cell mask for shading artwork, separate from the fog bitmap. Authored empty
+corners and the ground beyond the prop receive no such admission. Transparent
+gaps in artwork retain ordinary fog and conceal actors and terrain, although
+their night shading follows the admitted cell's lamp pool. Lighting never
+repaints scenery above intervening actors, roofs or aircraft.
 
 Shared-edge windows are sparse GROUND features rather than painted properties
 of either adjacent floor cell. The collector reads the live canonical barrier

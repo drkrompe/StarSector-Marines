@@ -225,6 +225,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     command.polygon());
             case CUSTOM -> {
                 if (command.customDraw() instanceof WorldLabel label) drawWorldLabel(context, surfaceHeight, label);
+                else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes);
                 else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
             }
             case RIBBON -> {
@@ -232,6 +233,39 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     throw new IllegalStateException(
                             "Embedded headless scene emitted unsupported command "
                                     + command.kind());
+                }
+            }
+        }
+    }
+
+    /**
+     * Shield domes through {@link ShieldDomeShading}, the CPU model of their
+     * shader, sampled in blocks and drawn as quads. Coarser than a full-resolution
+     * raster (a block is several pixels), which is what a scene frame can afford;
+     * the dome look suite renders the model per pixel.
+     */
+    private static void drawDomes(CanvasContext context, CanvasHostViewport viewport, ShieldDomePass pass) {
+        float surfaceHeight = viewport.height();
+        float[] rgba = new float[4];
+        for (ShieldDomeDraw dome : pass.draws()) {
+            float extent = ShieldDomeShading.EXTENT * dome.radiusPx;
+            float x0 = Math.max(0f, dome.sx - extent);
+            float x1 = Math.min(viewport.width(), dome.sx + extent);
+            float y0 = Math.max(0f, dome.sy - extent);
+            float y1 = Math.min(surfaceHeight, dome.sy + extent);
+            if (x1 <= x0 || y1 <= y0) continue;
+            float block = Math.max(3f, (float) Math.ceil(2f * extent / 150f));
+            for (float y = y0; y < y1; y += block) {
+                for (float x = x0; x < x1; x += block) {
+                    float lx = (x + block / 2f - dome.sx) / dome.radiusPx;
+                    float ly = (y + block / 2f - dome.sy) / dome.radiusPx;
+                    if (lx * lx + ly * ly > ShieldDomeShading.EXTENT * ShieldDomeShading.EXTENT) continue;
+                    ShieldDomeShading.shade(dome, lx, ly, pass.timeSeconds(), rgba);
+                    float a = rgba[3];
+                    if (a < 0.004f) continue;
+                    Color color = new Color(clamp(rgba[0] / a), clamp(rgba[1] / a), clamp(rgba[2] / a), clamp(a));
+                    float cy0 = surfaceHeight - (y + block);
+                    context.fillRect(x, cy0, block, block, color);
                 }
             }
         }
