@@ -238,31 +238,31 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             var passage=outcome.workingPassage;
             props.put("storyClasses","story-dispatch console-readout");
             props.put("storyPortrait",OpeningBroker.CREST);
-            props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
+            props.put("storySender","BASIN RECLAMATION / CONTRACT RECORD");
             props.put("storyProgress",passage.departed()?"MORROW / PHYSICAL CLIMB-OUT CONFIRMED":passage.disabled()?"CRITICAL DISABLE / DEPARTURE ABORTED":"DEPARTURE INCOMPLETE");
             props.put("storyMessage",(outcome.victory
-                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Registry accepted. Morrow joins your fleet once, with willing working crew covering her minimum complement. The cooperative keeps the reopened yard and the broken Colossus with its cargo and equipment. The smaller tender is your agreed payment in kind for all three contracts. Hull, workshop, and a very long list of maintenance jobs.")
+                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Contract settled. Morrow and a minimum working crew join your fleet as the final payment in kind. The cooperative retains the Colossus, its stores and the reopened yard. No additional cash payment.")
                     : "The claim and completed repairs remain. Vale will recover and refit the same grounded hull for another departure; confirmed losses remain on the account.") + " Cooperative militia lost: "+passage.militiaLost()+".");
         }
         if(outcome!=null && outcome.coldStart!=null) {
             var repair=outcome.coldStart;
             props.put("storyClasses","story-dispatch console-readout");
             props.put("storyPortrait",OpeningBroker.CREST);
-            props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
+            props.put("storySender","BASIN RECLAMATION / CONTRACT RECORD");
             props.put("storyProgress",outcome.victory?"REPAIRS COMPLETE / SHIP STILL GROUNDED":"REPAIR MOBILIZATION UNFINISHED");
             props.put("storyMessage",(outcome.victory?
-                    "The drone bay answers and the pumps hold pressure. "+(outcome.missionSource.isDebug()?"Training record only; no campaign payment is issued. ":"Your repair payment is released. ")+"Morrow remains grounded; Working Passage is now available for departure clearance.":
-                    "Bring your company home. No repair payment is awarded. Vale will assign replacement cooperative personnel. Completed delivery and shore power remain on record; unfinished work needs another mobilization.")
+                    (outcome.missionSource.isDebug()?"Training record only; no campaign payment is issued. ":"Repair contract settled. Payment released. ")+"Morrow remains grounded; Working Passage is now available for departure clearance.":
+                    "No repair payment awarded. Vale will assign replacement cooperative personnel. Completed delivery and shore power remain on record; unfinished work needs another mobilization.")
                     +" Cargo delivered: "+repair.cargoDelivered()+". Shore power restored: "+repair.shorePower()+". Turret constructed this sortie: "+repair.turretConstructed()+". Repair technicians lost: "+repair.crewLost()+".");
         }
         if(outcome!=null && outcome.salvageRights!=null) {
             props.put("storyClasses","story-dispatch console-readout");
             props.put("storyPortrait",OpeningBroker.CREST);
-            props.put("storySender","TAMSIN VALE / BASIN RECLAMATION");
+            props.put("storySender","BASIN RECLAMATION / CONTRACT RECORD");
             props.put("storyProgress",outcome.victory?"RECOVERY CLAIM SECURED / SHIP STILL GROUNDED":"INSPECTION UNFINISHED / RETRY AVAILABLE");
             props.put("storyMessage",(outcome.victory?
-                    "The drone workshop can be saved. "+(outcome.missionSource.isDebug()?"Training record only; no campaign claim or payment is issued. ":"Your payment is released and the recovery claim is protected. ")+"The inspection is signed off. I'll arrange the workshop watch and repair party. Morrow still needs shore power, repairs and a clear departure corridor; no ship has entered your fleet. Cold Start is available when your company is ready.":
-                    "Bring your company home. No claim or payment is awarded. Confirmed company and inspection losses remain on record; Vale will assign a new party for another attempt.")
+                    (outcome.missionSource.isDebug()?"Training record only; no campaign claim or payment is issued. ":"Inspection contract settled. Payment released; Morrow's recovery claim is protected. ")+"No fleet transfer until repairs and departure are complete. Cold Start is available when your company is ready.":
+                    "No claim or payment awarded. Confirmed company and inspection losses remain on record; Vale will assign a new party for another attempt.")
                     +" Inspection technicians lost: "+outcome.salvageRights.crewLost()+".");
         }
     }
