@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
@@ -21,17 +22,17 @@ import java.util.List;
 public final class BoatFabricationCatalog {
 
     private static final List<Recipe> RECIPES = List.of(
-            recipe(ShuttleType.HERMES, "SHIP'S GIG", 30, 8, 20),
-            recipe(ShuttleType.KITE, "COMMON MARKET", 34, 9, 22),
-            recipe(ShuttleType.MUDSKIPPER, "COMMON MARKET", 38, 10, 25),
-            recipe(ShuttleType.AEROSHUTTLE, "PURPOSE-BUILT LANDER", 60, 15, 40),
-            recipe(ShuttleType.SHEPHERD, "UTILITY HULL", 64, 16, 42),
-            recipe(ShuttleType.WAYFARER, "UTILITY HULL", 66, 17, 44),
-            recipe(ShuttleType.TARSUS, "CIVILIAN FREIGHTER", 82, 21, 55),
-            recipe(ShuttleType.BUFFALO, "CIVILIAN FREIGHTER", 88, 22, 58),
-            recipe(ShuttleType.MULE, "CIVILIAN FREIGHTER", 96, 24, 64),
-            recipe(ShuttleType.NEBULA, "CIVILIAN FREIGHTER", 110, 28, 72),
-            recipe(ShuttleType.VALKYRIE, "MILITARY TRANSPORT", 150, 38, 100));
+            recipe(ShuttleType.HERMES, "@openingBoatFabricationCatalogShipSGig", 30, 8, 20),
+            recipe(ShuttleType.KITE, "@openingBoatFabricationCatalogCommonMarket", 34, 9, 22),
+            recipe(ShuttleType.MUDSKIPPER, "@openingBoatFabricationCatalogCommonMarket", 38, 10, 25),
+            recipe(ShuttleType.AEROSHUTTLE, "@openingBoatFabricationCatalogPurposeBuiltLander", 60, 15, 40),
+            recipe(ShuttleType.SHEPHERD, "@openingBoatFabricationCatalogUtilityHull", 64, 16, 42),
+            recipe(ShuttleType.WAYFARER, "@openingBoatFabricationCatalogUtilityHull", 66, 17, 44),
+            recipe(ShuttleType.TARSUS, "@openingBoatFabricationCatalogCivilianFreighter", 82, 21, 55),
+            recipe(ShuttleType.BUFFALO, "@openingBoatFabricationCatalogCivilianFreighter", 88, 22, 58),
+            recipe(ShuttleType.MULE, "@openingBoatFabricationCatalogCivilianFreighter", 96, 24, 64),
+            recipe(ShuttleType.NEBULA, "@openingBoatFabricationCatalogCivilianFreighter", 110, 28, 72),
+            recipe(ShuttleType.VALKYRIE, "@openingBoatFabricationCatalogMilitaryTransport", 150, 38, 100));
 
     private BoatFabricationCatalog() {
     }
@@ -58,6 +59,8 @@ public final class BoatFabricationCatalog {
 
     /** One buildable pattern, its material bill, and where the yard's plans came from. */
     public record Recipe(ShuttleType pattern, FabricationCost bill, String provenance) {
+        public String provenance() { return Strings.resolve(provenance); }
+
         public Recipe {
             if (pattern == null || bill == null) {
                 throw new IllegalArgumentException("a boat recipe needs a pattern and a bill");

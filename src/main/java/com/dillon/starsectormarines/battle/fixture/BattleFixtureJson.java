@@ -885,6 +885,7 @@ public final class BattleFixtureJson {
         encoded.put("planetaryShield", profile.planetaryShield());
         encoded.put("declaredBatteries", profile.declaredDefences().batteries());
         encoded.put("declaredShieldGenerator", profile.declaredDefences().shieldGenerator());
+        encoded.put("declaredNests", profile.declaredDefences().nests());
         return encoded;
     }
 
@@ -928,7 +929,8 @@ public final class BattleFixtureJson {
                 encoded.has("planetaryShield") && encoded.getBoolean("planetaryShield"),
                 // The mission's declaration, optional and none for a fixture that predates it.
                 new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
-                        encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator")));
+                        encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
+                        encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0));
     }
 
     private static <E extends Enum<E>> E enumValue(

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -36,7 +37,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     private static final List<String> ROLES = List.of(
             "Team Leader", "Rifleman", "Assault Leader", "Breacher", "Grenadier",
             "Automatic Rifleman", "Marksman", "Anti-Armor", "Security Rifleman", "Scout");
-    private static final List<String> TEAM_NAMES = List.of("Alpha", "Bravo", "Charlie");
+    private static final List<String> TEAM_NAMES = List.of("openingEquipmentDoctrineDesignerAlpha", "openingEquipmentDoctrineDesignerBravo", "openingEquipmentDoctrineDesignerCharlie");
 
     private final MarineRoster roster;
     private final String squadId;
@@ -69,14 +70,13 @@ public final class EquipmentDoctrineDesignerViewModel {
         selectedTeam = reactor.signal(0);
         revision = reactor.signal(0);
         feedback = reactor.signal(
-                "Definitions use collected template cards. Cargo is charged only when issued.");
+                Strings.get("openingEquipmentDoctrineDesignerDefinitionsUseCollectedTemplateCardsCargoIs"));
         definitions = reactor.computed(this::buildDefinitions);
         teamTabs = reactor.computed(this::buildTeamTabs);
         billets = reactor.computed(this::buildBillets);
-        heading = reactor.computed(() -> "WEAPON EQUIPMENT DEFINITION");
+        heading = reactor.computed(() -> Strings.get("openingEquipmentDoctrineDesignerWeaponEquipmentDefinition"));
         subheading = reactor.computed(() ->
-                "Collected primary, grade, and special template cards for all twelve billets."
-                        + "  Armour is issued as a tactic sheet, not authored a billet at a time.");
+                Strings.get("openingEquipmentDoctrineDesignerCollectedPrimaryGradeAndSpecialTemplateCards"));
         renameDisabled = reactor.computed(() -> !customSource());
         deleteDisabled = reactor.computed(() -> !customSource() || assignedSource());
         loadWeapon(validWeaponId(weaponDoctrineId));
@@ -102,7 +102,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     public Runnable delete() { return this::deleteSource; }
     public String squadName() {
         MarineSquad squad = roster.squadById(squadId);
-        return squad != null ? squad.name() : "Squad";
+        return squad != null ? squad.name() : Strings.get("openingEquipmentDoctrineDesignerSquad");
     }
 
     /**
@@ -172,14 +172,14 @@ public final class EquipmentDoctrineDesignerViewModel {
     private DefinitionTile tile(String id, String name) {
         String prefix = "designer-definition:" + id;
         return new DefinitionTile(prefix, prefix + ":name", prefix + ":description",
-                name, (customId(id) ? "Player-authored" : "Fleet standard") + "  ·  12 billets",
+                name, Strings.format("openingEquipmentDoctrineDesignerBillets", (customId(id) ? Strings.get("openingEquipmentDoctrineDesignerPlayerAuthored") : Strings.get("openingEquipmentDoctrineDesignerFleetStandard"))),
                 id.equals(sourceId.get())
                 ? "definition-tile selected" : "definition-tile", () -> select(id));
     }
 
     private void select(String id) {
         loadWeapon(id);
-        feedback.set("Loaded " + draftName.peek() + ". Changes remain a draft until saved as new.");
+        feedback.set(Strings.format("openingEquipmentDoctrineDesignerLoadedChangesRemainADraftUntilSaved", draftName.peek()));
     }
 
     private List<TeamTab> buildTeamTabs() {
@@ -187,9 +187,9 @@ public final class EquipmentDoctrineDesignerViewModel {
         List<TeamTab> result = new ArrayList<>();
         for (int index = 0; index < TEAM_NAMES.size(); index++) {
             int team = index;
-            result.add(new TeamTab("designer-team:" + index, TEAM_NAMES.get(index),
+            result.add(new TeamTab("designer-team:" + index, Strings.get(TEAM_NAMES.get(index)),
                     index == active ? "team-tab selected" : "team-tab",
-                    () -> { selectedTeam.set(team); feedback.set(TEAM_NAMES.get(team) + " team billets shown."); }));
+                    () -> { selectedTeam.set(team); feedback.set(Strings.format("openingEquipmentDoctrineDesignerTeamBilletsShown", Strings.get(TEAM_NAMES.get(team)))); }));
         }
         return List.copyOf(result);
     }
@@ -207,13 +207,13 @@ public final class EquipmentDoctrineDesignerViewModel {
                     prefix + ":title", prefix + ":flavor", prefix + ":stats",
                     prefix + ":role",
                     prefix + ":primary", prefix + ":grade", prefix + ":special",
-                    TEAM_NAMES.get(team) + "  /  " + (local + 1),
+                    Strings.get(TEAM_NAMES.get(team)) + "  /  " + (local + 1),
                     weaponFlavor(issue), weaponStats(prefix, issue),
                     "designer-stat-fill weapon-stat-fill",
-                    "Role  ·  " + issue.role(),
-                    "Primary  ·  " + issue.primaryDef().catalogName(issue.grade().tier),
-                    "Grade  ·  " + title(issue.grade().name()),
-                    "Special  ·  " + specialName(issue.specialDef()),
+                    Strings.format("openingEquipmentDoctrineDesignerRole", roleLabel(issue.role())),
+                    Strings.format("openingEquipmentDoctrineDesignerPrimary", issue.primaryDef().catalogName(issue.grade().tier)),
+                    Strings.format("openingEquipmentDoctrineDesignerGrade", Strings.get("openingEquipmentGrade" + issue.grade().name())),
+                    Strings.format("openingEquipmentDoctrineDesignerSpecial", specialName(issue.specialDef())),
                     () -> cycleRole(billet), () -> cycleWeapon(billet),
                     () -> cycleGrade(billet), () -> cycleSpecial(billet),
                     SpecSheets.weapon(issue.primaryDef(), issue.grade()),
@@ -227,7 +227,7 @@ public final class EquipmentDoctrineDesignerViewModel {
         String role = next(ROLES, issue.role());
         weaponIssues.set(index, new SquadWeaponIssue(
                 role, issue.primaryId(), issue.grade(), issue.specialEquipmentId()));
-        changed("Role changed to " + role + ".");
+        changed(Strings.format("openingEquipmentDoctrineDesignerRoleChangedTo", roleLabel(role)));
     }
 
     private void cycleWeapon(int index) {
@@ -246,8 +246,7 @@ public final class EquipmentDoctrineDesignerViewModel {
         }
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), weaponId, grade, issue.specialEquipmentId()));
-        changed("Primary changed to "
-                + WeaponRegistry.require(weaponId).catalogName(grade.tier) + ".");
+        changed(Strings.format("openingEquipmentDoctrineDesignerPrimaryChangedTo", WeaponRegistry.require(weaponId).catalogName(grade.tier)));
     }
 
     private void cycleGrade(int index) {
@@ -263,7 +262,7 @@ public final class EquipmentDoctrineDesignerViewModel {
         }
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primaryId(), grade, issue.specialEquipmentId()));
-        changed("Equipment grade changed to " + title(grade.name()) + ".");
+        changed(Strings.format("openingEquipmentDoctrineDesignerEquipmentGradeChangedTo", Strings.get("openingEquipmentGrade" + grade.name())));
     }
 
     private void cycleSpecial(int index) {
@@ -286,55 +285,55 @@ public final class EquipmentDoctrineDesignerViewModel {
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primaryId(), issue.grade(),
                 next != null ? next.id() : null));
-        changed("Special equipment changed to " + specialName(next) + ".");
+        changed(Strings.format("openingEquipmentDoctrineDesignerSpecialEquipmentChangedTo", specialName(next)));
     }
 
     private void startNewDraft() {
         sourceId.set(null);
-        draftName.set("New Weapon Equipment");
+        draftName.set(Strings.get("openingEquipmentDoctrineDesignerNewWeaponEquipment"));
         rememberCurrent();
-        feedback.set("New unsaved definition. Edit any billet, then Save as New.");
+        feedback.set(Strings.get("openingEquipmentDoctrineDesignerNewUnsavedDefinitionEditAnyBilletThen"));
         touch();
     }
 
     private void cloneDraft() {
         sourceId.set(null);
-        draftName.set(draftName.peek() + " Copy");
+        draftName.set(Strings.format("openingEquipmentDoctrineDesignerCopy", draftName.peek()));
         rememberCurrent();
-        feedback.set("Cloned into an unsaved definition. The source remains unchanged.");
+        feedback.set(Strings.get("openingEquipmentDoctrineDesignerClonedIntoAnUnsavedDefinitionTheSource"));
         touch();
     }
 
     private void saveDraft() {
         if (draftName.peek() == null || draftName.peek().isBlank()) {
-            feedback.set("A definition name is required before saving.");
+            feedback.set(Strings.get("openingEquipmentDoctrineDesignerADefinitionNameIsRequiredBeforeSaving"));
             return;
         }
         if (!roster.armory().canAuthorWeaponDoctrine(weaponIssues)) {
-            feedback.set("Collect every referenced weapon and special template card before saving.");
+            feedback.set(Strings.get("openingEquipmentDoctrineDesignerCollectEveryReferencedWeaponAndSpecialTemplate"));
             return;
         }
         SquadWeaponDoctrine saved = roster.armory().createWeaponDoctrine(
                 draftName.peek(), List.copyOf(weaponIssues));
         sourceId.set(saved.id());
         rememberCurrent();
-        feedback.set("Saved " + draftName.peek() + ". It is now available for squad issue.");
+        feedback.set(Strings.format("openingEquipmentDoctrineDesignerSavedItIsNowAvailableForSquad", draftName.peek()));
         touch();
     }
 
     private void renameSource() {
         boolean renamed = roster.armory().renameWeaponDoctrine(
                 sourceId.peek(), draftName.peek());
-        feedback.set(renamed ? "Definition renamed." : "Only player-authored definitions can be renamed.");
+        feedback.set(renamed ? Strings.get("openingEquipmentDoctrineDesignerDefinitionRenamed") : Strings.get("openingEquipmentDoctrineDesignerOnlyPlayerAuthoredDefinitionsCanBeRenamed"));
         touch();
     }
 
     private void deleteSource() {
         if (!roster.deleteWeaponDoctrine(sourceId.peek())) {
-            feedback.set("Assigned and built-in definitions cannot be deleted.");
+            feedback.set(Strings.get("openingEquipmentDoctrineDesignerAssignedAndBuiltInDefinitionsCannotBe"));
             return;
         }
-        feedback.set("Definition deleted. Existing issued equipment was not changed.");
+        feedback.set(Strings.get("openingEquipmentDoctrineDesignerDefinitionDeletedExistingIssuedEquipmentWasNot"));
         loadWeapon(validWeaponId(null));
     }
 
@@ -353,7 +352,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private void changed(String message) {
-        feedback.set(message + " Save as New to keep this draft.");
+        feedback.set(Strings.format("openingEquipmentDoctrineDesignerSaveAsNewToKeepThisDraft", message));
         touch();
     }
 
@@ -370,20 +369,20 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private static String specialName(SpecialEquipmentDef special) {
-        return special != null ? special.displayName() : "None";
+        return special != null ? special.displayName() : Strings.get("openingEquipmentDoctrineDesignerNone");
     }
 
     private static String weaponFlavor(SquadWeaponIssue issue) {
         if (issue.specialDef() != null) {
-            return "Specialist billet · " + issue.specialDef().displayName() + ".";
+            return Strings.format("openingEquipmentDoctrineDesignerSpecialistBillet", issue.specialDef().displayName());
         }
         if (issue.role().contains("Leader")) {
-            return "Fire-team lead · priority command issue.";
+            return Strings.get("openingEquipmentDoctrineDesignerFireTeamLeadPriorityCommandIssue");
         }
         String role = issue.primaryDef().catalogRole;
         return role != null && !role.isBlank()
-                ? title(role) + " billet · " + issue.primaryDef().displayName + "."
-                : "Line billet · reliable general-purpose issue.";
+                ? Strings.format("openingEquipmentDoctrineDesignerBillet", title(role), issue.primaryDef().displayName)
+                : Strings.get("openingEquipmentDoctrineDesignerLineBilletReliableGeneralPurposeIssue");
     }
 
     private static List<StatMeter> weaponStats(String cardId, SquadWeaponIssue issue) {
@@ -393,18 +392,34 @@ public final class EquipmentDoctrineDesignerViewModel {
         float accuracy = InfantryCombatStats.accuracy(issue.primaryDef(), issue.grade(), profile);
         float dps = InfantryCombatStats.estimatedDps(issue.primaryDef(), issue.grade(), profile);
         return List.of(
-                StatMeter.of(cardId + ":damage", "DMG", formatOneDecimal(damage),
+                StatMeter.of(cardId + ":damage", Strings.get("openingEquipmentDoctrineDesignerDmg"), formatOneDecimal(damage),
                         damage, CatalogCeilings.weaponDamage()),
-                StatMeter.of(cardId + ":range", "RNG", formatOneDecimal(range),
+                StatMeter.of(cardId + ":range", Strings.get("openingEquipmentDoctrineDesignerRng"), formatOneDecimal(range),
                         range, CatalogCeilings.weaponRange()),
-                StatMeter.of(cardId + ":accuracy", "ACC",
+                StatMeter.of(cardId + ":accuracy", Strings.get("openingEquipmentDoctrineDesignerAcc"),
                         String.format(Locale.ROOT, "%.0f%%", accuracy * 100f), accuracy, 1f),
-                StatMeter.of(cardId + ":dps", "DPS", formatOneDecimal(dps),
+                StatMeter.of(cardId + ":dps", Strings.get("openingEquipmentDoctrineDesignerDps"), formatOneDecimal(dps),
                         dps, CatalogCeilings.weaponDps(profile)));
     }
 
     private static String formatOneDecimal(float value) {
         return String.format(Locale.ROOT, "%.1f", value);
+    }
+
+    private static String roleLabel(String role) {
+        return switch (role) {
+            case "Team Leader" -> Strings.get("openingBilletRoleTeamLeader");
+            case "Rifleman" -> Strings.get("openingBilletRoleRifleman");
+            case "Assault Leader" -> Strings.get("openingBilletRoleAssaultLeader");
+            case "Breacher" -> Strings.get("openingBilletRoleBreacher");
+            case "Grenadier" -> Strings.get("openingBilletRoleGrenadier");
+            case "Automatic Rifleman" -> Strings.get("openingBilletRoleAutomaticRifleman");
+            case "Marksman" -> Strings.get("openingBilletRoleMarksman");
+            case "Anti-Armor" -> Strings.get("openingBilletRoleAntiArmor");
+            case "Security Rifleman" -> Strings.get("openingBilletRoleSecurityRifleman");
+            case "Scout" -> Strings.get("openingBilletRoleScout");
+            default -> role; // Preserve addon- and player-authored roles.
+        };
     }
 
     private static String title(String value) {

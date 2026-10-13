@@ -61,7 +61,7 @@ final class BarracksGuideCallout {
         Rect visible = UiSpotlight.visibleBounds(document, target);
         Rect view = document.viewport();
         float width = Math.min(528, view.width() - 16);
-        float height = Math.min(260, view.height() - 16);
+        float height = Math.min(294, view.height() - 16);
         List<Rect> regions = regions().stream().map(region -> UiSpotlight.regionBounds(document, region)).toList();
         Rect position = place(visible, regions, view, width, height);
         // CSS dimensions describe the content box; placement uses the complete outer box.

@@ -4,7 +4,7 @@
 
     <div id="mech-lab-room-bar" class="panel room-bar">
       <img id="mech-lab-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
-      <div id="mech-lab-room-name" class="label heading tone-edge">MECH LAB  //  FABRICATION GANTRY</div>
+      <div id="mech-lab-room-name" class="label heading tone-edge">{i18n.openingUiMechLabMechLabFabricationGantry}</div>
       <div id="mech-bay-navigator" class="{bayNavigatorClasses}">
         <button id="mech-previous-bay" class="bay-step console-action" onclick="{previousBay}">‹</button>
         <div id="mech-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
@@ -16,7 +16,7 @@
           <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
         </div>
       </div>
-      <button id="castle-lesson-resume" class="{lessonResumeClasses}" onclick="{lessonResume}">CASTLE'S GUIDE</button>
+      <button id="castle-lesson-resume" class="{lessonResumeClasses}" onclick="{lessonResume}">{i18n.openingUiMechLabCastleSGuide}</button>
       <div id="mech-lab-summary" class="label tone-muted room-summary">{labSummary}</div>
     </div>
 
@@ -24,14 +24,14 @@
       <div id="mech-asset-picker" class="{pickerClasses}">
         <div id="mech-picker-heading" class="picker-heading edge-surface">
           <div id="mech-picker-title-copy" class="picker-title-copy">
-            <div id="mech-picker-title" class="label title-copy tone-accent">SELECT HEAVY ASSET</div>
-            <div id="mech-picker-copy" class="label tone-muted">Choose a support lance and assigned chassis to open its gantry.</div>
+            <div id="mech-picker-title" class="label title-copy tone-accent">{i18n.openingUiMechLabSelectHeavyAsset}</div>
+            <div id="mech-picker-copy" class="label tone-muted">{i18n.openingUiMechLabChooseASupportLanceAndAssignedChassis}</div>
           </div>
-          <button id="mech-picker-close" class="compact-action console-action" onclick="{closeAssetPicker}">BACK TO GANTRY</button>
+          <button id="mech-picker-close" class="compact-action console-action" onclick="{closeAssetPicker}">{i18n.openingUiMechLabBackToGantry}</button>
         </div>
         <div id="mech-picker-body" class="picker-body">
           <div id="mech-picker-lances" class="picker-lances surface-dark">
-            <div id="mech-squad-heading" class="section-title label heading tone-edge">SUPPORT LANCES</div>
+            <div id="mech-squad-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabSupportLances}</div>
             <div id="mech-squad-list" class="squad-list">
               <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">
                 <div id="{squad.nameId}" class="label heading row-name">{squad.name}</div>
@@ -41,13 +41,13 @@
             </div>
           </div>
           <div id="mech-picker-assets" class="picker-assets">
-            <div id="mech-assets-heading" class="section-title label heading tone-edge">ASSIGNED HEAVY ASSETS</div>
+            <div id="mech-assets-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabAssignedHeavyAssets}</div>
             <div id="mech-list" class="mech-list">
               <button each="mech in mechRows" key="{mech.id}" id="{mech.id}" class="{mech.classes}" onclick="{mech.select}">
                 <div id="{mech.nameId}" class="label heading mech-card-name tone-accent">{mech.name}</div>
                 <div id="{mech.chassisId}" class="label tone-muted mech-card-line">{mech.chassis}</div>
                 <div id="{mech.subsystemId}" class="label tone-edge mech-card-line">{mech.subsystem}</div>
-                <div id="{mech.actionId}" class="label heading mech-card-action">OPEN GANTRY</div>
+                <div id="{mech.actionId}" class="label heading mech-card-action">{i18n.openingUiMechLabOpenGantry}</div>
               </button>
             </div>
           </div>
@@ -59,24 +59,24 @@
             <div id="mech-asset-strip-copy" class="asset-strip-copy">
               <div id="selected-mech-name" class="{selectedMechNameClasses}">{selectedMechName}</div>
               <div id="mech-call-sign-editor" class="{callSignEditorClasses}">
-                <div id="mech-call-sign-label" class="label heading tone-muted call-sign-label">CALLSIGN</div>
+                <div id="mech-call-sign-label" class="label heading tone-muted call-sign-label">{i18n.openingUiMechLabCallsign}</div>
                 <input id="mech-call-sign-input" class="mech-call-sign-input" value="{callSignDraft}" maxlength="48" oninput="{editCallSign}" />
-                <button id="mech-call-sign-set" class="call-sign-action console-action" disabled="{callSignRenameDisabled}" onclick="{renameCallSign}">SET</button>
+                <button id="mech-call-sign-set" class="call-sign-action console-action" disabled="{callSignRenameDisabled}" onclick="{renameCallSign}">{i18n.openingUiMechLabSet}</button>
               </div>
               <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
             </div>
             <div id="mech-gantry-navigator" class="gantry-navigator">
-              <button id="mech-previous-gantry" class="gantry-step console-action" onclick="{previousGantry}">‹ PREV</button>
+              <button id="mech-previous-gantry" class="gantry-step console-action" onclick="{previousGantry}">{i18n.openingUiMechLabPrev}</button>
               <div id="mech-active-gantry" class="label heading tone-accent gantry-position">{activeGantryLabel}</div>
-              <button id="mech-next-gantry" class="gantry-step console-action" onclick="{nextGantry}">NEXT ›</button>
+              <button id="mech-next-gantry" class="gantry-step console-action" onclick="{nextGantry}">{i18n.openingUiMechLabNext}</button>
             </div>
             <div id="selected-mech-doctrine" class="label heading tone-edge doctrine">{selectedMechDoctrine}</div>
-            <button id="mech-change-asset" class="compact-action console-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
+            <button id="mech-change-asset" class="compact-action console-action" onclick="{openAssetPicker}">{i18n.openingUiMechLabBrowseLance}</button>
           </div>
 
           <div id="mech-fitting-body" class="fitting-body">
             <div id="mech-component-catalog" class="{catalogClasses}">
-              <div id="mech-catalog-kicker" class="section-title label heading tone-edge">STORES / SELECTED MOUNT</div>
+              <div id="mech-catalog-kicker" class="section-title label heading tone-edge">{i18n.openingUiMechLabStoresSelectedMount}</div>
               <div id="mech-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
               <div id="mech-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
               <div id="mech-catalog-rule" class="label heading surface-dark catalog-rule">{selectedSlotRule}</div>
@@ -108,15 +108,15 @@
                 </div>
               </div>
               <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
-                <div id="mech-drag-drop-title" class="label heading tone-edge">DRAG HARDWARE TO A MOUNT</div>
-                <div id="mech-drag-drop-types" class="label tone-muted">Drop fitted weapons here to return to stores.</div>
+                <div id="mech-drag-drop-title" class="label heading tone-edge">{i18n.openingUiMechLabDragHardwareToAMount}</div>
+                <div id="mech-drag-drop-types" class="label tone-muted">{i18n.openingUiMechLabDropFittedWeaponsHereToReturnTo}</div>
               </div>
             </div>
 
             <div id="mech-garage-stage" class="garage-stage">
               <div id="mech-garage-heading" class="garage-heading">
                 <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
-                <div id="mech-garage-status" class="label heading tone-muted garage-status">SELECT MOUNT / DRAG TO FIT</div>
+                <div id="mech-garage-status" class="label heading tone-muted garage-status">{i18n.openingUiMechLabSelectMountDragToFit}</div>
               </div>
               <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="1060" height="790" />
               <div id="mech-overview-rail" class="{overviewRailClasses}">
@@ -127,14 +127,14 @@
                     <div id="{gantry.detailId}" class="label tone-muted overview-detail">{gantry.detail}</div>
                   </button>
                 </div>
-                <button id="mech-overview-browse" class="overview-browse console-action" onclick="{openAssetPicker}">BROWSE LANCES</button>
+                <button id="mech-overview-browse" class="overview-browse console-action" onclick="{openAssetPicker}">{i18n.openingUiMechLabBrowseLances}</button>
               </div>
             </div>
 
             <div id="mech-slot-rack" class="{slotRackClasses}">
               <div id="mech-performance-card" class="performance-card surface-dark">
                 <div id="mech-specs-header" class="specs-header">
-                  <div id="mech-specs-title" class="section-title label heading tone-edge">SPECIFICATIONS</div>
+                  <div id="mech-specs-title" class="section-title label heading tone-edge">{i18n.openingUiMechLabSpecifications}</div>
                   <div id="mech-specs-doctrine" class="label heading tone-muted specs-doctrine"></div>
                 </div>
                 <div id="mech-performance-grid" class="{performanceClasses}">
@@ -148,8 +148,8 @@
                   </div>
                 </div>
               </div>
-              <div id="mech-slot-heading" class="section-title label heading tone-edge">FITTING LOCATIONS</div>
-              <div id="mech-slot-copy" class="label tone-muted slot-copy">Select a socket to filter hardware.</div>
+              <div id="mech-slot-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabFittingLocations}</div>
+              <div id="mech-slot-copy" class="label tone-muted slot-copy">{i18n.openingUiMechLabSelectASocketToFilterHardware}</div>
               <div id="mech-slot-list" class="slot-list">
                 <div each="slot in slotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}">
                   <div id="{slot.contentId}" class="slot-row-content">
@@ -167,7 +167,7 @@
                         <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
                       </div>
                     </button>
-                    <button id="{slot.stripId}" class="{slot.stripClasses}" disabled="{slot.stripDisabled}" onclick="{slot.stripAction}">STRIP</button>
+                    <button id="{slot.stripId}" class="{slot.stripClasses}" disabled="{slot.stripDisabled}" onclick="{slot.stripAction}">{i18n.openingUiMechLabStrip}</button>
                   </div>
                 </div>
               </div>
@@ -240,13 +240,13 @@
   .gantry-step { width: 60px; height: 28px; padding: 0px 5px; font-family: heading; }
   .gantry-position { width: 0px; flex-grow: 1; height: 16px; padding: 7px 5px; text-align: center; background-color: #121719; border-width: 1px; }
   .doctrine { width: 0px; height: 16px; flex-grow: 1; text-align: right; }
-  .performance-card { flex-direction: column; width: 100%; height: 112px; padding: 5px 6px; gap: 3px; border-width: 1px; }
+  .performance-card { flex-direction: column; width: 100%; height: 160px; padding: 5px 6px; gap: 3px; border-width: 1px; }
   .specs-header { flex-direction: row; align-items: center; width: 100%; height: 16px; }
   .specs-doctrine { width: 0px; flex-grow: 1; height: 16px; text-align: right; }
-  .performance-grid { flex-direction: column; width: 100%; height: 82px; gap: 2px; }
-  .performance-meter { flex-direction: row; align-items: center; width: 100%; height: 18px; padding: 1px 2px; gap: 4px; }
-  .meter-label { width: 82px; height: 16px; }
-  .meter-value { width: 90px; height: 16px; text-align: right; }
+  .performance-grid { flex-direction: column; width: 100%; height: 130px; gap: 2px; }
+  .performance-meter { flex-direction: row; align-items: center; width: 100%; height: 30px; padding: 1px 2px; gap: 4px; }
+  .meter-label { width: 94px; height: 28px; white-space: normal; }
+  .meter-value { width: 120px; height: 28px; white-space: normal; text-align: right; }
   .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 8px; padding: 0px; background-color: #121719; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #acae96; }
   .meter-ghost { height: 100%; }

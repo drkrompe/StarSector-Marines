@@ -61,7 +61,7 @@ public final class PlayerViewFrameRenderer {
             RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.DOODADS,
             RenderLayer.FOG, RenderLayer.UNITS, RenderLayer.HAZARDS,
             RenderLayer.SMOKE, RenderLayer.ROOFS, RenderLayer.DRONES,
-            RenderLayer.OBJECTIVES, RenderLayer.COMPOUND, RenderLayer.CONVOY);
+            RenderLayer.OBJECTIVES, RenderLayer.MISSION_MARKERS, RenderLayer.COMPOUND, RenderLayer.CONVOY);
 
     private final HeadlessUiRenderer renderer;
     private final int width;

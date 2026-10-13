@@ -167,6 +167,10 @@ public final class FortressBatteryScene implements BehaviorScene {
                 verdicts.add(Verdict.of("silent-towards-its-new-friends", t.shots(sim) == t.shotsAtFlip && t.hullAtFlip == ship.hullFraction(),
                         String.format(Locale.ROOT, "rounds %d at the flip and %d at the end, hull %.4f then %.4f",
                                 t.shotsAtFlip, t.shots(sim), t.hullAtFlip, ship.hullFraction())));
+                long structure = sim.fortressBatteries().batteries().get(0).structureId();
+                verdicts.add(Verdict.of("structure-follows-its-holder",
+                        sim.identity().faction(structure) == Faction.MARINE && sim.isCapturedStructure(structure),
+                        "the structure's own side at the end: " + sim.identity().faction(structure)));
                 verdicts.add(Verdict.of("barrage-lock-lifts-with-it", sim.orbitalBarrageLock() == null && t.lockedBeforeFlip,
                         "lock at the end: " + sim.orbitalBarrageLock()));
             }

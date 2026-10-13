@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,5 +80,31 @@ class BattlefieldMarkerPresentationTest {
         assertEquals(20f, BattlefieldMarkerPresentation.objectiveRadius(80f));
         assertEquals(18f, BattlefieldMarkerPresentation.targetRadius(4f, 0f));
         assertEquals(48f, BattlefieldMarkerPresentation.targetRadius(12f, 4f));
+    }
+
+    private static ShieldDomeService.DomeView dome(boolean down, float flux) {
+        return new ShieldDomeService.DomeView(1L, Faction.DEFENDER, 10f, 10f, 16f, flux, 1500f,
+                down, down ? 0.5f : 0f, 0f, 0f, 0f, null, 0, 0, 0, 0f);
+    }
+
+    @Test
+    void aBarrageOverAnUpDomeStaysLegalAndSaysItWillBeAbsorbed() {
+        BattlefieldMarkerPresentation.TargetMarker marker = BattlefieldMarkerPresentation.target(
+                "Orbital Barrage", true, 4f, dome(false, 750f));
+        assertTrue(marker.valid());
+        assertEquals("ABSORBED BY DOME", marker.status());
+        assertSame(BattlefieldMarkerPresentation.CONTESTED, marker.tone());
+        BattlefieldMarkerPresentation.DomeMarker up = BattlefieldMarkerPresentation.dome(dome(false, 750f));
+        assertEquals("ABSORBS / POOL 50%", up.status());
+        assertEquals(16f, up.radiusCells());
+    }
+
+    @Test
+    void aDownDomeIsNamedDownAndNoDomeLeavesTheMarkerAlone() {
+        assertEquals("DOME DOWN", BattlefieldMarkerPresentation.target(
+                "Orbital Barrage", true, 4f, dome(true, 1500f)).status());
+        assertEquals("VALID", BattlefieldMarkerPresentation.target("Orbital Barrage", true, 4f, null).status());
+        assertEquals("BLOCKED", BattlefieldMarkerPresentation.target(
+                "Orbital Barrage", false, 4f, dome(false, 0f)).status());
     }
 }

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ui.retained.PointerButton;
@@ -151,7 +153,7 @@ public final class ShipConditionOverlay {
         style(card, position(placement.x() - bounds.x(), placement.y() - bounds.y())
                 + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; opacity: 1; pointer-events: auto;",
                 Math.max(0f, width - 36f), Math.max(0f, height - 36f)));
-        markup.requireElement("survey-card-hint").text(pinned ? "PINNED INSPECTION" : "CLICK TO PIN / ESC TO CLOSE");
+        markup.requireElement("survey-card-hint").text(pinned ? Strings.get("openingShipInspectionPinned") : Strings.get("openingShipInspectionPinHint"));
         document.advance(0f);
     }
 

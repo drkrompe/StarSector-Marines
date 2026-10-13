@@ -3,13 +3,13 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / SQUAD ISSUE" />
 
     <div id="fireteam-breadcrumb" class="panel console-command-rail">
-      <button id="fireteam-breadcrumb-companies" onclick="{back}">Back</button>
+      <button id="fireteam-breadcrumb-companies" onclick="{back}">{i18n.openingUiFleetArmoryFireteamBack}</button>
       <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-      <button id="back-to-squads" onclick="{backToSquads}">Equipment</button>
+      <button id="back-to-squads" onclick="{backToSquads}">{i18n.openingUiFleetArmoryFireteamEquipment}</button>
       <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
       <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
       <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Loadout</div>
+      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">{i18n.openingUiLoadoutLoadout}</div>
     </div>
 
     <div id="fireteam-body">

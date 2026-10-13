@@ -4,7 +4,7 @@
 
     <div id="boat-deck-room-bar" class="panel room-bar">
       <img id="boat-deck-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
-      <div id="boat-deck-room-name" class="label heading tone-edge">BOAT DECK  //  HANGAR</div>
+      <div id="boat-deck-room-name" class="label heading tone-edge">{i18n.openingUiBoatDeckBoatDeckHangar}</div>
       <div id="boat-bay-navigator" class="{bayNavigatorClasses}">
         <button id="boat-previous-bay" class="bay-step console-action" onclick="{previousBay}">‹</button>
         <div id="boat-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
@@ -22,15 +22,15 @@
     <div id="boat-deck-body" class="deck-body">
       <div id="boat-deck-stage" class="bay-stage">
         <div id="boat-deck-stage-heading" class="stage-heading">
-          <div id="boat-deck-stage-title" class="label heading tone-edge">BOAT BAY  //  BERTHS</div>
-          <div id="boat-deck-stage-status" class="label heading tone-muted stage-status">DECK CREW ON WATCH</div>
+          <div id="boat-deck-stage-title" class="label heading tone-edge">{i18n.openingUiBoatDeckBoatBayBerths}</div>
+          <div id="boat-deck-stage-status" class="label heading tone-muted stage-status">{i18n.openingUiBoatDeckDeckCrewOnWatch}</div>
         </div>
         <canvas id="boat-deck-canvas" class="bay-canvas" width="900" height="520" />
       </div>
 
       <div id="boat-overview" class="{overviewClasses}">
-        <button id="wings-resume" class="{wings.resumeClasses}" onclick="{wings.open}">SECONDHAND WINGS / MARA'S OFFER</button>
-        <div id="boat-overview-heading" class="section-title label heading tone-edge">BOATS ABOARD</div>
+        <button id="wings-resume" class="{wings.resumeClasses}" onclick="{wings.open}">{i18n.openingUiBoatDeckSecondhandWingsMaraSOffer}</button>
+        <div id="boat-overview-heading" class="section-title label heading tone-edge">{i18n.openingUiBoatDeckBoatsAboard}</div>
         <div id="boat-list" class="boat-list">
           <button each="boat in boatRows" key="{boat.id}" id="{boat.id}" class="{boat.classes}" onclick="{boat.select}">
             <div id="{boat.berthId}" class="label heading tone-edge boat-card-berth">{boat.berth}</div>
@@ -44,8 +44,8 @@
           <div id="bay-restoration-officer" class="restoration-officer">
             <img id="bay-restoration-portrait" class="restoration-portrait" src="{restoration.portrait}" />
             <div id="bay-restoration-heading" class="restoration-heading">
-              <div id="bay-restoration-speaker" class="restoration-title label heading tone-accent">CASTLE / COMPANY OFFICER</div>
-              <div id="bay-restoration-title" class="restoration-title label heading tone-edge">SECOND BAY - SEALED</div>
+              <div id="bay-restoration-speaker" class="restoration-title label heading tone-accent">{i18n.openingUiBoatDeckCastleCompanyOfficer}</div>
+              <div id="bay-restoration-title" class="restoration-title label heading tone-edge">{i18n.openingUiBoatDeckSecondBaySealed}</div>
             </div>
           </div>
           <div id="bay-restoration-copy" class="restoration-copy label">{restoration.copy}</div>
@@ -61,11 +61,11 @@
         <div id="boat-fabrication-header" class="panel boat-strip">
           <div id="boat-fabrication-berth" class="label boat-name tone-accent">{fabricationBerthLabel}</div>
           <div id="boat-fabrication-pattern" class="label tone-muted boat-identity">{fabricationPatternName}</div>
-          <button id="boat-fabrication-back" class="compact-action console-action" onclick="{backToDeck}">BACK TO DECK</button>
+          <button id="boat-fabrication-back" class="compact-action console-action" onclick="{backToDeck}">{i18n.openingUiBoatDeckBackToDeck}</button>
         </div>
 
         <div id="boat-fabrication-yard" class="panel fabrication-yard">
-          <div id="boat-fabrication-kicker" class="section-title label heading tone-edge">YARD WORK / AIRFRAME</div>
+          <div id="boat-fabrication-kicker" class="section-title label heading tone-edge">{i18n.openingUiBoatDeckYardWorkAirframe}</div>
           <div id="boat-fabrication-copy" class="label tone-muted fabrication-copy">{fabricationCopy}</div>
           <div id="boat-fabrication-materials" class="fabrication-costs">
             <div each="material in fabricationMaterials" key="{material.id}" id="{material.id}" class="{material.classes}">
@@ -85,7 +85,7 @@
           <div id="boat-fitting-header" class="panel boat-strip">
             <div id="selected-boat-name" class="label boat-name tone-accent">{selectedBoatName}</div>
             <div id="selected-boat-identity" class="label tone-muted boat-identity">{selectedBoatIdentity}</div>
-            <button id="boat-back-to-deck" class="compact-action console-action" onclick="{backToDeck}">BACK TO DECK</button>
+            <button id="boat-back-to-deck" class="compact-action console-action" onclick="{backToDeck}">{i18n.openingUiBoatDeckBackToDeck}</button>
           </div>
 
           <div id="boat-performance-grid" class="panel performance-grid">
@@ -99,7 +99,7 @@
           </div>
 
           <div id="boat-slot-rack" class="panel slot-panel">
-            <div id="boat-slot-heading" class="section-title label heading tone-edge">FITTED SLOTS</div>
+            <div id="boat-slot-heading" class="section-title label heading tone-edge">{i18n.openingUiBoatDeckFittedSlots}</div>
             <div id="boat-slot-list" class="slot-list">
               <button each="slot in slotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
                 <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
@@ -111,7 +111,7 @@
         </div>
 
         <div id="boat-catalog" class="panel catalog-panel">
-          <div id="boat-catalog-kicker" class="section-title label heading tone-edge">YARD WORK / SELECTED SLOT</div>
+          <div id="boat-catalog-kicker" class="section-title label heading tone-edge">{i18n.openingUiBoatDeckYardWorkSelectedSlot}</div>
           <div id="boat-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
           <div id="boat-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
           <div id="boat-catalog-list" class="catalog-list">
@@ -156,7 +156,7 @@
         <div id="wings-reason" class="label tone-muted wings-reason">{wings.reason}</div>
         <div id="wings-controls" class="wings-controls">
           <button id="wings-action" class="wings-action console-action" disabled="{wings.disabled}" onclick="{wings.action}">{wings.actionLabel}</button>
-          <button id="wings-later" class="wings-action console-action" onclick="{wings.dismiss}">CLOSE / LATER</button>
+          <button id="wings-later" class="wings-action console-action" onclick="{wings.dismiss}">{i18n.openingUiBoatDeckCloseLater}</button>
         </div>
       </div>
       <div id="wings-space-below" class="wings-space" />

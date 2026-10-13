@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,13 +28,13 @@ public final class SquadConsolidation {
     }
 
     public static Plan preview(MarineRoster roster, Set<String> recipients, Set<String> donors) {
-        String reason = recipients.isEmpty() ? "Select receiving squads first."
-                : donors.isEmpty() ? "Mark the squads that may supply personnel."
-                : !Collections.disjoint(recipients, donors) ? "A squad cannot give and receive in the same order." : "";
+        String reason = recipients.isEmpty() ? Strings.get("openingSquadConsolidationSelectReceivingSquadsFirst")
+                : donors.isEmpty() ? Strings.get("openingSquadConsolidationMarkTheSquadsThatMaySupplyPersonnel")
+                : !Collections.disjoint(recipients, donors) ? Strings.get("openingSquadConsolidationASquadCannotGiveAndReceiveIn") : "";
         for (String id : union(recipients, donors)) {
             MarineSquad squad = roster.squadById(id);
             if (squad == null || squad.reserve() || squad.stationed()) {
-                reason = "Only available line squads may give or receive personnel.";
+                reason = Strings.get("openingSquadConsolidationOnlyAvailableLineSquadsMayGiveOr");
                 break;
             }
         }
@@ -72,7 +73,7 @@ public final class SquadConsolidation {
                     MarineSquad.CAPACITY - vacant - ready, vacant, vacant - change));
         }
         return new Plan(recipients, donors, moves, strengths,
-                moves.isEmpty() ? "No ready donors or receiving vacancies. Wounded soldiers keep their billets." : "");
+                moves.isEmpty() ? Strings.get("openingSquadConsolidationNoReadyDonorsOrReceivingVacanciesWounded") : "");
     }
 
     /** Campaign-thread transaction: a changed preview is rejected before the first move. */

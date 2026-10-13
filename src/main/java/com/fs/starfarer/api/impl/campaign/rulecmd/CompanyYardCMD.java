@@ -1,5 +1,6 @@
 package com.fs.starfarer.api.impl.campaign.rulecmd;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
@@ -31,9 +32,9 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
             if (openRequired(dialog, memoryMap)) return true;
             portrait(dialog);
             dialog.getOptionPanel().clearOptions();
-            dialog.getTextPanel().addPara("Which Cerberus shall the yard convert, Commander?");
+            dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDWhichCerberusShallTheYardConvertCommander"));
             for (FleetMemberAPI ship : candidates()) dialog.getOptionPanel().addOption(ship.getShipName(), PREFIX + ship.getId());
-            dialog.getOptionPanel().addOption("Return to port", "smYardReturn");
+            dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
         } else if ("review".equals(action)) {
             local.set(SELECTED, option.substring(PREFIX.length()));
             review(dialog, selected(local));
@@ -42,16 +43,13 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
             String failure = CompanyYard.install(ship, CompanyYard.dockedMarket());
             portrait(dialog);
             if (failure == null && personalYard(ship))
-                dialog.getTextPanel().addPara("Nessa says she'll keep the old pressure seals on her wall. Apparently I have a reputation to maintain. "
-                        + "She stayed for the pressure test herself. Didn't put that on the bill.");
+                dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDNessaSaysSheLlKeepTheOld"));
             dialog.getTextPanel().addPara(failure != null ? failure
-                    : "The yard has finished. Eighteen more places to sleep, a proper command fit, and a workshop gantry. "
-                    + "We gave up twenty-five units of hold for them. This is permanent work.");
+                    : Strings.get("openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces"));
             if (failure == null && CerberusCompanyStart.depot() != null)
-                dialog.getTextPanel().addPara("Our prepaid preparation stores are in this planet's depot. Stay docked and open Marine operations: "
-                        + "designate the converted Cerberus, then follow my lesson. Workshop bills include depot stock here; they cannot draw it while we are away.");
+                dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDOurPrepaidPreparationStoresAreInThis"));
             dialog.getOptionPanel().clearOptions();
-            dialog.getOptionPanel().addOption("Return to port", "smYardReturn");
+            dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
         } else return false;
         return true;
     }
@@ -77,7 +75,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
     }
     private static void portrait(InteractionDialogAPI dialog) {
         dialog.getTextPanel().addImage(CompanyManagementGuide.portrait());
-        dialog.getTextPanel().addPara("CASTLE / COMPANY OFFICER");
+        dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDCastleCompanyOfficer"));
     }
     private static boolean personalYard(FleetMemberAPI ship) {
         var market = CompanyYard.dockedMarket();
@@ -88,27 +86,21 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         portrait(dialog);
         if (CerberusCompanyStart.conversionRequired())
             dialog.getTextPanel().addPara(personalYard(ship)
-                    ? "Nessa Venn met us at the berth. Took one look at the patch under the collar and asked if I'd done it myself. "
-                    + "I told her I'd supervised. She remembers what that means. Here's her estimate, Captain. She's kept to her word."
-                    : "The yard can make room for bunks and a workshop. I've asked them to leave the sound compartments alone. "
-                    + "Have a look at the estimate, Captain. We need to get this right.");
-        dialog.getTextPanel().addPara("Mercenary Company Conversion" + (ship == null ? "" : " - " + ship.getShipName()));
-        dialog.getTextPanel().addPara("Permanent installation: +18 personnel capacity, -25 cargo capacity, expanded barracks, "
-                + "company command eligibility and one workshop gantry. The existing single boat berth remains; the hullmod includes no boat or mech.");
+                    ? Strings.get("openingCompanyYardCMDNessaVennMetUsAtTheBerth")
+                    : Strings.get("openingCompanyYardCMDTheYardCanMakeRoomForBunks"));
+        dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDMercenaryCompanyConversion", (ship == null ? "" : " - " + ship.getShipName())));
+        dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDPermanentInstallationPersonnelCapacityCargoCapacityExpanded"));
         int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
         int reserved = CompanyYard.reservedCredits(ship);
         int cash = CompanyYard.cashCost(ship);
-        dialog.getTextPanel().addPara("Yard cost: 5,000 credits / Castle's reserved payment: " + reserved
-                + " / Due from fleet: " + cash + " / Fleet funds: " + credits + " / Short by: "
-                + Math.max(0, cash - Math.max(0, credits)));
-        if (reserved > 0) dialog.getTextPanel().addPara("I've kept this payment aside since we left the Claim. "
-                + "We won't have to touch what's left in the ship's account. The shuttle parts and first squad's stores are paid for too.");
+        dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDYardCostCreditsCastleSReservedPayment", reserved, cash, credits, Math.max(0, cash - Math.max(0, credits))));
+        if (reserved > 0) dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDIVeKeptThisPaymentAsideSince"));
         String failure = CompanyYard.refusal(ship, CompanyYard.dockedMarket());
         if (failure != null) dialog.getTextPanel().addPara(failure);
         dialog.getOptionPanel().clearOptions();
-        dialog.getOptionPanel().addOption(reserved > 0 ? "Install conversion - use reserved payment"
-                : "Install conversion - 5,000 credits", "smYardInstall");
+        dialog.getOptionPanel().addOption(reserved > 0 ? Strings.get("openingCompanyYardCMDInstallConversionUseReservedPayment")
+                : Strings.get("openingCompanyYardCMDInstallConversionCredits"), "smYardInstall");
         dialog.getOptionPanel().setEnabled("smYardInstall", failure == null);
-        dialog.getOptionPanel().addOption("Return to port", "smYardReturn");
+        dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
     }
 }

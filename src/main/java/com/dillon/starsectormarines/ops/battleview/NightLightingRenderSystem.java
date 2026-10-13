@@ -47,15 +47,51 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
         out.addPoly(layer(),shade);
         for (var lamp:night.lamps()) {
-            if (!night.powered(lamp) || !visible.contains((int)lamp.x(),(int)lamp.y())) continue;
+            if (!visible.contains((int)lamp.x(),(int)lamp.y())) continue;
             if (useFog
                     && !fog.cellRevealedArray()[(int)lamp.y()*fog.gridWidth()+(int)lamp.x()]) continue;
             float x=camera.cellToScreenX(lamp.x()), y=camera.cellToScreenY(lamp.y()), px=camera.cellPxSize();
+            if (lamp.fixture() == NightLighting.Fixture.TRIPOD_FLOODLIGHT) {
+                floodlight(out, lamp, x, y, px, night.powered(lamp), ctx.alphaMult);
+                continue;
+            }
+            if (!night.powered(lamp)) continue;
             out.addLine(layer(),x-px*.3f,y,x+px*.3f,y,Math.max(2,px*.24f),.08f,.08f,.07f,ctx.alphaMult);
             for (int halo=3;halo>=1;halo--)
                 out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,px*(.14f+halo*.13f),lamp.red(),lamp.green(),lamp.blue(),.08f*ctx.alphaMult);
             out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,Math.max(1,px*.07f),1,.94f,.75f,ctx.alphaMult);
         }
+    }
+
+    /** Ground contact, splayed feet and an elevated head remain visible during the outage. */
+    private void floodlight(DrawList out, NightLighting.Lamp lamp, float x, float y,
+                            float px, boolean powered, float alpha) {
+        out.addLine(layer(),x-px*.48f,y+px*.12f,x+px*.48f,y+px*.12f,px*.42f,0,0,0,.4f*alpha);
+        for (int leg=0;leg<3;leg++) {
+            double angle=Math.toRadians(30+leg*120);
+            float footX=x+(float)Math.cos(angle)*px*.48f;
+            float footY=y+(float)Math.sin(angle)*px*.34f;
+            out.addLine(layer(),x,y-px*.12f,footX,footY,Math.max(2,px*.12f),.09f,.1f,.11f,alpha);
+            out.addLine(layer(),x,y-px*.12f,footX,footY,Math.max(1,px*.05f),.46f,.43f,.34f,alpha);
+        }
+        float headX=x+px*.16f, headY=y-px*.82f;
+        out.addLine(layer(),x,y,headX,headY,Math.max(2,px*.15f),.09f,.1f,.12f,alpha);
+        out.addLine(layer(),x-px*.025f,y,headX-px*.025f,headY,Math.max(1,px*.055f),.58f,.54f,.39f,alpha);
+        double bearing=Math.toRadians(lamp.bearingDegrees());
+        float forwardX=(float)Math.cos(bearing),forwardY=-(float)Math.sin(bearing);
+        float crossX=-forwardY,crossY=forwardX;
+        float faceX=headX+forwardX*px*.18f,faceY=headY+forwardY*px*.18f;
+        out.addLine(layer(),headX-crossX*px*.38f,headY-crossY*px*.38f,
+                headX+crossX*px*.38f,headY+crossY*px*.38f,px*.36f,.08f,.09f,.11f,alpha);
+        out.addLine(layer(),headX-crossX*px*.31f,headY-crossY*px*.31f,
+                headX+crossX*px*.31f,headY+crossY*px*.31f,px*.22f,.4f,.42f,.43f,alpha);
+        if (powered) for (int halo=3;halo>=1;halo--)
+            out.addLine(layer(),faceX-crossX*px*.28f,faceY-crossY*px*.28f,
+                    faceX+crossX*px*.28f,faceY+crossY*px*.28f,px*(.12f+halo*.1f),
+                    lamp.red(),lamp.green(),lamp.blue(),.07f*alpha);
+        out.addLine(layer(),faceX-crossX*px*.28f,faceY-crossY*px*.28f,
+                faceX+crossX*px*.28f,faceY+crossY*px*.28f,Math.max(1,px*.08f),
+                powered ? 1f : .2f,powered ? .94f : .24f,powered ? .75f : .26f,alpha);
     }
 
     private void bake(CellTopology ground, NightLighting night) {
