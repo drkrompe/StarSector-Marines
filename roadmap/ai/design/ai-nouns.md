@@ -1664,18 +1664,20 @@ HOLD fresh, seeing it was all that was required. Two squads of one live battle
 were recorded standing on their landing pads with every member settled and not
 one member engageable. The refusal belongs to prosecution whenever prosecution chose the target and anchor, even if a route-threat commit is also standing: the empty search was drawn round the squad's own centre and says nothing about the route, so reading it as the route's "plant" froze a retaking squad twenty-six cells from its objective.
 
-A route-threat commit that rests on memory alone is not enough to plant a squad
-carrying a player's attack move. Route-threat weight sums remembered contacts at
-their decayed confidence, so a few stale beliefs near the route commit the squad,
-and the firing-position search then runs against where the enemy actually is now,
-which is not where it was remembered. Nothing came back, the refusal read as
-"plant", and nine marines stood still for a belief's whole fourteen-second
-lifetime while the player clicked at them. When no contact has been seen within
-the hold window the refusal walks on to the order instead. Fresh contact and the
-hard hold still plant, and an autonomous advance keeps its own behaviour: moving
-that is a commander-matrix question. For the same reason doctrine cannot *enter*
-HOLD on evidence too stale to keep it; admitting it from ADVANCE while releasing
-it back flipped the doctrine every tick, and each flip interrupts the planner.
+A route-threat commit is only as good as its evidence, and memory alone is not
+evidence. Route-threat weight sums remembered contacts at their decayed
+confidence, so a few stale beliefs near the route used to commit the squad; the
+firing-position search then ran against where the enemy actually is now, which is
+not where it was remembered, found nothing, and the refusal read as "plant".
+Nine marines stood still for a belief's whole fourteen-second lifetime while the
+player clicked at them, and the same state would have held any autonomous squad.
+The commit is therefore decided on current evidence: it lapses unless some
+contact was refreshed, by sight or sound, within the hold window, the same
+freshness the doctrine hold has always required. Memory still informs aim,
+awareness and doctrine; it cannot hold a squad in place by itself. Doctrine
+likewise cannot *enter* HOLD on evidence too stale to keep it. Admitting it from
+ADVANCE while releasing it back flipped the doctrine every tick, and each flip
+interrupts the planner.
 
 What neither answer may be is the old one. A committed member that returned on
 an unreachable position set an empty path and moved nobody, and because the
