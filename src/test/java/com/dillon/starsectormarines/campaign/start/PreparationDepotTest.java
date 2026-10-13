@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.marine.*;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 
 import java.io.*;
 import java.lang.reflect.Proxy;
@@ -15,21 +18,23 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PreparationDepotTest {
-    @Test void realPreparationOrdersConsumeTheConsignmentOnceAndPreserveTravelSupplies() throws Exception {
-        PreparationDepot depot = new PreparationDepot("jangala");
-        Map<String, Float> cargo = new HashMap<>(Map.of(Commodities.SUPPLIES, 25f));
-        Resources resources = new Resources(new WorkshopStores(cargo(cargo), depot));
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void realPreparationOrdersConsumeTheConsignmentOnceAndPreserveTravelSupplies(boolean protectedStart) throws Exception {
+        PreparationDepot depot = new PreparationDepot("jangala", protectedStart);
+        Map<String, Float> cargo = new HashMap<>(protectedStart ? Map.of() : Map.of(Commodities.SUPPLIES, 25f));
+        Resources resources = new Resources(new WorkshopStores(cargo(cargo), depot, Purpose.PREFLIGHT));
         MarineRoster roster = new MarineRoster();
         MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
         roster.add(mira); roster.beginCompanyPreparation(mira);
         assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.HERMES, 1, resources));
+        resources = new Resources(new WorkshopStores(cargo(cargo), depot, Purpose.BOAT));
         roster.setCompanyShip("cerberus", "Second Wind", 75);
         roster.boatDeck().reconcile("cerberus", ShuttleType.HERMES, 1);
         assertTrue(new BoatWorkshop(roster.boatDeck(), resources).fabricate(0).succeeded());
         assertFalse(new BoatWorkshop(roster.boatDeck(), resources).fabricate(0).succeeded());
         assertEquals(36, depot.available(Commodities.SUPPLIES));
         depot = roundTrip(depot);
-        resources = new Resources(new WorkshopStores(cargo(cargo), depot));
+        resources = new Resources(new WorkshopStores(cargo(cargo), depot, Purpose.SQUAD));
         roster.officerInduction().introduce(mira);
         assertTrue(mira.train(OfficerSpecialty.TACTICAL_COVER));
         var squad = new SquadFoundingWorkshop(roster, resources).foundSquad().squad();
@@ -37,10 +42,26 @@ class PreparationDepotTest {
         roster.assignCaptainToSquad(mira.id(), squad.id());
         assertTrue(roster.officerInduction().finish(roster));
         assertTrue(depot.stock().values().stream().allMatch(n -> n == 0));
-        assertEquals(Map.of(Commodities.SUPPLIES, 25f), cargo);
+        assertEquals(protectedStart ? Map.of() : Map.of(Commodities.SUPPLIES, 25f), cargo);
         assertFalse(new SquadFoundingWorkshop(roster, resources).foundSquad().succeeded());
         assertEquals("jangala", roundTrip(depot).marketId());
         assertTrue(roundTrip(depot).stock().values().stream().allMatch(n -> n == 0));
+    }
+
+    @Test void unrelatedJobsAndBoatOrdersCannotSpendTheSquadsStores() throws Exception {
+        var depot = new PreparationDepot("jangala", true);
+        var cargo = cargo(new HashMap<>());
+        var initial = depot.stock();
+        assertFalse(new WorkshopStores(cargo, depot).spend(Map.of(Commodities.SUPPLIES, 1)));
+        assertFalse(new WorkshopStores(cargo, depot, Purpose.PREFLIGHT).spend(initial));
+        assertFalse(new WorkshopStores(cargo, depot, Purpose.BOAT).spend(Map.of(Commodities.SUPPLIES, 21)));
+        assertFalse(new WorkshopStores(cargo, depot, Purpose.SQUAD).spend(Map.of(Commodities.SUPPLIES, 37)));
+        assertEquals(initial, depot.stock());
+        depot = roundTrip(depot);
+        assertEquals(20, depot.available(Commodities.SUPPLIES, Purpose.BOAT));
+        assertEquals(36, depot.available(Commodities.SUPPLIES, Purpose.SQUAD));
+        assertEquals(0, depot.available(Commodities.SUPPLIES, Purpose.GENERAL));
+        assertEquals(56, depot.available(Commodities.SUPPLIES, Purpose.PREFLIGHT));
     }
 
     @Test void unavailableDepotAndShortBillsCannotSpendAnyStores() {

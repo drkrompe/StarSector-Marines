@@ -1,4 +1,4 @@
-<template props="title,narrative,dialogue,portrait,image,page,manifest,destination,nextLabel,backDisabled,next,back,skip">
+<template props="title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,backDisabled,next,back,skip">
   <div id="prologue-root" class="prologue-root">
     <div id="prologue-header" class="prologue-header console-header">
       <div id="prologue-heading" class="label title">SECOND WIND / PROLOGUE</div>
@@ -9,6 +9,7 @@
         <img id="prologue-art" class="prologue-art" src="{image}" />
         <div id="prologue-caption" class="label tone-muted prologue-caption">THE SECOND WIND / FLIGHT DECK</div>
         <div id="prologue-manifest" class="label prologue-copy">{manifest}</div>
+        <div id="prologue-reserve" class="label prologue-copy tone-muted">{reserve}</div>
         <div id="prologue-objective" class="label tone-accent prologue-copy">{destination}</div>
       </div>
       <div id="prologue-story" class="prologue-story panel">

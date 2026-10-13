@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — Second Wind origin prologue and destination handoff added; live start/save acceptance remains.
+Updated: 2026-10-12 — Starting cash reduced to 500; protected conversion payment and separate bootstrap stores; live start/save acceptance remains.
 
 ## Outcome
 
@@ -10,7 +10,7 @@ An explicit new-game choice puts the player in command of an unconverted Cerberu
 The illustrated Second Wind prologue introduces the mining-colony escape, the
 crew's trust in their captain, and Castle's practical plan to fund a new company.
 Castle directs the player to a populated planet with a working spaceport. There the
-player reviews and pays for a permanent Mercenary Company Conversion hullmod before
+player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
 existing paid-lift, Mira specialty, squad founding and assignment tutorial, ending
 at the first Jangala contract.
@@ -33,11 +33,15 @@ refused without charging. No new boat or mech is awarded by the conversion.
 Starting logistics must cover the conversion and the existing preparation recipes
 without overloading the fleet or requiring a shopping detour. Travel supplies are
 separate from the workshop bill. The player chose one Cerberus and a staged planetary
-consignment, with no support freighter. The start supplies 15,000 credits, minimum
+consignment, with no support freighter. The start supplies 500 spendable credits,
+a separate 5,000-credit reserve usable only for the original ship's conversion, minimum
 crew plus five, 25 travel supplies and up to 40 fuel. The first successful conversion
 of this start's ship establishes a finite depot at that planet: 30 metals, 8 heavy
 machinery, 56 supplies, 12 Marines and 24 food, derived from the real Hermes and
-squad recipes. Workshop orders draw depot stock first, then cargo. The depot is
+squad recipes. The boat and squad bills are earmarked separately; unrelated workshop
+orders cannot consume either allocation. Eligible orders draw their depot stock
+first, then cargo. Existing campaigns retain their funds and depot policy without
+new grants or deductions. The depot is
 available only during interaction with its accessible working planetary port;
 leaving, visiting another market, reloading, or installing another conversion
 cannot replenish it. Ordinary starts receive no depot.
@@ -66,6 +70,9 @@ cannot replenish it. Ordinary starts receive no depot.
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and
   is visible to actual ship eligibility, deck generation and all room routes.
+- A new start can convert with zero fleet credits and complete the real first
+  Hermes repair and squad founding with empty cargo. Unrelated orders cannot spend
+  the protected stock, and neither reserve refills after consumption or reload.
 - Full room/berth evidence on a real Cerberus silhouette; unconverted control stays
   ineligible; compact Mech Lab cannot advertise absent gantries.
 - Focused transaction/start-policy tests, retained UI evidence, package boundary.
