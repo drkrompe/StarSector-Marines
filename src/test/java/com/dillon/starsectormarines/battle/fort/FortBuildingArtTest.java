@@ -13,6 +13,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,6 +67,15 @@ class FortBuildingArtTest {
         assertEquals(0.5f, art.activity(FortBuildingArt.State.DAMAGED, true));
         assertEquals(0f, art.activity(FortBuildingArt.State.INTACT, false));
         assertEquals(0f, art.activity(FortBuildingArt.State.WRECKED, true));
+    }
+
+    @Test
+    void aTakenButUncontestedPlantKeepsRunning() throws Exception {
+        FortBuildingArt art = FortBuildingArt.parse("s", new JSONObject(ART));
+        assertTrue(FortBuildingArt.plantRuns(false, false));
+        assertFalse(FortBuildingArt.plantRuns(true, false));
+        assertFalse(FortBuildingArt.plantRuns(false, true));
+        assertEquals(1f, art.activity(FortBuildingArt.State.INTACT, FortBuildingArt.plantRuns(false, false)));
     }
 
     @Test

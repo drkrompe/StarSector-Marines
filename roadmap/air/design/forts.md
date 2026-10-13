@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort, redoubt/citadel and command awareness remain.
+Updated: 2026-10-13 — bolder wire, taken plant keeps running; fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort, redoubt/citadel and command awareness remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -143,7 +143,7 @@ banner and takes a wash of the holder's colour. Gatehouse towers carry embrasure
 carries folded leaves, and neither draws over a breach. A new fort kind adds data (a `buildingArt` block per aspect) and a
 layout, not renderer code. Retained sources: `art-source/fort-buildings/`. Art is authored with the door on one edge; a plan whose door is on the other
 edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick and belt wire is two rows.
-The wire sprite itself is still pale on earth and wants a bolder reskin; the shield fort has no gatehouse pieces yet.
+The belt wire is a bold coil on a dark contact shadow. A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. The shield fort has no gatehouse pieces yet.
 
 ## Slices
 
