@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 5 built; commanders treat known structures as take, retake and defend work (the take order comes within a command pulse of the structure being seen; a retaking squad out of reach of its contact walks on rather than planting); captured structures change sides with their holder (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -232,6 +232,8 @@ position, so a squad takes the structure by standing there or wrecks it by shoot
 a side is told of a structure it built, one it holds, and, for the company, one the player's fog has revealed. The other
 side is never told of an enemy structure it has not built or held, so a commander cannot be sent to ground it has no
 reason to know exists. Pressure on an own structure is own-side knowledge.
+
+*Timing.* A commander acts on a structure only once it knows of it, so the company's first order trails the first sighting by at most one command pulse (2.5 s); how late the sighting itself comes is the walk across the map, not the commander. Squads that cannot yet reach the contact walk on toward the doorstep (see the prosecution refusal rule in `ai-nouns.md`).
 
 *Budget.* Modest and untuned: at most two squads (`DefenceStructureTactics.MAX_TASKS`) are detached at once, one per
 structure, nearest first, and a squad that already carries the order keeps it. The attacker offers only lane work (not

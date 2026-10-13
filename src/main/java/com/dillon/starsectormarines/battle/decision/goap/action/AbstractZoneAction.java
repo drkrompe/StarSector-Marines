@@ -189,6 +189,20 @@ abstract class AbstractZoneAction implements Action {
     private static volatile boolean prosecutionFallThrough = Boolean.parseBoolean(
             System.getProperty(PROSECUTION_FALL_THROUGH_PROPERTY, "true"));
 
+    /**
+     * Whose search a "no firing cell" answer is. Prosecution replaces the threat and the anchor with its own — the
+     * primary contact, leashed to the squad's centre — whenever it is in force, so the search that came back empty
+     * was prosecution's even when a route-threat commit is also standing. Reading that refusal as the route
+     * commit's ("plant") froze a retaking squad twenty-six cells from the generator it had been ordered to, with
+     * the contact beyond leash plus weapon reach, for the rest of the battle.
+     *
+     * @param prosecuteContact whether contact prosecution chose the target and anchor for this search
+     * @param doctrineHold     whether a hard hold (HOLD with RECEIVE) is in force, which always plants
+     */
+    static boolean refusalBelongsToProsecution(boolean prosecuteContact, boolean doctrineHold) {
+        return prosecuteContact && !doctrineHold;
+    }
+
     /** Whether a prosecuting member with nowhere to shoot from walks on. */
     public static boolean isProsecutionFallThroughEnabled() {
         return prosecutionFallThrough;
@@ -439,7 +453,7 @@ abstract class AbstractZoneAction implements Action {
             // rule has always been that a member with no legal position inside
             // it continues its assigned advance — so it does, keeping the
             // target for opportunity fire on the way.
-            boolean prosecutionOnly = prosecuteContact && !routeCommitted && !doctrineHold;
+            boolean prosecutionOnly = refusalBelongsToProsecution(prosecuteContact, doctrineHold);
             switch (advanceToReachableFiringPosition(member, sim, firingPos)) {
                 case MOVED -> { return; }
                 case NO_POSITION -> {
