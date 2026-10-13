@@ -50,6 +50,13 @@ public final class FogOfWarService {
 
     private short[] revealCount;
     private boolean[] cellRevealed;
+    /**
+     * Presentation-only: {@link #cellRevealed} plus the ground shown under the near side of large
+     * solid props ({@link PropGroundReveal}). The fog picture and night shading read this; every
+     * gate keeps reading {@link #cellRevealed}.
+     */
+    private boolean[] cellShown;
+    private final PropGroundReveal propGround = new PropGroundReveal();
     private boolean[] clearAirRevealed;
     private boolean[] clearAirNext;
     private boolean clearAirMaskActive;
@@ -122,6 +129,7 @@ public final class FogOfWarService {
 
         this.revealCount = new short[cells];
         this.cellRevealed = new boolean[cells];
+        this.cellShown = new boolean[cells];
         this.clearAirRevealed = new boolean[cells];
         this.clearAirNext = new boolean[cells];
         this.changes.init(gridWidth, gridHeight);
@@ -172,8 +180,23 @@ public final class FogOfWarService {
         return revealCount[y * gridWidth + x];
     }
 
-    /** Direct access to the revealed array for the renderer's per-cell fog pass. */
+    /** Direct access to the revealed array: what the player can actually see. */
     public boolean[] cellRevealedArray() { return cellRevealed; }
+
+    /**
+     * Presentation-only view of {@link #cellRevealedArray()}: also true for ground under the near
+     * side of a large solid prop, which the player is shown without having line of sight to it.
+     * Fog and night drawing read this; nothing about sight or visibility does.
+     */
+    public boolean[] cellShownArray() { return cellShown; }
+
+    /**
+     * Registers a large solid prop whose near-side ground is shown ({@link PropGroundReveal}).
+     * Ignored for footprints too small to need it.
+     */
+    public void registerSolidProp(int cellX, int cellY, int cellsX, int cellsY) {
+        if (PropGroundReveal.qualifies(cellsX, cellsY)) propGround.register(cellX, cellY, cellsX, cellsY);
+    }
 
     /**
      * Where the player's picture has changed, as a sequence of bounding
@@ -297,6 +320,7 @@ public final class FogOfWarService {
             if (!buildings.isEmpty()) {
                 BuildingVisibilityPass.update(buildings, cellRevealed, gridWidth, gridHeight);
             }
+            if (!propGround.isEmpty()) propGround.refresh(grid, cellRevealed, cellShown, changes);
             // One seal for the whole update, so a consumer never reads a picture
             // half way through a cohort's recast.
             changes.seal();
@@ -399,6 +423,7 @@ public final class FogOfWarService {
     private void reveal(int idx) {
         if (revealCount[idx]++ == 0) {
             cellRevealed[idx] = true;
+            cellShown[idx] = true;
             changes.note(idx);
         }
     }
@@ -410,6 +435,7 @@ public final class FogOfWarService {
             revealCount[idx] = 0;
             if (cellRevealed[idx]) {
                 cellRevealed[idx] = false;
+                cellShown[idx] = false;
                 changes.note(idx);
             }
         }
