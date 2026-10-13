@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public final class FormationBrush {
                 || topology.getBuildingId(x,y)!=0 || topology.getSurface(x,y)!=0
                 || (reserved!=null && reserved[y*grid.getWidth()+x])
                 || (topology.roadSurface()!=null && topology.roadSurface().underlay(x,y)!=null))return false;
-        if(topology.terrainSurface()!=null)for(int layer=0;layer<8;layer++)
+        if(topology.terrainSurface()!=null)for(int layer=0;layer<TerrainSurface.LAYERS;layer++)
             if(topology.terrainSurface().patch(x,y,layer)!=null)return false;
         return true;
     }

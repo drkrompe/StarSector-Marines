@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
-/** The same Asharu recovery basin on three visits. Battle progression belongs to its future host. */
+/** The same Asharu recovery basin on three visits. Battle progression belongs to the mission host. */
 public final class ShepherdBasin {
     public static final int WIDTH = 304, HEIGHT = 224;
     public enum Visit { SALVAGE_RIGHTS, COLD_START, WORKING_PASSAGE }
@@ -62,8 +62,8 @@ public final class ShepherdBasin {
                 context -> { if (visit == Visit.COLD_START) outerPickets(context); },
                 context -> { if (visit == Visit.WORKING_PASSAGE) hoverLane(context); }, new FinalizeStage(),
                 visit == Visit.COLD_START
-                        ? new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,176,38,279,107,151,96,188,112,170,176,243,176,199,160)
-                        : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,170,176,243,176,199,160))).run(c);
+                        ? new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,176,38,279,107,151,96,188,112,73,162,123,164,174,166,243,176,199,160)
+                        : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,73,162,123,164,174,166,243,176,199,160))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, LANDING.x(), LANDING.y(), 290, 77,
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(),
                 AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.SHEPHERD_BASIN), ""), c.landingPads);
@@ -75,7 +75,7 @@ public final class ShepherdBasin {
         for (var poi : map.pointsOfInterest) requireRoute(map, poi.interiorAnchorX, poi.interiorAnchorY);
         requireRoute(map, 194, 2);
         requireRoute(map, 301, 145);
-        requireRoute(map, 170, 176);
+        requireRoute(map, 174, 166);
         requireRoute(map, 243, 176);
         requireRoute(map, 199, 160);
         if (visit == Visit.COLD_START) {
@@ -169,7 +169,7 @@ public final class ShepherdBasin {
         // Physical hull geometry is authored here, independently of the prop's
         // observation mask. The quarter-turn puts the broad cargo body on the
         // east, its neck in the middle and twin engines on the west. The open
-        // U between those engine pods must remain ground, not a hidden wall.
+        // U between those engine pods exposes the crash trench, not a hidden wall.
         for (int y = 0; y < 48; y++) for (int x = 0; x < 60; x++) {
             boolean cargo = x >= 30 && x <= 57 && y >= 3 && y <= 44
                     && (x <= 54 || y >= 6 && y <= 41);
@@ -180,17 +180,26 @@ public final class ShepherdBasin {
             boolean solid = cargo || neck || engines || shoulders;
             if (!solid) continue;
             int cx = wreck.cellX + x, cy = wreck.cellY + y;
-            if (!c.grid.isWalkable(cx, cy) || c.topology.getBuildingId(cx, cy) != 0
+            boolean excavated = c.topology.terrainSurface().isExcavated(cx, cy);
+            if ((!c.grid.isWalkable(cx, cy) && !excavated) || c.topology.getBuildingId(cx, cy) != 0
                     || c.topology.getGroundKind(cx, cy) == GroundKind.STREET)
                 throw new IllegalStateException("Colossus hull overlaps protected terrain at " + cx + "," + cy);
             c.grid.setWalkable(cx, cy, false);
             c.grid.setSeeThrough(cx, cy, false);
+            c.grid.setEdgeCoverSuppressed(cx, cy, false);
             c.topology.setFixture(cx, cy, true);
             c.markMadeGround(cx, cy);
         }
         c.doodads.add(wreck);
-        scar(c, 199, 157, 226, 178, 4.2);
         StoryServiceYard yard = new StoryServiceYard(c);
+        // Torn sections mark the banks of the west-to-east crash, becoming
+        // larger near the freighter. The deep cut itself belongs to the terrain
+        // brush; these are ordinary cover props on surviving low ground.
+        yard.prop(61, 188, "basin-scrap-plate-stack", 1);
+        yard.prop(89, 166, "basin-scrap-intake-section", 2);
+        yard.prop(109, 201, "basin-scrap-rib-section", 3);
+        yard.prop(132, 162, "basin-scrap-engine-break", 1);
+        yard.prop(163, 158, "basin-scrap-shattered-hull", 2);
         yard.prop(198, 161, "industrial-crate-stack", 0);
         yard.prop(204, 163, "industrial-crate-stack", 0);
         yard.prop(210, 162, "industrial-pallet-stack", 0);
