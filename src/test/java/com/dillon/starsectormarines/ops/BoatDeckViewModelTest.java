@@ -45,7 +45,7 @@ class BoatDeckViewModelTest {
     private static final float EPSILON = 0.01f;
     private static final int BERTHS = 6;
     private static final List<String> COMPONENTS = List.of(
-            "mod/data/ui/components/marine-ops-page-nav.mlx",
+            "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/boat-deck/boat-deck.mlx");
 
     @Test
@@ -237,8 +237,9 @@ class BoatDeckViewModelTest {
                 viewModel.fabricationPatternName().get());
         assertEquals("PURPOSE-BUILT LANDER", viewModel.fabricationCopy().get());
         assertEquals(3, viewModel.fabricationMaterials().get().size());
-        assertEquals("METALS 2000 / 60",
+        assertEquals("40",
                 viewModel.fabricationMaterials().get().get(0).label());
+        assertTrue(viewModel.fabricationMaterials().get().get(0).id().endsWith(Commodities.SUPPLIES));
         assertEquals("", viewModel.fabricationReason().get());
         assertFalse(viewModel.fabricationBlocked().get());
 

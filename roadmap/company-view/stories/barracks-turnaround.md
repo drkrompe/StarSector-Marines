@@ -11,7 +11,7 @@ Read `company-view-nouns.md`, `personnel-nouns.md` and `ui-nouns.md` first.
 After settling a mission, the player can prepare the company for another operation
 from Barracks: see ready, recovering and vacant billets; consolidate survivors;
 fill remaining vacancies; then restore assigned equipment. Armory remains the
-detailed equipment authoring destination. `company-resource-bills.md` separately
+detailed equipment authoring destination. `company-view-nouns.md` (Company resource bills) separately
 standardizes bills across rooms.
 
 ## Scope and laws

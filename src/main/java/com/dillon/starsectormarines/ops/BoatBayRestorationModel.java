@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
-import java.util.Locale;
 import java.util.function.Supplier;
 
 /** A review is inspection, never payment. The yard rechecks everything on confirmation. */
@@ -51,11 +50,11 @@ public final class BoatBayRestorationModel {
                 case "classes" -> visible ? "bay-restoration" : "bay-restoration hidden";
                 case "portrait" -> CompanyManagementGuide.portrait();
                 case "copy" -> Strings.get("openingBoatBayRestorationThereIsAnotherWreckedHermesBehindThat");
-                case "bill" -> String.format(Locale.ROOT, Strings.get("openingBoatBayRestorationCreditsCostDAvailableDShortBy"),
-                        CompanyBayRestoration.CREDIT_COST, credits, Math.max(0, CompanyBayRestoration.CREDIT_COST - credits));
+                case "bill" -> CompanyResources.creditBill(CompanyBayRestoration.CREDIT_COST, credits);
+                case "billRows" -> CompanyResources.credits("bay-restoration-cost", credits, CompanyBayRestoration.CREDIT_COST);
                 case "reason" -> refusal == null
                         ? Strings.get("openingBoatBayRestorationYardLaborAndMaterialsIncludedOpensThe") : refusal;
-                case "actionLabel" -> reviewed ? String.format(Locale.ROOT, Strings.get("openingBoatBayRestorationRepairBayD"), CompanyBayRestoration.CREDIT_COST) : Strings.get("openingBoatBayRestorationInspectSecondBay");
+                case "actionLabel" -> reviewed ? Strings.get("openingBoatBayRestorationRepairBayD") : Strings.get("openingBoatBayRestorationInspectSecondBay");
                 case "disabled" -> reviewed && refusal != null;
                 case "action" -> action;
                 default -> throw new IllegalArgumentException("Unknown restoration property: " + key);

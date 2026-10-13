@@ -1,6 +1,7 @@
 <template props="firstRefitClasses,openFirstRefit,companySummary,squadGalleryCards,cargoStockRows,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / FLEET MARINE COMPANY" />
+    <company-resource-stock stockId="armory-cargo-stock" rows="{cargoStockRows}" />
 
     <div id="squad-breadcrumb" class="panel">
       <button id="squad-breadcrumb-companies" onclick="{back}">{i18n.openingUiFleetArmoryBack}</button>
@@ -17,16 +18,6 @@
     </div>
 
     <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">{i18n.openingUiFleetArmoryAProperIssueResumeCastleSTwo}</button>
-
-    <div id="armory-cargo-stock" class="cargo-stock-strip panel">
-      <div id="armory-cargo-stock-title" class="label heading tone-muted">{i18n.openingUiFleetArmoryAvailableStores}</div>
-      <div id="armory-cargo-stock-rows" class="cargo-stock-rows">
-        <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
-          <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />
-          <div id="{stock.labelId}" class="label cargo-stock-label">{stock.label}</div>
-        </div>
-      </div>
-    </div>
 
     <div id="organization-toolbar" class="organization-toolbar panel">
       <button id="begin-squad-organization" class="{organization.startClasses}" disabled="{organization.active}" onclick="{organization.startAction}">{i18n.openingUiFleetArmoryOrganizeSquads}</button>

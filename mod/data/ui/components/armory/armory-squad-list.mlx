@@ -33,10 +33,7 @@
         <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">{i18n.openingUiArmorySquadListFoundLineSquad}</div>
         <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">{i18n.openingUiArmorySquadListCreateTheNextFullFormationFromAvailable}</div>
         <div id="{card.founderCostsId}" class="squad-founder-costs">
-          <div each="cost in card.foundingCargoRows" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
-            <img id="{cost.iconId}" class="cargo-cost-icon" src="{cost.icon}" />
-            <div id="{cost.labelId}" class="cargo-cost-label label">{cost.label}</div>
-          </div>
+          <company-resource-cost each="cost in card.foundingCargoRows" key="{cost.id}" row="{cost}" />
         </div>
         <div id="{card.founderFeedbackId}" class="{card.foundingFeedbackClasses}">{card.foundingFeedbackText}</div>
       </button>
@@ -58,7 +55,7 @@
   .squad-card {
     flex-direction: column;
     width: 216px;
-    height: 342px;
+    height: 364px;
     padding: 6px;
     gap: 4px;
     border-width: 2px;
@@ -93,7 +90,7 @@
   .squad-status-line { flex-direction: row; height: 20px; gap: 4px; }
   .squad-card-status { width: 124px; height: 18px; padding: 1px 3px; border-width: 1px; font-family: compact; text-align: left; background-color: #0e1924; }
   .squad-strength { width: 0px; flex-grow: 1; height: 20px; padding: 3px 3px; text-align: right; }
-  .squad-muster { width: 216px; height: 96px; }
+  .squad-muster { width: 216px; height: 108px; }
   .squad-muster-legend { flex-direction: row; height: 18px; gap: 3px; padding: 0px 2px; }
   .squad-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
   .squad-casualties { height: 16px; padding: 0px 4px; text-align: center; }
@@ -126,13 +123,13 @@
 
   .squad-founder-slot {
     width: 232px;
-    height: 358px;
+    height: 380px;
     overflow: hidden;
   }
   .squad-founder-card {
     flex-direction: column;
     width: 216px;
-    height: 342px;
+    height: 364px;
     padding: 6px;
     gap: 6px;
     border-width: 1px;
@@ -148,7 +145,7 @@
   .squad-founder-costs {
     flex-direction: column;
     width: 100%;
-    height: 96px;
+    height: 108px;
     gap: 2px;
     overflow: hidden;
   }
