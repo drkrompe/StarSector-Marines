@@ -117,7 +117,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float cy = cam.cellToScreenY(body.y + (pvx * psn + pvy * pc) + altOffset);
             out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
                     cx, cy, pxW, pxH, body.facingDegrees,
-                    1f, 1f, 1f, alphaMult);
+                    mission.destroyed ? .35f : 1f, mission.destroyed ? .25f : 1f, mission.destroyed ? .2f : 1f, alphaMult);
 
             emitTurrets(out, cam, cellPx, alphaMult, body, scaleMult, altOffset,
                     ctx.sim.getAirTurretMounts(id));
@@ -126,7 +126,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // as on its wheels. An aircraft used to carry a bar only while it
             // was a parked grid unit, so the whole airborne part of its life,
             // which is the part somebody is shooting at, showed nothing.
-            emitDurability(out, cx, cy, pxH, pxW, alphaMult,
+            if (!mission.destroyed) emitDurability(out, cx, cy, pxH, pxW, alphaMult,
                     world.airFaction(id), world.hp(id), world.maxHp(id));
         }
     }

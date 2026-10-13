@@ -1103,6 +1103,7 @@ The discovered suite ids and default output directories are:
 |-------|----------|--------|
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
+| `pod-battle` | Actual catalog Arbalest missile-pod launches alongside Legionary infantry and Hound, movement and primary combat verdicts; 1920x1080 at 100% scale, normal and closer lossless PNG sequences at 15 fps plus launch detail at 30 fps | `build/snapshots/pod-battle/` |
 | `equipment-mounts` | Catalog-equipped Aegis and Arbalest missile pods, Specter emitter, Legionary control, articulation and weapon clearance; enlarged and normal world-scale samples with twelve lossless frames at 1920x1080, 100% scale | `build/snapshots/equipment-mounts/` |
 | `squad-selection` | Selected and hovered infantry circles, unmarked enemy bodies, and the group command plate at 1920x1080, 100% scale | `build/snapshots/squad-selection/` |
 | `field-salvage` | Optional material caches: production placement checks, controlled discovery/collection/contest/secured frames and cargo claim rows at 1920x1080, 100% scale; not a full mission replay | `build/snapshots/field-salvage/` |

@@ -13,6 +13,8 @@ public final class StructureDef {
 
     public final String id;
     public final String displayName;
+    /** Explicit anti-air platforms use aimed flak rather than legacy area threat. */
+    public final TurretRole targetRole;
     public final float maxStructure;
     public final float armorCapacity;
     public final float armorRating;
@@ -41,7 +43,8 @@ public final class StructureDef {
                          int footprintCellsX, int footprintCellsY, float forceScore,
                          String mountId, TurretMountDef mount,
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
-                         StructureArt art) {
+                         StructureArt art, TurretRole targetRole) {
+        this.targetRole = targetRole;
         this.dome = dome;
         this.art = art;
         this.id = id;
@@ -130,6 +133,7 @@ public final class StructureDef {
                 id, TurretMountDef.requireText(catalog, "displayName"),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount,
-                batteryLoadoutId, fireControlRadius, dome, art);
+                batteryLoadoutId, fireControlRadius, dome, art,
+                TurretRole.valueOf(json.optString("targetRole", "A2G")));
     }
 }

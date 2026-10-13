@@ -1,6 +1,7 @@
-<template props="roomTitle,roomCopy,contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,costLabel,costClasses,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="resourceStock,roomTitle,roomCopy,contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,costLabel,costClasses,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="transfer-root" class="transfer-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <company-resource-stock stockId="transfer-resource-stock" rows="{resourceStock}" />
 
     <div id="transfer-room-bar" class="panel transfer-room-bar console-header">
       <img id="ship-transfer-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />

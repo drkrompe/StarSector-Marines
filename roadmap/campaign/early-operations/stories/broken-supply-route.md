@@ -25,6 +25,14 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 - Launch Junction with actual issued gear and one or several fitted boats.
   Check named squads, acting NCOs, employer separation, boat and passenger losses.
   Verify the two-squad/four-ready-each minimum and larger companies.
+- Watch Kestrel cover the Junction advance and pause over settling militia;
+  check the absence of a player gunship card or support cost. On Thunder Run,
+  identify the returning callsign, visible flak and damage warning. Leave the
+  guns alive for the crash; clear them early in another attempt for survival.
+  Inspect falling fire, impact damage, and the charred hull after its smoke ends.
+  Replay after a loss and verify fresh employer support. New Kestrel radio cues
+  are text-only pending a voice-production pass; verify their live display and
+  that urgent loss cues supersede stale arrival messages.
 - Inspect both requests, Back out, reload, then explicitly commit one. Repeat
   input and reload must not switch the branch. Canceled deployment and Retreat
   preserve the commitment without awarding the ending.

@@ -40,7 +40,8 @@ public final class FleetArmoryScreen implements Screen {
     private static final String DESIGNER_COMPONENT = "fleet-armory-doctrine-designer";
     private static final String ARMOR_COMPARISON_COMPONENT = "armory-armor-comparison";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory.mlx",
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",

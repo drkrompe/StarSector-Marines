@@ -20,6 +20,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LayeredUnitComposerTest {
     @Test
+    void committedPodLaunchUsesIndependentBearingAndPreservesPrimaryLayers() {
+        LayeredUnitAssets assets = assets(true);
+        assets.registerIntegralSystem("system", sprite("mount"));
+        EquipmentLayerDef.State carried = new EquipmentLayerDef.State(0f, 0f, 0f,
+                EquipmentLayerDef.Occlusion.OVER_BODY);
+        EquipmentLayerDef carrier = new EquipmentLayerDef("mount", .32f, .48f, .5f, .5f,
+                carried, carried, 0f, null, true, false,
+                EquipmentLayerDef.Attachment.LEFT_SHOULDER, .5f, 20f / 192f);
+        IntegralSystemDef system = new IntegralSystemDef("system", "System", null,
+                null, null, null, 0f, 0f, 0, null, null, null, null, null, carrier);
+        List<Layer> layers = new ArrayList<>();
+        LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
+                        layers.add(new Layer(sprite.sourcePath, x, y, angle)),
+                assets, assets.head, null, true, null, EquipmentGrade.SERVICE,
+                100f, 200f, 150f, 0f, 37f, 0f, .9f,
+                LayeredAppearance.POSE_IDLE, 0, 1f, null, system,
+                new LayeredUnitComposer.IntegralLaunch(85f, 220f, -90f, 0f));
+        Layer mount = layers.stream().filter(l -> l.id().equals("mount")).findFirst().orElseThrow();
+        assertEquals(-90f, mount.angle());
+        assertEquals(85f - 72f * (0.5f - 20f / 192f), mount.x(), .001f);
+        assertEquals(220f, mount.y(), .001f);
+        assertTrue(layers.stream().anyMatch(l -> l.id().equals("rifle")));
+        assertTrue(layers.stream().anyMatch(l -> l.id().equals("flash")));
+    }
+
+    @Test
     void integralMountFollowsActualShoulderBearingAndIgnoresHelmetLook() {
         LayeredUnitAssets assets = assets(true);
         LayerTransform shoulder = new LayerTransform("left-shoulder", "left", -.3f, .2f,
