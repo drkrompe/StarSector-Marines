@@ -4,9 +4,11 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-13 — aircraft against ships built (G3) with the shield-type threat weighting; carrier flux and standoff biases built (owner: carriers hang back and save flux); support-ship no-bombardment decided but deferred; ship class threat weights built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
+Updated: 2026-10-13 — owner decisions: the balance law is standing, strike sorties do not track a moving hull (decided), and shield weights now derive from each hull's vanilla shield arc and efficiency instead of a table.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
+
+**Balance law (standing, owner, 2026-10-13).** Ship against ship in atmosphere keeps the base game's balance, taking numbers and hints from vanilla data rather than authored tables. Ground against ship is weaker (at least until planetary defences are built): a ship is hurt only by ordnance, through the armour rule. Ship against ground is stronger: in-universe these are essentially superweapons, and ships are overpowered against the ground by design. Posture and class weights never change any of this; they decide what a ship chooses, never how hard anything hits.
 
 ## Why this doc exists
 
@@ -161,7 +163,7 @@ The weight table scales the base weights in `AirThreatPicture` (hostile ship 1.0
 | Carrier, any size | 1.0 | 1.0 | 2.0 |
 | Support, any size | 1.0 | 1.0 | 1.5 |
 
-**Shield type scales the armed-craft column again (built, owner decision):** no shield 1.0 (the identity), front 0.85, omni 0.7, phase judged as front (a cloak shrugs a strike off while it holds, but it is a flux and firepower sacrifice, not a standing screen). Declared threats and hostile ships are not scaled. The numbers are a first table.
+**The hull's own shield scales the armed-craft column again (built, owner decision):** the factor is `1 - 0.4 * coverage * absorption`, read from the hull's vanilla `shield arc` and `shield efficiency` rather than a table by type. Coverage is arc over 360. Absorption is `min(1.25, 1/efficiency) / 1.25`, so vanilla's ordinary efficiency of 1 earns 0.8 and 0.8-or-better earns full marks. No shield is exactly 1.0 (the identity); a blank arc or efficiency column takes the shield model's own default (front 180, omni 360, efficiency 1). Examples: Onslaught (front, 180, 1.0) 0.84; Paragon (omni, 360, 0.6) 0.60; Aurora (omni, 180, 0.6) 0.80; Conquest (omni, 90, 1.4) 0.94. **Phase hulls** carry no arc or efficiency in vanilla, only a cloak that is all-round and total but cannot be held while the hull fires, so a phase hull counts for half of a full screen (0.80); the half is the one authored number left, standing for that exclusivity. Declared threats and hostile ships are not scaled. This is a perception weight; it multiplies no damage.
 
 So one armed craft (0.5) reaches the air-superiority entry level (1.0) for a frigate or any carrier, and does not for a capital. The score has no ground-clutter term, so a carrier's near-zero weight on ground is already true of every class. A class changes the threat score, and a carrier additionally biases its flux pair and standoff margin (Decided below); no damage parameter reads it.
 
@@ -281,11 +283,11 @@ Standoff is the existing machinery (`WarshipSystem.standoffStation`, declared ca
 
 **Support hulls do not hunt ground (decided, deferred).** A `SUPPORT` hull (CIVILIAN hint or tender designation) does not run the BOMBARD density director: it keeps point defence and returns fire on what threatens it, but does not seek ground targets. Not built: no mission puts a gunned support hull over a battle yet (the Shepherd tender carries no guns), so there is nothing to observe. Build it with the first such hull, as `maxAreas` 0 outside point defence for the SUPPORT role.
 
-**Shield type counts in the threat weights (built).** An unshielded hull fears aircraft more than a front-shielded one, which fears them more than an omni-shielded one. Built once aircraft could hurt ships (G3). A front shield's exposed flank is not modelled; it only weighs more than an omni.
+**Shield figures count in the threat weights (built).** An unshielded hull fears aircraft most; a wider, more efficient shield fears them less (see the factor above). Built once aircraft could hurt ships (G3). An exposed flank is not modelled beyond the arc's share.
 
 **Escort is wanted (decided, deferred).** A role with a lead-ship relation that follows the lead at an offset and intercepts threats aimed at it. Not built: it needs ships as targets (G4); G3 now supplies something that aims at a lead. Until then a frigate or destroyer is a small combat ship.
 
 ## Open questions: ship class
 
 1. **The multipliers and carrier numbers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
-2. **Aircraft against ships: three calls made building G3, open for the owner.** (a) A hull always outranks the ground for an eligible sortie, with no mission or posture input; a side with a hostile capital overhead sends its first two craft at it. (b) A sortie is aimed at the hull\'s centre at dispatch and does not follow a moving hull. (c) Shield factors (0.85 front, 0.7 omni) are a first table; phase is treated as front.
+2. **Aircraft against ships: all three calls are made.** (a) *Decided (owner):* a hull always outranks the ground for an eligible sortie, with no mission or posture input, so a side with a hostile capital overhead sends its first two craft at it. That is right by threat: the most dangerous thing on the field to a ship's side is a ship. (b) *Decided (owner, 2026-10-13):* a sortie is aimed at the hull's position at dispatch and does not follow a moving hull; moving off station is fair counterplay. (c) *Decided (owner, 2026-10-13):* shield weights take their hints from the base game's own shield figures, not an authored table (see above).

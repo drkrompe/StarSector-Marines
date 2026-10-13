@@ -97,4 +97,12 @@ public abstract class CommandPower {
     public float previewRadiusCells() {
         return 0f;
     }
+
+    /**
+     * What the power's card in the battle tray calls itself, given the charges left. Most powers
+     * are their name; one backed by several named sources says which comes next.
+     */
+    public String cardLabel(int chargesRemaining) {
+        return displayName;
+    }
 }
