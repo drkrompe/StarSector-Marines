@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -137,6 +139,61 @@ class BattleSquadOverlayModelTest {
                     defend.y() + defend.height() * 0.5f));
             assertEquals(1, defendAreas.get());
         }
+    }
+
+    @Test
+    void memberCardsChooseExactIdentitiesAndTrackFocusAcrossRosterChanges() throws Exception {
+        Reactor reactor = new Reactor();
+        Selection selection = new Selection();
+        selection.selectUnit(20, 1L);
+        BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { },
+                () -> { }, unit -> selection.selectUnit(20, unit));
+        var state = new BattleSquadOverlayModel.SquadState("Squad 20", 11, 12, 1f, members());
+        model.updateProjected(state, selection.getSelectedUnitEntityId(), true);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                Path.of("mod").resolve(path)), List.of(BattleSquadOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, BattleSquadOverlay.COMPONENT, model.props())) {
+            UiDocument document = document(instance);
+            assertTrue(instance.requireElement("battle-squad-member-0-0").hasClass("member-selected"));
+            // Hit a label inside a card: bubbling must still choose the exact soldier.
+            click(document, instance.requireElement("battle-squad-member-1-2-primary"));
+            assertEquals(13L, selection.getSelectedUnitEntityId());
+            assertEquals(List.of(20), selection.getSelectedSquadIds());
+            model.updateProjected(state, selection.getSelectedUnitEntityId(), true);
+            instance.flush();
+            document.advance(0f);
+            assertTrue(instance.requireElement("battle-squad-member-1-2").hasClass("member-selected"));
+            assertFalse(instance.requireElement("battle-squad-member-0-0").hasClass("member-selected"));
+            click(document, instance.requireElement("battle-squad-member-2-3"));
+            assertEquals(13L, selection.getSelectedUnitEntityId(), "empty slots cannot change focus");
+
+            var survivors = members().stream().filter(member -> member.entityId() != 11L).toList();
+            model.updateProjected(new BattleSquadOverlayModel.SquadState("Squad 20", 10, 12, 1f,
+                    survivors), selection.getSelectedUnitEntityId(), true);
+            instance.flush();
+            document.advance(0f);
+            assertTrue(instance.requireElement("battle-squad-member-1-1").hasClass("member-selected"));
+            click(document, instance.requireElement("battle-squad-member-1-2"));
+            assertEquals(14L, selection.getSelectedUnitEntityId(), "reused slots bind the current identity");
+
+            selection.selectSquads(List.of(20, 21), 20, 14L, false);
+            model.updateProjected(state, 14L, false);
+            instance.flush();
+            document.advance(0f);
+            click(document, instance.requireElement("battle-squad-member-0-1"));
+            assertEquals(14L, selection.getSelectedUnitEntityId());
+            assertEquals(List.of(20, 21), selection.getSelectedSquadIds(), "group cards must not collapse selection");
+            model.hover("battle-squad-member-0-1");
+            instance.flush();
+            assertFalse(instance.requireElement("battle-squad-tooltip").hasClass("squad-tooltip-hidden"));
+        }
+    }
+
+    private static void click(UiDocument document, UiElement element) {
+        var box = element.box().borderBox();
+        document.pointerDown(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
+        document.pointerUp(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
     }
 
     private static UiDocument document(MarkupInstance instance) {
