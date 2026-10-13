@@ -59,7 +59,7 @@ Updated: 2026-08-23 — moved beside the canonical model and separated from the 
 | **Atlas** (`atlas`) | "resupply entire outposts… the lifeline of Hegemony citizens" | Mass resupply — full restock, high cost. |
 | **Prometheus** (`prometheus`, `prometheus2`) | tanker of "strategic quantities of fuel"; Pather conversion "spews barrages of missiles" | Incendiary/fuel-air strike (creative leap). |
 | **Mercury** (`mercury`) | "transporting VIPs or couriers between star systems" | Commander insertion / VIP extraction. |
-| **Mudskipper** (`mudskipper`) | "interplanetary ferry… durable armor to protect passengers" | Cheap, risky single-squad lander. |
+| **Mudskipper** (`mudskipper`) | "interplanetary ferry… durable armor to protect passengers" | Cheap, risky single-squad lander. Also the source of the shipped Close Air Support gunship (`command-powers-nouns.md`). |
 | **Crig / Salvage Rig** (`crig`) | "gantry and manipulators… recovering derelict hulks" | Field repair — restore a wrecked vehicle/emplacement. |
 | **Ox** (`ox`) | "drive field stabilizer… reach a higher burn level" | Force-multiplier — reduce other powers' cooldowns. |
 | **"Ilmari" mobile fabricator** (`fabricator_unit`) | "frontier manufacturing base to leapfrog development" | Field fabrication — temporary on-site nanoforge / reinforcement source. |
