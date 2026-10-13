@@ -1503,7 +1503,7 @@ public final class BattleSetup {
         List<EntitySpec> reserve=new ArrayList<>();
         for(int batch=0;batch<4;batch++) {
             int roadX=batch==2?301:194,roadY=batch==2?145:2;
-            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,4))
+            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,6))
                 reserve.add(makeOpeningMilitia("repair-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         }
         long carrier=0L;
@@ -1512,6 +1512,20 @@ public final class BattleSetup {
             sim.convoy().body(carrier).teleport(8,68,-90f);
         }
         sim.installColdStart(engineers,carrier,reserve,cargoDelivered,shorePower);
+        // These exposed listening posts have their own duties, separate from the yard holders.
+        String[] postNames={"south_haul","quarry"};
+        int[][] posts={{176,38,151,96},{279,107,188,112}};
+        for(int i=0;i<posts.length;i++) {
+            int[] post=posts[i];
+            int squad=sim.mintSquad(Faction.ALLY,UnitType.MILITIA);
+            for(int[] cell:pickSpawnCluster(map.grid,post[0],post[1],3))
+                sim.spawn(makeOpeningMilitia("basin-picket-"+postNames[i],Faction.ALLY,cell[0],cell[1],rng)
+                        .squad(squad).role(UnitRole.PATROL));
+            sim.getSquad(squad).originalSize=3;
+            sim.claimSquadCommand(squad,CommandAuthority.MISSION_COMMAND,ColdStartCommand.issuer(Faction.ALLY),
+                    "Thin outer picket covers the recovery yard");
+            sim.getColdStart().registerPicket(postNames[i],squad,post[0],post[1],post[2],post[3],3);
+        }
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new ColdStartCommand(faction,engineers),ColdStartCommand.disclosure(sim.getColdStart()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company support joins recovery"));
