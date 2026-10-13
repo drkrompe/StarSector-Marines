@@ -51,9 +51,11 @@ public final class FortBuildingArt {
     private final List<Rotor> rotors;
     private final Banner banner;
     private final float damagedBelow;
+    private final boolean doorOnTop;
 
     private FortBuildingArt(String roof, String damaged, String wreck, Lights lights, List<Rotor> rotors,
-                            Banner banner, float damagedBelow) {
+                            Banner banner, float damagedBelow, boolean doorOnTop) {
+        this.doorOnTop = doorOnTop;
         this.roof = roof;
         this.damaged = damaged;
         this.wreck = wreck;
@@ -96,7 +98,11 @@ public final class FortBuildingArt {
         }
         float below = finite(structureId, "damagedBelow",
                 json.optDouble("damagedBelow", DEFAULT_DAMAGED_BELOW), 0f, 1f);
-        return new FortBuildingArt(roof, damaged, wreck, lights, rotors, banner, below);
+        String door = json.optString("door", "bottom").trim();
+        if (!door.equals("top") && !door.equals("bottom")) {
+            throw new JSONException("Structure '" + structureId + "' building art door must be 'top' or 'bottom'");
+        }
+        return new FortBuildingArt(roof, damaged, wreck, lights, rotors, banner, below, door.equals("top"));
     }
 
     private static String require(String structureId, JSONObject json, String key) throws JSONException {
@@ -163,6 +169,19 @@ public final class FortBuildingArt {
     /** Where the holder's banner stands, or null for a building that flies none. */
     public Banner banner() {
         return banner;
+    }
+
+    /** Whether the art is authored with the building's door on its top edge rather than its bottom edge. */
+    public boolean doorOnTop() {
+        return doorOnTop;
+    }
+
+    /**
+     * Whether the art must be turned half a revolution to put its door where a plan's building has it, given whether
+     * that building's door is on the top edge of its floor. Registration is kept by turning the rotors and banner too.
+     */
+    public boolean needsHalfTurn(boolean planDoorOnTop) {
+        return doorOnTop != planDoorOnTop;
     }
 
     public float damagedBelow() {

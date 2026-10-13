@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.fort;
 import com.dillon.starsectormarines.battle.battery.FireControl;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -32,6 +32,7 @@ public final class Fort {
         private final FortAspect aspect;
         private final long coreId;
         private final FireControl control;
+        private final Faction originalHolder;
         private boolean wrecked;
         private boolean resolved;
         private int minX, minY, maxX, maxY;
@@ -45,10 +46,16 @@ public final class Fort {
             this.aspect = aspect;
             this.coreId = coreId;
             this.control = new FireControl(owner);
+            this.originalHolder = owner;
         }
 
         public FortAspect aspect() {
             return aspect;
+        }
+
+        /** Who held this place when the fort was stamped, so a later holder reads as having taken it. */
+        public Faction originalHolder() {
+            return originalHolder;
         }
 
         /** Id of the structure that is this aspect's core, which names how its building is drawn; null when unknown. */
@@ -63,7 +70,7 @@ public final class Fort {
         public int[] floorBounds(FortFrame frame) {
             if (frame == null) return null;
             if (floorBounds == null) {
-                int[] f = BatteryFort.floor(aspect);
+                int[] f = frame.plan().floor(aspect);
                 floorBounds = frame.bounds(f[0], f[1], f[2], f[3]);
             }
             return floorBounds;
@@ -140,17 +147,24 @@ public final class Fort {
     }
 
     private final int id;
-    private final FortKind kind;
+    private FortKind kind;
     private final Map<FortAspect, Place> places = new EnumMap<>(FortAspect.class);
     private final List<Long> nests = new ArrayList<>();
     private FortressBattery battery;
     private FortFrame frame;
+    private int originX, originY, quarterTurns = FortTag.UNPLACED;
     private float readyRounds = READY_ROUNDS;
     private boolean magazineBlown;
 
     Fort(int id, FortKind kind) {
         this.id = id;
         this.kind = kind;
+    }
+
+    /** A fort learns its kind from the centrepiece that is tagged to it: a platform or an emitter. */
+    void become(FortKind kind) {
+        this.kind = kind;
+        this.frame = null;
     }
 
     public int id() {
@@ -172,12 +186,19 @@ public final class Fort {
     }
 
     /** Records where the fort stands, once; later tags of the same fort say the same thing. */
-    void frame(FortFrame frame) {
-        if (this.frame == null) this.frame = frame;
+    void place(int originX, int originY, int quarterTurns) {
+        if (this.quarterTurns == FortTag.UNPLACED) {
+            this.originX = originX;
+            this.originY = originY;
+            this.quarterTurns = quarterTurns;
+        }
     }
 
     /** Where the fort's local frame stands on the map, or null when the fort was assembled without a placement. */
     public FortFrame frame() {
+        if (frame == null && quarterTurns != FortTag.UNPLACED) {
+            frame = new FortFrame(FortPlan.of(kind), originX, originY, quarterTurns);
+        }
         return frame;
     }
 
@@ -212,6 +233,31 @@ public final class Fort {
 
     void markMagazineBlown() {
         magazineBlown = true;
+    }
+
+    // -------------------------------------------------------------------------------------------- shield fort
+
+    /** The shield generator's entity id, or {@code 0} for a fort that has none. */
+    public long emitterId() {
+        Place p = places.get(FortAspect.EMITTER);
+        return p == null ? 0L : p.coreId();
+    }
+
+    /**
+     * The side the dome protects: whoever holds the control room. A fort with no control room, or one wrecked, keeps
+     * the side that held it last ({@code current}), because a wrecked room hands the dome to nobody.
+     */
+    public Faction domeHolder(Faction current) {
+        Place p = places.get(FortAspect.CONTROL_ROOM);
+        if (p == null || p.wrecked) return current;
+        return p.control.holder();
+    }
+
+    /** Whether the dome is up for the side that holds it: the emitter stands and the power is that side's to draw on. */
+    public boolean domePowered(Faction holder) {
+        Place emitter = places.get(FortAspect.EMITTER);
+        if (emitter != null && emitter.wrecked) return false;
+        return powered(holder);
     }
 
     /** False once the fire-control bunker core is wrecked; the guns then have nothing to obey. */

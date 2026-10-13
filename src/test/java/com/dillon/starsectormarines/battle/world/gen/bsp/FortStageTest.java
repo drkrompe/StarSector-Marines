@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The battery fort layout and the stage that stands it. Run on a bare field, not a generated map: the questions are
  * about the layout at each turn and about the stage's rule, and a generator would only add inputs.
  */
-class BatteryFortStageTest {
+class FortStageTest {
 
     private static final int W = 240;
     private static final int H = 160;
@@ -61,11 +61,11 @@ class BatteryFortStageTest {
     @Test
     void nothingIsPlacedUnlessTheMissionDeclaresForts() {
         GenContext none = field(null);
-        new BatteryFortStage().run(none);
+        new FortStage().run(none);
         assertTrue(none.defensePosts.isEmpty());
 
         GenContext batteriesOnly = field(TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(3, true, 5)));
-        new BatteryFortStage().run(batteriesOnly);
+        new FortStage().run(batteriesOnly);
         assertTrue(batteriesOnly.defensePosts.isEmpty(), "a bare battery is not a fort");
     }
 
@@ -74,7 +74,7 @@ class BatteryFortStageTest {
         for (int turn = 0; turn < 4; turn++) {
             GenContext ctx = field(declared(1));
             var at = BatteryFort.layout().at(60, 40, turn);
-            BatteryFortStage.stamp(ctx, at, 0);
+            FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
 
             // Posts: three aspect cores, the platform, a nest in each bastion and a nest on the belt, all tagged to fort 0.
             assertEquals(4 + BatteryFort.NESTS.size() + FortBelt.nests().size(), ctx.defensePosts.size(), "turn " + turn);
@@ -83,12 +83,13 @@ class BatteryFortStageTest {
             assertEquals(3, cores);
 
             // Each core stands wholly on the floor of its own building and the room it stands in is the right one.
-            for (FortAspect aspect : FortAspect.values()) {
+            for (FortAspect aspect : BatteryFort.PLAN.aspects()) {
                 int[] c = at.cell(BatteryFort.coreCentre(aspect)[0], BatteryFort.coreCentre(aspect)[1]);
                 RoomPurpose want = switch (aspect) {
                     case FIRE_CONTROL -> RoomPurpose.CONTROL_ROOM;
                     case MAGAZINE -> RoomPurpose.ARMORY;
                     case POWER -> RoomPurpose.ENGINE_ROOM;
+                    default -> throw new IllegalStateException();
                 };
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
@@ -122,7 +123,7 @@ class BatteryFortStageTest {
                     if (BatteryFort.isWall(lx, ly)) {
                         wallCells++;
                         assertFalse(ctx.grid.isWalkable(cell[0], cell[1]));
-                        assertEquals(BatteryFortStage.FORT_WALL_HP, ctx.grid.getWallHp(cell[0], cell[1]));
+                        assertEquals(FortStage.FORT_WALL_HP, ctx.grid.getWallHp(cell[0], cell[1]));
                     }
                 }
             }
@@ -139,7 +140,7 @@ class BatteryFortStageTest {
         for (int turn = 0; turn < 4; turn++) {
             GenContext ctx = field(declared(1));
             var at = BatteryFort.layout().at(60, 40, turn);
-            BatteryFortStage.stamp(ctx, at, 0);
+            FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
             boolean[][] reached = flood(ctx.grid, 5, 5);
 
             for (RoomPacker.Placed room : at.buildings()) {
@@ -168,7 +169,7 @@ class BatteryFortStageTest {
     void closingTheGatesSealsTheFort() {
         GenContext ctx = field(declared(1));
         var at = BatteryFort.layout().at(60, 40, 0);
-        BatteryFortStage.stamp(ctx, at, 0);
+        FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
         for (int[] gate : BatteryFort.GATE_CELLS) {
             int[] cell = at.cell(gate[0], gate[1]);
             ctx.grid.setWalkable(cell[0], cell[1], false);
@@ -181,7 +182,7 @@ class BatteryFortStageTest {
     @Test
     void theStageStandsTheDeclaredForts() {
         GenContext ctx = field(declared(2));
-        BatteryFortStage stage = new BatteryFortStage();
+        FortStage stage = new FortStage();
         stage.run(ctx);
         assertEquals(2, stage.placed().size());
         int core = 4 + BatteryFort.NESTS.size();
@@ -213,7 +214,7 @@ class BatteryFortStageTest {
         boolean[][] road = new boolean[W][H];
         for (int x = 100; x < 140; x++) for (int y = 0; y < H; y++) road[x][y] = true;
         ctx.put(BspKeys.ROAD_RESERVATION, road);
-        BatteryFortStage stage = new BatteryFortStage();
+        FortStage stage = new FortStage();
         stage.run(ctx);
         var at = stage.placed().get(0).placement();
         int[] centre = at.cell(BatteryFort.WIDTH / 2, BatteryFort.HEIGHT / 2);
@@ -228,8 +229,8 @@ class BatteryFortStageTest {
 
     @Test
     void placementIsDeterministic() {
-        BatteryFortStage a = new BatteryFortStage();
-        BatteryFortStage b = new BatteryFortStage();
+        FortStage a = new FortStage();
+        FortStage b = new FortStage();
         a.run(field(declared(2)));
         b.run(field(declared(2)));
         assertEquals(a.placed().size(), b.placed().size());
@@ -241,7 +242,7 @@ class BatteryFortStageTest {
     @Test
     void fewerAreStoodWhenTheGroundCannotHoldThem() {
         GenContext ctx = field(declared(40));
-        BatteryFortStage stage = new BatteryFortStage();
+        FortStage stage = new FortStage();
         stage.run(ctx);
         assertTrue(stage.placed().size() < 40 && !stage.placed().isEmpty());
     }
@@ -253,7 +254,7 @@ class BatteryFortStageTest {
         // A wide road across the whole middle of the field: no fort may stand across it.
         for (int x = 0; x < W; x++) for (int y = 70; y < 90; y++) road[x][y] = true;
         ctx.put(BspKeys.ROAD_RESERVATION, road);
-        BatteryFortStage stage = new BatteryFortStage();
+        FortStage stage = new FortStage();
         stage.run(ctx);
         assertEquals(1, stage.placed().size());
         var at = stage.placed().get(0).placement();

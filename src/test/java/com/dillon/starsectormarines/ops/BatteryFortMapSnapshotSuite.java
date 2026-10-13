@@ -43,6 +43,8 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
 
     private static final int WIDTH = 1920;
     private static final int HEIGHT = 1080;
+    private static final List<FortAspect> BATTERY_BUILDINGS =
+            List.of(FortAspect.FIRE_CONTROL, FortAspect.MAGAZINE, FortAspect.POWER);
     private static final long[] SEEDS = {91L, 20261013L};
 
     @Override public String id() { return "battery-fort-map"; }
@@ -104,7 +106,27 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
                 if (seed == SEEDS[0]) out.addAll(buildingStates(context, sim));
             }
         }
+        out.addAll(shieldFort(context));
         return out;
+    }
+
+    /** The shield fort's two buildings wear the same art, turned to their own doors: one roofed close frame. */
+    private static List<SnapshotArtifact> shieldFort(SnapshotContext context) throws Exception {
+        TargetProfile profile = fixtureProfile().withDeclaredDefences(
+                new GroundDefences(0, false).withForts(FortKind.SHIELD_FORT, 1));
+        try (BattleSimulation sim = BattleSetup.createConquest(SEEDS[0],
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), false,
+                OperationTier.FIRST_CONTRACT, RiskLevel.LOW, profile)) {
+            List<SnapshotArtifact> out = new ArrayList<>();
+            for (Fort fort : sim.forts().forts()) {
+                if (fort.kind() != FortKind.SHIELD_FORT) continue;
+                long generator = fort.emitterId();
+                var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT,
+                        sim.world().x(generator), sim.world().y(generator) - 6, 60).withRoofs();
+                out.add(new SnapshotArtifact("shield-fort-roofs.png", frame.render(sim, "Shield fort roofed")));
+            }
+            return out;
+        }
     }
 
     /**
@@ -119,10 +141,10 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
         if (forts.size() < 2) return out;
         Fort ladder = forts.get(0);
         Fort taken = forts.get(1);
-        for (FortAspect aspect : FortAspect.values()) {
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
             out.add(stateFrame(context, sim, ladder, aspect, "intact"));
         }
-        for (FortAspect aspect : FortAspect.values()) {
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
             Fort.Place place = taken.place(aspect);
             for (int s = 0; s < 40; s++) {
                 if (aspect == FortAspect.FIRE_CONTROL) {
@@ -133,7 +155,7 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
             }
             out.add(stateFrame(context, sim, taken, aspect, "captured"));
         }
-        for (FortAspect aspect : FortAspect.values()) {
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
             long core = ladder.place(aspect).coreId();
             for (int s = 0; s < 40 && damageFraction(sim, ladder, aspect) > 0.45f; s++) {
                 sim.applyDamage(core, 40f, 60f);
@@ -141,13 +163,13 @@ public final class BatteryFortMapSnapshotSuite implements SnapshotSuite {
             out.add(stateFrame(context, sim, ladder, aspect, "damaged"));
         }
         float[][] at = new float[FortAspect.values().length][];
-        for (FortAspect aspect : FortAspect.values()) {
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
             long core = ladder.place(aspect).coreId();
             at[aspect.ordinal()] = new float[]{sim.world().x(core), sim.world().y(core)};
             for (int s = 0; s < 200 && sim.world().isAlive(core); s++) sim.applyDamage(core, 80f, 200f);
         }
         for (int tick = 0; tick < 6; tick++) sim.advance(BattleSimulation.TICK_DT);
-        for (FortAspect aspect : FortAspect.values()) {
+        for (FortAspect aspect : BATTERY_BUILDINGS) {
             float[] p = at[aspect.ordinal()];
             var frame = new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT, p[0], p[1], 24).withRoofs();
             out.add(new SnapshotArtifact(String.format(Locale.ROOT, "state-%s-wrecked.png", slug(aspect)),

@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -68,24 +69,26 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         ViewCull view = ViewCull.of(ctx.camera);
         for (Fort fort : forts.forts()) {
             FortFrame frame = fort.frame();
-            FortressBattery battery = fort.battery();
-            if (frame == null || battery == null) continue;
+            if (frame == null) continue;
             for (Fort.Place place : fort.places()) {
-                drawBuilding(ctx, out, view, fort, battery, frame, place, dt);
+                drawBuilding(ctx, out, view, fort, frame, place, dt);
             }
-            drawGatehouse(ctx, out, view, battery, frame);
+            drawGatehouse(ctx, out, view, frame);
         }
     }
 
     // ------------------------------------------------------------------------------------------- buildings
 
-    private void drawBuilding(RenderContext ctx, DrawList out, ViewCull view, Fort fort, FortressBattery battery,
-                              FortFrame frame, Fort.Place place, float dt) {
+    private void drawBuilding(RenderContext ctx, DrawList out, ViewCull view, Fort fort, FortFrame frame,
+                              Fort.Place place, float dt) {
+        FortressBattery battery = fort.battery();
         if (place.structureId() == null) return;
         StructureDef def = TurretCatalogRegistry.installed().getStructure(place.structureId());
         if (def == null || def.buildingArt == null) return;
         FortBuildingArt art = def.buildingArt;
-        int[] floor = BatteryFort.floor(place.aspect());
+        FortPlan plan = frame.plan();
+        int[] floor = plan.floor(place.aspect());
+        boolean flipped = art.needsHalfTurn(plan.door(place.aspect())[1] < floor[1]);
         int[] bounds = place.floorBounds(frame);
         float centreX = (bounds[0] + bounds[2] + 1) * 0.5f;
         float centreY = (bounds[1] + bounds[3] + 1) * 0.5f;
@@ -100,24 +103,25 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         }
         FortBuildingArt.State state = art.stateOf(wrecked, durability);
         boolean fireControl = place.aspect() == FortAspect.FIRE_CONTROL;
-        Faction holder = fireControl ? battery.owner() : place.control().holder();
+        boolean gunBound = fireControl && battery != null;
+        Faction holder = gunBound ? battery.owner() : place.control().holder();
         boolean powered = place.aspect() == FortAspect.POWER
-                ? !place.control().contested() && !battery.destroyed()
-                : fort.powered(battery.owner());
+                ? !place.control().contested() && (battery == null || !battery.destroyed())
+                : fort.powered(battery != null ? battery.owner() : holder);
         float activity = art.activity(state, powered);
-        boolean taken = !holder.friendlyTo(battery.originalOwner());
+        boolean taken = !holder.friendlyTo(gunBound ? battery.originalOwner() : place.originalHolder());
 
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float roofAlpha = roofAlpha(ctx, bounds);
         float alpha = ctx.alphaMult;
-        float angle = frameAngle(frame);
+        float angle = frameAngle(frame) + (flipped ? 180f : 0f);
 
         if (state == FortBuildingArt.State.WRECKED) {
             ShuttleSpriteCache wreck = sprites.spriteByPath(art.wreckPath());
             if (wreck != null) {
                 put(out, RenderLayer.DOODADS, cam, frame, floor, wreck, floor[2], floor[3], floor[2] * 0.5f,
-                        floor[3] * 0.5f, angle, 1f, 1f, 1f, alpha, false);
+                        floor[3] * 0.5f, angle, 1f, 1f, 1f, alpha, false, flipped);
             }
             return;
         }
@@ -132,14 +136,14 @@ public final class FortBuildingRenderSystem implements RenderSystem {
                 b = 1f + (tint[2] - 1f) * TAKEN_WASH;
             }
             put(out, RenderLayer.ROOFS, cam, frame, floor, roof, floor[2], floor[3], floor[2] * 0.5f, floor[3] * 0.5f,
-                    angle, r, g, b, roofAlpha * alpha, false);
+                    angle, r, g, b, roofAlpha * alpha, false, flipped);
             FortBuildingArt.Lights lights = art.lights();
             ShuttleSpriteCache glow = lights == null ? null : sprites.spriteByPath(lights.spritePath());
             if (glow != null && activity > 0f) {
                 double wave = 0.5 + 0.5 * Math.sin(2.0 * Math.PI * lights.pulseHz() * clock);
                 float level = activity * (1f - lights.pulseDepth() * (float) wave);
                 put(out, RenderLayer.ROOFS, cam, frame, floor, glow, floor[2], floor[3], floor[2] * 0.5f,
-                        floor[3] * 0.5f, angle, level, level, level, roofAlpha * alpha, true);
+                        floor[3] * 0.5f, angle, level, level, level, roofAlpha * alpha, true, flipped);
             }
         }
 
@@ -156,7 +160,7 @@ public final class FortBuildingRenderSystem implements RenderSystem {
             rotorAngles.put(key + i, turn);
             float shade = powered ? 1f : 0.6f;
             put(out, RenderLayer.ROOFS, cam, frame, floor, sprite, rotor.cells(), rotor.cells(), rotor.x(), rotor.y(),
-                    angle + turn, shade, shade, shade, standing, false);
+                    angle + turn, shade, shade, shade, standing, false, flipped);
         }
 
         FortBuildingArt.Banner banner = art.banner();
@@ -164,7 +168,8 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         if (flag != null) {
             float[] tint = ShieldDomeRenderSystem.tintFor(holder);
             float size = banner.cells() * (taken ? TAKEN_BANNER_SCALE : 1f);
-            float[] at = localPoint(frame, floor, banner.x(), banner.y());
+            float[] at = localPoint(frame, floor, flipped ? floor[2] - banner.x() : banner.x(),
+                    flipped ? floor[3] - banner.y() : banner.y());
             float h = size * cellPx;
             out.addSprite(RenderLayer.ROOFS, flag.sprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
                     h * flag.aspect, h, 0f, tint[0], tint[1], tint[2], standing);
@@ -185,23 +190,24 @@ public final class FortBuildingRenderSystem implements RenderSystem {
 
     // ------------------------------------------------------------------------------------------- gatehouse
 
-    private void drawGatehouse(RenderContext ctx, DrawList out, ViewCull view, FortressBattery battery,
-                               FortFrame frame) {
-        StructureDef platform = battery.structure();
+    private void drawGatehouse(RenderContext ctx, DrawList out, ViewCull view, FortFrame frame) {
+        FortPlan plan = frame.plan();
+        if (plan.gatehouse().isEmpty()) return;
+        StructureDef platform = TurretCatalogRegistry.installed().getStructure(plan.centrepieceStructureId());
         if (platform == null || platform.gatehouseArt == null) return;
         FortGatehouseArt art = platform.gatehouseArt;
         BattleCamera cam = ctx.camera;
         NavigationGrid grid = ctx.sim.getGrid();
         CellTopology topology = ctx.sim.getTopology();
         float cellPx = cam.cellPxSize();
-        for (BatteryFort.Piece piece : BatteryFort.GATEHOUSE) {
+        for (FortPlan.Piece piece : plan.gatehouse()) {
             int[] b = frame.bounds(piece.x(), piece.y(), piece.width(), piece.height());
             float cx = (b[0] + b[2] + 1) * 0.5f;
             float cy = (b[1] + b[3] + 1) * 0.5f;
             if (!view.visible(cx, cy, 4f)) continue;
             String path;
             RenderLayer layer;
-            if (piece.kind() == BatteryFort.PieceKind.TOWER) {
+            if (piece.kind() == FortPlan.PieceKind.TOWER) {
                 float fraction = 1f;
                 boolean standing = true;
                 for (int y = b[1]; y <= b[3] && standing; y++) {
@@ -222,9 +228,10 @@ public final class FortBuildingRenderSystem implements RenderSystem {
             }
             ShuttleSpriteCache sprite = sprites.spriteByPath(path);
             if (sprite == null) continue;
-            // Authored two cells across and three along the wall, then turned by the piece's own quarter turns.
-            float w = 2f * cellPx;
-            float h = 3f * cellPx;
+            // Authored upright, then turned by the piece's own quarter turns: a sideways piece swaps its extents.
+            boolean sideways = piece.turns() % 2 == 1;
+            float w = (sideways ? piece.height() : piece.width()) * cellPx;
+            float h = (sideways ? piece.width() : piece.height()) * cellPx;
             out.addSprite(layer, sprite.sprite, cam.cellToScreenX(cx), cam.cellToScreenY(cy), w, h,
                     frameAngle(frame) + piece.turns() * 90f, 1f, 1f, 1f, ctx.alphaMult);
         }
@@ -251,8 +258,9 @@ public final class FortBuildingRenderSystem implements RenderSystem {
     /** Draws a sprite authored in the local frame, centred at ({@code px}, {@code py}) cells into the rectangle. */
     private void put(DrawList out, RenderLayer layer, BattleCamera cam, FortFrame frame, int[] floor,
                      ShuttleSpriteCache sprite, float cellsW, float cellsH, float px, float py, float angle,
-                     float r, float g, float b, float a, boolean additive) {
-        float[] at = localPoint(frame, floor, px, py);
+                     float r, float g, float b, float a, boolean additive, boolean flipped) {
+        float[] at = flipped ? localPoint(frame, floor, floor[2] - px, floor[3] - py)
+                : localPoint(frame, floor, px, py);
         float cellPx = cam.cellPxSize();
         float sx = cam.cellToScreenX(at[0]);
         float sy = cam.cellToScreenY(at[1]);

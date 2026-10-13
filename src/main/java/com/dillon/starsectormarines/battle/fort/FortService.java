@@ -31,7 +31,16 @@ public final class FortService {
 
     /** Records that the battery platform {@code battery} is the guns of fort {@code fortId}. */
     public void tagPlatform(int fortId, FortressBattery battery) {
-        fort(fortId).attach(battery);
+        Fort fort = fort(fortId);
+        fort.become(FortKind.BATTERY_FORT);
+        fort.attach(battery);
+    }
+
+    /** Records that structure {@code generatorId}, held by {@code holder}, is the shield generator of fort {@code fortId}. */
+    public void tagEmitter(int fortId, long generatorId, Faction holder) {
+        Fort fort = fort(fortId);
+        fort.become(FortKind.SHIELD_FORT);
+        fort.addPlace(new Fort.Place(FortAspect.EMITTER, generatorId, holder));
     }
 
     /** Records that structure {@code coreId}, held by {@code holder}, is the core of one of the fort's aspects. */
@@ -48,7 +57,7 @@ public final class FortService {
 
     /** Records where fort {@code fortId} stands, from any of its tagged parts. */
     public void tagFrame(int fortId, FortTag tag) {
-        if (tag.placed()) fort(fortId).frame(new FortFrame(tag.originX(), tag.originY(), tag.quarterTurns()));
+        if (tag.placed()) fort(fortId).place(tag.originX(), tag.originY(), tag.quarterTurns());
     }
 
     /** Records one of the fort's wall nests. */

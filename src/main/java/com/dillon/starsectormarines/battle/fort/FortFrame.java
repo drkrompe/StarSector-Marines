@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.fort;
 
-import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Placement;
 
 /**
@@ -13,12 +13,19 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Pla
  */
 public final class FortFrame {
 
+    private final FortPlan plan;
     private final Placement placement;
     private final int quarterTurns;
 
-    public FortFrame(int originX, int originY, int quarterTurns) {
-        this.placement = BatteryFort.layout().at(originX, originY, quarterTurns);
+    public FortFrame(FortPlan plan, int originX, int originY, int quarterTurns) {
+        this.plan = plan;
+        this.placement = plan.layout().at(originX, originY, quarterTurns);
         this.quarterTurns = quarterTurns;
+    }
+
+    /** The authored plan this frame places. */
+    public FortPlan plan() {
+        return plan;
     }
 
     public int quarterTurns() {
