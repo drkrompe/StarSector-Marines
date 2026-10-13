@@ -154,6 +154,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         final String contactInitiative;
         final int coolingDownMembers;
         final int[] memberZoneIds;
+        final boolean demolition;
         final CommandDirective originalDirective;
         ObjectiveAssignment assignedObjective;
 
@@ -182,6 +183,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             contactInitiative = state.contactInitiative();
             coolingDownMembers = state.coolingDownMembers();
             memberZoneIds = state.memberZoneIds();
+            demolition = state.demolition();
             originalDirective = state.directive();
             assignedObjective = state.assignment();
         }
@@ -619,7 +621,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (PlanningSquad squad : candidates) {
             if (selected.contains(squad.id)) continue;
             offered.add(new DefenceStructureTactics.Candidate(squad.id, squad.anchorCellX, squad.anchorCellY,
-                    squad.originalDirective != null ? squad.originalDirective.assignment() : null));
+                    squad.originalDirective != null ? squad.originalDirective.assignment() : null,
+                    squad.demolition));
         }
         Set<Integer> tasked = new HashSet<>();
         for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(

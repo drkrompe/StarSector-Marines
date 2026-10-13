@@ -238,6 +238,41 @@ class FortTacticsTest {
     }
 
     @Test
+    void aWreckTaskCarriesLeaveToShootAndATakeTaskDoesNot() {
+        CommandTopology topology = openTopology();
+        DefenceStructureFact deep = aspect(Kind.FIRE_CONTROL, Family.BATTERY_FORT, 100, 40, D, D, false);
+        DefenceStructureFact near = aspect(Kind.FORT_MAGAZINE, Family.BATTERY_FORT, 20, 40, D, D, false);
+        Task wreck = DefenceStructureTactics.plan(M, List.of(deep, near),
+                List.of(sapper(2, 10, 40)), topology).get(0);
+        assertTrue(wreck.wreck());
+        assertTrue(wreck.assignment().wreckAuthorised(), "the order says the squad may wreck what stands there");
+
+        Task take = DefenceStructureTactics.plan(M, List.of(deep, near),
+                List.of(squad(1, 90, 40)), topology).get(0);
+        assertFalse(take.wreck());
+        assertFalse(take.assignment().wreckAuthorised(), "a take leaves the aspect alone");
+    }
+
+    @Test
+    void aSapperAlreadyOnTheJobIsGivenLeaveWhenThePickBecomesAWreckAndLosesItWhenItStops() {
+        CommandTopology topology = openTopology();
+        DefenceStructureFact deep = aspect(Kind.FIRE_CONTROL, Family.BATTERY_FORT, 100, 40, D, D, false);
+        DefenceStructureFact near = aspect(Kind.FORT_MAGAZINE, Family.BATTERY_FORT, 20, 40, D, D, false);
+        ObjectiveAssignment plain = ObjectiveAssignment.attackMove(2, 22, 40);
+        Task upgraded = DefenceStructureTactics.plan(M, List.of(deep, near),
+                List.of(new Candidate(2, 10, 40, plain, true)), topology).get(0);
+        assertTrue(upgraded.assignment().wreckAuthorised());
+        assertEquals(plain.targetCellX(), upgraded.assignment().targetCellX(), "the same destination, so no churn of the path");
+
+        // The bunker is the nearer prize for a squad standing beside it: a take, so the leave is withdrawn.
+        ObjectiveAssignment leave = ObjectiveAssignment.attackMove(2, 98, 40).withWreckAuthorised(true);
+        Task withdrawn = DefenceStructureTactics.plan(M, List.of(deep, near),
+                List.of(new Candidate(2, 96, 40, leave, true)), topology).get(0);
+        assertFalse(withdrawn.wreck());
+        assertFalse(withdrawn.assignment().wreckAuthorised());
+    }
+
+    @Test
     void aBareStructureAndAFortAreChosenForTogetherByRole() {
         CommandTopology topology = openTopology();
         DefenceStructureFact bare = new DefenceStructureFact(Kind.SHIELD_GENERATOR, 100, 100, D, D, false, 6);

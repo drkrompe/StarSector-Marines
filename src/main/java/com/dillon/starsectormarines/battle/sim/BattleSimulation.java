@@ -42,6 +42,7 @@ import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.fort.FortRestraint;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.fort.FortSystem;
 import com.dillon.starsectormarines.battle.fort.FortTag;
@@ -233,6 +234,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -700,6 +703,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     plant.control().holder(), dome.originalHolder(), plant.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT));
         }
+    }
+
+    private final Set<Long> sightedStructureCells = new HashSet<>();
+
+    @Override public synchronized boolean structureSighted(int x, int y) {
+        return sightedStructureCells.contains(((long) x << 32) | (y & 0xffffffffL));
+    }
+
+    @Override public synchronized void noteStructureSighted(int x, int y) {
+        sightedStructureCells.add(((long) x << 32) | (y & 0xffffffffL));
     }
 
     @Override public boolean isCapturedStructure(long id) { return rosterService.isCapturedStructure(id); }
@@ -1775,11 +1788,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } else if (structure.isShieldGenerator()) {
             forts.tagEmitter(tag.fortId(), id, holder);
             shieldDomes.govern(id);
+            restrainFortCore(id);
         } else if (structure.isFortAspectCore()) {
             forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder, structure.id);
+            restrainFortCore(id);
         } else {
             forts.tagNest(tag.fortId(), id);
         }
+    }
+
+    /** A fort core is not an opportunity target: no squad fires on it unless told to wreck it ({@link FortRestraint}). */
+    private void restrainFortCore(long id) {
+        unitIndex.restraint().restrain(id);
+        unitIndex.withdrawFromHostileScans(id);
     }
 
     @Override

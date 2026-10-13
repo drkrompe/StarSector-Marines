@@ -68,6 +68,12 @@ public final class WorkingPassageSnapshotSuite implements SnapshotSuite {
                 new Fixture("disabled-morrow",15101,false,false,true,false,true));
         var campaign=readyCampaign();
         addBoard(context,frames,campaign);
+        if ("interface".equals(System.getProperty("battle.workingPassage.fixture"))) {
+            // Authored frozen outcome sample for UI review; no battle or campaign handover is performed.
+            addDebrief(context, frames, "interface", ShepherdRecoveryCampaign.offer(campaign,"Asharu"),
+                    new WorkingPassageProgress.Report(true,false,false,1),3);
+            return frames;
+        }
         for(var fixture:fixtures) {
             String filter=System.getProperty("battle.workingPassage.fixture","");
             if(!filter.isBlank()&&!fixture.id.contains(filter))continue;

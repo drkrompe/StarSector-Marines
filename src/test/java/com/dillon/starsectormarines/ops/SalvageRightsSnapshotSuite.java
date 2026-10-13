@@ -51,6 +51,7 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         var frames=new ArrayList<SnapshotArtifact>();
         addInterfaceFrames(context, frames);
+        if ("interface".equals(System.getProperty("battle.salvageRights.fixture"))) return frames;
         var report=new StringBuilder("Salvage Rights production factory, named campaign overlay. 1920x1080 / 100%. No player orders, no Hound.\n");
         var out=context.projectRoot().resolve("build/reports/salvage-rights");Files.createDirectories(out);
         for(int variant=0;variant<3;variant++){
@@ -147,6 +148,14 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         debrief.put("squadRows", List.of());
         ResultsScreen.putStoryDebrief(debrief,result);
         frames.add(document(context,renderer,"recovery-agreement.png",ResultsScreen.COMPONENT_PATHS,ResultsScreen.ROOT_COMPONENT,debrief));
+        var hq = CompanyHqViewModel.preview().props();
+        hq.put("openingGuide", new ShepherdRecoveryWorkGuide(progress, null, none));
+        var desk = new CompanyHqNewsDesk(new Reactor());
+        desk.put(hq);
+        frames.add(document(context, renderer, "hq-work-guide.png", List.of(
+                "data/ui/components/company/company-resource-stock.mlx",
+                "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
+                "data/ui/components/company/company-hq.mlx"), "company-hq", hq));
     }
 
     private SnapshotArtifact document(SnapshotContext context, HeadlessUiRenderer renderer, String filename,

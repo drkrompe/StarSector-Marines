@@ -574,6 +574,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final int[] memberCellYs;
         final ObjectiveAssignment originalAssignment;
         final CommandGroupIdentity commandGroup;
+        final boolean demolition;
         ObjectiveAssignment assignedObjective;
 
         PlanningSquad(CommandSquadState state) {
@@ -606,6 +607,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             memberCellYs = state.memberCellYs();
             originalAssignment = state.assignment();
             commandGroup = state.commandGroup();
+            demolition = state.demolition();
             assignedObjective = state.assignment();
         }
     }
@@ -941,7 +943,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     || (squad.assignedObjective != null
                     && squad.assignedObjective.kind() == AssignmentKind.SECURE_COMPOUND)) continue;
             candidates.add(new DefenceStructureTactics.Candidate(squad.id, squad.anchorCellX, squad.anchorCellY,
-                    squad.originalAssignment));
+                    squad.originalAssignment, squad.demolition));
         }
         for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
                 frame.perspective(), structures, candidates, frame.topology())) {

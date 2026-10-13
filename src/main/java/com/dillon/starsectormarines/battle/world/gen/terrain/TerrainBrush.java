@@ -20,7 +20,11 @@ public final class TerrainBrush {
         if(topology.terrainSurface()!=null)throw new IllegalArgumentException("Terrain already stamped; rebuild the map to edit it");
         TerrainField field=TerrainField.build(plan);
         // Preflight the complete visible apron too. Refusal must leave both grids untouched.
-        for(int y=0;y<plan.height();y++)for(int x=0;x<plan.width();x++) if(field.maximum(x,y)>=-.65) {
+        for(int y=0;y<plan.height();y++)for(int x=0;x<plan.width();x++) {
+            boolean raised=field.maximum(x,y)>=-.65, excavated=field.excavationMaximum(x,y)>=-.65;
+            if (raised && excavated)
+                throw new IllegalArgumentException("Raised and excavated terrain overlap at "+x+","+y+"; erase before changing relief");
+            if (!raised && !excavated) continue;
             boolean natural=switch(topology.getGroundKind(x,y)) {case GRASS,DIRT,STONE,SAND,SNOW -> true;default -> false;};
             if(!natural || !grid.isWalkable(x,y) || grid.isDoorway(x,y) || topology.isWall(x,y) || topology.isFixture(x,y)
                     || topology.getBuildingId(x,y)!=0 || topology.getSurface(x,y)!=0
@@ -35,9 +39,10 @@ public final class TerrainBrush {
             if(tiles.block(material+"face."+i)==null)throw new IllegalStateException("Missing terrain face material "+material+i);
         TerrainSurface surface=TerrainSurface.build(plan,field,topology);
         for(int y=0;y<plan.height();y++)for(int x=0;x<plan.width();x++) {
-            if(field.maximum(x,y)>=-.65)topology.setNatureOverlayIndex(x,y,-1);
+            if(field.maximum(x,y)>=-.65 || field.excavationMaximum(x,y)>=-.65)topology.setNatureOverlayIndex(x,y,-1);
             if(!field.blocked(x,y))continue;
-            grid.setWalkable(x,y,false);grid.setSeeThrough(x,y,false);grid.setTag(x,y,CellTag.NATURAL_SOLID,true);
+            grid.setWalkable(x,y,false);grid.setSeeThrough(x,y,field.excavated(x,y));grid.setTag(x,y,CellTag.NATURAL_SOLID,true);
+            if (field.excavated(x,y)) grid.setEdgeCoverSuppressed(x,y,true);
             grid.setWallHp(x,y,0);topology.setFixture(x,y,true);
         }
         topology.setTerrainSurface(surface);
@@ -46,7 +51,7 @@ public final class TerrainBrush {
         for(int y=0;y<plan.height();y++)for(int x=0;x<plan.width();x++)if(grid.isWalkable(x,y))
             for(int facing=0;facing<4;facing++) {
                 int nx=x+dx[facing],ny=y+dy[facing];
-                if(grid.inBounds(nx,ny) && field.blocked(nx,ny) && grid.getCoverAtFacing(x,y,facing)<1)
+                if(grid.inBounds(nx,ny) && field.raised(nx,ny) && grid.getCoverAtFacing(x,y,facing)<1)
                     grid.setCoverAtFacing(x,y,facing,1);
             }
         return field;

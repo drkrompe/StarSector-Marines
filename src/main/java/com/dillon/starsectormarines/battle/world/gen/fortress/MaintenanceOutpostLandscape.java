@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.SummitDressing;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan.Stroke;
 
@@ -88,7 +89,7 @@ final class MaintenanceOutpostLandscape {
                     || c.topology.roadSurface().underlay(x, y) != null) continue;
             boolean terrain = false;
             if (c.topology.terrainSurface() != null)
-                for (int layer = 0; layer < 8; layer++)
+                for (int layer = 0; layer < TerrainSurface.LAYERS; layer++)
                     if (c.topology.terrainSurface().patch(x, y, layer) != null) terrain = true;
             open[y * c.width + x] = !terrain;
         }
