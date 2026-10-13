@@ -132,11 +132,11 @@ public enum ShuttleState {
      */
     REPOSITION,
     /**
-     * Circling the target with a flank toward it, the guns on that side working the ground.
+     * Circling over the target while the craft's turret works the ground beneath it.
      *
      * <p>A gunship's attack, as a gun run is a fighter's. The craft is not aimed at anything: it
-     * holds a ring about the point it was sent to and its broadside turrets do the aiming, so the
-     * nose points along the ring and the fire leaves out of the side. It is a phase of its own
+     * holds a ring about the point it was sent to and its turret, which traverses freely, does the
+     * aiming, so the nose points along the ring and the gun covers the ground all round. It is a phase of its own
      * rather than a long {@link #REPOSITION} because nothing in it ends on a line: it ends on the
      * clock the sortie was given.
      */
