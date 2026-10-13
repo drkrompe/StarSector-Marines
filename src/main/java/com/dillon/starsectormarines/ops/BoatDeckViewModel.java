@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -20,6 +21,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
 import java.util.Locale;
 
 /**
@@ -67,8 +69,8 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<String> fabricationBerthLabel;
     private final ComputedSignal<String> fabricationPatternName;
     private final ComputedSignal<String> fabricationCopy;
-    private final ComputedSignal<List<MaterialRow>> fabricationMaterials;
-    private final ComputedSignal<List<MaterialRow>> materialStock;
+    private final ComputedSignal<List<Row>> fabricationMaterials;
+    private final ComputedSignal<List<Row>> materialStock;
     private final ComputedSignal<String> fabricationActionClasses;
     private final ComputedSignal<Boolean> fabricationBlocked;
     private final ComputedSignal<String> fabricationReason;
@@ -179,8 +181,8 @@ public final class BoatDeckViewModel {
     public Signal<String> fabricationBerthLabel() { return fabricationBerthLabel; }
     public Signal<String> fabricationPatternName() { return fabricationPatternName; }
     public Signal<String> fabricationCopy() { return fabricationCopy; }
-    public Signal<List<MaterialRow>> fabricationMaterials() { return fabricationMaterials; }
-    public Signal<List<MaterialRow>> materialStock() { return materialStock; }
+    public Signal<List<Row>> fabricationMaterials() { return fabricationMaterials; }
+    public Signal<List<Row>> materialStock() { return materialStock; }
     public Signal<String> fabricationActionClasses() { return fabricationActionClasses; }
     public Signal<Boolean> fabricationBlocked() { return fabricationBlocked; }
     public Signal<String> fabricationActionLabel() { return selectedBerth.map(berth -> { revision.get(); return deck.wreckInBerth(berth) ? Strings.get("openingBoatDeckRepairHermes") : Strings.get("openingBoatDeckCommission"); }); }
@@ -350,36 +352,25 @@ public final class BoatDeckViewModel {
                             : affordable ? "" : Strings.format("openingBoatDeckShort", shortest(resources.quote(fitting.bill()))),
                     Strings.get("openingBoatDeckFit"),
                     installed || !affordable,
-                    materialRows(base, resources.quote(fitting.bill())),
+                    installed ? List.of() : materialRows(base, resources.quote(fitting.bill())),
                     () -> fit(fitting.id())));
         }
         return List.copyOf(rows);
     }
 
-    private List<MaterialRow> materialRows(String ownerId, FabricationCost bill) {
+    private List<Row> materialRows(String ownerId, FabricationCost bill) {
         if (bill == null) return List.of();
-        List<MaterialRow> rows = new ArrayList<>(bill.lines().size());
-        for (FabricationCost.Line line : bill.lines()) {
-            int available = resources.available(line.commodityId());
-            String id = ownerId + ":material:" + line.commodityId();
-            rows.add(new MaterialRow(id, id + ":icon", id + ":label",
-                    available >= line.quantity() ? "material-cost" : "material-cost short",
-                    resources.commodityIcon(line.commodityId()),
-                    resources.commodityName(line.commodityId()).toUpperCase(Locale.ROOT)
-                            + " " + available + " / " + line.quantity()));
-        }
-        return List.copyOf(rows);
+        return bill.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId()))).map(line -> CompanyResources.cost(
+                ownerId + ":material:" + line.commodityId(), resources.commodityName(line.commodityId()),
+                resources.commodityIcon(line.commodityId()), resources.available(line.commodityId()), line.quantity())).toList();
     }
 
-    private List<MaterialRow> buildMaterialStock() {
+    private List<Row> buildMaterialStock() {
         revision.get();
         return List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY,
-                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity -> {
-            String id = "boat-material-stock:" + commodity;
-            return new MaterialRow(id, id + ":icon", id + ":label", "material-stock",
-                    resources.commodityIcon(commodity),
-                    Integer.toString(resources.available(commodity)));
-        }).toList();
+                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity ->
+                CompanyResources.stock("boat-material-stock:" + commodity, resources.commodityName(commodity),
+                        resources.commodityIcon(commodity), resources.available(commodity))).toList();
     }
 
     /**
@@ -612,7 +603,7 @@ public final class BoatDeckViewModel {
                              String actionId, String materialsId,
                              String classes, String name, String tier, String effect,
                              String provenance, String reason, String actionLabel,
-                             boolean actionDisabled, List<MaterialRow> materials,
+                             boolean actionDisabled, List<Row> materials,
                              Runnable action) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "nameId" -> nameId;
@@ -624,17 +615,11 @@ public final class BoatDeckViewModel {
             case "effect" -> effect; case "provenance" -> provenance;
             case "reason" -> reason; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
+            case "materialsStyle" -> CompanyResources.billHeight(materials);
+            case "copyStyle" -> "height: " + (110 + materials.size() * 36) + "px;";
+            case "cardStyle" -> "height: " + (190 + materials.size() * 36) + "px;";
             case "action" -> action;
             default -> throw unknown("boat-catalog", p); }; }
-    }
-
-    public record MaterialRow(String id, String iconId, String labelId,
-                              String classes, String icon, String label)
-            implements MarkupPropertySource {
-        @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "iconId" -> iconId; case "labelId" -> labelId;
-            case "classes" -> classes; case "icon" -> icon; case "label" -> label;
-            default -> throw unknown("boat-material", p); }; }
     }
 
     private static IllegalArgumentException unknown(String owner, String property) {

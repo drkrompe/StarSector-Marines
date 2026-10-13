@@ -59,6 +59,24 @@ public final class EquipmentLayerComposer {
                             float angleDegrees, EquipmentLayerDef.Occlusion occlusion) {
     }
 
+    /** Braces the pod at the committed ballistic muzzle, then settles onto its carried joint. */
+    public static Placement launch(Placement carried, float muzzleX, float muzzleY,
+                                   float bearingDegrees, float phase, float shoulderPx,
+                                   float sourceMuzzleX, float sourceMuzzleY) {
+        float p = clamp01(phase);
+        // Hold registration through the flash; return smoothly during the final half.
+        float settle = smoothstep(clamp01((p - 0.5f) * 2f));
+        float kick = 0.025f * shoulderPx * (float) Math.sin(p * Math.PI);
+        float[] back = rotate((0.5f - sourceMuzzleX) * carried.width(),
+                -carried.height() * (0.5f - sourceMuzzleY) - kick,
+                bearingDegrees);
+        float angleDelta = (carried.angleDegrees() - bearingDegrees + 540f) % 360f - 180f;
+        return new Placement(lerp(muzzleX + back[0], carried.centerX(), settle),
+                lerp(muzzleY + back[1], carried.centerY(), settle),
+                carried.width(), carried.height(), bearingDegrees + angleDelta * settle,
+                carried.occlusion());
+    }
+
     private static float[] worldPoint(float actorX, float actorY,
                                       float localXShoulders, float localYShoulders,
                                       float shoulderPx, float facingDegrees) {

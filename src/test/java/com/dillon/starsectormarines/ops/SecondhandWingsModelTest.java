@@ -42,7 +42,7 @@ class SecondhandWingsModelTest {
                 () -> boats.selectBoatAction(0).run(), reviewed::incrementAndGet);
         var props = BoatDeckViewModelTest.props(boats); props.put("wings", wings.row());
         var loader = new MarkupLoader(path -> Files.readString(Path.of(path)), List.of(
-                "mod/data/ui/components/marine-ops-page-nav.mlx", "mod/data/ui/components/boat-deck/boat-deck.mlx"));
+                "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx", "mod/data/ui/components/boat-deck/boat-deck.mlx"));
         loader.reload();
         try (var markup = loader.build(reactor, "boat-deck", props)) {
             var document = new UiDocument(markup.root()); markup.styles().forEach(document::addStyleSheet);

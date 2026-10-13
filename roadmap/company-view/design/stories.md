@@ -1,8 +1,8 @@
 # Company view open work
 
-Status: ACTIVE — 21 open stories
+Status: ACTIVE — 20 open stories
 Written: 2026-08-23
-Updated: 2026-10-12 -- ship-condition survey implemented; live campaign acceptance remains.
+Updated: 2026-10-13 — Shared resource bills folded into the company model; campaign acceptance remains with the opening-flow stories.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
@@ -17,7 +17,6 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `first-mission-preparation.md` | Implemented; live acceptance open | Ship and combined stores preflight, paid lift, Mira, full squad and first Jangala story handoff. |
 | `boat-condition-and-repairs.md` | Planned | Persist surviving damage, price explicit repairs and teach the first damaged return. |
 | `barracks-turnaround.md` | In progress | Alpha pickup: explicit survivor consolidation, replenishment, preparation navigation and castellan guidance; WIA keep billets. |
-| `company-resource-bills.md` | Planned | Follow turnaround with one Cost / Available / Short by presentation across company rooms. |
 | `c2-formation-model.md` | Planned | Defines the shared read model required by C3 and C4. |
 | `c3-company-card-stack.md` | Planned | Depends on C2; expands the shipped HQ roster area. |
 | `c4-whereabouts-and-deployed-state.md` | Planned | Depends on C2 and C3; derives whereabouts rather than persisting them. |

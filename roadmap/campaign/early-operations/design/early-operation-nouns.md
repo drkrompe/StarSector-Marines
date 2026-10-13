@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 â€” recovery building duties clear actual interiors; campaign guidance ends at preparation.
+Updated: 2026-10-13 — Wayline directs Kestrel at Junction and Thunder Run; replay-local loss and physical crash aftermath.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -664,6 +664,13 @@ an L-shaped depot encloses a northern loading recess. The broad central
 warehouse still screens long sightlines, and the maintenance reserve retains
 its separate building behind the perimeter.
 
+Wayline supplies **Kestrel**, a named Mudskipper gunship under employer control.
+It enters as the company approaches the first site, works that position, then
+covers the militia settling onto captured ground before following the company's
+advance. It has a bounded visit and uses the ordinary gunship weapons and flight
+rules. It adds no player power card, supply bill, personnel requirement or owned
+boat; the company still captures the rooms and the militia still hold them.
+
 The company takes the first outstanding site in approach order, returning to
 lost ground when needed. Employer militia initially cover the landing, then
 move to hold the first confirmed gain and retain that duty through reversals.
@@ -712,6 +719,22 @@ do not prevent success. Neither an extra hold timer nor destruction of relay
 equipment is part of this objective.
 
 ## Authored freight finale
+
+**Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
+same crew that covered the Junction. Two prepared flak positions north of the
+road threaten its circuit. They fire through ordinary aiming and aircraft damage;
+the loss is an encounter outcome, never a mandatory scripted death. Clearing
+the guns early can preserve the gunship. A surviving Kestrel can cover the next
+crossing until its station time runs out. Losing it does not gate convoy progress,
+increase the company's deployment minimum, or charge the player for Wayline's
+ship. A crash damages the ground and leaves a permanent wreck for that battle,
+using the shared aircraft rules in `air-nouns.md`.
+
+Kestrel's destruction is local to the attempt. Replaying either operation starts
+with fresh employer support; no persistent hull-loss flag connects the missions
+or retries. Freight receipts and player personnel losses retain their own
+existing campaign rules. Radio acknowledges only observed arrival, station,
+damage, loss and return, so a saved gunship never receives the downed line.
 
 **Thunder Run** is a 320 by 144 road corridor, separating the western staging
 apron, Dispatch Post, East Crossing and Outbound Gate. The carriageway has a

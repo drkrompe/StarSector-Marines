@@ -1559,6 +1559,7 @@ public final class BattleSetup {
             sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY), ConquestCommandDisclosure.INSTANCE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(JunctionCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installJunctionStoryHooks();
+        sim.installWaylineGunship(false);
         return sim;
     }
 
@@ -1684,6 +1685,9 @@ public final class BattleSetup {
             }
         }
         sim.installThunderRun(attempt, delivered, reserve);
+        sim.installWaylineGunship(true);
+        for (var gun : ThunderRunCompound.ANTI_AIR_POSTS) sim.spawn(MapTurret.create("freight-aa-" + gun.y(),
+                Faction.DEFENDER, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, gun.x(), gun.y()));
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new ThunderRunCommand(faction),
                     (view, perspective, topology, claims) -> ThunderRunCommandFrame.disclose(

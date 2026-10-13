@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -57,7 +56,7 @@ public final class ShipConditionModel {
     public static Map<String, Object> workshopOnly() {
         var m = new LinkedHashMap<String, Object>();
         m.put("classes", "condition-panel"); m.put("rooms", List.of()); m.put("portrait", CompanyManagementGuide.portrait());
-        m.put("title", Strings.get("openingShipConditionShipCondition")); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("reason", "");
+        m.put("title", Strings.get("openingShipConditionShipCondition")); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("billRows", List.of()); m.put("reason", "");
         m.put("action", (Runnable) () -> {}); m.put("actionLabel", Strings.get("openingShipConditionReviewRepair")); m.put("disabled", true);
         m.put("actionClasses", "hidden"); m.put("detailClasses", "hidden"); m.put("workshopClasses", "restoration-panel");
         m.put("feedback", ""); m.put("summary", Strings.get("openingShipConditionRoomSurvey"));
@@ -153,10 +152,11 @@ public final class ShipConditionModel {
             int credits = bay ? boat.credits() : offer.credits();
             String refusal = bay ? boat.refusal() : offer.refusal();
             String key = bay ? "bay" : work.name();
-            bill = String.format(Locale.ROOT, Strings.get("openingShipConditionCreditsCostDAvailableDShortBy"), price, credits, Math.max(0, price - credits));
+            bill = CompanyResources.creditBill(price, credits);
+            m.put("billRows", CompanyResources.credits("survey-repair-cost", credits, price));
             reason = refusal == null ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded") : refusal;
             m.put("actionClasses", "restoration-action console-action");
-            m.put("actionLabel", key.equals(reviewed) ? String.format(Locale.ROOT, Strings.get("openingShipConditionAuthorizeD"), price) : Strings.get("openingShipConditionReviewRepair"));
+            m.put("actionLabel", key.equals(reviewed) ? Strings.get("openingShipConditionAuthorizeD") : Strings.get("openingShipConditionReviewRepair"));
             m.put("disabled", refusal != null && key.equals(reviewed));
             m.put("order", key);
         }

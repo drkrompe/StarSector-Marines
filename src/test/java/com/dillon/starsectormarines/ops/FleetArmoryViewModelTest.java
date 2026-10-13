@@ -55,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FleetArmoryViewModelTest {
 
     private static final List<String> COMPONENTS = List.of(
-            "mod/data/ui/components/marine-ops-page-nav.mlx",
+            "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/armory/fleet-armory.mlx",
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
@@ -615,7 +615,7 @@ class FleetArmoryViewModelTest {
                 .filter(tile -> !tile.id().endsWith(viewModel.selectedWeaponDoctrineId()))
                 .findFirst().orElseThrow().select().run();
 
-        List<FleetArmoryViewModel.CargoCostRow> costs = viewModel.issueCargoRows().get();
+        List<CompanyResources.Row> costs = viewModel.issueCargoRows().get();
         assertTrue(costs.isEmpty());
         assertEquals("vanilla/" + Commodities.MARINES,
                 viewModel.squadCards().get().get(0).reinforceIcon());

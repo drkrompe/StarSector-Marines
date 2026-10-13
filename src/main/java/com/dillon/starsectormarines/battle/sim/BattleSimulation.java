@@ -121,6 +121,8 @@ import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryObserver;
 import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
+import com.dillon.starsectormarines.battle.setup.WaylineGunship;
+import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -520,6 +522,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     private ThunderRunSequence thunderRun;
+    private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    private WaylineGunship waylineGunship;
+    public WaylineGunship getWaylineGunship() { return waylineGunship; }
+    public void installWaylineGunship(boolean freight) {
+        if (simTickIndex != 0 || waylineGunship != null) throw new IllegalStateException("Install Wayline air at setup");
+        waylineGunship = new WaylineGunship(freight, storyBeats);
+    }
     public ThunderRunSequence getThunderRun() { return thunderRun; }
     public void installThunderRun(FreightRunProgress.Attempt attempt, int delivered, List<EntitySpec> reserve) {
         if (simTickIndex != 0 || thunderRun != null || openingStory != null || junctionStory != null || lastLiftAttempt != null || relayNineStory != null)
@@ -2645,6 +2654,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             // AirProvider.EXTERNAL the host's own ships are the air cover.
             airCoverSystem.tick(TICK_DT, this);
             airSystem.tick(TICK_DT);
+            groundAntiAir.tick(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
@@ -2671,6 +2681,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
         if (thunderRun != null) thunderRun.tick(this);
+        if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         fieldSalvage.tick(this);
         if (depotHold != null) depotHold.advance(this);
@@ -2692,7 +2703,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (missionCompletionEnabled) {
             WinCheckSystem.WinResult result =
                     winCheck.tick(objectivesService.getObjectives());
-            if (result.complete()) {
+            if (result.complete() && !airSystem.hasCrashingCraft()) {
                 completion.finish(result.winner());
             }
         }

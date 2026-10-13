@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Engineering uses wall-anchored condition glyphs and expandable inspection cards; campaign lessons end at preparation so battle presentation leaves room for mission dialogue.
+Updated: 2026-10-13 — Shared resource bills separate persistent stock from order costs; Engineering inspection and campaign preparation retain their existing authorities.
 
 ## Purpose
 
@@ -630,6 +630,30 @@ equal, and a disagreement in either direction is drawn honestly rather than
 thrown. Fittings do not change the picture, and they do not change the
 turnaround: a better boat is faster and tougher in the air and is not serviced
 faster on the deck.
+
+## Company resource bills
+
+Company rooms show a shared **Available** stock strip immediately below navigation,
+away from individual orders. Balances use exact, grouped quantities in bounded
+columns, including holdings in the millions. The strip includes the resources
+that room can actually draw; named ready reserves remain a separate personnel
+count. Fleet cargo and the opening depot keep their existing access and earmarking
+rules. Engineering reclamation uses fleet cargo, never the preparation depot.
+
+An order shows **Cost** for each charged resource and **Short by** only for a
+positive deficit, with the commodity name and icon. Commodity order is consistent
+across bills and stock. Credits use the same vocabulary. Payment amounts belong
+in the bill rather than in buttons. Uncharged fitting, assigning and installing
+held spares use ordinary action names without a zero-cost bill or a Free badge.
+Already-installed fittings show their installed state rather than a purchase bill.
+Fabrication remains visibly distinct from installing an owned spare.
+
+The presentation reads each workshop's quote; existing transaction authorities
+revalidate and spend at commit. It does not merge infantry equipment, mech spares
+and boat fittings into one economy. Bulk personnel orders quote the actual eligible
+cargo draw after named reserves, retain skipped-squad reasons, and explain any
+remaining full-muster shortage separately. Wounded retain their billets. Tutorials
+use the same cost vocabulary and point to the stock display in the relevant room.
 
 ## Shipboard Barracks
 

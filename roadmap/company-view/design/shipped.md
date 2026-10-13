@@ -19,3 +19,4 @@ Updated: 2026-09-01 — folded the late-arrival rejoin state into the company-vi
 | `hq-intel-terminal.md` | 2026-10-09 | this change | `company-view-nouns.md` — HQ intel channels, lead bulletin, bounded counts and client faction crests |
 | `hq-news-desk.md` | 2026-10-09 | this change | `company-view-nouns.md` — source windows, view-local report selection and focused briefings |
 | `hq-intel-motion.md` | 2026-10-09 | this change | `company-view-nouns.md`, `ui-nouns.md` — animated receiver network, real arrival distinction and persistent dossier motion |
+| `company-resource-bills.md` | 2026-10-13 | this change | `company-view-nouns.md` — Company resource bills: separate Available stock, Cost/Short by orders, uncharged action naming and transaction authority |

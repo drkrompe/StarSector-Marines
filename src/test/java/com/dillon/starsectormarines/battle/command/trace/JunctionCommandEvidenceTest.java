@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import org.junit.jupiter.api.AfterEach;
+
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -38,7 +42,10 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Production map and simulation evidence, opt-in and excluded from normal tests. */
 @Tag("junction-command-evidence")
 class JunctionCommandEvidenceTest {
+    @AfterEach void resetWeaponSlots() { TurretSlotResolver.useHullSpecs(null); }
+
     @Test void reportsTerritorialAdvanceAndHold() throws Exception {
+        InstalledWeaponSlots.install();
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
         Path output = Path.of(System.getProperty("junction.command.evidence.outputDir", "build/reports/commander/junction"));
         Files.createDirectories(output);

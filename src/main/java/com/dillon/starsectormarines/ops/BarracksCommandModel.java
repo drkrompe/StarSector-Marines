@@ -133,6 +133,9 @@ public final class BarracksCommandModel {
         bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
         bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
         bind(reactor, "issueCargoStock", this::issueCargoStock);
+        bind(reactor, "recruitBill", () -> recruitsRequired() <= 0 ? List.of() : List.of(
+                CompanyResources.cost("barracks-enlist-cost", resources.commodityName(Commodities.MARINES),
+                        resources.commodityIcon(Commodities.MARINES), cargoMarines.getAsInt(), recruitsRequired())));
         bind(reactor, "recruitDraw", () -> Integer.toString(recruitsRequired()));
         bind(reactor, "profilesEmpty", () -> roster.armory().squadProfiles().isEmpty()
                 ? Strings.get("openingBarracksCommandNoSavedProfilesChooseNewToPair") : "");
@@ -526,7 +529,9 @@ public final class BarracksCommandModel {
         int vacancies = vacancies();
         int reserves = Math.min(vacancies, roster.readyReserveCount());
         int wounded = lineSquads().stream().filter(s -> selected.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
-        return Strings.format("openingBarracksCommandVacanciesFromReservesRemainUnfilledWoundedKeep", vacancies, reserves, (vacancies - reserves - recruitsRequired()), wounded);
+        int shortfall = vacancies - reserves - recruitsRequired();
+        String summary = Strings.format("companyResourceRecruitment", vacancies, reserves, recruitsRequired(), wounded);
+        return shortfall > 0 ? summary + " " + Strings.format("companyResourceRecruitmentShort", shortfall) : summary;
     }
     private int recruitsRequired() {
         return Math.min(Math.max(0, vacancies() - roster.readyReserveCount()), cargoMarines.getAsInt());
@@ -544,25 +549,13 @@ public final class BarracksCommandModel {
 
     private List<Map<String, Object>> issueCargoStock() {
         revision.get();
-        return List.of(Commodities.SUPPLIES, Commodities.HAND_WEAPONS,
-                Commodities.HEAVY_MACHINERY, Commodities.FOOD).stream()
-                .map(commodity -> row(
-                        "id", "barracks-cargo-stock:" + commodity,
-                        "iconId", "barracks-cargo-stock:" + commodity + ":icon",
-                        "labelId", "barracks-cargo-stock:" + commodity + ":label",
-                        "icon", resources.commodityIcon(commodity),
-                        "label", resources.commodityName(commodity).toUpperCase(Locale.ROOT)
-                                + "  " + availableIssueCargo(commodity)))
-                .toList();
-    }
-
-    private int availableIssueCargo(String commodity) {
-        var stock = resources.available();
-        if (Commodities.SUPPLIES.equals(commodity)) return stock.supplies();
-        if (Commodities.HAND_WEAPONS.equals(commodity)) return stock.heavyArmaments();
-        if (Commodities.HEAVY_MACHINERY.equals(commodity)) return stock.heavyMachinery();
-        if (Commodities.FOOD.equals(commodity)) return stock.food();
-        return 0;
+        return List.of(row("id", "barracks-recruit-stock", "copyId", "barracks-recruit-stock-copy", "iconId", "barracks-recruit-stock-icon",
+                "labelId", "barracks-recruit-stock-count", "nameId", "barracks-recruit-stock-label",
+                "name", resources.commodityName(Commodities.MARINES), "icon", resources.commodityIcon(Commodities.MARINES),
+                "stock", CompanyResources.number(cargoMarines.getAsInt())),
+                row("id", "barracks-reserve-stock", "copyId", "barracks-reserve-copy", "iconId", "barracks-reserve-icon", "labelId", "barracks-reserve-count",
+                "nameId", "barracks-reserve-label", "name", Strings.get("openingBarracksCommandNamedReserves"),
+                "icon", resources.commodityIcon(Commodities.MARINES), "stock", CompanyResources.number(roster.readyReserveCount())));
     }
 
     public void reinforceSelected() {
@@ -703,7 +696,7 @@ public final class BarracksCommandModel {
             regions.add(List.of("barracks-recruit-stock"));
         }
         if (guideStep == 4 && !selected.isEmpty()) {
-            regions.add(List.of("barracks-order-caption-85", "barracks-issue-summary", "barracks-issue-cost",
+            regions.add(List.of("barracks-order-caption-85", "barracks-issue-summary",
                     "barracks-issue-reason", "barracks-issue"));
             regions.add(List.of("barracks-issue-stock"));
         }

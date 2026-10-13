@@ -121,7 +121,7 @@ public final class AirThreatPicture {
         for (long id : ids) {
             ShuttleMission mission = world.mission(id);
             Faction faction = world.airFaction(id);
-            if (mission == null || faction == null || mission.state == ShuttleState.GONE) continue;
+            if (mission == null || mission.destroyed || faction == null || mission.state == ShuttleState.GONE) continue;
             boolean airborne = AirLocomotion.of(mission.state).airborne();
             if (ship.faction.friendlyTo(faction)) {
                 if (airborne) own++;

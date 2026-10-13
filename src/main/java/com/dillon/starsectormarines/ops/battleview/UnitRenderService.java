@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemService.PodLaunch;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
@@ -1062,6 +1064,17 @@ public final class UnitRenderService implements RenderSystem {
                     EquipmentGrade grade = equipmentGrade != null
                             ? (EquipmentGrade) equipmentGrade[r] : EquipmentGrade.SERVICE;
                     IntegralSystemDef integralSystem = roster.integralSystems().spec(entityId);
+                    PodLaunch podLaunch = roster.integralSystems().launch(entityId);
+                    LayeredUnitComposer.IntegralLaunch launch = null;
+                    if (podLaunch != null && integralSystem != null
+                            && integralSystem.missilePod() != null) {
+                        MissilePodMountGeometry.Pose mount = MissilePodMountGeometry.resolve(
+                                rx[r], ry[r], podLaunch.bodyBearingDegrees(),
+                                podLaunch.bearingDegrees(), integralSystem.missilePod().mount());
+                        launch = new LayeredUnitComposer.IntegralLaunch(
+                                cam.cellToScreenX(mount.muzzleX()), cam.cellToScreenY(mount.muzzleY()),
+                                mount.bearingDegrees(), podLaunch.phase());
+                    }
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
                     // Lifted out of the column arrays so the halo's replay of
@@ -1092,7 +1105,7 @@ public final class UnitRenderService implements RenderSystem {
                             primary, type.drawsLayeredWeapon(), secondary, grade,
                             cx, cy, shoulderPx, facingDeg, headLookDeg, locomotion,
                             weaponPhase, weaponPose, animationFlags, unitAlpha,
-                            authoredPose, integralSystem);
+                            authoredPose, integralSystem, launch);
                     continue;
                 }
                 UnitSpriteCache cache = sprites.unitSprites().get(type);

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -129,8 +130,8 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> companySummary;
     private final ComputedSignal<List<SquadCard>> squadCards;
     private final ComputedSignal<List<SquadGalleryCard>> squadGalleryCards;
-    private final ComputedSignal<List<CargoCostRow>> foundingCargoRows;
-    private final ComputedSignal<List<CargoCostRow>> cargoStockRows;
+    private final ComputedSignal<List<Row>> foundingCargoRows;
+    private final ComputedSignal<List<Row>> cargoStockRows;
     private final ComputedSignal<Boolean> foundingDisabled;
     private final MutableSignal<Feedback> foundingFeedback;
     private final ComputedSignal<String> foundingFeedbackText;
@@ -153,7 +154,7 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<List<DoctrineTile>> weaponDoctrineTiles;
     private final ComputedSignal<List<DoctrineTile>> armorDoctrineTiles;
     private final ComputedSignal<SquadEquipmentPreview> squadEquipmentPreview;
-    private final ComputedSignal<List<CargoCostRow>> issueCargoRows;
+    private final ComputedSignal<List<Row>> issueCargoRows;
     private final ComputedSignal<String> issueCargoClasses;
     private final ComputedSignal<String> weaponDoctrineSummary;
     private final ComputedSignal<String> armorDoctrineSummary;
@@ -369,8 +370,8 @@ public final class FleetArmoryViewModel {
     public Signal<String> companySummary() { return companySummary; }
     public Signal<List<SquadCard>> squadCards() { return squadCards; }
     public Signal<List<SquadGalleryCard>> squadGalleryCards() { return squadGalleryCards; }
-    public Signal<List<CargoCostRow>> foundingCargoRows() { return foundingCargoRows; }
-    public Signal<List<CargoCostRow>> cargoStockRows() { return cargoStockRows; }
+    public Signal<List<Row>> foundingCargoRows() { return foundingCargoRows; }
+    public Signal<List<Row>> cargoStockRows() { return cargoStockRows; }
     public Signal<Boolean> foundingDisabled() { return foundingDisabled; }
     public Signal<String> foundingFeedbackText() { return foundingFeedbackText; }
     public Signal<String> foundingFeedbackClasses() { return foundingFeedbackClasses; }
@@ -393,7 +394,7 @@ public final class FleetArmoryViewModel {
     public Signal<Boolean> reinforceDisabled() { return reinforceDisabled; }
     public Signal<List<DoctrineTile>> weaponDoctrineTiles() { return weaponDoctrineTiles; }
     public Signal<List<DoctrineTile>> armorDoctrineTiles() { return armorDoctrineTiles; }
-    public Signal<List<CargoCostRow>> issueCargoRows() { return issueCargoRows; }
+    public Signal<List<Row>> issueCargoRows() { return issueCargoRows; }
     public Signal<String> issueCargoClasses() { return issueCargoClasses; }
     public Signal<String> weaponDoctrineSummary() { return weaponDoctrineSummary; }
     public Signal<String> armorDoctrineSummary() { return armorDoctrineSummary; }
@@ -435,9 +436,6 @@ public final class FleetArmoryViewModel {
         if (filter == null) throw new IllegalArgumentException("filter is required");
         return () -> loadoutFilter.set(filter);
     }
-
-
-
 
     public Runnable reinforceSelectedSquadAction() {
         return () -> reinforceSquad(selectedSquadId.peek());
@@ -667,35 +665,18 @@ public final class FleetArmoryViewModel {
         return List.copyOf(cards);
     }
 
-    private List<CargoCostRow> buildFoundingCargoRows() {
+    private List<Row> buildFoundingCargoRows() {
         domainRevision.get();
-        List<CargoCostRow> rows = new ArrayList<>();
-        for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
-            int available = squadFoundingResources.available(line.commodityId());
-            String id = "found-squad-cost:" + line.commodityId();
-            String commodityName = squadFoundingResources.commodityName(line.commodityId());
-            rows.add(new CargoCostRow(
-                    id, id + ":icon", id + ":label",
-                    available >= line.quantity() ? "cargo-cost" : "cargo-cost short",
-                    squadFoundingResources.commodityIcon(line.commodityId()),
-                    commodityName.toUpperCase(Locale.ROOT) + "  " + available
-                            + "/" + line.quantity()));
-        }
-        return List.copyOf(rows);
+        return SquadFoundingCost.STANDARD.lines().stream().map(line -> CompanyResources.cost(
+                "found-squad-cost:" + line.commodityId(), squadFoundingResources.commodityName(line.commodityId()),
+                squadFoundingResources.commodityIcon(line.commodityId()), squadFoundingResources.available(line.commodityId()), line.quantity())).toList();
     }
 
-    private List<CargoCostRow> buildCargoStockRows() {
+    private List<Row> buildCargoStockRows() {
         domainRevision.get();
-        return List.of(Commodities.MARINES, Commodities.SUPPLIES,
-                Commodities.FOOD, Commodities.HAND_WEAPONS,
-                Commodities.HEAVY_MACHINERY).stream().map(commodityId -> {
-            String id = "armory-cargo-stock:" + commodityId;
-            int available = squadFoundingResources.available(commodityId);
-            return new CargoCostRow(id, id + ":icon", id + ":label", "cargo-stock",
-                    squadFoundingResources.commodityIcon(commodityId),
-                    squadFoundingResources.commodityName(commodityId).toUpperCase(Locale.ROOT)
-                            + "  " + available);
-        }).toList();
+        return List.of(Commodities.MARINES, Commodities.SUPPLIES, Commodities.FOOD).stream().map(commodity ->
+                CompanyResources.stock("armory-cargo-stock:" + commodity, squadFoundingResources.commodityName(commodity),
+                        squadFoundingResources.commodityIcon(commodity), squadFoundingResources.available(commodity))).toList();
     }
 
     private List<SquadGalleryCard> buildSquadGalleryCards() {
@@ -881,8 +862,6 @@ public final class FleetArmoryViewModel {
         return List.copyOf(ranked);
     }
 
-
-
     private static DoctrineTile doctrineTile(
             String id, boolean selected, String name, int rating,
             SquadLoadoutPresentationDef presentation, String metadata,
@@ -935,8 +914,6 @@ public final class FleetArmoryViewModel {
         }
         return List.copyOf(filters);
     }
-
-
 
     private String buildLoadoutBrowserSummary() {
         int known = equipmentPickerKind.get() == EquipmentPickerKind.WEAPON
@@ -1204,29 +1181,25 @@ public final class FleetArmoryViewModel {
         return Strings.get("openingLoadoutFitSquad");
     }
 
-    private List<CargoCostRow> buildIssueCargoRows() {
+    private List<Row> buildIssueCargoRows() {
         SquadEquipmentPreview preview = squadEquipmentPreview.get();
         EquipmentTemplateCost cost = preview.issueCost();
         EquipmentTemplateCost available = preview.availableCargo();
-        List<CargoCostRow> rows = new ArrayList<>(4);
-        addCargoCostRow(rows, Commodities.SUPPLIES, cost.supplies(), available.supplies());
-        addCargoCostRow(rows, Commodities.HAND_WEAPONS,
+        List<Row> rows = new ArrayList<>(4);
+        addRow(rows, Commodities.SUPPLIES, cost.supplies(), available.supplies());
+        addRow(rows, Commodities.HAND_WEAPONS,
                 cost.heavyArmaments(), available.heavyArmaments());
-        addCargoCostRow(rows, Commodities.HEAVY_MACHINERY,
+        addRow(rows, Commodities.HEAVY_MACHINERY,
                 cost.heavyMachinery(), available.heavyMachinery());
-        addCargoCostRow(rows, Commodities.FOOD, cost.food(), available.food());
+        addRow(rows, Commodities.FOOD, cost.food(), available.food());
         return List.copyOf(rows);
     }
 
-    private void addCargoCostRow(List<CargoCostRow> rows, String commodityId,
+    private void addRow(List<Row> rows, String commodityId,
                                  int required, int available) {
         if (required <= 0) return;
-        String id = "issue-cargo:" + commodityId;
-        rows.add(new CargoCostRow(id, id + ":icon", id + ":label",
-                available >= required ? "cargo-cost" : "cargo-cost short",
-                equipmentIssueResources.commodityIcon(commodityId),
-                equipmentIssueResources.commodityName(commodityId).toUpperCase(Locale.ROOT)
-                        + "  " + available + " / " + required));
+        rows.add(CompanyResources.cost("issue-cargo:" + commodityId, equipmentIssueResources.commodityName(commodityId),
+                equipmentIssueResources.commodityIcon(commodityId), available, required));
     }
 
     private String buildViewerStatus() {
@@ -2117,7 +2090,7 @@ public final class FleetArmoryViewModel {
             String founderId, String plusId,
             String founderHeadingId, String founderCopyId,
             String founderCostsId, String founderFeedbackId,
-            List<CargoCostRow> foundingCargoRows, String foundingFeedbackText,
+            List<Row> foundingCargoRows, String foundingFeedbackText,
             String foundingFeedbackClasses, boolean foundingDisabled, Runnable foundSquad,
             boolean openDisabled, boolean reinforceDisabled, String command,
             String organizationNotice, String organizationNoticeClasses, String openStyle, String style)
@@ -2199,24 +2172,6 @@ public final class FleetArmoryViewModel {
                 case "capacityId" -> capacityId();
                 case "capacityClasses" -> capacityClasses;
                 default -> throw new IllegalArgumentException("Unknown organization-target property");
-            };
-        }
-    }
-
-    public record CargoCostRow(
-            String id, String iconId, String labelId, String classes,
-            String icon, String label) implements MarkupPropertySource {
-        @Override
-        public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id;
-                case "iconId" -> iconId;
-                case "labelId" -> labelId;
-                case "classes" -> classes;
-                case "icon" -> icon;
-                case "label" -> label;
-                default -> throw new IllegalArgumentException(
-                        "Unknown cargo-cost property: " + property);
             };
         }
     }
