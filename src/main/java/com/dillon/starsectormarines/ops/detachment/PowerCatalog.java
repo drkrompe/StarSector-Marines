@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
@@ -101,6 +103,9 @@ public final class PowerCatalog {
         }
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MARINE_INSERTION) {
             byId.put(MarineInsertion.ID, new MarineInsertion());
+        }
+        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_CLOSE_AIR_SUPPORT) {
+            byId.put(CloseAirSupport.ID, new CloseAirSupport());
         }
 
         List<ShipSupportSource> ships = new ArrayList<>();
@@ -244,6 +249,9 @@ public final class PowerCatalog {
         if (VALKYRIE_HULL.equals(baseId)) ids.add(MechSupport.ID);
         if (VALKYRIE_HULL.equals(baseId)) ids.add(MarineInsertion.ID);
         if (VALKYRIE_HULL.equals(baseId)) ids.add(VehicleSupport.ID);
+        if (baseId != null && ShuttleType.MUDSKIPPER.matchingHullIds.contains(baseId)) {
+            ids.add(CloseAirSupport.ID);
+        }
         if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
             ids.add(EmergencyResupply.ID);
         }
@@ -266,6 +274,7 @@ public final class PowerCatalog {
         if (OrbitalBarrage.ID.equals(id)) return new OrbitalBarrage();
         if (MarineInsertion.ID.equals(id)) return new MarineInsertion();
         if (VehicleSupport.ID.equals(id)) return new VehicleSupport();
+        if (CloseAirSupport.ID.equals(id)) return new CloseAirSupport();
         return null;
     }
 }

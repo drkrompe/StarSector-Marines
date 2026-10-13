@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.fixture.CommandPowerCommitment;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
@@ -44,6 +45,18 @@ class PowerCatalogTest {
         // armour: same carrier, same delivery, so it grants all three.
         assertEquals(List.of(MechSupport.ID, MarineInsertion.ID, VehicleSupport.ID),
                 PowerCatalog.contributedPowerIds("valkyrie", Set.of()));
+    }
+
+    @Test
+    void aMudskipperOfEitherMarkGrantsCloseAirSupportAndNothingElse() {
+        assertEquals(List.of(CloseAirSupport.ID), PowerCatalog.contributedPowerIds("mudskipper", Set.of()));
+        assertEquals(List.of(CloseAirSupport.ID), PowerCatalog.contributedPowerIds("mudskipper_mk2", Set.of()));
+        assertEquals(List.of(), PowerCatalog.contributedPowerIds("hermes", Set.of()));
+    }
+
+    @Test
+    void aFrozenCloseAirSupportCommitmentRestoresThroughTheSameConstructor() {
+        assertEquals(CloseAirSupport.ID, PowerCatalog.restore(CloseAirSupport.ID, List.of()).id);
     }
 
     @Test

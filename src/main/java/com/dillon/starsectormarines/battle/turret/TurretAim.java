@@ -86,7 +86,21 @@ public final class TurretAim {
          * back to the caller via {@link #lastFireHadLos}.
          */
         public boolean indirectFire;
+        /**
+         * World bearing the mount's field of fire is centred on, in the same convention as
+         * {@link #facingDegrees}. Meaningful only while {@link #arcHalfWidthDeg} is below 180.
+         */
+        public float arcCentreDeg;
+        /**
+         * Half-width of the field of fire about {@link #arcCentreDeg}. {@link #UNRESTRICTED_ARC_DEG}
+         * (the default) lets the barrel traverse all the way round; a narrower arc makes a target
+         * outside it unreachable, so it is dropped rather than shot across the hull.
+         */
+        public float arcHalfWidthDeg = UNRESTRICTED_ARC_DEG;
     }
+
+    /** Half-width that means the barrel can swing to any bearing. */
+    public static final float UNRESTRICTED_ARC_DEG = 180f;
 
     private TurretAim() {}
 
@@ -132,6 +146,10 @@ public final class TurretAim {
         }
 
         float bearing = bearingTo(s.originX, s.originY, world.x(s.target), world.y(s.target));
+        if (!withinArc(s, bearing)) {
+            s.target = 0L;
+            return;
+        }
         float maxStep = s.turnRateDegPerSec * dt;
         s.facingDegrees = slewToward(s.facingDegrees, bearing, maxStep);
 
@@ -141,6 +159,12 @@ public final class TurretAim {
             s.lastFireHadLos = visible;
             s.cooldownTimer = s.attackCooldown;
         }
+    }
+
+    /** Whether {@code bearing} lies inside the mount's field of fire; always true for an unrestricted one. */
+    public static boolean withinArc(State s, float bearing) {
+        if (s.arcHalfWidthDeg >= UNRESTRICTED_ARC_DEG) return true;
+        return Math.abs(shortestAngleDelta(s.arcCentreDeg, bearing)) <= s.arcHalfWidthDeg;
     }
 
     /**
