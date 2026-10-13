@@ -55,7 +55,10 @@ public final class MissionObjectiveProjection {
             } else if (objective instanceof SalvageRightsSequence salvage) items.add(buildingFootprint(
                     MissionObjectiveFamilies.salvage(salvage),sim.getTopology(),sim.getGrid(),salvage.targetBuilding()));
             else if (objective instanceof WaterUnderSealSequence weir) items.add(weirFootprints(MissionObjectiveFamilies.waterUnderSeal(weir), sim.getTopology(), sim.getGrid()));
-            else if (objective instanceof ColdStartSequence repair) items.add(MissionObjectiveFamilies.coldStart(repair));
+            else if (objective instanceof ColdStartSequence repair) {
+                items.add(MissionObjectiveFamilies.coldStart(repair));
+                for (var post : repair.pickets()) items.add(MissionObjectiveFamilies.coldStartPicket(post));
+            }
             else if (objective instanceof WorkingPassageSequence passage) items.add(MissionObjectiveFamilies.workingPassage(passage));
             else if (objective instanceof DepotHoldSequence depot) items.add(MissionObjectiveFamilies.depot(depot));
             else if (objective instanceof ColdAccountIntervention intervention) items.add(MissionObjectiveFamilies.coldAccount(intervention,

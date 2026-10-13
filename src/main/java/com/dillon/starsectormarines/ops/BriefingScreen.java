@@ -470,7 +470,7 @@ public class BriefingScreen implements Screen {
         props.put("tierSummary", debug
                 ? mission.tier.displayName + "  ·  "
                         + MissionForceEnvelope.recommendedSquads(mission) + " squads  ·  "
-                        + mission.requiredDrops + " sorties"
+                        + (mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND ? "already ashore" : mission.requiredDrops + " sorties")
                 : "");
         props.put("tierSteps", debug && DebugMissionCatalog.scenario(mission) == null ? retainedTierSteps(mission) : List.of());
         props.put("debugControls", debug ? retainedDebugControls(mission) : List.of());
@@ -502,9 +502,11 @@ public class BriefingScreen implements Screen {
         props.put("sourceEmpty", cachedPowerSources.isEmpty()
                 ? "No fleet ships provide command powers." : "");
         BriefingViewModel.putLandingCraft(props, mission, lift(),
-                readiness != null ? readiness.selectedReady() : 0,
+                debug && ctx.getDebugCompanyRoster() != null ? ctx.getDebugCompanyRoster().lineReadySoldiers().size()
+                        : readiness != null ? readiness.selectedReady() : 0,
                 debug || mission.source == MissionSource.STATIONING ? null : ShipsBoatsAboard.carrier());
-        String repairingLift = !debug && mission.source != MissionSource.STATIONING && lift().isEmpty()
+        String repairingLift = !debug && mission.marineArrivalPolicy != MarineArrivalPolicy.SECURED_GROUND
+                && mission.source != MissionSource.STATIONING && lift().isEmpty()
                 ? ShipsBoatsAboard.recoveryBlocker() : null;
         if (repairingLift != null) {
             String grounded = Strings.get("boatGrounded");
@@ -1698,6 +1700,7 @@ public class BriefingScreen implements Screen {
 
     private int basePersonnelSeats(Mission m) {
         if (m == null) return 0;
+        if (m.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND) return MissionForceEnvelope.recommendedPersonnel(m);
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
                 m, m.source == MissionSource.STATIONING
                         ? Collections.emptyList() : lift());
@@ -2304,6 +2307,10 @@ public class BriefingScreen implements Screen {
      */
     private float buildLiftReadout(Mission m, List<ShuttleAssignment> manifest,
                                    float x, float y, float floor) {
+        if (m.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND && y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Selected company already ashore / boats in reserve", x + 6f, y, VALUE_COLOR));
+            return y - ROW_GAP;
+        }
         if (cachedAvailable.isEmpty() || y < floor) return y;
         java.util.Map<Integer, Integer> cyclesByBoat = computePlayerCyclesByIndex(m, manifest);
         int fewest = Integer.MAX_VALUE;

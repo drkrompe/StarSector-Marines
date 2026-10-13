@@ -70,10 +70,14 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                 String name = visit.name().toLowerCase(Locale.ROOT).replace('_','-');
                 try (var scene = new ShipDeckBattleScene(map, 0)) {
                     frames.add(new SnapshotArtifact(name + ".png", renderer.renderHostPass(daylight(scene.pass(
-                            ShipDeckBattleScene.DeckView.fitting(0,0,304,176,1920,1080))),1920,1080)));
+                            ShipDeckBattleScene.DeckView.fitting(0,0,ShepherdBasin.WIDTH,ShepherdBasin.HEIGHT,1920,1080))),1920,1080)));
                     frames.add(new SnapshotArtifact(name + "-cradle.png", renderer.renderHostPass(daylight(scene.pass(
                             ShipDeckBattleScene.DeckView.fitting(57,75,112,63,1920,1080))),1920,1080)));
                     if (visit == ShepherdBasin.Visit.SALVAGE_RIGHTS) {
+                        frames.add(new SnapshotArtifact("colossus-wreck-overview.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(147,155,112,63,1920,1080))),1920,1080)));
+                        frames.add(new SnapshotArtifact("colossus-wreck-closeup.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(171,163,72,54,1920,1080))),1920,1080)));
                         frames.add(new SnapshotArtifact("salvage-stock.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(87,130,80,45,1920,1080))),1920,1080)));
                         frames.add(new SnapshotArtifact("battle-debris.png", renderer.renderHostPass(daylight(scene.pass(
@@ -93,6 +97,9 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                         frames.add(new SnapshotArtifact("cold-start-floodlights-restored.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(110,97,48,27,1920,1080))),1920,1080)));
                     }
+                    if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
+                        frames.add(new SnapshotArtifact("colossus-wreck-daylight.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(147,155,112,63,1920,1080))),1920,1080)));
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("working-passage-narrows.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(166,68,128,72,1920,1080))),1920,1080)));
@@ -213,6 +220,15 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
         long hulls = map.doodads.stream().filter(d -> "doodad.shepherd-recovery-hull".equals(d.definitionId())).count();
         if (hulls != (visit == ShepherdBasin.Visit.WORKING_PASSAGE ? 0 : 1))
             throw new IllegalStateException("Grounded hull disagrees with visit");
+        var cargoWrecks = map.doodads.stream().filter(d -> "doodad.basin-colossus-wreck".equals(d.definitionId())).toList();
+        if (cargoWrecks.size() != 1 || cargoWrecks.get(0).footprintCellsX != 60
+                || cargoWrecks.get(0).footprintCellsY != 48)
+            throw new IllegalStateException("Basin lost its full-size Colossus cargo wreck");
+        // The aft U is genuinely empty between the twin engines. The cargo
+        // body's broad middle remains ordinary opaque, impassable scenery.
+        if (!grid.isWalkable(183,189) || !reached[grid.index(183,189)]
+                || grid.isWalkable(217,189) || grid.isSeeThrough(217,189))
+            throw new IllegalStateException("Colossus body or open aft gap lost its physical shape");
         for(int y=105;y<=124;y++)for(int x=119;x<=142;x++)
             if(grid.isWalkable(x,y)!=(visit==ShepherdBasin.Visit.WORKING_PASSAGE))
                 throw new IllegalStateException("Large recovery hull left the wrong navigation footprint");

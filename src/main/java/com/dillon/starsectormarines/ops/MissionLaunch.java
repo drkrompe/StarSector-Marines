@@ -458,8 +458,9 @@ public final class MissionLaunch {
             requireOfficerInductionComplete(personnel == null ? null : personnel.roster(), m.source);
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.
-            int playerSeats = CampaignMarineDeployment.requiredSeats(
-                    det.shuttleManifest, firstPlayerShuttle);
+            int playerSeats = sim.companyStartsOnGround()
+                    ? selectedConquestMarineSeats(ctx, m)
+                    : CampaignMarineDeployment.requiredSeats(det.shuttleManifest, firstPlayerShuttle);
             ctx.setMarineDeploymentCapacity(playerSeats);
             CampaignMarineDeployment deployment = CampaignMarineDeployment.EMPTY;
             // One deployment shape for both sources: a debug mission fields a
@@ -498,15 +499,15 @@ public final class MissionLaunch {
             if (supplyRoute || shepherd || agreus) {
                 if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                     throw new IllegalStateException("Select at least two squads with four ready marines each.");
-                deployment.applyToAuthoredPlayerLift(sim);
+                if (!sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             }
             var debugScenario = DebugMissionCatalog.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
                     && debugScenario.corvus() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
-            if (authoredDebugLift) deployment.applyToAuthoredPlayerLift(sim);
+            if (authoredDebugLift && !sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, supplyRoute || shepherd || agreus || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, !sim.companyStartsOnGround() && (supplyRoute || shepherd || agreus || authoredDebugLift) ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);

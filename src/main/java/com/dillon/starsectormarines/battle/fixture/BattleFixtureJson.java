@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
@@ -534,6 +537,7 @@ public final class BattleFixtureJson {
             encoded.put("armorRating", seat.armorRating());
             encoded.put("armorMoveSpeedMult", seat.armorMoveSpeedMult());
             encoded.put("armorClass", seat.armorClass().key);
+            putNullable(encoded, "integralSystemArmorId", integralSystemArmorId(seat.integralSystem()));
             encoded.put("armorIncomingAccuracyMult",
                     seat.armorIncomingAccuracyMult());
             if (seat.campaignSquadId() != null) {
@@ -566,6 +570,26 @@ public final class BattleFixtureJson {
             seats.put(encoded);
         }
         return seats;
+    }
+
+    /** Catalog identity, like primary/special equipment IDs; live commitments retain the immutable definition. */
+    private static String integralSystemArmorId(IntegralSystemDef system) {
+        if (system == null) return null;
+        MarineArmorCatalogRegistry registry = MarineArmorCatalogRegistry.installed();
+        if (registry != null) {
+            for (MarineArmorCatalogDef armor : registry.all()) {
+                if (system.equals(armor.integralSystem())) return armor.id();
+            }
+        }
+        throw new IllegalArgumentException("Committed integral system has no armor catalog source: " + system.id());
+    }
+
+    private static IntegralSystemDef integralSystemFromJson(JSONObject encoded) throws Exception {
+        String armorId = encoded.has("integralSystemArmorId") ? nullableString(encoded, "integralSystemArmorId") : null;
+        if (armorId == null) return null;
+        IntegralSystemDef system = MarineArmorCatalogRegistry.require(armorId).integralSystem();
+        if (system == null) throw new IllegalArgumentException("Committed armor has no integral system: " + armorId);
+        return system;
     }
 
     private static OfficerCommandProfile officerProfileFromJson(JSONObject group) throws Exception {
@@ -609,7 +633,7 @@ public final class BattleFixtureJson {
                     squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
                     squad != null ? (float) squad.optDouble("moraleRecoveryMultiplier", 1d) : 1f,
                     encoded.has("armorClass") ? ArmorClass.parse(encoded.optString("armorClass", null), "committed seat")
-                            : ArmorClass.STANDARD));
+                            : ArmorClass.STANDARD, integralSystemFromJson(encoded)));
         }
         return List.copyOf(seats);
     }

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -826,6 +827,30 @@ public class AirSystem {
     }
 
     /**
+     * Places the frozen company at a secured opening position using the ordinary
+     * infantry realization (issued kit, squad identity, fire teams and NCO).
+     * No aircraft boards, flies, or reports these personnel as passengers.
+     */
+    public void deployCompanyOnGround(GroundMarineArrival arrival, List<MarineSeatCommitment> seats) {
+        ShuttleMission ground = new ShuttleMission(arrival.x, arrival.y, 0, 0, 0, 0, 0, 0);
+        ground.commandClaim = arrival.commandClaim;
+        arrival.deploy(seats, loadout -> {
+            // Setup runs without a simulation tick between bodies. Publish occupancy
+            // before selecting the next cell rather than stacking the whole force.
+            navigation.rebuildOccupancyMap(roster);
+            ground.squadId = Squad.NO_SQUAD;
+            ground.marineLoadout = new MarineLoadout[]{loadout};
+            ground.deboardedThisSortie = 0;
+            AirDeliveryContext context = new AirDeliveryContext(ground, ShuttleType.AEROSHUTTLE,
+                    Faction.MARINE, navigation, roster, addUnitSink, resupply, commandControl,
+                    Math.max(10, (int) Math.ceil(Math.sqrt(seats.size())) * 2));
+            if (!InfantryPayload.INSTANCE.tryDeploy(context))
+                throw new IllegalStateException("Secured ground arrival has no free infantry position");
+        });
+        navigation.rebuildOccupancyMap(roster);
+    }
+
+    /**
      * Advances each shuttle's state machine by one tick. PENDING burns down
      * the stagger delay; INCOMING/DEPARTING steer the {@link AirBody} toward
      * their LZ / exit waypoint under the shuttle's {@link ShuttleType}
@@ -1196,6 +1221,10 @@ public class AirSystem {
                                     + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
                             break;
                         }
+                        if (mission.gunshipWithdrawAfterIngress) {
+                            beginEgress(mission, body);
+                            break;
+                        }
                         // Not coming to a point at all: joining a ring about it. The carrot is the
                         // tangent point while the craft is still outside, so it arrives on the ring
                         // already heading round it rather than at the centre and then out again.
@@ -1345,7 +1374,7 @@ public class AirSystem {
                 case DEPARTING:
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
-                            /*incoming=*/false, 0f, dt);
+                            /*incoming=*/false, mission.gunship ? 1f : 0f, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY)
                             < flyingArrivalDist(SHUTTLE_EXIT_ARRIVAL_FLOOR, body, flight, dt)) {
                         if (mission.currentCycle + 1 < mission.totalCycles) {
@@ -2235,11 +2264,8 @@ public class AirSystem {
     private void updateShuttleAltitude(long id, ShuttleMission mission, AirBody body,
                                        float toX, float toY, boolean incoming,
                                        float floorT, float dt) {
-        // Every leg runs the ramp now. The exception used to be a departure
-        // straight out of an armed hover, which was already at cruise and would
-        // otherwise dip and re-climb; that loiter no longer exists, so the
-        // special case went with it rather than lingering as a flag nothing
-        // ever sets.
+        // Transport legs climb/descend along the ramp. A departing gunship
+        // supplies a cruise-height floor: it is already flying, not lifting off.
         float remaining = body.distanceTo(toX, toY);
         float ratio = remaining / mission.legStartDist;
         if (ratio < 0f) ratio = 0f;

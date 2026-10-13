@@ -48,6 +48,7 @@ public final class AirDeliveryContext {
     public final ShuttleType carrier;
     public final Faction faction;
 
+    private final int deboardScanRadius;
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final Function<EntitySpec, Long> spawnSink;
@@ -58,6 +59,14 @@ public final class AirDeliveryContext {
                        NavigationService navigation, UnitRosterService roster,
                        Function<EntitySpec, Long> spawnSink, ResupplyService resupply,
                        SquadDirectiveControl commandControl) {
+        this(mission, carrier, faction, navigation, roster, spawnSink, resupply, commandControl, DEBOARD_SCAN_RADIUS);
+    }
+
+    AirDeliveryContext(ShuttleMission mission, ShuttleType carrier, Faction faction,
+                       NavigationService navigation, UnitRosterService roster,
+                       Function<EntitySpec, Long> spawnSink, ResupplyService resupply,
+                       SquadDirectiveControl commandControl, int deboardScanRadius) {
+        this.deboardScanRadius = deboardScanRadius;
         this.mission = mission;
         this.carrier = carrier;
         this.faction = faction;
@@ -78,7 +87,7 @@ public final class AirDeliveryContext {
         int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
         while (!q.isEmpty()) {
             int[] p = q.poll();
-            if (p[2] > DEBOARD_SCAN_RADIUS) continue;
+            if (p[2] > deboardScanRadius) continue;
             if (p[2] > 0
                     && navigation.getGrid().inBounds(p[0], p[1])
                     && navigation.getGrid().isWalkable(p[0], p[1])

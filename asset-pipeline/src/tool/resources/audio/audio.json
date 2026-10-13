@@ -14,6 +14,26 @@
 // Comments and trailing commas are tolerated. ffmpeg must be on PATH (or $FFMPEG set).
 {
   "clips": [
+    {"id": "basin_cold_start_power_restored", "source": "wayline/basin_cold_start_power_restored.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_cold_start_complete", "source": "wayline/basin_cold_start_complete.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_briefing", "source": "wayline/basin_passage_briefing.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_bend_build", "source": "wayline/basin_passage_bend_build.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_militia_hold_0", "source": "wayline/basin_passage_militia_hold_0.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_narrows_build", "source": "wayline/basin_passage_narrows_build.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_militia_hold_1", "source": "wayline/basin_passage_militia_hold_1.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_departure", "source": "wayline/basin_passage_departure.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_complete", "source": "wayline/basin_passage_complete.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_briefing", "source": "wayline/basin_briefing.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_cold_start_turret_ready", "source": "wayline/basin_cold_start_turret_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "basin_passage_underway", "source": "wayline/basin_passage_underway.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_tender_launch", "source": "tender/marines_tender_launch.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_dock", "source": "tender/marines_tender_dock.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_weld_1", "source": "tender/marines_tender_weld_1.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_weld_2", "source": "tender/marines_tender_weld_2.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_weld_3", "source": "tender/marines_tender_weld_3.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_hit", "source": "tender/marines_tender_hit.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_alert", "source": "tender/marines_tender_alert.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_tender_complete", "source": "tender/marines_tender_complete.wav", "kind": "positional", "out": "battle/tender"},
     // Jackal, Ox and Rivet: combat variants and assignment exchanges.
     {"id": "marines_op_jackal_call", "source": "operation-radio/live/marines_op_jackal_call.mp3", "kind": "ui", "out": "battle/operation-radio", "processing": "comms"},
     {"id": "marines_op_jackal_ack", "source": "operation-radio/live/marines_op_jackal_ack.mp3", "kind": "ui", "out": "battle/operation-radio", "processing": "comms"},

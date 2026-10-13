@@ -68,6 +68,8 @@ import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldWork;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.GroundMarineArrival;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
@@ -1455,6 +1457,7 @@ public final class BattleSetup {
         return sim;
     }
 
+
     /** Agreus repair mobilization. Construction is supplied only by a committed fleet tender called in battle. */
     public static BattleSimulation createWaterUnderSeal(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
         if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
@@ -1513,10 +1516,10 @@ public final class BattleSetup {
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(WaterUnderSealCommand.issuer(Faction.MARINE), "Company support joins weir protection"));
         return sim;
     }
-    /** Repair mobilization at the recovered basin, with committed lift and one physical cargo carrier. */
+    /** Repair mobilization already ashore at the recovered basin, with optional reserve boats and one physical cargo carrier. */
     public static BattleSimulation createColdStart(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean cargoDelivered, boolean shorePower) {
-        if(manifest==null || manifest.isEmpty() || manifest.size()>4)
-            throw new IllegalArgumentException("Cold Start requires one to four company boats");
+        if(manifest==null || manifest.size()>4)
+            throw new IllegalArgumentException("Cold Start supports up to four company boats");
         MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.COLD_START);
         if (shorePower && map.topology.nightLighting() != null)
             map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
@@ -1524,6 +1527,8 @@ public final class BattleSetup {
         sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
+        sim.setGroundMarineArrival(new GroundMarineArrival(18, 68,
+                SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE), "Company holds the secured receiving apron")));
         Random rng=new Random(seed);
         var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
         stampLzPads(sim,pads);
@@ -1534,12 +1539,14 @@ public final class BattleSetup {
             long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
                     entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
             var mission=sim.world().mission(air);
-            mission.totalCycles=assignment.cycles;mission.manifestOrdinal=i;
-            mission.commandClaim=SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company recovery lift");
-            mission.cycleLoadouts=new MarineLoadout[assignment.cycles][];
-            for(int cycle=0;cycle<assignment.cycles;cycle++)
-                mission.cycleLoadouts[cycle]=InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle),rng);
-            mission.marineLoadout=mission.cycleLoadouts[0];
+            mission.manifestOrdinal=i;
+            // Committed fitted boats remain in reserve;
+            // the company is already on site and carries no inbound recipe.
+            mission.totalCycles=1;
+            mission.marinesRemaining=0;
+            mission.marineLoadout=new MarineLoadout[0];
+            mission.cycleLoadouts=new MarineLoadout[][]{mission.marineLoadout};
+            mission.state=ShuttleState.GONE;
         }
         // The earlier workshop gain persists. Scrappers now occupy the pump work site.
         var pump=openingDefenseNode(171,117,Faction.DEFENDER,map.grid);
@@ -1558,7 +1565,7 @@ public final class BattleSetup {
         List<EntitySpec> reserve=new ArrayList<>();
         for(int batch=0;batch<4;batch++) {
             int roadX=batch==2?301:194,roadY=batch==2?145:2;
-            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,4))
+            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,6))
                 reserve.add(makeOpeningMilitia("repair-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         }
         long carrier=0L;
@@ -1567,6 +1574,20 @@ public final class BattleSetup {
             sim.convoy().body(carrier).teleport(8,68,-90f);
         }
         sim.installColdStart(engineers,carrier,reserve,cargoDelivered,shorePower);
+        // These exposed listening posts have their own duties, separate from the yard holders.
+        String[] postNames={"south_haul","quarry"};
+        int[][] posts={{176,38,151,96},{279,107,188,112}};
+        for(int i=0;i<posts.length;i++) {
+            int[] post=posts[i];
+            int squad=sim.mintSquad(Faction.ALLY,UnitType.MILITIA);
+            for(int[] cell:pickSpawnCluster(map.grid,post[0],post[1],3))
+                sim.spawn(makeOpeningMilitia("basin-picket-"+postNames[i],Faction.ALLY,cell[0],cell[1],rng)
+                        .squad(squad).role(UnitRole.PATROL));
+            sim.getSquad(squad).originalSize=3;
+            sim.claimSquadCommand(squad,CommandAuthority.MISSION_COMMAND,ColdStartCommand.issuer(Faction.ALLY),
+                    "Thin outer picket covers the recovery yard");
+            sim.getColdStart().registerPicket(postNames[i],squad,post[0],post[1],post[2],post[3],3);
+        }
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new ColdStartCommand(faction,engineers),ColdStartCommand.disclosure(sim.getColdStart()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE),"Company support joins recovery"));

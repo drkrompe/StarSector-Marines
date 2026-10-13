@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.story.ColdStartProgress.Phase;
+import com.dillon.starsectormarines.battle.story.ColdStartPicket;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -13,9 +14,15 @@ public final class ColdStartCommand implements AutonomousMissionCommand<ColdStar
         final Phase phase;
         final int targetX, targetY;
         final boolean companyCover;
+        final List<ColdStartPicket.Report> pickets;
         Frame(CommandFrame base, Phase phase, int targetX, int targetY, boolean companyCover) {
+            this(base, phase, targetX, targetY, companyCover, List.of());
+        }
+        Frame(CommandFrame base, Phase phase, int targetX, int targetY, boolean companyCover,
+              List<ColdStartPicket.Report> pickets) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.phase = phase; this.targetX = targetX; this.targetY = targetY; this.companyCover = companyCover;
+            this.pickets = List.copyOf(pickets);
         }
     }
     public static CommandFrameDisclosure<Frame> disclosure(ColdStartSequence sequence) {
@@ -28,7 +35,8 @@ public final class ColdStartCommand implements AutonomousMissionCommand<ColdStar
             boolean covered=faction!=Faction.ALLY || CommandFrame.freeze(view,Faction.MARINE,topology,assignments).squads().stream()
                     .anyMatch(squad->squad.aliveMembers()>0 && squad.role()!=UnitRole.TURRET && squad.role()!=UnitRole.STRUCTURE
                             && squad.role()!=UnitRole.DRONE_HUB && squad.role()!=UnitRole.DRONE_PATROL && Math.hypot(squad.centroidX()-crewX,squad.centroidY()-crewY)<=22);
-            return new Frame(base,phase,sequence.targetX(),sequence.targetY(),covered);
+            return new Frame(base,phase,sequence.targetX(),sequence.targetY(),covered,
+                    faction == Faction.ALLY ? sequence.pickets() : List.of());
         };
     }
     private final Faction faction;
@@ -64,6 +72,7 @@ public final class ColdStartCommand implements AutonomousMissionCommand<ColdStar
             }
             int x = frame.targetX, y = frame.targetY, radius = 5;
             boolean advance = faction != Faction.ALLY;
+            boolean withdrawal = false;
             if (faction == Faction.MARINE) {
                 if (frame.phase != Phase.ESCORT) {
                     advance = frame.phase == Phase.POWER || frame.phase == Phase.CONSTRUCTION;
@@ -79,7 +88,15 @@ public final class ColdStartCommand implements AutonomousMissionCommand<ColdStar
                     }
                 }
             } else if (faction == Faction.ALLY) {
-                if (squad.squadId() == engineers) {
+                var picket = frame.pickets.stream().filter(post -> post.squadId() == squad.squadId()).findFirst().orElse(null);
+                if (picket != null) {
+                    x = picket.withdrawing() ? picket.innerX() : picket.outerX();
+                    y = picket.withdrawing() ? picket.innerY() : picket.outerY();
+                    radius = 3;
+                    // Ordinary egress travel keeps crossing under contact; once
+                    // living members arrive, they resume local area defense.
+                    withdrawal = picket.state() == ColdStartPicket.State.WITHDRAWING;
+                } else if (squad.squadId() == engineers) {
                     radius = 2;
                     if (frame.phase == Phase.ESCORT) { x = 82; y = 119; }
                     else if (frame.phase == Phase.POWER) { x = 171; y = 117; }
@@ -97,7 +114,8 @@ public final class ColdStartCommand implements AutonomousMissionCommand<ColdStar
                     radius = 3;
                 }
             }
-            ObjectiveAssignment next = advance ? ObjectiveAssignment.attackMove(squad.squadId(), x, y)
+            ObjectiveAssignment next = withdrawal ? ObjectiveAssignment.withdraw(squad.squadId(), x, y)
+                    : advance ? ObjectiveAssignment.attackMove(squad.squadId(), x, y)
                     : ObjectiveAssignment.defendArea(squad.squadId(), x, y, radius);
             if (old.assignment() != null && old.assignment().kind() == next.kind()
                     && old.assignment().targetCellX() == x && old.assignment().targetCellY() == y

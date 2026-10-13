@@ -36,7 +36,7 @@ final class MissionDebriefConversation {
         if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
                 recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Registry accepted. Morrow is ours. Hull, workshop, and a very long list of maintenance jobs."),
-                recoveryLine("departure-corridor", false, "The corridor is ours again. Keep her working, Castle. That is what those ships were built for."),
+                recoveryLine("departure-corridor", false, "The corridor is ours again. The Colossus stores and our yard stay with the cooperative; Morrow is the agreed payment for bringing that work back. Keep her working, Castle."),
                 recoveryLine("departure-crew", true, "The berth offer stands for willing working hands. We will carry enough fleet crew for her minimum complement; nobody is being signed into a marine squad."),
                 recoveryLine("departure-cost", false, outcome.marinesLost > 0 || outcome.workingPassage.militiaLost() > 0?"Keep the people we lost on the record with the ship we brought out.":"A working ship, and a road we can use again."));
         if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
@@ -48,7 +48,7 @@ final class MissionDebriefConversation {
                 recoveryLine("departure-pending", false, "Working Passage is ready when your company is. Replenish your company; the recovery claim and completed repairs remain protected."));
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
                 recoveryLine("registry", true, "Put Morrow's registry in the agreement. We bring your crews back to work; when this ship flies, it flies with us."),
-                recoveryLine("terms", false, "Hull and drone workshop, after the repair and departure contracts. The fixed yard stays with the cooperative. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"Today's payment is released; the claim is protected.")),
+                recoveryLine("terms", false, "Morrow's hull and drone workshop, after the repair and departure contracts. We keep the broken Colossus, its cargo and equipment, and the fixed yard. Reopening that work is worth the smaller tender. "+(outcome.missionSource.isDebug()?"This is a training record; no campaign claim or payment is issued.":"Today's payment is released; the claim is protected.")),
                 recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
                         ? "We lost people getting that inspection done. Put their names beside ours before anyone starts dividing the machinery."
                         : "Your inspection team is back. Let's keep doing it that way. What gets her power back?"),
