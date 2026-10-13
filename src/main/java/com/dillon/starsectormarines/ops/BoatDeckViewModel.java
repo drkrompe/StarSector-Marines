@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas.RecoveryMarker;
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -23,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.function.DoubleSupplier;
 
 /**
  * Berth projection and refit command surface for the campaign-authoritative
@@ -45,6 +49,10 @@ public final class BoatDeckViewModel {
     private static final int NO_BERTH = -1;
 
     private final BoatDeck deck;
+    private final DoubleSupplier campaignDay;
+    private final ComputedSignal<Recovery> recovery;
+    private float lastDay = Float.NaN;
+
     private final FabricationResources resources;
     private final BoatWorkshop workshop;
     private final String carrierName;
@@ -93,6 +101,12 @@ public final class BoatDeckViewModel {
      */
     public BoatDeckViewModel(Reactor reactor, BoatDeck deck, FabricationResources resources,
                              String carrierName, Runnable deckChanged) {
+        this(reactor, deck, resources, carrierName, deckChanged, CampaignClock::dayFloat);
+    }
+
+    public BoatDeckViewModel(Reactor reactor, BoatDeck deck, FabricationResources resources,
+                             String carrierName, Runnable deckChanged, DoubleSupplier campaignDay) {
+        this.campaignDay = campaignDay;
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (deck == null) throw new IllegalArgumentException("boat deck is required");
         if (resources == null || deckChanged == null) {
@@ -110,6 +124,7 @@ public final class BoatDeckViewModel {
         feedbackText = reactor.signal(
                 Strings.get("openingBoatDeckSelectABerthToInspectTheBoat"));
         feedbackClasses = reactor.signal("boat-deck-feedback tone-muted surface-dark");
+        recovery = reactor.computed(this::buildRecovery);
         deckSummary = reactor.computed(this::buildDeckSummary);
         boatRows = reactor.computed(this::buildBoatRows);
         selectedBoatName = reactor.computed(() -> {
@@ -164,6 +179,65 @@ public final class BoatDeckViewModel {
             if (recipe == null || resources.canAfford(resources.quote(recipe.bill()))) return "";
             return Strings.format("openingBoatDeckShort", shortest(resources.quote(recipe.bill())));
         });
+    }
+
+    public Signal<Recovery> recovery() { return recovery; }
+    public RecoveryMarker berthRecovery(int index) {
+        List<CampaignBoat> boats = deck.boats();
+        if (index < 0 || index >= boats.size() || boats.get(index) == null) return null;
+        CampaignBoat boat = boats.get(index);
+        float now = day();
+        return new RecoveryMarker(boat.condition(now), boat.repairDaysRemaining(now));
+    }
+    public float day() { return (float) campaignDay.getAsDouble(); }
+
+    public void refreshTime() {
+        float now = day();
+        if (now != lastDay) { lastDay = now; revision.update(value -> value + 1); }
+    }
+
+    public CampaignBoat boat(String id) { return deck.boatById(id); }
+    public void inspect(String id) {
+        for (int i = 0; i < deck.boats().size(); i++) {
+            CampaignBoat boat = deck.boats().get(i);
+            if (boat != null && boat.id().equals(id)) { selectBoat(i); return; }
+        }
+    }
+
+    private Recovery buildRecovery() {
+        revision.get();
+        CampaignBoat boat = selectedBoat();
+        BoatWorkshop.RepairQuote quote = boat == null ? null : workshop.repairQuote(boat.id(), day());
+        boolean damaged = quote != null;
+        return new Recovery(boat == null ? "boat-recovery hidden" : "boat-recovery panel",
+                damaged ? "height: 304px;" : "height: 66px;",
+                boat == null ? "" : recoveryStatus(boat, day()),
+                boat == null ? "width: 100%;" : "width: " + Math.round(boat.condition(day()) * 100f) + "%;",
+                damaged ? "boat-recovery-order" : "boat-recovery-order hidden",
+                damaged ? materialRows("boat-recovery", quote.bill()) : List.of(),
+                !damaged || !resources.canAfford(quote.bill()), () -> {
+                    BoatWorkshop.Result result = workshop.expedite(quote, day());
+                    feedbackText.set(Strings.get(result.status() == BoatWorkshop.Status.REPAIRED
+                            ? "boatRepairCompleted" : result.status() == BoatWorkshop.Status.CANNOT_AFFORD
+                            ? "boatRepairShort" : "boatRepairChanged"));
+                    revision.update(value -> value + 1);
+                    if (result.succeeded()) deckChanged.run();
+                });
+    }
+
+    static String recoveryStatus(CampaignBoat boat, float day) {
+        return boat.airworthy(day) ? Strings.get("boatReady") : Strings.format("boatRepairRemaining",
+                Math.round(boat.condition(day) * 100f), Math.ceil(boat.repairDaysRemaining(day) * 10f) / 10d);
+    }
+
+    public record Recovery(String classes, String style, String status, String fillStyle, String orderClasses,
+                           List<Row> materials, boolean disabled, Runnable expedite) implements MarkupPropertySource {
+        @Override public Object markupProperty(String name) { return switch (name) {
+            case "classes" -> classes; case "style" -> style; case "status" -> status; case "fillStyle" -> fillStyle;
+            case "orderClasses" -> orderClasses; case "materials" -> materials;
+            case "disabled" -> disabled; case "expedite" -> expedite;
+            default -> throw unknown("boat-recovery", name);
+        }; }
     }
 
     public Signal<String> deckSummary() { return deckSummary; }
@@ -237,9 +311,11 @@ public final class BoatDeckViewModel {
 
     private String buildDeckSummary() {
         revision.get();
-        List<CampaignBoat> boats = deck.airworthy();
+        List<CampaignBoat> boats = deck.boats().stream().filter(Objects::nonNull).toList();
         List<String> summary = new ArrayList<>();
         summary.add(Strings.format("openingBoatCount", boats.size()));
+        if (deck.airworthy(day()).size() < boats.size())
+            summary.add(Strings.format("boatDeckReadiness", deck.airworthy(day()).size(), boats.size()));
         ShuttleType pattern = boats.isEmpty() ? null : boats.get(0).pattern();
         if (pattern != null) summary.add(pattern.displayName());
         if (carrierName != null && !carrierName.isBlank())
@@ -272,7 +348,7 @@ public final class BoatDeckViewModel {
                     vacant ? (deck.wreckInBerth(index) ? Strings.get("openingBoatDeckWreckedHermes") : Strings.get("openingBoatDeckEmptyBerth")) : boat.displayName(),
                     vacant ? (deck.wreckInBerth(index) ? Strings.get("openingBoatDeckOriginalShipSBoatAwaitingRepair") : buildablePattern()) : boat.pattern().displayName(),
                     vacant ? buildableBill() : boat.plating().displayName(),
-                    vacant ? "" : boat.drive().displayName(),
+                    vacant ? "" : boat.airworthy(day()) ? boat.drive().displayName() : recoveryStatus(boat, day()),
                     () -> selectBoat(berth)));
         }
         return List.copyOf(rows);
@@ -294,8 +370,8 @@ public final class BoatDeckViewModel {
         ShuttleType pattern = boat.pattern();
         FittedBoat fitted = boat.freezeForDeployment();
         return List.of(
-                meter("hull", Strings.get("openingBoatDeckHull"), Strings.format("openingBoatDeckHp", Math.round(fitted.maxHp())),
-                        fitted.maxHp(),
+                meter("hull", Strings.get("openingBoatDeckHull"), Strings.format("openingBoatDeckHp", Math.round(fitted.maxHp() * boat.condition(day()))),
+                        fitted.maxHp() * boat.condition(day()),
                         pattern.maxHp() * bestFactor(pattern, BoatFittingSlot.PLATING,
                                 BoatFitting::hullFactor)),
                 meter("speed", Strings.get("openingBoatDeckSpeed"), Strings.format("openingBoatDeckCellsS", number(fitted.maxSpeed())),

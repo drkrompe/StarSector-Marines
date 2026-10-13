@@ -395,6 +395,7 @@ public final class MissionResolver {
                 .salvageEntitlement(salvageEntitlement)
                 .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct + specialtyRecovery)
                 .salvageHighValueChancePct(recoveryModifier.highValueChancePct)
+                .boatDamage(sim.boatDamage().settlementId(), sim.boatDamage().damage())
                 .boatsLost(boatsLost)
                 .marinesLostAboard(marinesLostAboard)
                 .shipsCalled(ShipSupportResult.allOf(sim.warships().called()))
@@ -596,12 +597,21 @@ public final class MissionResolver {
      * still standing in its berth.
      */
     private static void strikeLostBoats(MissionOutcome outcome) {
-        if (outcome.boatsLost.isEmpty()) return;
+        if (outcome.boatsLost.isEmpty() && outcome.boatDamage.isEmpty()) return;
         BoatDeck deck = liveBoatDeck();
         if (deck == null) return;
         List<String> ids = new ArrayList<>(outcome.boatsLost.size());
         for (MissionOutcome.BoatLoss loss : outcome.boatsLost) ids.add(loss.boatId());
-        int struck = deck.lose(ids);
+        int before = deck.vacantBerths().size();
+        if (outcome.boatSettlementId == null) deck.lose(ids);
+        else {
+            String damaged = deck.settleRecovery(outcome.boatSettlementId, outcome.boatDamage,
+                    ids, CampaignClock.dayFloat());
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            if (damaged != null && script != null)
+                script.roster().campaignLessons().observeBoatDamage(damaged);
+        }
+        int struck = deck.vacantBerths().size() - before;
         LOG.info("MarineOps: struck " + struck + " lost boat(s) off the deck"
                 + " with " + outcome.marinesLostAboard + " marine(s) aboard them");
     }

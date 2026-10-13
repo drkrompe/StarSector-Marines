@@ -5,15 +5,20 @@ import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.IntPredicate;
+import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -63,6 +68,16 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private final IntSupplier berthOffset;
     private final IntPredicate berthHeld;
     private List<BerthTarget> targets = List.of();
+    private List<BerthTarget> recoveryTargets = List.of();
+    private IntFunction<RecoveryMarker> recovery = index -> null;
+
+    /** Campaign condition, independent of the decorative aircraft's tactical health. */
+    public record RecoveryMarker(float condition, float daysRemaining) { }
+
+    public BoatDeckCanvas recovery(IntFunction<RecoveryMarker> recovery) {
+        this.recovery = Objects.requireNonNull(recovery);
+        return this;
+    }
     private int hovered = -1;
 
     /**
@@ -87,6 +102,14 @@ public final class BoatDeckCanvas implements CanvasProducer {
         this.selectedBerth = selectedBerth;
         this.berthOffset = berthOffset;
         this.berthHeld = berthHeld;
+    }
+
+    /** Keep annotations in document pixels rather than stretching their fonts with the camera. */
+    public static void fitSurface(UiElement canvas) {
+        if (canvas.box() == null) return;
+        int width = Math.max(1, Math.round(canvas.box().contentBox().width()));
+        int height = Math.max(1, Math.round(canvas.box().contentBox().height()));
+        if (width != canvas.canvasWidth() || height != canvas.canvasHeight()) canvas.canvasSize(width, height);
     }
 
     /**
@@ -114,6 +137,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         DeckGraph.Compartment hangar = aboard != null ? bay.get() : null;
         if (hangar == null) {
             targets = List.of();
+            recoveryTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
@@ -137,6 +161,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         });
         if (!rendered || host[0] == null) {
             targets = List.of();
+            recoveryTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
@@ -146,6 +171,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         if (aperture != null) threshold(context, projection, aperture);
         markBerths(context, projection, boatBerthsIn(aboard, hangar));
         context.hostPass(aboard.pass(view, ACTOR_LAYERS));
+        markRecovery(context);
     }
 
     /** Keep the exit and the space beyond it in view along with every berth. */
@@ -237,6 +263,9 @@ public final class BoatDeckCanvas implements CanvasProducer {
 
     private int localBerthAt(float canvasX, float canvasY) {
         if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return -1;
+        for (BerthTarget target : recoveryTargets) {
+            if (target.contains(canvasX, canvasY)) return target.index();
+        }
         for (BerthTarget target : targets) {
             if (target.contains(canvasX, canvasY)) return target.index();
         }
@@ -272,6 +301,50 @@ public final class BoatDeckCanvas implements CanvasProducer {
             }
         }
         targets = List.copyOf(found);
+    }
+
+    /** A hull bar and campaign clock beside the actual aircraft, also a berth click target. */
+    private void markRecovery(CanvasContext context) {
+        List<BerthTarget> badges = new ArrayList<>();
+        int offset = berthOffset.getAsInt();
+        for (BerthTarget berth : targets) {
+            RecoveryMarker state = recovery.apply(offset + berth.index());
+            if (state == null || (state.daysRemaining() <= 0f
+                    && offset + berth.index() != selectedBerth.getAsInt())) continue;
+            boolean grounded = state.daysRemaining() > 0f;
+            Color ink = grounded ? MARK : HOVER;
+            String title = Strings.get(grounded ? "boatSceneGrounded" : "boatReady");
+            String hull = Strings.format("boatSceneHull", Math.round(state.condition() * 100f));
+            String clock = grounded ? Strings.format("boatSceneCountdown", Math.ceil(state.daysRemaining() * 10f) / 10d) : "";
+            float width = Math.max(220f, Math.max(Fonts.INSIGNIA_15_AA.measureWidth(title),
+                    Math.max(Fonts.INSIGNIA_15_AA.measureWidth(hull),
+                            Fonts.INSIGNIA_15_AA.measureWidth(clock))) + 62f);
+            width = Math.min(width, context.metrics().surfaceWidth() - 16f);
+            float x = Math.max(8f, Math.min(context.metrics().surfaceWidth() - width - 8f,
+                    berth.x() + berth.width() * .5f - width * .5f));
+            float y = Math.min(context.metrics().surfaceHeight() - 92f, berth.y() + berth.height() + 56f);
+            context.line(berth.x() + berth.width() * .5f, berth.y() + berth.height(),
+                    x + width * .5f, y, ink, 1f);
+            context.fillRect(x, y, width, 84f, new Color(10, 18, 22, 240));
+            context.strokeRect(x, y, width, 84f, ink, 1f);
+            context.text(Fonts.INSIGNIA_15_AA, title, x + 12f, y + 8f, ink);
+            context.text(Fonts.INSIGNIA_15_AA, hull, x + 12f, y + 27f, Color.LIGHT_GRAY);
+            context.fillRect(x + 12f, y + 46f, width - 24f, 5f, new Color(48, 61, 66));
+            context.fillRect(x + 12f, y + 46f, (width - 24f) * state.condition(), 5f, ink);
+            if (grounded) {
+                float cx = x + 19f, cy = y + 67f, radius = 7f;
+                for (int segment = 0; segment < 32; segment++) {
+                    double a = segment * Math.PI / 16, b = (segment + 1) * Math.PI / 16;
+                    context.line(cx + radius * (float) Math.cos(a), cy + radius * (float) Math.sin(a),
+                            cx + radius * (float) Math.cos(b), cy + radius * (float) Math.sin(b), ink, 1f);
+                }
+                context.line(cx, cy, cx, cy - 5f, ink, 1f);
+                context.line(cx, cy, cx + 4f, cy + 2f, ink, 1f);
+                context.text(Fonts.INSIGNIA_15_AA, clock, x + 36f, y + 59f, ink);
+            }
+            badges.add(new BerthTarget(berth.index(), x, y, width, 84f));
+        }
+        recoveryTargets = List.copyOf(badges);
     }
 
     /** Corner marks on the berth's own footprint, so the boat stays legible. */

@@ -86,6 +86,24 @@ class MissionBoatLossOutcomeTest {
                 () -> outcome.boatsLost.add(null));
     }
 
+    @Test
+    void survivingDamageAndReceiptStayFrozenAcrossServicingAndRepeatedCapture() {
+        try (BattleSimulation sim = simulation()) {
+            FittedBoat frame = new FittedBoat(ShuttleType.HERMES,
+                    BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "survivor");
+            long shuttle = sim.spawnShuttle(ShuttleType.HERMES, frame, Faction.MARINE,
+                    10f, 10f, -2f, 10f, 22f, 10f, 0f, 1);
+            sim.world().setHp(shuttle, frame.maxHp() * .4f);
+            MissionOutcome first = MissionResolver.compute(sim, mission(), null);
+            sim.world().setHp(shuttle, frame.maxHp());
+            MissionOutcome afterService = MissionResolver.compute(sim, mission(), null);
+            assertEquals(.6f, first.boatDamage.get("survivor"), .0001f);
+            assertEquals(first.boatDamage, afterService.boatDamage);
+            assertEquals(first.boatSettlementId, afterService.boatSettlementId);
+            assertThrows(UnsupportedOperationException.class, () -> first.boatDamage.clear());
+        }
+    }
+
     private static void destroyBoatCarrying(BattleSimulation sim, String boatId,
                                             String... campaignSoldierIds) {
         FittedBoat boat = new FittedBoat(ShuttleType.VALKYRIE,

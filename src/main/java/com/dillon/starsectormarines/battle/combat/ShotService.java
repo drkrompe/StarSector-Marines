@@ -360,7 +360,8 @@ public final class ShotService {
     public void tickShots(float dt) {
         for (int i = activeShots.size() - 1; i >= 0; i--) {
             ShotEvent s = activeShots.get(i);
-            s.lifetime -= dt;
+            if (s.guidedFlight != null) s.lifetime = s.guidedFlight.remaining;
+            else s.lifetime -= dt;
             if (s.lifetime <= 0f) {
                 shotsExpiredThisFrame.add(s);
                 activeShots.remove(i);

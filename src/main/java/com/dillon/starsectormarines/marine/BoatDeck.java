@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.io.Serializable;
@@ -8,6 +9,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * The company's boats and the berths they are standing in.
@@ -36,6 +40,26 @@ public final class BoatDeck implements Serializable {
 
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
+    private Set<String> recoverySettlements = new HashSet<>();
+
+    /** One battle receipt, including losses, even when the same Results are reopened later. */
+    public String settleRecovery(String receipt, Map<String, Float> damage,
+                                 Collection<String> lost, float day) {
+        if (receipt == null || !Float.isFinite(day)) return null;
+        if (recoverySettlements == null) recoverySettlements = new HashSet<>();
+        if (!recoverySettlements.add(receipt)) return null;
+        lose(lost);
+        String first = null;
+        for (CampaignBoat boat : berths) {
+            if (boat == null) continue;
+            Float fraction = damage.get(boat.id());
+            if (fraction == null || !Float.isFinite(fraction) || fraction <= 0f) continue;
+            boat.damage(fraction, day);
+            if (first == null) first = boat.id();
+        }
+        return first;
+    }
+
     private boolean commissioningRequired;
     private String foundingWreckShipId;
     private int recoveredWrecks;
@@ -223,10 +247,12 @@ public final class BoatDeck implements Serializable {
     }
 
     /** The boats that can actually be put in the air, in berth order. */
-    public List<CampaignBoat> airworthy() {
+    public List<CampaignBoat> airworthy() { return airworthy(CampaignClock.dayFloat()); }
+
+    public List<CampaignBoat> airworthy(float day) {
         List<CampaignBoat> flying = new ArrayList<>(berths.size());
         for (CampaignBoat boat : berths) {
-            if (boat != null) flying.add(boat);
+            if (boat != null && boat.airworthy(day)) flying.add(boat);
         }
         return Collections.unmodifiableList(flying);
     }
