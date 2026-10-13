@@ -16,7 +16,6 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -24,10 +23,12 @@ import java.util.function.Consumer;
  * uses ({@link ShipOnStation#call}). The only differences are who supplies the ship and who
  * decides when to call it.
  *
- * <p><b>Who gets one.</b> A defended world (the target profile's defence level at or above
- * {@link #DEFENSE_LEVEL_THRESHOLD}) fields a frozen stock hull chosen by its owning faction
- * ({@link #hullFor}). The company's own stationed strength is not counted: it is the company's
- * contribution, not the world's.
+ * <p><b>Who gets one.</b> Only a defended world (the target profile's defence level at or above
+ * {@link #DEFENSE_LEVEL_THRESHOLD}) can call a ship at all ({@link #warrants}); which ship is the
+ * launch's business, not the battle's: a campaign mission freezes the largest eligible hull of a
+ * free fleet of the defending faction in the system, and any other mission declares one
+ * ({@code HostileShipSelection}). Here the ship is simply a frozen {@link ShipSupportSource}. The
+ * company's own stationed strength is not counted: it is the company's contribution, not the world's.
  *
  * <p><b>When.</b> The defending commander calls it once, the first time the marines threaten
  * ground it must hold (a marine within {@link #THREAT_RADIUS_CELLS} of a defender-held
@@ -59,11 +60,6 @@ public final class HostileShipSupport {
     /** The story beat raised when the defender commits its ship. */
     public static final String BEAT_INBOUND = "ship_support.hostile_inbound";
 
-    /** Owners that have no capital to send. */
-    private static final Set<String> NO_CAPITAL = Set.of("pirates", "luddic_path");
-    /** Owners whose fleet doctrine favours the Paragon over the Onslaught. */
-    private static final Set<String> PARAGON_OWNERS = Set.of("tritachyon", "persean");
-
     public enum Phase { WAITING, WARNED, CALLED }
 
     private final ShipSupportSource source;
@@ -93,21 +89,9 @@ public final class HostileShipSupport {
 
     // ---- who gets one (pure) ----
 
-    /** Whether the world's profile warrants an answering ship at all. */
+    /** Whether the world is defended enough to call a ship at all; the fleet search decides which. */
     public static boolean warrants(TargetProfile profile) {
-        return profile != null && profile.defenseLevel() >= DEFENSE_LEVEL_THRESHOLD
-                && !NO_CAPITAL.contains(profile.factionId());
-    }
-
-    /** The stock hull the owning faction sends; the Onslaught unless its doctrine says otherwise. */
-    public static String hullFor(String factionId) {
-        return factionId != null && PARAGON_OWNERS.contains(factionId) ? "paragon" : "onslaught";
-    }
-
-    /** The frozen source for a world, or null when it does not warrant one. */
-    public static ShipSupportSource sourceFor(TargetProfile profile) {
-        if (!warrants(profile)) return null;
-        return ShipSupportSource.stockFor(hullFor(profile.factionId()));
+        return profile != null && profile.defenseLevel() >= DEFENSE_LEVEL_THRESHOLD;
     }
 
     // ---- when (pure) ----
