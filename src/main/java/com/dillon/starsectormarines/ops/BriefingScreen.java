@@ -675,7 +675,7 @@ public class BriefingScreen implements Screen {
                     false, false,
                     () -> cycleDebugStandoff(-1), () -> cycleDebugStandoff(1)));
             controls.add(conquestControl("debug-map-defences", "Ground defences",
-                    mission.defences != null ? mission.defences.name() : "market",
+                    mission.defences != null ? mission.defences.name() : "mission default",
                     false, false,
                     () -> cycleDebugDefences(-1), () -> cycleDebugDefences(1)));
             controls.add(conquestControl("debug-map-landing", "Landing place",
