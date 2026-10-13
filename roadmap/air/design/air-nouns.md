@@ -1883,6 +1883,18 @@ site is stood down, with the builders sent home into the bay, while hostile unit
 are inside a threat radius wider than any rifle's reach, and resumes when the
 ground is clear. A lost drone is gone for the battle.
 
+**The wing flies; it does not teleport.** Drones leave through the bay's mouth in a
+staggered line, and recall, a stood-down build and a retreat are flights home to a
+short approach and then the bay, docking on arrival and leading a moving hull. Defence
+drones loiter on a loose ring round the hull (tighter when it is threatened), engage
+the hostile nearest the hull inside its reach, are let off their target past a leash,
+and a badly hurt one goes home to be repaired and sent out whole. Builders keep one
+station each on the ring round the site and weld there. This is the ordinary drone
+swarm action under an anchor that declares itself an escort; hub squads are
+unchanged. Variation comes from a hash of the drone's id, never the shared random
+stream, and neighbours' positions are a serial-phase snapshot, so the wing replays
+identically. `tender-ship.md` has the numbers and the reasoning.
+
 **A tender is a weak ship, hittable like any ship, and only by ordnance.** It is
 not a combatant; it is pressed into the role. It carries the vanilla Shepherd's own
 hit points, armour and omni shield on the hull's own flux, the shield raising itself

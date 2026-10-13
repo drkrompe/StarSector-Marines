@@ -173,7 +173,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     static void putFirstRefit(Map<String, Object> props, MissionOutcome outcome, MarineRoster roster, Runnable open) {
         boolean available = outcome != null && !outcome.missionSource.isDebug() && FirstRefit.available(roster);
         props.put("refitClasses", available ? "results-refit console-readout" : "hidden");
-        props.put("refitCopy", "Wayline offers one free technology transfer. Compare both paths in the Armory, then fit learned gear for free, even while marines recover. Pending salvage stays here.");
+        props.put("refitCopy", "Wayline offers one free technology transfer. Compare both paths in Equipment, then fit learned gear for free, even while marines recover. Pending salvage stays here.");
         props.put("refitAction", open);
     }
 

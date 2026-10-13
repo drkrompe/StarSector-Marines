@@ -98,8 +98,7 @@ public final class MissionSelectScreen implements Screen {
             var notices = CompanyNotices.current();
             if (context == null || notices.isEmpty()) return;
             var notice = notices.get(0);
-            if (notice.page == MarineOpsPageNav.Page.ARMORY) context.openFleetArmoryWorkspaceFrom(ScreenId.MISSION_SELECT);
-            else context.goTo(notice.screen);
+            context.goTo(notice.screen);
         });
         props.put("clients", clientRows(selectedClient));
         props.put("clientEmpty", context == null || context.clients.isEmpty()

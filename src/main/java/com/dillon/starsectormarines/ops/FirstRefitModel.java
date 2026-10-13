@@ -96,7 +96,7 @@ final class FirstRefitModel {
         props.put("progress", complete ? "4 / 4  KIT ISSUED" : squad == null ? "1 / 4  CHOOSE A SQUAD"
                 : path == null ? "2 / 4  COMPARE TWO PATHS" : !claimed ? "3 / 4  CHOOSE YOUR FREE TECHNOLOGY" : "4 / 4  FIT YOUR SQUAD");
         props.put("copy", complete
-                ? "Technology received, kit fitted. The Machine Shop can fit and swap any learned equipment for free. Try different plans in the Armory; find more specs through markets and mission rewards."
+                ? "Technology received, kit fitted. The Machine Shop can fit and swap any learned equipment for free. Try different plans in Equipment; find more specs through markets and mission rewards."
                 : !claimed ? "Wayline can transfer one equipment package as thanks for holding their checkpoint. Compare both paths, then choose one free technology transfer. Its specs are yours permanently; the Machine Shop fits them for free. The other path can be learned later through markets or mission rewards."
                 : "The transfer is yours permanently. Select a square to compare current and proposed equipment; hover an item for full specs. Fit learned equipment for free, including on wounded marines. Other technology remains available through markets and mission rewards.");
         props.put("claimClasses", !claimed && !complete ? "refit-action console-action" : "refit-hidden");
@@ -104,7 +104,7 @@ final class FirstRefitModel {
         props.put("claimLabel", path == null ? "CHOOSE A PATH" : "LEARN " + path.label.toUpperCase(Locale.ROOT));
         props.put("issueClasses", claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
-        props.put("laterLabel", complete ? "ARMORY GALLERY" : "ARMORY GALLERY / Continue later");
+        props.put("laterLabel", complete ? "EQUIPMENT" : "EQUIPMENT / Continue later");
         props.put("doneClasses", complete ? "refit-action console-action" : "refit-hidden");
         props.put("claim", (Runnable) this::claim);
         props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
@@ -114,7 +114,7 @@ final class FirstRefitModel {
                 "classes", "refit-squad" + (s.id().equals(squadId) ? " refit-selected selected" : ""),
                 "select", (Runnable) () -> selectSquad(s.id()))).toList());
         props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
-                ? "No line squad. Return to the Armory gallery to found one." : "SELECT ONE FORMATION / Wounded and understrength squads can receive equipment.");
+                ? "No line squad. Return to Equipment to found one." : "SELECT ONE FORMATION / Wounded and understrength squads can receive equipment.");
         props.put("paths", List.of(Path.values()).stream().map(p -> Map.<String, Object>of(
                 "id", "refit-path:" + p.name(), "headingId", "refit-path-heading:" + p.name(),
                 "copyId", "refit-path-copy:" + p.name(), "label", (p == path ? "SELECTED / " : "") + p.label

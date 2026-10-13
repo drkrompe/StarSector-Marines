@@ -96,6 +96,20 @@ public final class DroneSwarmAction implements Action {
         int slotIdx = resolveSlotIndex(squad, member);
         int slotCount = Math.max(1, slotMemberCount(squad));
 
+        // A tender's wing is an escort: its slot is its place in the carrier's own roster
+        // (stable across replans), and the carrier may order it out of its business.
+        DroneAnchor anchor = squad.droneAnchor;
+        boolean escort = anchor != null && anchor.escort();
+        if (escort) {
+            long[] mates = anchor.escortIds();
+            int k = indexOf(mates, id);
+            if (k >= 0) {
+                slotIdx = k;
+                slotCount = mates.length;
+            }
+        }
+        float[] sortie = anchor == null ? null : anchor.sortieGoal(id);
+
         TurretAim.State s = new TurretAim.State();
         s.originCellX = sim.world().cellX(id);
         s.originCellY = sim.world().cellY(id);
@@ -114,7 +128,16 @@ public final class DroneSwarmAction implements Action {
         s.ignoreCloseWalls = true;
         s.closeWallRadius = sim.vision().airLosRadius(id);
 
+        if (escort && s.target == 0L) s.target = focusIfShootable(anchor.focusTarget(), s, sim);
+
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
+
+        // An escort does not chase what is beyond the carrier's reach: it breaks off and comes back.
+        if (escort && s.target != 0L && outsideReach(anchor, s.target, s.attackRange, sim)) {
+            s.target = 0L;
+            s.fireThisTick = false;
+            droneState.setPursuitTimer(id, 0f);
+        }
 
         sim.world().setCooldownTimer(id, s.cooldownTimer);
         sim.world().setTargetId(id, s.target);
@@ -127,6 +150,7 @@ public final class DroneSwarmAction implements Action {
         long lockedOn = s.target;
         if (lockedOn == 0L) {
             lockedOn = tryAgroScan(member, sim);
+            if (escort && lockedOn != 0L && outsideReach(anchor, lockedOn, s.attackRange, sim)) lockedOn = 0L;
         }
         if (lockedOn != 0L) {
             droneState.setPursuitGoalX(id, sim.world().x(lockedOn));
@@ -134,10 +158,16 @@ public final class DroneSwarmAction implements Action {
             droneState.setPursuitTimer(id, Drone.PURSUIT_LATCH_SECONDS);
         }
 
-        if (s.target != 0L) {
-            tickEngage(member, body, s, slotIdx, slotCount, sim, droneState, dt);
+        float[] sep = escort ? separation(id, body, anchor) : NO_PUSH;
+        if (sortie != null) {
+            AirSteeringSystem.steer(body, sortie[0] + sep[0], sortie[1] + sep[1], SteeringMode.CRUISE,
+                    Drone.HANDLING, dt);
+        } else if (s.target != 0L) {
+            tickEngage(member, body, s, slotIdx, slotCount, sim, droneState, sep, dt);
         } else if (droneState.pursuitTimer(id) > 0f) {
-            tickPursue(member, body, droneState, lockedOn != 0L, slotIdx, slotCount, sim, dt);
+            tickPursue(member, body, droneState, lockedOn != 0L, slotIdx, slotCount, sim, sep, dt);
+        } else if (escort) {
+            tickFormation(member, body, anchor, slotIdx, slotCount, sim, sep, dt);
         } else {
             tickPatrol(member, body, droneState, sim, slotIdx, slotCount, dt);
         }
@@ -178,7 +208,7 @@ public final class DroneSwarmAction implements Action {
      */
     private static void tickEngage(long member, AirBody body, TurretAim.State s,
                                    int slotIdx, int slotCount,
-                                   BattleView sim, DroneStateService droneState, float dt) {
+                                   BattleView sim, DroneStateService droneState, float[] sep, float dt) {
         float tx = sim.world().x(s.target);
         float ty = sim.world().y(s.target);
         float simTime = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
@@ -200,7 +230,9 @@ public final class DroneSwarmAction implements Action {
         float orbitY = ty + orbitRadius * oy;
 
         float[] goal = clampGoalToLeash(member, droneState, sim, orbitX, orbitY);
-        AirSteeringSystem.steer(body, goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
+        // After the clamp, not before: goals pulled onto the leash boundary would otherwise
+        // collapse onto one point and the push that keeps them apart would be clamped away.
+        AirSteeringSystem.steer(body, goal[0] + sep[0], goal[1] + sep[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
     }
 
     /**
@@ -210,7 +242,7 @@ public final class DroneSwarmAction implements Action {
      */
     private static void tickPursue(long member, AirBody body, DroneStateService droneState,
                                    boolean latchRefreshedThisTick,
-                                   int slotIdx, int slotCount, BattleView sim, float dt) {
+                                   int slotIdx, int slotCount, BattleView sim, float[] sep, float dt) {
         if (!latchRefreshedThisTick) {
             droneState.setPursuitTimer(member, droneState.pursuitTimer(member) - dt);
         }
@@ -218,7 +250,8 @@ public final class DroneSwarmAction implements Action {
         float[] hover = encircleOffset(droneState.pursuitGoalX(member), droneState.pursuitGoalY(member),
                 comfortableDist, slotIdx, slotCount);
         float[] goal = clampGoalToLeash(member, droneState, sim, hover[0], hover[1]);
-        AirSteeringSystem.steer(body, goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
+        AirSteeringSystem.steer(body, goal[0] + sep[0], goal[1] + sep[1], SteeringMode.BRAKE_TO_STATION,
+                Drone.HANDLING, dt);
     }
 
     /**
@@ -287,8 +320,11 @@ public final class DroneSwarmAction implements Action {
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (dist <= Drone.ENGAGE_LEASH_RADIUS_CELLS) return new float[]{gx, gy};
-        float scale = Drone.ENGAGE_LEASH_RADIUS_CELLS / dist;
+        Squad squad = sim.squadOf(member);
+        float leash = squad != null && squad.droneAnchor != null && droneState.homeHubId(member) == 0L
+                ? squad.droneAnchor.leashCells() : Drone.ENGAGE_LEASH_RADIUS_CELLS;
+        if (dist <= leash) return new float[]{gx, gy};
+        float scale = leash / dist;
         return new float[]{hubX + dx * scale, hubY + dy * scale};
     }
 
@@ -351,6 +387,66 @@ public final class DroneSwarmAction implements Action {
         }
         droneState.setPatrolGoalX(member, anchorX);
         droneState.setPatrolGoalY(member, anchorY);
+    }
+
+    private static final float[] NO_PUSH = {0f, 0f};
+    /** Drones closer than this push each other apart, in cells. */
+    static final float SEPARATION_CELLS = 2.2f;
+    /** How far past the clearance a drone leans its goal away from a neighbour. */
+    static final float SEPARATION_GAIN = 3f;
+    /** Salt for an escort's own phase in the formation. */
+    static final int PHASE_SALT = 5;
+
+    private static int indexOf(long[] ids, long id) {
+        for (int i = 0; i < ids.length; i++) if (ids[i] == id) return i;
+        return -1;
+    }
+
+    /** Escort posture at ease: loiter on this drone's place in the carrier's loose ring. */
+    private static void tickFormation(long member, AirBody body, DroneAnchor anchor, int slotIdx, int slotCount,
+                                      BattleView sim, float[] sep, float dt) {
+        float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
+        float[] station = EscortFormation.station(anchor.anchorX(), anchor.anchorY(), anchor.anchorHeadingDegrees(),
+                slotIdx, slotCount, seconds, DroneHash.unit(member, PHASE_SALT), anchor.threatened());
+        AirSteeringSystem.steer(body, station[0] + sep[0], station[1] + sep[1], SteeringMode.BRAKE_TO_STATION,
+                Drone.HANDLING, dt);
+    }
+
+    /** The push away from the other drones of the wing, so none sits on another. */
+    private static float[] separation(long self, AirBody body, DroneAnchor anchor) {
+        long[] mates = anchor.escortIds();
+        float[] at = anchor.escortPositions();
+        int n = Math.min(mates.length, at.length / 2);
+        if (n < 2) return NO_PUSH;
+        float[] xs = new float[n];
+        float[] ys = new float[n];
+        for (int i = 0; i < n; i++) {
+            xs[i] = at[2 * i];
+            ys[i] = at[2 * i + 1];
+        }
+        float[] push = DroneSeparation.push(self, body.x, body.y, mates, xs, ys, n, SEPARATION_CELLS);
+        // A goal far away turns a drone only a little for a small offset; the gain makes a pair
+        // that has flown together part company rather than merely lean.
+        push[0] *= SEPARATION_GAIN;
+        push[1] *= SEPARATION_GAIN;
+        return push;
+    }
+
+    /** {@code focus} when this drone can shoot it from where it is, otherwise nothing: the drone keeps what it has. */
+    private static long focusIfShootable(long focus, TurretAim.State s, BattleView sim) {
+        if (focus == 0L || !sim.world().isAlive(focus)) return 0L;
+        float dist = TacticalScoring.cellDistance(s.originX, s.originY, sim.world().x(focus), sim.world().y(focus));
+        if (dist > s.attackRange) return 0L;
+        boolean visible = TacticalScoring.canShootPair(sim.getGrid(), s.originX, s.originY,
+                sim.world().x(focus), sim.world().y(focus), s.closeWallRadius, sim.vision().targetAirLosRadius(focus));
+        return visible ? focus : 0L;
+    }
+
+    /** Whether {@code target} is too far from the carrier for an escort to be worth following. */
+    private static boolean outsideReach(DroneAnchor anchor, long target, float attackRange, BattleView sim) {
+        float d = TacticalScoring.cellDistance(anchor.anchorX(), anchor.anchorY(),
+                sim.world().x(target), sim.world().y(target));
+        return d > anchor.leashCells() + attackRange * 0.5f;
     }
 
     /**
