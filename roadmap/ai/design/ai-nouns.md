@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a prosecution refusal walks on even under a standing route-threat commit; room work rounds reserve stations; launch-frozen company welfare scales infantry morale recovery.
+Updated: 2026-10-13 — squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1244,6 +1244,15 @@ the suppression used to silence. A screen at one of the two **onset moments**
 below is exempt on the same grounds. Everything else stays behind the gate:
 satchel, frag, mines and close-contact tools all spend a squad resource or
 freeze their carrier for something that is a diversion at that instant.
+
+Shoulder missile pods coordinate at squad scope: one successful salvo starts
+that system's authored spacing before the squad may launch again. The first
+legal salvo is immediate; subsequent opportunities pass among presently ready
+carriers in stable identity order, skipping those without a legal target or
+launch origin. Failed opportunities spend neither ammunition nor the squad's
+interval. This clock survives ordinary replans and carrier loss, belongs only
+to that battle squad, and leaves primary fire and movement available. A pod
+outside any squad keeps its own ordinary system readiness.
 
 ### The onset moments
 

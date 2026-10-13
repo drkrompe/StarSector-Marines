@@ -28,10 +28,12 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Ordinary catalog actors walking into a finite firefight; no balance claim. */
 public final class PodBattleScene implements BehaviorScene {
@@ -123,6 +125,19 @@ public final class PodBattleScene implements BehaviorScene {
             int firstShotTick = -1;
             int alignedLaunches = 0;
             int podLaunches = 0, offsetLaunches = 0, firstPodTick = -1, podPrimaryShots = 0;
+            int podSalvos = 0, lastPodTick = -1, minimumSalvoGap = Integer.MAX_VALUE;
+            int maximumSalvosInTick = 0, podAmmoSpent = 0, podInitialAmmo = 0;
+            boolean podAmmoConserved = true;
+            Set<Long> podFiringCarriers = new HashSet<>();
+            List<Integer> podPrimaryShotTicks = new ArrayList<>();
+            Map<Long, Integer> lastPodAmmo = new LinkedHashMap<>();
+            Map<Long, Integer> salvosByCarrier = new LinkedHashMap<>();
+            for (long id : groups.get("pod")) {
+                int ammo = sim.integralSystems().ammo(id);
+                podInitialAmmo += ammo;
+                lastPodAmmo.put(id, ammo);
+                salvosByCarrier.put(id, 0);
+            }
             Map<String, Integer> movedBeforeContact = new LinkedHashMap<>();
             for (int tick = 0; tick < TICKS; tick++) {
                 if (tick % FRAME_EVERY_TICKS == 0) frames.frame(LOOP, sim, tick, caption(tick));
@@ -132,6 +147,7 @@ public final class PodBattleScene implements BehaviorScene {
                 }
                 sim.advance(BattleSimulation.TICK_DT);
                 frames.advanced(LOOP, sim, tick);
+                Set<Long> salvoCarriersThisTick = new HashSet<>();
                 for (Map.Entry<Long, float[]> entry : starts.entrySet()) {
                     long id = entry.getKey();
                     if (!sim.world().isAlive(id)) continue;
@@ -146,6 +162,7 @@ public final class PodBattleScene implements BehaviorScene {
                         if (shot.primaryWeaponDef != null && shot.primaryWeaponDef.id.equals(pod.integralSystem().missilePod().weaponDef().id)) {
                             podLaunches++;
                             if (firstPodTick < 0) firstPodTick = tick + 1;
+                            salvoCarriersThisTick.add(shot.shooterId);
                             float[] center = launchCenters.get(shot.shooterId);
                             double offset = Math.hypot(shot.fromX - center[0], shot.fromY - center[1]);
                             if (offset > 0.01d) offsetLaunches++;
@@ -159,7 +176,10 @@ public final class PodBattleScene implements BehaviorScene {
                                         && Math.abs(shot.fromX - launch.originX()) <= 1e-4f
                                         && Math.abs(shot.fromY - launch.originY()) <= 1e-4f) alignedLaunches++;
                             }
-                        } else if (shot.primaryWeaponDef != null) podPrimaryShots++;
+                        } else if (shot.primaryWeaponDef != null) {
+                            podPrimaryShots++;
+                            podPrimaryShotTicks.add(tick + 1);
+                        }
                     }
                     if (shots.containsKey(shot.shooterId)) shots.put(shot.shooterId, shots.get(shot.shooterId) + 1);
                     if (shot.shooterFaction == Faction.DEFENDER) defenderShots++;
@@ -171,6 +191,25 @@ public final class PodBattleScene implements BehaviorScene {
                             movedBeforeContact.put(group.getKey(), moved);
                         }
                     }
+                }
+                maximumSalvosInTick = Math.max(maximumSalvosInTick, salvoCarriersThisTick.size());
+                for (long id : salvoCarriersThisTick) {
+                    podSalvos++;
+                    podFiringCarriers.add(id);
+                    salvosByCarrier.put(id, salvosByCarrier.get(id) + 1);
+                    if (lastPodTick >= 0) minimumSalvoGap = Math.min(minimumSalvoGap, tick + 1 - lastPodTick);
+                    lastPodTick = tick + 1;
+                }
+                for (long id : groups.get("pod")) {
+                    // Death may remove the system component; that is not ammunition expenditure.
+                    if (!sim.world().isAlive(id) || !sim.integralSystems().has(id)) continue;
+                    int previousAmmo = lastPodAmmo.get(id);
+                    int currentAmmo = sim.integralSystems().ammo(id);
+                    int spent = previousAmmo - currentAmmo;
+                    podAmmoConserved &= currentAmmo >= 0 && currentAmmo <= previousAmmo
+                            && spent == (salvoCarriersThisTick.contains(id) ? 1 : 0);
+                    podAmmoSpent += spent;
+                    lastPodAmmo.put(id, currentAmmo);
                 }
             }
             frames.frame(LOOP, sim, TICKS, caption(TICKS));
@@ -205,6 +244,33 @@ public final class PodBattleScene implements BehaviorScene {
             metrics.put("alignedLaunches", alignedLaunches);
             metrics.put("firstPodTick", firstPodTick);
             metrics.put("podPrimaryShots", podPrimaryShots);
+            int requiredSalvoGap = (int) Math.ceil(pod.integralSystem().sightedStandoff()
+                    .squadSalvoIntervalSeconds() / BattleSimulation.TICK_DT);
+            int primaryShotsBetweenSalvos = 0;
+            for (int tick : podPrimaryShotTicks) if (tick > firstPodTick && tick < lastPodTick) primaryShotsBetweenSalvos++;
+            int remainingPodAmmo = 0;
+            for (int ammo : lastPodAmmo.values()) remainingPodAmmo += ammo;
+            for (int salvos : salvosByCarrier.values()) podAmmoConserved &= salvos <= pod.integralSystem().startingAmmo();
+            metrics.put("podSalvos", podSalvos);
+            metrics.put("podFiringCarriers", podFiringCarriers.size());
+            metrics.put("lastPodTick", lastPodTick);
+            metrics.put("podMinimumSalvoGapTicks", minimumSalvoGap == Integer.MAX_VALUE ? -1 : minimumSalvoGap);
+            metrics.put("podRequiredSalvoGapTicks", requiredSalvoGap);
+            metrics.put("podMaximumSalvosInTick", maximumSalvosInTick);
+            metrics.put("podInitialAmmo", podInitialAmmo);
+            metrics.put("podObservedAmmoSpent", podAmmoSpent);
+            metrics.put("podLastObservedAmmoRemaining", remainingPodAmmo);
+            metrics.put("podPrimaryShotsBetweenSalvos", primaryShotsBetweenSalvos);
+            verdicts.add(Verdict.of("pod-multiple-carriers", podFiringCarriers.size() >= 2,
+                    podFiringCarriers.size() + " different carriers launched actual salvos"));
+            verdicts.add(Verdict.of("pod-squad-salvo-spacing", podSalvos >= 2
+                            && minimumSalvoGap >= requiredSalvoGap && maximumSalvosInTick <= 1,
+                    podSalvos + " salvos; minimum gap " + metrics.get("podMinimumSalvoGapTicks")
+                            + " ticks, required " + requiredSalvoGap + "; maximum per tick " + maximumSalvosInTick));
+            verdicts.add(Verdict.of("pod-finite-ammunition", podAmmoConserved
+                            && podInitialAmmo == podAmmoSpent + remainingPodAmmo,
+                    "Live carrier stock drains by one per actual salvo and never increases or becomes negative; "
+                            + podAmmoSpent + " observed uses spent from " + podInitialAmmo));
             verdicts.add(Verdict.of("actual-pod-launch", podLaunches > 0, podLaunches + " actual integral-system missile launches"));
             verdicts.add(Verdict.of("pod-launch-offset", podLaunches > 0 && offsetLaunches == podLaunches, offsetLaunches + " launches originate away from carrier center"));
             verdicts.add(Verdict.of("pod-muzzle-registration", podLaunches > 0 && alignedLaunches == podLaunches,
