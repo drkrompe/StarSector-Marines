@@ -388,32 +388,8 @@ public final class MarineArmory implements Serializable {
 
     private void seedStarterIssue() {
         unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
-        unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE);
-        unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SURPLUS);
-        unlockPrimary(WeaponRegistry.SMG_ID, EquipmentGrade.SERVICE);
-        unlockPrimary(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.SERVICE);
-        unlockPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE);
-        unlockSecondary(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
-        unlockSecondary(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
-        unlockSecondary(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
-        unlockSecondary(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
         unlockArmor(MarineArmorPattern.ARMORLESS);
-        unlockArmor("armor.cordon-shell");
-        unlockArmor("armor.lashplate-harness");
         unlockArmor(MarineArmorPattern.MILITIA);
-        unlockArmor(MarineArmorPattern.CHARCOAL);
-        unlockArmor(MarineArmorPattern.ARMY_GREEN);
-        // A section has somebody who goes through the door first and somebody
-        // who carries the heavy thing. Both are basic rather than specialist, so
-        // the cheapest surplus example of each is starter issue: without them
-        // every tactic sheet reads as twelve line suits and the whole role model
-        // is invisible at game start ({@code role-and-access.md}).
-        //
-        // Recon is deliberately NOT seeded. A dedicated scout suit is the first
-        // specialist purchase worth making, and leaving that one gap is what
-        // keeps the picker's "no kit" marker meaningful instead of universal.
-        unlockArmor("armor.riot-shell");
-        unlockArmor("armor.packframe");
     }
 
     private void seedStarterCards() {
@@ -491,13 +467,9 @@ public final class MarineArmory implements Serializable {
         migrateLegacyTemplateOwnership();
         if (ownedEquipmentTemplateIds.isEmpty()) seedStarterIssue();
         seedStarterCards();
-        // Existing saves predate the recruit-grade field rifle recipe.
-        unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
-        unlockPrimary(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.SERVICE);
-        unlockArmor(MarineArmorPattern.MILITIA);
-        unlockSecondary(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
-        unlockSecondary(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
-        unlockSecondary(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
+        // Keep the baseline available without granting specialist technology on reload.
+        // Previously learned templates stay in the saved ownership set.
+        seedStarterIssue();
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
         repairFixedVictoryMilestones();

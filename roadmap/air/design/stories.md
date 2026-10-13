@@ -4,10 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — aircraft against ships and shield-type threat weights built; ship class threat weights and carrier flux and standoff biases built; tender AI by stance and four turret build options built; warship posture, objective-aware fire, landing-denial intercept, missile flight, swarm bursts and ship-versus-air fire shipped; later missile items remain on `warship-missiles.md`.
+Updated: 2026-10-13 — ship support direction and its first story added; aircraft against ships and shield-type threat weights built; ship class threat weights and carrier flux and standoff biases built; tender AI by stance and four turret build options built; warship posture, objective-aware fire, landing-denial intercept, missile flight, swarm bursts and ship-versus-air fire shipped; later missile items remain on `warship-missiles.md`.
 
 | Story | State | Outcome |
 | --- | --- | --- |
+| `ship-on-station-power.md` | PLANNED — slice 1 of `ship-support.md` | One mechanism puts a ship over any battle: a committed fleet warship or Shepherd (or a stock or employer hull) is a Ship on Station command power, called to a cell; it enters from the company's edge, works under the mission stance and departs. Writeback, atmospheric arrival, hostile ship support and the low pass follow in `ship-support.md`. |
 | `fighter-air-entities.md` | ACTIVE — the overlay class and the profile's dead tuning are gone; the package rename remains | Fighters are ordinary air entities flying ordinary sorties. Committed wings arrive on an `AirCorridor` from off the map and are dispatched by `AirCoverSystem`. |
 | `air-manual-acceptance.md` | PLANNED | Verify centre-of-gravity rotation, hardpoint placement and per-mount sight, and thrust-weighted engine effects together in a live battle. |
 | `warship-on-station.md` | PLANNED | A Paragon hovers over the battle and sweeps its laser lance across compounds, razing walls, roofs and units, friendly fire included. |

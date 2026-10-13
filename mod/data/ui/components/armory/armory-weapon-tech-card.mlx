@@ -1,0 +1,65 @@
+<template props="tile">
+        <button id="{tile.id}" class="{tile.weaponClasses}" onclick="{tile.select}">
+          <div id="{tile.headerId}" class="doctrine-header">
+            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
+            <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
+          </div>
+          <div id="{tile.metadataRowId}" class="doctrine-metadata-row">
+            <img id="{tile.factionLogoId}" class="{tile.factionLogoClasses}" src="{tile.factionLogo}" />
+            <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
+          </div>
+          <div id="{tile.compositionId}" class="doctrine-composition label">{tile.composition}</div>
+          <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
+          <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distribution}</div>
+          <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}">
+            <div id="{tile.distributionGridId}" class="doctrine-span-grid">
+              <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span label">{span.label}</div>
+            </div>
+          </div>
+        </button>
+</template>
+<style>
+  .doctrine-tile { flex-direction: column; width: 476px; height: 214px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #191e20; }
+  .doctrine-tile.rarity-common { border-color: #607188; }
+  .doctrine-tile.rarity-uncommon { border-color: #a5c6bc; background-color: #10202c; }
+  .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
+  .doctrine-tile.rarity-exotic { border-color: #c77dff; background-color: #21162c; }
+  .doctrine-tile.selected { background-color: #35433f; border-color: #f2cf68; }
+  .doctrine-header { flex-direction: row; height: 18px; gap: 5px; }
+  .doctrine-metadata-row { flex-direction: row; height: 26px; gap: 7px; }
+  .doctrine-name, .doctrine-metadata { width: 0px; flex-grow: 1; }
+  .doctrine-metadata { padding: 5px 0px; }
+  .doctrine-faction-logo { width: 48px; height: 24px; border-width: 1px; border-color: #607188; background-color: #0a1018; }
+  .doctrine-faction-logo.faction-logo-hidden { width: 0px; height: 0px; border-width: 0px; opacity: 0; }
+  .doctrine-rating { width: 78px; padding: 1px 4px; border-width: 1px; text-align: center; }
+  .doctrine-rating.rating-low { color: #b4c0ce; border-color: #607188; }
+  .doctrine-rating.rating-mid { color: #7fb2d8; border-color: #4c7fa6; }
+  .doctrine-rating.rating-high { color: #8fd6a6; border-color: #4f9c6b; }
+  .doctrine-rarity { width: 74px; padding: 1px 4px; border-width: 1px; text-align: center; }
+  .doctrine-rarity.rarity-common { color: #b4c0ce; border-color: #607188; }
+  .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #a5c6bc; }
+  .doctrine-rarity.rarity-rare { color: #f2cf68; border-color: #dfb84d; }
+  .doctrine-rarity.rarity-exotic { color: #dda8ff; border-color: #c77dff; }
+  .doctrine-lore { height: 64px; white-space: normal; }
+  .doctrine-composition { height: 18px; color: #7fb2d8; }
+  .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
+  .doctrine-carries { height: 18px; color: #8fd6a6; }
+
+  /* An issue line is drawn as one span per entry so a reader can point at a
+     name; the grid is what wraps it, since a flow row does not. The plain
+     label above stays as the fallback for a line with nothing to list, and
+     exactly one of the two is ever laid out. */
+  .doctrine-span-row { flex-direction: row; gap: 6px; overflow: hidden; }
+  .doctrine-distribution-row { height: 40px; }
+  .doctrine-carries-row { height: 18px; }
+  .doctrine-line-tag { width: 58px; padding: 1px 0px; color: #7d8ea1; }
+  .doctrine-span-grid { display: grid; width: 0px; flex-grow: 1; gap: 3px; overflow: hidden; }
+  .doctrine-span { height: 17px; padding: 1px 2px; }
+  .doctrine-issue-span { color: #d8bd67; }
+  .doctrine-carries-span { color: #8fd6a6; }
+  .doctrine-line-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
+  .weapon-tech-card.doctrine-tile { height: 214px; }
+  .weapon-tech-card .doctrine-lore { height: 64px; }
+  .weapon-tech-card .doctrine-composition { font-family: heading; height: 20px; }
+</style>
