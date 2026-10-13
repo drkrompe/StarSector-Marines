@@ -480,19 +480,24 @@ public final class WarshipSystem {
             ship.setPosture(decision.posture(), decision.reason());
         }
         if (ship.profile().standoff()) {
-            float[] station = standoffStation(ship);
+            float[] station = standoffStation(ship, ship.profile().standoffScale());
             if (station != null) ship.standoffTo(station[0], station[1]);
         } else {
             ship.endStandoff();
         }
     }
 
+    /** Distance beyond a hazard's radius a standing-off ship keeps: the standard margin times its scale, plus half the hull. */
+    static float standoffClearance(float marginScale, float lengthCells) {
+        return STANDOFF_MARGIN_CELLS * marginScale + lengthCells * 0.5f;
+    }
+
     /** Where to hover to be clear of every hazard hostile to the ship, or {@code null} when the station already is. */
-    private float[] standoffStation(Warship ship) {
+    private float[] standoffStation(Warship ship, float marginScale) {
         float sx = ship.hasStation() ? ship.stationX() : ship.x;
         float sy = ship.hasStation() ? ship.stationY() : ship.y;
         boolean moved = false;
-        float clear = STANDOFF_MARGIN_CELLS + ship.lengthCells * 0.5f;
+        float clear = standoffClearance(marginScale, ship.lengthCells);
         for (int pass = 0; pass < 3; pass++) {
             boolean pushed = false;
             for (CapitalHazard hazard : hazards) {

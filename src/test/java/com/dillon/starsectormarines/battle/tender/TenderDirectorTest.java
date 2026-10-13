@@ -144,6 +144,8 @@ class TenderDirectorTest {
         Tender t = Tender.fit(Faction.MARINE, 20f, 20f, 0f);
         assertEquals(BuildOption.VULCAN_TURRET, TenderDirector.option(MissionStance.ATTACK, t));
         assertEquals(BuildOption.MORTAR_TURRET, TenderDirector.option(MissionStance.DEFEND, t));
+        assertTrue(BuildOption.POINT_DEFENCE_POD.buildSeconds() < BuildOption.VULCAN_TURRET.buildSeconds(),
+                "the pod is quicker than every turret, so only the turret kinds may be chosen");
         t.stock(2);
         assertTrue(TenderDirector.option(MissionStance.DEFEND, t).cost() <= 2, "a metered stock bounds the choice");
         t.stock(0);
