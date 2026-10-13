@@ -42,6 +42,11 @@ public final class StructureDef {
         this.mount = mount;
     }
 
+    /** Whether this structure stands on more than its anchor cell. */
+    public boolean isMultiCell() {
+        return footprintCellsX != 1 || footprintCellsY != 1;
+    }
+
     static StructureDef parse(JSONObject json, TurretMountDef mount) throws JSONException {
         String id = TurretMountDef.requireText(json, "id");
         String mountId = TurretMountDef.requireText(json, "mount");
@@ -70,9 +75,13 @@ public final class StructureDef {
         }
         int footprintCellsX = footprint.getInt(0);
         int footprintCellsY = footprint.getInt(1);
-        if (footprintCellsX != 1 || footprintCellsY != 1) {
+        // Odd on each axis, so the anchor cell is the footprint's centre and the
+        // body's circle shares it. One by one is the ordinary emplacement.
+        if (footprintCellsX < 1 || footprintCellsY < 1
+                || footprintCellsX % 2 == 0 || footprintCellsY % 2 == 0) {
             throw new JSONException("Structure '" + id
-                    + "' must use the currently supported one-cell static footprint");
+                    + "' footprintCells must be odd positive cell counts, got ["
+                    + footprintCellsX + ", " + footprintCellsY + "]");
         }
         return new StructureDef(
                 id, TurretMountDef.requireText(catalog, "displayName"),

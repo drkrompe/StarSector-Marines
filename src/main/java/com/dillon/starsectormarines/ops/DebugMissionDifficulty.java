@@ -40,6 +40,19 @@ final class DebugMissionDifficulty {
     }
 
     /**
+     * Returns the same mission for production work. DEBUG work states which
+     * ground defences the target world holds, so a fortress and a bare town can
+     * be played back to back.
+     *
+     * @param requestedDefences the defences to state, or {@code null} to hand the
+     *                          answer back to the market's industries.
+     */
+    static Mission atDefences(Mission mission, DebugDefences requestedDefences) {
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
+        return Mission.builder(mission).defences(requestedDefences).build();
+    }
+
+    /**
      * Returns the same mission for production work. DEBUG work states how
      * settled its map is directly, so the three maps a market could produce
      * can be played back to back on one board.

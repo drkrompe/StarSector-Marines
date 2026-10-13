@@ -27,6 +27,8 @@ import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.turret.StructureFootprint;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
@@ -1487,10 +1489,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public long spawn(EntitySpec spec) {
         long id = rosterService.spawn(spec);
+        sealMultiCellStructure(id, spec);
         if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
             fogOfWar.addContributor(id, rosterService);
         }
         return id;
+    }
+
+    /**
+     * A multi-cell structure blocks its whole footprint from the moment it
+     * exists and is remembered so its death opens the whole footprint again. A
+     * one-cell structure is left exactly as its placer made it: a stamped pad is
+     * sealed before the sim exists, and a carrier-placed emplacement stands on
+     * open floor on purpose. Serial spawns only; the queued path is one-cell.
+     */
+    private void sealMultiCellStructure(long id, EntitySpec spec) {
+        if (spec.turretStructureId == null) return;
+        StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
+        if (!structure.isMultiCell()) return;
+        StructureFootprint.seal(grid, structure, spec.cellX, spec.cellY);
+        navigation.markNavigationTopologyDirty();
+        turretDemolition.registerFootprint(id, structure);
     }
 
     /**

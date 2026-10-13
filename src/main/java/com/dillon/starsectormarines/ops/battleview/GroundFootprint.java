@@ -29,7 +29,13 @@ public final class GroundFootprint {
      * the cell center).
      */
     public static void emit(DrawList out, RenderLayer layer, float x0, float y0, float cellPx, float alpha) {
-        out.addSolidRect(layer, x0, y0, x0 + cellPx, y0 + cellPx,
+        emit(out, layer, x0, y0, cellPx, cellPx, alpha);
+    }
+
+    /** As {@link #emit(DrawList, RenderLayer, float, float, float, float)}, for a pad {@code widthPx} by {@code heightPx} -- a multi-cell structure's whole footprint. */
+    public static void emit(DrawList out, RenderLayer layer, float x0, float y0,
+                            float widthPx, float heightPx, float alpha) {
+        out.addSolidRect(layer, x0, y0, x0 + widthPx, y0 + heightPx,
                 ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f, ROAD_FILL.getBlue() / 255f, alpha);
     }
 }
