@@ -29,7 +29,11 @@ import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.DevConfig;
 import com.fs.starfarer.api.Global;
+import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.DebugWarship;
+import com.dillon.starsectormarines.battle.warship.MissionStance;
+import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
@@ -441,10 +445,11 @@ public final class MissionLaunch {
             if (authoredDebugLift) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
                     firstPlayerShuttle, supplyRoute || authoredDebugLift ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
-                    det.powers, Math.max(0, liveResources.availableSupplies()),
+                    debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
             installDebugWarship(m, debugWarship, sim);
+            sim.setCompanyStance(m.source == MissionSource.STATIONING ? MissionStance.DEFEND : MissionStance.ATTACK);
             sim.setOperationOfficer(OfficerCommandProfile.capture(m.source.isDebug() ? null : ctx.getSelectedCaptain()));
             if (fixture != null) {
                 fixture = new BattleLaunchFixture(fixture, launch);
@@ -459,9 +464,25 @@ public final class MissionLaunch {
         }
     }
 
+    /**
+     * The briefing's WARSHIP DEBUG pick as a stock source for the Ship on Station power: the
+     * same mechanism a committed fleet member uses, with the stock variant and no cost. A
+     * hostile pick is not a call the company can make, so it stays a launch-time install.
+     */
+    static List<CommandPower> debugShipPowers(Mission m, DebugWarship.Spec spec, List<CommandPower> powers) {
+        if (!debugShipIsSource(m, spec)) return powers;
+        return PowerCatalog.withShipSources(powers, List.of(spec.hull().source()));
+    }
+
+    private static boolean debugShipIsSource(Mission m, DebugWarship.Spec spec) {
+        return DevConfig.DEBUG_WARSHIP_PICKER && m.source.isDebug() && spec != null && spec.active()
+                && spec.side() == Faction.MARINE;
+    }
+
     /** Debug missions only; a failure to fit the ship costs the ship, never the battle. */
     private static void installDebugWarship(Mission m, DebugWarship.Spec spec, BattleSimulation sim) {
-        if (!DevConfig.DEBUG_WARSHIP_PICKER || !m.source.isDebug() || spec == null || !spec.active()) return;
+        if (!DevConfig.DEBUG_WARSHIP_PICKER || !m.source.isDebug() || spec == null || !spec.active()
+                || debugShipIsSource(m, spec)) return;
         try {
             DebugWarship.install(sim, spec);
         } catch (Exception e) {

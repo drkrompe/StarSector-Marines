@@ -84,7 +84,7 @@ In the order they are worth building:
 
 ## Slices
 
-1. **Ship on Station power** (story `ship-on-station-power.md`): the power, its
+1. **Ship on Station power** (BUILT, 2026-10-13): the power, its
    sources (fleet member, stock, employer), the frozen loadout through the detachment,
    activation, edge entry, station, stance, departure, the debug picker re-pointed onto
    it. Evidence: a behaviour scene and unit tests at the catalog and loadout seams.
@@ -120,3 +120,21 @@ In the order they are worth building:
 3. Should a lost member be destroyed in the campaign, or only crippled? The draft is
    crippled (hull at a floor, readiness zero), because losing a capital to one ground
    battle is harsher than the fun it buys.
+
+## Slice 1 as built
+
+The `ship_on_station` power (`ShipOnStation`) holds a frozen `ShipSupportSource` list:
+each committed cruiser, capital (with a gun that reaches the ground) or Shepherd is one
+charge on one card, spent in order. Debug (the briefing picker's friendly pick) and
+employer offers (`ship_on_station:<hull>` in the offer ids) feed the same list; a hostile
+debug pick stays a launch-time install until slice 4. Activation needs a cell the player
+currently sees, fits the next source at the company's edge (`ShipStationing`), stations it
+on the cell, takes the stance from the company's side (ATTACK, or DEFEND for a stationed
+detachment), turns on the director and doctrine, and bounds its visit at 90 s for every
+hull. Drafted owner answers applied: cruisers, capitals and the Shepherd; 90 s; no
+writeback.
+
+Finding: a capital's own hover speed makes the approach long. An Onslaught entering at the
+west edge took about 74 s to reach a cell 80 cells in, so most of a 90 s visit is travel
+for deep targets. Tuning (a faster arrival, station time counted from entry, or a nearer
+entry point) is an owner call alongside slice 3.
