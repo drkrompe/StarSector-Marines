@@ -548,6 +548,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION,
                     0.72f, 1.0f, loc, new Vector2f(0f, 0f));
         }
+        for (var blast : sim.getRollingBlastsThisFrame()) {
+            renderer.getImpactFx().spawnRollingBlast(blast);
+            renderer.getGroundLights().spawnHeavyImpact(blast.x(), blast.y(), blast.radius(), null);
+        }
         // Drain wreck smoke puffs the sim queued this tick — each entry is
         // {x, y, radiusCells}. Same scaled clock means wrecks stop smoking
         // when the sim pauses.
