@@ -7,7 +7,7 @@ power-suit protection is a separate armor-pattern choice under
 Status: IN PROGRESS — systems and running presentation are established;
 hostile capability readability and special-item coordination remain open.
 Written: 2026-08-27
-Updated: 2026-10-13 — equipped missile pods and screen emitters have separate carried hardware layers.
+Updated: 2026-10-13 — shoulder missiles launch from physical mounts with a committed firing pose.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -91,8 +91,12 @@ Predictive Breach carries a smaller screen emitter on that shoulder. Both use
 separate transparent sprites attached to the actual shoulder joint; monolithic
 armor falls back to torso registration. Neither changes the handheld weapon or
 occupies the carried special slot. The hardware remains fitted after a power is
-spent. Opening covers, individual loaded-tube states, activation motion, and a
-cosmetic launch origin are later animation work; the first pass is carried art.
+spent. Aegis and Arbalest also declare physical shoulder hardpoints: resolved
+missiles and visual shots launch from their muzzle, while an actual launch
+triggers a short pod brace, kick, muzzle flash, and return to the carried pose.
+The pod may aim independently of the wearer's primary. A blocked body-to-muzzle
+segment prevents the launch before ammunition is spent. Opening covers and
+individual loaded-tube states remain later animation work.
 
 Further equipment should have a recognizable physical vocabulary when it has
 room to read at battle scale. These are proposed next assets, not shipped art:

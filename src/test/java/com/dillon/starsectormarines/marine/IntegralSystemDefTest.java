@@ -189,6 +189,21 @@ class IntegralSystemDefTest {
     }
 
     @Test
+    void missilePodPhysicalMountIsOptionalAndParsesWithoutPresentation() throws JSONException {
+        assertNull(IntegralSystemDef.parse(missilePod(), "armor.test").missilePod().mount());
+        assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(missilePod().put("mount", "not-an-object"), "armor.test"));
+        JSONObject mount = new JSONObject().put("rightCells", -0.25)
+                .put("forwardCells", 0.05).put("muzzleForwardCells", 0.15);
+        IntegralSystemDef system = IntegralSystemDef.parse(missilePod().put("mount", mount), "armor.test");
+        assertEquals(new MissilePodMountSpec(-0.25f, 0.05f, 0.15f), system.missilePod().mount());
+        assertNull(system.carrierLayer());
+        mount.put("muzzleForwardCells", -1);
+        assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(missilePod().put("mount", mount), "armor.test"));
+    }
+
+    @Test
     void aMissilePodMustNameItsWeapon() throws JSONException {
         JSONObject noWeapon = missilePod();
         noWeapon.remove("weaponId");

@@ -68,3 +68,38 @@ not in the review scene or source sprites.
 
 Regenerate through `gradlew.bat createSnapshots -Psnapshot=equipment-mounts`.
 Frames are emitted to `build/snapshots/equipment-mounts/frames/`.
+
+## Missile muzzle registration
+
+The pod's visible forward lip is at canvas coordinate (64, 20), normalized
+to (0.5, 0.10416667). The catalog presentation uses that point for the launch
+flash and sprite registration. Transparent padding is not the muzzle.
+
+The simulation owns a separate physical mount in cells: right/forward from
+the wearer, followed by muzzle reach along the pod's independent aim.
+The following measurements align the neutral catalog assembly at the marine's
+0.6-cell shoulder width. Aegis uses its 150x126 body at scale 1; Arbalest
+uses its 150x113 body at scale 0.8. Both have a -0.12 shoulder-width body
+master offset. The torso-derived hinge is (-0.234694, 0.150124) of body width
+and height; Arbalest then adds its carried offset (-0.10, 0.01).
+
+| Pattern | Right cells | Forward cells | Muzzle reach cells |
+| --- | --- | --- | --- |
+| Aegis | -0.1408164 | 0.0036625 | 0.114 |
+| Arbalest | -0.1606531 | -0.0129148 | 0.0912 |
+
+Re-register these measurements if the body, attachment, pod canvas or scale
+changes. The physical mount must remain valid without loading sprite pixels.
+`pod-battle` supplies actual launch and combat evidence, including normal and
+closer camera views plus a short launch detail; `equipment-mounts` remains the
+static assembly and articulation review.
+
+The retained `roadmap/progression/assets/pod-battle-*.mp4` files use the
+lossless PNG sequences from `createSnapshots -Psnapshot=pod-battle`.
+Normal and closer views play 181 frames at 15 fps; the 31-frame detail plays
+at 30 fps and repeats five times. All renders are native 1920x1080 at 100% UI
+scale, with unchanged unit dimensions. Detail includes six frames before a
+real salvo after spawn fade, followed by its launch and recovery. Companion
+PNGs show that visible launch; `pod-battle-verdict.json` records the actual
+simulation checks. These are headless production battle captures, not live
+Starsector screen recordings or mission-balance acceptance.
