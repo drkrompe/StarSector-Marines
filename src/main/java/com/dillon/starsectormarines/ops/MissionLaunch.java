@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 
@@ -295,7 +297,11 @@ public final class MissionLaunch {
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
         if (AgreusArcCampaign.isBattle(m)) {
-            builder = () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
+            var agreus = AgreusArcCampaign.requireCurrent(m);
+            boolean records = agreus.recordsRecovered();
+            builder = AgreusArcProgress.limitedWarrant(m.id)
+                    ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)
+                    : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
         } else if (ShepherdRecoveryCampaign.isBattle(m)) {
             var recovery=ShepherdRecoveryCampaign.requireCurrent(m);
             boolean departureChapter=recovery.repaired(), repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();

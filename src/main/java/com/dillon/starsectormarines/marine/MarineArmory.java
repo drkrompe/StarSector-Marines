@@ -125,6 +125,9 @@ public final class MarineArmory implements Serializable {
             for (int i = 1; i < grant.length; i++) known &= ownsArmorTemplate(grant[i]);
             if (known) acquireArmorPlan(grant[0]);
         }
+        if (ownsArmorTemplate("armor.specter-recovered")) {
+            acquireArmorPlan(SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR);
+        }
         if ((ownsArmorTemplate("armor.specter-recovered") || ownsArmorTemplate("armor.specter-heavy"))
                 && (ownsArmorTemplate("armor.arbalest-recovered") || ownsArmorTemplate("armor.arbalest"))) {
             acquireArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
