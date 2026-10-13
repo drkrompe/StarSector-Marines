@@ -48,8 +48,9 @@ public final class DefenceStructureTactics {
     /**
      * A squad the caller is willing to detach, with the assignment it carries now.
      *
-     * @param demolition whether the squad carries the means to destroy a building outright; commands do not read this
-     *                   from the live squad yet, so it is false in play and is how the choice is shown to be able to wreck
+     * @param demolition whether the squad carries the means to destroy a building outright (a satchel kit with a charge
+     *                   left, see {@code DemolitionKit}), read from the squad's own living members by the command frame.
+     *                   A wreck is only ever given to such a squad
      */
     public record Candidate(int squadId, int anchorCellX, int anchorCellY, ObjectiveAssignment incumbent,
                             boolean demolition) {
@@ -145,10 +146,12 @@ public final class DefenceStructureTactics {
         for (Candidate candidate : candidates) {
             ObjectiveAssignment held = candidate.incumbent();
             if (used.contains(candidate.squadId()) || held == null || held.kind() != kind
+                    || (want.wreck && !candidate.demolition())
                     || !near(held.targetCellX(), held.targetCellY(), want.structure)) continue;
             if (!topology.reachable(candidate.anchorCellX(), candidate.anchorCellY(),
                     held.targetCellX(), held.targetCellY())) continue;
-            return new Task(candidate.squadId(), held, want.role, want.structure, want.reason, want.wreck);
+            return new Task(candidate.squadId(), held.withWreckAuthorised(want.wreck), want.role, want.structure,
+                    want.reason, want.wreck);
         }
         return null;
     }
@@ -174,7 +177,8 @@ public final class DefenceStructureTactics {
         ObjectiveAssignment assignment = want.role == Role.DEFEND
                 ? ObjectiveAssignment.defendArea(best.squadId(), bestCell[0], bestCell[1],
                         Math.max(2, want.structure.reachCells()))
-                : ObjectiveAssignment.attackMove(best.squadId(), bestCell[0], bestCell[1]);
+                : ObjectiveAssignment.attackMove(best.squadId(), bestCell[0], bestCell[1])
+                        .withWreckAuthorised(want.wreck);
         return new Task(best.squadId(), assignment, want.role, want.structure, want.reason, want.wreck);
     }
 
