@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -72,6 +73,7 @@ public final class WarshipMissileTacticsScene implements BehaviorScene {
         if (wanted("hurricane-close")) reports.add(playSplit("hurricane-close", "hurricane", 62f, frames));
         if (wanted("hurricane-control")) reports.add(playFlank("hurricane-control", "hurricane", FrameSink.NONE));
         if (wanted("hydra-flank")) reports.add(playFlank("hydra-flank", "hydra", frames));
+        if (wanted("locust-anti-air")) reports.add(playAntiAir(frames));
         if (wanted("dragonfire")) reports.add(playDragon("dragonfire", false, frames));
         if (wanted("dragonfire-pd")) reports.add(playDragon("dragonfire-pd", true, frames));
         return reports;
@@ -317,6 +319,41 @@ public final class WarshipMissileTacticsScene implements BehaviorScene {
             for (T t : list) if (t == item) return true;
             return false;
         }
+    }
+
+    // ---------------------------------------------------------------------------------------- anti-fighter
+
+    /**
+     * A ship with Locusts in every slot, ordered onto a district, while a hostile boat crosses its reach:
+     * the missiles built to overwhelm fighters take the aircraft rather than the ground.
+     */
+    private SceneReport playAntiAir(FrameSink frames) throws Exception {
+        targetX = 92f;
+        String loop = "locust-anti-air";
+        SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
+        district(builder);
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.random().setSeed(SEED);
+        Warship ship = shooter("locust", 4, MissilePreset.FLAVOURED, world);
+        ship.airFire(AirFireOrder.ALL);
+        sim.spawnShuttle(ShuttleType.AEROSHUTTLE, Faction.DEFENDER, 60f, 38f, 150f, 38f, 150f, 38f, 1f, 6);
+        SceneRun.of(world)
+                .frames(frames, loop, FRAME_EVERY_TICKS, tick -> loop + " / locust / tick " + tick)
+                .run(TICKS);
+        WarshipAirFire air = sim.warships().airFire();
+        int locustAtAir = air.roundsByWeapon().getOrDefault("locust", 0);
+        int fired = 0;
+        for (Warship.Mount m : ship.mounts()) fired += m.shotsFired;
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("locusts-take-the-aircraft", locustAtAir >= 4,
+                locustAtAir + " Locusts were fired at the boat of " + fired + " fired in all"));
+        verdicts.add(Verdict.of("the-aircraft-is-the-first-target", air.roundsFired() > 0 && locustAtAir == air.roundsFired(),
+                air.roundsFired() + " air rounds, " + locustAtAir + " of them Locusts"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("locustsAtAir", locustAtAir);
+        metrics.put("fired", fired);
+        return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
     // ---------------------------------------------------------------------------------------- Dragonfire

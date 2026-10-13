@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — an overhead ship may fly a low pass (Overhead ships); the ship balance law is a standing law under Overhead ships.
+Updated: 2026-10-14 — an overhead ship may fly a low pass (Overhead ships); the ship balance law is a standing law under Overhead ships; a standoff missile's released beam cannot be intercepted.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1788,7 +1788,7 @@ and releases it as a swarm.** The Hurricane's row says 500 but its spec releases
 seven warheads of 500; the Sabot five of 200 kinetic; the Hydra six of 500 energy.
 A multi-warhead missile flies as a *carrier* to its split point (the spec's split
 range short of the ground, no nearer than a third of the way, and no sooner than its
-minimum time), and there it *splits*: one flash, one split sound (the spec's own),
+minimum time unless the spec says it may split early), and there it *splits*: one flash, one split sound (the spec's own),
 a puff of the spec's smoke colour, and its warheads leave it as bodies of their own.
 Each warhead carries the spec's damage, damage type and blast footprint and a
 detonation committed when the missile was fired. They leave the split in the spec's
@@ -1847,6 +1847,14 @@ weak point of a cluster, because shooting it down before the split takes seven
 warheads with one shot. The same bodies are visible to the carried interceptor pods
 and the ground defences that read a battle's ordnance through the one seam, so they
 stop warship missiles without knowing what a warship is.
+
+**A standoff missile's beam is the one payload point defence cannot stop.** A
+Dragonfire flies to the spec's standoff short of the ground, paints it for the
+spec's time, then fires a beam payload. It is a hard body to point defence on the way
+out and while it paints, and a missile shot down in either fires nothing; once the beam is
+loose it is no longer ordnance in the air, and every defender (a warship's mounts, a
+tender's lasers, a deployable pod) leaves it alone. A Hydra's platforms likewise swing
+out abeam of the ground before they come in, to both sides.
 
 
 **Point defence reads the same path.** A mount engages a missile where it is

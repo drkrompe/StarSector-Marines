@@ -404,9 +404,14 @@ public final class WarshipAirFire {
             tracers.trace(ship, w, mx, my, ax, ay, hit);
         } else {
             float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));
-            MissilePath path = MissilePath.straight(mx, my, ax, ay, speed);
+            // An anti-fighter missile (a Locust, a Swarmer) flies its own path at the craft: the weave and the
+            // curve of a missile, not a bullet's line. Where it lands, and when it hits, are decided as before.
+            MissileFlightSpec flight = w.missile() ? w.flight() : null;
+            MissilePath path = flight != null
+                    ? MissilePath.plan(flight, mx, my, ax, ay, seed)
+                    : MissilePath.straight(mx, my, ax, ay, speed);
             float visual = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
-            shell = new WarshipShell(w, ship.faction, ship, mx, my, ax, ay, path, visual,
+            shell = new WarshipShell(w, ship.faction, ship, mx, my, path.landX(), path.landY(), path, visual,
                     0f, 0f, visual, null, null, 0f, null, 0f).inert();
             shells.add(shell);
         }
