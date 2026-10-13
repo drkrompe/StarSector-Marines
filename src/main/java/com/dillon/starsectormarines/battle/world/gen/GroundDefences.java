@@ -24,8 +24,10 @@ import java.util.Map;
  *                         a shield generator plus its walls, inner keep, power plant and control room (see
  *                         {@code forts.md}). A fort is declared separately from a bare {@link #batteries} or
  *                         {@link #shieldGenerator} so scenes and debug can still stand a structure on its own
+ * @param siting           where the declared forts stand relative to the battle; see {@link FortSitingPolicy}
  */
-public record GroundDefences(int batteries, boolean shieldGenerator, int nests, Map<FortKind, Integer> forts) {
+public record GroundDefences(int batteries, boolean shieldGenerator, int nests, Map<FortKind, Integer> forts,
+                             FortSitingPolicy siting) {
 
     public static final GroundDefences NONE = new GroundDefences(0, false, 0);
 
@@ -39,6 +41,12 @@ public record GroundDefences(int batteries, boolean shieldGenerator, int nests, 
             }
         }
         forts = Collections.unmodifiableMap(kept);
+        if (siting == null) siting = FortSitingPolicy.LEFTOVER_GROUND;
+    }
+
+    /** A declaration with these forts and the default (leftover-ground) siting. */
+    public GroundDefences(int batteries, boolean shieldGenerator, int nests, Map<FortKind, Integer> forts) {
+        this(batteries, shieldGenerator, nests, forts, FortSitingPolicy.LEFTOVER_GROUND);
     }
 
     /** A declaration with no forts. */
@@ -61,7 +69,12 @@ public record GroundDefences(int batteries, boolean shieldGenerator, int nests, 
         EnumMap<FortKind, Integer> next = new EnumMap<>(FortKind.class);
         next.putAll(forts);
         next.put(kind, count);
-        return new GroundDefences(batteries, shieldGenerator, nests, next);
+        return new GroundDefences(batteries, shieldGenerator, nests, next, siting);
+    }
+
+    /** This declaration with its forts sited by {@code policy}; a mission states how its forts are placed. */
+    public GroundDefences withSiting(FortSitingPolicy policy) {
+        return new GroundDefences(batteries, shieldGenerator, nests, forts, policy);
     }
 
     /** True when the declaration places nothing at all. */

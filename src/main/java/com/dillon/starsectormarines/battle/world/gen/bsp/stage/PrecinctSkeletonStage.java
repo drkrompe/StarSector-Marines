@@ -44,12 +44,16 @@ public final class PrecinctSkeletonStage implements GenStage {
     public void run(GenContext ctx) {
         CellTopology topology = ctx.topology;
         GrownTrunkPlan.Grown grown =
-                GrownTrunkPlan.grow(ctx.width, ctx.height, ctx.rng, plan.seeds());
+                GrownTrunkPlan.grow(ctx.width, ctx.height, ctx.rng, plan.seeds(),
+                        FortReservations.keepClear(ctx, plan));
 
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);
         int[][] claim = PrecinctClaim.byKind(plan.precincts())
                 .assign(grown.owner(), ctx.width, ctx.height, allowance);
+
+        // A mission that sited its forts as barriers keeps open ground for them, before the town has grown into it.
+        FortReservations.release(ctx, plan, claim);
 
         // Growth does not stop at a claim, so a place throws a street network
         // across the country around it: measured on a remote map, two thirds of

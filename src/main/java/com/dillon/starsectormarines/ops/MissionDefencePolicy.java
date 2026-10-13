@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 
@@ -42,6 +43,13 @@ public final class MissionDefencePolicy {
     static final boolean CONQUEST_SHIELD_AS_FORT = true;
 
     /**
+     * Whether a Conquest sites its declared forts as barriers on the way in (a shield fort over the keep, battery forts
+     * spread across the approach between the landing and the keep) rather than on leftover ground. UNTUNED first-pass
+     * mission-design choice, one line to turn off; see {@code forts.md}.
+     */
+    static final boolean CONQUEST_FORTS_COVER_THE_APPROACH = true;
+
+    /**
      * Defence nests a Conquest declares when its target market holds Ground Defenses. UNTUNED first-pass
      * mission-design choice: a dozen over the canonical 560x336 map (roughly one per 15,000 cells), few enough to be
      * a field to cross rather than a wall. Change freely once play settles how thick the network should be.
@@ -73,6 +81,9 @@ public final class MissionDefencePolicy {
                 market.groundDefences() ? CONQUEST_NESTS_WHEN_MARKET_HAS_THEM : 0);
         if (CONQUEST_BATTERIES_AS_FORTS) declared = declared.withForts(FortKind.BATTERY_FORT, batteries);
         if (CONQUEST_SHIELD_AS_FORT && shield) declared = declared.withForts(FortKind.SHIELD_FORT, 1);
+        if (CONQUEST_FORTS_COVER_THE_APPROACH && !declared.forts().isEmpty()) {
+            declared = declared.withSiting(FortSitingPolicy.COVER_THE_APPROACH);
+        }
         return declared;
     }
 }

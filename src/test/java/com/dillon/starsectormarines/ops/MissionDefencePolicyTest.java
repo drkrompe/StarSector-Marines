@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,18 @@ class MissionDefencePolicyTest {
         GroundDefences nestsOnly = MissionDefencePolicy.declare(of(MissionType.CONQUEST),
                 TargetProfile.NEUTRAL.withDefences(true, false, false));
         assertEquals(new GroundDefences(0, false, MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM), nestsOnly);
+    }
+
+    @Test
+    void conquestSitesItsFortsAsBarriersWhenItDeclaresAny() {
+        GroundDefences declared = MissionDefencePolicy.conquest(FORTRESS_MARKET);
+        assertEquals(MissionDefencePolicy.CONQUEST_FORTS_COVER_THE_APPROACH
+                ? FortSitingPolicy.COVER_THE_APPROACH : FortSitingPolicy.LEFTOVER_GROUND, declared.siting());
+        // With no forts there is nothing to site, so the declaration is the plain one it always was.
+        assertEquals(FortSitingPolicy.LEFTOVER_GROUND, MissionDefencePolicy.conquest(
+                TargetProfile.NEUTRAL.withDefences(true, false, false)).siting());
+        // A mission that says nothing about sites keeps leftover ground; siting is opted into, never inferred.
+        assertEquals(FortSitingPolicy.LEFTOVER_GROUND, DebugDefences.BATTERY_FORTS.declaration().siting());
     }
 
     @Test

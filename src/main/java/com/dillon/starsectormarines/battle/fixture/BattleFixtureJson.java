@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -919,6 +920,9 @@ public final class BattleFixtureJson {
             }
             encoded.put("declaredForts", forts);
         }
+        if (profile.declaredDefences().siting() != FortSitingPolicy.LEFTOVER_GROUND) {
+            encoded.put("declaredFortSiting", profile.declaredDefences().siting().name());
+        }
         return encoded;
     }
 
@@ -964,7 +968,14 @@ public final class BattleFixtureJson {
                 new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
-                        declaredForts(encoded)));
+                        declaredForts(encoded)).withSiting(declaredSiting(encoded)));
+    }
+
+    /** How a fixture sites its forts; a fixture that predates siting, or states none, leaves them on leftover ground. */
+    private static FortSitingPolicy declaredSiting(JSONObject encoded) throws Exception {
+        return encoded.has("declaredFortSiting")
+                ? enumValue(FortSitingPolicy.class, encoded.getString("declaredFortSiting"), "fort siting")
+                : FortSitingPolicy.LEFTOVER_GROUND;
     }
 
     /** The forts a fixture declares by kind; a fixture that predates forts, or states none, declares none. */

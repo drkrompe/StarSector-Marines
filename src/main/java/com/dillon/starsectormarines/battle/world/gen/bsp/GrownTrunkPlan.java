@@ -248,6 +248,14 @@ public final class GrownTrunkPlan {
      * placing several places deliberately.
      */
     public static Grown grow(int width, int height, Random rng, List<Seed> seeds) {
+        return grow(width, height, rng, seeds, null);
+    }
+
+    /**
+     * As above, with ground no arm may enter ({@code keepClear}, or {@code null} for none): an arm that would step into
+     * it stops at its edge. It draws no random numbers of its own, so a map with none is the map it always was.
+     */
+    public static Grown grow(int width, int height, Random rng, List<Seed> seeds, boolean[][] keepClear) {
         if (seeds.isEmpty()) throw new IllegalArgumentException("nothing to grow");
         Profile profile = seeds.get(0).profile();
         boolean[][] road = new boolean[width][height];
@@ -287,7 +295,7 @@ public final class GrownTrunkPlan {
             for (int d = 0; d < 4; d++) {
                 if (!dirs[d]) continue;
                 int drawn = lenLo + rng.nextInt(lenHi - lenLo + 1);
-                Arm arm = walkArm(road, width, height, j.x, j.y, d, drawn, kind.width);
+                Arm arm = walkArm(road, width, height, j.x, j.y, d, drawn, kind.width, keepClear);
                 if (arm == null) continue;
                 paintBand(road, arm.rect);
                 paintBand(bands, arm.rect);
@@ -361,7 +369,7 @@ public final class GrownTrunkPlan {
      * gets that far — see the class note on perimeter exits.
      */
     private static Arm walkArm(boolean[][] road, int w, int h, int cx, int cy,
-                               int dir, int drawn, int bandWidth) {
+                               int dir, int drawn, int bandWidth, boolean[][] keepClear) {
         int hw = bandWidth / 2;
         int steps = 0;
         int x = cx, y = cy;
@@ -372,6 +380,10 @@ public final class GrownTrunkPlan {
             int ny = cy + DY[dir] * i;
             if (nx <= hw || ny <= hw || nx >= w - 1 - hw || ny >= h - 1 - hw) {
                 reachedEdge = true;
+                ranFull = false;
+                break;
+            }
+            if (keepClear != null && keepClear[nx][ny]) {
                 ranFull = false;
                 break;
             }
