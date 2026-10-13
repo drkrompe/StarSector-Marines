@@ -129,7 +129,7 @@ public final class TenderDirector {
         }
     }
 
-    /** Decides from {@code p}. Never lays anything itself. */
+    /** Decides where from {@code p}. Never lays anything itself. */
     public static Plan plan(Picture p, NavigationGrid grid) {
         if (p.stance() == MissionStance.ATTACK) return attack(p, grid);
         if (p.stance() == MissionStance.DEFEND) return defend(p, grid);
@@ -263,8 +263,26 @@ public final class TenderDirector {
     }
 
     /**
+     * What an unpiloted tender builds: an attacking tender the quickest option, because the advance
+     * moves on and a forward position is worth having soon; a defending tender the heaviest it can
+     * pay for, because held ground gives the builders time. Null when a metered stock can pay for
+     * nothing.
+     */
+    static BuildOption option(MissionStance stance, Tender t) {
+        BuildOption best = null;
+        for (BuildOption o : BuildOption.ALL) {
+            if (t.metered() && o.cost() > t.stock()) continue;
+            boolean better = best == null || (stance == MissionStance.DEFEND
+                    ? o.buildSeconds() > best.buildSeconds()
+                    : o.buildSeconds() < best.buildSeconds());
+            if (better) best = o;
+        }
+        return best;
+    }
+
+    /**
      * Runs the director for one tender this tick: when the tender is unpiloted, has a stance other
-     * than HOLD, and has nothing on its line, it lays the planned site (the first build option) or
+     * than HOLD, and has nothing on its line, it lays the planned site ({@link #option}) or
      * moves to its idle station. Returns the plan acted on, for evidence.
      */
     static Plan direct(Tender t, BattleSimulation sim, float dt) {
@@ -274,7 +292,8 @@ public final class TenderDirector {
         t.directorClock = 0f;
         if (t.current() != null) return Plan.NONE;
         Plan plan = plan(Picture.read(sim, t), sim.getGrid());
-        if (plan.hasSite() && t.lay(BuildOption.ALL.get(0), plan.siteX(), plan.siteY(), sim.getGrid()) != null) {
+        BuildOption option = option(t.ship().stance(), t);
+        if (plan.hasSite() && option != null && t.lay(option, plan.siteX(), plan.siteY(), sim.getGrid()) != null) {
             return plan;
         }
         if (plan.hasStation()) {
