@@ -2,6 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
+Updated: 2026-10-13 — independent shoulder articulation joins the layered suit contract.
 
 ## Purpose
 
@@ -119,14 +120,18 @@ using a glowing whole-body effect to imply permanent shielding. Casing colors
 may vary independently of dark joints, hardware, and sensor accents. Its predictive
 breach treatment remains a temporary capability with an ordinary expiry.
 
-The top-down production contract keeps the body shell, helmet, feet, and weapon
-separate. The helmet looks independently inside the collar; the two feet move
+The top-down production contract keeps the torso, left and right shoulder
+shells, helmet, feet, and weapon separate. Shoulder shells articulate around
+their inner hinges, alternating with the walking stride and shifting into
+firing or braced stances. Flexible joint backing maintains a continuous body
+beneath them. The helmet looks independently inside the collar; the two feet move
 independently beneath the body. Handheld weapons remain swappable infantry
 equipment. Paint variants share identical silhouettes and registration so color
 never changes articulation or physical geometry. Slate, olive, oxide, and sand
 provide the first casing palette; campaign cosmetic selection remains a separate
 design decision. Source plates, material masks, geometry, and export recipes
-belong together under `art-source/marine-modular-topdown/specter-v1/`.
+belong together under `art-source/marine-modular-topdown/specter-v2/`, retaining
+the v1 source art and material masks.
 
 The Foundry-breaker needs a more grounded revision: mismatched welded ship plate over
 a visible cargo exoframe, irregular shoulder mass, load-bearing struts, guarded

@@ -297,6 +297,66 @@ class AuthoringDocumentTest {
         assertEquals(sourceFoot.spritePath(), previewFoot.spritePath());
         assertEquals(sourceFoot.offsetX(), previewFoot.offsetX(), 0.000001);
         assertEquals(sourceFoot.offsetY(), previewFoot.offsetY(), 0.000001);
+        assertFalse(preview.layers().stream()
+                .anyMatch(layer -> layer.id().endsWith("-shoulder")));
+    }
+
+    @Test
+    void sharedShoulderChannelsAreDrawnOnlyForTheMatchingBody() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().get(0);
+        UnitComposition specter = document.units().stream()
+                .filter(unit -> unit.id().equals("armor-master-specter-heavy"))
+                .findFirst().orElseThrow();
+        FrameDefinition source = firstFrame(document);
+        CompositionRenderer renderer = new CompositionRenderer(Path.of("."));
+        BufferedImage canvas = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = canvas.createGraphics();
+        try {
+            assertFalse(renderer.renderFrame(graphics, marine, source, 64, 64, null, false)
+                    .stream().anyMatch(layer -> layer.layer().id().endsWith("-shoulder")));
+            FrameDefinition mastered = renderer.composeAnimationPreview(specter, source);
+            assertEquals(2, renderer.renderFrame(graphics, specter, mastered, 64, 64, null, false)
+                    .stream().filter(layer -> layer.layer().id().endsWith("-shoulder")).count());
+        } finally {
+            graphics.dispose();
+        }
+    }
+
+    @Test
+    void rotatingSpecterMasterAssemblyPreservesItsIndependentAnimatedShoulders() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition specter = document.units().stream()
+                .filter(unit -> unit.id().equals("armor-master-specter-heavy"))
+                .findFirst().orElseThrow();
+        FrameDefinition source = specter.previewVariants().stream()
+                .filter(variant -> variant.id().equals("rifle"))
+                .flatMap(variant -> variant.animations().stream())
+                .filter(animation -> animation.id().equals("walking"))
+                .findFirst().orElseThrow().frames().get(0);
+        CompositionRenderer renderer = new CompositionRenderer(Path.of("."));
+        FrameDefinition before = renderer.composeAnimationPreview(specter, source);
+        FrameDefinition master = specter.variants().get(0).animations().get(0).frames().get(0);
+        LayerDefinition masterBody = layer(master, "body");
+        for (String id : new String[] {"left-shoulder", "right-shoulder"}) {
+            LayerDefinition shoulder = layer(master, id);
+            double x = shoulder.offsetX() - masterBody.offsetX();
+            double y = shoulder.offsetY() - masterBody.offsetY();
+            shoulder.offset(masterBody.offsetX() - y, masterBody.offsetY() + x);
+            shoulder.angleDegrees(shoulder.angleDegrees() + 90);
+        }
+        masterBody.angleDegrees(masterBody.angleDegrees() + 90);
+        FrameDefinition after = renderer.composeAnimationPreview(specter, source);
+        LayerDefinition body = layer(before, "body");
+        for (String id : new String[] {"left-shoulder", "right-shoulder"}) {
+            LayerDefinition original = layer(before, id);
+            LayerDefinition rotated = layer(after, id);
+            assertEquals(body.offsetX() - (original.offsetY() - body.offsetY()),
+                    rotated.offsetX(), 0.000001);
+            assertEquals(body.offsetY() + original.offsetX() - body.offsetX(),
+                    rotated.offsetY(), 0.000001);
+            assertEquals(original.angleDegrees() + 90, rotated.angleDegrees(), 0.000001);
+        }
     }
 
     @Test

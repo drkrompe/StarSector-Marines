@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — squad selection uses position-following ground circles beneath actors.
+Updated: 2026-10-13 — modular infantry can articulate optional shoulder shells independently.
 
 ## Vocabulary
 
@@ -103,6 +103,14 @@ and layered appearance while retaining manual cursor bearing. A valid aim point
 alone cannot raise the weapon through that movement state. Gait continues to
 follow actual applied travel; presentation neither grants the speed boost nor
 spends stamina. `direct-control-nouns.md` owns those decisions.
+
+Modular infantry may separate the shoulder shells from the torso. These are
+optional armor parts whose authored stride, aim, and bracing motion follows
+torso registration independently of helmet look. Continuous joint backing
+preserves the body under articulation. Ordinary weapons paint below the torso
+and shells; an over-shoulder launcher paints above them but below the helmet.
+An armor family without separate shells retains its ordinary composition.
+Articulation never changes collision, durability, or equipment identity.
 
 The direct-control aim lane is read-only world presentation derived from current
 firing origins, pointer aim, and deterministic structural terrain. Live and

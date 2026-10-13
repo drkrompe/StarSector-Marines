@@ -70,6 +70,7 @@ public final class CompositionRenderer {
         RenderedLayer selected = null;
         for (LayerDefinition layer : sorted) {
             if (!layer.visible()) continue;
+            if (isShoulder(layer.id()) && !belongsToBody(frame, layer)) continue;
             BufferedImage image = image(layer.spritePath());
             AffineTransform transform = transform(unit, layer, image,
                     originX, originY, pixelsPerUnit);
@@ -131,7 +132,8 @@ public final class CompositionRenderer {
      * Applies a like-unit's authored master layers over one frame from its
      * animation source. Offsets and angles remain animated deltas, while each
      * mastered layer owns one absolute scale so source-frame scale cannot leak
-     * into a like unit. All unmastered layers retain the source animation.
+     * into a like unit. Optional shoulder channels require matching master
+     * parts; other unmastered layers retain the source animation.
      */
     public FrameDefinition composeAnimationPreview(UnitComposition unit,
                                                    FrameDefinition source) {
@@ -140,12 +142,20 @@ public final class CompositionRenderer {
         if (masterFrame == null) return source;
         Map<String, LayerDefinition> masters = new LinkedHashMap<>();
         for (LayerDefinition layer : masterFrame.layers()) {
-            if (MARINE_MASTER_NEUTRAL_OFFSETS.containsKey(layer.id())) {
+            if (MARINE_MASTER_NEUTRAL_OFFSETS.containsKey(layer.id()) || isShoulder(layer.id())) {
                 masters.put(layer.id(), layer);
             }
         }
         List<LayerDefinition> composed = new ArrayList<>();
         for (LayerDefinition animated : source.layers()) {
+            if (isShoulder(animated.id())) {
+                LayerDefinition master = masters.get(animated.id());
+                if (master != null) {
+                    composed.add(composeShoulder(unit, source, animated, master,
+                            masters.get("body")));
+                }
+                continue;
+            }
             LayerDefinition layer = animated.copy();
             LayerDefinition master = masters.get(animated.id());
             double[] neutral = MARINE_MASTER_NEUTRAL_OFFSETS.get(animated.id());
@@ -161,6 +171,76 @@ public final class CompositionRenderer {
             composed.add(layer);
         }
         return FrameDefinition.preview(source, composed);
+    }
+
+    private static boolean isShoulder(String id) {
+        return id.equals("left-shoulder") || id.equals("right-shoulder");
+    }
+
+    /** Shared clips can carry channels whose art is available only on one body family. */
+    private static boolean belongsToBody(FrameDefinition frame, LayerDefinition shoulder) {
+        LayerDefinition body = findLayer(frame, "body");
+        return body != null && Path.of(body.spritePath()).getParent()
+                .equals(Path.of(shoulder.spritePath()).getParent());
+    }
+
+    private static LayerDefinition findLayer(FrameDefinition frame, String id) {
+        return frame.layers().stream().filter(layer -> layer.id().equals(id))
+                .findFirst().orElse(null);
+    }
+
+    private static LayerDefinition composeShoulder(UnitComposition unit,
+                                                   FrameDefinition source,
+                                                   LayerDefinition animated,
+                                                   LayerDefinition master,
+                                                   LayerDefinition bodyMaster) {
+        LayerDefinition layer = animated.copy();
+        LayerDefinition body = findLayer(source, "body");
+        FrameDefinition neutral = unit.animationSource().variants().stream()
+                .filter(variant -> variant.id().equals("rifle"))
+                .flatMap(variant -> variant.animations().stream())
+                .filter(animation -> animation.id().equals("idle"))
+                .flatMap(animation -> animation.frames().stream()).findFirst().orElse(null);
+        if (body == null || bodyMaster == null || neutral == null) return layer;
+        LayerDefinition neutralBody = findLayer(neutral, "body");
+        LayerDefinition neutralShoulder = findLayer(neutral, animated.id());
+        if (neutralBody == null || neutralShoulder == null) return layer;
+        double animatedX = animated.offsetX() - body.offsetX();
+        double animatedY = animated.offsetY() - body.offsetY();
+        double neutralX = neutralShoulder.offsetX() - neutralBody.offsetX();
+        double neutralY = neutralShoulder.offsetY() - neutralBody.offsetY();
+        double masterX = master.offsetX() - bodyMaster.offsetX();
+        double masterY = master.offsetY() - bodyMaster.offsetY();
+        double x = rotatedX(masterX, masterY, -bodyMaster.angleDegrees())
+                + rotatedX(animatedX, animatedY, -body.angleDegrees())
+                - rotatedX(neutralX, neutralY, -neutralBody.angleDegrees());
+        double y = rotatedY(masterX, masterY, -bodyMaster.angleDegrees())
+                + rotatedY(animatedX, animatedY, -body.angleDegrees())
+                - rotatedY(neutralX, neutralY, -neutralBody.angleDegrees());
+        double masteredBodyAngle = body.angleDegrees() + bodyMaster.angleDegrees();
+        layer.offset(body.offsetX() + bodyMaster.offsetX()
+                        + rotatedX(x, y, masteredBodyAngle),
+                body.offsetY() + bodyMaster.offsetY() + 0.12
+                        + rotatedY(x, y, masteredBodyAngle));
+        layer.spritePath(master.spritePath());
+        layer.scale(master.scaleX(), master.scaleY());
+        layer.angleDegrees(masteredBodyAngle + animated.angleDegrees() - body.angleDegrees()
+                - (neutralShoulder.angleDegrees() - neutralBody.angleDegrees())
+                + master.angleDegrees() - bodyMaster.angleDegrees());
+        layer.pivot(master.pivotX(), master.pivotY());
+        layer.z(master.z());
+        layer.visible(animated.visible() && master.visible());
+        return layer;
+    }
+
+    private static double rotatedX(double x, double y, double angleDegrees) {
+        double radians = Math.toRadians(angleDegrees);
+        return x * Math.cos(radians) - y * Math.sin(radians);
+    }
+
+    private static double rotatedY(double x, double y, double angleDegrees) {
+        double radians = Math.toRadians(angleDegrees);
+        return x * Math.sin(radians) + y * Math.cos(radians);
     }
 
     private static FrameDefinition masterFrame(UnitComposition unit) {

@@ -2,6 +2,7 @@
 
 Status: IN PROGRESS — bounded exchange evidence exists; mission balance, live persistence, and final art remain unverified.
 Written: 2026-10-13
+Updated: 2026-10-13 — Specter shoulder layers included in compositor and battle evidence.
 
 Read `progression-nouns.md`, `personnel-nouns.md`, `combat-durability-nouns.md`,
 `role-and-access.md`, and `power-suit-infantry.md` before this acceptance pass.
@@ -40,10 +41,12 @@ The retained `power-suit-armor-comparison.png` and `power-suit-battle-hover.png`
 show class, role, tier, and live protection at 1920x1080 and 100% UI scale.
 They use existing infantry art and do not satisfy the final silhouette requirement.
 
-The Specter layered review in `art-source/marine-modular-topdown/specter-v1/`
-provides a separate body, helmet, boot, and shared weapon, with four casing
-colors. Its retained 1920x1080 production-compositor preview shows weapon
-clearance, independent head look, walking feet, and a 24px shoulder-unit sample.
+The Specter layered review in `art-source/marine-modular-topdown/specter-v2/`
+provides a torso with joint backing, independent left/right shoulder shells,
+helmet, boot, and shared weapon, with four casing colors. Its retained 1920x1080
+production-compositor preview shows alternating shoulder stride, recoil,
+anti-materiel bracing, launcher overlap, independent head look, walking feet,
+and a 24px shoulder-unit sample.
 This establishes a first art pass, not crowded-field or live campaign acceptance.
 
 The retained `specter-battle-normal.mp4` and `specter-battle-closer.mp4` show
