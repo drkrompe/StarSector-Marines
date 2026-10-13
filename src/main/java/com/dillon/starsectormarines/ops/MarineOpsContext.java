@@ -476,6 +476,11 @@ public class MarineOpsContext {
         return ship != null && ship.gettingReady();
     }
 
+    /** Hull inspection remains reachable even when the company needs to choose a home. */
+    public void openEngineering() {
+        goTo(companyDeck() == null ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
+    }
+
     /** Opens the owned-company landing view used by the campaign Company HQ. */
     public void openCompanyArmoryFrom(ScreenId returnScreen) {
         armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.COMPANY_HQ;

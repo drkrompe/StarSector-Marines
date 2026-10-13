@@ -7,6 +7,16 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShipRestorationOrdersTest {
+    @Test void welfareRequiresRestoredMessOnTheActiveOriginalHome() {
+        var restored = new ShipRestoration(true, false, false, false, true);
+        assertEquals(1.25f, CompanyShipRestoration.moraleRecovery(restored, true));
+        assertEquals(1f, CompanyShipRestoration.moraleRecovery(restored, false));
+        assertEquals(1f, CompanyShipRestoration.moraleRecovery(ShipRestoration.WRECK, true));
+        assertEquals(1f, CompanyShipRestoration.moraleRecovery(ShipRestoration.NONE, true));
+        assertNotNull(CompanyShipRestoration.refusal(Work.MESS_HALL, restored, true, true, true, true, 20000));
+        assertNull(CompanyShipRestoration.refusal(Work.POWER, restored, true, true, true, true, 20000));
+    }
+
     @Test void ordersRequireOwnedActiveHomeMissionYardAndFullPriceAndRejectRepeats() {
         for (var work : Work.values()) {
             assertNotNull(CompanyShipRestoration.refusal(work, ShipRestoration.WRECK, false, true, true, true, 20000));

@@ -1,6 +1,6 @@
-<template props="survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="ship-view-room-bar" class="panel ship-view-room-bar console-header">
       <img id="ship-view-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -95,15 +95,16 @@
   .workshop-feedback { height: 34px; }
   .condition-panel { flex-direction: column; width: 370px; height: 100%; padding: 10px; gap: 8px; border-width: 1px; border-color: #b99f65; background-color: #18221f; overflow: scroll; }
   .survey-heading { width: 100%; height: 34px; white-space: normal; }
-  .survey-list { flex-direction: column; width: 100%; height: 184px; overflow: scroll; gap: 3px; }
+  .survey-list { flex-direction: column; width: 100%; height: 138px; overflow: scroll; gap: 3px; }
   .survey-room { flex-direction: column; width: 100%; height: 42px; padding: 4px 6px; border-width: 1px; }
   .survey-room.selected { border-color: #d1b774; background-color: #374137; }
   .survey-name { width: 100%; height: 18px; }
   .survey-status { width: 100%; height: 16px; }
-  .condition-detail { flex-direction: column; width: 100%; height: 530px; gap: 7px; }
+  .condition-detail { flex-direction: column; width: 100%; height: auto; gap: 7px; }
   .survey-title { width: 100%; height: 24px; }
-  .survey-copy { height: 82px; }
-  .survey-benefit { height: 82px; }
-  .survey-reason { height: 48px; }
+  .survey-copy { height: auto; }
+  .survey-benefit { height: auto; }
+  .survey-reason { height: auto; }
+  #survey-bill, #survey-feedback { height: auto; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>

@@ -116,6 +116,7 @@ public record ShipInterior(CompanyShip ship, Map<RoomPurpose, Facility> faciliti
                     (purpose, amount) -> Math.max(0, amount - RoomRecipe.BOAT_BAY.provides()));
         if (ship.restoration().applies()) {
             if (!ship.restoration().mechBay()) capacity.put(RoomPurpose.VEHICLE_BAY, 0);
+            if (!ship.restoration().messHall()) capacity.put(RoomPurpose.MESS_HALL, 0);
             int lost = (int) deck.compartments().stream().filter(r -> r.purpose() == RoomPurpose.BARRACKS && deck.damaged(r.id())).count();
             capacity.computeIfPresent(RoomPurpose.BARRACKS, (purpose, amount) -> Math.max(0, amount - lost * RoomRecipe.TROOP_BERTHING.provides()));
         }

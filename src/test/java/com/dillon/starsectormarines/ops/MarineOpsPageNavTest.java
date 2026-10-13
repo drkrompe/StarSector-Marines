@@ -18,6 +18,35 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MarineOpsPageNavTest {
+    @Test void engineeringIsAlwaysReachableAndHighlightsItsOwnTabAtBothScales() throws Exception {
+        for (int width : new int[]{1920, 1280}) {
+            int[] visits = {0};
+            var props = new LinkedHashMap<String, Object>();
+            MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, room -> MarineOpsPageNav.Aboard.NO,
+                    () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> visits[0]++);
+            props.put("contextLabel", "COMPANY SHIP / ENGINEERING");
+            var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                    List.of("data/ui/components/marine-ops-page-nav.mlx"));
+            try (var markup = loader.reloadAndBuild(new Reactor(), "marine-ops-page-nav", props)) {
+                var doc = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+                markup.styles().forEach(doc::addStyleSheet);
+                doc.layout(width, 60);
+                var button = markup.requireElement("page-nav-engineering");
+                assertFalse(button.hasClass("page-nav-absent"));
+                click(doc, button);
+                assertEquals(1, visits[0]);
+                MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.SHIP_VIEW, room -> MarineOpsPageNav.Aboard.NO);
+                assertTrue(button.hasClass("page-nav-current"));
+                assertFalse(markup.requireElement("page-nav-hq").hasClass("page-nav-current"));
+                var b = button.box().borderBox();
+                var label = markup.requireElement("page-nav-engineering-legend").box().borderBox();
+                assertTrue(label.x() + label.width() <= b.x() + b.width(), "Engineering legend fits at " + width);
+                assertTrue(b.width() < 220, "The new tab stays compact");
+                assertTrue(b.x() + b.width() <= width, "Engineering remains inside the viewport");
+            }
+        }
+    }
+
     @Test void existingButtonsUnlockAfterDesignationAndFollowSubsequentHullChanges() throws Exception {
         var rooms = new EnumMap<RoomPurpose, MarineOpsPageNav.Aboard>(RoomPurpose.class);
         var counts = new int[4];
