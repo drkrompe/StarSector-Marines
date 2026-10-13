@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.RetainedFlankWaypoint;
+import com.dillon.starsectormarines.battle.infantry.SquadPodCadence;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -108,6 +109,9 @@ public final class Squad {
      * patrol commits to investigating a last-seen cell before giving up.
      */
     public static final float SUSPICIOUS_DECAY_SECONDS = 8.0f;
+
+    /** Independent launch clock, retained across plan refreshes and carrier loss. */
+    public final SquadPodCadence podCadence = new SquadPodCadence();
 
     public final int id;
     public final Faction faction;
