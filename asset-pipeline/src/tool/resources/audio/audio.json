@@ -242,6 +242,7 @@
     // ----- small arms -----
     { "id": "marines_smallarms_rifle_01",  "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav", "kind": "positional", "out": "battle/small-arms" },
     { "id": "marines_smallarms_rifle_02",  "source": "small-arms/Futuristic Assault Rifle Single Shot 02.wav", "kind": "positional", "out": "battle/small-arms" },
+    { "id": "marines_rook_rifle_fire",    "source": "small-arms/WEAPMisc-Assault_rifle_m16_sh-Elevenlabs.wav", "kind": "positional", "out": "battle/small-arms" },
     { "id": "marines_smallarms_reload",    "source": "small-arms/reload-small-arm.wav",                        "kind": "positional", "out": "battle/small-arms" },
 
     // ----- marine squad radio (positional, anchored to the speaking squad's centroid) -----
