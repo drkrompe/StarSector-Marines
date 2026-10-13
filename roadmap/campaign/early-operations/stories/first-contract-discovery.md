@@ -2,7 +2,7 @@
 
 Status: READY FOR LIVE ACCEPTANCE
 Written: 2026-10-10
-Updated: 2026-10-10 — finite Wayline chapters, closing correspondence and separate recurring offers; live acceptance remains.
+Updated: 2026-10-12 — First-job handoff, personal Mara introduction and casualty-aware first-payment exchange; live acceptance remains.
 
 ## Scope
 
@@ -12,6 +12,11 @@ shows her portrait, office, payment, local menu route and Plot Course. Other
 Independent brokers refer new companies to her; both opening victories unlock
 their recurring militia work. Existing story completion survives unchanged.
 The shared office policy provides an accessible planetary fallback when needed.
+Castle's preparation handoff puts a founding company's name forward for its first
+paid job. Mara's introduction names the cooperative and the drivers behind the
+fee. Relief's written victory exchange gives the payment and earned trust room
+before the depot request, with Castle acknowledging actual company deaths.
+This correspondence is text only; existing tactical narration remains recorded.
 
 Canonical model: `early-operation-nouns.md`; presentation boundaries:
 `company-view-nouns.md`. Alpha gate: `v0.1-alpha.md`.
@@ -28,6 +33,9 @@ Canonical model: `early-operation-nouns.md`; presentation boundaries:
 - HQ distinguishes no squads, first work, follow-up and completed introduction.
 - No available office is explained and cannot be plotted.
 - The production HQ and contract board render at 1920x1080 and 100% UI scale.
+- Relief victory shows the first-payment exchange, with company losses reflected;
+  defeat and recurring work cannot produce it or an extra payment. Unrecorded
+  correspondence remains readable without offering Replay/Stop controls.
 
 ## Remaining live acceptance
 
