@@ -71,6 +71,18 @@
         "incomingAccuracyMult": 0.91,
         "integralSystem": {
           "id": "system.predictive-volley",
+          "presentation": {
+            "carrierLayer": {
+              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
+              "attachment": "left-shoulder",
+              "widthShoulders": 0.32,
+              "heightShoulders": 0.48,
+              "pivot": [0.5, 0.5],
+              "carried": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "using": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "visibleWhileCarried": true
+            }
+          },
           "grade": "milspec",
           "displayName": "Predictive volley",
           "description": "The same threat display that buys the Aegis its footing can just as easily lock a firing solution. When the wearer holds a clear line on something worth spending it on, the suit's shoulder pod puts a brace of smart micro-missiles into it before the wearer would otherwise get a shot off. The rack is small, it is not the wearer's rifle, and it does not refill in the field.",
@@ -210,6 +222,18 @@
         "incomingAccuracyMult": 0.90,
         "integralSystem": {
           "id": "system.predictive-breach",
+          "presentation": {
+            "carrierLayer": {
+              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
+              "attachment": "left-shoulder",
+              "widthShoulders": 0.32,
+              "heightShoulders": 0.40,
+              "pivot": [0.5, 0.5],
+              "carried": { "offsetShoulders": [-0.13, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "using": { "offsetShoulders": [-0.13, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "visibleWhileCarried": true
+            }
+          },
           "grade": "masterwork",
           "displayName": "Predictive breach",
           "description": "The threat display picks the moment and the joints spend everything on it. The window is short and comes around again quickly; the screen is a courtesy rather than a wall. Corporate doctrine holds that the fastest way through a killing ground is to not be standing in it.",
@@ -623,6 +647,18 @@
         "incomingAccuracyMult": 0.99,
         "integralSystem": {
           "id": "system.battery-volley",
+          "presentation": {
+            "carrierLayer": {
+              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
+              "attachment": "left-shoulder",
+              "widthShoulders": 0.32,
+              "heightShoulders": 0.48,
+              "pivot": [0.5, 0.5],
+              "carried": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "using": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "visibleWhileCarried": true
+            }
+          },
           "grade": "milspec",
           "displayName": "Battery volley",
           "description": "Four rounds in the rack and a doctrine for spending them. Where the Aegis waits for a firing solution its own display likes, the Arbalest waits for a target its section commander would call worth a missile, and then sends more of them than the Aegis carries in total. It is not cleverer. It is a battery.",
