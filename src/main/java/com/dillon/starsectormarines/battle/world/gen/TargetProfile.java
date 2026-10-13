@@ -58,6 +58,16 @@ import java.util.Set;
  *                      stationed detachment is never counted twice: once as the
  *                      company's own marines and again as the colony's.
  *                      {@code 0} when nothing is stationed, and never negative.
+ * @param groundDefences the world holds a dispersed network of small hardened
+ *                      emplacements (vanilla Ground Defenses, or its Heavy
+ *                      Batteries upgrade, which keeps the network). Says only
+ *                      that the world has them; who holds the world decides
+ *                      whose they are.
+ * @param heavyBatteries the world holds armoured ship-grade batteries (vanilla
+ *                      Heavy Batteries). Distinct from {@link #defenseLevel},
+ *                      which blends this with other tiers into one number.
+ * @param planetaryShield the world holds a plasma envelope against bombardment
+ *                      (vanilla Planetary Shield).
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -65,7 +75,10 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             SurfacePalette surface,
                             SettlementLink link,
                             float groundDefence,
-                            float stationedStrength) {
+                            float stationedStrength,
+                            boolean groundDefences,
+                            boolean heavyBatteries,
+                            boolean planetaryShield) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -81,7 +94,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
      */
     public static final TargetProfile NEUTRAL =
             new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
-                    SurfacePalette.ROCK, SettlementLink.ROAD, 0f, 0f);
+                    SurfacePalette.ROCK, SettlementLink.ROAD, 0f, 0f,
+                    false, false, false);
 
     public TargetProfile {
         if (factionId == null) factionId = "";
@@ -92,6 +106,24 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
         groundDefence = nonNegative(groundDefence);
         stationedStrength = nonNegative(stationedStrength);
+    }
+
+    /**
+     * The profile as it was before the market's ground-defence industries were
+     * part of it: every signal except the three defence flags, which read as
+     * absent. Kept so the many callers that describe a world rather than its
+     * fortifications need not state them.
+     */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                false, false, false);
     }
 
     /**
@@ -134,6 +166,21 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (overrideFactionId == null || overrideFactionId.equals(factionId)) return this;
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
-                groundDefence, stationedStrength);
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield);
+    }
+
+    /**
+     * This profile with the three defence signals restated and every other field
+     * left as it was. The seam a debug mission uses to field a fortress on a
+     * world whose market has none (or strip one that does), the way
+     * {@link #withFactionId} swaps the owner without disturbing the map.
+     */
+    public TargetProfile withDefences(boolean groundDefences, boolean heavyBatteries,
+                                      boolean planetaryShield) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield);
     }
 }

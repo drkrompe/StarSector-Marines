@@ -874,6 +874,9 @@ public final class BattleFixtureJson {
         encoded.put("link", profile.link().name());
         encoded.put("groundDefence", profile.groundDefence());
         encoded.put("stationedStrength", profile.stationedStrength());
+        encoded.put("groundDefences", profile.groundDefences());
+        encoded.put("heavyBatteries", profile.heavyBatteries());
+        encoded.put("planetaryShield", profile.planetaryShield());
         return encoded;
     }
 
@@ -909,7 +912,12 @@ public final class BattleFixtureJson {
                 encoded.has("groundDefence")
                         ? (float) encoded.getDouble("groundDefence") : 0f,
                 encoded.has("stationedStrength")
-                        ? (float) encoded.getDouble("stationedStrength") : 0f);
+                        ? (float) encoded.getDouble("stationedStrength") : 0f,
+                // Optional and false, like the strengths: a fixture written before
+                // the ground-defence signals describes a world with none.
+                encoded.has("groundDefences") && encoded.getBoolean("groundDefences"),
+                encoded.has("heavyBatteries") && encoded.getBoolean("heavyBatteries"),
+                encoded.has("planetaryShield") && encoded.getBoolean("planetaryShield"));
     }
 
     private static <E extends Enum<E>> E enumValue(
