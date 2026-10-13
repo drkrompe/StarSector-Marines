@@ -38,7 +38,13 @@ public final class WaylineNarration {
     public record Line(String id, String missionId, String event, String text,
                        float durationSeconds, int priority, float expiresSeconds,
                        List<String> supersedes, String speaker, String portrait,
-                       boolean voiced, boolean terminal) {
+                       boolean voiced, boolean terminal, boolean interrupts) {
+        public Line(String id, String missionId, String event, String text,
+                    float durationSeconds, int priority, float expiresSeconds, List<String> supersedes,
+                    String speaker, String portrait, boolean voiced, boolean terminal) {
+            this(id, missionId, event, text, durationSeconds, priority, expiresSeconds, supersedes,
+                    speaker, portrait, voiced, terminal, false);
+        }
         public Line(String id, String missionId, String event, String text,
                     float durationSeconds, int priority, float expiresSeconds, List<String> supersedes,
                     String speaker, String portrait) {
@@ -91,7 +97,8 @@ public final class WaylineNarration {
                     (float) entry.optDouble("expiresSeconds", 15), supersedes,
                     entry.optString("speaker", "MARA VENN / WAYLINE"),
                     entry.optString("portrait", "graphics/portraits/mara-venn.png"),
-                    entry.optBoolean("voiced", true), entry.optBoolean("terminal", false)));
+                    entry.optBoolean("voiced", true), entry.optBoolean("terminal", false),
+                    entry.optBoolean("interrupts", false)));
         }
         return new WaylineNarration(result);
     }

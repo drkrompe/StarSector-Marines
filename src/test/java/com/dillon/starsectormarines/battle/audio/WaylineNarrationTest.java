@@ -134,7 +134,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(116, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(132, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 
@@ -144,7 +144,7 @@ class WaylineNarrationTest {
         assertTrue(line.voiced(), "The replacement recording follows Junction directly");
     }
 
-    @Test void thunderDefenseGuidanceIsTextOnlyAndExplainsHandback() throws Exception {
+    @Test void thunderDefenseGuidanceIsVoicedAndExplainsHandback() throws Exception {
         var catalog = catalog();
         String chapter = "story_supply_route_thunder_run";
         for (String key : List.of("advance_distress", "defend_dispatch", "defend_crossing",
@@ -152,12 +152,22 @@ class WaylineNarrationTest {
                 "militia_gun_0_ready", "militia_gun_1_ready", "advance_load_lost", "advance_load_clear")) {
             var line = catalog.find(chapter, "supply_route.thunder_run." + key);
             assertNotNull(line);
-            assertFalse(line.voiced());
+            assertTrue(line.voiced());
             assertTrue(line.speaker().startsWith("CASTLE"));
             for (String prior : line.supersedes()) assertNotNull(catalog.find(chapter, prior));
         }
         assertTrue(catalog.find(chapter, "supply_route.thunder_run.defend_dispatch").text().contains("DEFEND AREA"));
         assertTrue(catalog.find(chapter, "supply_route.thunder_run.dispatch_window_complete").text().contains("does not expire"));
+    }
+
+    @Test void junctionAndThunderRunHaveNoSilentDialoguePlaceholders() throws Exception {
+        for (var line : catalog().lines()) {
+            if (!Set.of("story_supply_route_junction", "story_supply_route_thunder_run").contains(line.missionId())) continue;
+            assertTrue(line.voiced(), line.id());
+            assertEquals(line.event().endsWith("gunship_missile_warning")
+                    || line.event().endsWith("gunship_hit") || line.event().endsWith("gunship_lost"),
+                    line.interrupts(), "Only immediate aircraft emergencies interrupt routine speech: " + line.id());
+        }
     }
 
     @Test void coldAccountRetriesShareKordsPublicDialogue() throws Exception {

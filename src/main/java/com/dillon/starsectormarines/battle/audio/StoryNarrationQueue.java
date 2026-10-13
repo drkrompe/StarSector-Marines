@@ -17,6 +17,7 @@ public final class StoryNarrationQueue {
     private int cursor;
     private float clock;
     private boolean ended;
+    private Pending started;
 
     private record Pending(Line line, float expiresAt) {}
 
@@ -43,17 +44,32 @@ public final class StoryNarrationQueue {
         pending.removeIf(p -> ended && !p.line().terminal() || p.expiresAt() <= clock || superseded.contains(p.line().event()));
     }
 
-    public void clearPending() { pending.clear(); }
+    public void clearPending() { pending.clear(); started = null; }
 
     public boolean hasPending() { return !pending.isEmpty(); }
 
     /** Caller waits for the current mission line to finish; squad chatter cannot delay mission speech. */
     public Line poll() {
+        return poll(null);
+    }
+
+    /** Emergency speech may break routine traffic; silent reading yields to recorded speech. */
+    public Line poll(Line current) {
         Pending next = null;
-        for (Pending candidate : pending)
+        for (Pending candidate : pending) {
+            Line line = candidate.line();
+            if (current != null && !(line.voiced() && (!current.voiced()
+                    || line.interrupts() && line.priority() > current.priority()
+                    && (!current.interrupts() || line.supersedes().contains(current.event()))))) continue;
             if (next == null || candidate.line().priority() > next.line().priority()) next = candidate;
+        }
         if (next == null) return null;
         pending.remove(next);
+        // Resume an interrupted instruction only within its original relevance window.
+        if (current != null && started != null && started.line() == current
+                && started.expiresAt() > clock && !superseded.contains(current.event())
+                && (!ended || current.terminal())) pending.add(started);
+        started = next;
         return next.line();
     }
 }
