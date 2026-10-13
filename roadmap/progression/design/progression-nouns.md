@@ -673,15 +673,23 @@ accidental route to it. A running sweep only ever adds to the picture; no cell
 that was open closes because of one, and the wearer is exactly as visible while
 it runs as they were before.
 
-An equipment presentation separates catalog art, actor-local carrier layers,
+An equipment presentation separates catalog art, attached carrier layers,
 deployed-world art, and preview state. Carrier transforms are authored in
 shoulder-width coordinates with carried/using states, pivot, occlusion,
 optional recoil, and whether activation temporarily replaces the primary.
-The live layered-unit renderer and development preview gallery resolve those
-transforms through one composition helper. A later Armory sample-soldier scene
-should consume that same helper rather than recreate placement in UI code; the
-existing Armory thumbnail remains the current production surface until that
-scene is built.
+The actor is the default attachment; a definition may instead select the torso
+or either shoulder. The live layered-unit renderer, Armory sample soldiers, and
+development preview gallery resolve those transforms through one composition
+helper.
+
+An integral system may author optional carried hardware in its own presentation.
+The fitted armor's actual system identity selects that hardware, independently
+of the carried special item. It stays visible after ammunition is spent and
+during cooldown, does not replace the primary, and does not infer a shot from
+the duration of an active effect. Aegis Predictive Volley and Arbalest Battery
+Volley carry left-pauldron missile pods; Specter Predictive Breach carries a
+small screen emitter. These are presentation choices, not additional capabilities
+or changes to projectile origins.
 
 The anti-materiel rifle is a four-round precision answer to visible hardened
 targets. Its long brace locks one target and cancels when the target or direct

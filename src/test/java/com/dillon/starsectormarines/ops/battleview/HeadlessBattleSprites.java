@@ -13,6 +13,9 @@ import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -413,6 +416,16 @@ final class HeadlessBattleSprites extends BattleSprites {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {
                     loaded.registerSpecialEquipment(def.id(), layer(carrier.spritePath()));
+                }
+            }
+        }
+        MarineArmorCatalogRegistry armorRegistry = MarineArmorCatalogRegistry.installed();
+        if (armorRegistry != null) {
+            for (MarineArmorCatalogDef armor : armorRegistry.all()) {
+                IntegralSystemDef system = armor.integralSystem();
+                if (system != null && system.carrierLayer() != null) {
+                    loaded.registerIntegralSystem(system.id(),
+                            layer(system.carrierLayer().spritePath()));
                 }
             }
         }

@@ -17,6 +17,15 @@ public final class EquipmentLayerComposer {
     public static Placement resolve(EquipmentLayerDef layer, boolean using, boolean firing,
                                     float phase, float actorX, float actorY,
                                     float shoulderPx, float facingDegrees) {
+        return resolve(layer, using, firing, phase, actorX, actorY, shoulderPx,
+                facingDegrees, 1f, 1f);
+    }
+
+    /** Offsets and sprite dimensions inherit the selected attachment's local scale and bearing. */
+    public static Placement resolve(EquipmentLayerDef layer, boolean using, boolean firing,
+                                    float phase, float parentX, float parentY,
+                                    float shoulderPx, float parentDegrees,
+                                    float scaleX, float scaleY) {
         float t = firing ? 1f : using ? smoothstep(clamp01(phase)) : 0f;
         EquipmentLayerDef.State from = layer.carried();
         EquipmentLayerDef.State to = layer.using();
@@ -27,17 +36,17 @@ public final class EquipmentLayerComposer {
                 ? layer.firingOcclusion()
                 : t >= 0.5f ? to.occlusion() : from.occlusion();
 
-        float[] pivot = worldPoint(actorX, actorY, offsetX, offsetY,
-                shoulderPx, facingDegrees);
-        float width = layer.widthShoulders() * shoulderPx;
-        float height = layer.heightShoulders() * shoulderPx;
-        float angle = facingDegrees + localAngle;
+        float[] pivot = worldPoint(parentX, parentY, offsetX * scaleX, offsetY * scaleY,
+                shoulderPx, parentDegrees);
+        float width = layer.widthShoulders() * shoulderPx * scaleX;
+        float height = layer.heightShoulders() * shoulderPx * scaleY;
+        float angle = parentDegrees + localAngle;
         float centerX = (0.5f - layer.pivotX()) * width;
         float centerY = -(0.5f - layer.pivotY()) * height;
         float[] centerOffset = rotate(centerX, centerY, angle);
         if (firing && layer.recoilShoulders() > 0f) {
             float recoil = layer.recoilShoulders()
-                    * (float) Math.sin(clamp01(phase) * Math.PI) * shoulderPx;
+                    * (float) Math.sin(clamp01(phase) * Math.PI) * shoulderPx * scaleY;
             float[] recoilOffset = rotate(0f, -recoil, angle);
             centerOffset[0] += recoilOffset[0];
             centerOffset[1] += recoilOffset[1];
