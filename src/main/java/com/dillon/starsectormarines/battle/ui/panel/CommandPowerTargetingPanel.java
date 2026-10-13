@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -105,10 +108,47 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
         boolean valid = power.canTarget(cellX, cellY, sim);
+        boolean shipGrade = OrbitalBarrage.ID.equals(power.id);
+        if (shipGrade) paintDomes(sim, camera, alphaMult);
+        ShieldDomeService.DomeView cover = shipGrade
+                ? sim.shieldDomes().coverageAt(cellX + 0.5f, cellY + 0.5f, Faction.MARINE) : null;
         BattlefieldMarkerPresentation.TargetMarker marker =
                 BattlefieldMarkerPresentation.target(power.displayName, valid,
-                        power.previewRadiusCells());
+                        power.previewRadiusCells(), cover);
         paintTargetingMarker(camera, marker, centerX, centerY, alphaMult);
+    }
+
+    /**
+     * Outlines every dome the barrage would meet that the player has seen: its
+     * reach, and whether it is up (absorbs) or down. A dome in unseen ground is
+     * not announced.
+     */
+    private static void paintDomes(BattleSimulation sim, BattleCamera camera, float alphaMult) {
+        for (ShieldDomeService.DomeView dome : sim.shieldDomes().domes()) {
+            if (!dome.holder().hostileTo(Faction.MARINE)) continue;
+            if (!sim.getFogOfWar().isCellRevealed((int) Math.floor(dome.x()), (int) Math.floor(dome.y()))) continue;
+            BattlefieldMarkerPresentation.DomeMarker marker = BattlefieldMarkerPresentation.dome(dome);
+            float cx = camera.cellToScreenX(dome.x());
+            float cy = camera.cellToScreenY(dome.y());
+            float radius = marker.radiusCells() * camera.cellPxSize();
+            Color color = marker.tone();
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f,
+                    (marker.up() ? 0.85f : 0.5f) * alphaMult);
+            glLineWidth(marker.up() ? 2.25f : 1.25f);
+            glBegin(GL_LINE_LOOP);
+            for (int index = 0; index < CIRCLE_SEGMENTS; index++) {
+                double angle = Math.PI * 2.0 * index / CIRCLE_SEGMENTS;
+                glVertex2f(cx + (float) Math.cos(angle) * radius, cy + (float) Math.sin(angle) * radius);
+            }
+            glEnd();
+            glPopAttrib();
+            String label = "DOME  //  " + marker.status();
+            FONT.drawString(label, cx - FONT.measureWidth(label) * 0.5f, cy - radius - 6f, LABEL_TEXT, alphaMult);
+        }
     }
 
     static void paintTargetingMarker(BattleCamera camera,
