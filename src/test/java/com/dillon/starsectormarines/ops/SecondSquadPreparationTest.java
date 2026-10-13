@@ -33,9 +33,9 @@ class SecondSquadPreparationTest {
         assertNotNull(lesson);
         assertTrue(lesson.copy().contains("24 marines"));
         assertTrue(lesson.copy().contains("four ready marines each"));
-        assertTrue(lesson.copy().contains("marines / 12 / 0 / 12"));
-        assertTrue(lesson.copy().contains("supplies / 36 / 0 / 36"));
-        assertTrue(lesson.copy().contains("food / 24 / 0 / 24"));
+        assertTrue(lesson.copy().contains("marines · Cost 12 · Short by 12"));
+        assertTrue(lesson.copy().contains("supplies · Cost 36 · Short by 36"));
+        assertTrue(lesson.copy().contains("food · Cost 24 · Short by 24"));
         assertEquals(12, roster.lineReadySoldiers().size());
         assertFalse(roster.secondSquadPreparationSeen());
         lesson.action().run();

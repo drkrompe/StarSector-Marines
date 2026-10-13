@@ -163,7 +163,8 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
             props.put("restoration", restoration);
             if (wings != null) { wings.refresh(); props.put("wings", wings.row()); }
             var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
-                    "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx"));
+                    "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx"));
             loader.reload();
             try (var markup = loader.build(reactor, "boat-deck", props)) {
                 var document = new UiDocument(markup.root());

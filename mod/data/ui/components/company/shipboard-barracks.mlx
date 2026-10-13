@@ -2,26 +2,13 @@
   <div id="barracks-surface" class="barracks-surface">
   <div id="barracks-root" class="barracks-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <company-resource-stock stockId="barracks-issue-stock" rows="{command.issueCargoStock}" />
 
     <div id="barracks-room-bar" class="panel barracks-room-bar console-header">
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksBarracksPersonnelCommand}</div>
       <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
-      <div id="barracks-recruit-stock" class="recruit-stock console-readout">
-        <img id="barracks-recruit-stock-icon" class="recruit-icon" src="{command.recruitIcon}" />
-        <div id="barracks-recruit-stock-count" class="label heading warm recruit-count">{command.recruitStock}</div>
-        <div id="barracks-recruit-stock-label" class="label muted recruit-label">{i18n.openingUiShipboardBarracksAvailableRecruits}</div>
-      </div>
-    </div>
 
-    <div id="barracks-issue-stock" class="issue-stock-strip panel">
-      <div id="barracks-issue-stock-title" class="label heading tone-muted">{i18n.openingUiShipboardBarracksFleetCargo}</div>
-      <div id="barracks-issue-stock-rows" class="issue-stock-rows">
-        <div each="stock in command.issueCargoStock" key="{stock.id}" id="{stock.id}" class="issue-stock-row">
-          <img id="{stock.iconId}" class="issue-stock-icon" src="{stock.icon}" />
-          <div id="{stock.labelId}" class="label issue-stock-label">{stock.label}</div>
-        </div>
-      </div>
     </div>
 
     <div id="barracks-flow-actions" class="board-tools">
@@ -162,17 +149,13 @@
           </div>
           <div id="barracks-order-caption-82" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksFillVacancies}</div>
           <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
-          <div id="barracks-recruit-draw" class="recruit-draw">
-            <img id="barracks-recruit-draw-icon" class="recruit-icon" src="{command.recruitIcon}" />
-            <div id="barracks-recruit-draw-count" class="label warm recruit-count">{command.recruitDraw}</div>
-            <div id="barracks-recruit-draw-label" class="label muted recruit-label">{i18n.openingUiShipboardBarracksToEnlist}</div>
-          </div>
+          <div id="barracks-recruit-draw" class="company-recruit-bill"><company-resource-cost each="row in command.recruitBill" key="{row.id}" row="{row}" /></div>
           <div id="barracks-reinforce-action" class="order-action-row">
             <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">{i18n.openingUiShipboardBarracksFillVacancies2}</button>
           </div>
           <div id="barracks-order-caption-85" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksRestoreEquipment}</div>
           <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
-          <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
+
           <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
           <div id="barracks-issue-action" class="order-action-row">
             <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">{i18n.openingUiShipboardBarracksIssueAssignedEquipment}</button>
@@ -293,6 +276,7 @@
 </template>
 
 <style>
+  .company-recruit-bill { height: 36px; }
   .barracks-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }

@@ -1,6 +1,7 @@
 <template props="equipmentAction,survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <company-resource-stock stockId="engineering-resource-stock" rows="{workshop.stock}" />
 
     <div id="ship-view-room-bar" class="panel ship-view-room-bar console-header">
       <img id="ship-view-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -33,7 +34,7 @@
         <div id="survey-state" class="label tone-edge survey-state">{survey.status}</div>
         <div id="survey-copy" class="label wrapped survey-copy">{survey.copy}</div>
         <div id="survey-benefit" class="label wrapped survey-benefit tone-edge">{survey.benefit}</div>
-        <div id="survey-bill" class="label wrapped workshop-bill heading tone-accent">{survey.bill}</div>
+        <div id="survey-bill" class="company-credit-bill"><company-resource-cost each="row in survey.billRows" key="{row.id}" row="{row}" /></div>
         <div id="survey-reason" class="label wrapped survey-reason tone-muted">{survey.reason}</div>
         <div id="survey-actions" class="action-row">
         <button id="ship-condition-action" class="{survey.actionClasses}" disabled="{survey.disabled}" onclick="{survey.action}">{survey.actionLabel}</button>
@@ -49,13 +50,14 @@
       <img id="workshop-progress" class="workshop-progress" src="{workshop.progress}" />
       <div id="workshop-copy" class="label wrapped workshop-copy">{workshop.copy}</div>
       <div id="workshop-benefit" class="label wrapped workshop-benefit tone-edge">{workshop.benefit}</div>
-      <div id="workshop-bill" class="label wrapped workshop-bill heading tone-accent">{workshop.bill}</div>
+      <div id="workshop-bill" class="company-credit-bill"><company-resource-cost each="row in workshop.billRows" key="{row.id}" row="{row}" /></div>
       <div id="workshop-reason" class="label wrapped workshop-reason tone-muted">{workshop.reason}</div>
       <div id="workshop-actions" class="action-row">
         <button id="workshop-action" class="{workshop.actionClasses}" disabled="{workshop.disabled}" onclick="{workshop.action}">{workshop.actionLabel}</button>
         <button id="workshop-focus" class="focus-action console-action" onclick="{workshop.inspect}">{i18n.openingUiShipViewView}</button>
       </div>
       <div id="workshop-reclaim" class="{workshop.reclaimClasses}">
+        <div id="workshop-reclaim-bill" class="company-credit-bill"><company-resource-cost each="row in workshop.reclaimBill" key="{row.id}" row="{row}" /></div>
         <div id="workshop-reclaim-copy" class="label wrapped reclaim-copy heading">{workshop.reclaimCopy}</div>
         <div id="workshop-reclaim-reason" class="label wrapped reclaim-reason tone-muted">{workshop.reclaimReason}</div>
         <div id="workshop-reclaim-actions" class="action-row">
@@ -71,6 +73,7 @@
 </template>
 
 <style>
+  .company-credit-bill { height: 36px; }
   .ship-view-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
@@ -116,6 +119,7 @@
   .survey-copy { height: auto; }
   .survey-benefit { height: auto; }
   .survey-reason { height: auto; }
-  #survey-bill, #survey-feedback { height: auto; }
+  #survey-feedback { height: auto; }
+  #survey-bill { height: 36px; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>

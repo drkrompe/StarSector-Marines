@@ -473,11 +473,9 @@ public final class ShipTransferViewModel {
         if (preparationBlocked()) return Strings.get("openingShipTransferFirstMissionStoresOrBoatBerthMissing");
         TransferCost price = costOf(ship);
         if (price.free()) {
-            return unquartered() ? Strings.get("openingShipTransferNoChargeThereIsNowhereToMove") : "";
+            return "";
         }
-        String line = Strings.format("openingShipTransferRefitCredits", money(price.credits()), moved(price));
-        int shortfall = price.credits() - means.credits();
-        return shortfall > 0 ? Strings.format("openingShipTransferShort", line, money(shortfall)) : line;
+        return CompanyResources.creditBill(price.credits(), means.credits());
     }
 
     /** Who and what the yard is being paid to shift. */
@@ -514,6 +512,19 @@ public final class ShipTransferViewModel {
                 ShipsBoats.carriedBy(ship.ship()), ShipsBoats.aboard(ship.ship()).size(), preparationResources);
     }
 
+    public Signal<List<CompanyResources.Row>> resourceStock() {
+        return revision.map(ignored -> {
+            List<CompanyResources.Row> rows = new ArrayList<>(CompanyResources.credits("transfer-credit-stock", means.credits(), 0));
+            if (CompanyPreparation.required(preparationRoster)) {
+                for (String commodity : List.of("marines", "supplies", "food", "heavy_machinery", "metals", "rare_metals")) {
+                    rows.add(CompanyResources.stock("transfer-stock:" + commodity, preparationResources.commodityName(commodity),
+                            preparationResources.commodityIcon(commodity), preparationResources.available(commodity)));
+                }
+            }
+            return List.copyOf(rows);
+        });
+    }
+
     public String preparationBill() {
         if (CerberusCompanyStart.conversionRequired()) return CerberusCompanyStart.instructions();
         Candidate ship = selected();
@@ -522,9 +533,9 @@ public final class ShipTransferViewModel {
         StringBuilder text = new StringBuilder(Strings.get("openingShipTransferFirstMissionStoresCostAvailableShortBy"));
         for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship()))) {
             int available = preparationResources.available(line.commodityId());
-            text.append(preparationResources.commodityName(line.commodityId())).append(": ")
-                    .append(line.quantity()).append(" / ").append(available).append(" / ")
-                    .append(Math.max(0, line.quantity() - available)).append('\n');
+            text.append(Strings.format("companyResourceNamedCost", preparationResources.commodityName(line.commodityId()), CompanyResources.number(line.quantity())));
+            if (available < line.quantity()) text.append(" · ").append(Strings.format("companyResourceShortBy", CompanyResources.number(line.quantity() - available)));
+            text.append('\n');
         }
         return text.append(Strings.get("openingShipTransferCheckedNowEachWorkshopSpendsOnlyWhen")).toString();
     }

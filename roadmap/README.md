@@ -190,8 +190,8 @@ command station, Fleet Armory owns deliberate equipment inspection and issue
 and stages bulk home-officer organization from its company squad gallery,
 and Barracks owns bulk personnel command, saved profiles and replenishment between
 operations. The active Alpha pickup, `barracks-turnaround.md`, adds survivor
-consolidation and a guided preparation handoff; `company-resource-bills.md` follows
-with consistent upgrade bills across rooms. `castle-officer-induction.md` adds
+consolidation and a guided preparation handoff. Shared stock displays and upgrade
+bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds
 Castle's portrait-led first specialty and squad assignment for founding commander
 Mira Hale, required before a new company deploys; live acceptance remains open.
 `first-mission-preparation.md` extends that lesson into one sequence from ship

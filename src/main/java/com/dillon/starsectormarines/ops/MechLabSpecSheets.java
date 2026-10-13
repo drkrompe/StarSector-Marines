@@ -73,11 +73,11 @@ final class MechLabSpecSheets {
     static void bindMaterials(SpecSheetBinder binder, MarkupInstance markup,
                               MechLabViewModel viewModel) {
         if (binder == null) return;
-        for (MechLabViewModel.MaterialRow material : viewModel.materialStock().get()) {
+        for (CompanyResources.Row material : viewModel.materialStock().get()) {
             bindMaterial(binder, markup, material, () -> viewModel.materialStock().get());
         }
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
-            for (MechLabViewModel.MaterialRow material : row.materials()) {
+            for (CompanyResources.Row material : row.materials()) {
                 bindMaterial(binder, markup, material, () -> viewModel.catalogRows().get().stream()
                         .flatMap(current -> current.materials().stream()).toList());
             }
@@ -85,8 +85,8 @@ final class MechLabSpecSheets {
     }
 
     private static void bindMaterial(SpecSheetBinder binder, MarkupInstance markup,
-                                     MechLabViewModel.MaterialRow material,
-                                     Supplier<List<MechLabViewModel.MaterialRow>> currentRows) {
+                                     CompanyResources.Row material,
+                                     Supplier<List<CompanyResources.Row>> currentRows) {
         UiElement target = markup.requireElement(material.id());
         if (!binder.isBound(target)) {
             binder.bind(target, () -> currentRows.get().stream()
@@ -95,13 +95,13 @@ final class MechLabSpecSheets {
         }
     }
 
-    static SpecSheet materialSheet(MechLabViewModel.MaterialRow material) {
+    static SpecSheet materialSheet(CompanyResources.Row material) {
         boolean cost = material.required() > 0;
         return new SpecSheet(material.name(), cost ? Strings.get("openingMechLabSpecSheetsManufacturingCost") : Strings.get("openingMechLabSpecSheetsFleetMaterials"),
                 material.icon(), "item", cost ? List.of(
-                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsRequired"), Integer.toString(material.required())),
-                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsInCargo"), Integer.toString(material.available())))
-                        : List.of(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsInCargo"), Integer.toString(material.available()))),
+                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsRequired"), CompanyResources.number(material.required())),
+                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsInCargo"), CompanyResources.number(material.available())))
+                        : List.of(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsInCargo"), CompanyResources.number(material.available()))),
                 List.of(cost ? material.available() >= material.required()
                         ? Strings.get("openingMechLabSpecSheetsEnoughInCargoForThisMaterialCost")
                         : Strings.format("openingMechLabSpecSheetsShortBy", (material.required() - material.available()))
