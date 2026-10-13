@@ -73,8 +73,12 @@ final class AssaultMuster {
     static final int STRAGGLER_GRACE_TICKS = 900;
     /** A squad within this many cells of the rally point has arrived. UNTUNED. */
     static final int RALLY_RADIUS_CELLS = 10;
-    /** How far short of the objective the staging cell lies when the objective is far from the drop zone. UNTUNED. */
-    static final int STAGING_STANDOFF_CELLS = 56;
+    /**
+     * How far short of the objective the staging cell lies when the objective is far from the drop zone. A fort's
+     * outer nests stand about forty cells out from its centre and reach some thirty more, so a staging cell nearer
+     * than this is under the works' guns while the company is still only gathering. UNTUNED.
+     */
+    static final int STAGING_STANDOFF_CELLS = 90;
     /** A staging cell with a believed hostile this close is unsafe and is pulled back. UNTUNED. */
     static final int SAFE_CONTACT_CELLS = 24;
     /** How far a staging cell may slide off its line to find walkable, reachable ground. */
@@ -131,6 +135,8 @@ final class AssaultMuster {
         boolean boundReleased;
         /** The tick the company first had everything it can get at the rally and still fell short, or -1. */
         int fullSince = -1;
+        /** Reinforcement (a lance called down) is due by this tick: no grace cut-short and no timeout before it. */
+        int expectUntil = -1;
 
         int graceFrom(int tick) {
             if (fullSince < 0) fullSince = tick;
@@ -154,6 +160,17 @@ final class AssaultMuster {
     void dissolveAll() {
         companies.clear();
         footholdSquad = -1;
+    }
+
+    /**
+     * The commander has called reinforcement for this objective (a mech lance); the muster waits for it until
+     * {@code untilTick} rather than cutting its grace short or timing out.
+     */
+    void expectReinforcement(int fortId, int untilTick) {
+        Company company = companies.get(fortId);
+        if (company == null) return;
+        company.expectUntil = Math.max(company.expectUntil, untilTick);
+        company.timeoutTick = Math.max(company.timeoutTick, untilTick);
     }
 
     boolean active() {
@@ -409,7 +426,7 @@ final class AssaultMuster {
         // come, not the whole timeout.
         boolean exhausted = strengthOf(company, byId) < required
                 && (freeBodies(byId).isEmpty() || roomLeft - recruited <= 0);
-        if (exhausted && !company.members.isEmpty() && arrivedSquads == company.members.size()) {
+        if (exhausted && !company.members.isEmpty() && arrivedSquads == company.members.size() && tick >= company.expectUntil) {
             company.timeoutTick = Math.min(company.timeoutTick, company.graceFrom(tick) + STRAGGLER_GRACE_TICKS);
         } else {
             company.fullSince = -1;

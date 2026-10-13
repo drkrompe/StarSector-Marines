@@ -319,7 +319,7 @@ class AssaultMusterTest {
         // A far fort: the company stages well up the approach and commits there.
         List<Objective> objectives = List.of(fort(1, 250, 150, 0));
         List<Body> gathered = new ArrayList<>();
-        for (int i = 1; i <= 8; i++) gathered.add(squad(i, 194, 150, 12));
+        for (int i = 1; i <= 8; i++) gathered.add(squad(i, 160, 150, 12));
         CompanyState committed = company(pulse(muster, 0, objectives, gathered, topology));
         assertEquals("ASSAULT", committed.stage());
         assertEquals(List.of(1, 2), committed.squadIds());
@@ -345,7 +345,7 @@ class AssaultMusterTest {
         AssaultMuster muster = new AssaultMuster();
         List<Objective> objectives = List.of(fort(1, 250, 150, 0));
         List<Body> gathered = new ArrayList<>();
-        for (int i = 1; i <= 8; i++) gathered.add(squad(i, 194, 150, 12));
+        for (int i = 1; i <= 8; i++) gathered.add(squad(i, 160, 150, 12));
         pulse(muster, 0, objectives, gathered, topology);
         List<Body> strung = new ArrayList<>(gathered);
         strung.set(0, new Body(1, 215, 150, 12, false, false, true, null)); // in contact
