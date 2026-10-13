@@ -32,14 +32,18 @@ public final class StructureDef {
     public final String batteryLoadoutId;
     /** Cells around the anchor within which standing marks the battery's fire control as taken; zero for a non-battery. */
     public final float fireControlRadius;
+    /** The painted base and animated overlay layers, or null for a structure drawn as a flat pad under its mount. */
+    public final StructureArt art;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
                          float radius, float hitHalfHeight,
                          int footprintCellsX, int footprintCellsY, float forceScore,
                          String mountId, TurretMountDef mount,
-                         String batteryLoadoutId, float fireControlRadius, DomeSpec dome) {
+                         String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
+                         StructureArt art) {
         this.dome = dome;
+        this.art = art;
         this.id = id;
         this.displayName = displayName;
         this.maxStructure = maxStructure;
@@ -120,10 +124,12 @@ public final class StructureDef {
                 throw new JSONException("Structure '" + id + "' is a battery and needs a footprint of at least 3x3");
             }
         }
+        JSONObject artJson = json.optJSONObject("art");
+        StructureArt art = artJson != null ? StructureArt.parse(id, artJson) : null;
         return new StructureDef(
                 id, TurretMountDef.requireText(catalog, "displayName"),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount,
-                batteryLoadoutId, fireControlRadius, dome);
+                batteryLoadoutId, fireControlRadius, dome, art);
     }
 }
