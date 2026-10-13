@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — suit-mounted ordnance shares a physical muzzle with its visible firing pose.
+Updated: 2026-10-13 — squads rotate eligible pod carriers and space their salvos through an authored use policy.
 
 ## Purpose
 
@@ -693,6 +693,15 @@ system may separately declare its physical shoulder mount and muzzle geometry.
 Both the resolved round and its visual shot start at that muzzle, and a committed
 launch drives the short firing pose. The muzzle cannot reach through a blocking
 wall or edge to authorize a shot the wearer could not physically launch.
+
+Integral missile use is coordinated within a squad. The first eligible wearer
+may launch immediately; the squad then waits the firing pattern's authored
+salvo interval before another wearer may spend a use. Opportunities rotate
+among carriers who are currently ready and have a legal target and muzzle.
+A dead, empty, blocked, or out-of-range wearer cannot reserve the next turn.
+Waiting neither spends ammunition nor interrupts rifle fire, and another
+squad has its own cadence. Individual ammunition and readiness remain with
+each suit; the referenced weapon still owns the missiles within one salvo.
 
 The anti-materiel rifle is a four-round precision answer to visible hardened
 targets. Its long brace locks one target and cancels when the target or direct
