@@ -129,6 +129,7 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -283,6 +284,11 @@ public final class BattleSetup {
      * construction (it flips the turret-pad cells non-walkable post-bake), so the
      * historical turret-after-vehicle cover-bake ordering is preserved.
      */
+    /** The surface palette a target profile stands for; null (bare rock) when the battle has no planet behind it. */
+    private static SurfacePalette surfaceOf(TargetProfile profile) {
+        return profile == null ? null : profile.surface();
+    }
+
     public static MapBuild buildMap(MapResult map, List<Doodad> parkedVehicles,
                                     List<DefensePost> defensePosts, long seed) {
         return buildMap(map, parkedVehicles, defensePosts, Collections.emptyList(), seed);
@@ -477,6 +483,7 @@ public final class BattleSetup {
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
+        sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
@@ -1050,6 +1057,7 @@ public final class BattleSetup {
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
+        sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
@@ -1255,6 +1263,7 @@ public final class BattleSetup {
         List<ParkedAircraft> parkedAircraft = List.of();
         BattleSimulation sim = buildMap(map, vehiclePlacements,
                 Collections.emptyList(), parkedAircraft, seed).sim();
+        sim.setSurface(surfaceOf(effectiveProfile));
 
         sim.addObjective(new EliminateFactionObjective(
                 Faction.MARINE, Faction.DEFENDER));
@@ -1367,6 +1376,7 @@ public final class BattleSetup {
         var layout = JunctionCompound.generate(seed, profile);
         MapResult map = layout.map();
         BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
@@ -1421,6 +1431,7 @@ public final class BattleSetup {
         var layout = RelayNineCompound.generate(seed, profile);
         MapResult map = layout.map();
         BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
@@ -1475,6 +1486,7 @@ public final class BattleSetup {
         var layout = ThunderRunCompound.generate(seed, profile);
         MapResult map = layout.map();
         BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
@@ -1544,6 +1556,7 @@ public final class BattleSetup {
         var layout = LastLiftCompound.generate(seed, profile, attempt.people().size());
         MapResult map = layout.map();
         BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission("rescue-corridor", "Company support joins the operation"));
         var payload = CivilianEvacuationPayload.installAuthored(sim, layout.placement(), "RILL-CREW", "Rill work crew", true);
@@ -1703,6 +1716,7 @@ public final class BattleSetup {
                     // so the fight on that map must be too.
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList(), parkedAircraft, battleSeed).sim();
+            sim.setSurface(surfaceOf(profile));
 
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, map, battleSeed);
@@ -2127,6 +2141,7 @@ public final class BattleSetup {
         MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(),
                 generated.seed());
         BattleSimulation sim = build.sim();
+        sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
