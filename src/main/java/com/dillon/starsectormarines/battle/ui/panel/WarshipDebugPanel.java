@@ -104,7 +104,7 @@ public final class WarshipDebugPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return DevConfig.DEBUG_WARSHIP_PICKER && ship() != null && ctx.getLayout() != null
+        return DevConfig.DEBUG_WARSHIP_PICKER && ctx.debugHudVisible() && ship() != null && ctx.getLayout() != null
                 && DebugHudLayout.shipTop(ctx) - requiredHeight() >= bottomFloor() + BattleLayout.CONTROLS_GAP;
     }
 

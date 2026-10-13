@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.ShipOrderTargetingPanel;
+import com.dillon.starsectormarines.battle.ui.panel.DebugHudSwitchPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugHudLayout;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
@@ -275,6 +276,12 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Debug toggle (Z) — tints each navigation zone with a stable per-id color so the partitioning + new portals from wall breaches are eyeball-verifiable. */
     @DebugOnly
     private boolean debugZonesVisible;
+    /**
+     * Whether the developer HUD draws. Off by default; the DEBUG button flips it. Static so one
+     * choice carries across battles in a session, like the renderer's other debug switches.
+     */
+    @DebugOnly
+    private static boolean debugHudVisible;
     private boolean debugMarineFriendlyInfluence;
     private boolean debugMarineHostileInfluence;
     private boolean debugDefenderFriendlyInfluence;
@@ -774,6 +781,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
+        // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
+        hud.addPanel(new DebugHudSwitchPanel(this));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -1041,6 +1050,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         return battleComms == null || directControlInput.active() ? topCenterContentBottom()
                 : Math.min(topCenterContentBottom(), battleComms.noticeBottom());
     }
+
+    @Override public boolean debugHudVisible() { return debugHudVisible; }
+
+    @Override public void setDebugHudVisible(boolean visible) { debugHudVisible = visible; }
 
     @Override public float developerHudBottom() {
         return DebugHudLayout.clusterBottom(this, tickProfilePanel, debugPanel);
