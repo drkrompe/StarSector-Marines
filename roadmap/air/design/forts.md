@@ -1,8 +1,10 @@
 # Forts — defences you have to take apart
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-14
+
+Updated: 2026-10-13 — owner approved the direction; slice 1 (battery fort) in progress.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
