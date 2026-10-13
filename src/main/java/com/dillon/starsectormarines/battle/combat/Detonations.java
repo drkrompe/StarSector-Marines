@@ -64,6 +64,25 @@ public class Detonations {
     /** Told of every detonation as it lands, for bodies that are not in the roster (a warship's hull). */
     private Consumer<PendingDetonation> observer;
 
+    /**
+     * Asked first of every detonation whether something already stopped it: a
+     * planetary shield dome that takes ship-grade ordnance as flux. Null where
+     * the battle has no such thing.
+     */
+    private Screen screen;
+
+    /** Something between the sky and the ground that can take a detonation before it lands. */
+    @FunctionalInterface
+    public interface Screen {
+        /** True when the detonation was absorbed and must not land. */
+        boolean absorbs(PendingDetonation det);
+    }
+
+    /** Sets what may absorb a detonation before it lands. */
+    public void screen(Screen screen) {
+        this.screen = screen;
+    }
+
     public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapEditor mapEditor,
                        EffectsService effects, NoiseEventBus noiseEvents,
@@ -133,6 +152,10 @@ public class Detonations {
      * {@code UnitSpatialIndex} if detonation frequency ever rises.
      */
     private void detonate(PendingDetonation det) {
+        if (screen != null && screen.absorbs(det)) {
+            det.markAbsorbed();
+            return;
+        }
         if (observer != null) observer.accept(det);
         noiseEvents.post(det.endpointX, det.endpointY,
                 Math.min(4f, 2f + det.aoeRadius), 0L,

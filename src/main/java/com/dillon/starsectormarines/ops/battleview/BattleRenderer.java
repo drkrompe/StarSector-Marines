@@ -305,6 +305,7 @@ public class BattleRenderer {
                 new UnitRenderService(sprites),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
+                new ShieldDomeRenderSystem(),
                 new TenderSiteRenderSystem(),
                 new FragGrenadeRenderSystem(),
                 new SmokeRenderSystem(sprites),

@@ -1094,6 +1094,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         ordnanceAudio.update(releases, arrivals, simDt);
         WarshipAudio.play(sim.warships().cuesThisFrame());
+        WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
     }
 

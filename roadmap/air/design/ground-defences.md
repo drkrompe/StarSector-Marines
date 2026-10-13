@@ -4,13 +4,13 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 and 2 built (profile signals; multi-cell structures); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1, 2 and 4 built (profile signals; multi-cell structures; shield generator and dome); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
 command-power stories `shielded-fire-support-zones.md` and
 `orbital-battery-fire-support-lock.md` first. This doc proposes what a world's ground
-defences are in a battle. Nothing here is built.
+defences are in a battle. Slices 1, 2 and 4 are built; the rest is proposed.
 
 ## What the owner asked for
 
@@ -122,8 +122,34 @@ capital that is not another ship.
 3. **Fortress battery**: placement in the fortress ward, vanilla station-module guns,
    ground-to-air aim at a hull in the envelope, the envelope registered as a capital
    hazard, fire control and its capture rules, and the Orbital Barrage lock.
-4. **Shield generator**: the dome, its pool and overload, absorption of ship-grade
-   ordnance and barrage, the dome's look, and its capture rules.
+4. **Shield generator** (built; see below): the dome, its pool and overload, absorption of ship-grade
+   ordnance and barrage, the dome's look, and its capture rules. As built: the catalog's
+   `structure.shield-generator` (3x3, role STRUCTURE, no gun) carries an optional `dome` block
+   (`DomeSpec`: radius, flux capacity, dissipation, overload seconds, capture radius and time),
+   and spawning it registers a dome with `ShieldDomeService`. Ship-grade ordnance is marked at its
+   source (`PendingDetonation.asShipGrade` on warship rounds, warheads, lance beams and Orbital
+   Barrage) and `Detonations` asks the domes before anything lands, so a hostile round inside an
+   up dome becomes flux (the larger of its damage and wall damage) and does nothing else, ship
+   landing FX and cues included. The round that fills the pool is absorbed; the dome then drops
+   for its overload time and recovers empty. Small arms, mech weapons, rockets, aircraft and
+   their ordnance are not touched (decided: the dome is ship-grade only). Capture: combatants
+   within the capture radius and none of the holder's friends take it after the capture time, the
+   holder's friends alone wind it back, and a taken dome reboots for 4 s; the entity's own faction
+   never changes, so the holder is the service's record. Destroying the generator drops the dome.
+   Look: `ShieldDomeRenderSystem` (HAZARDS) in the warship shield's cyan for the player's side and
+   red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
+   an enemy dome draws only where the map has been seen. Sounds are the game's own
+   `hit_shield_heavy_gun`, `shield_burnout` and `shield_raise` through the warship cue path.
+   A Conquest whose profile states a planetary shield places one beside the keep, held by the
+   garrison (`ShieldGeneratorPlacement.nearKeep`); how many missions state one stays mission
+   design's call. All figures are first-pass and **untuned** (1500 flux, 60 per second, 9 s
+   overload, 16 cells). Evidence: `ShieldDomeServiceTest` and the `shield-dome` scene (control,
+   dome, destroyed). Still to do: generator art (a placeholder pad and the dome's core glow stand
+   in), AI awareness (no squad is sent to take or wreck a generator and nothing orders a
+   defender to retake one; a taken generator is still shot by its original side's enemies because
+   its entity faction is fixed), a campaign mission that places one for a market-held
+   shield, and the barrage-targeting preview showing a dome (barrage is absorbed, not denied, so
+   `shielded-fire-support-zones.md`'s denial contract needs reconciling with the owner's decision).
 5. **Defence nests**: the dispersed posts, sized by the mission; anti-air already exists.
 
 ## Decided
