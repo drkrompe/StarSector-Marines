@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -45,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Opt-in bounded production playback. A timeout is an observation, never a victory. */
 public final class ColdStartSnapshotSuite implements SnapshotSuite {
     private record Fixture(String id, long seed, boolean mixed, boolean absent, boolean build,
-                           boolean retreat, boolean delivered, boolean powered) { }
+                           boolean retreat, boolean delivered, boolean powered, boolean boatless) { }
 
     public String id() { return "cold-start"; }
     public String label() { return "Cold Start: named company, physical repair carrier and grounded builders"; }
@@ -75,12 +76,14 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                 + "1920x1080 / 100% UI scale. Serial unit updates. No Hound, officer bonuses or casualty carryover.\n"
                 + "Ordinary fixtures request one yard-construction command at the suggested site; infantry remain autonomous.\n"
                 + "Outcomes and turret fire are observations. This does not certify live campaign persistence or balance.\n");
+        airborneControl(context, frames, report);
         var fixtures = List.of(
-                new Fixture("paired-aero-14101", 14101, false, false, true, false, false, false),
-                new Fixture("mixed-lift-14102", 14102, true, false, true, false, false, false),
-                new Fixture("absent-company", 14101, false, true, false, false, false, false),
-                new Fixture("no-build", 14101, false, false, false, false, false, false),
-                new Fixture("withdraw-after-power", 14101, false, false, false, true, false, false));
+                new Fixture("paired-aero-14101", 14101, false, false, true, false, false, false, false),
+                new Fixture("mixed-lift-14102", 14102, true, false, true, false, false, false, false),
+                new Fixture("absent-company", 14101, false, true, false, false, false, false, false),
+                new Fixture("no-build", 14101, false, false, false, false, false, false, false),
+                new Fixture("withdraw-after-power", 14101, false, false, false, true, false, false, false),
+                new Fixture("no-company-boats", 14101, false, false, true, false, false, false, true));
         ColdStartProgress.Report withdrawal = null;
         for (var fixture : fixtures) {
             try {
@@ -100,10 +103,53 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
             assertEquals(0, receipt.settleColdStart(attempt, "Asharu", false, 0, withdrawal.crewLost(),
                     withdrawal.cargoDelivered(), withdrawal.shorePower(), withdrawal.turretConstructed(), withdrawal.repaired()));
             play(context, new Fixture("retry-powered", 14101, false, false, true, false,
-                    receipt.cargoDelivered(), receipt.shorePower()), frames, report);
+                    receipt.cargoDelivered(), receipt.shorePower(), false), frames, report);
         } else report.append("\nPowered retry not observed: withdrawal fixture did not restore shore power within the bounded run.\n");
         Files.writeString(output.resolve("playback.txt"), report);
         return frames;
+    }
+
+    /** Same campaign overlay on the preceding chapter still requires physical air arrival. */
+    private void airborneControl(SnapshotContext context, List<SnapshotArtifact> frames, StringBuilder report) throws Exception {
+        var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
+        assertEquals(MarineArrivalPolicy.PAIRED_HALF_SQUAD, mission.marineArrivalPolicy);
+        var roster = DebugMissionCatalog.starterCompany(2);
+        var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
+        var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 24);
+        var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission,
+                List.of(FittedBoat.standard(ShuttleType.AEROSHUTTLE)), 24);
+        try (var sim = BattleSetup.createSalvageRights(14101, manifest,
+                new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ARID, SettlementLink.ROAD))) {
+            assertFalse(sim.companyStartsOnGround());
+            deployment.applyToAuthoredPlayerLift(sim);
+            Set<String> aboard = new HashSet<>();
+            for (long air : sim.getAirEntityIds()) {
+                if (sim.world().airFaction(air) != Faction.MARINE) continue;
+                var flight = sim.world().mission(air);
+                assertEquals(ShuttleState.PENDING, flight.state);
+                for (var cycle : flight.cycleLoadouts) for (var seat : cycle) assertTrue(aboard.add(seat.campaignSoldierId));
+            }
+            assertEquals(24, aboard.size());
+            for (int i = 0; i < sim.liveUnitCount(); i++) assertNotEquals(Faction.MARINE, sim.identity().faction(sim.liveUnitAt(i)));
+            Set<String> landed = new HashSet<>();
+            while (sim.getSimTickIndex() < 6000 && landed.size() < 24 && !sim.isComplete()) {
+                sim.advance(BattleSimulation.TICK_DT);
+                for (int i = 0; i < sim.liveUnitCount(); i++) {
+                    long unit = sim.liveUnitAt(i);
+                    if (sim.identity().faction(unit) != Faction.MARINE) continue;
+                    String soldier = (String) sim.getEntityWorld().getObject(unit, sim.getBattleComponents().IDENTITY,
+                            BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
+                    assertTrue(aboard.contains(soldier));
+                    landed.add(soldier);
+                }
+            }
+            assertEquals(24, landed.size(), "Preceding chapter retains physical repeated shuttle insertion");
+            frames.add(new SnapshotArtifact("salvage-rights-airborne-control.png",
+                    new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 45, 88, 95).render(sim,
+                            "UNCHANGED SALVAGE RIGHTS / PHYSICAL SHUTTLE ARRIVALS / TICK " + sim.getSimTickIndex())));
+            report.append("Airborne control: Salvage Rights; zero company ashore at launch, 24 named arrivals by tick ")
+                    .append(sim.getSimTickIndex()).append(".\n");
+        }
     }
 
     private ColdStartProgress.Report play(SnapshotContext context, Fixture fixture, List<SnapshotArtifact> frames,
@@ -117,13 +163,13 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
         var roster = DebugMissionCatalog.starterCompany(2);
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 24);
-        var boats = List.of(FittedBoat.standard(fixture.mixed ? ShuttleType.HERMES : ShuttleType.AEROSHUTTLE),
+        List<FittedBoat> boats = fixture.boatless ? List.of() : List.of(FittedBoat.standard(fixture.mixed ? ShuttleType.HERMES : ShuttleType.AEROSHUTTLE),
                 FittedBoat.standard(ShuttleType.AEROSHUTTLE));
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
         try (var sim = BattleSetup.createColdStart(fixture.seed, manifest,
                 new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ARID, SettlementLink.ROAD),
                 fixture.delivered, fixture.powered)) {
-            deployment.applyToAuthoredPlayerLift(sim);
+            if (!fixture.absent) deployment.applyToAuthoredPlayerLift(sim);
             var sequence = sim.getColdStart();
             long initialCarrier = sequence.repairCarrierId();
             float carrierStartX = initialCarrier == 0 ? Float.NaN : sim.convoy().body(initialCarrier).x;
@@ -131,15 +177,14 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
             var committed = new HashSet<String>();
             var soldierSquads = new HashMap<String, String>();
             for (var seat : deployment.commitments()) soldierSquads.put(seat.campaignSoldierId(), seat.campaignSquadId());
+            for (var seat : deployment.commitments()) assertTrue(committed.add(seat.campaignSoldierId()));
             int aircraft = 0;
             for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.MARINE) {
                 assertSame(boats.get(aircraft++), sim.world().airframe(air));
                 var flight = sim.world().mission(air);
-                for (var cycle : flight.cycleLoadouts) for (var person : cycle) {
-                    assertNotNull(person.campaignSoldierId);
-                    assertTrue(committed.add(person.campaignSoldierId));
-                }
-                if (fixture.absent) flight.pendingDelay += 9999;
+                assertEquals(0, flight.marinesRemaining, "Company has no inbound passengers");
+                assertEquals(0, flight.marineLoadout.length);
+                assertEquals(ShuttleState.GONE, flight.state, "Fitted boat remains in reserve");
             }
             assertEquals(24, committed.size());
             assertEquals(boats.size(), aircraft);
@@ -155,11 +200,32 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
             frames.add(frame(fixture.id + "-approach.png", sim, approachRenderer, "COLD START / " + phase));
             var landed = new HashSet<String>();
             var reunited = new HashMap<String, Set<Integer>>();
+            var occupiedStarts = new HashSet<String>();
+            for (int i = 0; i < sim.liveUnitCount(); i++) {
+                long unit = sim.liveUnitAt(i);
+                if (sim.identity().faction(unit) != Faction.MARINE) continue;
+                String soldier = (String) sim.getEntityWorld().getObject(unit, sim.getBattleComponents().IDENTITY,
+                        BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
+                assertNotNull(soldier, "Every company member begins with named campaign identity");
+                assertTrue(occupiedStarts.add(sim.world().cellX(unit) + "," + sim.world().cellY(unit)), "Distinct occupied start positions");
+                assertTrue(sim.playerSeesCell(sim.world().cellX(unit), sim.world().cellY(unit)), "Company contributes fog at tick zero");
+                assertTrue(committed.contains(soldier));
+                assertTrue(landed.add(soldier), "Each named marine is deployed once at tick zero");
+                reunited.computeIfAbsent(soldierSquads.get(soldier), ignored -> new HashSet<>()).add(sim.squad().squadId(unit));
+                var seat = deployment.commitments().stream().filter(value -> value.campaignSoldierId().equals(soldier)).findFirst().orElseThrow();
+                var squad = sim.getSquad(sim.squad().squadId(unit));
+                assertEquals(seat.campaignSquadStrength(), sim.squadMemberCount(squad.id));
+                assertEquals(seat.campaignFireTeamIndex(), sim.squad().fireTeamIndex(unit));
+                if (seat.campaignSquadLeader()) assertEquals(unit, squad.leaderId, "Campaign NCO leads the ground formation");
+                assertTrue(sim.getGrid().isWalkable((int) sim.world().x(unit), (int) sim.world().y(unit)));
+            }
+            assertEquals(fixture.absent ? 0 : 24, landed.size(), "Selected company starts entirely ashore before time advances");
+            frames.add(frame(fixture.id + "-company-ground-start.png", sim, landingRenderer, "SELECTED NAMED COMPANY / TICK ZERO / ALREADY ASHORE"));
             var shots = new HashMap<Long, Integer>();
             boolean requested = false;
             boolean firingFrame = false;
             boolean buildingFrame = false;
-            boolean landingFrame = false;
+            boolean landingFrame = true;
             boolean escortFrame = false;
             int maxTicks = fixture.absent ? 3600 : Integer.getInteger("battle.coldStart.maxTicks", 18000);
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
@@ -206,7 +272,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                 if (!landingFrame && !landed.isEmpty()) {
                     landingFrame = true;
                     frames.add(frame(fixture.id + "-first-landing.png", sim, landingRenderer,
-                            "ACTUAL COMPANY LIFT / " + boats + " / TICK " + sim.getSimTickIndex()));
+                            "ACTUAL COMPANY GROUND START / " + boats + " / TICK " + sim.getSimTickIndex()));
                 }
                 if (!escortFrame && initialCarrier != 0 && sim.convoy().body(initialCarrier).x >= 40
                         && sim.convoy().body(initialCarrier).x <= 55) {
@@ -252,8 +318,8 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                 assertFalse(result.repaired());
                 assertEquals(carrierStartX, sim.convoy().body(initialCarrier).x, .01f, "Carrier physically waits for absent escort");
                 assertEquals(carrierStartY, sim.convoy().body(initialCarrier).y, .01f, "Carrier physically waits for absent escort");
-            } else if (!fixture.delivered) assertEquals(24, landed.size(), "Every committed marine lands through real boat cycles");
-            for (var ids : reunited.values()) assertEquals(1, ids.size(), "Each campaign squad reunites across physical trips");
+            } else if (!fixture.delivered) assertEquals(24, landed.size(), "Every committed marine begins on secured ground");
+            for (var ids : reunited.values()) assertEquals(1, ids.size(), "Each campaign squad remains one formation");
             if (!fixture.build) assertFalse(result.turretConstructed());
             if (fixture.retreat && result.shorePower()) assertFalse(result.repaired());
             boolean powered = sim.getTopology().nightLighting().poweredCircuits().contains("yard");

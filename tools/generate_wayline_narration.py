@@ -3,6 +3,7 @@
 python tools/generate_wayline_narration.py --generate [--line SOUND_ID]
 Changed recordings require --replace. No retries after ambiguous API failures.
 Requires ffprobe on PATH. Credentials are read only from the local environment.
+Unrecorded text-only lines are skipped unless explicitly selected with --line.
 """
 import argparse
 import hashlib
@@ -34,6 +35,39 @@ def credential():
     return key
 
 
+def generation_plan(catalog, cast, selected_ids=None):
+    """Validate the whole requested batch before credentials or any paid request."""
+    known = {line["id"] for line in catalog["lines"]}
+    if selected_ids and set(selected_ids) - known:
+        raise SystemExit("Unknown line ID; no request sent.")
+    result = []
+    for line in catalog["lines"]:
+        if selected_ids and line["id"] not in selected_ids:
+            continue
+        if not selected_ids and not line.get("voiced", True):
+            continue
+        if not re.fullmatch(r"[a-z0-9_]+", line["id"]):
+            raise SystemExit("Invalid sound ID; no request sent.")
+        if line.get("retained"):
+            result.append((line, None, None))
+            continue
+        voice_id = (catalog["voices"][line["speaker"]]["voiceId"]
+                    if cast == "operation-radio" else line.get("voiceId", catalog["voiceId"]))
+        # A draft character must be cast deliberately, never inherit the catalog host.
+        if not line.get("voiced", True) and "voiceId" not in line:
+            voice_id = None
+        if not isinstance(voice_id, str) or not voice_id.strip():
+            raise SystemExit("No assigned voice for " + line["id"] + "; no request sent.")
+        synthesis = line.get("synthesisText")
+        if not isinstance(synthesis, str) or not synthesis.strip():
+            raise SystemExit("No synthesis text for " + line["id"] + "; no request sent.")
+        payload = {"text": synthesis, "model_id": catalog["modelId"]}
+        if catalog["voiceSettings"]:
+            payload["voice_settings"] = catalog["voiceSettings"]
+        result.append((line, voice_id, payload))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
@@ -50,18 +84,11 @@ def main():
         catalog_path = ROOT / "mod/data/marines/company_management_guide.json"
         sources = SOURCES.parent / "company-management"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
-    if args.line and set(args.line) - {line["id"] for line in catalog["lines"]}:
-        raise SystemExit("Unknown line ID; no request sent.")
+    plan = generation_plan(catalog, args.cast, args.line)
     if args.generate:
         subprocess.run(["ffprobe", "-version"], check=True, capture_output=True)
     key = credential() if args.generate else None
-    for line in catalog["lines"]:
-        if args.line and line["id"] not in args.line:
-            continue
-        if not re.fullmatch(r"[a-z0-9_]+", line["id"]):
-            raise SystemExit("Invalid sound ID")
-        voice_id = (catalog["voices"][line["speaker"]]["voiceId"]
-                    if args.cast == "operation-radio" else line.get("voiceId", catalog["voiceId"]))
+    for line, voice_id, payload in plan:
         if line.get("retained"):
             audio = sources / (line["id"] + ".mp3")
             receipt = audio.with_suffix(".json")
@@ -72,9 +99,6 @@ def main():
                 raise SystemExit("Changed retained source: " + line["id"])
             print("Retained:", line["id"], flush=True)
             continue
-        payload = {"text": line["synthesisText"], "model_id": catalog["modelId"]}
-        if catalog["voiceSettings"]:
-            payload["voice_settings"] = catalog["voiceSettings"]
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         digest = hashlib.sha256(voice_id.encode() + b"\0" + body).hexdigest()
         audio = sources / (line["id"] + ".mp3")
