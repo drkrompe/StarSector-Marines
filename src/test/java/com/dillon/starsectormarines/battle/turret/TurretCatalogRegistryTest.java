@@ -161,10 +161,10 @@ class TurretCatalogRegistryTest {
     }
 
     @Test
-    void shippedStructuresAreOneCellExceptTheFortressStructures() {
+    void shippedStructuresAreOneCellExceptTheFortressStructuresAndFortAspectCores() {
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
             if (structure.id.equals("structure.fortress-battery-placeholder")
-                    || structure.id.equals("structure.shield-generator")) {
+                    || structure.id.equals("structure.shield-generator") || structure.isFortAspectCore()) {
                 assertEquals(3, structure.footprintCellsX);
                 assertEquals(3, structure.footprintCellsY);
             } else {

@@ -287,6 +287,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new FinalizeStage(),                        // Step 4 + 4b
                 new DoorwayClearanceStage(),                // Step 4c   nothing stands in a doorway
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
+                new BatteryFortStage(),                     // taxonomy consumer — declared battery forts only (inert otherwise)
                 new SpawnAnchorStage(),                     // spawn anchors
                 landingAreaStage,                           // precinct-only; null omits it
                 frontStage,                                 // precinct-only; null omits it

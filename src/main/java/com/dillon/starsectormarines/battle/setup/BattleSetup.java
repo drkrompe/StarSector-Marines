@@ -159,6 +159,7 @@ import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.shield.ShieldGeneratorPlacement;
+import com.dillon.starsectormarines.battle.fort.FortAspectCore;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
@@ -4627,8 +4628,11 @@ public final class BattleSetup {
         int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                long turret = sim.spawn(MapTurret.create("t" + i++, Faction.DEFENDER,
-                        spec.structureId, spec.cellX, spec.cellY));
+                String name = "t" + i++;
+                long turret = sim.spawn(spec.structure().isFortAspectCore()
+                        ? FortAspectCore.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY)
+                        : MapTurret.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY));
+                if (post.fort != null) sim.tagFortPart(post.fort, turret, spec.structure(), Faction.DEFENDER);
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);

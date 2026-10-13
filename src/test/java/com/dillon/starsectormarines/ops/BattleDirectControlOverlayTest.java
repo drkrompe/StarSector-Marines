@@ -100,7 +100,7 @@ class BattleDirectControlOverlayTest {
 
     static record OverlayLayout(UiViewport host, UiViewport control, UiViewport squad,
                                 UiViewport mech, UiViewport powers, UiViewport retreat,
-                                UiViewport hud, UiViewport activeControl, UiViewport activeActions, UiViewport orders) { }
+                                UiViewport hud, UiViewport activeControl, UiViewport activeActions, UiViewport orders, UiViewport manualObjectives) { }
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
@@ -116,7 +116,8 @@ class BattleDirectControlOverlayTest {
                 BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
                 BattleDirectControlOverlay.viewport(position, true),
                 BattleDirectControlOverlay.actionsViewport(position),
-                BattleOrderOverlay.viewport(position, BattlePowerOverlay.viewport(position, 5, true).height())));
+                BattleOrderOverlay.viewport(position, BattlePowerOverlay.viewport(position, 5, true).height()),
+                BattleManualObjectiveOverlay.viewport(position)));
     }
 
     private static <T> T withHost(int physicalWidth, int physicalHeight, float uiScale,
@@ -171,6 +172,20 @@ class BattleDirectControlOverlayTest {
         loader.reload();
         return loader.build(new Reactor(), BattleDirectControlOverlay.COMPONENT, Map.of(
                 "label", "Take over [Tab]", "disabled", !enabled, "toggle", action));
+    }
+
+    @Test
+    void manualObjectivesClearEquipmentAndSessionButtonsAcrossScales() {
+        for (int[] size : List.of(new int[]{1920, 1080}, new int[]{1280, 720})) {
+            for (float scale : new float[]{1f, 1.25f, 1.5f}) {
+                var layout = layout(size[0], size[1], scale);
+                var objectives = layout.manualObjectives();
+                assertDisjoint(objectives, layout.activeControl(), "objectives clear equipment");
+                assertDisjoint(objectives, layout.activeActions(), "objectives clear session buttons");
+                assertTrue(objectives.screenY() >= layout.host().screenY());
+                assertTrue(objectives.screenX() + objectives.width() <= layout.host().screenX() + layout.host().width());
+            }
+        }
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 
@@ -22,6 +23,13 @@ public final class MissionDefencePolicy {
      * map, so the numbers can be changed freely once play settles how often and how heavy.
      */
     static final int CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM = 4;
+
+    /**
+     * Whether a Conquest stands its declared batteries as battery forts (a walled platform with fire-control bunker,
+     * magazine and power building) rather than as bare structures. UNTUNED first-pass mission-design choice, kept here
+     * so a designer can turn the whole conversion off in one line; see {@code forts.md}.
+     */
+    static final boolean CONQUEST_BATTERIES_AS_FORTS = true;
 
     /** Whether a Conquest declares a shield generator when its target market holds a Planetary Shield. UNTUNED. */
     static final boolean CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE = true;
@@ -50,9 +58,11 @@ public final class MissionDefencePolicy {
      * carry them.
      */
     static GroundDefences conquest(TargetProfile market) {
-        return new GroundDefences(
-                market.heavyBatteries() ? CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM : 0,
+        int batteries = market.heavyBatteries() ? CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM : 0;
+        GroundDefences declared = new GroundDefences(
+                CONQUEST_BATTERIES_AS_FORTS ? 0 : batteries,
                 market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE,
                 market.groundDefences() ? CONQUEST_NESTS_WHEN_MARKET_HAS_THEM : 0);
+        return CONQUEST_BATTERIES_AS_FORTS ? declared.withForts(FortKind.BATTERY_FORT, batteries) : declared;
     }
 }

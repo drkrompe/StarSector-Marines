@@ -14,9 +14,19 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * @param originalHolder  the side it was built for, which keeps knowing where it is after it is taken
  * @param threatened      whether its holder is being pressed: a contested fire control, or a capture under way
  * @param reachCells      how far from the anchor a side must stand to take or hold it, in cells
+ * @param seenCellX       the cell whose being in view discloses the structure to a side that did not build it. It is the
+ *                        anchor for a bare structure; for a fort it is the battery platform, because the bunker the
+ *                        commander is sent to stands inside walls nobody outside can see
+ * @param seenCellY       as {@code seenCellX}
  */
 public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
-                                   boolean threatened, int reachCells) {
+                                   boolean threatened, int reachCells, int seenCellX, int seenCellY) {
+
+    /** A structure disclosed by sighting its own anchor, which is every bare structure. */
+    public DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
+                                boolean threatened, int reachCells) {
+        this(kind, cellX, cellY, holder, originalHolder, threatened, reachCells, cellX, cellY);
+    }
 
     /** The two structure kinds a command can be sent to take, wreck or hold. */
     public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR }
