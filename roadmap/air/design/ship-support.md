@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-13
-Updated: 2026-10-14 — slice 5 (low pass) is built, and slice 3's planet tint is wired through the battle's surface palette; slices 1-5 are all in. Needs a live look at pace, wake and audio.
+Updated: 2026-10-14 — owner: hostile ships are dangerous by design, countered by friendly forces, the company's own ship or keeping theirs busy elsewhere (slice 6); slices 1-5 are built.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -111,6 +111,13 @@ In the order they are worth building:
 4. **Hostile ship support** (built): the defender's ship on the same mechanism, offered by
    the target profile, with a warning beat and a ground marker. See *Slice 4 as built*.
 5. **Low pass** (built): the order, its flight, fire, cost, bindings and presentation; see *Slice 5 as built*.
+6. **The hostile ship comes from somewhere.** Today a defended world above a threshold
+   simply has a stock hull. The owner's counters (below) need the enemy's ship to be a
+   real ship in the campaign that the player can keep busy elsewhere. The defender's
+   source is drawn from an actual fleet of the defending faction in the target's system
+   (its largest eligible hull, frozen like the company's), and none is offered when no
+   such fleet is present, or when it is engaged, broken or drawn off. Other missions
+   hand the same input in by declaration, so the difference stays thin.
 
 ## Open questions for the owner
 
@@ -213,9 +220,11 @@ flak (G3).
 
 1. The thresholds are drafts: defence level 4, threat radius 30 cells, 180 s contact timeout,
    six seconds of warning. A live look should say whether six seconds is enough to react to.
-2. Does a defender's ship want a counter besides aircraft? Today the company's answers are its
-   own ship's tender flak, strike craft, or leaving the ground; the ship cannot be shot by
-   ground weapons.
+2. *Decided (owner):* a defender's ship is meant to be that dangerous; it is a late-campaign
+   threat, and a company that meets one without an answer should lose the ground. The
+   counters are friendly forces (an employer's or ally's own ships and strike craft), the
+   company's own capital in atmosphere, and keeping the enemy's ship bogged down elsewhere so
+   it never comes (slice 6). Ground weapons do not become a counter; the balance law stands.
 3. Should a lost hostile ship count for the battle (a morale or score beat)? Not built.
 4. Mission types whose defender is not the market owner (relief, counterattack) take the same
    profile-based ship; whether some missions should opt out is undecided.
