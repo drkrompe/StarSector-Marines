@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — contextual orders live in a compact bottom bar; takeover exposes supported equipment shortcuts.
+Updated: 2026-10-13 — takeover retains a bounded objective readout and public world locators.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -663,9 +663,15 @@ ends at current observation, so hidden blockers receive no marker or transition.
 This readout adds no input target or HUD space and makes no readiness or hit
 guarantee. `direct-control-nouns.md` owns carrier origins and selection scope.
 
-Strategic panels, commander/objective rails, power cards, retreat, communications,
+Strategic panels, commander rails, power cards, retreat, communications,
 and developer panels are hidden together with their input and pointer bounds.
-Selection and command/debug cell overlays also yield. Hidden projections continue
+Selection and command/debug cell overlays also yield. A separate read-only,
+scrollable objective panel remains at the top left during takeover, using the same
+public mission projection for names, steps, instructions, progress and blockers.
+It retains no time, squad-command or Locate controls. Public world beacons,
+capture footprints and off-screen objective directions remain visible in the
+world. Only the visible objective panel bounds block manual world input.
+Hidden projections continue
 to refresh, so handback restores current information and the existing selection.
 Entry cancels armed command-power and tactical-order targeting, clears retained focus
 and pointer capture, and dismisses retreat confirmation without abandoning the
