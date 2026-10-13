@@ -4,7 +4,7 @@ Status: IN PROGRESS — employer, mission briefs and authored map visits; battle
 
 Written: 2026-10-12
 
-Updated: 2026-10-12 — shipbreaking yard, overhead battle aftermath and surviving crew establish Morrow's recovery.
+Updated: 2026-10-12 — Salvage Rights and Cold Start take place at night, with authored emergency and yard-power circuits.
 
 ## Placement and employer
 
@@ -65,6 +65,15 @@ being gifted another escalation in firepower.
 `ShepherdBasin` authors a **304 × 176** map with one persistent geography and three
 visits. Its production roads and terrain are editable catalog plans. Asharu uses
 the actual world's captured palette at campaign launch; the review uses ARID.
+
+**Salvage Rights and Cold Start are night operations.** Low ambient light retains
+terrain readability. Portable apron and workshop lamps, isolated scrap-yard work
+lights and Morrow's warm emergency lamps break up the darkness. They are authored
+site fixtures, not automatic lamps on every building wall. Cold Start begins on
+those surviving circuits; restoring pump power should visibly restore the broader
+yard floodlights without changing the time of day. Working Passage is the following
+day's departure. Environmental lighting is presentation, not a new stealth rule:
+it does not change either side's sight, targeting or navigation.
 
 The west receiving apron contains four elongated berths on connected concrete,
 with clear western approaches. The worn road curls around the recovery cradle,
@@ -160,6 +169,9 @@ Beat order:
 2. Clear and hold the pump station while an engineer connects power. Raiders
    approach in small finite detachments from the south road and eastern quarry.
    Trigger them from escort progress and power work, not a long fixed silence.
+   Successful connection restores the yard-light circuit around the pumps and
+   cradle; emergency lights remain on throughout. The authored powered review is
+   a lighting-state preview until this chapter's repair sequence is implemented.
 3. The first builder deployment uses the real Tender construction path, limited
    to the grounded ship's safe working reach. A suggested gun position protects
    the cradle approach. Contact interrupts unsafe work under ordinary tender rules;

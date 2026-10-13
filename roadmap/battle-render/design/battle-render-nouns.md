@@ -79,6 +79,11 @@ Updated: 2026-10-12 — persistent terrain scars and retained impact decals appe
 - A **map battle scene** promotes a generated `MapResult` through ordinary battle
   setup and exposes its production render systems without mission HUD or input.
   Authoring previews frame this scene; they do not own a parallel tile painter.
+- **Outdoor night lighting** is an authored map atmosphere with named power
+  circuits and local fixture pools. It retains readable ambient terrain and
+  shares the ordinary world-render path across live and headless hosts. Circuit
+  restoration replaces its presentation state; it never grants observation,
+  alters targeting or changes navigation. Ship-compartment lighting is separate.
 
 ## Ownership and flow
 
