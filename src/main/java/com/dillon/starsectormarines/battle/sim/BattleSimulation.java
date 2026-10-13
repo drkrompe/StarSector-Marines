@@ -79,6 +79,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -1182,6 +1183,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public long[] getAirEntityIds()        { return airSystem.airEntityIds(); }
     /** Every craft this battle destroyed, in the order it lost them — read once, at resolution, long after the entities were reaped. */
+    public BoatDamageLedger boatDamage() { return airSystem.boatDamage(); }
+
     public List<AirLoss> getAirLosses()    { return airSystem.airLosses(); }
     /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }

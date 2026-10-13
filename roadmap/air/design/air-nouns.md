@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks.
+Updated: 2026-10-13 — employer gunship stations, aimed ground AA and crash instability, rolling fuel explosions and lasting wrecks. Campaign overhaul retains damage across servicing.
 
 Earlier 2026-09-01 â€” an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -355,6 +355,14 @@ plating scales the hull, the drive scales forward speed and both accelerations â
 and turn rate, damping, seats, hardpoints, sprite and hull id are the pattern's
 and are delegated untouched. A better boat is faster and tougher, not a
 different aircraft.
+
+**Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
+worst missing-hull fraction observed across its trips, including a final partial tick.
+Its persistent identity joins those observations after tactical entities leave the
+field or receive carrier patches. Settlement freezes that evidence once for the
+battle; destroyed boats are losses, never recovery candidates. Campaign boats stay
+grounded during their bounded recovery, including in the ambient ship scene.
+`company-view-nouns.md` owns the repair clock, resource acceleration and lesson.
 
 **Fitting a transport does not remove its hold.** Unloading, payload reloads,
 and boat-deck dispatch resolve the transport pattern from either a bare pattern

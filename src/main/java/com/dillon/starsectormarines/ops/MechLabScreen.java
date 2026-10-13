@@ -137,7 +137,11 @@ public final class MechLabScreen implements Screen {
             built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard());
-            preparationGuide = PreparationGuide.install(built, viewModel::campaignLesson, this::close);
+            preparationGuide = PreparationGuide.install(built, () -> {
+                var roster = CompanyPreparationGuide.roster();
+                return CampaignLessons.next(roster) == CampaignLessons.Step.BOAT_RECOVERY
+                        ? CampaignLessons.handoff(roster, context, ScreenId.MECH_LAB) : viewModel.campaignLesson();
+            }, this::close);
             // The doll is not the deck scene: it composes a machine at rest
             // against its own backdrop, so it loads what it draws. Everything
             // the deck itself paints is the deck's own business.

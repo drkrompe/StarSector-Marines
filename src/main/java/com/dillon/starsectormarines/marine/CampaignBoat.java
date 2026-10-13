@@ -27,6 +27,21 @@ public final class CampaignBoat implements Serializable {
     private final ShuttleType pattern;
     private String platingId;
     private String driveId;
+    private float repairUntilDay;
+
+    /** Zero on legacy saves. Recovery is read from campaign time, not screen visits. */
+    public float repairUntilDay() { return repairUntilDay; }
+    public float repairDaysRemaining(float day) { return Math.max(0f, repairUntilDay - day); }
+    public boolean airworthy(float day) { return repairDaysRemaining(day) == 0f; }
+    public float condition(float day) { return 1f - Math.min(1f, repairDaysRemaining(day) / 2f); }
+
+    void damage(float fraction, float day) {
+        if (!Float.isFinite(fraction) || !Float.isFinite(day) || fraction <= 0f) return;
+        repairUntilDay = day + 2f * Math.min(1f, fraction);
+    }
+
+    void finishRepairs() { repairUntilDay = 0f; }
+
 
     public CampaignBoat(String id, String displayName, ShuttleType pattern,
                         String platingId, String driveId) {
