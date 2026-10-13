@@ -4,12 +4,15 @@ Status: ACTIVE — 4 open stories
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — Retreat defeat settlement implemented; live acceptance remains.
+Updated: 2026-10-13 — authored arcs now have dedicated boards; campaign-wide work remains here.
 
 Read `campaign-nouns.md` and `meta-progression.md` before changing an
 umbrella story. Live feature work is owned by its feature board; broad
 economy, relationship, and background direction remains in design until it
 can be made a bounded vertical slice.
+
+For authored mission sequences and their dedicated arc boards, start with
+`campaign-overview.md`. This board retains campaign-wide systems work.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |

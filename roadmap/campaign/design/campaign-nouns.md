@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — confirmed Retreat shares ordinary defeat settlement.
+Updated: 2026-10-13 — campaign overview and dedicated authored-arc plan homes.
 
 ## Purpose
 
@@ -18,6 +18,12 @@ It is an umbrella tier, not one universal policy feature. Its child domains
 own their own models and concrete work boards; this document preserves the
 shared vocabulary and authority boundaries that keep those domains from
 becoming parallel campaign simulators.
+
+`campaign-overview.md` is the reading guide to the authored route, its capability
+progression and the shared campaign systems. Each authored arc has a dedicated
+folder with an enduring overview, setting material where needed, and its own
+open-work board and stories. These planning views describe the campaign; they
+do not add progression gates or replace a domain's canonical rules.
 
 ## Campaign shape
 
