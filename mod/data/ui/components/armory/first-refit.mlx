@@ -36,12 +36,21 @@
       <div id="refit-empty" class="{lesson.emptyClasses}">Select a squad and one of the two plans above. Compare equipment before spending any materials.</div>
       <div id="refit-comparison" class="{lesson.comparisonClasses}">
         <div id="refit-roll" class="refit-roll panel">
-          <div id="refit-roll-heading" class="refit-roll-heading tone-edge">SQUAD ROLL / Select a billet</div>
+          <div id="refit-roll-heading" class="refit-roll-heading tone-edge">CURRENT KIT / Select a square</div>
           <div id="refit-billets" class="refit-billets">
-            <button each="billet in lesson.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
-              <div id="{billet.nameId}" class="refit-name">{billet.name}</div>
-              <div id="{billet.detailId}" class="refit-detail tone-muted">{billet.detail}</div>
-            </button>
+            <div each="team in lesson.fireTeams" key="{team.id}" id="{team.id}" class="refit-team">
+              <div id="{team.headingId}" class="refit-team-heading tone-edge">{team.label}</div>
+              <div id="{team.membersId}" class="refit-team-members">
+                <button each="billet in team.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
+                  <div id="{billet.nameId}" class="refit-name">{billet.gridName}</div>
+                  <div id="{billet.kitId}" class="refit-billet-kit">
+                    <img id="{billet.armorIconId}" class="refit-billet-icon" src="{billet.armorIcon}" />
+                    <img id="{billet.primaryIconId}" class="refit-billet-icon" src="{billet.primaryIcon}" />
+                  </div>
+                  <div id="{billet.detailId}" class="refit-detail tone-muted">{billet.detail}</div>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div id="refit-inspection" class="refit-inspection">
@@ -122,12 +131,17 @@
   .refit-path.refit-selected, .refit-squad.refit-selected, .refit-billet.refit-selected { border-color: #73cfc9; background-color: #163a40; }
   .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
   .refit-comparison { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }
-  .refit-roll { flex-direction: column; width: 294px; padding: 6px; gap: 4px; }
+  .refit-roll { flex-direction: column; width: 348px; padding: 6px; gap: 4px; }
   .refit-roll-heading { height: 22px; }
-  .refit-billets { flex-direction: column; height: 0px; flex-grow: 1; overflow: scroll; gap: 3px; }
-  .refit-billet { flex-direction: column; height: 30px; padding: 2px 6px; border-width: 1px; text-align: left; }
-  .refit-name { height: 15px; }
-  .refit-detail { height: 15px; font-family: body; }
+  .refit-billets { flex-direction: row; height: 0px; flex-grow: 1; overflow: scroll; gap: 6px; }
+  .refit-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .refit-team-heading { height: 18px; text-align: center; font-family: heading; }
+  .refit-team-members { flex-direction: column; gap: 6px; }
+  .refit-billet { flex-direction: column; height: 96px; padding: 4px; gap: 4px; border-width: 1px; text-align: left; }
+  .refit-name { height: 18px; overflow: hidden; }
+  .refit-billet-kit { flex-direction: row; height: 34px; gap: 6px; align-items: center; }
+  .refit-billet-icon { width: 34px; height: 34px; pointer-events: none; }
+  .refit-detail { height: 36px; white-space: normal; font-family: body; }
   .refit-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-selected-name { height: 22px; }
   .refit-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }

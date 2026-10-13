@@ -203,11 +203,18 @@ public final class Drone {
      * death cascade.
      */
     public static EntitySpec create(String id, Faction faction, int cellX, int cellY, long homeHubId) {
+        return create(id, faction, cellX, cellY, homeHubId, DroneLook.STANDARD);
+    }
+
+    /** As {@link #create(String, Faction, int, int, long)}, drawn in {@code look}; behaviour and stats are the same whatever the look. */
+    public static EntitySpec create(String id, Faction faction, int cellX, int cellY, long homeHubId,
+                                    DroneLook look) {
         // Build + position the kinematic body and hand it to the world-adoption seam.
         // adopt() reads spec.body → adds the KINEMATICS component, keyed by entity
         // id; the body lives in that column thereafter (this same instance, aliased).
         AirBody body = new AirBody();
         body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
+        body.artVariant = look.ordinal();
         return new EntitySpec(id, faction, UnitType.DRONE, cellX, cellY)
                 .health(DRONE_MAX_HP)
                 .primaryWeapon(WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID))
