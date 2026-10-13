@@ -56,7 +56,6 @@ public final class FleetArmoryScreen implements Screen {
     private final ArmoryPreviewAssets previewAssets = new ArmoryPreviewAssets();
 
     private MarineOpsContext context;
-    private Runnable dismissDialog;
     private MarineRoster roster;
     private FleetArmoryViewModel viewModel;
     private FirstRefitModel firstRefit;
@@ -84,7 +83,6 @@ public final class FleetArmoryScreen implements Screen {
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
-        this.dismissDialog = dismissDialog;
         viewport = MarineOpsUiViewport.from(position);
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
@@ -336,7 +334,7 @@ public final class FleetArmoryScreen implements Screen {
     private void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 context::roomAboard,
-                () -> leaveGallery(dismissDialog),
+                this::returnFromWorkspace,
                 () -> leaveGallery(() -> context.goTo(ScreenId.COMPANY_HQ)),
                 () -> leaveGallery(() -> context.goTo(ScreenId.BARRACKS)),
                 () -> { },
@@ -350,7 +348,7 @@ public final class FleetArmoryScreen implements Screen {
                 : view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
+                "page-nav-mech-lab", "page-nav-boats",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
@@ -363,7 +361,7 @@ public final class FleetArmoryScreen implements Screen {
                 : view == View.DESIGNER
                 ? List.of("equipment-designer-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
+                "page-nav-mech-lab", "page-nav-boats",
                 "designer-breadcrumb", "back-to-fireteams", "designer-mode-row",
                 "designer-definition-library", "designer-definition-list",
                 "designer-editor", "designer-name-input", "designer-team-tabs",
@@ -373,12 +371,12 @@ public final class FleetArmoryScreen implements Screen {
                 : view == View.ARMOR_COMPARISON
                 ? List.of("armor-comparison-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
+                "page-nav-mech-lab", "page-nav-boats",
                 "comparison-breadcrumb", "back-to-fireteams",
                 "comparison-intro", "comparison-list")
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
+                "page-nav-mech-lab", "page-nav-boats",
                 "squad-breadcrumb", "squad-overview-intro",
                 "organization-toolbar", "begin-squad-organization", "cancel-squad-organization",
                 "squad-organization-panel", "organization-selected-count",

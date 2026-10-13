@@ -9,8 +9,8 @@
     {
       "id": "marines_management_muster",
       "title": "Look after the company",
-      "text": "Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people, assignments, and replacement kit. Armory is where you compare and design their equipment. If we're starting from nothing, Raise Squad opens the founding desk in Armory.",
-      "synthesisText": "[warm, conversational voice] Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people, assignments, and replacement kit. Armory is where you compare and design their equipment. If we're starting from nothing, Raise Squad opens the founding desk in Armory."
+      "text": "Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people, assignments, and replacement kit. Open Equipment here to compare and design their kit, or inspect a squad and choose Equip Squad. If we're starting from nothing, Raise Squad opens the founding desk.",
+      "synthesisText": "[warm, conversational voice] Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people, assignments, and replacement kit. Open Equipment here to compare and design their kit, or inspect a squad and choose Equip Squad. If we're starting from nothing, Raise Squad opens the founding desk."
     },
     {
       "id": "marines_management_wounded",
