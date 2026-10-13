@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
+Updated: 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -2113,7 +2113,7 @@ of the same kind: each Conquest commander is disclosed the structures its side b
 has seen, and may detach a few squads to take, retake or stand to at them with ordinary attack-move and area-defence
 orders. No hostile identity or unseen structure is disclosed, and the extension is inert on a map with none
 (`ground-defences.md`, *Command awareness*). A fort is chosen between aspect by aspect from what was disclosed of it
-(`forts.md`). A sighting of a fort is remembered by the side that made it. A commander knows whether its own squads can
+(`forts.md`). A company sees a fort by its works (wall, gates, bastions), which stand out from outside, and not only the platform inside them. A sighting of a fort is remembered by the side that made it. A squad the ambient work service holds (a works crew at its bench, or stood down and due back) is not on strength: the dispatcher does not run it, so a commander offers it no structure work. A commander knows whether its own squads can
 wreck a building (their issued kit), never an enemy's; the wreck order is the ordinary attack move carrying a permission to
 fire on the aspect at its destination, with no hostile identity, and squads otherwise leave a fort's aspect cores alone
 (`forts.md`, *Built: fort restraint*).

@@ -4,12 +4,12 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Character-led written exchanges and disputed salvage claims; live campaign and audio-mix acceptance remain.
+Updated: 2026-10-13 — Castle bargains for Vale's tender after the direct freight sequence; live campaign and audio-mix acceptance remain.
 
 ## Placement and employer
 
 Unlock after **A Cold Account** is won and its aftermath has been acknowledged,
-regardless of the earlier evacuation/freight choice. This is an optional new
+regardless of the earlier freight outcome. This is an optional new
 contract, not an automatic launch or a timed demand while the company is depleted.
 Mara makes the introduction. Wayline remains a trusted former employer; this
 contract belongs to someone with a different business and a different stake.
@@ -18,8 +18,9 @@ contract belongs to someone with a different business and a different stake.
 shops and industrial operators on **Asharu**, wants its inland recovery corridor
 working again. **Tamsin Vale**, its yardmaster and contract signatory, is a working
 engineer responsible for people, pumps and equipment stranded in the basin. She
-counts useful machinery before saleable scrap and dislikes promises that leave
-her crews exposed. She can arrange permission for this recovery operation; she
+knows her yard's machinery and dislikes promises that leave her crews exposed.
+Her immediate interest is a shipment found aboard the Colossus. She can arrange
+permission for this recovery operation; she
 does not speak for Asharu's government or the Independent faction as a whole.
 The cooperative, Vale, basin and ship are mod-authored local fiction.
 
@@ -62,8 +63,12 @@ cutting stations, parked collection vehicles and removed components rather than
 another generic military base. They are opportunists exploiting the gap, not
 another secret arm of Sable Wake. There is no capital-ship rescue waiting offscreen.
 
-The cooperative already holds the hull's recovery claim. Castle negotiates its
-transfer as payment in kind for completing all three operations: the cooperative
+The cooperative already holds the hull's recovery claim. Vale does not open by
+offering Morrow as a prize. Castle proposes the damaged tender in place of a third
+cash fee. Vale objects that she still owns the ship and its repair cost is unknown;
+Castle cites the company's experience getting Second Wind flying. Continued
+security for Vale's fitters and haul road earns the concession, not a claim that
+Castle already knows the wreck's hidden worth. The cooperative
 supplies engineers and replacement machinery, gets its corridor reopened and
 retains the fixed installations; the company keeps the repaired Shepherd and its
 drone workshop. The agreement is explicit before the first drop. Securing the
@@ -71,21 +76,24 @@ wreck alone grants a protected claim, not a functioning ship in the fleet.
 The cash terms are 18,000 credits for the accepted inspection and 22,000 for the
 completed repair. Morrow is the final payment in kind after physical departure;
 there is no additional departure fee. Castle negotiates for company income and
-a useful asset, not a charitable salvage expedition. Vale commits her own people,
-tools and holders because reopening the yard is worth more to her than keeping
-the tender. Concern for casualties remains personal and practical, with no new
+a potentially useful asset, not a charitable salvage expedition. Vale commits her
+own people, tools and holders to regain access to the shipment and get it moving.
+Morrow's eventual utility as the company's mobile construction workshop emerges
+through inspection and a working gun in Cold Start. Vale understands her ordinary
+yard equipment; she need not foresee its value to this company's tactics. Concern
+for casualties remains personal and practical, with no new
 casualty bonus or penalty.
 
 A much larger broken **Colossus** rests against the northern rear canyon wall.
-Its grounded holds serve as a cargo and equipment depot, with valuable hull scrap
-around the damaged freighter. Those stores and the yard's working machinery are
-the scrappers' prize and the cooperative's reason to buy outside protection.
-The cooperative retains the Colossus and its contents. Paying with its smaller
-salvage tender Morrow trades one repaired vessel for access to that larger working
-asset and the yard around it. The Colossus is fixed damaged scenery, not another
-recoverable fleet award. No exact cargo value, manifest or original crew losses
-are inferred from its silhouette. The offer and settled agreement explain this
-exchange without making salvage inventory a new objective or economy.
+The cooperative found a shipment in its sealed hold before the evacuation. Vale
+withholds the manifest from Castle; her handlers take responsibility for the cargo.
+The contents could be mundane, illegal or unusually valuable, but none of those
+possibilities is confirmed. Do not turn her guardedness into a contraband reveal,
+a technology reward or a promise of a later investigation. Ordinary yard stores
+and hull scrap remain around it. The cooperative retains the freighter and its
+contents; the player provides access and security rather than taking a cargo share.
+The Colossus is fixed damaged scenery, not another recoverable fleet award. No
+exact cargo value, manifest or original crew losses are inferred from its silhouette.
 
 The emotional turn after Garnir is practical independence. We cannot match an
 Onslaught, but we can stop asking a larger power to hold every position for us.
@@ -160,10 +168,11 @@ remote and piloted travel. Repair completion does not shrink her to overhead sca
 **Promise:** take a useful wreck, not a pile of loot. Teach clearing the ground
 around an asset and handing a secured position to allied holders.
 
-Vale begins with the stock she needs from the Colossus and the crew now occupying
-her yard. Her wish to finish before an inspector arrives carries the political
-concern without a statement of allegiance. The offer's contract readout states
-the two cash fees and Morrow's eventual handover. The immediate instructions
+Vale begins with the shipment and the crew now occupying her yard. Castle notices
+the missing manifest; Vale leaves the cargo to her own handlers and limits the
+company's role to security. Castle then introduces Morrow into the terms. Vale
+requires security through the road clearance and physical departure. The offer's
+readout states the two cash fees and conditional handover. Immediate instructions
 remain receiving store, workshop, then a protected hull inspection.
 
 Beat order:
@@ -180,14 +189,16 @@ Beat order:
    Vale's people hold the secured yard between missions. Persistence records the
    recovery claim, not a free fleet member.
 
-**Castle, hull secured:** “The workshop's salvageable. I take it that doesn't
-change our price?”
+**Castle, hull secured:** “The fitters think they can save her workshop. Are we
+still agreed?”
 
-**Vale:** “No, Castle. We have an agreement.”
+**Vale:** “Yes. I've got people waiting to move that shipment. I'd rather you kept
+yours here than went looking for another contract.”
 
-**Castle:** “Parts and fitters included?”
+**Castle:** “Then keep the fitters on her. I'd like to know what we've put our name to.”
 
-**Vale:** “For the repair, yes. After she leaves, you're buying your own.”
+**Vale:** “They'll need shore power before they can tell you much more. I've put
+the parts aside.”
 
 **Vale, first sight of the hull:** “Her crew put her down there with half the
 controls dead. Some of them are on the repair team. They know what can be saved.”
@@ -233,9 +244,11 @@ Beat order:
    task. Field-completed milestones persist on a retry; unfinished work remains.
    A stopped task resumes only while its living crew and location are safe.
 
-**Castle, first gun debrief:** “I could get used to having a few of those.”
+**Castle, first gun debrief:** “I was hoping for another workshop. Now I'm
+thinking about all the places we've had to hold with a handful of rifles.”
 
-**Vale:** “Good to hear those builders again. We used to complain about the noise.”
+**Vale:** “They've been keeping this yard together for years. Just don't take her
+anywhere yet. I've got haulers waiting for that road.”
 
 The settlement readout accounts for payment and remaining work. Castle asks
 whether the ship can leave; Vale explains how to bring her out and why she needs

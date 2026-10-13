@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
+import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
+import com.dillon.starsectormarines.battle.story.LimitedWarrantProgress;
+import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
@@ -155,6 +158,24 @@ public final class MissionObjectiveFamilies {
                         new Marker("weir-road-gun", "Maintenance road gun / build here", sequence.buildX(), sequence.buildY(),
                                 milestones.turretConstructed() ? "COMMISSIONED" : "BUILD HERE", milestones.turretConstructed() ? State.COMPLETE : state,
                                 List.of(), 8)).stream().filter(marker -> !milestones.cargoDelivered() || !marker.id().equals("weir-escort")).toList(), focus);
+    }
+    public static Item limitedWarrant(LimitedWarrantSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence);
+        boolean egress = p.phase() == LimitedWarrantProgress.Phase.EGRESS;
+        String focus = p.phase() == LimitedWarrantProgress.Phase.RECORDS ? "warrant-records"
+                : p.phase() == LimitedWarrantProgress.Phase.CALIBRATION ? "warrant-kit" : "warrant-load";
+        return new Item("limited-warrant", "Low Quay bonded stores", state, p.phase().name(),
+                "Authenticate archive > Recover calibration kit > Escort load to egress", sequence.displayName(),
+                egress ? "Escort the marked calibration carrier" : timed("Protected work", p.work(), LimitedWarrantProgress.WORK_SECONDS),
+                egress || p.terminal() ? -1 : p.work() / LimitedWarrantProgress.WORK_SECONDS,
+                p.terminal() || p.safeWork() ? "" : egress ? "Keep company infantry with the load and clear its route."
+                        : "Clear the marked room and its approaches; the calibration work also needs the supplier's living technician inside.",
+                List.of(new Marker("warrant-records", "Service archive / records office", LowQuay.RECORDS_X, LowQuay.RECORDS_Y,
+                                p.recordsRecovered() ? "AUTHENTICATED" : "PROTECTED WORK", p.recordsRecovered() ? State.COMPLETE : state),
+                        new Marker("warrant-kit", "Calibration cage", LowQuay.KIT_X, LowQuay.KIT_Y, "SUPPLIER TECHNICIAN", state),
+                        new Marker("warrant-load", "Calibration-load escort", egress || p.terminal() ? sequence.targetX() : LowQuay.LOAD_X,
+                                egress || p.terminal() ? sequence.targetY() : LowQuay.LOAD_Y, "ESCORT", state),
+                        new Marker("warrant-egress", "Western return apron", LowQuay.LANDING_X, LowQuay.LANDING_Y, "RETURN LOAD AND COMPANY", state)), focus);
     }
     public static Item coldStart(ColdStartSequence sequence) {
         var p = sequence.progress();

@@ -221,6 +221,7 @@ class CommandFrameProfileTest {
                         case "getCommanderInfluence" -> null;
                         case "getCompoundService" -> compounds;
                         case "defenceStructures" -> List.of();
+                        case "ambientHeld" -> false;
                         default -> throw new AssertionError("Unexpected battle read: " + method.getName());
                     });
         }

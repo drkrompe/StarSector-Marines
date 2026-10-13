@@ -35,7 +35,88 @@ public record CommandSquadState(
         int[] memberCellXs,
         int[] memberCellYs,
         CommandGroupIdentity commandGroup,
+        boolean demolition,
+        boolean crew,
+        boolean machine) {
+
+    /**
+     * Compatibility seam for a row whose squad is neither held by work nor a machine. On the full row {@code crew} is
+     * whether every living member is held by the ambient work service (a works crew at its bench): the unit dispatcher
+     * does not run such a squad, so an order to it is never carried out. {@code machine} is whether the squad is a mech
+     * lance or a drone flight, which cannot enter a building and so cannot take what is inside one. Neither is a
+     * candidate for structure work.
+     */
+    public CommandSquadState(
+        int squadId,
+        Faction faction,
+        int aliveMembers,
+        float centroidX,
+        float centroidY,
+        int anchorCellX,
+        int anchorCellY,
+        int currentZoneId,
+        UnitRole role,
+        boolean localContact,
+        boolean underFireRecently,
+        boolean moraleBroken,
+        String currentGoal,
+        String currentAction,
+        String executionSuspension,
+        ObjectiveAssignment assignment,
+        CommandDirective directive,
+        int activePathMembers,
+        int movingMembers,
+        int coveredFromPrimaryMembers,
+        int primaryEngageableMembers,
+        int primaryEngageableFireTeams,
+        String contactPosture,
+        String contactDoctrine,
+        String contactInitiative,
+        int coolingDownMembers,
+        int[] memberZoneIds,
+        int[] memberCellXs,
+        int[] memberCellYs,
+        CommandGroupIdentity commandGroup,
+        boolean demolition,
+        boolean crew) {
+        this(squadId, faction, aliveMembers, centroidX, centroidY, anchorCellX, anchorCellY, currentZoneId, role, localContact, underFireRecently, moraleBroken, currentGoal, currentAction, executionSuspension, assignment, directive, activePathMembers, movingMembers, coveredFromPrimaryMembers, primaryEngageableMembers, primaryEngageableFireTeams, contactPosture, contactDoctrine, contactInitiative, coolingDownMembers, memberZoneIds, memberCellXs, memberCellYs, commandGroup, demolition, crew, false);
+    }
+
+    /** Compatibility seam for a row that says nothing of work or machines. */
+    public CommandSquadState(
+        int squadId,
+        Faction faction,
+        int aliveMembers,
+        float centroidX,
+        float centroidY,
+        int anchorCellX,
+        int anchorCellY,
+        int currentZoneId,
+        UnitRole role,
+        boolean localContact,
+        boolean underFireRecently,
+        boolean moraleBroken,
+        String currentGoal,
+        String currentAction,
+        String executionSuspension,
+        ObjectiveAssignment assignment,
+        CommandDirective directive,
+        int activePathMembers,
+        int movingMembers,
+        int coveredFromPrimaryMembers,
+        int primaryEngageableMembers,
+        int primaryEngageableFireTeams,
+        String contactPosture,
+        String contactDoctrine,
+        String contactInitiative,
+        int coolingDownMembers,
+        int[] memberZoneIds,
+        int[] memberCellXs,
+        int[] memberCellYs,
+        CommandGroupIdentity commandGroup,
         boolean demolition) {
+        this(squadId, faction, aliveMembers, centroidX, centroidY, anchorCellX, anchorCellY, currentZoneId, role, localContact, underFireRecently, moraleBroken, currentGoal, currentAction, executionSuspension, assignment, directive, activePathMembers, movingMembers, coveredFromPrimaryMembers, primaryEngageableMembers, primaryEngageableFireTeams, contactPosture, contactDoctrine, contactInitiative, coolingDownMembers, memberZoneIds, memberCellXs, memberCellYs, commandGroup, demolition, false, false);
+    }
 
     /**
      * Compatibility seam for a row that says nothing of the squad's kit: it carries no demolition capability.

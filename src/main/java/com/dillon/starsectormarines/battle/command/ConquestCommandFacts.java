@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /** Objective-law facts disclosed to either Conquest perspective. */
 public final class ConquestCommandFacts {
@@ -54,15 +55,42 @@ public final class ConquestCommandFacts {
         for (DefenceStructureFact structure : sim.defenceStructures()) {
             boolean ours = perspective.friendlyTo(structure.holder())
                     || perspective.friendlyTo(structure.originalHolder());
-            boolean seen = ours || seesCell(sim, perspective, structure.seenCellX(), structure.seenCellY());
-            if (seen && !ours) sim.noteStructureSighted(structure.seenCellX(), structure.seenCellY());
+            boolean seen = !ours && seesStructure(sim, perspective, structure);
+            if (seen) sim.noteStructureSighted(structure.seenCellX(), structure.seenCellY());
             // A sighting is kept: the company that has looked at a fort still knows it is there when it looks away.
-            if (seen || (Faction.MARINE.friendlyTo(perspective)
-                    && sim.structureSighted(structure.seenCellX(), structure.seenCellY()))) {
-                known.add(structure);
-            }
+            boolean remembered = Faction.MARINE.friendlyTo(perspective)
+                    && sim.structureSighted(structure.seenCellX(), structure.seenCellY());
+            if (isDisclosed(ours, seen, remembered)) known.add(structure);
         }
         return new ConquestCommandFacts(base.compounds, known);
+    }
+
+    /**
+     * Whether a side is told of a structure: it built or holds it, it has it in view now, or it has had it in view
+     * before. Nothing else discloses a structure, so a commander is never sent to ground it has no reason to know of.
+     */
+    static boolean isDisclosed(boolean ours, boolean inViewNow, boolean sightedBefore) {
+        return ours || inViewNow || sightedBefore;
+    }
+
+    /**
+     * Whether the perspective has a structure in view now: the cell it is disclosed at, or, for a fort, any cell of its
+     * works. A fort's guns and buildings stand inside its walls, which nobody outside can see over, so a company that
+     * walks up to a fort sees its wall, gates and bastions long before (and usually without ever) seeing the platform;
+     * that is a fort in plain sight and it is known.
+     */
+    private static boolean seesStructure(BattleView sim, Faction perspective, DefenceStructureFact structure) {
+        return seesAny(structure, (x, y) -> seesCell(sim, perspective, x, y));
+    }
+
+    /** Whether {@code sees} holds for the structure's disclosing cell or any of its further disclosing cells. */
+    static boolean seesAny(DefenceStructureFact structure, BiPredicate<Integer, Integer> sees) {
+        if (sees.test(structure.seenCellX(), structure.seenCellY())) return true;
+        int[] cells = structure.seenCells();
+        for (int i = 0; i + 1 < cells.length; i += 2) {
+            if (sees.test(cells[i], cells[i + 1])) return true;
+        }
+        return false;
     }
 
     /** Only the company's fog is modelled, so another perspective sees nothing it was not told. */

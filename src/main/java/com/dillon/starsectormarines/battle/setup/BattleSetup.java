@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
+import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
+import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
@@ -1525,6 +1527,58 @@ public final class BattleSetup {
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(WaterUnderSealCommand.issuer(Faction.MARINE), "Company support joins weir protection"));
         return sim;
     }
+    /** Bounded bonded-store recovery with ordinary fitted lift and a vulnerable calibration load. */
+    public static BattleSimulation createLimitedWarrant(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean recordsRecovered) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("Limited Warrant requires one to four fitted company boats");
+        MapResult map = LowQuay.generate(seed, profile);
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(LimitedWarrantCommand.issuer(Faction.MARINE), "Company fitted recovery lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        for (int[] guard : new int[][]{{68,75},{86,42}}) {
+            var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Cask Runner store guard", post, rng);
+        }
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, 33, 59, 4), Faction.ALLY, "Low Quay constable", null, rng);
+        int constables = sim.getSquads().stream().filter(squad -> squad.faction == Faction.ALLY).findFirst().orElseThrow().id;
+        if (!sim.handoffSquadCommand(constables, OpeningOperationCommand.issuer(Faction.ALLY), CommandAuthority.MISSION_COMMAND,
+                LimitedWarrantCommand.issuer(Faction.ALLY), null, "Constables cover the cleared loading exit"))
+            throw new IllegalStateException("Constable command handoff failed");
+        int technician = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        sim.spawn(new EntitySpec("Supplier calibration technician", Faction.ALLY, UnitType.TECHNICIAN, 28, 59)
+                .squad(technician).role(UnitRole.PATROL));
+        sim.getSquad(technician).originalSize = 1;
+        sim.claimSquadCommand(technician, CommandAuthority.MISSION_COMMAND, LimitedWarrantCommand.issuer(Faction.ALLY), "Supplier recovery party");
+        List<EntitySpec> reserve = new ArrayList<>();
+        for (int[] cell : pickSpawnCluster(map.grid, LowQuay.RESERVE_X, LowQuay.RESERVE_Y, 6))
+            reserve.add(makeOpeningMilitia("Runner rearguard " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+        long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(LowQuay.LOAD_X, LowQuay.LOAD_Y));
+        sim.convoy().body(carrier).teleport(LowQuay.LOAD_X, LowQuay.LOAD_Y, (float)Math.PI);
+        sim.installLimitedWarrant(technician, constables, carrier, reserve, recordsRecovered);
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new LimitedWarrantCommand(faction), LimitedWarrantCommand.disclosure(sim.getLimitedWarrant()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(LimitedWarrantCommand.issuer(Faction.MARINE), "Company recovery support"));
+        return sim;
+    }
+
     /** Repair mobilization already ashore at the recovered basin, with optional reserve boats and one physical cargo carrier. */
     public static BattleSimulation createColdStart(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean cargoDelivered, boolean shorePower) {
         if(manifest==null || manifest.size()>4)

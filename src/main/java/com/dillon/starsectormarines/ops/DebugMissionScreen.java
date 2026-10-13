@@ -108,9 +108,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
             row.put("groupId", "debug-card-group-" + i);
             row.put("titleId", "debug-card-title-" + i);
             row.put("forceId", "debug-card-force-" + i); row.put("title", (story == null ? "" : story.sequence() + " / ") + m.name);
-            String branch = story == DebugMissionCatalog.Scenario.LAST_LIFT ? " / EVACUATION"
-                    : story == DebugMissionCatalog.Scenario.RELAY_NINE ? " / FREIGHT" : "";
-            row.put("group", locationOf(m) + " / " + (story == null ? m.tier.displayName : story.group) + branch);
+            row.put("group", locationOf(m) + " / " + (story == null ? m.tier.displayName : story.group));
             row.put("force", preset.squads() + (preset.squads() == 1 ? " SQUAD / " : " SQUADS / ") + preset.squads() * 12 + " MARINES" + (preset.mechs() > 0 ? " + ARMOR" : ""));
             row.put("classes", "debug-card" + (selected != null && selected.id.equals(m.id) ? " selected" : ""));
             row.put("action", (Runnable) () -> choose.accept(m));

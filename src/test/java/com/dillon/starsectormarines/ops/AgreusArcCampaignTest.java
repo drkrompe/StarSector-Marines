@@ -25,13 +25,21 @@ class AgreusArcCampaignTest {
         id = p.missionId(); p.begin(id, "Asharu"); p.settleWorkingPassage(id, "Asharu", true, 0, 0, true, false, false, "morrow-owned", 15);
         assertTrue(AgreusArcCampaign.eligibleHistory(p));
     }
-    @Test void offerIsFiniteLocalWorkWithoutAnUnimplementedNextChapter() {
+    @Test void northWeirVictoryOpensTheBoundedWarrantWithoutOpeningLaterChapters() {
         var p = new AgreusArcProgress(); var m = AgreusArcCampaign.offer(p, "Agreus");
         assertEquals("Water Under Seal", m.name); assertEquals(26000, m.payout);
         assertEquals(OperationTier.ESTABLISHED, m.tier); assertEquals(MissionSource.STORY, m.source);
         assertEquals(FieldPresencePolicy.UNRESTRICTED, m.fieldPresencePolicy);
         assertTrue(m.requirements.contains("owned working construction tender"));
         p.begin(m.id, "agreus"); p.settle(m.id, "agreus", true, 26000, true, true, true, true, true, true, 0, 0, false);
+        var warrant = AgreusArcCampaign.offer(p, "Agreus");
+        assertEquals("Limited Warrant", warrant.name);
+        assertEquals(30000, warrant.payout);
+        assertEquals(MissionType.RAID, warrant.type);
+        assertEquals(FieldPresencePolicy.UNRESTRICTED, warrant.fieldPresencePolicy);
+        assertTrue(warrant.flavor.contains("Yard management and debt enforcement require a separate agreement"));
+        assertTrue(p.begin(warrant.id, "agreus"));
+        assertEquals(30000, p.settleWarrant(warrant.id, "agreus", true, 30000, true, true, true, true, false, 0, 0));
         assertThrows(IllegalArgumentException.class, () -> AgreusArcCampaign.offer(p, "Agreus"));
     }
     @Test void missingAgreusHasNoFallbackAndAttachedMarketIdIsNotAssumed() {
