@@ -1,13 +1,10 @@
 package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
-import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -42,32 +39,9 @@ class HostileShipSupportTest {
     }
 
     @Test
-    void ownersWithNoCapitalBringNone() {
-        assertFalse(HostileShipSupport.warrants(world(7, "pirates")));
-        assertFalse(HostileShipSupport.warrants(world(7, "luddic_path")));
-    }
-
-    @Test
-    void theHullFollowsTheOwner() {
-        assertEquals("onslaught", HostileShipSupport.hullFor("hegemony"));
-        assertEquals("onslaught", HostileShipSupport.hullFor("independent"));
-        assertEquals("onslaught", HostileShipSupport.hullFor(""));
-        assertEquals("onslaught", HostileShipSupport.hullFor(null));
-        assertEquals("paragon", HostileShipSupport.hullFor("tritachyon"));
-        assertEquals("paragon", HostileShipSupport.hullFor("persean"));
-    }
-
-    @Test
-    void theSourceIsAFrozenStockWarship() {
-        InstalledHullSpecs.install();
-        InstalledVanillaData.install();
-        ShipSupportSource hegemony = HostileShipSupport.sourceFor(world(5, "hegemony"));
-        assertNotNull(hegemony);
-        assertEquals("onslaught", hegemony.hullId());
-        assertFalse(hegemony.tender());
-        assertFalse(hegemony.weapons().isEmpty());
-        assertEquals("paragon", HostileShipSupport.sourceFor(world(5, "tritachyon")).hullId());
-        assertNull(HostileShipSupport.sourceFor(world(1, "hegemony")));
+    void theFactionDoesNotDecideWhetherAWorldMayCall() {
+        assertTrue(HostileShipSupport.warrants(world(7, "pirates")));
+        assertTrue(HostileShipSupport.warrants(world(7, "luddic_path")));
     }
 
     @Test
