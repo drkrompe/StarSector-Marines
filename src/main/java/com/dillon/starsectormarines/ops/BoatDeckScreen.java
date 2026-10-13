@@ -50,7 +50,8 @@ public final class BoatDeckScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "boat-deck";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/boat-deck/boat-deck.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -184,7 +185,7 @@ public final class BoatDeckScreen implements Screen {
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", viewModel.materialStock());
+        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), restoration.row().get().credits())));
         props.put("boatRows", viewModel.boatRows());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());

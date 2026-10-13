@@ -40,7 +40,9 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "engineering-overlays"; }
     @Override public String label() { return "Engineering room overlays"; }
 
-    @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+    @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception { return render(context, false); }
+
+    List<SnapshotArtifact> render(SnapshotContext context, boolean resourceBills) throws Exception {
         if (TileRegistry.installed() == null) {
             var tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS)
@@ -70,11 +72,11 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
         try {
             while (!ship.ready()) Thread.onSpinWait();
             ship.advance(1f / 30f);
-            return render(context, ship);
+            return render(context, ship, resourceBills);
         } finally { ship.dismiss(); }
     }
 
-    private List<SnapshotArtifact> render(SnapshotContext context, CompanyDeck ship) throws Exception {
+    private List<SnapshotArtifact> render(SnapshotContext context, CompanyDeck ship, boolean resourceBills) throws Exception {
         var reactor = new Reactor();
         int[] payments = {0};
         var model = new ShipConditionModel(reactor, () -> ship,
@@ -82,11 +84,13 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 work -> { payments[0]++; return "Evidence: no campaign mutation"; },
                 () -> new CompanyBayRestoration.Offer(true, 20000, null), () -> "Evidence only",
                 ignored -> {}, () -> {});
+        var offer = new CompanyWorkshopRestoration.Offer[]{new CompanyWorkshopRestoration.Offer(WorkshopState.BURIED, 20000, null, null, 3, 20)};
         var workshop = new WorkshopRestorationModel(reactor,
-                () -> new CompanyWorkshopRestoration.Offer(WorkshopState.BURIED, 20000, null, null, 3, 20),
+                () -> offer[0],
                 state -> "Evidence only", () -> "Evidence only", () -> {}, () -> {});
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
-                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
+                "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("survey", model.row()); props.put("workshop", workshop.row());
         props.put("equipmentAction", (Runnable) () -> {});
@@ -148,6 +152,18 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             click(document, markup.requireElement("workshop-action"));
             markup.flush(); overlay.update(0f, ship, canvas);
             require(workshop.row().get().reviewed(), "Workshop review is unreachable");
+            if (resourceBills) {
+                offer[0] = new CompanyWorkshopRestoration.Offer(WorkshopState.BURIED, 41, "Insufficient credits", null, 3, 20);
+                workshop.refresh(); markup.flush(); overlay.update(0f, ship, canvas);
+                frames.add(new SnapshotArtifact("06-workshop-short.png", renderer.render(document, 1920, 1080)));
+                offer[0] = new CompanyWorkshopRestoration.Offer(WorkshopState.REPAIRED, 15000000, null, null, 15000000, 15000000);
+                workshop.refresh(); markup.flush(); overlay.update(0f, ship, canvas);
+                document.advance(.2f);
+                require(markup.requireElement("engineering-credit-stock:name").text().equals("Credits"), "Credit identity lost during refresh");
+                require(markup.requireElement("engineering-credit-stock:label").text().equals("15,000,000"), "Large stock did not refresh");
+                frames.add(new SnapshotArtifact("07-reclamation.png", renderer.render(document, 1920, 1080)));
+                return List.copyOf(frames);
+            }
             overlay.select(mess.id()); overlay.update(0f, ship, canvas);
             canvas.camera().zoomAt(2f, canvas.toCameraX(800f), canvas.toCameraY(450f));
             canvas.camera().panByCells(6f, 4f);

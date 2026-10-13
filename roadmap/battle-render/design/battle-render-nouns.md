@@ -191,13 +191,21 @@ whole artwork, even when its center and far side are unobserved. Its physical
 footprint remains impassable and opaque; admitting the artwork grants neither
 observation nor a firing lane through the hull.
 
-Night lighting admits lamp pools over the opaque cells of that observed prop's
-surface footprint, including cells whose ground remains unobserved. This is a
-cell mask for shading artwork, separate from the fog bitmap. Authored empty
-corners and the ground beyond the prop receive no such admission. Transparent
-gaps in artwork retain ordinary fog and conceal actors and terrain, although
-their night shading follows the admitted cell's lamp pool. Lighting never
-repaints scenery above intervening actors, roofs or aircraft.
+Night lighting admits lamp pools through the observed artwork's actual alpha,
+including hull surfaces above unobserved ground. The same sprite commands,
+source rectangles, rotations and mirrors form a framebuffer-resolution coverage
+target; a rectangular cell footprint cannot admit lighting. Transparent corners
+and holes retain the ordinary fog-clipped shade exactly. Partial edges mix the
+premultiplied lit and fog-clipped treatments continuously, and overlapping props
+combine coverage without applying the lighting twice. The final night pass
+changes shading only, never repainting scenery over actors, roofs or aircraft.
+Coverage grants neither observation nor an illuminated patch of unseen ground.
+
+The headless drain rasterizes those same commands and shade meshes and performs
+the same pixel composition. Real-driver evidence checks corners, internal gaps,
+partial alpha, overlap and transforms. If the graphics targets or shaders fail,
+the live pass retains ordinary fog-clipped darkness rather than admitting a
+rectangular fallback. Night targets are released with the owning battle renderer.
 
 Shared-edge windows are sparse GROUND features rather than painted properties
 of either adjacent floor cell. The collector reads the live canonical barrier

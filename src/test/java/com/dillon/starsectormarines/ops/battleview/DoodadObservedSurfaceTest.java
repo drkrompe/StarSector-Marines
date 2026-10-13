@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,10 +29,6 @@ class DoodadObservedSurfaceTest {
         assertFalse(fog.isCellRevealed(20, 18));
         assertFalse(fog.isCellRevealed(34, 18));
         assertTrue(DoodadRenderSystem.hasObservedSurface(hull, grid, fog));
-        boolean[] litSurfaces = new boolean[40 * 36];
-        NightLightingRenderSystem.markObservedSurfaces(List.of(hull), grid, fog, litSurfaces);
-        assertTrue(litSurfaces[grid.index(20, 18)], "admitted hull receives lamps across its surface");
-        assertFalse(litSurfaces[grid.index(34, 18)], "the hull shadow receives no lighting admission");
         assertArrayEquals(before, fog.cellRevealedArray());
         assertFalse(grid.isWalkable(20, 18));
         assertTrue(grid.blocksStructuralLineOfSight(20, 18));
@@ -48,18 +45,10 @@ class DoodadObservedSurfaceTest {
         fog.init(grid, 0);
         fog.cellRevealedArray()[grid.index(3, 3)] = true;
         assertFalse(DoodadRenderSystem.hasObservedSurface(prop, grid, fog));
-        boolean[] litSurfaces = new boolean[64];
-        NightLightingRenderSystem.markObservedSurfaces(List.of(prop), grid, fog, litSurfaces);
-        assertFalse(litSurfaces[grid.index(4, 3)]);
         fog.cellRevealedArray()[grid.index(4, 3)] = true;
         assertTrue(DoodadRenderSystem.hasObservedSurface(prop, grid, fog));
-        NightLightingRenderSystem.markObservedSurfaces(List.of(prop), grid, fog, litSurfaces);
-        assertFalse(litSurfaces[grid.index(3, 3)], "empty mask corners stay outside lighting admission");
-        assertTrue(litSurfaces[grid.index(4, 3)]);
         grid.setSeeThrough(4, 3, true);
         assertFalse(DoodadRenderSystem.hasObservedSurface(prop, grid, fog));
-        NightLightingRenderSystem.markObservedSurfaces(List.of(prop), grid, fog, litSurfaces);
-        assertFalse(litSurfaces[grid.index(4, 3)], "mask clears when the surface is no longer admitted");
     }
 
     private static FogOfWarService observedFrom(NavigationGrid grid, int x, int y, int range) {
@@ -72,7 +61,7 @@ class DoodadObservedSurfaceTest {
     }
 
     @Test
-    void lightingMaskFollowsRotatedAndMirroredSurfaceOnly() {
+    void observationFollowsRotatedAndMirroredSolidSurfaceOnly() {
         DoodadDef def = new DoodadDef("test.asymmetric", "prop.png", 0, 0,
                 DoodadCover.HEAVY, 1f, 3, 2, null, 64, List.of("#..", ".#."));
         for (int pose = 0; pose < 8; pose++) {
@@ -82,12 +71,14 @@ class DoodadObservedSurfaceTest {
             fog.init(grid, 0);
             for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++) {
                 grid.setWalkable(2 + x, 2 + y, false);
-                if (prop.hasFogSurfaceAt(x, y)) fog.cellRevealedArray()[grid.index(2 + x, 2 + y)] = true;
             }
-            boolean[] litSurfaces = new boolean[64];
-            NightLightingRenderSystem.markObservedSurfaces(List.of(prop), grid, fog, litSurfaces);
-            for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++)
-                assertEquals(prop.hasFogSurfaceAt(x, y), litSurfaces[grid.index(2 + x, 2 + y)]);
+            for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++) {
+                boolean[] revealed = fog.cellRevealedArray();
+                Arrays.fill(revealed, false);
+                revealed[grid.index(2 + x, 2 + y)] = true;
+                assertEquals(prop.hasFogSurfaceAt(x, y),
+                        DoodadRenderSystem.hasObservedSurface(prop, grid, fog), "pose " + pose);
+            }
         }
     }
 

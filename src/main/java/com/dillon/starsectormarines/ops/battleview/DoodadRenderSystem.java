@@ -49,6 +49,10 @@ public final class DoodadRenderSystem implements RenderSystem {
      * Flat debris keeps the ordinary ground-fog treatment.
      */
     void collectVisibleSurfaces(RenderContext ctx, DrawList out) {
+        collectVisibleSurfaces(ctx, out, ctx.alphaMult);
+    }
+
+    private void collectVisibleSurfaces(RenderContext ctx, DrawList out, float alpha) {
         FogOfWarService fog = ctx.sim.getFogOfWar();
         if (!fog.isInitialized()) return;
         NavigationGrid grid = ctx.sim.getGrid();
@@ -59,8 +63,13 @@ public final class DoodadRenderSystem implements RenderSystem {
             if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)
                     || !hasObservedSurface(d, grid, fog)) continue;
             SpriteAPI sheet = sheetFor(d);
-            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), ctx.alphaMult, RenderLayer.FOG);
+            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.FOG);
         }
+    }
+
+    /** Coverage uses the identical sprite projection, without the host fade. */
+    void collectLightingSurfaces(RenderContext ctx, DrawList out) {
+        collectVisibleSurfaces(ctx, out, 1f);
     }
 
     static boolean hasObservedSurface(Doodad d, NavigationGrid grid, FogOfWarService fog) {

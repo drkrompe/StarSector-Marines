@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration.Offer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
-import java.util.Locale;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -85,18 +88,23 @@ public final class WorkshopRestorationModel {
                     case REPAIRED -> Strings.get("openingWorkshopRestorationNextInstallToolingBoatAndMechLab");
                     default -> Strings.get("openingWorkshopRestorationActiveReclamationAndFewerSuppliesForBoat");
                 };
-                case "bill" -> complete ? Strings.get("openingWorkshopRestorationInstalledAboardThisHull") : String.format(Locale.ROOT,
-                        Strings.get("openingWorkshopRestorationCreditsCostDAvailableDShortBy"), state.price(), offer.credits(), Math.max(0, state.price() - offer.credits()));
+                case "bill" -> complete ? "" : CompanyResources.creditBill(state.price(), offer.credits());
+                case "billRows" -> complete ? List.of() : CompanyResources.credits("workshop-cost", offer.credits(), state.price());
+                case "stock" -> List.of(
+                        CompanyResources.stock("engineering-credit-stock", Strings.get("companyResourceCredits"), "graphics/ui/company/credits.svg", offer.credits()),
+                        CompanyResources.stock("engineering-machinery-stock", CampaignCommodityPresentation.INSTANCE.commodityName(Commodities.HEAVY_MACHINERY), CampaignCommodityPresentation.INSTANCE.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery()),
+                        CompanyResources.stock("engineering-metals-stock", CampaignCommodityPresentation.INSTANCE.commodityName(Commodities.METALS), CampaignCommodityPresentation.INSTANCE.commodityIcon(Commodities.METALS), offer.metals()));
+                case "reclaimBill" -> List.of(CompanyResources.cost("reclaim-machinery-cost", CampaignCommodityPresentation.INSTANCE.commodityName(Commodities.HEAVY_MACHINERY), CampaignCommodityPresentation.INSTANCE.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery(), 1));
                 case "reason" -> offer.refusal() == null ? Strings.get("openingWorkshopRestorationPlanetaryYardLaborAndInstallationIncluded") : offer.refusal();
-                case "actionLabel" -> !reviewed ? Strings.get("openingWorkshopRestorationInspectWorkshop") : String.format(Locale.ROOT, "%s - %,d", switch (state) {
+                case "actionLabel" -> !reviewed ? Strings.get("openingWorkshopRestorationInspectWorkshop") : switch (state) {
                     case BURIED -> Strings.get("openingWorkshopRestorationClear"); case CLEARED -> Strings.get("openingWorkshopRestorationRepair"); default -> Strings.get("openingWorkshopRestorationInstallTools");
-                }, state.price());
+                };
                 case "actionClasses" -> complete ? "restoration-action hidden" : "restoration-action console-action";
                 case "disabled" -> reviewed && offer.refusal() != null;
                 case "action" -> action;
                 case "inspect" -> inspect;
                 case "reclaimClasses" -> state.operational() ? "reclaim-block" : "reclaim-block hidden";
-                case "reclaimCopy" -> Strings.format("openingWorkshopRestorationReclaimMachineryMetalsCargoMachineryMetals", offer.machinery(), offer.metals());
+                case "reclaimCopy" -> Strings.format("companyResourceReclaimYield", CompanyWorkshopRestoration.RECLAIMED_METALS);
                 case "reclaimReason" -> offer.reclaimRefusal() == null ? Strings.get("openingWorkshopRestorationUsesFleetCargoStartingDepotStoresAre") : offer.reclaimRefusal();
                 case "reclaimDisabled" -> offer.reclaimRefusal() != null;
                 case "reclaimLabel" -> reclaimReviewed ? Strings.get("openingWorkshopRestorationConfirmReclamation") : Strings.get("openingWorkshopRestorationReclaimMachinery");

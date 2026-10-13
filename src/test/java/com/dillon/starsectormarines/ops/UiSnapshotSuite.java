@@ -140,7 +140,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final int FULL_SCREEN_HEIGHT = 1080;
 
     private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/company-hq.mlx");
     private static final List<String> MISSION_SELECT_COMPONENTS = List.of(
             "data/ui/components/missions/mission-select.mlx");
@@ -157,7 +158,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> MISSION_LOOT_COMPONENTS = List.of(
             "data/ui/components/missions/mission-loot.mlx");
     private static final List<String> BARRACKS_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/shipboard-barracks.mlx");
     /**
      * The fleet the transfer evidence is drawn from: a plausible mid-campaign
@@ -193,17 +195,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final String SHIP_VIEW_HULL = "conquest";
 
     private static final List<String> SHIP_VIEW_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-view.mlx");
     private static final List<String> SHIP_TRANSFER_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
     private static final List<String> OVERVIEW_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-overview.mlx",
             "data/ui/components/armory/armory-company-list.mlx");
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory.mlx",
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
@@ -212,10 +218,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
     private static final List<String> BOAT_DECK_COMPONENTS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/boat-deck/boat-deck.mlx");
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
@@ -1525,6 +1533,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSummary", viewModel.selectedSummary());
         props.put("verdict", viewModel.verdict());
         props.put("costLabel", viewModel.costLabel());
+        props.put("resourceStock", viewModel.resourceStock());
         props.put("costClasses", viewModel.costClasses());
         props.put("transferLabel", viewModel.transferLabel());
         props.put("transferClasses", viewModel.transferClasses());
@@ -2639,6 +2648,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 selectHound, selectVacant, specSheet, null);
     }
 
+    static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
+        var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
+        var roster = new MarineRoster();
+        var mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
+        roster.add(mira); roster.beginCompanyPreparation(mira);
+        return renderPreparationRooms(context, renderer, roster, 1f);
+    }
+
+    static List<SnapshotArtifact> renderResourceBills(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("founding.png", renderEmptyFleetArmoryWorkspace(context, renderer, 1920, 1080)),
+                new SnapshotArtifact("boat-fitting.png", renderBoatDeck(context, renderer, 1920, 1080, true)),
+                new SnapshotArtifact("boat-shortage.png", renderBoatDeck(context, renderer, 1920, 1080, false, true)),
+                new SnapshotArtifact("mech-large-stock.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "resource-large")),
+                new SnapshotArtifact("mech-shortage.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "resource-short")),
+                new SnapshotArtifact("mech-chassis.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, true, false)));
+    }
+
     static List<SnapshotArtifact> renderEquipmentSheets(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
@@ -2754,7 +2785,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.beginLabLesson();
         }
         MechLabViewModel viewModel = new MechLabViewModel(
-                reactor, bay, snapshotMechResources());
+                reactor, bay, snapshotMechResources("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 2_000));
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             int step = Integer.parseInt(materialHint.substring(7));
             if (step >= 2) viewModel.guideLabLesson();
@@ -2849,7 +2880,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.layout(initialViewport.documentWidth(), initialViewport.documentHeight());
             guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
-                    && !materialHint.startsWith("lesson-")) {
+                    && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -3081,9 +3112,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         };
     }
 
-    private static FabricationResources snapshotMechResources() {
+    private static FabricationResources snapshotMechResources() { return snapshotMechResources(2_000); }
+
+    private static FabricationResources snapshotMechResources(int stock) {
         return new FabricationResources() {
-            @Override public int available(String commodityId) { return 2_000; }
+            @Override public int available(String commodityId) { return stock; }
             @Override public String commodityName(String commodityId) { return switch (commodityId) {
                 case Commodities.SUPPLIES -> "Supplies";
                 case Commodities.HEAVY_MACHINERY -> "Heavy Machinery";
@@ -3407,7 +3440,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", viewModel.materialStock());
+        props.put("materialStock", viewModel.materialStock().map(rows -> CompanyResources.withCredits(rows, 0)));
         props.put("boatRows", viewModel.boatRows());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());

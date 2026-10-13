@@ -36,7 +36,8 @@ public final class BarracksScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "shipboard-barracks";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-resource-stock.mlx",
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/shipboard-barracks.mlx");
 
     private final Reactor reactor = new Reactor();

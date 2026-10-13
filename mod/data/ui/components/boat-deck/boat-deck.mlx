@@ -1,6 +1,7 @@
 <template props="wings,fabricationActionLabel,restoration,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <company-resource-stock stockId="boat-material-stock" rows="{materialStock}" />
 
     <div id="boat-deck-room-bar" class="panel room-bar">
       <img id="boat-deck-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -10,12 +11,7 @@
         <div id="boat-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
         <button id="boat-next-bay" class="bay-step console-action" onclick="{nextBay}">›</button>
       </div>
-      <div id="boat-material-stock" class="material-stock-strip">
-        <div each="material in materialStock" key="{material.id}" id="{material.id}" class="material-stock">
-          <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
-          <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
-        </div>
-      </div>
+
       <div id="boat-deck-summary" class="label tone-muted room-summary">{deckSummary}</div>
     </div>
 
@@ -49,7 +45,7 @@
             </div>
           </div>
           <div id="bay-restoration-copy" class="restoration-copy label">{restoration.copy}</div>
-          <div id="bay-restoration-bill" class="restoration-bill label heading tone-accent">{restoration.bill}</div>
+          <div id="bay-restoration-bill" class="company-credit-bill"><company-resource-cost each="row in restoration.billRows" key="{row.id}" row="{row}" /></div>
           <div id="bay-restoration-reason" class="restoration-copy label tone-muted">{restoration.reason}</div>
           <div id="bay-restoration-actions" class="boat-fabrication-actions">
           <button id="bay-restoration-action" class="restoration-action console-action" disabled="{restoration.disabled}" onclick="{restoration.action}">{restoration.actionLabel}</button>
@@ -68,10 +64,7 @@
           <div id="boat-fabrication-kicker" class="section-title label heading tone-edge">{i18n.openingUiBoatDeckYardWorkAirframe}</div>
           <div id="boat-fabrication-copy" class="label tone-muted fabrication-copy">{fabricationCopy}</div>
           <div id="boat-fabrication-materials" class="fabrication-costs">
-            <div each="material in fabricationMaterials" key="{material.id}" id="{material.id}" class="{material.classes}">
-              <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
-              <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
-            </div>
+            <company-resource-cost each="material in fabricationMaterials" key="{material.id}" row="{material}" />
           </div>
           <div id="boat-fabrication-reason" class="label heading tone-muted catalog-reason">{fabricationReason}</div>
           <div id="boat-fabrication-actions" class="boat-fabrication-actions">
@@ -115,19 +108,16 @@
           <div id="boat-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
           <div id="boat-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
           <div id="boat-catalog-list" class="catalog-list">
-            <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}">
-              <div id="{item.copyId}" class="catalog-item-copy">
+            <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}" style="{item.cardStyle}">
+              <div id="{item.copyId}" class="catalog-item-copy" style="{item.copyStyle}">
                 <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
                 <div id="{item.lineId}" class="catalog-line">
                   <div id="{item.tierId}" class="label heading tone-edge catalog-tier">{item.tier}</div>
                   <div id="{item.effectId}" class="label tone-accent catalog-effect">{item.effect}</div>
                 </div>
                 <div id="{item.provenanceId}" class="label tone-muted catalog-provenance">{item.provenance}</div>
-                <div id="{item.materialsId}" class="material-costs">
-                  <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
-                    <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
-                    <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
-                  </div>
+                <div id="{item.materialsId}" class="material-costs" style="{item.materialsStyle}">
+                  <company-resource-cost each="material in item.materials" key="{material.id}" row="{material}" />
                 </div>
               </div>
               <div id="{item.reasonId}" class="label heading tone-muted catalog-reason">{item.reason}</div>
@@ -152,7 +142,7 @@
           <img id="wings-new" class="wings-craft" src="{wings.newArt}" />
           <div id="wings-trade" class="label wings-trade tone-muted">{wings.trade}</div>
         </div>
-        <div id="wings-bill" class="label heading tone-accent wings-bill">{wings.bill}</div>
+        <div id="wings-bill" class="company-credit-bill"><company-resource-cost each="row in wings.billRows" key="{row.id}" row="{row}" /></div>
         <div id="wings-reason" class="label tone-muted wings-reason">{wings.reason}</div>
         <div id="wings-controls" class="wings-controls">
           <button id="wings-action" class="wings-action console-action" disabled="{wings.disabled}" onclick="{wings.action}">{wings.actionLabel}</button>
@@ -165,6 +155,7 @@
 </template>
 
 <style>
+  .company-credit-bill { height: 36px; }
   .wings-resume { width: 100%; height: 32px; text-align: center; font-family: heading; }
   .wings-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12d9; }
   .wings-hidden { position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
@@ -228,7 +219,7 @@
   .boat-fabrication { flex-direction: column; width: 430px; gap: 6px; overflow: hidden; }
   .fabrication-yard { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 7px; gap: 5px; overflow: hidden; }
   .fabrication-copy { width: 100%; height: 40px; white-space: normal; overflow: hidden; }
-  .fabrication-costs { flex-direction: column; width: 100%; height: 56px; gap: 2px; overflow: hidden; }
+  .fabrication-costs { flex-direction: column; width: 100%; height: 144px; gap: 2px; overflow: hidden; }
   .boat-fabrication-actions { flex-direction: row; height: 32px; }
   .fabricate-action { width: 160px; height: 30px; text-align: center; }
   .fabricate-action.blocked { border-color: #8f3f44; background-color: #251419; }
@@ -258,13 +249,13 @@
   .catalog-copy { height: 36px; white-space: normal; overflow: hidden; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
   .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 220px; padding: 7px; gap: 3px; border-width: 1px; }
-  .catalog-item-copy { flex-direction: column; width: 100%; height: 158px; gap: 2px; }
+  .catalog-item-copy { flex-direction: column; width: 100%; height: auto; gap: 2px; }
   .catalog-name { height: 19px; }
   .catalog-line { flex-direction: row; width: 100%; height: 17px; gap: 6px; }
   .catalog-tier { width: 62px; }
   .catalog-effect { width: 0px; flex-grow: 1; }
   .catalog-provenance { height: 64px; white-space: normal; overflow: hidden; }
-  .material-costs { flex-direction: column; width: 100%; height: 52px; gap: 2px; overflow: hidden; }
+  .material-costs { flex-direction: column; width: 100%; height: 144px; gap: 2px; overflow: hidden; }
   .material-cost { flex-direction: row; width: 100%; height: 16px; padding: 0px 3px; gap: 4px; background-color: #121719; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
   .material-icon { width: 13px; height: 13px; }
