@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 
-/** External cargo authority used by an equipment preview and its atomic commit. */
+/** Legacy equipment resource adapter, retained for callers and stock presentation. Fitting never spends it. */
 public interface EquipmentIssueResources extends CommodityPresentation {
 
     EquipmentIssueResources UNLIMITED = new EquipmentIssueResources() {

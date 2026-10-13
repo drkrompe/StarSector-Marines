@@ -25,7 +25,8 @@
     </div>
 
     <div id="barracks-flow-actions" class="board-tools">
-      <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD / ARMORY</button>
+      <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD</button>
+      <button id="barracks-equipment" class="{command.equipmentClasses}" onclick="{command.equipmentWorkspace}">{command.equipmentLabel}</button>
       <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">OFFICER DOSSIER</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
       <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">{command.missionLabel}</button>
@@ -197,7 +198,7 @@
         </div>
         <div id="barracks-profile-editor" class="{command.editorClasses}">
           <div id="barracks-order-caption-92" class="label heading warm order-caption">SAVE SQUAD PROFILE</div>
-          <div id="barracks-editor-copy" class="label muted wrap editor-copy">Pair a known weapon loadout with an armour tactic sheet. Design new weapon loadouts in Armory.</div>
+          <div id="barracks-editor-copy" class="label muted wrap editor-copy">Pair a known weapon loadout with an armour tactic sheet. Use Equipment above to design new weapon loadouts.</div>
           <div id="barracks-order-caption-94" class="label muted order-caption">PROFILE NAME</div>
           <input id="barracks-profile-name" class="profile-name-input" value="{command.draftName}" maxlength="48" oninput="{command.editName}" />
           <div id="barracks-order-caption-96" class="label heading warm order-caption">WEAPON LOADOUT</div>
@@ -226,7 +227,7 @@
       <div id="barracks-stage" class="panel barracks-stage console-section">
         <div id="barracks-detail-tools" class="detail-tools">
           <button id="barracks-back-command" class="back-command console-action" onclick="{command.back}">BACK TO COMMAND</button>
-          <button id="barracks-edit-equipment" class="back-command console-action" onclick="{command.editEquipment}">EDIT EQUIPMENT / ARMORY</button>
+          <button id="barracks-edit-equipment" class="back-command console-action" onclick="{command.editEquipment}">EQUIP SQUAD</button>
         </div>
         <div id="barracks-selected-heading" class="selected-heading console-header">
           <div id="barracks-selected-copy" class="selected-copy">
@@ -415,7 +416,8 @@
   #guide-controls .tool-button { width: 94px; }
   .guide-dismiss { width: 82px; height: 28px; font-family: heading; text-align: center; }
   .guide-close-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; font-family: compact; }
-  .flow-button { width: 220px; height: 28px; font-family: heading; text-align: center; }
+  .equipment-new { border-color: #cfaa69; color: #ffd464; }
+  .flow-button { width: 190px; height: 28px; font-family: heading; text-align: center; }
   .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
   .preparation-copy { height: auto; }
   .transfer-rows { flex-direction: column; height: 96px; overflow: scroll; gap: 4px; }

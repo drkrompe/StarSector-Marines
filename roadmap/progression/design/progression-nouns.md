@@ -269,8 +269,9 @@ so a squad's band is legible from the deck. A marine in a heavy battlesuit is,
 by construction, one of the people the company put its best kit on.
 
 The primary deliberately does not feed the band. A primary's access tier is
-authored as a strict function of equipment grade, so sourcing experience there
-would fuse two axes this domain keeps separate — grade supplies quality, profile
+authored independently of grade; the introductory Milspec Stalwart and Lancer
+circulate as Common technology. Sourcing experience there would fuse axes this
+domain keeps separate — grade supplies quality, profile
 supplies person. For the same reason there is no hidden "promoted because they
 lead" bonus: the built-in squad definitions already issue the leader's billet
 scarcer armour, so an NCO comes out steadier through the visible mechanism.
@@ -362,14 +363,13 @@ what lets a player learn to judge a hostile formation on sight.
 
 ### Kit and armory
 
-Wayline's first story relief victory makes one explicit, permanent equipment
-consignment available through **A Proper Issue** in the Armory. Its two curated
-paths teach weapon-and-armor issue before the depot operation. The authored
-reward grants Milspec Stalwart and Lancer templates and the Janus scout pattern
-when accepted; it is a story-specific acquisition route, independent of ordinary
-market and MRB gates. It grants no cargo and never equips marines automatically.
-The same template ownership, role-based armor resolution and free fitting transaction
-apply thereafter. `company-view-nouns.md` owns the guided two-choice presentation.
+Wayline's first story relief victory offers one free technology transfer through
+**A Proper Issue** in the Armory. Steady Line learns Milspec Stalwart; Forward Screen
+learns Milspec Lancer and Janus scout suits. Comparison is read-only; acceptance
+saves one choice and never changes a marine's kit. The Machine Shop subsequently
+fits any learned gear freely. The unchosen path's specs remain in ordinary open
+markets and faction mission-reward pools. Existing claimed bundles retain both
+paths; no learned technology is revoked. `company-view-nouns.md` owns the lesson.
 
 
 The armory has three deliberately separate layers. Equipment template cards are
@@ -414,7 +414,8 @@ never learns a carried card implicitly, and leaves at least four of the current
 
 Faction source pools author which cards may enter through market, license,
 patron, and recovery channels. Every card also authors an access tier. Open
-markets admit Common cards only, so unrestricted credits cannot buy Advanced
+markets admit Common cards only, including the two introductory Milspec technologies,
+so unrestricted credits cannot buy Advanced
 or Prestige capability. Their faction-and-market-stable weighted selection
 rotates monthly and scales with market size. Favorable-or-better standing adds
 licensed offers; MRB reputation admits Advanced at 5 and Prestige at 20, using

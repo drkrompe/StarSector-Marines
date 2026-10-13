@@ -14,7 +14,7 @@ final class CompanyNotices {
     enum Notice {
         SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Secondhand Wings"),
         SECOND_BAY("second-bay", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "Second bay restoration"),
-        FIRST_REFIT("first-refit", MarineOpsPageNav.Page.ARMORY, ScreenId.FLEET_ARMORY, "Castle's first refit"),
+        FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "Castle's first refit"),
         HOUND_INDUCTION("hound-induction", MarineOpsPageNav.Page.MECH_LAB, ScreenId.MECH_LAB, "Wayward gantry induction");
 
         final String id, label;
@@ -55,7 +55,7 @@ final class CompanyNotices {
         if (notices.isEmpty()) return "";
         Notice first = notices.get(0);
         String room = first.page == MarineOpsPageNav.Page.BOAT_DECK ? "BOATS"
-                : first.page == MarineOpsPageNav.Page.MECH_LAB ? "MECH LAB" : "ARMORY";
+                : first.page == MarineOpsPageNav.Page.MECH_LAB ? "MECH LAB" : "BARRACKS";
         return "NEW / " + room + ": " + first.label
                 + (notices.size() > 1 ? "  (+" + (notices.size() - 1) + ")" : "");
     }

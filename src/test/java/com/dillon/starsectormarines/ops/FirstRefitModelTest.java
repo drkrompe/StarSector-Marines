@@ -9,6 +9,11 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import java.nio.file.Files;
+import java.io.File;
+import java.util.LinkedHashMap;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,13 +28,16 @@ class FirstRefitModelTest {
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, id -> { });
         assertEquals(true, model.row().get().get("disabled"));
-        model.claim();
         assertEquals(2, ((List<?>) model.row().get().get("paths")).size());
         assertEquals(true, model.row().get().get("disabled"));
         model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         assertEquals(true, model.row().get().get("disabled"));
         model.selectPath(Path.FORWARD_SCREEN);
         assertEquals(12, ((List<?>) model.row().get().get("billets")).size());
+        assertEquals(true, model.row().get().get("disabled"));
+        model.issue();
+        assertFalse(roster.firstRefit().complete());
+        model.claim();
         assertEquals(false, model.row().get().get("disabled"));
         model.issue();
         assertTrue(roster.firstRefit().complete());
@@ -42,7 +50,7 @@ class FirstRefitModelTest {
         var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, id -> { });
-        model.claim(); model.selectSquad(squad.id()); model.selectPath(Path.STEADY_LINE);
+        model.selectSquad(squad.id()); model.selectPath(Path.STEADY_LINE);
         assertEquals(SpecSheets.weapon(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC), model.sheet(true, 0));
         model.selectPath(Path.FORWARD_SCREEN);
         var current = roster.soldierById(roster.manningMemberIds(squad).get(0));
@@ -68,12 +76,42 @@ class FirstRefitModelTest {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         EquipmentIssueResources resources = new EquipmentIssueResources() {
-            public EquipmentTemplateCost available() { return new EquipmentTemplateCost(999, 999, 999, 999); }
-            public boolean spend(EquipmentTemplateCost cost) { return false; }
+            public EquipmentTemplateCost available() { throw new AssertionError("Fitting must not read cargo"); }
+            public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not spend cargo"); }
         };
         var model = new FirstRefitModel(new Reactor(), roster, resources, id -> { });
-        model.claim(); model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
-        model.selectPath(Path.STEADY_LINE); model.issue();
+        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
+        model.selectPath(Path.STEADY_LINE); model.claim(); model.issue();
         assertTrue(roster.firstRefit().complete());
     }
+    @Test void machineShopButtonOpensFittingWithoutWorkshopRestoration() throws Exception {
+        var context = new MarineOpsContext(null);
+        context.goTo(ScreenId.SHIP_VIEW);
+        var props = new LinkedHashMap<String, Object>();
+        props.put("equipmentAction", ShipViewScreen.equipmentAction(context));
+        var survey = ShipConditionModel.workshopOnly();
+        survey.put("classes", "hidden");
+        props.put("survey", survey);
+        props.put("workshop", WorkshopRestorationModel.Row.hidden());
+        props.put("roomTitle", "COMPANY SHIP / WALK THE SHIP");
+        props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
+        props.put("contextLabel", "COMPANY SHIP / CONDITION");
+        Runnable noop = () -> {};
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW, MarineOpsPageNav.ANY_SHIP,
+                noop, noop, noop, noop, noop, noop);
+        var mod = new File("mod").toPath();
+        var loader = new MarkupLoader(file -> Files.readString(mod.resolve(file)), List.of(
+                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
+        try (var markup = loader.reloadAndBuild(new Reactor(), "ship-view", props)) {
+            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+            markup.styles().forEach(document::addStyleSheet);
+            document.layout(1920, 1080);
+            var box = markup.requireElement("machine-shop-equipment").box().borderBox();
+            assertTrue(box.width() > 300 && box.right() <= 1920 && box.bottom() <= 1080);
+            document.pointerDown(box.x() + box.width()/2, box.y() + box.height()/2);
+            document.pointerUp(box.x() + box.width()/2, box.y() + box.height()/2);
+            assertEquals(ScreenId.FLEET_ARMORY, context.getCurrentScreen());
+        }
+    }
+
 }

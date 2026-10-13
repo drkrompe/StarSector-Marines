@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -49,6 +50,8 @@ public final class TenderBuildScene implements BehaviorScene {
     /** When the overrun loop's player gives the job up. */
     private static final int CANCEL_TICK = 1800;
     private static final int RAID_X = 88;
+    /** Ticks after the last builder arrives before stations are expected to be clean of the arrival traffic. */
+    private static final int SETTLE_TICKS = 90;
     private static final String CARBINE = "weapon.smg";
 
     @Override public String id() {
@@ -128,6 +131,22 @@ public final class TenderBuildScene implements BehaviorScene {
                 verdicts.add(Verdict.of("builders-come-home",
                         tender.buildersOut() == 0 && tender.builderReserve() == tender.builderComplement(),
                         tender.buildersOut() + " still out, " + tender.builderReserve() + " in the bay"));
+                verdicts.add(Verdict.of("builders-leave-the-bay-in-a-line",
+                        t.launchTicks.size() == tender.builderComplement() && t.minLaunchGap() >= 12,
+                        "launched at ticks " + t.launchTicks.values() + ", smallest gap " + t.minLaunchGap() + " ticks"));
+                verdicts.add(Verdict.of("builders-fly-to-the-site-rather-than-appear-there",
+                        t.arrivalTicks.size() == tender.builderComplement() && t.minTransit() >= 20,
+                        "shortest bay-to-site flight " + t.minTransit() + " ticks over " + t.arrivalTicks.size() + " builders"));
+                verdicts.add(Verdict.of("builders-hold-distinct-stations",
+                        t.fullCrewTicks > 60 && t.minStationGap >= 1.2f,
+                        "closest pair " + String.format(Locale.ROOT, "%.2f", t.minStationGap) + " cells over "
+                                + t.fullCrewTicks + " ticks settled at the site"));
+                verdicts.add(Verdict.of("torches-are-lit-at-the-stations", t.weldTicks >= 60,
+                        t.weldTicks + " builder-ticks at a station with the torch on the site"));
+                verdicts.add(Verdict.of("builders-fly-home-in-order-and-take-time",
+                        t.dockTicks.size() == tender.builderComplement() && t.dockedInOrder() && t.minHomeFlight() >= 15,
+                        "docked at ticks " + t.dockTicks.values() + " after completion at " + t.completeTick
+                                + ", shortest flight home " + t.minHomeFlight() + " ticks"));
                 verdicts.add(Verdict.of("defence-drones-stay-out",
                         tender.defendersOut() == tender.defenceComplement(),
                         tender.defendersOut() + " of " + tender.defenceComplement() + " screening"));
@@ -198,6 +217,14 @@ public final class TenderBuildScene implements BehaviorScene {
         int peakOnSite;
         int defenceEverOut;
         int firstRaiderHurt = -1;
+        final Map<Long, Integer> launchTicks = new LinkedHashMap<>();
+        final Map<Long, Integer> arrivalTicks = new LinkedHashMap<>();
+        final Map<Long, Integer> dockTicks = new LinkedHashMap<>();
+        private List<Long> previousBuilders = new ArrayList<>();
+        private int previousBuildersLost;
+        int fullCrewTicks;
+        float minStationGap = Float.MAX_VALUE;
+        int weldTicks;
         private float lastFraction;
         private boolean turret;
         private int workTicks;
@@ -232,6 +259,7 @@ public final class TenderBuildScene implements BehaviorScene {
                 }
             }
             peakOnSite = Math.max(peakOnSite, onSite);
+            trackSorties(sim, tick);
             UnitRosterService roster = sim.getRoster();
             turret = false;
             long[] dense = roster.denseArray();
@@ -252,6 +280,76 @@ public final class TenderBuildScene implements BehaviorScene {
         }
 
         private BattleSimulation sim;
+
+        private void trackSorties(BattleSimulation sim, int tick) {
+            List<Long> now = new ArrayList<>(tender.builders);
+            for (Long id : now) {
+                launchTicks.putIfAbsent(id, tick);
+                if (!arrivalTicks.containsKey(id) && Math.hypot(sim.world().x(id) - order.siteX(),
+                        sim.world().y(id) - order.siteY()) <= TenderSystem.WORK_RADIUS) {
+                    arrivalTicks.put(id, tick);
+                }
+            }
+            if (tender.buildersLost() == previousBuildersLost) {
+                for (Long id : previousBuilders) if (!now.contains(id)) dockTicks.put(id, tick);
+            }
+            previousBuildersLost = tender.buildersLost();
+            previousBuilders = now;
+            List<Long> onSite = new ArrayList<>();
+            for (Long id : now) {
+                float x = sim.world().x(id);
+                float y = sim.world().y(id);
+                if (Math.hypot(x - order.siteX(), y - order.siteY()) <= TenderSystem.WORK_RADIUS) onSite.add(id);
+                if (tender.welding(id, order, x, y)) weldTicks++;
+            }
+            int settled = arrivalTicks.size() < tender.builderComplement() ? Integer.MAX_VALUE
+                    : Collections.max(arrivalTicks.values()) + SETTLE_TICKS;
+            if (onSite.size() == tender.builderComplement() && tick >= settled
+                    && order.phase() == ConstructionOrder.Phase.WORKING && !order.contested()) {
+                fullCrewTicks++;
+                for (int i = 0; i < onSite.size(); i++) {
+                    for (int j = i + 1; j < onSite.size(); j++) {
+                        float gap = (float) Math.hypot(sim.world().x(onSite.get(i)) - sim.world().x(onSite.get(j)),
+                                sim.world().y(onSite.get(i)) - sim.world().y(onSite.get(j)));
+                        minStationGap = Math.min(minStationGap, gap);
+                    }
+                }
+            }
+        }
+
+        int minLaunchGap() {
+            int gap = Integer.MAX_VALUE;
+            Integer previous = null;
+            for (int t : launchTicks.values()) {
+                if (previous != null) gap = Math.min(gap, t - previous);
+                previous = t;
+            }
+            return gap;
+        }
+
+        int minTransit() {
+            int shortest = Integer.MAX_VALUE;
+            for (Map.Entry<Long, Integer> e : arrivalTicks.entrySet()) {
+                shortest = Math.min(shortest, e.getValue() - launchTicks.get(e.getKey()));
+            }
+            return shortest;
+        }
+
+        boolean dockedInOrder() {
+            int last = -1;
+            for (Long id : launchTicks.keySet()) {
+                Integer dock = dockTicks.get(id);
+                if (dock == null || dock <= last) return false;
+                last = dock;
+            }
+            return true;
+        }
+
+        int minHomeFlight() {
+            int shortest = Integer.MAX_VALUE;
+            for (int dock : dockTicks.values()) shortest = Math.min(shortest, dock - completeTick);
+            return shortest;
+        }
 
         private boolean hasRaid() {
             try {

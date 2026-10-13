@@ -1612,6 +1612,82 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    /** Barracks -> selected squad equipment -> Barracks, at the player's review scale. */
+    static List<SnapshotArtifact> renderBarracksEquipment(SnapshotContext context) throws Exception {
+        DiskRegistries.installMapGeneration(context.modRoot().getParent());
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        var reactor = new Reactor();
+        var roster = new MarineRoster();
+        roster.bootstrapInitialComplement(36);
+        roster.dismissManagementGuide();
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        var squad = roster.squads().stream().filter(q -> !q.reserve()).findFirst().orElseThrow();
+        var model = new BarracksViewModel(reactor, roster, () -> 100d, snapshotEquipmentResources(),
+                () -> 20, id -> new PersonnelDrawResult(0, 0));
+        CompanyDeck ship = companyShip(List::of, () -> MarineOpsContext.companyMarines(roster));
+        List<ScreenId> routes = new ArrayList<>();
+        var navigation = new MarineOpsContext(null) {
+            @Override public void goTo(ScreenId screen) { routes.add(screen); }
+        };
+        model.command().equipmentWorkspace(() -> navigation.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
+        model.command().navigation(() -> navigation.openSquadFoundingFrom(ScreenId.BARRACKS),
+                navigation::openSquadEquipmentFromBarracks, () -> {}, true);
+        var properties = props(model, ship);
+        properties.put("contextLabel", "BARRACKS / COMPANY PREPARATION");
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        try (var markup = loader.reloadAndBuild(reactor, "shipboard-barracks", properties)) {
+            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+            markup.styles().forEach(document::addStyleSheet);
+            var guide = BarracksGuideCallout.bind(document, markup, model.command(), model.command()::showOverview);
+            document.canvases().set(markup.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
+            MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
+                    List.of(CompanyNotices.Notice.FIRST_REFIT));
+            frames.add(new SnapshotArtifact("01-barracks-equipment-new.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+            clickBarracksFlow(document, markup, "barracks-equipment");
+            if (!routes.equals(List.of(ScreenId.FLEET_ARMORY))) throw new AssertionError("Equipment entry did not route");
+            model.command().toggle(squad.id());
+            model.command().inspect(squad.id());
+            markup.flush();
+            frames.add(new SnapshotArtifact("02-barracks-equip-squad.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+            clickBarracksFlow(document, markup, "barracks-edit-equipment");
+            if (!squad.id().equals(navigation.takeRequestedArmorySquadId())) throw new AssertionError("Wrong squad requested");
+            var editor = new FleetArmoryViewModel(reactor, roster, () -> {}, () -> 100d, snapshotEquipmentResources());
+            editor.selectSquad(squad.id());
+            var editorProps = props(editor);
+            editorProps.put("returnAction", (Runnable) navigation::returnFromFleetArmoryWorkspace);
+            var editorLoader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
+            try (var editorMarkup = editorLoader.reloadAndBuild(reactor, "fleet-armory-fireteam", editorProps)) {
+                var editorDocument = new UiDocument(editorMarkup.root()).theme(MarineOpsThemes.standard());
+                editorMarkup.styles().forEach(editorDocument::addStyleSheet);
+                var previews = new HeadlessArmoryPreviewRenderer(context.modRoot());
+                for (int i = 0; i < MarineSquad.TEAM_SIZE; i++) {
+                    int billet = i;
+                    editorDocument.canvases().set(editorMarkup.requireElement("marine-preview:" + i),
+                            new ArmoryMarinePreviewCanvas(() -> editor.viewerBilletAt(billet), previews.assets()));
+                }
+                MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
+                        List.of(CompanyNotices.Notice.FIRST_REFIT));
+                frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                clickBarracksFlow(editorDocument, editorMarkup, "page-nav-return");
+                if (routes.get(routes.size() - 1) != ScreenId.BARRACKS) throw new AssertionError("Editor return missed Barracks");
+            }
+            if (!model.command().inspecting() || !model.command().selected().contains(squad.id()))
+                throw new AssertionError("Equipment return lost squad context");
+            frames.add(new SnapshotArtifact("04-return-to-selected-squad.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+            // The existing lesson owns this receipt when displayed; visiting the editor did not clear it.
+            CompanyNotices.Notice.FIRST_REFIT.review(roster);
+            model.command().showOverview();
+            markup.flush();
+            MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP, List.of());
+            frames.add(new SnapshotArtifact("05-equipment-after-lesson-review.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+        }
+        return frames;
+    }
+
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.modRoot().getParent());
         CompanyManagementGuide.install(new JSONObject(Files.readString(context.modRoot().resolve(CompanyManagementGuide.PATH))));
@@ -2138,6 +2214,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("survey", ShipConditionModel.workshopOnly());
+        props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
         props.put("roomCopy",
@@ -3135,6 +3212,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var survey = ShipConditionModel.workshopOnly();
         if (workshop.offer().state() == WorkshopState.NONE) survey.put("classes", "hidden");
         props.put("survey", survey);
+        props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", workshop);
         props.put("roomTitle", "SECOND WIND / RESTORATION");
         props.put("roomCopy", "Inspect the workshop. Restoring her rooms keeps their place in the hull.");
@@ -3161,6 +3239,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("survey", model.row());
+        props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "SECOND WIND / WALK THE SHIP");
         props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");

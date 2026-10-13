@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 
-/** One permanent collectible capability and the cargo cost of fielding a copy. */
+/** One permanent equipment technology. issueCost is retained only as legacy catalog metadata. */
 public record EquipmentTemplateCard(
         String id, String displayName, Kind kind, String equipmentId,
         EquipmentGrade grade, EquipmentAccessTier accessTier,
