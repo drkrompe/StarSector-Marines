@@ -55,6 +55,12 @@ final class StorySubtitleOverlay {
                 "portrait", OpeningBroker.PORTRAIT, "subtitle", subtitle);
     }
 
+    static Map<String, Object> props(OperationRadio.Transmission radio) {
+        return Map.of("speaker", radio.line().speaker().equals("command")
+                        ? "CASTLE / COMPANY COMMAND" : radio.speaker(),
+                "portrait", radio.portrait(), "subtitle", radio.line().text());
+    }
+
     void update(WaylineNarration.Line line, float dt) {
         update(line, null, dt);
     }
@@ -72,17 +78,13 @@ final class StorySubtitleOverlay {
             document = null;
             current = next;
             if (next != null) {
-                markup = line != null
-                        ? (line.portrait().isBlank()
-                            ? loader.reloadAndBuild(reactor, "company-subtitle", Map.of("speaker", line.speaker(), "subtitle", line.text()))
-                            : loader.reloadAndBuild(reactor, COMPONENT, Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text())))
-                        : (radio != null ? radio.line().speaker().equals("command") : officer != null)
-                        ? loader.reloadAndBuild(reactor, COMPONENT, Map.of(
+                Map<String, Object> props = line != null
+                        ? Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text())
+                        : radio != null ? props(radio) : Map.of(
                                 "speaker", "CASTLE / COMPANY COMMAND", "portrait", "graphics/portraits/castle.png",
-                                "subtitle", radio != null ? radio.line().text() : officer.text()))
-                        : loader.reloadAndBuild(reactor, "company-subtitle",
-                                Map.of("speaker", radio != null ? radio.speaker() : "COMPANY COMMAND",
-                                        "subtitle", radio != null ? radio.line().text() : officer.text()));
+                                "subtitle", officer.text());
+                markup = loader.reloadAndBuild(reactor,
+                        ((String) props.get("portrait")).isBlank() ? "company-subtitle" : COMPONENT, props);
                 document = new UiDocument(markup.root());
                 for (var style : markup.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());

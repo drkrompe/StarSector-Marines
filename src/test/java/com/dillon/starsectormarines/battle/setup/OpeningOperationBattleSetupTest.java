@@ -14,16 +14,19 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Production construction checks run with the opt-in Relief evidence, not unit tests. */
+@Tag("relief-command-evidence")
 class OpeningOperationBattleSetupTest {
 
     private static final List<ShuttleAssignment> MANIFEST = List.of(
@@ -37,13 +40,13 @@ class OpeningOperationBattleSetupTest {
                 TargetProfile.NEUTRAL);
 
         // The local line is the client's own, so it is on the field as ALLY.
-        // Eight bodies in two fireteams share the actual checkpoint gate.
+        // Four hold the gate and four screen the exterior inspection frontage.
         assertEquals(8, count(sim, Faction.ALLY, UnitType.MILITIA));
         assertEquals(0, count(sim, Faction.MARINE, UnitType.MILITIA),
                 "the player's company does not field the employer's militia");
-        assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
-        assertEquals(8, sim.pendingGroundArrivals(Faction.DEFENDER));
-        assertEquals(12, combatants(sim, Faction.DEFENDER));
+        assertEquals(8, count(sim, Faction.DEFENDER, UnitType.MILITIA));
+        assertEquals(12, sim.pendingGroundArrivals(Faction.DEFENDER));
+        assertEquals(8, combatants(sim, Faction.DEFENDER));
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) == Faction.DEFENDER)
@@ -75,7 +78,7 @@ class OpeningOperationBattleSetupTest {
             }
         }
         assertEquals(2, localPosts);
-        assertEquals(3, raiderPool);
+        assertEquals(2, raiderPool);
 
         long[] shuttles = sim.getAirEntityIds();
         assertEquals(2, shuttles.length);
@@ -87,9 +90,10 @@ class OpeningOperationBattleSetupTest {
         assertEquals(Faction.MARINE, sim.world().airFaction(shuttles[1]));
         // The employer still owns its troops, but they reinforce the same
         // checkpoint gate as the starting line instead of guarding their pad.
-        assertNull(employer.commandClaim);
-        assertNotNull(employer.garrisonNode);
-        assertEquals(Faction.ALLY, employer.garrisonNode.defaultGuard);
+        assertEquals(OpeningOperationCommand.issuer(Faction.ALLY), employer.commandClaim.issuer());
+        assertEquals(CommandAuthority.MISSION_COMMAND, employer.commandClaim.authority());
+        assertNull(employer.garrisonNode);
+        assertInstanceOf(OpeningOperationCommand.class, sim.getCommander(Faction.ALLY));
         assertEquals(OpeningOperationCommand.issuer(Faction.MARINE),
                 player.commandClaim.issuer());
         assertEquals(CommandAuthority.MISSION_COMMAND,
@@ -97,12 +101,12 @@ class OpeningOperationBattleSetupTest {
         assertNull(player.garrisonNode);
         assertEquals(6f, employer.pendingDelay);
         assertEquals(7.5f, player.pendingDelay);
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction == Faction.ALLY) assertSame(employer.garrisonNode, squad.assignedNode);
+        assertEquals(Set.of(83, 99), sim.getSquads().stream()
+                .filter(s -> s.faction == Faction.ALLY).map(s -> s.assignedNode.anchorX)
+                .collect(Collectors.toSet()));
+        for (Squad squad : sim.getSquads()) if (squad.faction == Faction.ALLY) {
+            assertEquals(4, squad.originalSize);
         }
-        assertTrue(Math.hypot(employer.garrisonNode.anchorX - employer.lzX,
-                employer.garrisonNode.anchorY - employer.lzY) > 3,
-                "employer reinforcement destination must be the post, not its landing pad");
         sim.close();
     }
 

@@ -54,12 +54,12 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
         boolean advancing = commandedRole == Role.ASSAULT_ELEMENT
                 || commandedRole == Role.SECURE_ELEMENT;
         boolean holdingDepot = frame.facts().warehouseCaptured();
-        boolean supportingCompany = faction == Faction.ALLY
-                && frame.facts().kind() == OpeningOperationKind.COUNTERATTACK && !holdingDepot;
+        boolean supportingCompany = faction == Faction.ALLY && !holdingDepot;
         if (supportingCompany) {
             advancing = false;
             commandedRole = Role.PRESERVE_ELEMENT;
-            commandedReason = Reason.DEPOT_SCREEN_COMPANY;
+            commandedReason = frame.facts().kind() == OpeningOperationKind.RELIEF
+                    ? Reason.RELIEF_ANCHOR_PRESERVE : Reason.DEPOT_SCREEN_COMPANY;
         }
         if (holdingDepot) {
             advancing = faction == Faction.DEFENDER;
@@ -107,7 +107,14 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                         squad.anchorCellX(), squad.anchorCellY(), frame.company());
                 targetX = screen.x();
                 targetY = screen.y();
-                squadReason = screen.reason();
+                if (frame.facts().kind() == OpeningOperationKind.RELIEF) {
+                    squadReason = screen.leadId() < 0
+                            ? Reason.RELIEF_WAIT_FOR_COMPANY : Reason.RELIEF_ANCHOR_PRESERVE;
+                    if (screen.leadId() >= 0) {
+                        targetX = frame.facts().cellX();
+                        targetY = frame.facts().cellY();
+                    }
+                } else squadReason = screen.reason();
             }
             int[] rally = reachableRally(squad, frame, targetX, targetY);
             if (rally == null) {
