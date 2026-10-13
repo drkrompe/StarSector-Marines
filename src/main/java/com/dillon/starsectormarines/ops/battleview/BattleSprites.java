@@ -936,7 +936,11 @@ public class BattleSprites {
             return;
         }
         LayeredUnitAssets assets = new LayeredUnitAssets(body, head, foot, foreClaw,
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr,
+                familyId == LayeredArmorFamily.SPECTER_HEAVY
+                        ? loadLayeredSprite(familyRoot + "shoulder-left.png") : null,
+                familyId == LayeredArmorFamily.SPECTER_HEAVY
+                        ? loadLayeredSprite(familyRoot + "shoulder-right.png") : null);
         for (Map.Entry<String, LayeredSpriteCache> entry : specialEquipmentLayers.entrySet()) {
             assets.registerSpecialEquipment(entry.getKey(), entry.getValue());
         }

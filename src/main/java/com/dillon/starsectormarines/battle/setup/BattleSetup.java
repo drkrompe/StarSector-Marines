@@ -1441,8 +1441,7 @@ public final class BattleSetup {
             reserve.add(makeOpeningMilitia("south-haul-scrapper-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         sim.installSalvageRights(receiving,workshop,engineers,reserve);
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
-            sim.setAutonomousCommander(faction,new SalvageRightsCommand(faction,receiving.interiorAnchorX,receiving.interiorAnchorY,
-                    workshop.interiorAnchorX,workshop.interiorAnchorY,engineers),
+            sim.setAutonomousCommander(faction,new SalvageRightsCommand(faction,receiving,workshop,engineers),
                     SalvageRightsCommand.disclosure(sim.getSalvageRights().progress()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(SalvageRightsCommand.issuer(Faction.MARINE),"Company support joins recovery"));
         return sim;

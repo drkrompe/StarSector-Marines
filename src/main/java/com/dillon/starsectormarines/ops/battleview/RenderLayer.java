@@ -79,5 +79,7 @@ public enum RenderLayer {
     /** Sparks / dust / smoke at shot endpoints. */
     IMPACT_FX,
     /** Vanilla fighters flying overhead — above everything ground-side. */
-    FLYBY
+    FLYBY,
+    /** Readable mission locators above night, weather and world effects; never physical light. */
+    MISSION_MARKERS
 }
