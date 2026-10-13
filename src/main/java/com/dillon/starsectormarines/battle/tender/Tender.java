@@ -509,7 +509,7 @@ public final class Tender implements DroneAnchor {
             if (!order.phase().terminal()) continue;
             if (order.phase() == ConstructionOrder.Phase.COMPLETE) {
                 built++;
-                if (grounded || lowHover) completedSites.add(order);
+                completedSites.add(order);
             }
             orders.remove(i);
         }

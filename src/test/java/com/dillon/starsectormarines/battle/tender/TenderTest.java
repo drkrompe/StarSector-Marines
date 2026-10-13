@@ -61,6 +61,19 @@ class TenderTest {
     }
 
     @Test
+    void flightTenderRetainsItsActualCommissionedSites() {
+        ConstructionOrder order = tender.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid);
+        assertNotNull(order);
+        order.begin(); order.startWork();
+        assertTrue(order.work(100f, 3, 3, false));
+        tender.sweep();
+        assertEquals(1, tender.built());
+        assertEquals(1, tender.completedSites().size());
+        assertEquals(order, tender.completedSites().get(0));
+        assertFalse(tender.groundPlotReserved(32.5f, 20.5f));
+    }
+
+    @Test
     void groundedCompletedPlotStaysReservedAfterOrderSweep() throws Exception {
         Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
         ConstructionOrder order = yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid);

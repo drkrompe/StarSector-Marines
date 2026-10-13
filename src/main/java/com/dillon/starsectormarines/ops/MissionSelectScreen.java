@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
@@ -123,11 +124,15 @@ public final class MissionSelectScreen implements Screen {
         if(selectedClient!=null && "marines_tamsin_vale".equals(selectedClient.contactId)) {
             putShepherd(props, ShepherdRecoveryCampaign.current());
         }
+        if (AgreusArcCampaign.isContact(selectedClient)) putAgreus(props);
         if (OpeningBroker.isContact(selectedClient) && script != null && WaylineArc.stage(script.roster()) == WaylineArc.Stage.COMPLETE) {
             if (CorvusWaylineCampaign.atSite(context.planet))
                 putCorvus(props, route, selectedMission);
             else putSupplyRoute(props, route, selectedMission, SupplyRouteCampaign.destination() != null);
         }
+        if (selectedMission == null && AgreusArcCampaign.current() != null && !AgreusArcCampaign.current().completed() && (OpeningBroker.isContact(selectedClient)
+                || selectedClient != null && "marines_tamsin_vale".equals(selectedClient.contactId)))
+            putAgreusReferral(props);
         return props;
     }
 
@@ -139,6 +144,30 @@ public final class MissionSelectScreen implements Screen {
             props.put("brokerRole","BASIN RECLAMATION COOPERATIVE / INDEPENDENT");
             props.put("brokerIntroduction","Mara made the introduction. This contract is with our cooperative: recover Morrow and reopen our corridor. The repaired ship is payment in kind after all three operations; the fixed yard remains ours.");
             props.put("brokerProgress",progress!=null && progress.departed()?"COMPLETE / MORROW REGISTRY TRANSFERRED":progress!=null && progress.repaired()?"WORKING PASSAGE / DEPARTURE CLEARANCE":progress!=null && progress.claimSecured()?"COLD START / SHORE POWER & REPAIRS":"SALVAGE RIGHTS / NIGHT RECOVERY");
+    }
+
+    static void putAgreus(Map<String, Object> props) {
+        putAgreus(props, AgreusArcCampaign.current(), AgreusArcCampaign.accessReason());
+    }
+
+    static void putAgreus(Map<String, Object> props, AgreusArcProgress p, String accessReason) {
+        props.put("missionSummary", AgreusArcCampaign.TITLE);
+        props.put("brokerClasses", "broker-dossier console-readout");
+        props.put("brokerPortrait", OpeningBroker.CREST);
+        props.put("brokerName", AgreusArcCampaign.NAME);
+        props.put("brokerRole", "HOUSE RUSK / KO COMBINE CONCESSION");
+        props.put("brokerIntroduction", AgreusArcCampaign.REFERRAL);
+        props.put("brokerProgress", p != null && p.completed()
+                ? "NORTH WEIR RESTORED / 26,000 CR SETTLED / Rusk will contact us when the next contract is ready."
+                : "NORTH WEIR / WATER UNDER SEAL" + (accessReason == null || accessReason.isBlank() ? "" : " / " + accessReason));
+    }
+    static void putAgreusReferral(Map<String, Object> props) {
+        var d = AgreusArcCampaign.destination();
+        props.put("missionSummary", "Vale's reference / Agreus, Arcadia");
+        props.put("detailKicker", "OPTIONAL / AFTER MORROW'S HANDOVER");
+        props.put("detailTitle", "Meet " + AgreusArcCampaign.NAME);
+        props.put("detailMeta", d == null ? "Agreus / Arcadia / access paused" : d.label() + " / House Rusk concession");
+        props.put("detailFlavor", AgreusArcCampaign.REFERRAL + " " + AgreusArcCampaign.accessReason());
     }
 
     static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {
@@ -360,6 +389,11 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission)) return List.of(
+                detailRow("force", "Company", "2 squads / minimum 4 ready each / your fitted boats"),
+                detailRow("support", "Construction", "Actual owned eligible tender required; 8 constables and 2 technicians"),
+                detailRow("claim", "North Weir", "Escort repair cargo, reconnect both rooms, build and protect a road gun"),
+                detailRow("payout", "Victory fee", "26,000 credits once / no suit award"));
         if(ShepherdRecoveryCampaign.isBattle(mission)&&ShepherdRecoveryProgress.workingPassage(mission.id))return List.of(
                 detailRow("force","Company","2 squads / your fitted boats / optional owned mech"),
                 detailRow("support","Cooperative","8 militia hold captured positions; Morrow builds the guns"),

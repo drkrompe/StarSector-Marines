@@ -25,7 +25,7 @@ final class SecondSquadPreparation {
                 && roster.readyCount(s) == MarineSquad.CAPACITY).count();
         long formations = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
         int ready = roster.lineReadySoldiers().size();
-        String requirements = LessonCopy.text(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission)
+        String requirements = LessonCopy.text(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                 ? "lessonSecondMinimum" : "lessonSecondCheck");
         String advice = LessonCopy.text(full >= 2 ? "lessonSecondFull"
                 : formations >= 2 ? "lessonSecondExisting" : "lessonSecondFound");
