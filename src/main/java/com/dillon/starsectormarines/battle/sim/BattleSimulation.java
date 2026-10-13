@@ -84,6 +84,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -152,6 +153,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlSession;
+import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
@@ -677,6 +679,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FortSystem fortSystem = new FortSystem();
     private final FortressBatterySystem fortressBatterySystem = new FortressBatterySystem();
     private final TenderSystem tenders = new TenderSystem();
+    private final ShipCommandService shipCommands = new ShipCommandService();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
@@ -1205,6 +1208,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public long[] getAirEntityIds()        { return airSystem.airEntityIds(); }
     /** Every craft this battle destroyed, in the order it lost them — read once, at resolution, long after the entities were reaped. */
+    public BoatDamageLedger boatDamage() { return airSystem.boatDamage(); }
+
     public List<AirLoss> getAirLosses()    { return airSystem.airLosses(); }
     /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }
@@ -1897,6 +1902,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return tenders;
     }
 
+    public ShipCommandService shipCommands() { return shipCommands; }
+
     /** Lance sweeps in progress, for presentation and evidence. */
     public LanceSweepSystem lanceSweeps() {
         return lanceSweeps;
@@ -2555,6 +2562,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // which every reader samples live at the moment a round resolves.
         deployedCover.tick(TICK_DT, this);
         // Tenders launch and recover their drones, fly to a site and stand its structure up.
+        shipCommands.drain(warships.ships(), tenders.tenders(), Faction.MARINE, grid,
+                (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
         closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);

@@ -220,6 +220,16 @@ public final class Doodad {
                 ? Collections.nCopies(sourceCellsY, "#".repeat(sourceCellsX)) : List.of();
     }
 
+    /** A detached placement with the same catalog identity, art and physical footprint. */
+    public Doodad translated(int dx, int dy) {
+        Doodad copy = new Doodad(cellX + dx, cellY + dy, tile, sheetPath, cover,
+                ballisticHalfHeight, sourceCellsX, sourceCellsY, footprintCellsX,
+                footprintCellsY, preferredWallSide, sourceCellPx, quarterTurns, mirrored);
+        copy.definitionId = definitionId;
+        copy.fogSurface = fogSurface;
+        return copy;
+    }
+
     public boolean occupiesCell(int x, int y) {
         return x >= cellX && x < cellX + footprintCellsX
                 && y >= cellY && y < cellY + footprintCellsY;

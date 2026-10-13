@@ -14,6 +14,11 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
+import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
@@ -51,6 +56,7 @@ public final class GunshipCrashScene implements BehaviorScene {
             sim.random().setSeed(20261013L);
             var grid = sim.getGrid();
             var topology = sim.getTopology();
+            for (int y = 0; y < 54; y++) for (int x = 0; x < 96; x++) topology.setGroundKind(x, y, GroundKind.GRASS);
             // Roofed shed at first contact and a second wall well beyond the initial blast.
             for (int y = 23; y <= 31; y++) for (int x = 36; x <= 45; x++) {
                 topology.setBuildingId(x, y, 1);
@@ -68,6 +74,18 @@ public final class GunshipCrashScene implements BehaviorScene {
                 grid.setSeeThrough(54, y, false);
                 grid.setWallHp(54, y, 200);
             }
+            var rock = MineralFormation.BOULDERS;
+            for (int y = 0; y < rock.height(); y++) for (int x = 0; x < rock.width(); x++) {
+                if (!rock.blocks(x, y, 0)) continue;
+                grid.setTag(48 + x, 26 + y, CellTag.NATURAL_SOLID, true);
+                grid.setWalkable(48 + x, 26 + y, false);
+                grid.setSeeThrough(48 + x, 26 + y, false);
+            }
+            sim.addDoodad(new Doodad(48, 26, TileRegistry.installed().doodad(rock.id())));
+            // A permanent mountain cell shares the impact area, but has no destructible prop owner.
+            grid.setTag(50, 31, CellTag.NATURAL_SOLID, true);
+            grid.setWalkable(50, 31, false);
+            grid.setSeeThrough(50, 31, false);
             long craft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, 40, 27, -12, 27, -12, 27);
             for (var mount : sim.world().airTurrets(craft).mounts) mount.ammo = 0;
             var mission = sim.world().mission(craft);
@@ -90,6 +108,11 @@ public final class GunshipCrashScene implements BehaviorScene {
                     Verdict.of("roof-does-not-spare-contact-occupant", !sim.world().isAlive(world.unit("roofed")), "roofed occupant"),
                     Verdict.of("skid-demolishes-downstream-wall", !topology.isWall(54, 27), "wall beyond initial blast"),
                     Verdict.of("skid-damages-downstream-occupant", !sim.world().isAlive(world.unit("skid")), "occupant beyond initial blast"),
+                    Verdict.of("skid-shatters-natural-prop", sim.getDoodads().stream().anyMatch(d ->
+                            "formation.boulders-destroyed".equals(d.definitionId())), "boulders in skid corridor"),
+                    Verdict.of("mountain-stays-impassable", !grid.isWalkable(50, 31)
+                            && grid.hasTag(50, 31, CellTag.NATURAL_SOLID), "permanent terrain survives contact area"),
+                    Verdict.of("ground-retains-damage", topology.hasTag(50, 27, Tag.GROUND_DAMAGED), "scar in skid corridor"),
                     Verdict.of("outside-survives", sim.world().isAlive(world.unit("outside")), "outside crash corridor")), Map.of());
         }
     }

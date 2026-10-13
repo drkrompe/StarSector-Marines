@@ -117,7 +117,8 @@ final class BarracksGuideCallout {
                 new Rect(target.x(), target.bottom() + 12, width, height),
                 new Rect(target.x(), target.y() - height - 12, width, height),
                 new Rect(8, 8, width, height), new Rect(view.width() - width - 8, 8, width, height),
-                new Rect(8, view.height() - height - 8, width, height)));
+                new Rect(8, view.height() - height - 8, width, height),
+                new Rect(view.width() - width - 8, view.height() - height - 8, width, height)));
         for (Rect region : regions) {
             candidates.add(new Rect(region.x() - width - 12, region.y(), width, height));
             candidates.add(new Rect(region.right() + 12, region.y(), width, height));

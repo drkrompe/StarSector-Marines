@@ -35,6 +35,11 @@ without turning a JSON typo into a silent zero-damage battle.
   bodies emitted at one burst instant. `projectilesPerShot` authors a
   simultaneous cloud; `burstCount` and `burstSpacing` author temporal cadence.
   Neither is inferred from display name, mechanism, carrier, or faction.
+- **Air guidance** optionally gives a dedicated AA missile its acceleration,
+  maximum turn rate and fuel lifetime. The AA platform supplies live target
+  state; the missile owns its traveled path and must make physical contact.
+  Guidance is not a promised hit, an indirect-fire arc, or an implicit
+  point-defense-target declaration. Effects follow the simulated flight.
 - A **mount class** is the compatibility family for a definition: handheld
   primary or secondary, mech mount, or turret mount. It distinguishes what
   may use a definition; it is not a statement about which individual unit

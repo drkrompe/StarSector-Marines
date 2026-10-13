@@ -74,6 +74,15 @@ public final class CompanyDeck {
     /** Which of her boat berths the company still has a boat for. @see #getReady() */
     private final Supplier<boolean[]> boatsHeld;
     private final Supplier<boolean[]> boatWrecks;
+    private Supplier<boolean[]> groundedBoats = () -> null;
+
+    /** Snapshot on the UI thread before preparing the scene. */
+    public CompanyDeck groundedBoats(Supplier<boolean[]> grounded) {
+        if (gettingReady != null) throw new IllegalStateException("deck preparation already started");
+        groundedBoats = grounded;
+        return this;
+    }
+
     /**
      * Whether this is the ship the company lives aboard, whose deck is laid out
      * once and kept. @see LaidDecks
@@ -322,17 +331,18 @@ public final class CompanyDeck {
         List<MarineSoldier> roll = company.get();
         boolean[] held = boatsHeld.get();
         boolean[] wrecks = boatWrecks.get();
-        gettingReady = LaidDecks.off(() -> muster(berthed, roll, held, wrecks));
+        boolean[] grounded = groundedBoats.get();
+        gettingReady = LaidDecks.off(() -> muster(berthed, roll, held, wrecks, grounded));
         return gettingReady;
     }
 
     /** @see #getReady() */
     private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MarineSoldier> roll,
-                                       boolean[] held, boolean[] wrecks) {
+                                       boolean[] held, boolean[] wrecks, boolean[] grounded) {
         work = Work.LAYING_OUT;
         generate();
         work = Work.MUSTERING;
-        ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held, wrecks);
+        ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held, wrecks, grounded);
         manned.occupyGantries(berthed);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with

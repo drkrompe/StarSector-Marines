@@ -2,8 +2,7 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-10-06 — formation cards expose current billet states; officer
-destinations add persisted portraits and projected command capacity.
+Updated: 2026-10-13 — selected-marine range trials added; live input and return acceptance remain.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -98,6 +97,13 @@ breadcrumb keeps every completed level directly reachable.
   removed catch-all administration shell.
 
 ## Acceptance
+
+- Live acceptance: select a ready billet, change its proposed kit, enter **Test
+  Loadout**, move and fire both carried weapons and use its armor system. Escape
+  and Tab must restore the same armory selection and proposal. Repeat the trial,
+  resize while testing, and close the dialog mid-trial; no campaign equipment,
+  wounds, experience, resources, or deck damage may be committed. Verify the
+  disabled explanation for a vacant or wounded billet and a ship without a range.
 
 - The player reaches any squad in two selections from the company collection and any
   one of its fire teams with one further target selection.

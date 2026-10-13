@@ -51,6 +51,8 @@ final class CompanyPreparationGuide {
     }
 
     static PreparationGuide.Lesson ship(MarineRoster roster, ShipTransferViewModel model, MarineOpsContext context) {
+        if (CampaignLessons.next(roster) == CampaignLessons.Step.BOAT_RECOVERY)
+            return CampaignLessons.handoff(roster, context, ScreenId.SHIP_TRANSFER);
         if (!CompanyPreparation.required(roster)) return null;
         if (roster.companyShipId() != null) return handoff(roster, context);
         if (CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, model.preparationBill());
@@ -91,6 +93,7 @@ final class CompanyPreparationGuide {
     }
 
     static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model, MarineOpsContext context) {
+        if (!CompanyPreparation.required(roster)) return CampaignLessons.boats(roster, model);
         return boats(roster, model, context::openOfficerInduction);
     }
 
