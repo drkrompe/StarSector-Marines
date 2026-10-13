@@ -5,6 +5,7 @@ Status: ACTIVE
 Written: 2026-10-14
 
 Updated: 2026-10-14 — slices 1 to 5 built (defence nests: a mission-declared count, `DefenceNestStage`); barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries, a shield generator and nests, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
 story `orbital-battery-fire-support-lock.md` first. This doc says what a world's ground
