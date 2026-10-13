@@ -32,7 +32,11 @@ import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderSystem;
+import com.dillon.starsectormarines.battle.warship.MissionStance;
+import com.dillon.starsectormarines.battle.warship.ShipStationing;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -921,6 +925,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public DirectControlSession directControl() { return directControl; }
 
     public NavigationGrid getGrid() { return grid; }
+
+    @Override public boolean playerSeesCell(int x, int y) { return fogOfWar.isCellRevealed(x, y); }
+
+    private MissionStance companyStance = MissionStance.ATTACK;
+
+    @Override public MissionStance companyStance() { return companyStance; }
+
+    /** Set at launch: attacking unless the company holds ground (a stationed detachment). */
+    public void setCompanyStance(MissionStance stance) { this.companyStance = stance != null ? stance : MissionStance.ATTACK; }
+
+    @Override public TraversalAxis shipAxis() { return ShipStationing.axisOf(this); }
+
+    @Override public void addTender(Tender tender) { tenders.add(this, tender); }
     /** Published derived navigation geometry; exposed for battle diagnostics. */
     public GreedyNavigationMesh getNavigationMesh() {
         return navigation.getNavigationMesh();
@@ -1613,6 +1630,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     /** Puts a warship over the battle; it fires from the next tick. */
+    @Override
     public void addWarship(Warship ship) {
         warships.add(ship);
     }

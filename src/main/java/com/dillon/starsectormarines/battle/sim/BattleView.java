@@ -65,6 +65,9 @@ public interface BattleView {
 
     NavigationGrid getGrid();
 
+    /** Whether the player can see this cell now; a power that works unseen ground asks this. */
+    default boolean playerSeesCell(int x, int y) { return true; }
+
     /** Raw grid structural revision; changes with authored or runtime cell/edge mutation. */
     long getNavigationGridRevision();
 

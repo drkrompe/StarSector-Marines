@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -45,7 +46,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Headless JSON codec for versioned battle-construction fixtures. */
@@ -626,6 +630,20 @@ public final class BattleFixtureJson {
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
+            JSONArray ships = new JSONArray();
+            for (ShipSupportSource ship : commitment.ships()) {
+                JSONObject frozen = new JSONObject();
+                frozen.put("hullId", ship.hullId());
+                frozen.put("shipName", ship.shipName());
+                frozen.put("tender", ship.tender());
+                JSONObject weapons = new JSONObject();
+                for (Map.Entry<String, String> slot : ship.weapons().entrySet()) {
+                    weapons.put(slot.getKey(), slot.getValue());
+                }
+                frozen.put("weapons", weapons);
+                ships.put(frozen);
+            }
+            encoded.put("ships", ships);
             powers.put(encoded);
         }
         return powers;
@@ -663,8 +681,21 @@ public final class BattleFixtureJson {
                         component(mech, "rightShoulderComponentId", variant.rightShoulder),
                         displayName));
             }
+            List<ShipSupportSource> ships = new ArrayList<>();
+            JSONArray encodedShips = encoded.optJSONArray("ships");
+            for (int j = 0; encodedShips != null && j < encodedShips.length(); j++) {
+                JSONObject frozen = encodedShips.getJSONObject(j);
+                Map<String, String> weapons = new LinkedHashMap<>();
+                JSONObject encodedWeapons = frozen.getJSONObject("weapons");
+                for (Iterator<?> keys = encodedWeapons.keys(); keys.hasNext(); ) {
+                    String slot = (String) keys.next();
+                    weapons.put(slot, encodedWeapons.getString(slot));
+                }
+                ships.add(new ShipSupportSource(frozen.getString("hullId"),
+                        frozen.getString("shipName"), frozen.getBoolean("tender"), weapons));
+            }
             powers.add(new CommandPowerCommitment(
-                    encoded.getString("id"), deployments));
+                    encoded.getString("id"), deployments, ships));
         }
         return List.copyOf(powers);
     }

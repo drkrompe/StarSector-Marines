@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
+import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
@@ -97,6 +98,7 @@ public final class SpecSheets {
             case OrbitalBarrage.ID -> "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.";
             case MarineInsertion.ID -> "Calls a Valkyrie to insert an infantry squad near the selected location.";
             case VehicleSupport.ID -> "Calls a transport to deliver armoured support.";
+            case ShipOnStation.ID -> "Calls a committed ship in from your map edge to hold station over the targeted ground and work it, then depart. One ship per charge.";
             default -> "A support capability available from the committed fleet or employer.";
         };
         return new SpecSheet(power.displayName, "Command power", commandPowerIcon(power), "command",
