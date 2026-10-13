@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — Opening and yard dialogue imply shared history at Harker's Claim and Castle's relationship with Nessa Venn; live start/save acceptance remains.
+Updated: 2026-10-12 — Required preparation recaptures alternate UI entrances and guides interrupted depot orders back to their saved port; live acceptance remains.
 
 ## Outcome
 
@@ -55,6 +55,12 @@ cannot replenish it. Ordinary starts receive no depot.
 - Opening preparation and Mira induction have no Later or Escape dismissal.
   Return to campaign remains available for travel or resupply, with the required
   lesson returning on re-entry. Company designation cannot bypass the conversion.
+- Leave before confirming Hermes repair, reopen through both the company shortcut
+  and the planet menu, and save/reload mid-step. The same stock and incomplete
+  order survive. Away from the depot, Castle names its planet and offers a course
+  back; returning restores access without issuing another grant. Repeat for squad
+  founding. Mission-board Barracks and other direct room entrances resume the
+  current required step instead of bypassing it; battle settlement remains unaffected.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
   captain, no automatic company designation or preinstalled conversion.
 - Begin in space with a reachable planetary destination and Castle's portrait guidance.

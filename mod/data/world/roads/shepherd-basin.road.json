@@ -1,0 +1,14 @@
+{
+  "version": 1, "width": 304, "height": 176,
+  "roads": [
+    {"id":"arrival", "points":[[0,68],[27,68],[49,70],[66,72]], "width":11,"shoulder":1,"wear":0.75,"seed":14100,"material":"ASPHALT","autoEdge":true},
+    {"id":"cradle-access", "points":[[66,72],[92,70],[121,68],[151,76]], "width":11,"shoulder":1,"wear":0.8,"seed":14101,"material":"ASPHALT","autoEdge":true},
+    {"id":"pump-bend", "points":[[151,76],[170,83],[191,99],[210,103]], "width":11,"shoulder":1,"wear":0.65,"seed":14102,"material":"ASPHALT","autoEdge":true},
+    {"id":"narrows", "points":[[210,103],[232,102],[254,82],[275,77]], "width":11,"shoulder":1,"wear":0.55,"seed":14103,"material":"ASPHALT","autoEdge":true},
+    {"id":"outbound", "points":[[275,77],[290,77],[303,77]], "width":11,"shoulder":1,"wear":0.45,"seed":14104,"material":"ASPHALT","autoEdge":true},
+    {"id":"workshop-service", "points":[[66,72],[69,87],[81,98],[82,119]], "width":7,"shoulder":1,"wear":0.85,"seed":14105,"material":"CONCRETE","autoEdge":true},
+    {"id":"north-service", "points":[[82,119],[83,138],[106,144],[141,143],[165,148],[186,143],[192,120],[210,103]], "width":7,"shoulder":0,"wear":0.8,"seed":14106,"material":"ASPHALT","autoEdge":true},
+    {"id":"south-haul", "points":[[151,76],[154,57],[176,38],[191,18],[194,0]], "width":7,"shoulder":1,"wear":0.9,"seed":14107,"material":"ASPHALT","autoEdge":true},
+    {"id":"east-quarry", "points":[[275,77],[279,107],[283,135],[303,145]], "width":7,"shoulder":1,"wear":0.9,"seed":14108,"material":"ASPHALT","autoEdge":true}
+  ]
+}
