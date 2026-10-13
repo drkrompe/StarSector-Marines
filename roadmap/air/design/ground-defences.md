@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 4 built; barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries and a shield generator, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 4 built; captured structures change sides with their holder; barrage is absorbed by a dome, not denied (preview shows domes); placement authority moved from map generation to the mission (a mission declares batteries and a shield generator, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -180,8 +180,8 @@ capital that is not another ship.
    for its overload time and recovers empty. Small arms, mech weapons, rockets, aircraft and
    their ordnance are not touched (decided: the dome is ship-grade only). Capture: combatants
    within the capture radius and none of the holder's friends take it after the capture time, the
-   holder's friends alone wind it back, and a taken dome reboots for 4 s; the entity's own faction
-   never changes, so the holder is the service's record. Destroying the generator drops the dome.
+   holder's friends alone wind it back, and a taken dome reboots for 4 s; the structure
+   changes sides with its holder (see *Captured structures* below). Destroying the generator drops the dome.
    Look: `ShieldDomeRenderSystem` (HAZARDS) in the warship shield's cyan for the player's side and
    red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
    an enemy dome draws only where the map has been seen. Sounds are the game's own
@@ -194,10 +194,22 @@ capital that is not another ship.
    targeting preview outlines each hostile dome the player has seen (reach, up or down, pool share) and
    marks an aim point under one "absorbed by dome" while leaving it legal. Still to do: generator art
    (a placeholder pad and the dome's core glow stand in), AI awareness (no squad is sent to take or wreck a
-   generator and nothing orders a defender to retake one; a taken generator is still shot by its original
-   side's enemies because its entity faction is fixed), and a campaign mission that places one for a
+   generator and nothing orders a defender to retake one), and a campaign mission that places one for a
    market-held shield.
 5. **Defence nests**: the dispersed posts, sized by the mission's declaration (a count to add to `GroundDefences`); anti-air already exists.
+
+## Captured structures
+
+A structure that changes hands changes sides: when a dome's capture completes or a battery's fire control
+passes to another holder, the entity's faction follows (`UnitRosterService.reassignFaction`, reached through
+`BattleSimulation.followStructureHolder`). Everything that reads a unit's side then agrees: its old side's
+enemies stop shooting it and its new holder's enemies start, its ordinary mount (a battery keeps its mortar)
+fights for the new holder, bars, markers and the dome's colour read the new side, and it joins or leaves the
+fog contributors with its side. This is the one exception to an identity faction being immutable, allowed only
+for a static structure outside any squad. A structure that has ever changed hands is held ground and not a person:
+the personnel ledgers in `MissionResolver` and the "forces in play" test behind elimination objectives skip it
+(`UnitRosterService.isCapturedStructure`), so a captured generator is neither a marine casualty nor a reason a
+wiped company is still fighting. A structure that never changes hands is counted exactly as before.
 
 ## Decided
 
