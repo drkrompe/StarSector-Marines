@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.Rect;
 
 import java.awt.Color;
 
@@ -71,6 +73,16 @@ public final class ShipViewCanvas implements CanvasProducer {
     private RoomPurpose focus;
     private Compartment focusedRoom, selectedRoom;
     public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; }
+    /** Inspection does not fly the camera away from the other room markers. */
+    public void select(Compartment room) { selectedRoom = room; }
+
+    /** Room centre projected through the same host camera as the deck. */
+    public Rect markerBounds(Compartment room, CanvasMetrics metrics) {
+        if (camera == null || host == null) return Rect.EMPTY;
+        float x = metrics.toDocumentX(host.canvasXForScreen(camera.cellToScreenX(room.originX() + room.width() / 2f)));
+        float y = metrics.toDocumentY(host.canvasYForScreen(camera.cellToScreenY(room.originY() + room.depth() / 2f)));
+        return new Rect(x - 17f, y - 17f, 34f, 34f);
+    }
     public Compartment roomAt(float x, float y) {
         if (camera == null || !camera.containsScreen(x, y) || !ship.ready()) return null;
         int cx = (int) Math.floor(camera.screenToCellX(x)), cy = (int) Math.floor(camera.screenToCellY(y));

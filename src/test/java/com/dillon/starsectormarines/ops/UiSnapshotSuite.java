@@ -83,6 +83,8 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
+import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
+import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.DeckPlanCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
@@ -2216,7 +2218,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("survey", ShipConditionModel.workshopOnly());
+        var survey = snapshotShipCondition(reactor, ship);
+        props.put("survey", survey.row());
         props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
@@ -2230,8 +2233,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("ship-view-deck"),
-                    new ShipViewCanvas(ship));
+            var canvas = new ShipViewCanvas(ship);
+            document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
+            var overlay = new ShipConditionOverlay(document, instance, survey);
+            renderRelative(renderer, document, width, height, 1f);
+            overlay.update(0f, ship, canvas);
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -3252,9 +3258,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
-        var survey = ShipConditionModel.workshopOnly();
-        if (workshop.offer().state() == WorkshopState.NONE) survey.put("classes", "hidden");
-        props.put("survey", survey);
+        var reactor = new Reactor();
+        var survey = snapshotShipCondition(reactor, ship);
+        props.put("survey", survey.row());
         props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", workshop);
         props.put("roomTitle", "SECOND WIND / RESTORATION");
@@ -3262,7 +3268,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("contextLabel", "COMPANY SHIP / MACHINE SHOP");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW, MarineOpsPageNav.ANY_SHIP,
                 () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});
-        try (var instance = loader.build(new Reactor(), "ship-view", props)) {
+        try (var instance = loader.build(reactor, "ship-view", props)) {
             var document = new UiDocument(instance.root());
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
@@ -3271,10 +3277,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            var overlay = new ShipConditionOverlay(document, instance, survey);
+            renderRelative(renderer, document, 1920, 1080, scale);
+            var room = ship.rooms().largest(RoomPurpose.PARTS_CAGE);
+            if (workshop.offer().state() != WorkshopState.NONE && room != null) overlay.select(room.id());
+            overlay.update(0f, ship, canvas);
             return renderRelative(renderer, document, 1920, 1080, scale);
         }
     }
 
+    private static ShipConditionModel snapshotShipCondition(Reactor reactor, CompanyDeck ship) {
+        return new ShipConditionModel(reactor, () -> ship,
+                work -> new CompanyShipRestoration.Offer(ship.ship().restoration(), 20000, null),
+                work -> "Snapshot only", () -> new CompanyBayRestoration.Offer(true, 20000, null),
+                () -> "Snapshot only", ignored -> {}, () -> {});
+    }
     public static BufferedImage renderShipCondition(SnapshotContext context, CompanyDeck ship,
                                                     ShipConditionModel model, Reactor reactor,
                                                     float scale, RoomPurpose focus) throws Exception {
@@ -3299,6 +3316,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.canvases().set(instance.requireElement("ship-view-deck"), canvas);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            var overlay = new ShipConditionOverlay(document, instance, model);
+            renderRelative(renderer, document, 1920, 1080, scale);
+            overlay.select(model.selectedRoomId());
+            overlay.update(0f, ship, canvas);
             return renderRelative(renderer, document, 1920, 1080, scale);
         }
     }
