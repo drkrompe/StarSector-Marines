@@ -262,6 +262,11 @@ the personnel ledgers in `MissionResolver` and the "forces in play" test behind 
 (`UnitRosterService.isCapturedStructure`), so a captured generator is neither a marine casualty nor a reason a
 wiped company is still fighting. A structure that never changes hands is counted exactly as before.
 
+## Next: forts
+
+The bare structures are the parts; `forts.md` is the direction for building them into
+walled forts whose aspects are taken or wrecked one at a time.
+
 ## Decided
 
 - **Either side may have them.** There is nothing special about attacker or defender: a
