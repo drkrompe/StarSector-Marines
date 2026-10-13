@@ -131,6 +131,16 @@ public enum ShuttleState {
      * out of the open.
      */
     REPOSITION,
+    /**
+     * Circling the target with a flank toward it, the guns on that side working the ground.
+     *
+     * <p>A gunship's attack, as a gun run is a fighter's. The craft is not aimed at anything: it
+     * holds a ring about the point it was sent to and its broadside turrets do the aiming, so the
+     * nose points along the ring and the fire leaves out of the side. It is a phase of its own
+     * rather than a long {@link #REPOSITION} because nothing in it ends on a line: it ends on the
+     * clock the sortie was given.
+     */
+    ORBIT,
     DEPARTING,
     /**
      * Flying home to its own field, and lined up on the strip.
