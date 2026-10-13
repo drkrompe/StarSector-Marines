@@ -105,7 +105,7 @@ public final class MechDoctrineSnapshotSuite implements SnapshotSuite {
                 if (tick < TICKS) MechDoctrineScene.advance(scene, tick);
             }
             MechLoadoutComponent loadout = MechDoctrineScene.loadout(scene);
-            variantName = loadout.variant.displayName;
+            variantName = loadout.variant.displayName();
             deployedName = loadout.deployedRole().displayName();
             effectiveName = loadout.effectiveRole().displayName();
         }
@@ -153,7 +153,7 @@ public final class MechDoctrineSnapshotSuite implements SnapshotSuite {
                 }
             }
             MechLoadoutComponent loadout = MechDoctrineScene.loadout(scene);
-            variantName = loadout.variant.displayName;
+            variantName = loadout.variant.displayName();
             deployedName = loadout.deployedRole().displayName();
             effectiveName = loadout.effectiveRole().displayName();
         }

@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 /**
  * One capability an armour pattern carries in the suit itself
@@ -46,6 +48,10 @@ public record IntegralSystemDef(
         PerceptionSweepSpec perceptionSweep,
         BraceSpec brace,
         IntegralSystemPolicySpec policy) implements Serializable {
+    public String displayName() { return Strings.resolve(displayName); }
+
+    public String description() { return Strings.resolve(description); }
+
 
     /**
      * Keys that would express an integral system as durability. Rejected by
@@ -240,7 +246,7 @@ public record IntegralSystemDef(
      * every pattern that carries one.
      */
     public String familyName() {
-        return effect.displayName;
+        return effect.displayName();
     }
 
     /**
@@ -258,15 +264,14 @@ public record IntegralSystemDef(
     private static EquipmentGrade parseGrade(String key, String systemId, String armorId)
             throws JSONException {
         for (EquipmentGrade candidate : EquipmentGrade.values()) {
-            if (candidate.name().equalsIgnoreCase(key)
-                    || candidate.displayName.equalsIgnoreCase(key)) {
+            if (candidate.name().equalsIgnoreCase(key)) {
                 return candidate;
             }
         }
         StringBuilder known = new StringBuilder();
         for (EquipmentGrade candidate : EquipmentGrade.values()) {
             if (known.length() > 0) known.append(", ");
-            known.append(candidate.displayName.toLowerCase());
+            known.append(candidate.name().toLowerCase(Locale.ROOT));
         }
         throw new JSONException("Integral system '" + systemId + "' on armor '" + armorId
                 + "' declares unknown grade '" + key + "'. Known grades: " + known);

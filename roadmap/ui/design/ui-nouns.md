@@ -110,6 +110,9 @@ them.
   resolves to the equipment it names. No screen assembles one by hand from
   catalog fields, and no item's prose lives in markup; a mech's note is data
   beside the weapon and armour catalogs, not a field on its enum.
+  Comparison rows retain stable stat identities independently of translated
+  labels; translation cannot merge two stats or change a meter or icon. Headings,
+  subtitles and stat rows accommodate wrapped copy using the resolved font.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,
   a squad, or a doctrine template is a dossier rather than a subject: it is
   described by its own screen, and only the catalog items it names carry

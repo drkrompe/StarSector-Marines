@@ -53,7 +53,7 @@ class IntegralSystemCopyTest {
         String summary = IntegralSystemCopy.summary(rig);
         assertTrue(summary.contains(rig.integralSystem().familyName()),
                 "the family leads so six takes on one ability compare: " + summary);
-        assertTrue(summary.contains(rig.integralSystem().grade().displayName), summary);
+        assertTrue(summary.contains(rig.integralSystem().grade().displayName()), summary);
         assertTrue(summary.contains(seconds(rig.integralSystem().durationSeconds()) + "s")
                         && summary.contains(seconds(rig.integralSystem().cooldownSeconds()) + "s"),
                 "a player deciding on the suit needs the authored clock, got: " + summary);

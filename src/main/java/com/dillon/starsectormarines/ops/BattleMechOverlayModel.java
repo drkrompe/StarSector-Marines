@@ -119,7 +119,7 @@ final class BattleMechOverlayModel {
             return hide();
         }
         return updateProjected(new MechState(selectedSquadId, selectedUnitEntityId,
-                sim.identity().name(selectedUnitEntityId), loadout.variant.displayName,
+                sim.identity().name(selectedUnitEntityId), loadout.variant.displayName(),
                 loadout.deployedRole(), loadout.effectiveRole(), squad.lanceOrder(),
                 selectableRoles()));
     }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -32,7 +33,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         try (var strings = new HeadlessStrings(context.modRoot())) { return renderLocalized(context); }
     }
-    private List<SnapshotArtifact> renderLocalized(SnapshotContext context) throws Exception {
+    List<SnapshotArtifact> renderLocalized(SnapshotContext context) throws Exception {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         HeadlessSvgAssets.install(context.modRoot());
         MarineRoster roster = new MarineRoster();
@@ -185,7 +186,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             document.pointerDown(box.x() + box.width()/2, box.y() + box.height()/2);
             document.pointerUp(box.x() + box.width()/2, box.y() + box.height()/2);
             markup.flush();
-            String position = new String[]{"Alpha", "Bravo", "Charlie"}[i / 4] + " " + (i % 4 + 1);
+            String position = new String[]{Strings.get("openingFirstRefitAlpha"), Strings.get("openingFirstRefitBravo"),
+                    Strings.get("openingFirstRefitCharlie")}[i / 4] + " " + (i % 4 + 1);
             if (!markup.requireElement("refit-billet:" + i).hasClass("refit-selected")
                     || !model.row().get().get("selectedName").toString().startsWith(position + " / "))
                 throw new AssertionError("Equipment square did not select its own comparison: " + i);
