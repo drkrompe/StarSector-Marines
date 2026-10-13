@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 -- Second Wind protects its founding payment and supplies; Barracks owns equipment discovery, editing routes and unread equipment notices.
+Updated: 2026-10-12 -- Second Wind's Harker's Claim origin and Nessa Venn yard connection; protected founding stores and Barracks equipment discovery remain.
 
 ## Purpose
 
@@ -1188,8 +1188,9 @@ It gives the player one unconverted Cerberus, 500 spendable credits and travel r
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
 A new selection first opens **Second Wind**, a skippable illustrated bridge prologue
-with Castle's portrait and readable dialogue. The crew escaped an independent mining
-colony after its operator withdrew. They restored a grounded Cerberus; the player
+with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an
+independent mining asteroid, after its operator withdrew. Company scrip became
+worthless as the colony's supplies ran out. They restored a grounded Cerberus; the player
 earned command by organizing the escape, while Castle supplied port and convoy
 logistics experience. Earlier player biography remains open. Pooled savings and
 Castle's finite prepaid consignment explain the starting means. Castle holds the
@@ -1199,8 +1200,13 @@ prevent that order. The reserve is consumed once, never refunded as cash or rene
 on load; existing campaigns keep their original funds and payment rules. Civilian crew keep
 the ship running; trained Marines must still be mustered through preparation.
 
-Jangala is a practical first berth, with an old yard contact and regular traffic,
-not a promise of Hegemony protection. The prologue uses the actual accessible
+Jangala is a practical first berth, with regular traffic and **Nessa Venn**, a yard
+forewoman who ran ore with Castle before settling there. She once towed Castle's
+disabled freighter home despite repeated threats to leave her behind; their familiar
+barbs and her attention to the repairs carry that relationship into the yard visit.
+This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
+are authored backstory, not new sector entities or additional mission prerequisites.
+The prologue uses the actual accessible
 destination and adjusts its copy if Jangala is unavailable. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
