@@ -731,13 +731,13 @@ equipment is part of this objective.
 ## Authored freight finale
 
 **Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
-same crew that covered the Junction. Two twin-launcher missile batteries in
-settlements below the northern ridge threaten its circuit. Their rotating mounts
-launch visible tracking missiles through ordinary aircraft damage. Four of the
-existing roadside guards protect those settlements, keeping the total force
-unchanged. The batteries stand on accessible low ground; mountain edges retain
-their impassable terrain. The batteries remain optional targets, and
-the loss is an encounter outcome, never a mandatory scripted death. Clearing
+same crew that covered the Junction. Two twin-launcher missile batteries on
+the northern hilltops threaten its circuit over the convoy legs. Their rotating
+mounts launch visible tracking missiles through ordinary aircraft damage.
+The hilltops and slopes remain impassable, including beneath a destroyed
+battery. Their placement does not invite a valley assault or add a capture
+objective; existing guards retain their roadside duties. Kestrel's loss is an
+encounter outcome, never a mandatory scripted death. Clearing
 the guns early can preserve the gunship. A surviving Kestrel can cover the next
 crossing until its station time runs out. Losing it does not gate convoy progress,
 increase the company's deployment minimum, or charge the player for Wayline's

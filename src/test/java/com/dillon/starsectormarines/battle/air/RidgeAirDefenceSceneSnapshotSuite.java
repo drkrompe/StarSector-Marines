@@ -8,6 +8,8 @@ public final class RidgeAirDefenceSceneSnapshotSuite extends BehaviorSceneSnapsh
     @Override protected boolean showImpactEffects() { return true; }
     @Override protected boolean colourAnimation() { return true; }
     @Override protected float closeViewScale() { return 1f; }
-    @Override protected float[] closeView(String loop) { return new float[]{135f, 44f, 105f}; }
+    @Override protected float[] closeView(String loop) {
+        return loop.equals("cleared-batteries") ? null : new float[]{157f, 35f, 145f};
+    }
     @Override protected int[] stillFrames(String loop) { return new int[]{0, 75, 120}; }
 }

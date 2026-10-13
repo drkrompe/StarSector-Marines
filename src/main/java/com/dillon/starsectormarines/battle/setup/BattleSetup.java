@@ -1659,14 +1659,8 @@ public final class BattleSetup {
         }
         for (int i = 1; i < layout.sites().size(); i++) {
             var post = layout.sites().get(i);
-            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize - (i < 3 ? 2 : 0)),
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
                     Faction.DEFENDER, "thunder-run-guard-" + i, post, rng);
-        }
-        // Reassign four of the existing defenders to the ridge; the committed force stays finite.
-        for (var cell : ThunderRunCompound.RIDGE_GUARDS) {
-            var post = openingDefenseNode(cell.x(), cell.y(), Faction.DEFENDER, map.grid);
-            spawnOpeningMilitiaSquads(sim, List.of(new int[]{cell.x(), cell.y()}, new int[]{cell.x(), cell.y() + 1}),
-                    Faction.DEFENDER, "freight-ridge-" + cell.x(), post, rng, 2);
         }
         for (var gun : ThunderRunCompound.EXIT_GUNS) sim.spawn(MapTurret.create("freight-road-gun-" + gun.y(),
                 Faction.DEFENDER, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, gun.x(), gun.y()));
