@@ -26,6 +26,6 @@ public final class CloseAirSupportSceneSnapshotSuite extends BehaviorSceneSnapsh
 
     /** A close recording around the target, where the broadside is legible. */
     @Override protected float[] closeView(String loopId) {
-        return loopId.equals("called") ? new float[]{44.5f, 24.5f, 30f} : null;
+        return loopId.equals("called") ? new float[]{44.5f, 24.5f, 48f} : null;
     }
 }

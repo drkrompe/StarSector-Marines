@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — shield fort built (slice 3: octagonal works, inner keep, power plant and control room, dome held at the control room), folding in the local shield relay; redoubt/citadel, richer command awareness and building art remain.
+Updated: 2026-10-13 — fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort built (slice 3: octagonal works, inner keep, power plant and control room, dome held at the control room), folding in the local shield relay; redoubt/citadel and richer command awareness remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -161,6 +161,21 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
 - **Untuned.** A control room that is merely contested does not drop the dome (only the plant does); the tower and
   keep sizes, wall hit points and the whole conversion are first passes.
 
+## Built: building art by function
+
+A fort building is drawn from art authored per aspect kind on the aspect's core structure (`buildingArt` in the turret
+catalog; the platform names the gatehouse). Roof art covers exactly the building's interior floor, in the fort's local
+frame turned with it (`FortFrame`), and replaces the ordinary brick roof there: it fades with the same per-building
+reveal, so capture inside a building, fog and the roof cave-in are untouched. The picture follows the aspect: intact,
+damaged (core durability under 60%), and wrecked (roof opened by the cave-in machinery, a low wreck over the floor and
+under the units). Machinery on the roof runs only while the building stands and its power is its holder's: the bunker's
+radar, the plant's turbine fans and glow, the magazine's vent fans and warning lamps. A taken building flies the holder's
+banner and takes a wash of the holder's colour. Gatehouse towers carry embrasured caps while their walls stand, the gate
+carries folded leaves, and neither draws over a breach. A new fort kind adds data (a `buildingArt` block per aspect) and a
+layout, not renderer code. Retained sources: `art-source/fort-buildings/`. Art is authored with the door on one edge; a plan whose door is on the other
+edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick and belt wire is two rows.
+The wire sprite itself is still pale on earth and wants a bolder reskin; the shield fort has no gatehouse pieces yet.
+
 ## Slices
 
 1. **Fort layout family** — one battery fort as an authored compound layout (wall, gates,
@@ -172,4 +187,4 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
 4. **Redoubt and citadel.**
 5. **Command awareness** — `DefenceStructureTactics` reasons about aspects (which one to take
    or wreck first for the effect wanted) using only what a side knows.
-6. **Art** — earthworks done (`fort-earthworks`); the fort's buildings and aspect states, with animated parts as layers, remain.
+6. **Art** — earthworks and the fort's buildings with their aspect states and animated parts are done; the shield fort's own buildings follow the same data.
