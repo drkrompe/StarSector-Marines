@@ -1188,7 +1188,7 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildApplyLabel() {
-        return "Issue to Squad";
+        return "Fit to Squad / Free";
     }
 
     private List<CargoCostRow> buildIssueCargoRows() {

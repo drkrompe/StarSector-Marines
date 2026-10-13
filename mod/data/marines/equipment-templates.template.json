@@ -14,7 +14,7 @@
       "grades": {
         "surplus": { "accessTier": "common" },
         "service": { "accessTier": "common" },
-        "milspec": { "accessTier": "advanced" },
+        "milspec": { "accessTier": "common" },
         "masterwork": { "accessTier": "prestige" }
       }
     },
@@ -32,7 +32,7 @@
       "grades": {
         "surplus": { "accessTier": "common" },
         "service": { "accessTier": "common" },
-        "milspec": { "accessTier": "advanced" },
+        "milspec": { "accessTier": "common" },
         "masterwork": { "accessTier": "prestige" }
       }
     },

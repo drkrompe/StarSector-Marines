@@ -16,11 +16,6 @@
         <div id="page-nav-barracks-news" class="page-nav-news">NEW</div>
         <div id="page-nav-barracks-legend" class="console-key-legend">BARRACKS</div>
       </button>
-      <button id="page-nav-armory" class="{armoryClasses}" onclick="{armoryAction}">
-        <div id="page-nav-armory-lamp" class="console-toggle-lamp" />
-        <div id="page-nav-armory-news" class="page-nav-news">NEW</div>
-        <div id="page-nav-armory-legend" class="console-key-legend">ARMORY</div>
-      </button>
       <button id="page-nav-mech-lab" class="{mechLabClasses}" onclick="{mechLabAction}">
         <div id="page-nav-mech-lab-lamp" class="console-toggle-lamp" />
         <div id="page-nav-mech-lab-news" class="page-nav-news">NEW</div>
@@ -48,7 +43,7 @@
 
   #marine-ops-console-lock { width: 34px; height: 34px; pointer-events: none; }
   #marine-ops-console-vent { width: 78px; height: 34px; pointer-events: none; }
-  #marine-ops-page-routes { flex-direction: row; width: 920px; gap: 6px; }
+  #marine-ops-page-routes { flex-direction: row; width: 770px; gap: 6px; }
   #marine-ops-page-routes button {
     flex-direction: row;
     align-items: center;

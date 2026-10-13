@@ -1,4 +1,4 @@
-<template props="refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -14,7 +14,7 @@
         <div id="results-refit-title" class="label heading tone-accent">EQUIPMENT UPGRADE AVAILABLE / A PROPER ISSUE</div>
         <div id="results-refit-message" class="label refit-message">{refitCopy}</div>
       </div>
-      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">REVIEW UPGRADE / ARMORY</button>
+      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">REVIEW EQUIPMENT UPGRADE</button>
     </div>
     <div id="mission-results-body" class="mission-results-body">
       <div id="mission-results-summary" class="console-section results-summary">
@@ -79,10 +79,56 @@
       <button id="mission-results-secondary" class="{secondaryClasses}" onclick="{secondaryAction}">{secondaryLabel}</button>
       <button id="mission-results-primary" class="good-surface console-action" onclick="{primaryAction}">{primaryLabel}</button>
     </div>
+    <div id="reward-modal" class="{rewardPrompt.classes}">
+      <div id="reward-space-above" class="reward-space" />
+      <div id="reward-dialog" class="reward-dialog console-readout">
+        <div id="reward-eyebrow" class="label heading tone-edge reward-eyebrow">CASTLE / BEFORE YOU GO</div>
+        <div id="reward-title" class="label title tone-accent reward-title">{rewardPrompt.title}</div>
+        <div id="reward-conversation" class="reward-conversation">
+          <img id="reward-portrait" class="reward-portrait" src="graphics/portraits/castle.png" />
+          <div id="reward-copy" class="label reward-copy">{rewardPrompt.copy}</div>
+        </div>
+        <div id="reward-options" class="reward-options">
+          <div id="reward-line" class="reward-option panel">
+            <img id="reward-line-icon" class="reward-icon" src="{rewardPrompt.lineIcon}" />
+            <div id="reward-line-label" class="label reward-option-copy">STEADY LINE / Milspec Stalwart. Hold ground with automatic fire.</div>
+          </div>
+          <div id="reward-scout" class="reward-option panel">
+            <img id="reward-scout-weapon" class="reward-icon" src="{rewardPrompt.scoutWeaponIcon}" />
+            <img id="reward-scout-armor" class="reward-icon" src="{rewardPrompt.scoutArmorIcon}" />
+            <div id="reward-scout-label" class="label reward-option-copy">FORWARD SCREEN / Milspec Lancer + Janus. Scout ahead with mobile infantry.</div>
+          </div>
+        </div>
+        <div id="reward-footnote" class="label tone-muted reward-footnote">Compare the equipment before choosing. Your debrief and pending salvage will wait here.</div>
+        <div id="reward-actions" class="reward-actions">
+          <button id="reward-open" class="reward-open good-surface console-action" onclick="{rewardPrompt.open}">{rewardPrompt.actionLabel}</button>
+          <button id="reward-later" class="reward-later console-action" onclick="{rewardPrompt.later}">LATER</button>
+        </div>
+      </div>
+      <div id="reward-space-below" class="reward-space" />
+    </div>
   </div>
 </template>
 
 <style>
+  .reward-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12e8; }
+  .reward-hidden { position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
+  .reward-space { height: 0px; flex-grow: 1; }
+  .reward-dialog { width: 900px; height: 420px; padding: 24px; gap: 14px; flex-direction: column; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .reward-eyebrow { height: 20px; }
+  .reward-title { height: 32px; }
+  .reward-conversation { flex-direction: row; height: 118px; gap: 22px; align-items: center; }
+  .reward-portrait { width: 100px; height: 118px; }
+  .reward-copy { width: 0px; flex-grow: 1; height: 90px; white-space: normal; }
+  .reward-options { flex-direction: row; height: 100px; gap: 14px; }
+  .reward-option { width: 0px; flex-grow: 1; flex-direction: row; padding: 10px; gap: 12px; align-items: center; }
+  .reward-icon { width: 64px; height: 76px; }
+  .reward-option-copy { width: 0px; flex-grow: 1; height: 72px; white-space: normal; }
+  .reward-footnote { height: 22px; }
+  .reward-actions { flex-direction: row; height: 40px; gap: 12px; }
+  .reward-open { width: 260px; height: 38px; font-family: heading; }
+  .reward-later { width: 120px; height: 38px; }
+
   .results-refit { flex-direction: row; height: 76px; padding: 8px; gap: 14px; align-items: center; border-width: 1px; border-color: #dfc588; }
   .refit-portrait { width: 72px; height: 72px; }
   .refit-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }

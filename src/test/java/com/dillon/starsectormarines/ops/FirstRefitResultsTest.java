@@ -36,7 +36,7 @@ class FirstRefitResultsTest {
         assertSame(manifest, context.getLootManifest()); assertFalse(context.isLootSettlementStarted());
         ResultsScreen.putFirstRefit(props, MissionOutcome.builder().missionSource(MissionSource.DEBUG).build(), roster, open);
         assertEquals("hidden", props.get("refitClasses"));
-        roster.firstRefit().claim(roster);
+        roster.firstRefit().claim(roster, FirstRefit.Path.STEADY_LINE);
         roster.firstRefit().issue(roster, roster.createSquad().id(), FirstRefit.Path.STEADY_LINE, EquipmentIssueResources.UNLIMITED);
         ResultsScreen.putFirstRefit(props, outcome, roster, open);
         assertEquals("hidden", props.get("refitClasses"));

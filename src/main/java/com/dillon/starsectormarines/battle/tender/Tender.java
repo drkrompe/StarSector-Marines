@@ -70,6 +70,8 @@ public final class Tender implements DroneAnchor {
     private final TenderPointDefence pointDefence = new TenderPointDefence();
     int defenceSquadId = -1;
     float launchClock;
+    float builderClock;
+    final TenderFlight flight = new TenderFlight();
     private boolean helmed;
     private boolean defenceOutBeforeHelm = true;
 
@@ -149,6 +151,55 @@ public final class Tender implements DroneAnchor {
         return !ship.destroyed() && !ship.departed();
     }
 
+    @Override public float anchorHeadingDegrees() {
+        return ship.facingDegrees;
+    }
+
+    @Override public boolean escort() {
+        return true;
+    }
+
+    @Override public float leashCells() {
+        return TenderFlight.LEASH_CELLS;
+    }
+
+    @Override public boolean threatened() {
+        return flight.threatened();
+    }
+
+    @Override public long focusTarget() {
+        return flight.focus();
+    }
+
+    @Override public long[] escortIds() {
+        return flight.escortIds();
+    }
+
+    @Override public float[] escortPositions() {
+        return flight.escortPositions();
+    }
+
+    @Override public float[] sortieGoal(long member) {
+        return flight.goalOf(member);
+    }
+
+    /** The bearing the launch bay opens on: the hull's heading turned by the bay's own angle. */
+    public float bayMouthDegrees() {
+        return ship.facingDegrees + (bays.isEmpty() ? 0f : bays.get(0).angleDegrees());
+    }
+
+    /**
+     * Whether builder {@code id} is at its station with its torch on the site: the
+     * order is being worked, the ground is clear, and the drone is on task close
+     * to the site. For presentation and evidence.
+     */
+    public boolean welding(long id, ConstructionOrder order, float x, float y) {
+        TenderFlight.Sortie s = flight.of(id);
+        return s != null && s.leg == TenderFlight.Leg.TASK && order != null
+                && order.phase() == ConstructionOrder.Phase.WORKING && !order.contested()
+                && Math.hypot(x - order.siteX(), y - order.siteY()) <= TenderSystem.WORK_RADIUS;
+    }
+
     /** The defence drones' point defence: their mining lasers against hostile ordnance. */
     public TenderPointDefence pointDefence() {
         return pointDefence;
@@ -210,6 +261,11 @@ public final class Tender implements DroneAnchor {
     /** Defence drones shot down. */
     public int defendersLost() {
         return defenceLost;
+    }
+
+    /** Ids of the builders out of the bay, in launch order, for presentation and evidence. */
+    public List<Long> builderIds() {
+        return Collections.unmodifiableList(builders);
     }
 
     public int defendersOut() {
@@ -332,20 +388,24 @@ public final class Tender implements DroneAnchor {
     }
 
     void dockedBuilder(long id) {
+        flight.forget(id);
         builders.remove(id);
         builderReserve++;
     }
 
     void dockedDefender(long id) {
+        flight.forget(id);
         defenders.remove(id);
         defenceReserve++;
     }
 
     void lostBuilder(long id) {
+        flight.forget(id);
         if (builders.remove(id)) builderLost++;
     }
 
     void lostDefender(long id) {
+        flight.forget(id);
         if (defenders.remove(id)) defenceLost++;
     }
 

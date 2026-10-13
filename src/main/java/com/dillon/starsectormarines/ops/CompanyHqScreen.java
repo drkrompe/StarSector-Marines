@@ -117,7 +117,7 @@ public final class CompanyHqScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
                 "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
@@ -147,9 +147,7 @@ public final class CompanyHqScreen implements Screen {
 
     private void onArmory() {
         if (context == null) return;
-        if (FirstRefit.available(CompanyPreparationGuide.roster()))
-            context.openFleetArmoryWorkspaceFrom(ScreenId.COMPANY_HQ);
-        else context.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
+        context.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
     }
 
     private void onBarracks() {

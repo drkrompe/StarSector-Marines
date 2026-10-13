@@ -15,11 +15,44 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BarracksTurnaroundTest {
+    @Test void equipmentEntryKeepsSelectionAndUnreadLessonUntilReviewed() {
+        var roster = new MarineRoster();
+        var squad = roster.createSquad();
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
+        var routes = new ArrayList<ScreenId>();
+        var context = new MarineOpsContext(null) {
+            @Override public void goTo(ScreenId screen) { routes.add(screen); }
+        };
+        model.equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
+        model.navigation(() -> {}, context::openSquadEquipmentFromBarracks, () -> {}, false);
+        model.toggle(squad.id());
+        model.inspect(squad.id());
+        assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
+        action(model, "editEquipment");
+        assertEquals(squad.id(), context.takeRequestedArmorySquadId());
+        assertNull(context.takeRequestedArmorySquadId());
+        model.leave();
+        context.returnFromFleetArmoryWorkspace();
+        assertEquals(List.of(ScreenId.FLEET_ARMORY, ScreenId.BARRACKS), routes);
+        assertTrue(model.inspecting());
+        assertTrue(model.selected().contains(squad.id()));
+        assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
+        action(model, "equipmentWorkspace");
+        assertFalse(roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id));
+        CompanyNotices.Notice.FIRST_REFIT.review(roster);
+        model.refresh();
+        assertEquals("EQUIPMENT", value(model, "equipmentLabel"));
+        assertFalse(roster.firstRefit().complete());
+    }
+
     @Test void distinctSelectionsCancelAndCommitThroughTheRoster() {
         var roster = new MarineRoster();
         var recipient = roster.createSquad();

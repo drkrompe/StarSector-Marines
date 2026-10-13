@@ -1,4 +1,4 @@
-<template props="survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="equipmentAction,survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -6,6 +6,7 @@
       <img id="ship-view-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="ship-view-room-title" class="label heading tone-edge">{roomTitle}</div>
       <div id="ship-view-room-copy" class="label tone-muted">{roomCopy}</div>
+      <button id="machine-shop-equipment" class="machine-shop-equipment console-action" onclick="{equipmentAction}">MACHINE SHOP / FIT SQUADS FOR FREE</button>
     </div>
 
     <div id="ship-view-body" class="ship-view-body">
@@ -71,6 +72,7 @@
   .ship-view-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
   #ship-view-room-title { width: 330px; height: auto; white-space: normal; }
   #ship-view-room-copy { width: 540px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
+  .machine-shop-equipment { width: 390px; height: 38px; padding: 4px 10px; font-family: heading; }
   .ship-view-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; }
   .ship-view-stage { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 10px; overflow: hidden; border-width: 2px; }
   .ship-view-deck { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
