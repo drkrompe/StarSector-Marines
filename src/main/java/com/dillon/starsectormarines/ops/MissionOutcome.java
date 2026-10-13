@@ -114,6 +114,8 @@ public final class MissionOutcome {
      * only place its name still exists is this list.
      */
     public final List<BoatLoss> boatsLost;
+    public final String boatSettlementId;
+    public final Map<String, Float> boatDamage;
     /**
      * Marines who went down aboard a lost boat, counted separately from the
      * ground casualties they are folded into. They are fallen the same way and
@@ -204,6 +206,8 @@ public final class MissionOutcome {
         this.salvageRecoveryBonusPct = Math.max(0, b.salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, b.salvageHighValueChancePct));
         this.boatsLost = immutableBoatLosses(b.boatsLost);
+        this.boatSettlementId = b.boatSettlementId;
+        this.boatDamage = Map.copyOf(b.boatDamage);
         this.marinesLostAboard = Math.max(0, b.marinesLostAboard);
         this.shipsCalled = b.shipsCalled == null ? Collections.emptyList() : List.copyOf(b.shipsCalled);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
@@ -278,6 +282,15 @@ public final class MissionOutcome {
         private int salvageHighValueChancePct;
 
         private List<BoatLoss> boatsLost = Collections.emptyList();
+        private String boatSettlementId;
+        private Map<String, Float> boatDamage = Map.of();
+
+        public Builder boatDamage(String receipt, Map<String, Float> damage) {
+            this.boatSettlementId = receipt;
+            this.boatDamage = damage;
+            return this;
+        }
+
         private int marinesLostAboard;
         private List<ShipSupportResult> shipsCalled = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();

@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -164,6 +165,15 @@ public final class ColdStartSequence implements Objective {
         if (lighting != null) sim.getTopology().setNightLighting(lighting.withPower("yard"));
         try { tender = Tender.grounded(Faction.MARINE, 131, 115, BAY_X, BAY_Y, -90); }
         catch (Exception ex) { throw new IllegalStateException("Unable to commission Morrow's builder bay", ex); }
+        for (Doodad prop : sim.getDoodads()) {
+            if ("doodad.shepherd-recovery-hull".equals(prop.definitionId())) {
+                tender.groundDisplay(new Tender.GroundDisplay(
+                        prop.cellX + prop.footprintCellsX * 0.5f,
+                        prop.cellY + prop.footprintCellsY * 0.5f,
+                        prop.footprintCellsX, prop.footprintCellsY));
+                break;
+            }
+        }
         sim.tenders().add(sim, tender);
         sim.getCommandPowerService().register(new YardConstruction(tender));
         if (!tender.groundSiteReachable(BUILD_X + .5f, BUILD_Y + .5f, sim.getGrid()))
