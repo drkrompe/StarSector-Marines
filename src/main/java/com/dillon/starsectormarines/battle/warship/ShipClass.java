@@ -13,7 +13,7 @@ import java.util.Locale;
  * @param size   the hull's size, frigate to capital
  * @param role   what the hull is for
  * @param bays   fighter bays the table lists (0 for none)
- * @param shield the table's shield type, or {@code NONE}; carried for readouts, not yet weighted
+ * @param shield the table's shield type, or {@code NONE}; weighs armed craft in {@link AirThreatWeights}
  */
 public record ShipClass(HullSize size, Role role, int bays, Shield shield) {
 

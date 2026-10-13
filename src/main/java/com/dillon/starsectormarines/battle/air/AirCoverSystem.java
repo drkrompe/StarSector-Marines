@@ -105,11 +105,20 @@ public final class AirCoverSystem {
      *         declines; neither invents an origin.
      */
     private boolean dispatch(BattleSimulation sim, FighterWing wing) {
-        long target = EnemyConcentration.densest(sim, wing.side);
-        if (target == 0L) return false;
-        World world = sim.world();
-        float targetX = world.x(target);
-        float targetY = world.y(target);
+        // A hostile hull the wing's ordnance can hurt comes before the ground; see HullStrike.
+        HullTarget hull = HullStrike.choose(sim, wing.side, h -> wing.profile.ordnance());
+        float targetX;
+        float targetY;
+        if (hull != null) {
+            targetX = hull.x();
+            targetY = hull.y();
+        } else {
+            long target = EnemyConcentration.densest(sim, wing.side);
+            if (target == 0L) return false;
+            World world = sim.world();
+            targetX = world.x(target);
+            targetY = world.y(target);
+        }
 
         float[] home = friendlyCentroid(sim, wing.side);
         if (home == null) return false;

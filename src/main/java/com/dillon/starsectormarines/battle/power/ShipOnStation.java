@@ -109,6 +109,7 @@ public final class ShipOnStation extends CommandPower {
             ship = Warship.fit(source, side, p.x(), p.y(), p.facingDegrees());
         }
         ship.stationTo(stationX, stationY);
+        ship.arriveFromAbove();
         ship.stance(battle.companyStance());
         ship.stayFor(STATION_SECONDS);
         if (tender != null) {
