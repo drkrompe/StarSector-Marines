@@ -249,7 +249,7 @@ axes. Friendly-fire discipline treats one multi-projectile release as one
 trigger decision, while every projectile retains its own physical trajectory,
 impact, telemetry, and presentation. Both families use the same faction-neutral
 engagement and maneuver rules for player and defender carriers. The automatic
-is starter-reachable and appears in the built-in Fire Support template; target
+requires acquired technology and appears in the built-in Fire Support template; target
 faction profiles decide whether and how heavily defenders issue either family.
 `equipment-lore-catalog.md` owns the models' in-universe origin and credible
 circulation. Those origins are mod direction constrained by faction lore, not new
@@ -404,8 +404,10 @@ those counts, and fabrication materials — has been deleted along with the
 retired fire-team refit APIs that were its only readers. Equipment is owned as
 permanent template cards, and fitting is free. Existing victory milestones grant template cards, including the
 Shattercap after two victories. A deterministic safety net now keeps permanent
-collection breadth at or above 21 cards after five victories, 25 after fifteen,
-29 after thirty, and 30 after forty. Cards already learned or still carried in
+collection breadth at or above 8 cards after five victories, 12 after fifteen,
+16 after thirty, and 17 after forty. The opening floor is three specs: Service
+Rook, field fatigues, and Ward security kit. New personnel receive only that
+baseline; save repair retains old acquisitions without seeding specialist gear. Cards already learned or still carried in
 cargo count toward that floor, so faction-shaped acquisition advances the same
 curve instead of being duplicated by it. When a company falls below a floor,
 the Armory grants the next bounded core fallback; the curve never revokes cards,

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.FirstRefit.Path;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -58,6 +59,7 @@ class FirstRefitModelTest {
         assertEquals(SpecSheets.weapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.MILSPEC), model.sheet(true, 0));
         assertNotNull(model.sheet(true, 3), "The proposed scout suit exposes its integral system");
         assertFalse(roster.firstRefit().complete());
+        EquipmentTestFixtures.issueLauncher(roster.soldierById(roster.manningMemberIds(squad).get(11)));
         model.selectBillet(11);
         assertNotNull(model.sheet(false, 2), "The current launcher must be disclosed before removal");
         assertNull(model.sheet(true, 2));
