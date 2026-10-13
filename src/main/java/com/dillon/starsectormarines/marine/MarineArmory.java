@@ -453,9 +453,9 @@ public final class MarineArmory implements Serializable {
     }
 
     private void seedStarterIssue() {
-        unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
+        unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS);
         unlockArmor(MarineArmorPattern.ARMORLESS);
-        unlockArmor(MarineArmorPattern.MILITIA);
+        unlockArmor("armor.cordon-shell");
     }
 
     private void seedStarterCards() {
