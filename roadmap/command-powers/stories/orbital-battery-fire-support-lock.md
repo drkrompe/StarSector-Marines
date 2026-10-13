@@ -4,7 +4,7 @@ Status: DEFERRED — follows the local-shield installation vertical and owns the
 
 Written: 2026-08-24
 
-Updated: 2026-10-14 — scope item 1 is built: `TargetProfile.heavyBatteries` (see `ground-defences.md`); a multi-cell structure exists in the turret catalog.
+Updated: 2026-10-14 — scope items 1 to 4 are built by ground defences slice 3 (`ground-defences.md`): the signal, a multi-cell battery with a capturable fire-control point, and the barrage lock. Briefing text (item 5) and any contract mandate remain.
 
 Read `command-powers-nouns.md`, `campaign-battle-bridge-nouns.md`, and
 `mapgen-nouns.md` before accepting this story.

@@ -56,7 +56,7 @@ final class BattlePowerOverlay {
     void attach(PositionAPI nextPosition, BattleSimulation sim) {
         position = nextPosition;
         presentation = model.update(sim == null ? null : sim.getCommandPowerService(),
-                targetingPowerId.get());
+                targetingPowerId.get(), sim != null && sim.orbitalBarrageLock() != null);
         viewport = viewport(nextPosition, presentation.powerCount(), presentation.targeting());
         if (document == null) installDocument();
         else document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -91,7 +91,8 @@ final class BattlePowerOverlay {
 
     void update(float realDt, BattleSimulation sim) {
         BattlePowerOverlayModel.Presentation next = model.update(
-                sim == null ? null : sim.getCommandPowerService(), targetingPowerId.get());
+                sim == null ? null : sim.getCommandPowerService(), targetingPowerId.get(),
+                sim != null && sim.orbitalBarrageLock() != null);
         if (markupInstance != null) markupInstance.flush();
         if ((next.powerCount() != presentation.powerCount()
                 || next.targeting() != presentation.targeting()) && position != null) {

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.power;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /** Telegraphed heavy orbital shell with structural damage and friendly fire. */
@@ -19,6 +20,11 @@ public final class OrbitalBarrage extends CommandPower {
 
     @Override
     public float previewRadiusCells() { return BLAST_RADIUS_CELLS; }
+
+    @Override
+    public boolean canTarget(int cellX, int cellY, BattleView battle) {
+        return super.canTarget(cellX, cellY, battle) && battle.orbitalBarrageLock() == null;
+    }
 
     @Override
     public void resolve(int cellX, int cellY, CommandPowerService service,
