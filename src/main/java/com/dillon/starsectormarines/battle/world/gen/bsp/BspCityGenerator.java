@@ -222,6 +222,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new FortressBatteryStage(),                 // taxonomy consumer — declared heavy batteries only
+                new DefenceNestStage(),                     // taxonomy consumer — declared defence nests only
                 new SpawnAnchorStage(),                     // spawn anchors
                 new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
                 new OutdoorLandscapeStage(),                // finished access owns its clear ground
