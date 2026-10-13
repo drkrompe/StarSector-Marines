@@ -10,7 +10,11 @@ public enum FortAspect {
     /** The hardened store that feeds sustained fire. */
     MAGAZINE("MAGAZINE"),
     /** The plant every other aspect draws on. */
-    POWER("POWER");
+    POWER("POWER"),
+    /** The shield generator itself: the dome's emitter. Wrecking it ends the dome for good. Not held by presence. */
+    EMITTER("EMITTER"),
+    /** The room whose holder the dome obeys: whoever holds it is the side the dome protects. */
+    CONTROL_ROOM("CONTROL ROOM");
 
     private final String label;
 

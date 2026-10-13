@@ -40,6 +40,11 @@ import java.util.function.BiConsumer;
  * dome reboots (down for {@link #REBOOT_SECONDS}) before it protects its new
  * holder. Destroying the generator drops the dome for good.
  *
+ * <p><b>Governed domes.</b> A generator inside a shield fort is {@linkplain #govern governed}: the fort, not a ring of
+ * ground round the generator, decides who holds it ({@link #transfer}, called when the control room changes hands) and
+ * whether it has power ({@link #setPowered}). A dome without power is down exactly as an overloaded one is, and rises
+ * again, rebooting, when power returns.
+ *
  * <p>Registered as a structure with a dome spawns ({@code BattleSimulation.spawn}),
  * ticked serially with the rest of the field systems, read by the detonation
  * pipeline and the renderer. Deterministic: no random draws.
@@ -86,6 +91,61 @@ public final class ShieldDomeService {
         publish();
     }
 
+    /**
+     * Puts the dome of generator {@code entityId} under a fort's control: its capture ring stops mattering, and its
+     * holder and power are set by {@link #transfer} and {@link #setPowered}. A dome that is not registered is ignored.
+     */
+    public synchronized void govern(long entityId) {
+        Dome dome = find(entityId);
+        if (dome != null) dome.governed = true;
+        publish();
+    }
+
+    /**
+     * Gives a governed dome to {@code holder}: it reboots (down for {@link #REBOOT_SECONDS}) and then protects the new
+     * holder. Giving it to its current holder does nothing.
+     */
+    public synchronized void transfer(long entityId, Faction holder) {
+        Dome dome = find(entityId);
+        if (dome == null || dome.holder == holder) return;
+        dome.holder = holder;
+        dome.raider = null;
+        dome.captureProgress = 0f;
+        dome.captures++;
+        startDown(dome, REBOOT_SECONDS);
+        holderListener.accept(dome.entityId, dome.holder);
+        publish();
+    }
+
+    /**
+     * Tells a governed dome whether its fort's power is the holder's to draw on. Without power the dome absorbs
+     * nothing; when power returns it reboots for {@link #REBOOT_SECONDS} before it absorbs again.
+     */
+    public synchronized void setPowered(long entityId, boolean powered) {
+        Dome dome = find(entityId);
+        if (dome == null || dome.unpowered == !powered) return;
+        dome.unpowered = !powered;
+        if (powered) {
+            startDown(dome, REBOOT_SECONDS);
+        } else {
+            dome.dropFlash = 1f;
+            cues.add(new WarshipSoundCue(WarshipSoundCue.Kind.DOME_DROP, DROP_SOUND_ID,
+                    dome.x, dome.y, STATE_CUE_VOLUME));
+        }
+        publish();
+    }
+
+    /** Whether the dome of generator {@code entityId} is a registered, powerless dome. */
+    public synchronized boolean isUnpowered(long entityId) {
+        Dome dome = find(entityId);
+        return dome != null && dome.unpowered;
+    }
+
+    private Dome find(long entityId) {
+        for (Dome dome : domes) if (dome.entityId == entityId) return dome;
+        return null;
+    }
+
     /** Sets who is told, with the generator's entity id and its new holder, when a capture completes. */
     public synchronized void setHolderListener(BiConsumer<Long, Faction> listener) {
         this.holderListener = listener;
@@ -110,7 +170,7 @@ public final class ShieldDomeService {
     public synchronized boolean absorbs(PendingDetonation det) {
         if (domes.isEmpty() || !det.isShipGrade()) return false;
         for (Dome dome : domes) {
-            if (dome.overloadRemaining > 0f || !dome.holder.hostileTo(det.shooterFaction)) continue;
+            if (dome.overloadRemaining > 0f || dome.unpowered || !dome.holder.hostileTo(det.shooterFaction)) continue;
             float dx = det.endpointX - dome.x;
             float dy = det.endpointY - dome.y;
             float radius = dome.spec.radiusCells();
@@ -189,7 +249,7 @@ public final class ShieldDomeService {
             dome.pool = Math.max(0f, dome.pool - dome.spec.dissipationPerSecond() * dt);
         }
         dome.captureClock += dt;
-        if (dome.captureClock >= CAPTURE_PERIOD) {
+        if (!dome.governed && dome.captureClock >= CAPTURE_PERIOD) {
             dome.captureClock -= CAPTURE_PERIOD;
             evaluateCapture(dome, roster);
         }
@@ -262,8 +322,8 @@ public final class ShieldDomeService {
         List<DomeView> views = new ArrayList<>(domes.size());
         for (Dome d : domes) {
             views.add(new DomeView(d.entityId, d.holder, d.x, d.y, d.spec.radiusCells(),
-                    d.pool, d.spec.fluxCapacity(), d.overloadRemaining > 0f,
-                    d.overloadTotal > 0f ? d.overloadRemaining / d.overloadTotal : 0f,
+                    d.pool, d.spec.fluxCapacity(), d.overloadRemaining > 0f || d.unpowered,
+                    d.unpowered ? 1f : d.overloadTotal > 0f ? d.overloadRemaining / d.overloadTotal : 0f,
                     d.hitFlash, d.dropFlash, d.captureProgress, d.raider,
                     d.hits, d.overloads, d.captures, d.absorbedFlux,
                     d.originalHolder, d.spec.captureRadiusCells()));
@@ -370,6 +430,10 @@ public final class ShieldDomeService {
         int overloads;
         int captures;
         float absorbedFlux;
+        /** Whether a fort decides this dome's holder and power rather than the ground round the generator. */
+        boolean governed;
+        /** Whether the dome has no power; a down dome absorbs nothing. */
+        boolean unpowered;
 
         Dome(long entityId, Faction holder, float x, float y, DomeSpec spec) {
             this.entityId = entityId;
