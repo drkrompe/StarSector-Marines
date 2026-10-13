@@ -21,11 +21,13 @@ public final class ThunderRunAirPass {
     public ThunderRunAirPass(BattleSimulation sim, StoryBeatLog log) {
         this.log = log;
         aircraft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, 190f, 75f,
-                165f, 156f, 165f, 156f);
+                332f, 40f, 332f, 100f);
         sortie = sim.world().mission(aircraft);
         sortie.orbitSecondsLeft = 180f;
-        sortie.gunshipIngress = new GunshipIngress(List.of(new Point(165, 90), new Point(160, 52),
-                new Point(160, 10), new Point(208, 12), new Point(230, 42), new Point(220, 70)));
+        // Cross the road from east to west, then make a broad return over the convoy.
+        sortie.gunshipIngress = new GunshipIngress(List.of(new Point(280, 40), new Point(80, 40),
+                new Point(50, 65), new Point(70, 100), new Point(160, 110), new Point(220, 90),
+                new Point(220, 70)));
         initialHp = sim.world().hp(aircraft);
         sim.getEntityWorld().setObject(aircraft, sim.getBattleComponents().IDENTITY,
                 BattleComponents.IDENTITY_NAME, WaylineGunship.CALLSIGN + " / Wayline gunship");

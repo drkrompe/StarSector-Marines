@@ -1,0 +1,13 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design?output_format=mp3_44100_128",
+  "payload": {
+    "voice_description": "A woman in her late forties or fifties, a working shipyard foreman with a low, slightly husky register and an understated northern English accent. Clear natural speech, practical authority, patient warmth and dry restraint. She sounds like someone who has worked beside these crews for years. No theatrical menace, military parade delivery, radio filtering, background ambience or sound effects.",
+    "text": "Captain, that's Morrow in the cradle. Her crew brought her down with half the controls dead. They came back because they knew she was worth saving. Give my technicians safe ground and we'll get her working.",
+    "model_id": "eleven_ttv_v3",
+    "auto_generate_text": false,
+    "stream_previews": false,
+    "should_enhance": false
+  },
+  "startedAt": "2026-10-13T19:18:28.049523+00:00",
+  "inputSha256": "8eddc09b4ae68699f23eccc8cd018ac3107ef6875d6c9c26f0b0808398e7ecea"
+}

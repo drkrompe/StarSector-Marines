@@ -179,12 +179,12 @@ final class BriefingViewModel {
         props.put("debugToggleAction", available ? toggle : (Runnable) () -> { });
     }
 
-    /** Wayline's recorded briefings belong to Mara, independently of the deployed force's officers. */
+    /** A briefing retains its authored speaker, independently of the deployed force's officers. */
     static void putNarration(Map<String, Object> props, WaylineNarration.Line line, boolean playing) {
         boolean available = line != null;
         props.put("narrationAvailable", available);
-        props.put("narrationSpeaker", available ? OpeningBroker.NAME : "");
-        props.put("narrationPortrait", available ? OpeningBroker.PORTRAIT : "");
+        props.put("narrationSpeaker", available ? line.speaker() : "");
+        props.put("narrationPortrait", available ? line.portrait() : "");
         props.put("narrationSpeakerClasses", "briefing-speaker console-well" + (available && playing ? " speaking" : ""));
         props.put("narrationStatus", narrationStatus(available && playing));
     }
@@ -340,7 +340,13 @@ final class BriefingViewModel {
         String image = null;
         String tone = "tone-good";
         String note;
-        if (local) {
+        if (mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND) {
+            title = "Company already ashore";
+            capacity = selectedPersonnel + " selected ready marines";
+            schedule = "Secured receiving apron / no insertion flights";
+            note = boats.isEmpty() ? "Boats are optional for this ground mobilization."
+                    : boats.size() + " fitted company boats remain in reserve; no inbound passengers.";
+        } else if (local) {
             title = "Local lifts";
             capacity = "Stationed detachment";
             schedule = "No company boats committed";
