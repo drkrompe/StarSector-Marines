@@ -124,7 +124,7 @@ class TenderPilotTest {
 
     @Test
     void anEmptySlotLaysNothingAndSaysSo() {
-        TenderPilot.apply(tender, left(30.5f, 30.5f), pad, TenderPilot.option(3), grid, SEEN);
+        TenderPilot.apply(tender, left(30.5f, 30.5f), pad, TenderPilot.option(TenderPilot.OPTION_SLOTS), grid, SEEN);
         assertEquals(0, tender.orders().size());
         assertEquals(Notice.BLOCKED, pad.notice());
     }
