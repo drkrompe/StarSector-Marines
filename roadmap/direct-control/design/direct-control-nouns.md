@@ -524,7 +524,9 @@ it does not have. The shield (E) is the warship's.
 - **Handback** is the warship's, plus the tender's own: the hull returns to its prior director,
   station or route; every site the pilot laid is withdrawn (a hand order does not outlive the
   hand; builders already out fly home); and the defence drones return to whatever they were
-  told before entry. Death of the hull, departure, battle end, Tab and Escape release it.
+  told before entry. A tender whose hull carries an ATTACK or DEFEND stance builds for itself
+  while unpiloted; the pilot suspends that choosing, and handback resumes it on its next pass.
+  Death of the hull, departure, battle end, Tab and Escape release it.
 
 The equipment strip shows hull above armour, the hull's flux in the heat row, and read-only
 cards: helm; the selected option with the other slots marked "soon"; the site card (the

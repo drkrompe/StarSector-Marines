@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — the wing now flies as a living swarm: staggered launch, recall and retreat as flights home, a loose escort ring, builder stations; player control through direct control is built; four catalog-turret build options; AI stance and the non-turret options are open.
+Updated: 2026-10-13 — AI by stance built: an unpiloted ATTACK or DEFEND tender chooses its own sites and options; the non-turret options and live acceptance are open.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
 
@@ -101,9 +101,18 @@ A tender is a warship body, so it is exactly as hittable as one: **only by ordna
 
 ## Who steers
 
-- **Slice 1:** the debug path. The briefing's WARSHIP DEBUG picker offers "Shepherd (tender)"; the debug panel's keys order a build at the cursor, cancel builds, and recall or deploy the defence drones, and its status line reports hull, shield, builds ("builds free", or the charges left on a metered tender), drones and the current order.
+- **Slice 1:** the debug path. The briefing's WARSHIP DEBUG picker offers "Shepherd (tender)"; the debug panel's keys order a build at the cursor, cancel builds, recall or deploy the defence drones, and cycle the hull's stance (HOLD, ATTACK, DEFEND), and its status line reports stance, hull, shield, builds ("builds free", or the charges left on a metered tender), drones and the current order.
 - **Player (built):** the existing direct-control carrier seam (`DirectControlSession`, with `TenderPilot` for the hands; `direct-control-nouns.md` Tender owns the bindings and handback). Click the hull, Tab to pilot, WASD flies it, the left button lays a site at the cursor for the selected option, the right button recalls or deploys the defence drones on the press, 1-4 select the option (all four slots are filled), X cancels every unfinished site, E is the shield. Fog is the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
-- **AI by stance:** a tender with a mission stance and no pilot: ATTACK builds forward positions on cleared ground and keeps close to the advance; DEFEND builds on the held ground's approaches. Both are a director over `Tender.lay`, never a second order model.
+- **AI by stance (built):** a tender with a mission stance and no pilot is steered by `TenderDirector`, a director over `Tender.lay` and never a second order model. The stance is the hull's own `MissionStance` and the objective ground is the warship's (`ObjectiveBias`): what its side's squads were sent to take or hold, plus ground a mission declares. HOLD, the default, is never directed, so a scripted or debug tender waits to be told.
+
+### How the AI chooses
+
+Every two seconds, with nothing on its line, the director looks at the battle and lays at most one site.
+
+- **ATTACK builds forward positions on cleared ground.** It takes the objective its side has pushed closest to and the friendly leading on it, and walks the line from a few cells ahead of that lead back towards the rear, taking the first acceptable cell: the most forward ground no hostile stands within the build's threat radius of. Idle, it hovers ten cells behind the lead, so it keeps up with the advance. It builds the **quickest** option, because the advance moves on and a position is worth having soon.
+- **DEFEND builds on the approaches.** From the held point the nearest hostile is closest to, it builds about eight cells out along the bearing to that hostile; with no hostile on the field there is no approach to read, and it builds on the held point. Idle, it hovers on the far side of that point. It builds the **heaviest** option it can pay for, because held ground gives the builders time.
+- **What bounds a free tender is the ground, not a count.** A cell is refused when a hostile stands within the threat radius (the site would stand down at once), within six cells of another of its side's turrets or of a live site, or where two of its side's turrets already stand within fourteen cells. So a defended point gains a couple of turrets on its threatened side and then the tender idles, and an attacking tender builds again only as the advance moves past what it already put up.
+- **It reads hostiles directly,** as the build's own stand-down does, not through its side's knowledge. A tender that can see what its screen is about to stand down for is consistent with the screen; one that cannot would lay sites only to recall the builders. Fog-honest choice is the refinement if the AI is ever felt to cheat.
 
 ### Decisions made for the pilot
 
@@ -136,4 +145,4 @@ Built: point defence by the defence drones' mining lasers (the `tender-point-def
 
 Since added: launch and recovery as real flight (staggered, through the bay's mouth, docking on arrival, leading a moving bay), the escort ring, the leash and break-off, retreat and repair of hurt defenders, builder stations with a welding arc, and separation, with unit tests and the `tender-sortie` scene beside `tender-build`.
 
-Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). Open: AI by stance, the non-turret build options (point defence, revetment), the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.
+Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). AI by stance is built (`TenderDirector`, unit tests and the `tender-stance` scene). Open: the non-turret build options (point defence, revetment), the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.

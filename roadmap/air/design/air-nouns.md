@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Warships may resume patrol through forward departure on their existing bearing.
+Updated: 2026-10-13 — an unpiloted tender builds from its hull's mission stance.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1919,6 +1919,16 @@ never does, a docked or recalled drone cannot, and the tender stays a ship with 
 The tracer is drawn through the warship point-defence marks.
 
 A tender may be flown by the player through the direct-control carrier seam (`direct-control-nouns.md`, Tender): the same build orders and drone recall, laid by the pilot's buttons instead of an AI or the debug panel.
+
+**Unpiloted, a tender builds from its hull's mission stance.** The stance is the same
+`MissionStance` a warship's doctrine reads, and the ground it cares about is the same
+objective ground. Under ATTACK it raises the quickest position on the most forward
+cleared ground behind the advance and keeps close to it; under DEFEND it raises the
+heaviest it can pay for on the threatened approach to held ground; under HOLD, the
+default, it waits to be told. The AI lays the same site a pilot or the debug panel
+would, so building, stand-down and failure are one model whoever chose the site. What
+bounds a free tender is ground already covered by its side's turrets, not a count.
+`tender-ship.md` has the rules.
 
 ### Authored structural bombardment
 
