@@ -66,7 +66,7 @@ import java.util.function.BiPredicate;
 public final class BatteryFortStage implements GenStage {
 
     /** Hit points of a wall cell of the fort's outer wall: breachable by demolition, not by small arms. */
-    public static final int FORT_WALL_HP = 400;
+    public static final int FORT_WALL_HP = BatteryFort.WALL_HP;
     /** Hit points of a wall cell of a fort building. */
     public static final int BUILDING_WALL_HP = 300;
 
@@ -414,13 +414,14 @@ public final class BatteryFortStage implements GenStage {
                 case POWER -> TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID;
             };
             int[] centre = BatteryFort.coreCentre(aspect);
-            emitStructure(ctx, id, at.cell(centre[0], centre[1]), new FortTag(fortId, aspect));
+            emitStructure(ctx, id, at.cell(centre[0], centre[1]), new FortTag(fortId, aspect, at.x(), at.y(), at.pose().quarterTurns()));
         }
         emitStructure(ctx, TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID,
-                at.cell(BatteryFort.PLATFORM[0], BatteryFort.PLATFORM[1]), new FortTag(fortId, null));
+                at.cell(BatteryFort.PLATFORM[0], BatteryFort.PLATFORM[1]),
+                new FortTag(fortId, null, at.x(), at.y(), at.pose().quarterTurns()));
         int nestNumber = 0;
         for (int[] local : BatteryFort.NESTS) {
-            emitNest(ctx, at.cell(local[0], local[1]), fortId, nestNumber++);
+            emitNest(ctx, at.cell(local[0], local[1]), fortId, at, nestNumber++);
         }
 
         stampWall(ctx, at);
@@ -462,11 +463,11 @@ public final class BatteryFortStage implements GenStage {
         stampBelt(ctx, at, fortId, ground);
     }
 
-    private static void emitNest(GenContext ctx, int[] cell, int fortId, int number) {
+    private static void emitNest(GenContext ctx, int[] cell, int fortId, CompoundLayout.Placement at, int number) {
         ctx.grid.setWalkable(cell[0], cell[1], false);
         ctx.defensePosts.add(new DefensePost(DefensePostKind.LIGHT, cell[0], cell[1],
                 List.of(new DefensePost.TurretSpec(NEST_STRUCTURES[number % NEST_STRUCTURES.length], cell[0], cell[1])),
-                new FortTag(fortId, null)));
+                new FortTag(fortId, null, at.x(), at.y(), at.pose().quarterTurns())));
     }
 
     /**
@@ -511,7 +512,7 @@ public final class BatteryFortStage implements GenStage {
                 case WIRE -> draw.concertina(c.x(), c.y(), c.dx() != 0);
                 case NEST -> {
                     draw.earth(c.x(), c.y());
-                    emitNest(ctx, cell, fortId, nestNumber++);
+                    emitNest(ctx, cell, fortId, at, nestNumber++);
                 }
             }
         }

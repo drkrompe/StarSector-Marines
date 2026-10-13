@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — battery fort rebuilt as defence in depth (outer belt, bastioned works, differentiated interior); shield fort, redoubt/citadel and command awareness remain.
+Updated: 2026-10-13 — fort buildings drawn by function with intact, damaged, wrecked and taken states; shield fort, redoubt/citadel and command awareness remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -130,6 +130,19 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
   the platform is sighted.
 - **Tuning is untuned.** Numbers (12 ready rounds, 0.25 unpowered rate, core hit points) are first passes.
 
+## Built: building art by function
+
+A fort building is drawn from art authored per aspect kind on the aspect's core structure (`buildingArt` in the turret
+catalog; the platform names the gatehouse). Roof art covers exactly the building's interior floor, in the fort's local
+frame turned with it (`FortFrame`), and replaces the ordinary brick roof there: it fades with the same per-building
+reveal, so capture inside a building, fog and the roof cave-in are untouched. The picture follows the aspect: intact,
+damaged (core durability under 60%), and wrecked (roof opened by the cave-in machinery, a low wreck over the floor and
+under the units). Machinery on the roof runs only while the building stands and its power is its holder's: the bunker's
+radar, the plant's turbine fans and glow, the magazine's vent fans and warning lamps. A taken building flies the holder's
+banner and takes a wash of the holder's colour. Gatehouse towers carry embrasured caps while their walls stand, the gate
+carries folded leaves, and neither draws over a breach. A new fort kind adds data (a `buildingArt` block per aspect) and a
+layout, not renderer code. Retained sources: `art-source/fort-buildings/`.
+
 ## Slices
 
 1. **Fort layout family** — one battery fort as an authored compound layout (wall, gates,
@@ -141,4 +154,4 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
 4. **Redoubt and citadel.**
 5. **Command awareness** — `DefenceStructureTactics` reasons about aspects (which one to take
    or wreck first for the effect wanted) using only what a side knows.
-6. **Art** — earthworks done (`fort-earthworks`); the fort's buildings and aspect states, with animated parts as layers, remain.
+6. **Art** — earthworks and the fort's buildings with their aspect states and animated parts are done; the shield fort's own buildings follow the same data.

@@ -30,6 +30,9 @@ import java.util.List;
  */
 public final class BatteryFort {
 
+    /** Strength of every wall cell of the main works, gatehouse towers included. */
+    public static final int WALL_HP = 400;
+
     /** Local width and height of the footprint, belt and wire included. */
     public static final int WIDTH = 82, HEIGHT = 72;
 
@@ -56,6 +59,25 @@ public final class BatteryFort {
     public static final List<int[]> NESTS = List.of(
             new int[]{OX - 1, OY - 1}, new int[]{OX + WORKS_W, OY - 1},
             new int[]{OX - 1, OY + WORKS_H}, new int[]{OX + WORKS_W, OY + WORKS_H});
+
+    /** What a gatehouse piece is: a tower cap standing on solid wall, or the leaves of the gate over its open passage. */
+    public enum PieceKind { TOWER, GATE }
+
+    /**
+     * One piece of gatehouse art in the footprint frame: the cells it covers ({@code x, y, width, height}) and the
+     * clockwise quarter turns its sprite takes from its authored frame, two cells across and three along the wall.
+     * A west-facing gate is authored as drawn; the postern on the north is the same art turned one quarter.
+     */
+    public record Piece(PieceKind kind, int x, int y, int width, int height, int turns) { }
+
+    /** The gatehouse pieces: a tower either side of each gate, and the gate leaves over each passage. */
+    public static final List<Piece> GATEHOUSE = List.of(
+            new Piece(PieceKind.TOWER, OX + 2, OY + 13, 2, 3, 0),
+            new Piece(PieceKind.TOWER, OX + 2, OY + 19, 2, 3, 0),
+            new Piece(PieceKind.GATE, OX, OY + 16, 2, 3, 0),
+            new Piece(PieceKind.TOWER, OX + 19, OY + 2, 3, 2, 1),
+            new Piece(PieceKind.TOWER, OX + 25, OY + 2, 3, 2, 1),
+            new Piece(PieceKind.GATE, OX + 22, OY, 3, 2, 1));
 
     /** Floors (x, y, width, height) of the three buildings, in the footprint frame. */
     private static final int[] BUNKER_FLOOR = {OX + 9, OY + 7, 7, 5};

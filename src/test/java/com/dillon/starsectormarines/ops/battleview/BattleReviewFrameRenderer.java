@@ -61,6 +61,7 @@ public final class BattleReviewFrameRenderer {
     private float focusX = Float.NaN, focusY, focusWidth;
     private boolean impactEffects;
     private boolean unitShadows;
+    private boolean roofs;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         Path root = modRoot.toAbsolutePath().normalize();
@@ -101,6 +102,15 @@ public final class BattleReviewFrameRenderer {
      */
     public BattleReviewFrameRenderer withUnitShadows() {
         this.unitShadows = true;
+        return this;
+    }
+
+    /**
+     * Opts this renderer into the roof layer: building roofs, and a fort's own building art, drawn over the interiors
+     * they fade away from when somebody is inside. Off by default because most reviews want to see inside.
+     */
+    public BattleReviewFrameRenderer withRoofs() {
+        this.roofs = true;
         return this;
     }
 
@@ -281,6 +291,7 @@ public final class BattleReviewFrameRenderer {
                 EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
                 if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
                 if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
+                if (roofs) layers.add(RenderLayer.ROOFS);
                 return new BattleSceneFrame(context, layers);
             }
 
