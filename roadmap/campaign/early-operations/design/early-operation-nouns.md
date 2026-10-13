@@ -15,6 +15,24 @@ withdrawing the work.
 
 ## Story arcs, chapters, and recurring work
 
+**A Working Ship** is the planned post-**A Cold Account** recovery arc on Asharu.
+Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
+Cooperative**, an authored local Independent employer. Castle's bargain exchanges
+reopening the recovery corridor for the repaired Shepherd **Morrow**. The
+basin is the cooperative's shipbreaking yard, disrupted by wreckage from recent
+fighting overhead. Morrow's crew made an emergency landing in their own cradle
+and evacuated; surviving hands return with the repair party. Armed scrappers
+occupy the abandoned yard. That outfit is the opposition, not scavengers as a
+whole; the overhead battle and local claims are mod-authored history.
+The cooperative's local permit is not planetary government authority. Completion of
+the Corvus arc and acknowledgement of its aftermath precede the proposed offer;
+neither Broken Supply Route branch changes eligibility. Hound survival is optional.
+The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
+**Working Passage**. Their authored geography and serviced-yard variants exist;
+chapter battles, campaign unlocks, partial-repair persistence and exactly-once
+fleet transfer remain open in `shepherd-recovery.md`. The map slice grants no
+fleet member or construction capability by itself.
+
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
 one operation within it. Victory closes that chapter; defeat or Retreat leaves
@@ -721,11 +739,23 @@ the crossing. Physical chassis steering, terrain, shared damage, turret fire
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
+One light militia technical follows the staged advance and stays behind at
+East Crossing. Its pickup chassis and independently traversing machine gun use
+ordinary vehicle movement, finite ammunition and shared damage. It is employer
+support, not a campaign vehicle grant. Two of the opening four raiders carry
+two crude unguided rockets each. Poor accuracy, slow aiming and low penetration
+let them threaten freight without granting an effective military anti-armor kit.
+The advance load's fate still comes from combat rather than a scripted kill.
 Fourteen low-tech raiders guard the roadside buildings. Six more already man
-two rifle bays at the exit checkpoint. A finite sixty-eight-person pressure pool
-arrives in seventeen four-person batches: one already attacking the earlier load,
+two rifle bays at the exit checkpoint. A finite ninety-two-person pressure pool
+arrives in twenty-three four-person batches: one already attacking the earlier load,
 five across Dispatch defense and departure, seven across East Crossing defense and
-the outbound approach, and four during the final run. Some later Crossing attacks use
+the outbound approach, and four during the final run. Six additional four-person squads alternate between
+the militia gun posts after the East Crossing defense window, entering through
+the north/south road mouths while the company pushes on Outbound Gate. Each
+attacks the prepared post itself through ordinary squad movement and fire; no
+teleportation, instant damage or infinite replenishment protects or threatens it.
+Their clocks survive subsequent captures. Some later Crossing attacks use
 the outbound side roads to block the company's next advance, rather than all
 chasing its rear. The timetable retains each phase's first release clock through
 later progress, so an early capture cannot cancel a trailing attack. A minimum
@@ -749,8 +779,8 @@ changes no vanilla diplomacy, trade, market ownership or bombardment permission.
 The battle HUD distinguishes release instructions from actual freight results,
 with stable load numbers and delivered/lost counts. Moving hulls produce a
 bounded dust treatment; industrial container bodies identify the freight and
-independently aimed roof turrets identify the escorts. Presentation changes no
-collision, visibility or damage.
+independently aimed roof turrets identify the escorts. Destroyed hulls visibly cook off, burn briefly and leave a longer, finite smoke
+tail. Presentation changes no collision, visibility or damage.
 Start, actual player landing, each released leg, freight commitment, rear clearance,
 heavy lead advancement, each cargo delivery/loss and terminal results publish once-only story hooks. Hidden ambush deployment remains
 observer-only, ready for a future sighting-aware dialogue adapter.

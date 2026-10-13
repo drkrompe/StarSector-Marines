@@ -17,6 +17,8 @@ public final class SmokingWreck {
     public final int cellX;
     public final int cellY;
     public final float totalLifetime;
+    public final float effectScale;
+    public final float burnDuration;
     public float remainingLifetime;
     /** Sim-seconds until the next smoke puff. Reset on each emission with mild jitter. */
     public float nextPuffTimer;
@@ -24,6 +26,13 @@ public final class SmokingWreck {
     public float nextFireTimer;
 
     public SmokingWreck(int cellX, int cellY, float totalLifetime, float firstPuffDelay) {
+        this(cellX, cellY, totalLifetime, firstPuffDelay, 1f, EffectsService.WRECK_BURN_DURATION);
+    }
+
+    public SmokingWreck(int cellX, int cellY, float totalLifetime, float firstPuffDelay,
+                        float effectScale, float burnDuration) {
+        this.effectScale = effectScale;
+        this.burnDuration = burnDuration;
         this.cellX = cellX;
         this.cellY = cellY;
         this.totalLifetime = totalLifetime;

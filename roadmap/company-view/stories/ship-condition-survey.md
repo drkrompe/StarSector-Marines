@@ -2,7 +2,7 @@
 
 Status: Implemented; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — Engineering navigation and sealed mess restoration with launch-frozen morale recovery.
+Updated: 2026-10-12 — four-berth Mech Lab fits the existing hull; Hound recovery and three paid berth repairs implemented.
 
 ## Scope
 
@@ -12,8 +12,13 @@ and read Castle's portrait-backed explanation of condition, benefit and next wor
 The whole plan remains fixed through restoration.
 
 The Mech Lab starts destroyed and sealed. Completing the second story mission,
-Take Back the Depot, restores its single gantry as part of Wayward's recovery.
+Take Back the Depot, restores the first of its four gantries as part of Wayward's recovery.
 It needs no additional payment before the existing first-mech fitting tutorial.
+Engineering then offers three separate 5,000-credit yard orders, restoring berths
+two, three and four in order. Each needs its own review, changes visible wreckage
+into working machinery, and adds one fabrication berth without awarding a mech.
+Saved paid receipts stay with the original hull. Existing owned mechs survive the
+layout update even when the restored capacity is smaller than their roster.
 Two spare bunkrooms start sealed; a 4,000-credit yard job after Relief restores
 18 usable billets (36 to 54 on the converted starting hull). Working rooms
 throughout the hull have unreliable distribution circuits. A separate 3,000-credit
@@ -45,6 +50,17 @@ future launches without undoing that hull's paid repair.
       orders, pay at the yard, verify immediate room/navigation refresh.
 - [ ] Live mission two: recover Wayward, open the restored Mech Lab and continue
       Castle's existing fitting tutorial without an extra repair purchase.
+- [ ] Live berth chain: inspect Mech Lab in Engineering, review and authorize each
+      5,000-credit order separately; verify visible repair, immediate capacity, and
+      fabrication refusal at the current limit. Save/reload between repairs and
+      move away and back to the original hull.
+- [x] `second-wind-lance` evidence covers all five repair states over five seeds
+      inside the original 106-by-79 envelope, with no unplaced required rooms,
+      fixed compartments/doors/occupied berths, and retained preparation access.
+      1920-by-1080 Engineering frames at 100% show the damaged and repaired bay.
+- [x] Focused checks cover sequential once-only payment, insufficient funds,
+      docking and home ownership, saved receipts, all room poses, boat-service
+      index preservation, and capacity rechecks before fabrication spends.
 - [ ] Save/reload and company transfer preserve paid work on the original hull;
       other hulls retain ordinary facilities. Verify insufficient funds and repeat
       orders charge nothing.

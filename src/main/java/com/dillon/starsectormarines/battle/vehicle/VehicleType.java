@@ -62,6 +62,15 @@ public enum VehicleType {
         }
         @Override public float turretRecoilCells() { return .18f; }
     },
+    /** Workshop pickup with a pintle MG. Fragile, fast, and faction-neutral for authored local forces. */
+    MILITIA_TECHNICAL("graphics/battle/vehicles/militia-technical.png", 0, 2, -90f,
+            0, 3.0f, 1.5f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
+            1, -.05f, -.92f, .23f, .015f, 1.15f, -90f,
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 180f, 20f, 3f, 1.3f, .65f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.65f, 30f, 180f, accel, brakingAccel, maxSpeed);
+        }
+    },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 1, -90f,
             0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,

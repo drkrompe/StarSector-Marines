@@ -8,7 +8,7 @@ Read `company-view-nouns.md` before changing a company-view story.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
-| `ship-condition-survey.md` | Implemented; live acceptance open | Engineering tab and room survey, sealed mess with morale recovery, spare billets, mission-two Mech Lab and circuit repairs. |
+| `ship-condition-survey.md` | Implemented; live acceptance open | Engineering survey, mess welfare, billets, circuits, and four mech berths: first with Wayward, three paid restorations. |
 | `machine-shop-restoration.md` | Implemented; live acceptance open | Clear the fixed workshop, restore reclamation, then install efficient fabrication tools. |
 | `cerberus-bay-restoration.md` | Implemented; live acceptance open | Reserved damaged second bay; optional paid restoration after Hold Until Relieved. |
 | `cerberus-company-start.md` | Implemented; live acceptance open | Second Wind origin prologue, single Cerberus, planetary conversion, finite prepaid depot and Castle preparation. |

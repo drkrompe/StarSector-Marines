@@ -11,6 +11,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EffectsServiceTest {
 
+    @Test void vehicleCookOffIsOnceQueuedAndLeavesLongerFiniteSmoke() {
+        var effects = new EffectsService(new Random(17));
+        effects.spawnVehicleWreck(4.5f, 6.5f, 4.8f, 1.65f);
+        assertEquals(1, effects.getHeavyImpactsThisFrame().size());
+        assertEquals(1, effects.getSmokingWrecks().size());
+        effects.tickWrecks(.1f);
+        assertFalse(effects.getFireBurstsThisFrame().isEmpty());
+        assertTrue(effects.getSmokePuffsThisFrame().get(0)[2] > .85f);
+        effects.beginFrame();
+        effects.tickWrecks(31f);
+        assertTrue(effects.getHeavyImpactsThisFrame().isEmpty());
+        assertTrue(effects.getFireBurstsThisFrame().isEmpty());
+        assertFalse(effects.getSmokePuffsThisFrame().isEmpty());
+        effects.beginFrame();
+        effects.tickWrecks(150f);
+        assertTrue(effects.getSmokingWrecks().isEmpty());
+        assertTrue(effects.getSmokePuffsThisFrame().isEmpty());
+    }
+
     @Test void propCuesUseOrdinaryDrainsAndExpire() {
         for (PropDamage.Effect cue : PropDamage.Effect.values()) {
             EffectsService effects = new EffectsService(new Random(17L));

@@ -858,6 +858,77 @@
       }
     },
     {
+      "id": "weapon.scrap-rocket",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Scrap-Tube Unguided Rocket",
+        "modelName": "Scrap-Tube",
+        "designation": "RKT-S",
+        "designationTiered": false
+      },
+      "sim": {
+        "interceptableProjectile": true,
+        "pointDefenseTarget": true,
+        "range": 22.0,
+        "damage": 120.0,
+        "accuracy": 0.42,
+        "cooldown": 5.0,
+        "penetration": 6.0,
+        "roundVelocity": 45.714286,
+        "flightSec": 0.7,
+        "aimDuration": 1.1,
+        "aoeRadius": 0.9,
+        "wallDamage": 20,
+        "wallDamageRadius": 0.9,
+        "hitSpread": 2.2
+      },
+      "render": {
+        "tracerColor": "FFC080",
+        "projectileSprite": "graphics/missiles/missile_annihilator.png",
+        "projectileVisualCells": 0.5
+      },
+      "fx": {
+        "impact": [
+          {
+            "kind": "glow",
+            "radius": 0.7,
+            "lifetime": 0.16,
+            "color": "FFE080"
+          },
+          {
+            "kind": "fire",
+            "radius": 0.55,
+            "lifetime": 0.45
+          },
+          {
+            "kind": "smoke",
+            "radius": [
+              0.55,
+              0.8
+            ],
+            "lifetime": [
+              1.1,
+              1.5
+            ],
+            "count": [
+              2,
+              3
+            ],
+            "jitter": 0.45
+          },
+          {
+            "kind": "dust",
+            "radius": 0.55,
+            "lifetime": 0.32
+          }
+        ]
+      },
+      "audio": {
+        "fireSound": "annihilator_fire",
+        "impactSound": "marines_explosion"
+      }
+    },
+    {
       "id": "weapon.annihilator-launcher",
       "mount": "marine-secondary",
       "catalog": {

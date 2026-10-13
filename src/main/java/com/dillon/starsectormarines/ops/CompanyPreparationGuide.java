@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
+import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.fs.starfarer.api.Global;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
@@ -17,6 +19,33 @@ final class CompanyPreparationGuide {
     static MarineRoster roster() {
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
         return script == null ? null : script.roster();
+    }
+
+    /** Leaving the planet closes access to its stores, not the saved consignment or lesson. */
+    static PreparationGuide.Lesson withDepotAccess(MarineRoster roster, PreparationGuide.Lesson lesson,
+                                                  Runnable leave) {
+        if (lesson == null || !CompanyPreparation.required(roster)) return lesson;
+        Step step = roster.officerInduction().step(roster);
+        if (step != Step.SHIP && step != Step.LIFT && step != Step.FORMATION) return lesson;
+        var depot = CerberusCompanyStart.depot();
+        if (depot == null || CerberusCompanyStart.accessibleDepot() != null) return lesson;
+        var resources = CampaignFabricationResources.forPreparation();
+        boolean needsLocalStores = CompanyPreparation.remainingBill(roster, ShuttleType.HERMES).stream()
+                .anyMatch(line -> resources.available(line.commodityId()) < line.quantity()
+                        && depot.available(line.commodityId()) > 0);
+        if (!needsLocalStores) return lesson;
+        var destination = CerberusCompanyStart.destination();
+        String port = destination == null ? depot.marketId() : destination.getName();
+        return new PreparationGuide.Lesson(lesson.milestone(), "OUR STORES ARE STILL RESERVED",
+                "Nothing was spent by leaving, Commander. Our remaining shuttle parts and squad stores are waiting at "
+                        + port + ". They are held ashore, so this shipboard view cannot draw them. "
+                        + "Return to that planet and choose Marine operations in its planet menu. "
+                        + "We will pick up where we left off; there is no need to buy those stores again.",
+                List.of("page-nav-return"), destination == null ? "RETURN" : "RETURN TO DEPOT", () -> {
+                    if (destination != null && Global.getSector() != null)
+                        Global.getSector().getCampaignUI().layInCourseForNextStep(destination);
+                    leave.run();
+                }, 320);
     }
 
     static PreparationGuide.Lesson ship(ShipTransferViewModel model, MarineOpsContext context) {

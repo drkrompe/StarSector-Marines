@@ -105,3 +105,5 @@ com.dillon.starsectormarines.battle.warship.ShipArrivalSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipLowPassSceneSnapshotSuite
 
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsSceneSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ship.SecondWindLanceSnapshotSuite
+com.dillon.starsectormarines.tools.terrainauthoring.ShepherdBasinSnapshotSuite

@@ -1,0 +1,144 @@
+{
+  "cellPx": 32,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Inert salvaged ship plate-stack. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-plate-stack",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Inert salvaged ship hull-shell. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-hull-shell",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Inert salvaged ship drive-section. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-drive-section",
+      "row": 8
+    },
+    {
+      "col": 0,
+      "description": "Inert salvaged ship shattered-hull. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-shattered-hull",
+      "row": 15
+    },
+    {
+      "col": 0,
+      "description": "Inert salvaged ship engine-break. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-engine-break",
+      "row": 25
+    },
+    {
+      "col": 7,
+      "description": "Inert salvaged ship rib-section. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-rib-section",
+      "row": 25
+    },
+    {
+      "col": 0,
+      "description": "Inert salvaged ship intake-section. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-intake-section",
+      "row": 32
+    },
+    {
+      "col": 5,
+      "description": "Inert salvaged ship wreck-frame. Ground placement reserves the full footprint; no ship recovery reward.",
+      "name": "doodad.basin-scrap-wreck-frame",
+      "row": 32
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "doodad.basin-scrap-plate-stack",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        8,
+        8
+      ],
+      "id": "doodad.basin-scrap-hull-shell",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        7,
+        7
+      ],
+      "id": "doodad.basin-scrap-drive-section",
+      "row": 8
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        10,
+        10
+      ],
+      "id": "doodad.basin-scrap-shattered-hull",
+      "row": 15
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        7,
+        7
+      ],
+      "id": "doodad.basin-scrap-engine-break",
+      "row": 25
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 7,
+      "cover": "heavy",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "id": "doodad.basin-scrap-rib-section",
+      "row": 25
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "doodad.basin-scrap-intake-section",
+      "row": 32
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 5,
+      "cover": "heavy",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "id": "doodad.basin-scrap-wreck-frame",
+      "row": 32
+    }
+  ],
+  "sheet": "graphics/tilesets/basin-ship-scrap.png"
+}
