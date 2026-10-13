@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
@@ -60,6 +63,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleFixtureJsonTest {
+    @Test
+    void launchJsonRetainsExplicitClassAndOldSeatsDefaultToRegular() throws Exception {
+        MarineLoadout loadout = new MarineLoadout(UnitRole.COMBATANT, null,
+                WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE,
+                SoldierProfile.REGULAR, null, 0).withArmorClass(ArmorClass.POWER_SUIT);
+        AssaultBattleFixture construction = new AssaultBattleFixture(42L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), false,
+                OperationTier.ESTABLISHED, RiskLevel.LOW, TargetProfile.NEUTRAL, List.of(), List.of());
+        BattleLaunchFixture fixture = new BattleLaunchFixture(construction,
+                new BattleLaunchOverlay(0, List.of(MarineSeatCommitment.capture(loadout)),
+                        List.of(), List.of(), List.of(), 1));
+        JSONObject json = BattleFixtureJson.toJson(fixture);
+        BattleLaunchFixture decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(json);
+        assertEquals(ArmorClass.POWER_SUIT, decoded.launch().marineSeats().get(0).armorClass());
+        json.getJSONObject("launch").getJSONArray("marineSeats").getJSONObject(0).remove("armorClass");
+        decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(json);
+        assertEquals(ArmorClass.STANDARD, decoded.launch().marineSeats().get(0).armorClass());
+    }
+
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {
         var base = new AssaultBattleFixture(201827786L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4)),
                 false, OperationTier.ESTABLISHED, RiskLevel.HIGH, TargetProfile.NEUTRAL,

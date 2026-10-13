@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.marine.ArmorRole;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -97,13 +97,9 @@ class FleetArmoryViewModelTest {
                 .stream().map(StatMeter::label).toList());
         assertTrue(firstMarine.weaponStats().stream().allMatch(stat ->
                 stat.fillStyle().matches("width: \\d{1,3}%;")));
-        // The card shows a role from the closed vocabulary rather than whatever
-        // text the catalog happened to carry. Asserted as membership, not as a
-        // literal, so filling out the role matrix cannot break a test about the
-        // Armory rendering a card.
-        assertTrue(Arrays.stream(ArmorRole.values())
-                        .anyMatch(role -> role.displayName().equals(firstMarine.unitClass())),
-                "unexpected role on the card: " + firstMarine.unitClass());
+        assertTrue(Arrays.stream(ArmorClass.values())
+                        .anyMatch(armorClass -> armorClass.displayName().equals(firstMarine.unitClass())),
+                "unexpected equipment class on the card: " + firstMarine.unitClass());
         assertEquals("W II", firstMarine.weaponBadge());
         assertEquals("A II", firstMarine.armorBadge());
         // The lore the card used to carry for its own popup is now the sheet's,
@@ -128,10 +124,8 @@ class FleetArmoryViewModelTest {
         assertTrue(assignedLoadout.description().length() > 120);
         assertTrue(viewModel.weaponDoctrineTiles().get().size()
                 < roster.armory().weaponDoctrines().size());
-        // Every armour plan is always issuable: it names roles and the armoury
-        // fills them from whatever is owned, so there is no such thing as an
-        // unaffordable composition. Weapons still gate, which is why the
-        // assertion above it is still a strict inequality.
+        // The picker and armory expose the same plans whose carrier class the
+        // company holds; missing roles may fall back within that class.
         assertEquals(roster.armory().armorDoctrines().size(),
                 viewModel.armorDoctrineTiles().get().size());
         viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
@@ -512,7 +506,10 @@ class FleetArmoryViewModelTest {
         assertEquals(expectedOrder.size(), cards.size());
         for (int index = 0; index < expectedOrder.size(); index++) {
             assertEquals(expectedOrder.get(index).displayName(), cards.get(index).name());
-            assertEquals(expectedOrder.get(index).description(), cards.get(index).description());
+            MarineArmorCatalogDef armor = expectedOrder.get(index);
+            assertEquals(armor.armorClass().displayName(), cards.get(index).unitClass());
+            assertEquals("ROLE · " + armor.role().displayName() + "\n" + armor.description(),
+                    cards.get(index).description());
         }
         assertTrue(viewModel.armorComparisonSummary().get()
                 .startsWith(expectedOrder.size() + " of "));

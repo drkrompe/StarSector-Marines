@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Second Wind's repaired physical berths bound chassis fabrication below the four-mech lance ceiling.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 ## Purpose
 
@@ -680,6 +680,12 @@ support sortie, subject only to practical runtime resources.
   progression.
 
 ## Extension boundaries
+
+A power suit is wearable infantry equipment, not a mech chassis. Its named
+marine remains in the personnel roster, infantry squad, ordinary lift and
+casualty authority; the armor pattern owns its class and protection. Suit
+shoulder hardware does not imply mech sockets, shared heat, component inventory,
+lances, the Mech Lab, or Mech Support. `power-suit-infantry.md` owns that category.
 
 A new chassis requires a distinct information or combat doctrine and a real
 capability it gives up; hardware variety alone does not earn another variant.

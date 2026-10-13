@@ -101,7 +101,8 @@ class SpecSheetsTest {
         assertEquals(carrier.displayName(), carried.title());
         assertEquals(carrier.tradition().factionLogo(), carried.crestPath());
         assertEquals(SpecSheets.ACCENT_ARMOR, carried.accent());
-        assertTrue(carried.subtitle().startsWith("TIER " + carrier.tier()));
+        assertTrue(carried.subtitle().startsWith(carrier.armorClass().displayName()));
+        assertTrue(carried.subtitle().contains("TIER " + carrier.tier()));
         assertTrue(carried.subtitle().contains(carrier.role().displayName()));
         assertTrue(carried.subtitle().contains(carrier.tradition().displayName()));
         assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVASION"),

@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
+import com.dillon.starsectormarines.marine.MarineArmory;
+import com.dillon.starsectormarines.marine.SquadProfile;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiKey;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -24,10 +27,34 @@ import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BarracksCommandModelTest {
+    @Test void savedUnavailablePowerSuitProfileKeepsItsIntentReadable() throws Exception {
+        var roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
+        var profile = new SquadProfile("legacy-heavy", "Old breach section",
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR);
+        // Reproduce saved intent authored before carrier-class ownership gated issue.
+        var profiles = MarineArmory.class.getDeclaredField("squadProfiles");
+        profiles.setAccessible(true);
+        profiles.set(roster.armory(), new ArrayList<>(List.of(profile)));
+        assertTrue(roster.assignSquadProfile(Set.of(squad.id()), profile.id()));
+        String currentArmor = roster.soldierById(squad.memberIds().get(0)).armorId();
+        assertNull(roster.armory().armorDoctrineById(profile.armorDoctrineId()));
+
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
+        assertTrue(value(model, "profiles").toString().contains("Tri-Tachyon Specter Protection"));
+        assertTrue(value(model, "profiles").toString().contains("Power suit unavailable"));
+        assertTrue(model.squadSheet(squad.id()).notes().stream()
+                .anyMatch(note -> note.contains("Tri-Tachyon Specter Protection (Power suit unavailable)")));
+        assertEquals(currentArmor, roster.soldierById(squad.memberIds().get(0)).armorId());
+    }
+
     @Test void selectionSpansPagesButNotStationedSquadsAndFiltersDiscardIt() {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(13 * MarineSquad.CAPACITY);

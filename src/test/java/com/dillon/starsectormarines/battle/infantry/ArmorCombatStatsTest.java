@@ -7,12 +7,34 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ArmorCombatStatsTest {
+
+    @Test
+    void classSurvivesLoadoutCommitmentAndSpawnWithoutChangingDurability() {
+        MarineLoadout original = new MarineLoadout(UnitRole.COMBATANT, null,
+                WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE,
+                SoldierProfile.REGULAR, null, 0).withArmorClass(ArmorClass.POWER_SUIT);
+        MarineLoadout restored = MarineSeatCommitment.capture(original).toLoadout();
+        EntitySpec spec = new EntitySpec("power", Faction.MARINE, UnitType.MARINE, 5, 5);
+        restored.seedInto(spec);
+        BattleSimulation sim = arena();
+        long power = sim.spawn(spec);
+        long regular = sim.spawn(new EntitySpec("regular", Faction.MARINE, UnitType.MARINE, 6, 5));
+        assertEquals(ArmorClass.POWER_SUIT, sim.identity().armorClass(power));
+        assertEquals(ArmorClass.STANDARD, sim.identity().armorClass(regular));
+        assertEquals(sim.world().maxHp(regular), sim.world().maxHp(power));
+        assertTrue(!sim.world().hasArmor(regular));
+        assertTrue(!sim.world().hasArmor(power));
+    }
 
     @Test
     void armorSeedsSeparateCapacityRatingMobilityAndEvasion() {

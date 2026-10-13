@@ -196,22 +196,22 @@ public final class SquadEquipmentDoctrines {
             plan(OUTLAW_LINE_ARMOR, "Outlaw Veteran Protection",
                     "Veterans of a trade that rewards volume and speed over anything else.",
                     ArmorTradition.PIRATES, SquadRoleMix.BALANCED),
-            plan(HEGEMONY_SHOCK_ARMOR, "Hegemony XIV Shock Protection",
+            powerSuitPlan(HEGEMONY_SHOCK_ARMOR, "Hegemony XIV Shock Protection",
                     "A deliberate breach: two teams through the door and one making the hole bigger.",
                     ArmorTradition.HEGEMONY, SquadRoleMix.BREACH),
-            plan(CORPORATE_HEAVY_ARMOR, "Tri-Tachyon Specter Protection",
+            powerSuitPlan(CORPORATE_HEAVY_ARMOR, "Tri-Tachyon Specter Protection",
                     "The same breach, bought from a company that sells prediction rather than plate.",
                     ArmorTradition.TRITACHYON, SquadRoleMix.BREACH),
-            plan(LEAGUE_HEAVY_ARMOR, "League Bulwark Protection",
+            powerSuitPlan(LEAGUE_HEAVY_ARMOR, "League Bulwark Protection",
                     "Coalition breach formations, built so the marine beside you need not be from your navy.",
                     ArmorTradition.PERSEAN, SquadRoleMix.BREACH),
-            plan(KNIGHTS_HEAVY_ARMOR, "Knights Reliquary Protection",
+            powerSuitPlan(KNIGHTS_HEAVY_ARMOR, "Knights Reliquary Protection",
                     "A Knight crosses the room in front of somebody else, and the section is arranged around that.",
                     ArmorTradition.KNIGHTS_OF_LUDD, SquadRoleMix.BREACH),
-            plan(LIONS_GUARD_HEAVY_ARMOR, "Lion's Guard Mantle Protection",
+            powerSuitPlan(LIONS_GUARD_HEAVY_ARMOR, "Lion's Guard Mantle Protection",
                     "Prestige issue, spent as spectacle, in the composition spectacle requires.",
                     ArmorTradition.LIONS_GUARD, SquadRoleMix.BREACH),
-            plan(OUTLAW_HEAVY_ARMOR, "Outlaw Foundry-Breaker Protection",
+            powerSuitPlan(OUTLAW_HEAVY_ARMOR, "Outlaw Foundry-Breaker Protection",
                     "Industrial rigs pointed at a door by people with no formal doctrine at all.",
                     ArmorTradition.PIRATES, SquadRoleMix.BREACH));
 
@@ -241,6 +241,11 @@ public final class SquadEquipmentDoctrines {
     private static SquadArmorPlan plan(String id, String name, String description,
                                        ArmorTradition tradition, SquadRoleMix mix) {
         return new SquadArmorPlan(id, name, description, tradition, mix);
+    }
+
+    private static SquadArmorPlan powerSuitPlan(String id, String name, String description,
+            ArmorTradition tradition, SquadRoleMix mix) {
+        return new SquadArmorPlan(id, name, description, tradition, mix, ArmorClass.POWER_SUIT);
     }
 
     @SafeVarargs

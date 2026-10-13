@@ -69,7 +69,9 @@ class EquipmentTemplateCatalogTest {
                 EquipmentTemplateCatalog.all().stream()
                         .filter(card -> card.kind() == EquipmentTemplateCard.Kind.ARMOR)
                         .count());
-        assertEquals(SpecialEquipmentRegistry.installed().size(),
+        assertEquals(SpecialEquipmentRegistry.installed().all().stream()
+                        .filter(special -> EquipmentTemplateCatalog.installed().nonPlayerReason(
+                                EquipmentTemplateCard.Kind.SPECIAL, special.id()) == null).count(),
                 EquipmentTemplateCatalog.all().stream()
                         .filter(card -> card.kind() == EquipmentTemplateCard.Kind.SPECIAL)
                         .count());

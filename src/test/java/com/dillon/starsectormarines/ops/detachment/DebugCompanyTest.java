@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * The debug company as a real {@link MarineRoster} — `c12-the-debug-company.md`.
@@ -172,12 +173,10 @@ class DebugCompanyTest {
         assertEquals(SquadEquipmentDoctrines.weaponDoctrines().size(),
                 weaponDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored weapon doctrine");
-        // Every plan is admissible at every stage. Composition is not a function
-        // of wealth: a poor company runs the same sections as a rich one and
-        // wears worse kit doing it ({@code role-and-access.md}).
+        // Every stocked protection class participates in the shuffle.
         Set<String> authored = new HashSet<>();
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
-            authored.add(plan.id());
+            if (roster.armory().canIssue(plan)) authored.add(plan.id());
         }
         assertEquals(authored, armorDoctrines,
                 "the first shuffle bag exposes every authored armour plan");
@@ -196,6 +195,7 @@ class DebugCompanyTest {
     @Test
     void aRicherCompanyWearsBetterKitInTheSameSection() {
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            if (!classAvailable(plan, DebugBilletPlan.STARTER_ISSUE)) continue;
             SquadArmorDoctrine poor = issuedAtCeiling(plan, DebugBilletPlan.STARTER_ISSUE);
             SquadArmorDoctrine rich = issuedAtCeiling(plan, DebugBilletPlan.HARDENED);
             for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
@@ -219,18 +219,33 @@ class DebugCompanyTest {
     void accessChangesTheKitAndNeverTheComposition() {
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
             for (DebugBilletPlan ceiling : DebugBilletPlan.values()) {
+                if (!classAvailable(plan, ceiling)) {
+                    assertThrows(IllegalStateException.class, () -> issuedAtCeiling(plan, ceiling));
+                    continue;
+                }
                 SquadArmorDoctrine issued = issuedAtCeiling(plan, ceiling);
                 for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
                     ArmorRole wanted = plan.roleAt(billet);
                     ArmorRole worn = MarineArmorCatalogRegistry
                             .require(issued.issueId(billet)).role();
-                    assertEquals(wanted, worn,
+                    assertEquals(plan.armorClass(), MarineArmorCatalogRegistry
+                            .require(issued.issueId(billet)).armorClass());
+                    boolean roleAvailable = MarineArmorCatalogRegistry.installed().all().stream()
+                            .anyMatch(pattern -> pattern.armorClass() == plan.armorClass()
+                                    && pattern.tier() <= ceiling.maxArmorTier() && pattern.role() == wanted);
+                    if (roleAvailable) assertEquals(wanted, worn,
                             plan.id() + " at tier " + ceiling.maxArmorTier() + " billet "
                                     + billet + " wanted a " + wanted.key + " and was issued a "
                                     + worn.key);
                 }
             }
         }
+    }
+
+    private static boolean classAvailable(SquadArmorPlan plan, DebugBilletPlan ceiling) {
+        return MarineArmorCatalogRegistry.installed().all().stream().anyMatch(
+                pattern -> pattern.armorClass() == plan.armorClass()
+                        && pattern.tier() <= ceiling.maxArmorTier());
     }
 
     private static SquadArmorDoctrine issuedAtCeiling(SquadArmorPlan plan, DebugBilletPlan ceiling) {

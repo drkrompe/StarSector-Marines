@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Reviewed survivor consolidation preserves wounded billets and formation identity.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 ## Purpose
 
@@ -21,6 +21,14 @@ durable, player-facing formation of up to twelve marines. Each squad has three
 derived four-marine **fire teams**, determined by squad billet order. A fire
 team is an equipment, lift, and battle-maneuver unit; it is not a separately
 selected campaign formation or a second persistent identity.
+
+A power-suit marine is an existing named marine issued a POWER_SUIT armor pattern,
+not a second personnel category or roster. Refitting preserves identity, career,
+status, squad, billet, and home command. Both armor classes retain the same
+twelve-person squad capacity and derived four-person fire teams. Suit loss and
+wearer fate remain separate equipment and casualty concerns; this category does
+not add a repair, upkeep, or recruitment economy. `progression-nouns.md` owns the
+issued class and `power-suit-infantry.md` its direction.
 
 The company hierarchy is company, officer command, squad, fire team, marine.
 The reserve pool is a holding area, never a deployable squad or officer command.
@@ -99,6 +107,9 @@ roster order. An explicit empty or unavailable selection fails closed rather
 than falling back to the whole company. Employer personnel stay scenario-owned,
 and debug fixtures are non-persistent: neither can gain player identity or
 write campaign personnel outcomes.
+
+Power-suit issue does not change seat accounting: each committed named wearer
+uses one ordinary infantry seat, and refit does not turn them into Mech Support.
 
 Company lift is sized to that named commitment, not to the seats on one trip
 or the mission's authored drop count. Smaller boats repeat trips until every

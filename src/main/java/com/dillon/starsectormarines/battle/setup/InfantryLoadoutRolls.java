@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
@@ -70,7 +71,8 @@ public final class InfantryLoadoutRolls {
                     defenderProfile(type, resolvedRisk, rng), special, null,
                     armor.layeredFamily(), armor.armorCapacity, armor.armorRating,
                     armor.moveSpeedMult, armor.incomingAccuracyMult,
-                    null, integralSystemOf(armor.id));
+                    null, integralSystemOf(armor.id)).withArmorClass(
+                    armorClassOf(armor.id));
         }
         return roster;
     }
@@ -91,7 +93,7 @@ public final class InfantryLoadoutRolls {
                 defenderProfile(issue.unitType(), risk != null ? risk : RiskLevel.LOW, rng),
                 special, null, armor.appearanceFamily(), armor.armorCapacity(), armor.armorRating(),
                 armor.moveSpeedMult(), armor.incomingAccuracyMult(),
-                null, armor.integralSystem());
+                null, armor.integralSystem()).withArmorClass(armor.armorClass());
     }
 
     /**
@@ -107,6 +109,12 @@ public final class InfantryLoadoutRolls {
      * and also when no catalog is installed, as in a bare headless fixture that
      * never loaded one.
      */
+    private static ArmorClass armorClassOf(String armorId) {
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        MarineArmorCatalogDef def = catalog != null ? catalog.get(armorId) : null;
+        return def != null ? def.armorClass() : ArmorClass.STANDARD;
+    }
+
     private static IntegralSystemDef integralSystemOf(String armorId) {
         MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
         if (catalog == null || armorId == null) return null;

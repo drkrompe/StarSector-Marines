@@ -73,10 +73,10 @@ public final class DebugCompany {
         int count = normalizeSquads(squads);
         Random rng = loadoutRandom != null ? loadoutRandom : new Random();
         List<SquadWeaponDoctrine> weapons = randomizedWeaponDoctrines(count, rng);
-        List<SquadArmorPlan> armorPlans = randomizedArmorPlans(count, rng);
         MarineRoster roster = new MarineRoster();
         stockArmory(roster.armory(), resolved, weapons);
         stockArmor(roster.armory(), resolved);
+        List<SquadArmorPlan> armorPlans = randomizedArmorPlans(count, rng, roster.armory());
         for (int s = 0; s < count; s++) {
             MarineSquad squad = roster.createSquad();
             SquadWeaponDoctrine weaponDoctrine = weapons.get(s);
@@ -174,8 +174,9 @@ public final class DebugCompany {
      * meaning what it says about company quality.
      */
     private static List<SquadArmorPlan> randomizedArmorPlans(
-            int count, Random rng) {
-        List<SquadArmorPlan> plans = SquadEquipmentDoctrines.armorPlans();
+            int count, Random rng, MarineArmory armory) {
+        List<SquadArmorPlan> plans = SquadEquipmentDoctrines.armorPlans().stream()
+                .filter(armory::canIssue).toList();
         if (plans.isEmpty()) {
             throw new IllegalStateException("No authored armour plans");
         }

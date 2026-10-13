@@ -172,7 +172,8 @@ public final class SpecSheets {
         }
         return new SpecSheet(
                 def.displayName(),
-                joined("TIER " + def.tier(), def.role().displayName(), def.tradition().displayName()),
+                joined(def.armorClass().displayName(), "TIER " + def.tier(),
+                        def.role().displayName(), def.tradition().displayName()),
                 def.tradition().factionLogo(),
                 ACCENT_ARMOR,
                 armorStats(def),

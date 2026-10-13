@@ -9,7 +9,7 @@ perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-29 — the closed armor-role vocabulary shipped as `ArmorRole` (UNPOWERED/RECON/LINE/ASSAULT/SUPPORT), replacing the free-text `unitClass`; provenance as data remains outstanding. See `role-and-access.md` for why the role axis is now load-bearing and what the catalog's shape still owes it.
+Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
 and `faction-lore-nouns.md` before implementing this story.
@@ -44,7 +44,7 @@ experience.
 | --- | --- | --- |
 | Light infiltration / recon | Sealed rapid-deployment armor for scouting, boarding-style movement, and fast objective work | Lowest powered protection and best movement; only patterns with an explicit concealment suite may reduce hostile-acquisition signature |
 | Standard line combat | Pressurized powered armor for hazardous worlds, hard-vacuum actions, and sustained infantry fighting | Middle protection and mobility baseline; recoil assistance, tactical relay, and jump-assist language do not create free weapon, command, or traversal bonuses |
-| Heavy mechanized battlesuit | A one-person walking tank for breach and frontline assault | Highest infantry armor capacity/rating and clearest movement/handling cost; remains infantry rather than a light mech |
+| Assault / breach | Protection and crossing capability for breach and frontline assault | Role is independent of armor class: a STANDARD riot shell can breach, while a POWER_SUIT battlesuit supplies a substantial armor-endurance step; both remain infantry rather than light mechs |
 
 `ARMORLESS` is an unpowered field kit, not a fourth powered role. The compatibility
 patterns `BLUE_SCOUT`, `MILITIA`, and `OUTLAW` are light; `CHARCOAL` and
@@ -55,9 +55,10 @@ interpretation, not permission to infer role forever from tier or enum ordinal.
 
 Role is deliberately not quality. Future masterwork recon armor can remain
 light, and a welded industrial exosuit can remain heavy while being unreliable
-or poorly rated. The first balance pass should preserve the broad live
-survivability scale rather than using the new vocabulary as cover for a second
-lethality rewrite.
+or poorly rated. Role changes do not by themselves retune durability. The explicit POWER_SUIT
+class deliberately adds a separate endurance step under `power-suit-infantry.md`;
+its field balance requires its own acceptance rather than being inferred from
+role or tier.
 
 ## Faction pattern catalog
 

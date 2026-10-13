@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.marine.ArmorClass;
+
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -31,7 +33,8 @@ public record MarineSeatCommitment(
         int campaignSquadStrength,
         int campaignFireTeamIndex,
         CommandGroupIdentity commandGroupIdentity,
-        float moraleRecoveryMultiplier) {
+        float moraleRecoveryMultiplier,
+        ArmorClass armorClass) {
 
     public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
             EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
@@ -61,7 +64,23 @@ public record MarineSeatCommitment(
                 campaignFireTeamIndex, commandGroupIdentity, 1f);
     }
 
+    public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, LayeredArmorFamily armorFamily,
+            float armorCapacity, float armorRating, float armorMoveSpeedMult,
+            float armorIncomingAccuracyMult, String campaignSquadId,
+            String campaignSquadLabel, boolean campaignSquadLeader,
+            int campaignSquadStrength, int campaignFireTeamIndex,
+            CommandGroupIdentity commandGroupIdentity, float moraleRecoveryMultiplier) {
+        this(campaignSoldierId, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, armorFamily, armorCapacity, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquadId,
+                campaignSquadLabel, campaignSquadLeader, campaignSquadStrength,
+                campaignFireTeamIndex, commandGroupIdentity, moraleRecoveryMultiplier, ArmorClass.STANDARD);
+    }
+
     public MarineSeatCommitment {
+        if (armorClass == null) armorClass = ArmorClass.STANDARD;
         if (primaryWeaponId == null || primaryWeaponId.isBlank()) {
             throw new IllegalArgumentException("A primary weapon id is required");
         }
@@ -122,7 +141,7 @@ public record MarineSeatCommitment(
                 squad != null ? squad.strength : 0,
                 squad != null ? squad.fireTeamIndex : Squad.NO_FIRE_TEAM,
                 squad != null ? squad.commandGroupIdentity : null,
-                squad != null ? squad.moraleRecoveryMultiplier : 1f);
+                squad != null ? squad.moraleRecoveryMultiplier : 1f, loadout.armorClass);
     }
 
     /**
@@ -149,7 +168,7 @@ public record MarineSeatCommitment(
                 armorRating,
                 armorMoveSpeedMult,
                 armorIncomingAccuracyMult,
-                squad);
+                squad).withArmorClass(armorClass);
     }
 
     private static void requireFiniteNonNegative(float value, String field) {

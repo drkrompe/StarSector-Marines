@@ -47,6 +47,11 @@ domains share — four currencies, the stages that fall out of them, the growth
 rule, and the boundary with the player's own colonies — is
 `meta-progression.md`.
 
+`power-suit-infantry.md` develops a durable infantry class between regular
+marines and mechs, preserving named squads and deliberate regular-equipment
+choices. `power-suit-field-acceptance.md` owns its mission balance, live
+persistence and distinct-art acceptance.
+
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the
 shared roster cap, and casualty/replacement policy remain open.
