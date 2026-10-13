@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-13 — owner decisions: the balance law is standing, strike sorties do not track a moving hull (decided), and shield weights now derive from each hull's vanilla shield arc and efficiency instead of a table.
+Updated: 2026-10-14 — escort is built: a lead-ship relation, a threat picture that weights craft aimed at the lead, and anti-air fire that shoots them first (Decided: escort).
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -171,7 +171,7 @@ The rest of the original class intent (support ships, escort) is **not built** a
 
 - **Carrier** (flux and standoff biases built, see Decided below). Its main contribution is its wings. Existing air cover already flies a player's committed carriers' wings in on a corridor (`FlybyRoster`, `AirCoverSystem`; origin is a corridor, not the deck). A carrier on station therefore does not launch from its hull in v1: it is the *reason* a wing exists, stays back (standoff weight high), conserves flux, and treats hostile fighters as the dominant threat. A deck-launch origin (a third origin beside berth and corridor) is deferred; `air-nouns.md` is explicit that origin is a property of a sortie.
 - **Support ship** (decided, deferred: see Decided below) (Mora, and the Shepherd as a drone tender, whose own model is `tender-ship.md`; tender-style hulls where `hints` or designation says so): no ground bombardment at all in its default; contributes point defence, spotting (`WarshipSpotting`) and later repair/jam effects. Its posture set is {AIR_SUPERIORITY-like, WITHDRAW}.
-- **Escort** (frigate, destroyer): follows a lead ship's station at an offset, point-defence priority, interposes between the threat and the lead. Needs the lead-ship relation and ships as bodies; v2.
+- **Escort** (built, see Decided: escort): a smaller combat hull with a lead-ship relation. It keeps a ring station beside the lead on the threat side, its threat picture weights craft aimed at the lead, and its air fire shoots those first. It needed ships as targets only for hostile *ships*; the threat to a lead that exists today is the strike craft aimed at it, which needs no G4.
 - **Phase**: a phase hull has its own cloak behaviour; out of scope until a phase ship is fitted.
 
 ## Selection, cadence, determinism
@@ -191,7 +191,7 @@ The rest of the original class intent (support ships, escort) is **not built** a
 | G1 | Director ignores objectives and friendlies | Owner's attack/defend and friendly-fire asks | Slice 2; reads existing roster, objectives, tactical map |
 | G2 | ~~Ship weapons cannot target aircraft~~ | **Built (slice 3).** | `WarshipAirFire` and `WarshipAirRules`, damage through the shared body damage route's aimed entry; no second air registry |
 | G3 | ~~Aircraft cannot hurt a ship~~ | **Built.** | `HullStrike` in both dispatchers; damage rides the existing detonation route, `Warship` still not an entity |
-| G4 | Ships are not targets | Escorts, ship-vs-ship, counter-battery, air superiority between capitals | Make a hull a target class for ship mounts (circle, then the authored polygon the nouns already require) |
+| G4 | Ships are not targets | Ship-vs-ship (escorts no longer wait on it), counter-battery, air superiority between capitals | Make a hull a target class for ship mounts (circle, then the authored polygon the nouns already require) |
 | G5 | Ground defences cannot hurt a ship, so there is no hazard to stand off from | "Stay out of range of ground defences" is fiction until it has a cause | Model it as the same kind of area drain `tickAirThreat` uses, from anti-air/anti-armour emplacements, so the posture's standoff has something to read; owner decision first |
 | G6 | ~~Hull class, bays, hints, shield type unread~~ | **Built (weights).** Parameter biases and escort remain, see Classes and its open questions | `ShipClass` read in `Warship.fit`; `AirThreatWeights` |
 | G7 | No query for hostile loaded shuttles with ETA | INTERCEPT | A few lines over `getAirEntityIds`; belongs with the threat picture |
@@ -206,6 +206,7 @@ Each lands as a `BehaviorScene` next to the existing warship scenes (`onslaught-
 - `warship-support-fire` (built): an objective knot, a denser decoy and a densest knot with the company's own people in it. Verdicts: the control takes the densest and kills its own; the attacker takes the objective first, kills no friendly, leaves the dirty knot alone, holds fire and says why; danger-close fires into the dirty knot (the flag the only difference); a stance flip from ATTACK to DEFEND moves the fire from the objective to the defended ground.
 - `warship-intercept` (built): a defender ship against a marine drop, no ship / density director / landing denial, plus the defenders' own boat landing within reach. Verdicts: the boat lands, the first zone round lands with it (fired before touchdown), far fewer marines survive five seconds after touchdown, the touchdown estimate holds within a second, no round near the defenders' own boat. Whether a detonation hurts a boat on its pad was observed, not asserted: the boat's hit points were untouched.
 - `warship-air-strike` (built): a defenders' bomber wing against an Enforcer (omni shield, armour 900): no wing; shield held down with air fire off; shield on automatic; the doctrine hull; and beam fighters against an Onslaught. Verdicts: craft are sent at the hull with at most two on it at once; the bare hull loses hit points and the shield none; the shielded hull absorbs the landings as flux and loses less; the doctrine hull takes air superiority with armed craft as the reason and its flak downs the wing; beam fighters fly at the ground, are not sent at the hull, are not counted as a threat and leave the hull untouched.
+- `ship-escort` (built): see Decided: escort.
 - `warship-vs-air` (built): an Onslaught against a lone hostile transport, a fighter wing and a doctrine-driven air fight; and a defending ship against an inbound marine boat. Controls: the same ship under no air order. Verdicts: the boat is shot down in flight and its passengers lost where the control lands them; point-defence weapons stay silent against a transport; the large assault guns (measured by rounds per weapon id) stay silent against fighters while flak, anti-fighter and medium guns fire and kill some; air-superiority is entered, fires no assault round at aircraft, and over the ticks it held the posture fires fewer ground rounds, peaks lower in flux and leaves a hostile ground block untouched where the same ship pinned to bombard destroys it; intercept shoots the boat while the control with air fire off lands it.
 - Open: a withdraw that returns is ruled out by decision 10; ships as targets remain unbuilt. Ship class weights are pinned by unit tests (`ShipClassTest`, `AirThreatWeightsTest`), not by a scene: the only question is arithmetic over a snapshot.
 - Each is also a `sceneEvidence` row, so a regression fails the run; the snapshot suite plays the same run for the picture.
@@ -285,7 +286,25 @@ Standoff is the existing machinery (`WarshipSystem.standoffStation`, declared ca
 
 **Shield figures count in the threat weights (built).** An unshielded hull fears aircraft most; a wider, more efficient shield fears them less (see the factor above). Built once aircraft could hurt ships (G3). An exposed flank is not modelled beyond the arc's share.
 
-**Escort is wanted (decided, deferred).** A role with a lead-ship relation that follows the lead at an offset and intercepts threats aimed at it. Not built: it needs ships as targets (G4); G3 now supplies something that aims at a lead. Until then a frigate or destroyer is a small combat ship.
+## Decided: escort
+
+Owner direction of 2026-10-14: escort is wanted, and it no longer waits on ships as targets. G3 (aircraft can hurt ships) supplies the thing that aims at a lead; ship-vs-ship (G4) stays out of scope. Built as a posture-layer role: it changes where the ship sits and what it favours, never how hard anything hits (balance law).
+
+**The relation.** An escort is a ship with `Warship.escort(lead)`: an explicit relation, which also gives the ship a doctrine. It lasts until `releaseEscort` or until the lead is no longer a live friendly hull over the battle (destroyed, departing or departed), when the system drops it, restores the station the escort had before and the escort is its own ship again, posture and all. Who may be an escort is `WarshipEscort.mayEscort`: a COMBAT frigate, destroyer or cruiser following a strictly larger hull (carriers and support hulls are not escorts; a carrier may be the lead).
+
+**Explicit by default, automatic as an option (fork recorded).** `WarshipSystem.autoEscort(true)` lets each free small combat hull take its side's **flagship**, the single largest live friendly hull (largest size, then hit points, then added first), as its lead; the flagship's own second-largest friend is never a lead, so escorts never chain. It is off by default because a station is the mission's: turning it on everywhere would move ships that existing missions and scenes station deliberately. Missions and scripts name pairs; a mission that wants a screened fleet turns the option on. An explicit relation is never replaced by an automatic one.
+
+**Station.** Once a second the escort stations on a ring around the lead's centre (both half-lengths plus a four-cell gap), at the bearing from the lead toward the centroid of what threatens it (craft aimed at the lead, hostile ships), keeping its last bearing when nothing does and starting from the lead's nose. Several escorts of one lead fan about that bearing, 45 degrees apart. It uses the ordinary station, so a ship that is too far simply travels there at its own speed; standoff is not applied while escorting (the lead's own standoff keeps the pair clear).
+
+**Threat picture.** For an escort, a hostile strike sortie in the air that is aimed at the lead (the same test the dispatcher counts by, `HullStrike.aimedAt`) and can hurt the lead's armour counts **once**, as a lead craft at weight 1.0 rather than the ordinary 0.5, up to the same cap of 2, and unscaled by the escort's own class or shield: the duty is to the lead, not to the escort. One craft at the lead is therefore enough to turn any escort to the air fight (entry 1.0), where the same craft would not turn a destroyer for its own sake. Craft not aimed at the lead keep their ordinary armed-craft weight. The reason line says "armed craft at the lead".
+
+**Anti-air fire.** The escort uses the same mounts and the same weapon rules as any ship under air superiority (`WarshipAirFire`). The one change is the pick: armed craft aimed at its lead come first, then armed craft, loaded boats and the rest, nearest first within a tier. No extra mount, range or damage.
+
+**Ground fire.** The escort's ordinary posture rules apply unchanged: with no threat to its lead (or itself) it bombards, supports or intercepts as its stance says; under the air fight it takes air superiority's conserving profile like any ship. No separate reduced share was invented.
+
+**Not built.** Interposing against hostile ships (needs G4); escort-specific point-defence priority beyond the existing ordnance-first rule; a lead that is a carrier moving with its wing; the escort's heading (the director still bears guns as it does for any ship).
+
+Evidence: `WarshipEscortTest` (who may escort, automatic assignment, ring slots, the lead-craft weight, a craft aimed away is not a lead craft, station and reversion) and the `ship-escort` scene: a doctrine Onslaught alone under a four-bomber wing against the same capital with an Enforcer escort (the escort takes air superiority with the lead named, downs more craft and the lead takes a fraction of the pressure), the lead departing partway (the escort drops the relation and goes home), and automatic assignment of a destroyer and a frigate on separate slots.
 
 ## Open questions: ship class
 

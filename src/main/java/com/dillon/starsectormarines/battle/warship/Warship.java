@@ -1213,6 +1213,87 @@ public final class Warship {
     private float originalStationY;
     private boolean standoffApplied;
     private boolean originalHadStation;
+    private Warship escortLead;
+    private boolean escortExplicit;
+    private float escortAngleDegrees;
+    private boolean escortAngleSet;
+    private boolean escortApplied;
+    private boolean escortOriginalHadStation;
+    private float escortOriginalX;
+    private float escortOriginalY;
+
+    /**
+     * Makes this ship the escort of {@code lead}: an explicit relation for a mission or a script, which stays until
+     * the lead is lost or {@link #releaseEscort} is called. The ship takes a doctrine (an escort needs its posture
+     * to turn to the air fight) and keeps station near the lead; see {@link WarshipEscort}. Its station before
+     * the relation is remembered and restored when the escorting ends.
+     */
+    public void escort(Warship lead) {
+        if (lead == null || lead == this) throw new IllegalArgumentException("an escort needs another ship to follow");
+        useDoctrine();
+        setEscortLead(lead, true);
+    }
+
+    /** Ends the escort relation now (explicit or automatic); the ship goes back to its own station and posture. */
+    public void releaseEscort() {
+        escortLead = null;
+        escortExplicit = false;
+        endEscort();
+    }
+
+    /** The ship this one escorts, or {@code null}. May name a lead that has since been destroyed or left; the system clears it. */
+    public Warship escortLead() {
+        return escortLead;
+    }
+
+    /** Whether the ship is escorting a ship that is still over the battle. */
+    public boolean escorting() {
+        return WarshipEscort.liveLead(this) != null;
+    }
+
+    boolean escortExplicit() {
+        return escortExplicit;
+    }
+
+    void setEscortLead(Warship lead, boolean explicit) {
+        if (escortLead != lead) escortAngleSet = false;
+        escortLead = lead;
+        escortExplicit = explicit;
+    }
+
+    /** The bearing, in degrees as {@code atan2(dy, dx)}, from the lead at which this escort last chose to sit; NaN until chosen. */
+    float escortAngle() {
+        return escortAngleSet ? escortAngleDegrees : Float.NaN;
+    }
+
+    void escortAngle(float degrees) {
+        escortAngleDegrees = degrees;
+        escortAngleSet = true;
+    }
+
+    /** Remembers the station the mission gave, and moves to {@code (sx, sy)} beside the lead. */
+    void escortTo(float sx, float sy) {
+        if (!escortApplied) {
+            escortOriginalX = stationX;
+            escortOriginalY = stationY;
+            escortOriginalHadStation = hasStation;
+            escortApplied = true;
+        }
+        stationTo(sx, sy);
+    }
+
+    /** Goes back to the station the mission gave once the escorting is over. */
+    void endEscort() {
+        escortAngleSet = false;
+        if (!escortApplied) return;
+        escortApplied = false;
+        if (escortOriginalHadStation) {
+            stationTo(escortOriginalX, escortOriginalY);
+        } else {
+            hasStation = false;
+        }
+    }
+
     /** Seconds since the last doctrine pass; the system staggers the first one per ship. */
     float doctrineClock = 1f;
 

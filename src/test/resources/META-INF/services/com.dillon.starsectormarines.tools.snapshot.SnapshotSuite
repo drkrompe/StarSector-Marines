@@ -75,6 +75,7 @@ com.dillon.starsectormarines.battle.warship.WarshipSupportFireSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipInterceptSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipVsAirSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipAirStrikeSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.ShipEscortSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.CompoundPropDamageSnapshotSuite
 
 com.dillon.starsectormarines.tools.tilesetauthoring.FurnishingDamageSnapshotSuite
