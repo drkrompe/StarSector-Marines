@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
+import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
@@ -516,6 +517,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         addObjective(workingPassage);
     }
     private LimitedWarrantSequence limitedWarrant;
+    private YardOwnersSequence yardOwners;
+    public YardOwnersSequence getYardOwners() { return yardOwners; }
+    public void installYardOwners(int technicians, List<Integer> constables, List<List<EntitySpec>> reserves) {
+        if (simTickIndex != 0 || yardOwners != null) throw new IllegalStateException("Install Latchkey once at setup");
+        yardOwners = new YardOwnersSequence(technicians,constables,reserves,storyBeats);
+        addObjective(yardOwners);
+    }
     public LimitedWarrantSequence getLimitedWarrant() { return limitedWarrant; }
     public void installLimitedWarrant(int technician, int constables, long carrier, List<EntitySpec> reserve, boolean records) {
         if (simTickIndex != 0 || limitedWarrant != null) throw new IllegalStateException("Install Limited Warrant once at setup");
@@ -761,7 +769,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (coldStart == null ? 0 : coldStart.pendingMembers())
                 + (workingPassage == null ? 0 : workingPassage.pendingMembers())
                 + (waterUnderSeal == null ? 0 : waterUnderSeal.pendingMembers())
-                + (limitedWarrant == null ? 0 : limitedWarrant.pendingMembers());
+                + (limitedWarrant == null ? 0 : limitedWarrant.pendingMembers())
+                + (yardOwners == null ? 0 : yardOwners.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2876,6 +2885,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (workingPassage != null) workingPassage.advance(this);
         if (waterUnderSeal != null) waterUnderSeal.advance(this);
         if (limitedWarrant != null) limitedWarrant.advance(this);
+        if (yardOwners != null) yardOwners.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions

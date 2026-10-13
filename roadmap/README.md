@@ -68,10 +68,10 @@ introduction is `a-small-war.md`: five operations on existing Agreus in nearby A
 Shepherd actually joins the fleet, with recovered suit patterns and a crude
 pirate boarding rig. `agreus-latchkey.md` develops Baronet Rusk's local concession
 under Ko Combine administration, the Greyhook flotilla and the yard workers caught
-between them. The referral, North Weir and Limited Warrant are implemented.
-Test the live transition from Corvus, owned tender support, recovery settlement,
-then learning and explicitly fitting the Recovered Specter reward. Chapters 3–5
-and later suit rewards remain planned.
+between them. The referral and first three chapters through The Yard's Owners are implemented.
+Test the live transition from Corvus, owned tender support and once-only rewards,
+then learn both recovered cards and explicitly fit the mixed section. Chapters 4–5,
+Boarding Jack and the yard agreement remain planned.
 
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the

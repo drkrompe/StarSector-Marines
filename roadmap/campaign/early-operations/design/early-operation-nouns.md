@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — direct freight sequence, Castle's contingent Morrow bargain and bounded Low Quay recovery with first-suit learning.
+Updated: 2026-10-13 — Latchkey inspection adds the recovered support reward and explicit mixed-squad fitting.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -221,8 +221,28 @@ knowledge satisfies the award without another copy; sale or discard cannot
 renew the entitlement. Learning the card and fitting equipment are separate
 player actions. Learning also exposes the matching Tri-Tachyon Specter Protection
 sheet, so the first recovered assault pattern is usable without an Arbalest
-reward. No equipment is automatically issued. The next yard chapter and its
-Arbalest award remain separate work in `a-small-war.md`.
+reward. No equipment is automatically issued. Victory opens **The Yard's Owners**.
+
+At Latchkey Yard, company infantry captures the dispatch house, tooling hall and
+operator entrance. These gains can be recaptured. Eight employer constables take
+separate holding duties after company gains; two technicians support the inspection.
+Victory requires all three sites held together, the marked calibration machine
+surviving ordinary prop damage, and a living technician completing twelve protected
+seconds at the tooling with company infantry present. Eliminating all raiders does
+not replace that work. Losing the machine or both technicians fails the attempt.
+Three full squads are recommended; the existing two-squad minimum remains. Actual
+owned tender support and employer heavy lift for an owned active mech lance are
+available, without granting a walker, orbital fire or fighter support.
+
+Replacement attempts explicitly refit the machine and provide a new inspection
+party; confirmed tooling and employer losses remain recorded. The active complete
+inspection receipt pays 36,000 credits and awards one Recovered Arbalest cargo
+card under the same once-only ownership rules. Learning both recovered roles
+exposes Salvage-assisted Section: eight regular, two powered assault and two
+powered support billets within the same named squad. Fitting remains explicit.
+The debrief presents the Combine order, Rusk's proposed leases and Lenna's
+counterproposal as attributed claims. It signs no custody agreement and opens no
+fourth chapter; the agreements and remaining arc belong to `a-small-war.md`.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

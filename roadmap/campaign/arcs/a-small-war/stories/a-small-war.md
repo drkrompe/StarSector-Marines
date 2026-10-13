@@ -1,10 +1,10 @@
 # A Small War
 
-Status: IN PROGRESS — post-Shepherd referral, Water Under Seal and Limited Warrant implemented; live campaign acceptance and Chapters 3–5 remain.
+Status: IN PROGRESS — post-Shepherd referral, first three chapters through The Yard's Owners implemented; live campaign acceptance and Chapters 4–5 remain.
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — Limited Warrant opens the Recovered Specter cargo-card route; later suit rewards and yard agreement remain planned.
+Updated: 2026-10-13 — The Yard's Owners adds the recovered support reward; live mixed-squad acceptance and Chapters 4–5 remain.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -533,8 +533,11 @@ Those would be separate campaign mechanics with their own consequences.
    North Weir save. Learn the cargo card, explicitly fit Tri-Tachyon Specter
    Protection, then deploy those same named people. Detached battle and reward
    checks do not substitute for live host persistence acceptance.
-4. Deliver Chapter 3 and the ordinary Armory lesson. Compare regular, all-Specter
-   and mixed companies without inventing a shell inventory or changing lift costs.
+4. Live-test The Yard's Owners and its once-only Arbalest card, including losses,
+   replacement attempts and save/reload. Learn both cards and explicitly fit the
+   mixed section to surviving named marines. Detached regular, Specter and earned
+   mixed-roster replays cover inspection and fitting; live host acceptance remains.
+   Preserve ordinary lift costs and the unsigned custody agreement.
 5. Build and validate Boarding Jack's data, layered visuals and existing-system
    behavior, then Chapters 4-5, both agreements and the separate recurring escort job.
    Keep route benefits out of hidden combat buffs and guarantee core cards on both routes.
