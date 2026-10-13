@@ -22,12 +22,20 @@ public final class StructureDef {
     public final float forceScore;
     public final String mountId;
     public final TurretMountDef mount;
+    /**
+     * Id of the ship-grade gun set this structure carries as a fortress battery, or null for an ordinary
+     * emplacement. A structure naming one is registered as a battery when it is spawned.
+     */
+    public final String batteryLoadoutId;
+    /** Cells around the anchor within which standing marks the battery's fire control as taken; zero for a non-battery. */
+    public final float fireControlRadius;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
                          float radius, float hitHalfHeight,
                          int footprintCellsX, int footprintCellsY, float forceScore,
-                         String mountId, TurretMountDef mount) {
+                         String mountId, TurretMountDef mount,
+                         String batteryLoadoutId, float fireControlRadius) {
         this.id = id;
         this.displayName = displayName;
         this.maxStructure = maxStructure;
@@ -40,6 +48,13 @@ public final class StructureDef {
         this.forceScore = forceScore;
         this.mountId = mountId;
         this.mount = mount;
+        this.batteryLoadoutId = batteryLoadoutId;
+        this.fireControlRadius = fireControlRadius;
+    }
+
+    /** Whether this structure is a fortress battery: it carries ship-grade guns and a fire-control point. */
+    public boolean isBattery() {
+        return batteryLoadoutId != null;
     }
 
     /** Whether this structure stands on more than its anchor cell. */
@@ -83,9 +98,21 @@ public final class StructureDef {
                     + "' footprintCells must be odd positive cell counts, got ["
                     + footprintCellsX + ", " + footprintCellsY + "]");
         }
+        String batteryLoadoutId = null;
+        float fireControlRadius = 0f;
+        JSONObject battery = json.optJSONObject("battery");
+        if (battery != null) {
+            batteryLoadoutId = TurretMountDef.requireText(battery, "loadout");
+            fireControlRadius = (float) battery.getDouble("fireControlRadius");
+            TurretMountDef.requirePositiveFinite(fireControlRadius, id, "fireControlRadius");
+            if (footprintCellsX < 3 || footprintCellsY < 3) {
+                throw new JSONException("Structure '" + id + "' is a battery and needs a footprint of at least 3x3");
+            }
+        }
         return new StructureDef(
                 id, TurretMountDef.requireText(catalog, "displayName"),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
-                footprintCellsX, footprintCellsY, forceScore, mountId, mount);
+                footprintCellsX, footprintCellsY, forceScore, mountId, mount,
+                batteryLoadoutId, fireControlRadius);
     }
 }
