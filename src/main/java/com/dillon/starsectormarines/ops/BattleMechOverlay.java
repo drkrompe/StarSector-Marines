@@ -108,6 +108,10 @@ final class BattleMechOverlay {
         }
     }
 
+    BattleHudSurface surface() {
+        return presentation.visible() && document != null && viewport != null ? new BattleHudSurface(document, viewport) : null;
+    }
+
     void processInput(List<InputEventAPI> events) {
         if (!presentation.visible() || input == null || events == null) return;
         List<InputEventAPI> retained = new ArrayList<>(events.size());

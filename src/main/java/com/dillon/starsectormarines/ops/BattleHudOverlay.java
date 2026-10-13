@@ -124,6 +124,14 @@ final class BattleHudOverlay {
         if (document != null && viewport != null) document.render(viewport, alphaMult);
     }
 
+    BattleHudSurface surface() {
+        return document == null || viewport == null ? null : new BattleHudSurface(document, viewport);
+    }
+
+    float rightRailBottom() {
+        return viewport == null ? Float.POSITIVE_INFINITY : viewport.screenY();
+    }
+
     void processInput(List<InputEventAPI> events) {
         if (input == null || events == null || viewport == null
                 || markupInstance == null) return;

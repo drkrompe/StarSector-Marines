@@ -18,6 +18,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.function.IntConsumer;
 
 /** Strategic entry above selection; equipment below and separate session controls above during takeover. */
@@ -65,6 +66,10 @@ final class BattleDirectControlOverlay {
 
     private boolean activeMode;
     private boolean dockTop;
+    private float topReservedHeight;
+
+    /** Physical space already occupied by subtitles in the centre message lane. */
+    void topReservedHeight(float height) { topReservedHeight = Math.max(0f, height); }
 
     BattleDirectControlOverlay(Selection selection, Runnable toggle, Runnable togglePause) {
         this(selection, toggle, togglePause, ignored -> {});
@@ -114,6 +119,10 @@ final class BattleDirectControlOverlay {
     }
 
     private static UiViewport viewport(PositionAPI position, boolean active, boolean dockTop) {
+        return viewport(position, active, dockTop, 0f);
+    }
+
+    private static UiViewport viewport(PositionAPI position, boolean active, boolean dockTop, float topReservedHeight) {
         UiViewport host = MarineOpsUiViewport.from(position);
         float scale = host.documentScale();
         float width = Math.max(0f, Math.min((active ? ACTION_WIDTH : DOCUMENT_WIDTH) * scale,
@@ -121,7 +130,8 @@ final class BattleDirectControlOverlay {
         if (active) {
             return new UiViewport(position.getX() + (position.getWidth() - width) / 2f,
                     dockTop ? position.getY() + position.getHeight() - 12f
-                            - (ACTIONS_HEIGHT + 6f + ACTION_HEIGHT) * scale
+                            - Math.max((ACTIONS_HEIGHT + 6f) * scale, topReservedHeight + 8f * scale)
+                            - ACTION_HEIGHT * scale
                             : position.getY() + 12f,
                     width, ACTION_HEIGHT * scale, scale);
         }
@@ -136,6 +146,16 @@ final class BattleDirectControlOverlay {
         float width = Math.min(DOCUMENT_WIDTH * scale, panelWidth);
         return new UiViewport(panel.screenX() + panelWidth - width,
                 panel.screenY() + panel.height() + SELECTION_GAP * scale,
+                width, DOCUMENT_HEIGHT * scale, scale);
+    }
+
+    /** A selected ship's shortcut joins its selector in the compact left-hand stack. */
+    static UiViewport shipEntryViewport(PositionAPI position) {
+        float scale = MarineOpsUiViewport.from(position).documentScale();
+        float width = Math.min(DOCUMENT_WIDTH * scale, position.getWidth() - 24f);
+        float heroInset = BattleShipCommandOverlay.heroBottomInset(position, null, false);
+        return new UiViewport(position.getX() + 12f,
+                position.getY() + heroInset + 12f + (BattleShipCommandOverlay.HERO_HEIGHT + 6f) * scale,
                 width, DOCUMENT_HEIGHT * scale, scale);
     }
 
@@ -179,7 +199,8 @@ final class BattleDirectControlOverlay {
         if (helpMarkup != null) helpMarkup.flush();
         UiDocument current = currentDocument();
         if (position != null && current != null) {
-            UiViewport next = active ? viewport(position, true, dockTop)
+            UiViewport next = active ? viewport(position, true, dockTop, topReservedHeight)
+                    : selection.hasWarshipSelection() ? shipEntryViewport(position)
                     : entryViewport(position, eligible && selected != 0L && sim.world().hasMechLoadout(selected));
             if (!next.equals(viewport) || input == null) {
                 deactivateDocuments();
@@ -252,6 +273,15 @@ final class BattleDirectControlOverlay {
         if (visible && activeMode && helpDocument != null && helpViewport != null) helpDocument.render(helpViewport, alpha);
     }
 
+    List<BattleHudSurface> surfaces() {
+        List<BattleHudSurface> result = new ArrayList<>();
+        if (!visible) return result;
+        if (currentDocument() != null && viewport != null) result.add(new BattleHudSurface(currentDocument(), viewport));
+        if (activeMode && actionsDocument != null && actionsViewport != null) result.add(new BattleHudSurface(actionsDocument, actionsViewport));
+        if (activeMode && helpDocument != null && helpViewport != null) result.add(new BattleHudSurface(helpDocument, helpViewport));
+        return List.copyOf(result);
+    }
+
     boolean blocksWorldPointer(float x, float y) {
         return visible && (contains(viewport, x, y) || activeMode && contains(actionsViewport, x, y)
                 || activeMode && helpLayout != null && helpHover.blocks(true, x, y, helpLayout));
@@ -273,7 +303,7 @@ final class BattleDirectControlOverlay {
     /** Map clamping can put the body at the bottom edge; move chrome instead of revealing off-map ground. */
     void avoidControlledBody(float screenX, float screenY, float screenRadius) {
         if (!activeMode || position == null || actionDocument == null) return;
-        UiViewport next = actionViewport(position, screenX, screenY, screenRadius);
+        UiViewport next = actionViewport(position, screenX, screenY, screenRadius, topReservedHeight);
         dockTop = next.screenY() != viewport(position, true).screenY();
         if (next.equals(viewport)) return;
         deactivateDocuments();
@@ -283,13 +313,17 @@ final class BattleDirectControlOverlay {
     }
 
     static UiViewport actionViewport(PositionAPI position, float screenX, float screenY, float screenRadius) {
+        return actionViewport(position, screenX, screenY, screenRadius, 0f);
+    }
+
+    static UiViewport actionViewport(PositionAPI position, float screenX, float screenY, float screenRadius, float topReservedHeight) {
         UiViewport bottom = viewport(position, true);
         float radius = Math.max(0f, screenRadius) + 8f;
         boolean overlaps = screenX + radius > bottom.screenX()
                 && screenX - radius < bottom.screenX() + bottom.width()
                 && screenY + radius > bottom.screenY()
                 && screenY - radius < bottom.screenY() + bottom.height();
-        return overlaps ? viewport(position, true, true) : bottom;
+        return overlaps ? viewport(position, true, true, topReservedHeight) : bottom;
     }
 
     private UiDocument currentDocument() { return activeMode ? actionDocument : document; }
