@@ -35,6 +35,8 @@ public final class CampaignState implements Serializable {
     /** Null in older saves and until the first Corvus launch. */
     public CorvusWaylineProgress corvusWayline;
     public ShepherdRecoveryProgress shepherdRecovery;
+    /** Null in older saves; the first Agreus launch freezes its authored attempt. */
+    public AgreusArcProgress agreusArc;
 
     // ---------- Id registries (interned vanilla strings) ----------
 

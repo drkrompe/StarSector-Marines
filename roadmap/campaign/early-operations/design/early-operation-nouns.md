@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 - Colossus yard stakes, Cold Start outer pickets and permanent fleet handover; live campaign acceptance remains open.
+Updated: 2026-10-13 - Colossus yard stakes, Cold Start ground arrival and outer pickets, and Agreus referral with the North Weir contract; live campaign acceptance remains open.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -119,15 +119,45 @@ receipt never summons a replacement. There is no departure cash payment. The cla
 alone grants no fleet member or general construction capability. `shepherd-recovery.md`
 retains live campaign, save/reload and subsequent support acceptance.
 
-**A Small War** is the planned next arc after that actual fleet handover. Vale's
+**A Small War** follows that actual fleet handover. Vale's
 reference leads through Mara to **Baronet Elian Rusk** on **Agreus**, in the
 nearby **Arcadia** system. His local concession under Ko Combine administration
 supports a bounded procurement warrant and recovered suit rewards through work against the **Greyhook flotilla**. Equipment
 is issued to individual marines and can be mixed within existing squads. The
 company also chooses who controls access to the liberated Latchkey Yard; earned
 patterns remain learned on either route. `agreus-latchkey.md` owns the local
-setting and cast; `a-small-war.md` owns the unimplemented chapters, agreements,
+setting and cast; `a-small-war.md` owns the remaining chapters, agreements,
 rewards and acceptance. No earlier Shepherd milestone substitutes for departure.
+
+The optional referral identifies existing Agreus in Arcadia and supplies an HQ
+course link without beginning an attempt, granting equipment or starting a clock.
+Rusk's contact operates through Marine Operations at that planet. Missing,
+inaccessible or incompatible administration pauses his work without creating or
+relocating a market. The historical handover survives Morrow's later sale or loss;
+deployment still requires a currently owned, operational Shepherd and the selected
+Ship on Station support card, with its ordinary supply cost and ship settlement.
+
+**Water Under Seal** opens the arc at North Weir. Two full regular squads are
+recommended; deployment requires two selected squads with four ready people each.
+Their fitted boats carry their actual named personnel through repeated trips.
+Rusk supplies eight constables, two technicians and one physical repair load.
+The company escorts the load, clears two enclosed switching rooms, protects the
+technicians' reconnection and commissions a real tender-built road gun before
+handing the position over against two finite road elements. An element resolves
+through confirmed losses or its surviving raiders' physical withdrawal through
+the maintenance-road entry; escaped survivors are not recorded as kills. A destroyed
+road gun must be rebuilt through the remaining ordinary construction support before
+handover; rebuilding does not replenish the attackers. If support is exhausted, the
+company withdraws and prepares a new mobilization. A pair of recovered
+assault-suit wearers mixes with regular attackers; the distinct pirate Boarding
+Jack remains a later equipment addition. Employer troops cannot complete the
+work without company protection. Lost cargo or both technicians ends the attempt.
+
+Confirmed employer losses persist; later mobilizations explicitly provide a new
+repair party and load. Company, boat and called-ship losses follow their ordinary
+settlement paths. Only the active attempt's complete physical receipt earns the
+26,000-credit fee once. The completed North Weir dossier grants no suit pattern,
+procurement warrant or later chapter before that contract exists.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
@@ -716,7 +746,9 @@ an L-shaped depot encloses a northern loading recess. The broad central
 warehouse still screens long sightlines, and the maintenance reserve retains
 its separate building behind the perimeter.
 
-Wayline supplies **Kestrel**, a named Mudskipper gunship under employer control.
+Recovering the depot lets Wayline afford hired close air support. The Junction
+briefing introduces **Kestrel**, a contracted Mudskipper gunship and crew under
+employer control, as a concrete sign of the cooperative recovering its strength.
 It enters as the company approaches the first site, works that position, then
 covers the militia settling onto captured ground before following the company's
 advance. It has a bounded visit and uses the ordinary gunship weapons and flight
@@ -772,8 +804,12 @@ equipment is part of this objective.
 
 ## Authored freight finale
 
-**Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
-same crew that covered the Junction. Two twin-launcher missile batteries on
+**Kestrel returns on Thunder Run** after Dispatch is secured. The briefing
+promises renewed air support and additional hired ground muscle: a heavy tank
+and two reinforced APCs for the final breakthrough. It does not disclose the
+missile ambush or direct the company to assault the inaccessible hilltops.
+The inbound call identifies the same crew that covered the Junction.
+Two twin-launcher missile batteries on
 the northern hilltops cover its opening pass. Kestrel enters from the west
 and sweeps left to right ahead of the eastbound column. An actual missile
 launch interrupts the pass: Kestrel banks forward and away from the ridge,
