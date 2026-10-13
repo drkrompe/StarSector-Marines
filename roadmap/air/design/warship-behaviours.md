@@ -278,8 +278,10 @@ Standoff is the existing machinery (`WarshipSystem.standoffStation`, declared ca
 
 **Support hulls do not hunt ground (decided, deferred).** A `SUPPORT` hull (CIVILIAN hint or tender designation) does not run the BOMBARD density director: it keeps point defence and returns fire on what threatens it, but does not seek ground targets. Not built: no mission puts a gunned support hull over a battle yet (the Shepherd tender carries no guns), so there is nothing to observe. Build it with the first such hull, as `maxAreas` 0 outside point defence for the SUPPORT role.
 
+**Shield type will count in the threat weights (decided, deferred).** An unshielded hull fears aircraft more, a front shield leaves it exposed to a flank attack, an omni shield fears less. Not built: until aircraft can hurt ships (G3), ground defences can (G5) and ships are targets (G4), the threat channel the weights scale is inert, so a shield column would weight nothing observable. The shield type is already carried on `ShipClass`.
+
+**Escort is wanted (decided, deferred).** A role with a lead-ship relation that follows the lead at an offset and intercepts threats aimed at it. Not built, on the same dependency: it needs ships as targets (G4) and something that aims at a lead (G3, G5). Until then a frigate or destroyer is a small combat ship.
+
 ## Open questions: ship class
 
-1. **Shield type is carried but not weighted.** The doc says a shielded battleship does not fear a fighter; the size column already makes that so. Whether an unshielded hull (Doom's phase cloak, a freighter) should add a further fighter multiplier is undecided, and the phase hull's cloak is out of scope until one is fitted.
-2. **Escort is not a role.** It needs a lead-ship relation and ships as bodies (G4); until then a frigate or destroyer is a small combat ship, not an escort. The escort weight on anything targeting its lead has no input to read.
-3. **The multipliers and carrier numbers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
+1. **The multipliers and carrier numbers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
