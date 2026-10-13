@@ -365,6 +365,9 @@ public interface BattleView {
     /** The battle's fighting positions (prepared-ground runs), rebuilt when a trench or sandbag prop is destroyed; ask again each time rather than caching the result. */
     FightingPositionIndex fightingPositions();
 
+    /** Whether the marine is dug in: settled on a fighting-position cell for the full dig-in delay. False for non-infantry and the dead. */
+    boolean isDugIn(long id);
+
     /** Battle-scoped tactical hint map from the map generator (firing-position graph, defense posts). */
     TacticalMap getTacticalMap();
 
