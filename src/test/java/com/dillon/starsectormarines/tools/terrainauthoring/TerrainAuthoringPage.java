@@ -147,7 +147,7 @@ public final class TerrainAuthoringPage implements AuthoringPage {
                 public void mouseReleased(MouseEvent e){if(stroke==null)return;add(e);try{commit(plan.append(new Stroke(strokeMode,strokeRadius,stroke)));}catch(Exception ex){state.setText(ex.getMessage());}stroke=null;repaint();}
                 public void mouseWheelMoved(MouseWheelEvent e){radius.setValue(Math.max(1,Math.min(64,((Number)radius.getValue()).doubleValue()-e.getPreciseWheelRotation())));}
             };addMouseListener(mouse);addMouseMotionListener(mouse);addMouseWheelListener(mouse);
-            setToolTipText("Paint raised ground; right-drag erases. Wheel changes radius. Gold hatching is the actual blocked grid.");
+            setToolTipText("Raise terrain or excavate a trench; right-drag erases either. Wheel changes radius. Gold hatching is the actual blocked grid.");
         }
         private void add(MouseEvent e){mx=e.getX();my=e.getY();if(stroke==null||!insideMap(mx,my))return;Point p=world(mx,my);if(stroke.isEmpty()||Math.hypot(p.x()-stroke.get(stroke.size()-1).x(),p.y()-stroke.get(stroke.size()-1).y())>.3){if(stroke.size()<4096)stroke.add(p);}repaint();}
         double scale(){return Math.min(getWidth()/(double)plan.width(),getHeight()/(double)plan.height());}

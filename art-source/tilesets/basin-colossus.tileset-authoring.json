@@ -1,7 +1,7 @@
 {
   "sheetName": "basin-colossus",
   "sheet": "art-source/tilesets/basin-colossus.raw.png",
-  "cellPx": 64,
+  "cellPx": 32,
   "idPrefix": "basin-colossus",
   "outputSheet": "graphics/tilesets/basin-colossus.png",
   "note": "Built-in ImageGen reskin and wreck edit of the installed Starsector 0.98a-RC8 graphics/ships/colossus/colossus.png. Vanilla source retained at art-source/templates/colossus-vanilla.png; intact detail master retained at art-source/templates/colossus-intact-master.png. Accepted wreck is RGBA 1141x1378. The full-frame cut preserves registration and generated transparency. Ground scale is 48 beam x60 length cells; basin placement quarter-turn3 gives60x48. Exact prompts are retained beside the source. This inert cargo wreck grants no ship, construction capability or salvage award. The fog mask derives from alpha only; mission geometry owns navigation and sight obstruction.",
