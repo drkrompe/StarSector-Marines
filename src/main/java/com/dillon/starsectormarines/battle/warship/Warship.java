@@ -191,6 +191,8 @@ public final class Warship {
     private float stationSecondsRemaining = Float.POSITIVE_INFINITY;
     private boolean departing;
     private float departingSeconds;
+    /** Seconds since the ship began dropping through the cloud deck, or negative when it did not enter that way. */
+    private float entrySeconds = -1f;
     private boolean departed;
     /** Rounds left in the ship-wide pool, or {@link #UNLIMITED}. */
     private int ordnanceRemaining = UNLIMITED;
@@ -808,8 +810,32 @@ public final class Warship {
         return departed;
     }
 
-    float departingSeconds() {
+    /** Seconds since departure began; zero before it does. Read by presentation only. */
+    public float departingSeconds() {
         return departingSeconds;
+    }
+
+    /**
+     * Marks the ship as arriving from above: it drops through the cloud deck from
+     * this moment, and presentation reads {@link #entrySeconds()} to draw the
+     * descent. Nothing in the simulation reads the clock.
+     */
+    public void arriveFromAbove() {
+        entrySeconds = 0f;
+    }
+
+    /** Whether the ship arrived through the cloud deck (see {@link #arriveFromAbove()}). */
+    public boolean arrivedFromAbove() {
+        return entrySeconds >= 0f;
+    }
+
+    /** Seconds since the descent began, or a negative number for a ship that did not enter that way. */
+    public float entrySeconds() {
+        return entrySeconds;
+    }
+
+    void addEntrySeconds(float dt) {
+        if (entrySeconds >= 0f) entrySeconds += dt;
     }
 
     void addDepartingSeconds(float dt) {

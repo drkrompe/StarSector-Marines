@@ -25,6 +25,14 @@ public record WarshipSoundCue(Kind kind, String soundId, float x, float y, float
         /** A round landed. */
         IMPACT,
         /** A carrier let its warheads go (the game's own split sound), once for the whole sheaf. */
-        SPLIT
+        SPLIT,
+        /** A ship broke through the cloud deck: a deep report, once. Played low and slow. */
+        ARRIVAL_REPORT,
+        /** A ship's descent settled onto its hover: the pressure wave arriving on the ground. */
+        ARRIVAL_SETTLE,
+        /** A ship began to climb away: the lift-off roar. */
+        DEPARTURE_ROAR,
+        /** A ship climbing into the deck: the roar again, higher, as it goes. */
+        DEPARTURE_CLIMB
     }
 }

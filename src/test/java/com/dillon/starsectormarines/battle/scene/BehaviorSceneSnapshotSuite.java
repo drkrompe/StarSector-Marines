@@ -81,6 +81,23 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
     }
 
     /**
+     * Opt-in: assemble the animations with the adaptive palette, which keeps
+     * soft gradients (glow, dust, cloud) that the compact palette posterises
+     * into bands. Larger files, so a scene that is about shading asks for it.
+     */
+    protected boolean colourAnimation() {
+        return false;
+    }
+
+    /**
+     * Opt-in: indices of recorded frames of a loop to also write as full-colour
+     * PNG stills ({@code <loop>-frame-<n>.png}), for reading a moment closely.
+     */
+    protected int[] stillFrames(String loopId) {
+        return new int[0];
+    }
+
+    /**
      * The frame without its alpha channel. A suite holds every frame of every
      * loop until the runner encodes them, and a scene of a few hundred frames at
      * this size is gigabytes; the review frame is opaque, so a quarter of that is
@@ -154,8 +171,16 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
 
         List<SnapshotArtifact> artifacts = new ArrayList<>(byLoop.size());
         for (Map.Entry<String, List<BufferedImage>> loop : byLoop.entrySet()) {
-            artifacts.add(SnapshotArtifact.animation(loop.getKey() + ".gif",
-                    loop.getValue(), scene.frameDelayMillis()));
+            artifacts.add(colourAnimation()
+                    ? SnapshotArtifact.colorAnimation(loop.getKey() + ".gif",
+                            loop.getValue(), scene.frameDelayMillis())
+                    : SnapshotArtifact.animation(loop.getKey() + ".gif",
+                            loop.getValue(), scene.frameDelayMillis()));
+            for (int index : stillFrames(loop.getKey())) {
+                if (index < 0 || index >= loop.getValue().size()) continue;
+                artifacts.add(new SnapshotArtifact(loop.getKey() + "-frame-" + index + ".png",
+                        loop.getValue().get(index)));
+            }
         }
         return artifacts;
     }

@@ -33,3 +33,4 @@ com.dillon.starsectormarines.battle.tender.TenderStanceScene
 com.dillon.starsectormarines.battle.tender.TenderSortieScene
 com.dillon.starsectormarines.battle.tender.TenderPilotScene
 com.dillon.starsectormarines.battle.tender.TenderPointDefenceScene
+com.dillon.starsectormarines.battle.warship.ShipArrivalScene

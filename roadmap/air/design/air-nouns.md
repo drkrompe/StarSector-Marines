@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — a tender knows what its side knows; an unpiloted one builds from its hull's mission stance.
+Updated: 2026-10-13 — an entering ship drops through the cloud deck and a departing one climbs into it (presentation only).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1441,6 +1441,17 @@ the ground suffers on arrival, and a heavy round lands as the existing heavy
 blast; point-defence-only
 weapons never fire at ground (see below). A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
+
+**A ship enters and leaves through the cloud deck, and that is presentation only.**
+A ship brought in from the map edge starts at the top of the deck and descends to its
+hover, and one that departs climbs back; everything seen of that (the shadow lengthening
+and softening with height, the haze and cloud on the hull, the re-entry glow, the dust
+and shock ring on the ground, the exhaust wake of a climb) is read from one lift value
+that is a function of the ship's own entry and departure clocks, so a frame is
+deterministic from ship state and tick and the simulation never reads it. A ship that did
+not enter this way hovers as it always did. The ground feels it only as light and dust;
+nothing about the hull's hit shape, guns or collision changes with the descent. The
+planet's surface palette may tint the glow, cloud and dust.
 
 A ship is heard in the game's own sounds, never a mod clip: the weapon's fire sound and its blast's sound come from the same specs, the simulation only records the requests, and the presentation plays them positionally. A burst is thinned to a report every fraction of a second rather than a cue per round, and a lance sounds once when it lights, not while it telegraphs.
 
