@@ -175,6 +175,18 @@ public final class Fort {
 
     // -------------------------------------------------------------------------------------------- shield fort
 
+    private Faction domeHolderNow;
+
+    /** Records the side the dome protects as of the last tick, for the map to show. */
+    void noteDomeHolder(Faction holder) {
+        this.domeHolderNow = holder;
+    }
+
+    /** The side the dome protected as of the last tick, or {@code null} before the first. */
+    public Faction domeHolderNow() {
+        return domeHolderNow;
+    }
+
     /** The shield generator's entity id, or {@code 0} for a fort that has none. */
     public long emitterId() {
         Place p = places.get(FortAspect.EMITTER);

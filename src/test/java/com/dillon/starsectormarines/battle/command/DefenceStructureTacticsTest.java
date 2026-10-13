@@ -182,4 +182,23 @@ class DefenceStructureTacticsTest {
         }
         throw new AssertionError("no generator");
     }
+
+    @Test
+    void aShieldFortPlantAndControlRoomAreBothWorkForTheSideThatDoesNotHoldThem() {
+        CommandTopology topology = openTopology();
+        DefenceStructureFact room = structure(Kind.SHIELD_GENERATOR, 40, 40, Faction.DEFENDER, Faction.DEFENDER, false);
+        DefenceStructureFact plant = structure(Kind.FORT_POWER, 20, 60, Faction.DEFENDER, Faction.DEFENDER, false);
+        List<Task> tasks = DefenceStructureTactics.plan(Faction.MARINE, List.of(room, plant),
+                List.of(squad(1, 40, 30), squad(2, 20, 50)), topology);
+        assertEquals(2, tasks.size());
+        assertTrue(tasks.stream().allMatch(t -> t.role() == Role.TAKE));
+        // The defenders, who hold both, send nobody until one is pressed.
+        assertTrue(DefenceStructureTactics.plan(Faction.DEFENDER, List.of(room, plant),
+                List.of(squad(1, 40, 30)), topology).isEmpty());
+        DefenceStructureFact pressed = structure(Kind.FORT_POWER, 20, 60, Faction.DEFENDER, Faction.DEFENDER, true);
+        List<Task> stand = DefenceStructureTactics.plan(Faction.DEFENDER, List.of(room, pressed),
+                List.of(squad(1, 40, 30)), topology);
+        assertEquals(1, stand.size());
+        assertEquals(Role.DEFEND, stand.get(0).role());
+    }
 }
