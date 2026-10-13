@@ -100,12 +100,12 @@ public final class ShipOnStation extends CommandPower {
         ShipStationing.Placement p;
         if (source.tender()) {
             Tender probe = Tender.fit(side, 0f, 0f, 0f);
-            p = ShipStationing.place(side, battle.shipAxis(), w, h, probe.ship().lengthCells);
+            p = ShipStationing.callIn(side, battle.shipAxis(), w, h, probe.ship().lengthCells, stationX, stationY);
             tender = Tender.fit(side, p.x(), p.y(), p.facingDegrees());
             ship = tender.ship();
         } else {
             Warship probe = Warship.fit(source, side, 0f, 0f, 0f);
-            p = ShipStationing.place(side, battle.shipAxis(), w, h, probe.lengthCells);
+            p = ShipStationing.callIn(side, battle.shipAxis(), w, h, probe.lengthCells, stationX, stationY);
             ship = Warship.fit(source, side, p.x(), p.y(), p.facingDegrees());
         }
         ship.stationTo(stationX, stationY);

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -120,7 +121,7 @@ class ShipOnStationTest {
     }
 
     @Test
-    void theShipEntersFromTheCompanysEdgeAndStationsOverTheCell() {
+    void theShipComesInOnTheCompanysSideFacingItsStation() {
         BattleSimulation sim = sim();
         sim.setCommandPowers(List.of(new ShipOnStation(List.of(FIRST))));
         CommandPowerSystem system = new CommandPowerSystem(sim.getCommandPowerService(), sim);
@@ -129,8 +130,9 @@ class ShipOnStationTest {
         system.tick(BattleSimulation.TICK_DT);
 
         Warship ship = sim.warships().ships().get(0);
-        assertTrue(ship.x < W / 4f, "the marines' edge is the west, was " + ship.x);
-        assertEquals(-90f, ship.facingDegrees, 0.001f, "facing the battle");
+        assertTrue(ship.x < 34.5f, "the marines come from the west, was " + ship.x);
+        assertEquals(AirBody.facingToward(34.5f - ship.x, 45.5f - ship.y), ship.facingDegrees, 0.001f,
+                "nose on its station");
         assertEquals(34.5f, ship.stationX(), 0.001f);
         assertEquals(45.5f, ship.stationY(), 0.001f);
         assertEquals(ShipOnStation.STATION_SECONDS, ship.stationSecondsRemaining(), 0.001f);
