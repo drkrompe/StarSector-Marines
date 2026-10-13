@@ -2,12 +2,12 @@
 
 Status: Implemented; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — four-berth Mech Lab fits the existing hull; Hound recovery and three paid berth repairs implemented.
+Updated: 2026-10-13 — room-anchored SVG inspection overlays replace the condition list; live acceptance remains open.
 
 ## Scope
 
 Second Wind starts as a battered but usable company home. Engineering, now a persistent navigation tab, lets the
-player select rooms directly or from the condition list, focus the real deck,
+player hover or select rooms and their SVG badges on the real deck,
 and read Castle's portrait-backed explanation of condition, benefit and next work.
 The whole plan remains fixed through restoration.
 
@@ -38,6 +38,14 @@ upkeep or a new persistent morale meter. Fleet transfer removes the benefit from
 future launches without undoing that hull's paid repair.
 
 ## Acceptance
+
+- [x] Production Engineering overlay evidence covers transparent wall glyphs sized
+      to leave small rooms visible, hover-to-card
+      continuity, pinned reviewed orders, close, workshop inspection, pan/zoom alignment
+      and viewport bounds at 150%. `engineering-overlays` renders the overview and
+      expanded cards at 1920x1080, 100% scale.
+- [ ] Live hover, keyboard focus and pinning; right-drag and wheel over deck versus
+      card; workshop reclamation; repaired markers and room appearance after payment.
 
 - [x] Render damaged and restored interiors and real survey at 100% and 150%.
 - [x] Verify multiple layout seeds retain essential access, 36 starting billets,

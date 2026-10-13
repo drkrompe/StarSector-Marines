@@ -6,6 +6,14 @@
 	# Starsector merges later JSONs on top.
 
 	"marineOps": {
+    "openingShipConditionPowerStatus": "DISTRIBUTION / {0}",
+    "openingShipConditionDamageInspectionSummary": "{0} DAMAGED ROOMS / HOVER TO INSPECT / CLICK TO PIN",
+    "openingShipViewHoverToInspect": "Hover to inspect; click to pin. Right-drag to pan; wheel to zoom.",
+    "openingShipInspectionPinned": "PINNED INSPECTION",
+    "openingShipInspectionPinHint": "CLICK TO PIN / ESC TO CLOSE",
+    "openingShipInspectionTitle": "ROOM INSPECTION",
+    "openingShipInspectionClose": "CLOSE",
+
     "openingCompanyNoticesColdStart": "Tamsin Vale / Cold Start",
     "openingShipWordSTARBOARD": "Starboard",
     "openingShipWordAFT": "Aft",
