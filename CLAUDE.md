@@ -1099,6 +1099,7 @@ The discovered suite ids and default output directories are:
 |-------|----------|--------|
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, outdoor daylight, enlarged grounded Shepherd, cargo/infantry access and clear construction plots across palettes and seeds; no battle or campaign simulation | `build/snapshots/shepherd-basin/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
+| `field-salvage` | Optional material caches: production placement checks, controlled discovery/collection/contest/secured frames and cargo claim rows at 1920x1080, 100% scale; not a full mission replay | `build/snapshots/field-salvage/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
