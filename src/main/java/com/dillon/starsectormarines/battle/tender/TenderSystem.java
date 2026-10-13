@@ -81,6 +81,7 @@ public final class TenderSystem {
     private float clock;
     private int nextDrone = 1;
     private int nextSite = 1;
+    private final TenderCues cues = new TenderCues();
 
     /** Puts a tender over the battle: its hull is flown by the warship system, its drones launch from the next tick. */
     public void add(BattleSimulation sim, Tender tender) {
@@ -107,9 +108,15 @@ public final class TenderSystem {
         return null;
     }
 
+    /** The presentation events the builders have asked for; see {@link TenderCues}. */
+    public TenderCues cues() {
+        return cues;
+    }
+
     public void tick(float dt, BattleSimulation sim) {
         if (tenders.isEmpty()) return;
         clock += dt;
+        cues.prune(sim.getSimTickIndex());
         for (int i = tenders.size() - 1; i >= 0; i--) {
             Tender t = tenders.get(i);
             if (!t.anchorAlive()) {
@@ -299,7 +306,12 @@ public final class TenderSystem {
             t.retire(o, "no builders left");
             return;
         }
-        if (TenderThreat.anyHit(t.builders, world, t.builderHp) | t.builderLostSinceLastLook()) {
+        int tick = sim.getSimTickIndex();
+        List<Long> struck = new ArrayList<>();
+        boolean hit = TenderThreat.hits(t.builders, world, t.builderHp, struck);
+        for (Long id : struck) cues.stun(t.faction(), world.x(id), world.y(id), id, tick);
+        if (hit | t.builderLostSinceLastLook()) {
+            if (!t.underFire()) cues.alert(t.faction(), o.siteX(), o.siteY(), tick);
             t.blockedSeconds = TenderThreat.BLOCK_SECONDS;
         }
         o.underFire(t.underFire());
@@ -309,7 +321,17 @@ public final class TenderSystem {
         // Builders stood down for a threat come back out once the ground is clear.
         if (!contested) deployBuilders(t, dt, sim);
         int crew = t.builderComplement();
-        if (!o.work(dt, onSite, crew, contested)) return;
+        boolean done = o.work(dt, onSite, crew, contested);
+        if (!done) {
+            for (Long id : t.builders) {
+                if (t.welding(id, o, world.x(id), world.y(id)) && BuilderStations.torchLit(id, tick)) {
+                    cues.weld(o, t.faction(), tick);
+                    break;
+                }
+            }
+            return;
+        }
+        cues.complete(t.faction(), o.siteX(), o.siteY(), tick);
         String name = "tender-turret-" + nextSite++;
         sim.spawn(MapTurret.create(name, t.faction(), o.option().structureId(),
                 (int) Math.floor(o.siteX()), (int) Math.floor(o.siteY())));

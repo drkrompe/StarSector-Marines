@@ -9,10 +9,12 @@ import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -69,6 +71,19 @@ class TenderThreatTest {
         assertFalse(TenderThreat.anyHit(List.of(a), world, last), "a hit is reported once");
         assertFalse(TenderThreat.anyHit(List.of(), world, last));
         assertTrue(last.isEmpty(), "a builder no longer out is forgotten");
+    }
+
+    @Test
+    void hitsNamesTheBuildersThatWereStruck() {
+        SceneWorld w = world();
+        World world = w.sim().world();
+        long a = w.members("hidden")[0];
+        Map<Long, Float> last = new HashMap<>();
+        List<Long> struck = new ArrayList<>();
+        assertFalse(TenderThreat.hits(List.of(a), world, last, struck));
+        world.setHp(a, world.hp(a) - 1f);
+        assertTrue(TenderThreat.hits(List.of(a), world, last, struck));
+        assertEquals(List.of(a), struck);
     }
 
     @Test
