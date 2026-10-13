@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Both Agreus recovered-suit rewards lead to explicit mixed-squad fitting.
+Updated: 2026-10-13 — Cordon/surplus starting issue and both Agreus recovered-suit rewards with explicit mixed fitting.
 
 ## Purpose
 
@@ -431,8 +431,8 @@ retired fire-team refit APIs that were its only readers. Equipment is owned as
 permanent template cards, and fitting is free. Existing victory milestones grant template cards, including the
 Shattercap after two victories. A deterministic safety net now keeps permanent
 collection breadth at or above 8 cards after five victories, 12 after fifteen,
-16 after thirty, and 17 after forty. The opening floor is three specs: Service
-Rook, field fatigues, and Ward security kit. New personnel receive only that
+16 after thirty, and 17 after forty. The opening floor is three specs: surplus
+Rook, field fatigues, and Cordon security shell. New personnel receive only that
 baseline; save repair retains old acquisitions without seeding specialist gear. Cards already learned or still carried in
 cargo count toward that floor, so faction-shaped acquisition advances the same
 curve instead of being duplicated by it. When a company falls below a floor,
@@ -480,8 +480,9 @@ The lowest protection band is deliberately plural rather than one universal
 "unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
 armor reserve; expired Cordon security shells provide a little rated plate; and
 Lashplate breaker harnesses supply crude mass with poor resistance and handling.
-New companies start with fatigues and Ward; Cordon and Lashplate remain collectible
-alternatives. These are generic circulation categories for early companies and
+New companies start with fatigues and Cordon shells; Ward is a protection upgrade
+and Lashplate remains a collectible alternative. Cordon starts personnel in the
+existing Green experience band and carries no integral armor system. These are generic circulation categories for early companies and
 low-end defenders, not faction-equivalent powered suits.
 
 A template card may exist in fleet cargo as one parameterized Starsector special

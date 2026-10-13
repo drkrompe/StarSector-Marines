@@ -1409,7 +1409,7 @@ public class MarineRoster implements Serializable {
 
     /** New personnel receive only the company's entry-level equipment. */
     private void autoIssueRecruit(MarineSoldier recruit) {
-        recruit.setArmor(MarineArmorPattern.MILITIA);
+        recruit.setArmor("armor.cordon-shell");
     }
 
     /**

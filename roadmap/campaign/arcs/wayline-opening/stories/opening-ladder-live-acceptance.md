@@ -4,7 +4,7 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Counterattack now captures and defends dispatch; linked campaign and live pacing remain.
+Updated: 2026-10-13 — Relief uses the starter company and western assembly apron; linked live pacing remains.
 
 Read `early-operation-nouns.md` before accepting this story.
 
@@ -20,10 +20,13 @@ postings unlock after the arc. Company growth does not remove access to small wo
 `commanderEvidence -Pmission=relief` compares three production-factory maps
 with ordinary, delayed, and absent player arrival. It records original militia
 survival separately from employer reinforcements and supports 1920x1080 review
-frames and exact replay checks. These verdant-surface, factory-loadout cases do
-not establish Jangala campaign balance or slow-craft acceptance. Check those in
-live acceptance; the delayed cases are a controlled intervention, not a slow
-transport model.
+frames and optional exact replay checks. These verdant-surface cases use twelve
+named starter recruits in Cordon shells with surplus Rooks, carried in three
+four-seat sorties by one fitted standard Hermes. They report full-squad assembly,
+first company fire/loss, and employer arrival at the gate. They exercise the
+production roster overlay but do not establish live Jangala save, fog, or HUD
+acceptance. Delayed cases are a controlled intervention, not a slow transport
+model; extend the observation with `-PmaxTicks=12000` for longer fights.
 
 Counterattack's corresponding harness uses three depot interiors with ordinary,
 delayed and absent player arrival, plus two fitted boats arriving together.
@@ -43,14 +46,26 @@ delays, not slow-airframe acceptance. Whole-map images are neutral observer view
 they do not validate live fog or GL HUD rendering.
 The 300s absent-player observation does not establish a new failure rule.
 
+## Remaining pacing checks
+
+The expanded apron lets the twelve-person starter squad finish its three Hermes
+sorties before entering combat in all three ordinary construction controls.
+The longer 400-second controls still expose a late standoff in one ordinary
+seed and several delayed runs. Inspect the surviving raider's contact/route
+behavior and confirm live player advance can finish the fight; safe assembly
+alone is not full mission balance acceptance. Absent-player controls must still
+fail to clear the finite assault without inventing a timeout defeat rule.
+
 ## Acceptance
 
 - Relief's first victory retires that chapter and opens Counterattack at Mara
   Venn's office. Its local line survives long enough for a slow
   player transport to matter, but cannot win unattended.
 - Relief's defensive anchor reads as a communications/logistics place the local
-  militia must preserve: a checkpoint gate, recessed relay, rear apron and
+  militia must preserve: a four-person exterior screen, four-person gate post,
+  recessed relay, expanded western apron and
   connected access roads. Its finite road arrivals cannot become recurring supply.
+- Employer lift waits for company assembly before reinforcing the gate; absent or delayed company arrival must not send it ahead alone.
 - The first briefing clearly accepts one starting transport and one selected
   fire team; counterattack clearly communicates its larger player-lift demand.
 - Live results justify the local-militia versus bandit ratio and approach
@@ -60,7 +75,8 @@ The 300s absent-player observation does not establish a new failure rule.
   victory, each story chapter stays closed. Completing the arc opens distinct
   recurring work at Venn's office and other Independent brokers.
 - Squad assembly at the landing zone reads as deliberate rather than stalled
-  before the finite-force commander pressure begins.
+  while the exterior militia fights the opening raiders. The starter Hermes
+  must finish all three sorties before the company is drawn into the gate fight.
 - Counterattack's joint force advances from the apron through the gate and
   loading yard toward dispatch. The rear guard remains distinct from the
   reserve; contact and own casualties drive commitment and fallback. Confirm

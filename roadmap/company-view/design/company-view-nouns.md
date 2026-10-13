@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — equipment browsers require learned tactic sheets; boat recovery and Castle guidance remain part of company preparation.
+Updated: 2026-10-13 — Opening militia kit and staged checkpoint engagement.
 
 ## Purpose
 
@@ -266,7 +266,7 @@ fallback without choosing an operation commander in advance.
 **A Proper Issue** is Castle's optional first squad-refit lesson after the story
 victory in Hold Until Relieved. The debrief opens the equipment lesson directly and HQ points to Barracks; its
 opening conversation and gallery resume action keep the offer discoverable.
-A new company knows only the Service Rook, field fatigues, and Ward security kit.
+A new company knows only the surplus Rook, field fatigues, and Cordon security shell.
 Other weapon families, specialist suits, and special equipment must be learned.
 Existing saves keep every previously acquired spec.
 
@@ -281,7 +281,7 @@ including previously claimed two-path bundles, are never revoked.
 The lesson presents exactly two complete equipment paths: **Steady Line** pairs
 three Milspec automatics with a line-holding armor plan; **Forward Screen** pairs
 six Milspec pulse rifles with a reconnaissance armor plan. Remaining riflemen
-carry Service Rooks. Both omit carried specials, disclosed in the review.
+carry surplus Rooks. Both omit carried specials, disclosed in the review.
 Armor still resolves from the company's owned patterns through the ordinary role
 and tradition rules. These are a bounded introduction to the existing catalog,
 not a separate equipment economy or a restriction on later Armory authorship.
@@ -347,12 +347,12 @@ Hovering either item opens its shared spec sheet; changing billets preserves tho
 bindings. A vacancy shows the planned issue without inventing an equipped soldier.
 
 Weapon Loadouts and Tactic Sheets share the right-hand browser. A new company's
-only weapon choice is **Dockside Issue**, twelve Service Rooks; its only tactic
-sheet is **Watchman's Kit**, twelve Ward security kits over field fatigues.
+only weapon choice is **Dockside Issue**, twelve surplus Rooks; its only tactic
+sheet is **Watchman's Kit**, twelve Cordon security shells over field fatigues.
 Starting specifications remain Rook, field
-fatigues, and Ward; no specialist weapon or suit is granted. A tactic sheet must
+fatigues, and Cordon; no specialist weapon or suit is granted. A tactic sheet must
 first be learned through its associated equipment acquisition or story transfer,
-then be resolvable from owned patterns. Merely being able to substitute Ward or
+then be resolvable from owned patterns. Merely being able to substitute Cordon or
 Janus into its billets does not unlock another faction's sheet. Among learned
 sheets, plans that resolve to the same ordered twelve issued patterns appear as
 one choice; the assigned sheet remains the visible representative. Grouping is
@@ -421,7 +421,7 @@ Those differences live on concrete armor-pattern stats and twelve-billet issue, 
 on a hidden faction modifier or set bonus.
 Edits remain a draft until **Save as New**, so a definition already assigned to a
 squad never silently refits its materialized equipment.
-Starting armories collect only Service Rook, field fatigues, and Ward security kit.
+Starting armories collect only surplus Rook, field fatigues, and Cordon security shell.
 Save repair retains previously learned specifications and assigned formations but
 does not seed specialist gear or the unlearned faction-sheet library. The Machine
 Shop fits learned equipment freely.

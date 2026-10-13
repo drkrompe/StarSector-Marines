@@ -52,6 +52,12 @@ public final class InfantryLoadoutRolls {
     /** Builds a local/defender fireteam; elite high-risk regulars field one AMR carrier. */
     public static MarineLoadout[] defenderSquad(int capacity, UnitType type,
                                                  RiskLevel risk, Random rng) {
+        return defenderSquad(capacity, type, risk, rng, null);
+    }
+
+    /** A scenario may bound the primary family without changing protection or personnel rolls. */
+    public static MarineLoadout[] defenderSquad(int capacity, UnitType type,
+                                               RiskLevel risk, Random rng, WeaponDef primary) {
         MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
         RiskLevel resolvedRisk = risk != null ? risk : RiskLevel.LOW;
         int amrSlot = resolvedRisk == RiskLevel.HIGH && type != UnitType.MILITIA
@@ -65,8 +71,9 @@ public final class InfantryLoadoutRolls {
                     ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID)
                     : null;
             MarineArmorPattern armor = defenderArmor(type, resolvedRisk, rng);
+            WeaponDef rolledPrimary = defenderPrimary(type, rng);
             roster[i] = MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
-                    defenderPrimary(type, rng),
+                    primary != null ? primary : rolledPrimary,
                     defenderEquipmentGrade(type, resolvedRisk, rng),
                     defenderProfile(type, resolvedRisk, rng), special, null,
                     armor.layeredFamily(), armor.armorCapacity, armor.armorRating,

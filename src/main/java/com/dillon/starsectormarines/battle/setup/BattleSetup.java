@@ -231,9 +231,10 @@ public final class BattleSetup {
     /** BFS radius around a tactical-node anchor for picking garrison spawn cells. Tight — defenders should appear inside or right next to their post. */
     private static final int GARRISON_SPAWN_RADIUS = 5;
 
-    /** Opening forces: two local fireteams and three raider fireteams; Relief also commits two later fireteams. */
+    /** Relief opens with two local posts and two raider fireteams, followed by two six-person road groups. */
     private static final int OPENING_LOCAL_MILITIA = 8;
-    private static final int OPENING_RAIDERS = 12;
+    private static final int OPENING_RAIDERS = 8;
+    private static final int RELIEF_ROAD_RESERVE = 6;
     private static final int OPENING_FIRETEAM_SIZE = 4;
     /** Give the local line time to make contact before transport descent. */
     private static final float RELIEF_LIFT_DELAY_SEC = 6f;
@@ -1250,7 +1251,6 @@ public final class BattleSetup {
         if (kind == null) throw new IllegalArgumentException(
                 "opening operation kind is required");
 
-        MapScale scale = MapScale.forTier(OperationTier.FIRST_CONTRACT);
         TargetProfile effectiveProfile = profile != null ? profile : TargetProfile.NEUTRAL;
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         ReliefCheckpoint.Layout checkpoint = null;
@@ -1263,12 +1263,15 @@ public final class BattleSetup {
         int[] requestedAnchor;
         TacticalNode reliefPost = null;
         if (kind == OpeningOperationKind.RELIEF) {
-            checkpoint = ReliefCheckpoint.generate(scale.width, scale.height, seed, effectiveProfile);
+            checkpoint = ReliefCheckpoint.generate(ReliefCheckpoint.WIDTH, ReliefCheckpoint.HEIGHT, seed, effectiveProfile);
             map = checkpoint.map();
             authoredPlace = checkpoint.relay();
             lzCells = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
             requestedAnchor = new int[]{checkpoint.gate().x(), checkpoint.gate().y()};
-            localMilitiaCells = pickSpawnCluster(map.grid, checkpoint.gate().x(), checkpoint.gate().y(), OPENING_LOCAL_MILITIA);
+            localMilitiaCells = new ArrayList<>(pickSpawnCluster(map.grid, checkpoint.gate().x(),
+                    checkpoint.gate().y(), OPENING_LOCAL_MILITIA / 2));
+            localMilitiaCells.addAll(pickSpawnCluster(map.grid, checkpoint.forwardPost().x(),
+                    checkpoint.forwardPost().y(), OPENING_LOCAL_MILITIA / 2));
             raiderCells = pickSpawnCluster(map.grid, checkpoint.openingAttack().x(), checkpoint.openingAttack().y(), OPENING_RAIDERS);
             reliefPost = openingDefenseNode(checkpoint.gate().x(), checkpoint.gate().y(), Faction.ALLY, map.grid);
         } else {
@@ -1296,7 +1299,7 @@ public final class BattleSetup {
             // Relief ends when its finite assault is broken. Keep the first exploration find
             // in the defended inner yard, where the company can reach it during that fight.
             sim.setFieldSalvageSites(List.of(new SalvagePlacement.Site(SalvageResource.METALS,
-                    new SalvagePlacement.Cell(45, 36), 36, 35, 50, 38)));
+                    new SalvagePlacement.Cell(77, 36), 68, 35, 82, 38)));
         }
 
         sim.addObjective(new EliminateFactionObjective(
@@ -1326,9 +1329,8 @@ public final class BattleSetup {
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
             if (localMilitia) {
-                if (reliefPost != null) shuttleMission.garrisonNode = reliefPost;
-                else shuttleMission.commandClaim = SquadCommandClaim.mission(
-                        OpeningOperationCommand.issuer(Faction.ALLY), "Wayline joint depot advance");
+                shuttleMission.commandClaim = SquadCommandClaim.mission(
+                        OpeningOperationCommand.issuer(Faction.ALLY), "Wayline reinforcement lift");
             } else {
                 shuttleMission.commandClaim = SquadCommandClaim.mission(
                         OpeningOperationCommand.issuer(Faction.MARINE),
@@ -1340,7 +1342,8 @@ public final class BattleSetup {
                 cycleLoadouts[cycle] = localMilitia
                         ? InfantryLoadoutRolls.defenderSquad(
                                 assignment.seatsForCycle(cycle), UnitType.MILITIA,
-                                RiskLevel.LOW, rng)
+                                RiskLevel.LOW, rng, kind == OpeningOperationKind.RELIEF
+                                        ? WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID) : null)
                         : InfantryLoadoutRolls.playerSquad(
                                 assignment.seatsForCycle(cycle), rng);
             }
@@ -1352,8 +1355,14 @@ public final class BattleSetup {
         }
 
         if (kind == OpeningOperationKind.RELIEF) {
-            spawnOpeningMilitiaSquads(sim, localMilitiaCells, Faction.ALLY,
-                    "local", reliefPost, rng);
+            spawnOpeningMilitiaSquads(sim, localMilitiaCells.subList(0, OPENING_LOCAL_MILITIA / 2),
+                    Faction.ALLY, "local-gate", reliefPost, rng, OPENING_FIRETEAM_SIZE,
+                    WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
+            TacticalNode forwardPost = openingDefenseNode(checkpoint.forwardPost().x(),
+                    checkpoint.forwardPost().y(), Faction.ALLY, map.grid);
+            spawnOpeningMilitiaSquads(sim, localMilitiaCells.subList(OPENING_LOCAL_MILITIA / 2, OPENING_LOCAL_MILITIA),
+                    Faction.ALLY, "local-screen", forwardPost, rng, OPENING_FIRETEAM_SIZE,
+                    WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
         }
         // Relief meets a Rook-equipped starter company arriving four at a time.
         // Keep its entire finite assault at that weapon tier, including road arrivals.
@@ -1387,7 +1396,7 @@ public final class BattleSetup {
                 new OpeningOperationCommand(Faction.MARINE), disclosure);
         sim.setAutonomousCommander(Faction.DEFENDER,
                 new OpeningOperationCommand(Faction.DEFENDER), disclosure);
-        if (depot != null) sim.setAutonomousCommander(Faction.ALLY,
+        sim.setAutonomousCommander(Faction.ALLY,
                 new OpeningOperationCommand(Faction.ALLY), disclosure);
         sim.installOpeningStoryHooks(commandFacts);
         if (recoverHound && depot != null) {
@@ -2013,11 +2022,11 @@ public final class BattleSetup {
         return sim;
     }
 
-    /** Four precommitted militia enter at a road mouth; loadouts are frozen at setup. */
+    /** Six precommitted militia enter at a road mouth; loadouts are frozen at setup. */
     private static List<EntitySpec> openingReserve(MapResult map, ReliefCheckpoint.Cell entry,
                                                   String prefix, Random rng) {
         List<EntitySpec> force = new ArrayList<>();
-        for (int[] cell : pickSpawnCluster(map.grid, entry.x(), entry.y(), OPENING_FIRETEAM_SIZE)) {
+        for (int[] cell : pickSpawnCluster(map.grid, entry.x(), entry.y(), RELIEF_ROAD_RESERVE)) {
             EntitySpec raider = makeOpeningMilitia(prefix + "-" + force.size(), Faction.DEFENDER,
                     cell[0], cell[1], rng).role(UnitRole.PATROL);
             raider.primaryWeapon(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),

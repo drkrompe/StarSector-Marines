@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Opt-in neutral observation of Relief's production factory, never a second scene builder. */
 @Tag("relief-command-evidence")
@@ -75,7 +77,20 @@ class ReliefCommandEvidenceTest {
             Files.writeString(report.resolve("summary.json"), first.summary());
             Files.writeString(report.resolve("trace.jsonl"), first.trace());
             Files.writeString(report.resolve("fixture.json"), fixture.toString(2));
-            summaries.put(new JSONObject(first.summary()).put("fixture", fixture.getString("id")));
+            JSONObject summary = new JSONObject(first.summary()).put("fixture", fixture.getString("id"));
+            if (custom.isBlank() && fixture.getInt("playerDelay") == 0 && ticks >= 3000) {
+                int assembled = summary.getInt("squadAssembledTick");
+                assertTrue(assembled > 0, "the complete starter squad must assemble");
+                assertTrue(summary.getInt("firstPlayerShotTick") < 0
+                        || summary.getInt("firstPlayerShotTick") > assembled,
+                        "the exterior engagement must give the squad time to assemble before firing");
+                assertTrue(summary.getInt("firstPlayerLossTick") < 0
+                        || summary.getInt("firstPlayerLossTick") > assembled,
+                        "the starter landing must not take losses before assembly");
+                assertTrue(summary.getInt("firstOriginalMilitiaShotTick") < assembled,
+                        "the local militia must already be fighting during the landing");
+            }
+            summaries.put(summary);
         }
         Files.writeString(output.resolve("summary.json"), summaries.toString(2));
         System.out.println("[relief-evidence] " + output.resolve("summary.json"));
@@ -135,6 +150,7 @@ class ReliefCommandEvidenceTest {
             Set<Long> landedPlayer = new HashSet<>();
             JSONArray playerArrivals = new JSONArray();
             int firstEmployerAtGate = -1;
+            int assembled = -1, firstRaiderAtGate = -1, firstPlayerLoss = -1;
             int firstLocalShot = -1;
             int firstShot = -1, firstLanding = -1, firstPlayerShot = -1, firstLocalLoss = -1, localAtLanding = -1;
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "relief", sim,
@@ -146,15 +162,14 @@ class ReliefCommandEvidenceTest {
                                     battle.world().airFaction(air) == Faction.ALLY ? "EMPLOYER LZ" : "PLAYER LZ",
                                     ReviewStyle.LANDING);
                         }
-                        extra.label(42, 45, "RELAY OFFICE", ReviewStyle.NOTE);
-                        extra.label(67, 24, "INSPECTION", ReviewStyle.NOTE);
-                        extra.label(103, 30, "FREIGHT ROAD", ReviewStyle.NOTE);
-                        extra.label(82, 58, "SERVICE ROAD", ReviewStyle.NOTE);
-                        boolean postMarked = false;
+                        extra.label(74, 45, "RELAY OFFICE", ReviewStyle.NOTE);
+                        extra.label(99, 24, "INSPECTION", ReviewStyle.NOTE);
+                        extra.label(135, 30, "FREIGHT ROAD", ReviewStyle.NOTE);
+                        extra.label(114, 58, "SERVICE ROAD", ReviewStyle.NOTE);
+
                         for (var squad : battle.getSquads()) {
-                            if (!postMarked && squad.faction == Faction.ALLY && squad.assignedNode != null) {
-                                postMarked = true;
-                                extra.label(squad.assignedNode.anchorX, squad.assignedNode.anchorY, "CHECKPOINT / MILITIA", ReviewStyle.OBJECTIVE);
+                            if (squad.faction == Faction.ALLY && squad.assignedNode != null) {
+                                extra.label(squad.assignedNode.anchorX, squad.assignedNode.anchorY, squad.assignedNode.anchorX > 90 ? "EXTERIOR SCREEN" : "GATE / MILITIA", ReviewStyle.OBJECTIVE);
                             }
                         }
                         return renderer.render(battle, caption + " / LOCAL " + living(battle, originalMilitia) + " / RESERVE " + battle.pendingGroundArrivals(Faction.DEFENDER), extra.build());
@@ -173,8 +188,18 @@ class ReliefCommandEvidenceTest {
                                     .put("alliesAlive", count(sim, Faction.ALLY)));
                         if (firstEmployerAtGate < 0 && sim.identity().faction(unit) == Faction.ALLY
                                 && !originalMilitia.contains(unit)
-                                && Math.hypot(sim.world().x(unit) - 51, sim.world().y(unit) - 30) <= 8)
+                                && Math.hypot(sim.world().x(unit) - 83, sim.world().y(unit) - 30) <= 8)
                             firstEmployerAtGate = tick;
+                    }
+                    if (assembled < 0 && landedPlayer.size() == player.embarkedPersonnel
+                            && sim.getSquads().stream().filter(s -> s.faction == Faction.MARINE)
+                            .noneMatch(SquadFormUpSystem::formingUp)) assembled = tick;
+                    if (firstPlayerLoss < 0 && count(sim, Faction.MARINE) < landedPlayer.size()) firstPlayerLoss = tick;
+                    for (int i = 0; i < sim.liveUnitCount(); i++) {
+                        long id = sim.liveUnitAt(i);
+                        if (firstRaiderAtGate < 0 && sim.identity().faction(id) == Faction.DEFENDER
+                                && Math.hypot(sim.world().x(id) - 83, sim.world().y(id) - 30) <= 8)
+                            firstRaiderAtGate = tick;
                     }
                     if (firstLocalLoss < 0 && local < originalMilitia.size()) firstLocalLoss = tick;
                     if (firstLanding < 0 && count(sim, Faction.MARINE) > 0) { firstLanding = tick; localAtLanding = local; }
@@ -199,10 +224,12 @@ class ReliefCommandEvidenceTest {
                     .put("road", arrival.road()).put("tick", arrival.tick()).put("members", arrival.members()));
             var picture = ((OpeningOperationCommand) sim.getCommander(Faction.MARINE)).operationPicture();
             return new Result(new JSONObject().put("seed", seed).put("profile", surface.name() + (starterCompany
-                            ? " / detached starter roster, Rooks and Ward security kit"
+                            ? " / detached starter roster, surplus Rooks and Cordon shells"
                             : " / controlled construction, no campaign loadout"))
                     .put("starterCompany", starterCompany).put("playerArrivals", playerArrivals)
                     .put("firstEmployerAtGateTick", firstEmployerAtGate)
+                    .put("squadAssembledTick", assembled).put("firstRaiderAtGateTick", firstRaiderAtGate)
+                    .put("firstPlayerLossTick", firstPlayerLoss)
                     .put("playerBoatId", boat.boatId()).put("playerType", boat.pattern().name())
                     .put("playerPlating", boat.plating().id()).put("playerDrive", boat.drive().id())
                     .put("storyBeats", StoryBeatEvidence.snapshot(sim))
