@@ -513,7 +513,7 @@ it does not have. The shield (E) is the warship's.
   not repeat. The drone swarm has no order to "go to the cursor", and one is not invented here:
   the defence drones keep the screening behaviour they already have.
 - **Number keys select what to build.** They are the tender's real option list in order (today
-  one: [1] the vulcan turret); a slot with no option behind it is refused and shown as
+  four: [1] vulcan, [2] arbalest, [3] dual flak, [4] heavy mortar); a slot with no option behind it is refused and shown as
   "soon". Choosing is not a handback and changes no running build.
 - **X cancels every unfinished site**; each returns its charge on a metered tender.
 - **A piloted tender does not station itself at a site**, because the hands are what move it.
