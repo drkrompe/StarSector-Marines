@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -95,6 +98,50 @@ class DefendAreaTest {
         int destinationY = Paths.destY(sim.world().path(member));
         assertTrue(distanceSquared(30, 20, destinationX, destinationY)
                 <= 20 * 20);
+    }
+
+    /**
+     * A target with no firing position inside the circle sends members to the
+     * prepared line. That fallback used to pass no squad, so every member was
+     * ordinal 0 of 1 and the whole squad walked to one cell.
+     */
+    @Test
+    void squadWithATargetButNoFiringPositionStaysSpreadAlongThePreparedLine() {
+        BattleSimulation sim = openSimulation(120, 48);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        int count = 6;
+        long[] members = new long[count];
+        for (int i = 0; i < count; i++) {
+            members[i] = sim.spawn(new EntitySpec("marine" + i, Faction.MARINE,
+                    UnitType.MARINE, 28 + i, 20).squad(squadId).primaryWeapon(
+                    WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID)));
+        }
+        squad.leaderId = members[0];
+        squad.aliveMembers = count;
+        squad.originalSize = count;
+        squad.assignedObjective = ObjectiveAssignment.defendArea(squadId, 30, 20, 10);
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER,
+                UnitType.MARINE, 100, 20));
+        DefendArea action = new DefendArea(30, 20, 10);
+
+        for (long member : members) {
+            sim.world().setTargetId(member, enemy);
+            action.execute(member, squad, sim);
+        }
+
+        for (long member : members) {
+            assertEquals(enemy, sim.targetOf(member), "premise: the target is kept");
+        }
+        Set<Long> destinations = new HashSet<>();
+        for (long member : members) {
+            int[] path = sim.world().path(member);
+            assertTrue(!Paths.isEmpty(path), "every member is walking somewhere");
+            destinations.add(((long) Paths.destX(path) << 32) | Paths.destY(path));
+        }
+        assertTrue(destinations.size() >= count - 1,
+                "members take separate places on the line, got " + destinations.size()
+                        + " distinct destinations for " + count);
     }
 
     private static SquadContactPicture contactAt(int x, int y) {

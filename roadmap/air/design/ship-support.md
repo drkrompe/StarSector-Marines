@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-13
 
+Updated: 2026-10-13 — slice 3 (arrival and departure in atmosphere) is built; the planet tint is a seam, the hostile ship and low pass remain.
+
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
 ordinary play, and what makes having one there fun. The ship itself (hover, guns,
@@ -88,8 +90,23 @@ In the order they are worth building:
    it. Evidence: a behaviour scene and unit tests at the catalog and loadout seams.
 2. **Writeback:** hull damage and a readiness cost to the committed member, through
    mission settlement. Unlocks the deferred readiness item in `warship-on-station.md`.
-3. **Arrival and departure in atmosphere:** the descent, shadow, glow, pressure wave
-   and sound (presentation only, deterministic).
+3. **Arrival and departure in atmosphere** (built): the descent, shadow, glow, pressure
+   wave and sound, presentation only and deterministic from the ship's own clocks. A
+   ship that `arriveFromAbove()` drops through a cloud deck about fifty cells up over six
+   seconds on an ease-out; any ship that departs climbs back on an ease-in. One number,
+   the lift, drives its shadow (further down-sun, softer and thinner when high, closing
+   as it settles), the haze over the hull, the cloud streaming astern, the re-entry glow
+   (fading over about four seconds), the dust under the hull and the ring sent across
+   the ground at touchdown; a climb adds an exhaust wake. Sounds are the game's own
+   ids, played through the ordinary warship cue path: a slowed `gate_explosion` on entry,
+   a `hit_heavy` thud at touchdown, `engine_accelerate` low at lift-off and higher
+   as it climbs, each rate-limited. Any ship that does not enter this way is
+   unchanged. What remains: the planet tint is a seam only (`WarshipRenderSystem.surface`;
+   the battle does not yet carry the target's palette to presentation), the power must call
+   `arriveFromAbove()` on activation (the debug install does), and a departing ship is
+   hidden by its climb well before it leaves the map. Needs a live look for how the
+   cloud, glow and dust read over real terrain and under the live camera, and for the
+   audio levels.
 4. **Hostile ship support:** the defender's ship on the same mechanism, offered by the
    target profile, with a warning beat.
 5. **Low pass.**

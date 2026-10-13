@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — a tender knows what its side knows; an unpiloted one builds from its hull's mission stance.
+Updated: 2026-10-13 — an entering ship drops through the cloud deck and a departing one climbs into it (presentation only).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1442,6 +1442,17 @@ blast; point-defence-only
 weapons never fire at ground (see below). A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
 
+**A ship enters and leaves through the cloud deck, and that is presentation only.**
+A ship brought in from the map edge starts at the top of the deck and descends to its
+hover, and one that departs climbs back; everything seen of that (the shadow lengthening
+and softening with height, the haze and cloud on the hull, the re-entry glow, the dust
+and shock ring on the ground, the exhaust wake of a climb) is read from one lift value
+that is a function of the ship's own entry and departure clocks, so a frame is
+deterministic from ship state and tick and the simulation never reads it. A ship that did
+not enter this way hovers as it always did. The ground feels it only as light and dust;
+nothing about the hull's hit shape, guns or collision changes with the descent. The
+planet's surface palette may tint the glow, cloud and dust.
+
 A ship is heard in the game's own sounds, never a mod clip: the weapon's fire sound and its blast's sound come from the same specs, the simulation only records the requests, and the presentation plays them positionally. A burst is thinned to a report every fraction of a second rather than a cue per round, and a lance sounds once when it lights, not while it telegraphs.
 
 **A hull must bring its guns to bear, and a broadside cannot shoot dead ahead.**
@@ -1846,12 +1857,17 @@ sticky posture (air superiority, support, intercept, bombard, withdraw) from a
 threat picture and the ship's stance on the objective, and set only the
 parameters of the machinery described here: the director's areas, an
 opportunity range, a flux ceiling, a station. It issues ordinary orders and
-changes no weapon's damage. Honest state today: a warship's weapons may fire at
-aircraft by the rule above, but aircraft cannot hurt a warship except through
-the ordnance that happens to land on it, and ground defences cannot hurt one at
-all, so the air-superiority posture still enters on a mission-declared threat,
-hostile ships or two armed craft and has no air threat to a ship that is more
-than incidental.
+changes no weapon's damage. A warship's weapons may fire at
+aircraft by the rule above, and hostile strike aircraft can now hurt a warship:
+the dispatchers (field sorties and committed wings) treat a hostile hull as a
+candidate target ahead of the ground, provided the craft's ordnance gets
+through that hull's armour at all and fewer than two of the side's craft are
+already working it. The craft flies the ordinary attack run at the hull's
+centre and its rounds land as ordinary detonations, so the hull's own shield
+and armour rule answer them; there is no second damage route and the ship is
+still not an entity. The threat picture counts an armed craft only where it can
+hurt, and shield type scales its weight (none, then front, then omni, fear it
+less in that order). Ground defences still cannot hurt a warship at all.
 
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of

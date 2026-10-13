@@ -230,13 +230,20 @@ final class MannedDeckTest {
             assertTrue(billeted > 0, "the ship billeted none of the company");
 
             IdentityService identity = scene.simulation().identity();
-            int marines = 0;
+            java.util.Set<Long> mustered = new java.util.HashSet<>();
+            for (MarineSoldier soldier : company) {
+                long actor = ship.marineFor(soldier.id());
+                if (actor != 0L) mustered.add(actor);
+            }
+            // The one marine-typed hand who is not on the roster is the ship's own
+            // security rating at the command entrance (CrewRole.SECURITY).
+            int unrostered = 0;
             for (int index = 0; index < scene.simulation().getRoster().liveCount(); index++) {
                 long actor = scene.simulation().getRoster().get(index);
-                if (identity.type(actor) == CrewRole.MARINE.unit()) marines++;
+                if (identity.type(actor) == CrewRole.MARINE.unit() && !mustered.contains(actor)) unrostered++;
             }
-            assertEquals(billeted, marines,
-                    "crewing the ship added marines who are on no muster roll");
+            assertTrue(unrostered <= 1,
+                    "crewing the ship added marines who are on no muster roll: " + unrostered);
         } finally {
             ship.dismiss();
         }

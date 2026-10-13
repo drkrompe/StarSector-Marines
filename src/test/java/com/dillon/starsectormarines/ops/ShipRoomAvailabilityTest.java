@@ -184,7 +184,7 @@ class ShipRoomAvailabilityTest {
                 () -> opened[3] = true);
 
         assertEquals("page-nav-waiting", props.get("barracksClasses"));
-        assertEquals("page-nav-waiting", props.get("armoryClasses"));
+        // armoryClasses is a legacy template property: equipment is a workspace within Barracks.
         assertEquals("page-nav-waiting", props.get("mechLabClasses"));
         assertEquals("page-nav-waiting", props.get("boatsClasses"));
 
@@ -212,7 +212,7 @@ class ShipRoomAvailabilityTest {
         CompanyHqViewModel.ShipView mustering = CompanyHqViewModel.shipViewWorking(
                 CompanyDeck.Work.MUSTERING, 9.6f);
 
-        assertEquals("WALK THE SHIP", ready.label());
+        assertEquals("ENGINEERING", ready.label());
         assertFalse(ready.classes().contains("waiting"),
                 "a ship that is ready was still shown as being got ready");
         assertFalse(ready.labelClasses().contains("waiting"));

@@ -37,6 +37,8 @@ import org.apache.log4j.Logger;
  * which is measured in seconds; what limits the field is the cap. That is the
  * right division — the pacing is physical and the limit is doctrine.
  *
+ * <p>A hostile hull the field's ordnance can hurt comes first ({@link HullStrike}); the sortie then flies the ordinary run at it.
+ *
  * <p>The target is the densest enemy concentration; {@link EnemyConcentration}
  * owns that choice and why it is the right one, and the corridor dispatcher
  * asks it the same question. With more than one aircraft up the field asks for
@@ -131,14 +133,26 @@ public final class AirStrikeSystem {
             nextStrikeIn = RETRY_SEC;
             return;
         }
-        long target = pickTarget(sim);
-        if (target == 0L) {
-            nextStrikeIn = RETRY_SEC;
-            return;
+        // A hostile hull this field's ordnance can hurt comes before the ground; see HullStrike.
+        HullTarget hull = HullStrike.choose(sim, side, h -> {
+            AirfieldService.Berth near = field.nearestAirworthy(h.x(), h.y(), AirfieldService.Kind.SHELTER);
+            return near == null ? null : near.airframe.ordnance();
+        });
+        float targetX;
+        float targetY;
+        if (hull != null) {
+            targetX = hull.x();
+            targetY = hull.y();
+        } else {
+            long target = pickTarget(sim);
+            if (target == 0L) {
+                nextStrikeIn = RETRY_SEC;
+                return;
+            }
+            World world = sim.world();
+            targetX = world.x(target);
+            targetY = world.y(target);
         }
-        World world = sim.world();
-        float targetX = world.x(target);
-        float targetY = world.y(target);
         AirfieldService.Berth shed = field.nearestAirworthy(
                 targetX, targetY, AirfieldService.Kind.SHELTER);
         if (shed == null) {
