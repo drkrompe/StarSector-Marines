@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentFillStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.ReservedBoatBayStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.WorkshopConditionStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipConditionStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.BayApertureStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
@@ -57,7 +58,7 @@ public final class ShipDeckGenerator {
      *
      * @param silhouette hull outline to trace, or null for the synthetic taper
      */
-    private GenRecipe buildDeckRecipe(HullSilhouette silhouette, RoomFit fit, CompanyShip.BoatBayState boatBay, WorkshopState workshop) {
+    private GenRecipe buildDeckRecipe(HullSilhouette silhouette, RoomFit fit, CompanyShip.BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration) {
         return new GenRecipe("ShipDeck", List.of(
                 new InitSolidStage(),                    // solid hull
                 new HullProfileStage(SPINE_WIDTH, silhouette),  // beam per frame + zones
@@ -66,13 +67,17 @@ public final class ShipDeckGenerator {
                 new CompartmentFillStage(fit),           // furnish each room at the deck refit
                 new ReservedBoatBayStage(boatBay),
                 new WorkshopConditionStage(workshop),
+                new ShipConditionStage(restoration),
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
                 new FinalizeStage(),                    // wall HP / cover / wall tags / buildings
                 new BayApertureStage(),                  // sight-clear vacuum beyond pressure openings
                 new ShipMaterialStage(),                // ship material defaults over the finalized shell
                 new ShipWearStage(boatBay),              // cosmetic history survives room repairs
-                ctx -> WorkshopConditionStage.restrictAccess(ctx, workshop))); // pressure exclusion, never wall geometry
+                ctx -> { // Pressure exclusion, never wall geometry.
+                    WorkshopConditionStage.restrictAccess(ctx, workshop);
+                    ShipConditionStage.restrictAccess(ctx, restoration);
+                }));
     }
 
     /**
@@ -101,7 +106,7 @@ public final class ShipDeckGenerator {
                                   HullSilhouette silhouette, RoomFit fit) {
         int width = plan.frames();
         int height = plan.height();
-        GenRecipe deckRecipe = buildDeckRecipe(silhouette, fit, plan.boatBay(), plan.workshop());
+        GenRecipe deckRecipe = buildDeckRecipe(silhouette, fit, plan.boatBay(), plan.workshop(), plan.restoration());
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);

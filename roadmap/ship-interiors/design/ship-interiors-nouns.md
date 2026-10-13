@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 -- persistent hull wear and room-condition lighting distinguish old scars from active faults.
+Updated: 2026-10-12 -- sealed spare billets, mission-two Mech Lab and independent distribution faults.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -1532,12 +1532,30 @@ actual floor beneath furnishings and own no navigation, cover or capacity.
 **Deck lighting** belongs to the company interior presentation. Compartments and
 passages have visible fixtures and readable pools of light. Damaged facilities
 use short, warm pools of emergency light with staggered local faults and deep,
-readable shadow between fixtures. Intact/repaired rooms have broader, steady
-illumination from fixtures in the same locations. Clearing workshop rubble alone does
+readable shadow between fixtures. Rooms with working distribution have broader, steady
+illumination from fixtures in the same locations. Second Wind also carries
+faulty distribution in otherwise usable rooms; those local faults do not close
+facilities or remove work stations. A distribution repair restores those circuits
+without repairing sealed structural rooms. Clearing workshop rubble alone does
 not restore its faulty lights; machinery repair does. Bay restoration restores
 its lights with its other facilities. Room masks confine the shading; space and
 management controls retain their own appearance. Lighting follows the shared
 deck clock across views, and has no combat visibility or simulation effect.
+
+The starting hull's converted Mech Lab and two spare troop bunkrooms are also
+sealed wrecks. Their permanent compartments carry breached plating, collapsed
+structure and broken fittings; their floors, work stations and gantries are out
+of service. Three or more troop bunkrooms remain available for the opening force.
+Restoration returns the original furniture, pressure-safe access and capacities,
+leaving welded scars. Room selection uses the actual compartment identity even
+when it is sealed. Presence on the plan is distinct from usable room navigation
+and berth capacity. Removing a gantry rebinds all surviving work-station berth
+references, so the first shuttle keeps its own servicing crew.
+
+Campaign owns the milestones: mission two restores the Mech Lab with the first
+Hound's recovery, while spare billets and distribution repairs are explicit yard
+orders after mission one. The room program, placement RNG and compartment
+footprints never change because those repairs were completed.
 
 These are hull-owned interior conditions, not a simulated atmosphere system.
 Debris, damaged machinery, empty picking racks and the restored
