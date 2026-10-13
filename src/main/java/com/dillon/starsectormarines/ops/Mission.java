@@ -168,9 +168,9 @@ public final class Mission {
     public final LandingKind landing;
 
     /**
-     * The ground defences the target world is stated to hold, or null for the
-     * ones its market's industries give it. A DEBUG statement only: production
-     * missions read the market.
+     * The ground defences this mission explicitly declares, or null to leave it to
+     * the mission type's policy ({@link MissionDefencePolicy}). A DEBUG statement
+     * today; the policy is the production path.
      */
     public final DebugDefences defences;
 

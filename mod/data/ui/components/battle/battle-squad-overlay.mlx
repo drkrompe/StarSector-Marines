@@ -1,4 +1,4 @@
-<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,defendAreaLabel,defendAreaClasses,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction,defendAreaAction">
+<template props="tacticalScope,squadTitle,squadStrength,moraleLabel,moraleStyle,defendAreaLabel,defendAreaClasses,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction,defendAreaAction">
   <div id="battle-squad-overlay" class="battle-squad-overlay" style="background-color: transparent">
     <div id="battle-squad-panel" class="squad-panel">
       <div id="battle-squad-header" class="squad-header">
@@ -14,7 +14,7 @@
           </div>
         </div>
         <div id="battle-squad-orders" class="squad-orders">
-          <div id="battle-squad-order-label" class="label heading squad-order-label">TACTICAL ORDER</div>
+          <div id="battle-squad-order-label" class="label heading squad-order-label">{tacticalScope}</div>
           <div id="battle-squad-order-spacer" class="squad-order-spacer" />
           <button id="battle-squad-defend-area" class="{defendAreaClasses}" onclick="{defendAreaAction}">{defendAreaLabel}</button>
         </div>

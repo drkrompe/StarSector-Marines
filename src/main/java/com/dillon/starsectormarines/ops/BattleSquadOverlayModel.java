@@ -39,6 +39,7 @@ final class BattleSquadOverlayModel {
     private final MutableSignal<String> squadStrength;
     private final MutableSignal<String> moraleLabel;
     private final MutableSignal<String> moraleStyle;
+    private final MutableSignal<String> tacticalScope;
     private final MutableSignal<String> defendAreaLabel;
     private final MutableSignal<String> defendAreaClasses;
     private final MutableSignal<List<FireTeamView>> fireTeams;
@@ -63,6 +64,7 @@ final class BattleSquadOverlayModel {
         squadStrength = reactor.signal("0/0");
         moraleLabel = reactor.signal("MORALE --");
         moraleStyle = reactor.signal("width: 0%;");
+        tacticalScope = reactor.signal("TACTICAL ORDER");
         defendAreaLabel = reactor.signal("DEFEND AREA");
         defendAreaClasses = reactor.signal("squad-defend-area");
         fireTeams = reactor.signal(emptyTeams());
@@ -85,6 +87,7 @@ final class BattleSquadOverlayModel {
         props.put("squadStrength", squadStrength);
         props.put("moraleLabel", moraleLabel);
         props.put("moraleStyle", moraleStyle);
+        props.put("tacticalScope", tacticalScope);
         props.put("defendAreaLabel", defendAreaLabel);
         props.put("defendAreaClasses", defendAreaClasses);
         props.put("fireTeams", fireTeams);
@@ -130,6 +133,10 @@ final class BattleSquadOverlayModel {
                 ? "squad-defend-area squad-defend-area-active"
                 : "squad-defend-area");
         return result;
+    }
+
+    void selectionScope(int count) {
+        tacticalScope.set(count > 1 ? "ALL " + count + " SQUADS" : "TACTICAL ORDER");
     }
 
     static boolean isPlayerInfantrySquad(Squad squad) {

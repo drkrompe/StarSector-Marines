@@ -249,8 +249,10 @@ public final class MissionLaunch {
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
                 .withFactionId(m.defenderFactionOverride);
-        final TargetProfile profile = m.defences != null
-                ? m.defences.applyTo(marketProfile) : marketProfile;
+        // The mission, not the market and not the map, decides which ground defences
+        // the battle carries; the market's signals stay on the profile as inputs.
+        final TargetProfile profile = marketProfile.withDeclaredDefences(
+                MissionDefencePolicy.declare(m, marketProfile));
 
         // How settled the map is: the mission's own statement where it made one,
         // and the market's size where it did not. Resolved once here rather than

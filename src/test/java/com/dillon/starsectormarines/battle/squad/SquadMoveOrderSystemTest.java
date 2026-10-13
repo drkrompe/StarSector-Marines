@@ -75,10 +75,8 @@ class SquadMoveOrderSystemTest {
         selection.selectSquad(squad.id);
         HighlightOverlay overlay = new HighlightOverlay();
         SquadMoveOrderHighlightPublisher.publish(selection, sim, overlay);
-        assertEquals(record.captureCellX, overlay.source(
-                HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).get(0).cellX);
-        assertEquals(record.captureCellY, overlay.source(
-                HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).get(0).cellY);
+        assertTrue(overlay.source(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).isEmpty(),
+                "accepted move/capture orders no longer paint destination cells");
 
         GoapInfantryBehavior.replanIfNeeded(squad, sim);
         assertSame(SecureCompoundGoal.INSTANCE, squad.currentGoal);
@@ -165,10 +163,8 @@ class SquadMoveOrderSystemTest {
         selection.selectSquad(squad.id);
         HighlightOverlay overlay = new HighlightOverlay();
         SquadMoveOrderHighlightPublisher.publish(selection, sim, overlay);
-        assertEquals(10, overlay.source(
-                HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).get(0).cellX);
-        assertEquals(4, overlay.source(
-                HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).get(0).cellY);
+        assertTrue(overlay.source(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).isEmpty(),
+                "accepted move/capture orders no longer paint destination cells");
     }
 
     @Test

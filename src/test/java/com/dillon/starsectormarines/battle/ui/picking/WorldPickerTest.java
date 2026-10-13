@@ -41,15 +41,16 @@ class WorldPickerTest {
     }
 
     @Test
-    void dragChoosesOnePlayerSquadNearestTheBoxCenter() {
+    void dragSelectsEveryPlayerSquadAndFocusesTheNearestMember() {
         try (Fixture fixture = fixture()) {
-            fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 7, 10);
+            Unit left = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 7, 10);
             Unit right = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE,
                     14, 10);
             fixture.spawnSquad(Faction.DEFENDER, UnitType.MILITIA, 12, 10);
 
             fixture.dragCells(5, 8, 20, 12);
 
+            assertEquals(List.of(left.squadId, right.squadId), fixture.selection.getSelectedSquadIds());
             assertEquals(right.squadId, fixture.selection.getSelectedSquadId());
             assertEquals(right.entityId,
                     fixture.selection.getSelectedUnitEntityId());
@@ -84,7 +85,28 @@ class WorldPickerTest {
         }
     }
 
+    @Test
+    void shiftClickAddsASquadAndHoverYieldsToChrome() {
+        try (Fixture fixture = fixture()) {
+            Unit first = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 5, 5);
+            Unit second = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 10, 10);
+            fixture.selection.selectUnit(first.squadId, first.entityId);
+            int x = fixture.screenX(second.entityId), y = fixture.screenY(second.entityId);
+            fixture.picker.handleInput(List.of(event(Kind.LEFT_DOWN, x, y, true),
+                    event(Kind.LEFT_UP, x, y, true)));
+            assertEquals(List.of(first.squadId, second.squadId), fixture.selection.getSelectedSquadIds());
+            fixture.picker.updateHover(x, y, true);
+            assertEquals(second.squadId, fixture.selection.getHoveredSquadId());
+            fixture.picker.updateHover(x, y, false);
+            assertEquals(Selection.NONE, fixture.selection.getHoveredSquadId());
+        }
+    }
+
     private static InputEventAPI event(Kind kind, int x, int y) {
+        return event(kind, x, y, false);
+    }
+
+    private static InputEventAPI event(Kind kind, int x, int y, boolean shift) {
         boolean[] consumed = {false};
         return (InputEventAPI) Proxy.newProxyInstance(
                 InputEventAPI.class.getClassLoader(),
@@ -93,6 +115,7 @@ class WorldPickerTest {
                     case "isLMBDownEvent" -> kind == Kind.LEFT_DOWN;
                     case "isLMBUpEvent" -> kind == Kind.LEFT_UP;
                     case "isMouseMoveEvent" -> kind == Kind.MOVE;
+                    case "isShiftDown" -> shift;
                     case "getX" -> x;
                     case "getY" -> y;
                     case "isConsumed" -> consumed[0];

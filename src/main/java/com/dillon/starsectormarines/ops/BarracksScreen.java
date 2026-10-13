@@ -49,6 +49,7 @@ public final class BarracksScreen implements Screen {
     private UiViewport viewport;
     private UiDocument document;
     private BarracksGuideCallout guide;
+    private PreparationGuide campaignGuide;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private SpecSheetBinder specSheets;
@@ -91,7 +92,9 @@ public final class BarracksScreen implements Screen {
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
+        viewModel.command().campaignGuidance(campaignLesson() != null);
         guide.update();
+        campaignGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -103,7 +106,7 @@ public final class BarracksScreen implements Screen {
         BarracksGuideCallout candidateGuide;
         try {
             requireWiredElements(candidate);
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard());
             candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), () -> {
@@ -133,9 +136,23 @@ public final class BarracksScreen implements Screen {
         cardBindings = candidateCards;
         guide = candidateGuide;
         document = built;
+        campaignGuide = PreparationGuide.install(built, this::campaignLesson, this::close);
+        campaignGuide.fallbackInput(guide::inputRegions);
+        built.onCancel(() -> {
+            if (campaignGuide.visible()) return;
+            if (viewModel.command().guideVisible()) viewModel.command().dismissGuide();
+            else if (viewModel.command().inspecting()) viewModel.command().showOverview();
+            else close();
+        });
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
+    }
+
+    private PreparationGuide.Lesson campaignLesson() {
+        var handoff = CampaignLessons.handoff(roster, context, ScreenId.BARRACKS);
+        return handoff != null ? handoff : CampaignLessons.formations(roster, context, false,
+                () -> context.openSquadFoundingFrom(ScreenId.BARRACKS));
     }
 
     private Map<String, Object> props() {
@@ -198,7 +215,9 @@ public final class BarracksScreen implements Screen {
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BARRACKS, context::roomAboard, CompanyNotices.current());
         if (cardBindings != null) cardBindings.update(document, markupInstance, viewModel, specSheets);
         if (document != null) document.advance(dt);
+        viewModel.command().campaignGuidance(campaignLesson() != null);
         if (guide != null) guide.update();
+        if (campaignGuide != null) campaignGuide.update();
         if (specSheets != null) specSheets.update();
     }
 

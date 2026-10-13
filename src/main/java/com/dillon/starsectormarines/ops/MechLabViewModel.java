@@ -213,28 +213,39 @@ public final class MechLabViewModel {
                 ? activeGantryLabel.get() : "ACTIVE LANCE  //  ALL GANTRIES");
     }
 
+    public void resumeCampaignLesson() {
+        if (bay.labLesson() <= 0 || bay.labLesson() >= 5) return;
+        bay.pauseLabLesson(false);
+        dismissedLesson.set(0);
+        if (bay.labLesson() > 1 && bay.mechById(WaylineHound.ID) != null) {
+            for (var squad : bay.squads()) if (squad.mechById(WaylineHound.ID) != null) {
+                selectSquad(squad.id()); selectMech(WaylineHound.ID);
+                selectSlot(SocketId.LEFT_SHOULDER); break;
+            }
+        }
+        revision.update(value -> value + 1);
+    }
+
+    PreparationGuide.Lesson campaignLesson() {
+        int step = bay.labLesson();
+        if (step <= 0 || step >= 5 || bay.mechById(WaylineHound.ID) == null) return null;
+        return CampaignLessons.lesson(step - 1, "lessonGantryTitle", "lessonGantry" + step,
+                step == 1 ? List.of("mech-overview-gantries", "mech-overview-browse")
+                        : List.of("mech-doll-canvas", "mech-slot-rack", "mech-component-catalog"),
+                step == 1 ? "lessonOpenWayward" : step == 4 ? "lessonReady" : null,
+                step == 1 || step == 4 ? this::guideLabLesson : null);
+    }
+
     public void putTutorialProps(Map<String, Object> props) {
         props.put("lessonClasses", reactor.computed(() -> {
             revision.get();
             return labGuideVisible() ? "lesson-backdrop" : "lesson-backdrop-hidden";
         }));
-        props.put("lessonTitle", reactor.computed(() -> {
-            revision.get();
-            return "CASTLE // GANTRY INDUCTION  " + Math.min(4, bay.labLesson()) + " / 4";
-        }));
-        props.put("lessonCopy", reactor.computed(() -> {
-            revision.get();
-            return switch (bay.labLesson()) {
-                case 1 -> "Wayward is ours. A lance holds up to four walkers. BROWSE LANCES selects which lance answers Mech Support; the others stay aboard. Let's open Wayward's gantry.";
-                case 2 -> "One basic SRM-5 is waiting in stores. Select an empty shoulder, then INSTALL SPARE or drag the rack onto it. Its 2 x 2 footprint fits the shoulder mount. The nose chaingun stays fitted.";
-                case 3 -> "Now practice a refit: drag the fitted SRM back to stores, or use its remove control. Then select the shoulder and INSTALL SPARE again. We reuse the same rack; removing equipment does not destroy it.";
-                case 4 -> "Fit checked. Your active lance travels on Mech Support when a mission provides heavy lift. Chaingun and SRM bursts share heat. Ease off when the heat bar turns amber; loaders cycle separately and the replenisher restores spent packs. In override, aim with the mouse and use WASD to strafe or reverse more slowly. Keep infantry ahead to spot threats.";
-                default -> "";
-            };
-        }));
+        props.put("lessonTitle", reactor.computed(() -> { revision.get(); return LessonCopy.text("lessonGantryTitle"); }));
+        props.put("lessonCopy", reactor.computed(() -> { revision.get(); return LessonCopy.text("lessonGantry" + Math.min(4, Math.max(1, bay.labLesson()))); }));
         props.put("lessonActionLabel", reactor.computed(() -> {
             revision.get();
-            return bay.labLesson() == 1 ? "OPEN WAYWARD" : bay.labLesson() == 4 ? "READY" : "CLOSE / TRY IT";
+            return LessonCopy.text(bay.labLesson() == 1 ? "lessonOpenWayward" : "lessonReady");
         }));
         props.put("lessonAction", (Runnable) this::guideLabLesson);
         props.put("lessonPause", (Runnable) () -> { bay.pauseLabLesson(true); revision.update(value -> value + 1); });

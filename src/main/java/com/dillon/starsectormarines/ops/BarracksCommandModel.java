@@ -591,7 +591,10 @@ public final class BarracksCommandModel {
                 : "Fitting blocked. Check stationed squads and required technology.";
         changed.run();
     }
+    private boolean campaignGuidance;
+    public void campaignGuidance(boolean active) { if (campaignGuidance != active) { campaignGuidance = active; refresh(); } }
     public boolean guideVisible() {
+        if (campaignGuidance && !inductionRequired()) return false;
         return guideOpen && (inductionRequired() || !dossier && !CompanyManagementGuide.lines().isEmpty());
     }
     public void dismissGuide() {

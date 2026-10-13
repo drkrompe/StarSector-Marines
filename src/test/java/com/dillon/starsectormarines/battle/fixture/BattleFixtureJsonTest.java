@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -726,7 +727,8 @@ class BattleFixtureJsonTest {
     void roundTripsTheGroundDefenceSignals() throws Exception {
         TargetProfile fortress = new TargetProfile(5, 6, 2, 1, "hegemony",
                 EnumSet.of(EconomicFunction.HABITATION), SurfacePalette.ROCK,
-                SettlementLink.ROAD, 0f, 0f, true, true, false);
+                SettlementLink.ROAD, 0f, 0f, true, true, false,
+                new GroundDefences(3, true));
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 9_120L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
                 false, RiskLevel.LOW, 4, fortress, false);
@@ -740,9 +742,12 @@ class BattleFixtureJsonTest {
         profile.remove("groundDefences");
         profile.remove("heavyBatteries");
         profile.remove("planetaryShield");
+        profile.remove("declaredBatteries");
+        profile.remove("declaredShieldGenerator");
         TargetProfile legacy = ((CivilianRescueBattleFixture)
                 BattleFixtureJson.fromJson(encoded)).targetProfile();
         assertEquals(false, legacy.groundDefences() || legacy.heavyBatteries() || legacy.planetaryShield());
+        assertEquals(GroundDefences.NONE, legacy.declaredDefences());
     }
 
     private static CivilianRescueBattleFixture canonicalFixture() {
