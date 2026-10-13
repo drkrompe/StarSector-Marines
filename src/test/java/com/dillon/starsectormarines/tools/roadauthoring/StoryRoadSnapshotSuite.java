@@ -68,6 +68,8 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                                 scene.pass(ShipDeckBattleScene.DeckView.over(0,0,72,72,15)),1920,1080)));
                     if(index==2 || index==4) frames.add(new SnapshotArtifact(names[index]+"-loading-court.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.fitting(index==2?92:103,index==2?61:76,80,45,1920,1080)),1920,1080)));
+                    if(names[index].equals("relief")) frames.add(new SnapshotArtifact("relief-west-yard.png",renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.fitting(8,12,80,45,1920,1080)),1920,1080)));
                     if(index<2) {
                         frames.add(new SnapshotArtifact(names[index]+"-apron.png",renderer.renderHostPass(
                                 scene.pass(ShipDeckBattleScene.DeckView.fitting(0,10,64,36,1920,1080)),1920,1080)));
