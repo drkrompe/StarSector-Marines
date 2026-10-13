@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
+import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
+import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
@@ -64,7 +66,8 @@ public final class ShipViewScreen implements Screen {
     private UiElement deckElement;
     private CompanyDeck shownDeck;
     private WorkshopRestorationModel workshop;
-    private boolean deckChanged;
+    private ShipConditionModel survey;
+    private boolean deckChanged, refocusPending;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -86,6 +89,11 @@ public final class ShipViewScreen implements Screen {
                 state -> CompanyWorkshopRestoration.advance(ship, roster, state),
                 () -> CompanyWorkshopRestoration.reclaim(ship, roster),
                 this::inspectWorkshop, () -> deckChanged = true);
+        survey = new ShipConditionModel(reactor, context::companyDeck,
+                work -> CompanyShipRestoration.offer(ship, roster, work),
+                work -> CompanyShipRestoration.repair(ship, roster, work),
+                () -> CompanyBayRestoration.offer(ship, roster), () -> CompanyBayRestoration.repair(ship, roster),
+                room -> { if (deck != null) deck.focus(room); }, () -> deckChanged = true);
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -126,9 +134,10 @@ public final class ShipViewScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("workshop", workshop.row());
-        props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
-        props.put("roomCopy", "Drag to look around her. Wheel to close in, WASD to walk the view.");
-        props.put("contextLabel", "COMPANY SHIP / UNDERWAY");
+        props.put("survey", survey.row());
+        props.put("roomTitle", "COMPANY SHIP  //  WALK THE SHIP");
+        props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
+        props.put("contextLabel", "COMPANY SHIP / CONDITION");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 context::roomAboard,
                 this::close,
@@ -150,16 +159,18 @@ public final class ShipViewScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        if (deckChanged && context != null && document != null) {
+        if (context != null && document != null && (deckChanged || context.companyDeck() != shownDeck)) {
             deckChanged = false;
             shownDeck = context.companyDeck();
             if (shownDeck != null) {
                 deck = new ShipViewCanvas(shownDeck);
-                inspectWorkshop();
+                refocusPending = true;
                 document.canvases().set(deckElement, deck);
             }
         }
+        if (refocusPending && shownDeck != null && shownDeck.ready()) { survey.refocus(); refocusPending = false; }
         if (workshop != null) workshop.refresh();
+        if (survey != null) survey.refresh();
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
@@ -191,6 +202,11 @@ public final class ShipViewScreen implements Screen {
         if (camera != null && document != null && deckElement != null
                 && viewport != null && events != null) {
             CanvasMetrics metrics = document.canvasMetrics(deckElement, 1f);
+            for (var event : events) if (!event.isConsumed() && event.isLMBDownEvent()) {
+                var room = deck.roomAt(deck.toCameraX(metrics.toCanvasX(viewport.documentX(event.getX()))),
+                        deck.toCameraY(metrics.toCanvasY(viewport.documentY(event.getY()))));
+                if (room != null) { survey.select(room.id()); event.consume(); }
+            }
             controls.process(events, camera, new CameraControls.PointerSpace() {
                 @Override
                 public float x(float screenX) {

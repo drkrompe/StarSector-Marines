@@ -295,7 +295,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
-        props.put("issuableFilter", viewModel.issuableFilter());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("showArmorComparison", (Runnable) this::showArmorComparison);
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());

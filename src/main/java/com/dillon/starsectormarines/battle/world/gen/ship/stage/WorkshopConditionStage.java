@@ -77,7 +77,7 @@ public final class WorkshopConditionStage implements GenStage {
                 if (room.contains(x, y)) ctx.grid.setWalkable(x, y, false);
     }
 
-    private static void overlay(GenContext ctx, DeckGraph.Compartment room, RoomFloor floor,
+    static void overlay(GenContext ctx, DeckGraph.Compartment room, RoomFloor floor,
                                 int x, int y, String name, boolean underneath, boolean flipped) {
         var def = TileRegistry.installed().doodad("workshop-damage." + name);
         if (def == null) throw new IllegalStateException("Missing workshop damage art: " + name);
