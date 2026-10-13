@@ -30,6 +30,8 @@ public final class TurretCatalogRegistry {
     public static final String GRENADE_LAUNCHER_STRUCTURE_ID =
             "structure.turret-grenade-launcher";
     public static final String LOCUST_STRUCTURE_ID = "structure.turret-locust";
+    /** The fortress battery: a multi-cell structure carrying ship-grade guns. Its art is still a placeholder. */
+    public static final String FORTRESS_BATTERY_STRUCTURE_ID = "structure.fortress-battery-placeholder";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";

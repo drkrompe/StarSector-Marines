@@ -30,6 +30,8 @@ import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.battery.FortressBatteryService;
+import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -570,6 +572,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final LanceSweepSystem lanceSweeps = new LanceSweepSystem();
     /** Capital ships hanging over the battle; each mount lays its weapon's rounds as ordinary detonations. */
     private final WarshipSystem warships = new WarshipSystem();
+    private final FortressBatteryService fortressBatteries = new FortressBatteryService();
+    private final FortressBatterySystem fortressBatterySystem = new FortressBatterySystem();
     private final TenderSystem tenders = new TenderSystem();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER);
@@ -1514,6 +1518,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         long id = rosterService.spawn(spec);
         sealMultiCellStructure(id, spec);
         registerShieldDome(id, spec);
+        registerFortressBattery(id, spec);
         if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
             fogOfWar.addContributor(id, rosterService);
         }
@@ -1542,6 +1547,23 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         StructureFootprint.seal(grid, structure, spec.cellX, spec.cellY);
         navigation.markNavigationTopologyDirty();
         turretDemolition.registerFootprint(id, structure);
+    }
+
+    /** A structure whose definition is a fortress battery joins the battle's batteries, held by the side that spawned it. */
+    private void registerFortressBattery(long id, EntitySpec spec) {
+        if (spec.turretStructureId == null) return;
+        StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
+        if (!structure.isBattery()) return;
+        fortressBatteries.register(id, structure, rosterService.world().x(id), rosterService.world().y(id),
+                spec.faction);
+    }
+
+    /** The battle's fortress batteries: whose they are, whether they fire, and what they withhold. */
+    public FortressBatteryService fortressBatteries() { return fortressBatteries; }
+
+    @Override
+    public String orbitalBarrageLock() {
+        return fortressBatteries.orbitalBarrageLock(Faction.MARINE);
     }
 
     /**
@@ -2425,6 +2447,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         survivorPickup.tick(this);
         if (coldAccount != null) coldAccount.advance(this);
         if (hostileShip != null) hostileShip.advance(this);
+        fortressBatterySystem.tick(TICK_DT, this);
         warships.tick(TICK_DT, this);
         detonations.tick();
         tickProfile.lap(TickProfile.Phase.DETONATIONS);
