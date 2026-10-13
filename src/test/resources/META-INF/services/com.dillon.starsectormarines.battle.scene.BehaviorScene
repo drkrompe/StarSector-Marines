@@ -48,3 +48,4 @@ com.dillon.starsectormarines.battle.battery.FortressBatteryScene
 com.dillon.starsectormarines.battle.air.CloseAirSupportScene
 com.dillon.starsectormarines.battle.turret.DefenceNestFieldScene
 com.dillon.starsectormarines.battle.command.DefenceStructureCommandScene
+com.dillon.starsectormarines.battle.infantry.PodBattleScene

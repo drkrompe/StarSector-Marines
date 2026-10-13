@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — manual terrain previews reuse firing geometry without resolving rounds.
+Updated: 2026-10-13 — integral shoulder pods commit rounds from their physical muzzle.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -120,6 +120,14 @@ wall cannot bypass that wall by starting the contact walk on its far side.
 Ballistics, tracer origin, and muzzle presentation therefore describe the same
 shot. Mech accuracy retains the shared weapon calculation and receives no
 infantry training multiplier merely because its aim is a point.
+
+An infantry shoulder pod may declare its own physical hardpoint and forward
+muzzle reach. The pod's independent target supplies its firing bearing; its
+weapon still owns salvo count, accuracy, flight, and payload. The same muzzle
+feeds contact resolution, the traveling projectile, and the visual shot.
+Before spending a salvo, the body-to-muzzle segment must be structurally clear,
+so a shoulder attachment cannot launch through a wall by starting beyond it.
+Carrier art and its firing pulse observe this geometry without authoring it.
 
 A manual aim-lane preview may reuse deterministic structural geometry and the
 same firing origins without resolving a modeled round. Its first obstruction

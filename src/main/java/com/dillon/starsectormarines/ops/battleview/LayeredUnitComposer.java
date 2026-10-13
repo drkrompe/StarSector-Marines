@@ -95,6 +95,38 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose, IntegralSystemDef integralSystem) {
+        emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, authoredPose, integralSystem, null);
+    }
+
+    /** Actual committed launch, projected by the caller into the actor's screen space. */
+    record IntegralLaunch(float muzzleX, float muzzleY, float bearingDegrees, float phase) {}
+
+    static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     WeaponDef primary, boolean drawWeaponLayers,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose, IntegralSystemDef integralSystem,
+                     IntegralLaunch launch) {
+        emit((layer, x, y, width, height, angle, red, green, blue, opacity) ->
+                        out.addSprite(RenderLayer.UNITS, layer.sprite, x, y, width, height,
+                                angle, red, green, blue, opacity),
+                assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, authoredPose, integralSystem, launch);
+    }
+
+    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     WeaponDef primary, boolean drawWeaponLayers,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose, IntegralSystemDef integralSystem,
+                     IntegralLaunch launch) {
         float pxPerSw = shoulderPx;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
@@ -203,6 +235,11 @@ final class LayeredUnitComposer {
         EquipmentLayerComposer.Placement integralPlacement = integralSprite != null
                 ? equipmentPlacement(integralLayer, false, false, 0f, assets,
                         authoredPose, actorX, actorY, pxPerSw, facingDeg) : null;
+        if (integralPlacement != null && launch != null) {
+            integralPlacement = EquipmentLayerComposer.launch(integralPlacement,
+                    launch.muzzleX(), launch.muzzleY(), launch.bearingDegrees(),
+                    launch.phase(), shoulderPx, integralLayer.muzzleX(), integralLayer.muzzleY());
+        }
         if (integralPlacement != null
                 && integralPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
             emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
@@ -267,6 +304,12 @@ final class LayeredUnitComposer {
             float[] headCenter = worldPoint(actorX, actorY, 0f, 0.08f, pxPerSw, facingDeg);
             emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
                     facingDeg + headLookDeg, alpha);
+        }
+
+        if (integralPlacement != null && launch != null && launch.phase() < 0.3f) {
+            emitEquipmentFlash(out, assets.muzzleFlash, integralPlacement, pxPerSw,
+                    integralLayer.muzzleX(), integralLayer.muzzleY(),
+                    alpha * (1f - launch.phase() / 0.3f));
         }
 
         if ((flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
@@ -515,7 +558,16 @@ final class LayeredUnitComposer {
     private static void emitEquipmentFlash(SpriteEmitter out, LayeredSpriteCache flash,
                                            EquipmentLayerComposer.Placement placement,
                                            float shoulderPx, float alpha) {
-        float[] muzzleOffset = rotate(0f, placement.height() * 0.5f,
+        emitEquipmentFlash(out, flash, placement, shoulderPx, 0.5f, 0f, alpha);
+    }
+
+    private static void emitEquipmentFlash(SpriteEmitter out, LayeredSpriteCache flash,
+                                           EquipmentLayerComposer.Placement placement,
+                                           float shoulderPx, float sourceMuzzleX,
+                                           float sourceMuzzleY, float alpha) {
+        if (flash == null) return;
+        float[] muzzleOffset = rotate((sourceMuzzleX - .5f) * placement.width(),
+                placement.height() * (.5f - sourceMuzzleY),
                 placement.angleDegrees());
         float muzzleX = placement.centerX() + muzzleOffset[0];
         float muzzleY = placement.centerY() + muzzleOffset[1];
