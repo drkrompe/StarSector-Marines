@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.weapon.fx;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.GuidedMissile;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -17,6 +18,20 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class WeaponFxRuntimeTest {
 
     private static final float EPS = 0.0001f;
+
+    @Test
+    void guidedLaunchKeepsItsMountBearingWhileImpactFollowsTheTurn() {
+        var structure = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID);
+        var shot = new ShotEvent(4f, 5f, 4f, 5f, false, Faction.DEFENDER, 8f, structure);
+        var missile = new GuidedMissile(4, 5, -90, 25, structure.mount.weapon.guidance);
+        shot.guidedFlight = missile;
+        assertEquals(-90f, missile.visualBearingDegrees(), EPS);
+        missile.advance(.25f, true, 4, 30, 3);
+        shot.toX = missile.x; shot.toY = missile.y; shot.toZ = missile.z;
+        assertEquals(-90f, WeaponFxRuntime.launchContext(shot).bearingDegrees(), EPS);
+        assertEquals(-90f, WeaponFxRuntime.muzzleContext(shot).bearingDegrees(), EPS);
+        assertEquals(missile.visualBearingDegrees(), WeaponFxRuntime.impactContext(shot, false).bearingDegrees(), EPS);
+    }
 
     @Test
     void locustLaunchContextStaysAtMountAndBackblastRotatesOppositeEveryBearing()

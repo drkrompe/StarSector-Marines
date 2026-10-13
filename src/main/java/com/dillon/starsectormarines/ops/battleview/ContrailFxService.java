@@ -79,6 +79,10 @@ public final class ContrailFxService {
             float py = s.fromY + (s.toY - s.fromY) * progress + pz;
             float arcH = fx.arcHeight();
             if (arcH > 0f) py += arcH * 4f * progress * (1f - progress);
+            if (s.guidedFlight != null) {
+                px = s.guidedFlight.x;
+                py = s.guidedFlight.y + s.guidedFlight.z;
+            }
             ContrailTrail trail = live.get(s);
             if (trail == null) {
                 trail = new ContrailTrail(fx.contrail(), 32);
