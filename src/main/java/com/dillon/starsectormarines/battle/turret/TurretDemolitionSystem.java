@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import java.util.List;
@@ -43,6 +44,14 @@ public final class TurretDemolitionSystem {
     /** Side-table of demolished turret entity ids — replaces the dissolved turret subclass's {@code demolished} field, since a plain {@code Entity} carries no per-instance demolition state. */
     private final LongOpenHashSet demolishedTurrets = new LongOpenHashSet();
 
+    /** Multi-cell structures by turret id, so the whole footprint is opened on death; one-cell turrets need no entry. */
+    private final Long2ObjectOpenHashMap<StructureDef> multiCellStructures = new Long2ObjectOpenHashMap<>();
+
+    /** Records that {@code turretId} stands on a multi-cell footprint, to be cleared when it dies. */
+    public void registerFootprint(long turretId, StructureDef structure) {
+        if (structure.isMultiCell()) multiCellStructures.put(turretId, structure);
+    }
+
     public TurretDemolitionSystem(MapEditor mapEditor,
                                   EffectsService effects,
                                   TacticalContextService tactical,
@@ -73,7 +82,18 @@ public final class TurretDemolitionSystem {
         // carrier-placed emplacement stood on ordinary walkable floor, so
         // flipping its cell would open authored edges under existing paths to
         // undo a seal that was never applied.
-        if (mapEditor.isCellSealed(cx, cy)) mapEditor.flipCellToRubble(cx, cy);
+        StructureDef multiCell = multiCellStructures.remove(u);
+        if (multiCell == null) {
+            if (mapEditor.isCellSealed(cx, cy)) mapEditor.flipCellToRubble(cx, cy);
+        } else {
+            int x0 = StructureFootprint.minX(multiCell, cx);
+            int y0 = StructureFootprint.minY(multiCell, cy);
+            for (int dy = 0; dy < multiCell.footprintCellsY; dy++) {
+                for (int dx = 0; dx < multiCell.footprintCellsX; dx++) {
+                    if (mapEditor.isCellSealed(x0 + dx, y0 + dy)) mapEditor.flipCellToRubble(x0 + dx, y0 + dy);
+                }
+            }
+        }
         // Mount cell keeps smoking for a while so the player can see the
         // wreck is dead-and-cooling rather than just "gone".
         effects.spawnSmokingWreck(cx, cy);

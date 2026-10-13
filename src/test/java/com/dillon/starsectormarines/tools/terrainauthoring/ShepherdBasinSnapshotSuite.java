@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneHostPass;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneFrame;
@@ -52,9 +53,20 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                             ShipDeckBattleScene.DeckView.fitting(0,0,304,176,1920,1080))),1920,1080)));
                     frames.add(new SnapshotArtifact(name + "-cradle.png", renderer.renderHostPass(daylight(scene.pass(
                             ShipDeckBattleScene.DeckView.fitting(57,75,112,63,1920,1080))),1920,1080)));
+                    if (visit == ShepherdBasin.Visit.SALVAGE_RIGHTS) {
+                        frames.add(new SnapshotArtifact("salvage-stock.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(87,130,80,45,1920,1080))),1920,1080)));
+                        frames.add(new SnapshotArtifact("battle-debris.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(206,119,64,36,1920,1080))),1920,1080)));
+                    }
                     if (visit == ShepherdBasin.Visit.COLD_START)
                         frames.add(new SnapshotArtifact("cold-start-hull.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(104,101,48,27,1920,1080))),1920,1080)));
+                    if (visit == ShepherdBasin.Visit.COLD_START) {
+                        map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
+                        frames.add(new SnapshotArtifact("cold-start-power-restored.png", renderer.renderHostPass(daylight(scene.pass(
+                                ShipDeckBattleScene.DeckView.fitting(92,92,112,63,1920,1080))),1920,1080)));
+                    }
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("working-passage-narrows.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(166,68,128,72,1920,1080))),1920,1080)));
@@ -102,11 +114,26 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
         for(int y=105;y<=124;y++)for(int x=119;x<=142;x++)
             if(grid.isWalkable(x,y)!=(visit==ShepherdBasin.Visit.WORKING_PASSAGE))
                 throw new IllegalStateException("Large recovery hull left the wrong navigation footprint");
+        for (var prop : map.doodads) {
+            if (!prop.definitionId().startsWith("doodad.basin-scrap-")) continue;
+            for (int y = prop.cellY; y < prop.cellY + prop.footprintCellsY; y++)
+                for (int x = prop.cellX; x < prop.cellX + prop.footprintCellsX; x++)
+                    if (grid.isWalkable(x,y) || !map.topology.isFixture(x,y) || map.topology.isWall(x,y))
+                        throw new IllegalStateException("Ship scrap lost its physical scenery footprint");
+        }
+        // Work aisles, evacuation muster and impact approaches must remain reachable
+        // after landscape dressing, not merely at the instant a prop was placed.
+        for (int[] at : new int[][]{{111,155},{125,155},{139,155},{51,111},{68,42},{224,135}})
+            if (!grid.isWalkable(at[0],at[1]) || !reached[grid.index(at[0],at[1])])
+                throw new IllegalStateException("Scrapyard lost a working aisle or crew approach");
+        if (!map.topology.hasTag(225,140,Tag.GROUND_DAMAGED)
+                || !map.topology.hasTag(100,102,Tag.GROUND_DAMAGED))
+            throw new IllegalStateException("Basin lost its impact or landing history");
         if (map.landingPads.size()!=4 || map.topology.terrainSurface()==null || map.topology.roadSurface()==null)
             throw new IllegalStateException("Basin lost authored landing or landscape");
     }
 
-    /** Outdoor evidence uses ordinary daylight, never the ship compartment lighting layer. */
+    /** Outdoor evidence retains the map's lighting, never the unrelated ship compartment lamps. */
     private static BattleSceneHostPass daylight(BattleSceneHostPass source) {
         return new BattleSceneHostPass() {
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {

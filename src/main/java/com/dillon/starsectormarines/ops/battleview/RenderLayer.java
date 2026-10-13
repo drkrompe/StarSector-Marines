@@ -70,6 +70,8 @@ public enum RenderLayer {
     CONVOY,
     /** Aircraft hulls + turrets + engine FX. */
     SHUTTLES,
+    /** Authored outdoor light pools over world contents, below luminous shots and impact effects. */
+    NIGHT_LIGHTING,
     /** Interior-only light pools and fixture glow over deck contents, below exterior effects. */
     DECK_LIGHTING,
     /** Contrails, hitscan tracers, projectile sprites. */

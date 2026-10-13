@@ -19,7 +19,12 @@ withdrawing the work.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
 Cooperative**, an authored local Independent employer. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
-cooperative's local permit is not planetary government authority. Completion of
+basin is the cooperative's shipbreaking yard, disrupted by wreckage from recent
+fighting overhead. Morrow's crew made an emergency landing in their own cradle
+and evacuated; surviving hands return with the repair party. Armed scrappers
+occupy the abandoned yard. That outfit is the opposition, not scavengers as a
+whole; the overhead battle and local claims are mod-authored history.
+The cooperative's local permit is not planetary government authority. Completion of
 the Corvus arc and acknowledgement of its aftermath precede the proposed offer;
 neither Broken Supply Route branch changes eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
@@ -461,6 +466,13 @@ commander. Latest-release times keep an absent or waiting player from cancelling
 the assault. A lull or the death of the opening element never discards reserves.
 Pending ground arrivals count as forces still in play for elimination; victory
 requires the entire committed assault to be defeated.
+
+Relief fields twelve initial raiders and two four-person road groups. All twenty
+carry Rooks at their ordinary low militia grades, matching the new company's
+entry-level weapon tier while its Hermes unloads four recruits per trip. Employer
+weapons and cover remain their existing advantage; Counterattack retains mixed
+militia weapons. The opening must not inherit Lancers and Longbows from the
+generic militia roll and overwhelm a partially landed starter squad.
 
 Road arrivals create ordinary, equipped militia squads. Scripted ownership
 covers their approach only; reaching it or observing direct contact hands them

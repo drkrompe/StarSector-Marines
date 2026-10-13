@@ -4,6 +4,8 @@ Status: DEFERRED — follows the local-shield installation vertical and owns the
 
 Written: 2026-08-24
 
+Updated: 2026-10-14 — scope item 1 is built: `TargetProfile.heavyBatteries` (see `ground-defences.md`); a multi-cell structure exists in the turret catalog.
+
 Read `command-powers-nouns.md`, `campaign-battle-bridge-nouns.md`, and
 `mapgen-nouns.md` before accepting this story.
 

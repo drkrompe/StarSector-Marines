@@ -149,8 +149,15 @@ public final class DeckSizing {
         int frames = Math.round((float) Math.sqrt(needed / (shape * HULL_FILL)));
         int height = Math.round(frames * shape);
 
-        return new DeckPlan(Math.max(frames, minimumFrames(rooms)),
-                Math.max(height, minimumHeight(rooms)), rooms,
+        int deckFrames = Math.max(frames, minimumFrames(rooms));
+        int deckHeight = Math.max(height, minimumHeight(rooms));
+        // The original starting hull has room for a lance inside its existing
+        // envelope. Reserve that space at conversion, never as a side effect
+        // of paying for a repair. Other converted Cerberus hulls keep one berth.
+        if (conversion && boatBay != CompanyShip.BoatBayState.NONE)
+            rooms.replaceAll(room -> room.equals(RoomRecipe.COMPACT_VEHICLE_BAY)
+                    ? RoomRecipe.LANCE_VEHICLE_BAY : room);
+        return new DeckPlan(deckFrames, deckHeight, rooms,
                 ShipsBoats.carriedBy(role), boatBay);
     }
 

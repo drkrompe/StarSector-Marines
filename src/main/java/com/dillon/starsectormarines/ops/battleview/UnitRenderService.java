@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -261,16 +262,32 @@ public final class UnitRenderService implements RenderSystem {
         ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
+        TurretStateService turretState = ctx.sim.turretState();
         for (int i = 0, n = footprints.size(); i < n; i++) {
             long u = footprints.id(i);
             int cx = world.cellX(u);
             int cy = world.cellY(u);
-            // Exactly one cell, drawn from the cell's corner, so its centre is
-            // half a cell up and right of the coordinate.
-            if (!view.visible(cx + 0.5f, cy + 0.5f, 1f)) continue;
+            // One cell, drawn from the cell's corner, so its centre is half a
+            // cell up and right of the coordinate -- unless the body is a
+            // multi-cell structure, whose pad covers its whole footprint.
+            int spanX = 1;
+            int spanY = 1;
+            if (turretState.isTurret(u)) {
+                StructureDef structure = turretState.structure(u);
+                spanX = structure.footprintCellsX;
+                spanY = structure.footprintCellsY;
+                cx = StructureFootprint.minX(structure, cx);
+                cy = StructureFootprint.minY(structure, cy);
+            }
+            if (!view.visible(cx + spanX * 0.5f, cy + spanY * 0.5f, Math.max(spanX, spanY))) continue;
             float x0 = cam.cellToScreenX(cx);
             float y0 = cam.cellToScreenY(cy);
-            GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
+            if (spanX == 1 && spanY == 1) {
+                GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
+            } else {
+                // Same corner convention as the one-cell pad, just wider.
+                GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, spanX * cellPx, spanY * cellPx, alphaMult);
+            }
         }
     }
 

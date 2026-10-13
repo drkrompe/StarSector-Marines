@@ -51,6 +51,7 @@ public final class TileRegistry {
             "data/tilesets/sandbag-damage.tileset.json",
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/shepherd-recovery.tileset.json",
+            "data/tilesets/basin-ship-scrap.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
             "data/tilesets/ice-terrain.tileset.json",

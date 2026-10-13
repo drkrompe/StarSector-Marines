@@ -3,19 +3,27 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import java.util.function.IntSupplier;
 
 /** Atomic campaign authority for Mech Lab fabrication and fitting. */
 public final class MechWorkshop {
 
     private final MechBay bay;
     private final FabricationResources resources;
+    private final IntSupplier workingBerths;
 
     public MechWorkshop(MechBay bay, FabricationResources resources) {
-        if (bay == null || resources == null) {
+        this(bay, resources, () -> CampaignMechSquad.CAPACITY);
+    }
+
+    /** The host supplies its current physical capacity; a command rechecks it before spending. */
+    public MechWorkshop(MechBay bay, FabricationResources resources, IntSupplier workingBerths) {
+        if (bay == null || resources == null || workingBerths == null) {
             throw new IllegalArgumentException("mech bay and fabrication resources are required");
         }
         this.bay = bay;
         this.resources = resources;
+        this.workingBerths = workingBerths;
     }
 
     public Result fitWeapon(String mechId, MechMountSlot slot,
@@ -65,7 +73,8 @@ public final class MechWorkshop {
     public Result fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
         if (!bay.canFabricate(variant)) return Result.of(Status.PATTERN_LOCKED);
-        if (!bay.canAddMech(squadId)) return Result.of(Status.LANCE_FULL);
+        if (!bay.canAddMech(squadId) || bay.squadById(squadId).mechs().size() >= workingBerths.getAsInt())
+            return Result.of(Status.LANCE_FULL);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.chassis(variant);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);

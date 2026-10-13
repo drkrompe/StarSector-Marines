@@ -70,7 +70,28 @@ public final class TargetProfileResolver {
                 surface(market),
                 link(market),
                 MarketCMD.getDefenderStr(market),
-                StationedStrength.totalAt(market));
+                StationedStrength.totalAt(market),
+                hasGroundDefences(market),
+                hasHeavyBatteries(market),
+                hasPlanetaryShield(market));
+    }
+
+    /**
+     * The dispersed emplacement network. Heavy Batteries is the upgrade of Ground
+     * Defenses (the two share a slot), so a market with either has the network.
+     */
+    static boolean hasGroundDefences(MarketAPI m) {
+        return m.hasIndustry(Industries.GROUNDDEFENSES) || m.hasIndustry(Industries.HEAVYBATTERIES);
+    }
+
+    /** The armoured ship-grade batteries: Heavy Batteries only. */
+    static boolean hasHeavyBatteries(MarketAPI m) {
+        return m.hasIndustry(Industries.HEAVYBATTERIES);
+    }
+
+    /** The bombardment-disrupting envelope: Planetary Shield. */
+    static boolean hasPlanetaryShield(MarketAPI m) {
+        return m.hasIndustry(Industries.PLANETARYSHIELD);
     }
 
     /**
