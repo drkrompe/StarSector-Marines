@@ -1,0 +1,13 @@
+{
+  "generated_voice_id": "5kCId4I6QhfHUNgswIHT",
+  "media_type": "audio/mpeg",
+  "duration_secs": 14.8403125,
+  "language": "en",
+  "detected_labels": null,
+  "previews": null,
+  "file": "vale-candidate-1.mp3",
+  "audioSha256": "bcaeffe5a4d430ea45565931bb7388446b32671377369dbc745f756ba9cf5bda",
+  "audioBytes": 237445,
+  "auditionOnly": true,
+  "permanentVoiceCreated": false
+}

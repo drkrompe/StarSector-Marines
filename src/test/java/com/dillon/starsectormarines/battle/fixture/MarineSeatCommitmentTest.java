@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,8 @@ class MarineSeatCommitmentTest {
                 4.5f,
                 0.92f,
                 0.81f,
-                new CampaignSquadTag("squad-3", "Harrier", true, 9, 2)).withArmorClass(ArmorClass.POWER_SUIT);
+                new CampaignSquadTag("squad-3", "Harrier", true, 9, 2),
+                MarineArmorCatalogRegistry.require("armor.aegis-composite").integralSystem()).withArmorClass(ArmorClass.POWER_SUIT);
 
         MarineSeatCommitment commitment = MarineSeatCommitment.capture(loadout);
         MarineLoadout restored = commitment.toLoadout();
@@ -54,6 +56,7 @@ class MarineSeatCommitmentTest {
                 restored.specialDef().id());
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, restored.armorFamily);
         assertEquals(ArmorClass.POWER_SUIT, restored.armorClass);
+        assertEquals(loadout.integralSystem, restored.integralSystem);
         assertEquals(63f, restored.armorCapacity);
         assertEquals(4.5f, restored.armorRating);
         assertEquals(0.92f, restored.armorMoveSpeedMult);

@@ -1,5 +1,11 @@
 package com.dillon.starsectormarines.battle.fort;
 
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -20,6 +26,7 @@ import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
@@ -68,6 +75,8 @@ public final class ShieldFortScene implements BehaviorScene {
     static final int SHIP_TICK = 3300;
     private static final float SHIP_STANDOFF = 48f;
     private static final int KNOT = 10;
+    /** How far out from the main gate the commander's company starts, along the way in. */
+    private static final int COMMANDER_STANDOFF = 16;
 
     @Override public String id() { return "shield-fort"; }
 
@@ -81,7 +90,8 @@ public final class ShieldFortScene implements BehaviorScene {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("intact", "power-cut", "control-taken", "control-only", "no-emitter")) {
+        for (String loop : List.of("intact", "power-cut", "control-taken", "control-only", "no-emitter",
+                "commander-cuts-the-power")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
         return reports;
@@ -118,12 +128,16 @@ public final class ShieldFortScene implements BehaviorScene {
     private Run playOne(String loop, FrameSink frames) throws Exception {
         Terrain terrain = stamp();
         FortPlan plan = ShieldFort.PLAN;
+        boolean commander = loop.equals("commander-cuts-the-power");
         boolean marineShip = loop.equals("intact") || loop.equals("power-cut") || loop.equals("no-emitter");
         boolean squadLoop = !loop.equals("intact") && !loop.equals("no-emitter");
         SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
                 .missionCompletion(false);
         FortPlan.Gate main = plan.gates().get(0);
-        int[] start = terrain.cell(main.mouthX() + main.outX() * 8, main.mouthY() + main.outY() * 8);
+        int standoff = commander ? COMMANDER_STANDOFF : 8;
+        Approach approach = commander ? approachFor(terrain, plan) : null;
+        FortPlan.Gate entry = commander ? approach.gate() : main;
+        int[] start = terrain.cell(entry.mouthX() + entry.outX() * standoff, entry.mouthY() + entry.outY() * standoff);
         if (squadLoop) builder.squad("company").faction(Faction.MARINE).size(8).at(start[0], start[1]).primary("weapon.smg").done();
         builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 3, 3);
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 146, 96);
@@ -170,10 +184,20 @@ public final class ShieldFortScene implements BehaviorScene {
                 }
             });
         }
-        player.at(SHIP_TICK, s -> {
-            s.addWarship(ship);
-            ship.direct(8f, true, 1);
-        });
+        if (commander) {
+            // No scripted order and no ship: the company's commander is told only of what the company has seen. The
+            // company comes in on the lane that runs up to the main gate, because a lane that never comes within sight
+            // of the generator discloses nothing, and a commander cannot be sent to what nobody has seen.
+            sim.setAutonomousCommander(Faction.MARINE,
+                    new ConquestCommand(new ConquestTrackLayout(approach.axis(), WIDTH, HEIGHT)),
+                    ConquestCommandDisclosure.INSTANCE);
+            trace.squadId = world.squadId("company");
+        } else {
+            player.at(SHIP_TICK, s -> {
+                s.addWarship(ship);
+                ship.direct(8f, true, 1);
+            });
+        }
 
         TickObserver script = (s, tick) -> {
             if (tick == 0 && trace.squad.length > 0) {
@@ -197,6 +221,37 @@ public final class ShieldFortScene implements BehaviorScene {
                         trace.caption(sim)))
                 .run(TICKS);
         return new Run(trace, sim, fort);
+    }
+
+    /** The gate a lane reaches the fort by, and the lane axis that runs up to it. */
+    private record Approach(FortPlan.Gate gate, TraversalAxis axis) { }
+
+    /**
+     * The lane the company comes in on: the gate nearest the power plant whose way in runs along a lane axis (south to
+     * north, or west to east) in the map as it was stamped. A lane that ends at the plant's own postern keeps the walk
+     * clear of the keep, so the company is not stopped by the emitter before it reaches the building it was sent to.
+     */
+    private static Approach approachFor(Terrain terrain, FortPlan plan) {
+        int[] plant = ShieldFort.coreCentre(FortAspect.POWER);
+        Approach best = null;
+        double bestGap = Double.MAX_VALUE;
+        for (FortPlan.Gate gate : plan.gates()) {
+            int[] at = terrain.cell(gate.mouthX(), gate.mouthY());
+            int[] out = terrain.cell(gate.mouthX() + gate.outX(), gate.mouthY() + gate.outY());
+            int dx = out[0] - at[0];
+            int dy = out[1] - at[1];
+            TraversalAxis axis;
+            if (Math.abs(dy) >= Math.abs(dx) && dy < 0) axis = TraversalAxis.SOUTH_TO_NORTH;
+            else if (Math.abs(dx) > Math.abs(dy) && dx < 0) axis = TraversalAxis.WEST_TO_EAST;
+            else continue;
+            double gap = Math.hypot(gate.mouthX() - plant[0], gate.mouthY() - plant[1]);
+            if (gap < bestGap) {
+                bestGap = gap;
+                best = new Approach(gate, axis);
+            }
+        }
+        if (best == null) throw new IllegalStateException("no gate of the shield fort faces a lane");
+        return best;
     }
 
     /** A cell on the floor of an aspect's building, offset from its core. */
@@ -251,6 +306,23 @@ public final class ShieldFortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("rounds-land-on-the-squad", t.hitsAfterShip == 0 && t.squadHpLost > 1f,
                         t.hitsAfterShip + " absorbed, squad lost " + t.squadHpLost + " hit points"));
             }
+            case "commander-cuts-the-power" -> {
+                verdicts.add(Verdict.of("commander-orders-the-plant-first",
+                        t.firstOrderAspect == FortAspect.POWER, "orders " + t.orders));
+                verdicts.add(Verdict.of("ordered-within-two-pulses-of-sighting",
+                        t.firstSeenTick >= 0 && t.firstOrderTick >= t.firstSeenTick
+                                && t.firstOrderTick - t.firstSeenTick <= 150,
+                        "generator first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick));
+                verdicts.add(Verdict.of("company-holds-the-plant-unscripted",
+                        t.powerTakenTick > 0 && fort.place(FortAspect.POWER).control().holder() == Faction.MARINE,
+                        "plant taken at tick " + t.powerTakenTick));
+                // The lane walks the company through the control room on its way in, so the room may fall before the
+                // plant is ordered; what matters is that the commander's order finishes the set and the dome is theirs.
+                verdicts.add(Verdict.of("ends-owning-a-powered-dome",
+                        t.powerTakenTick > 0 && t.controlTakenTick > 0 && t.holderAtEnd == Faction.MARINE && !t.unpoweredNow,
+                        "orders " + t.orders + ", control room taken at tick " + t.controlTakenTick + ", plant at tick "
+                                + t.powerTakenTick + ", dome holder " + t.holderAtEnd + ", unpowered " + t.unpoweredNow));
+            }
             default -> {
                 verdicts.add(Verdict.of("emitter-destroyed-for-good", fort.place(FortAspect.EMITTER).wrecked()
                         && run.sim().shieldDomes().domes().isEmpty(), "domes left " + run.sim().shieldDomes().domes().size()));
@@ -275,6 +347,11 @@ public final class ShieldFortScene implements BehaviorScene {
         private final long generator;
         final long[] squad;
         final long[] knot;
+        int squadId = -1;
+        int firstSeenTick = -1;
+        int firstOrderTick = -1;
+        FortAspect firstOrderAspect;
+        final List<String> orders = new ArrayList<>();
         int hitsAfterShip;
         int firstHit = -1;
         int firstOverload = -1;
@@ -284,6 +361,7 @@ public final class ShieldFortScene implements BehaviorScene {
         int controlTakenTick = -1;
         int maxUnpoweredTicks;
         boolean unpoweredAtShip;
+        boolean unpoweredNow;
         float squadHpLost;
         float squadHpLostBeforeOverload;
         Faction holderAtEnd = Faction.DEFENDER;
@@ -315,6 +393,40 @@ public final class ShieldFortScene implements BehaviorScene {
             return hp;
         }
 
+        /** The aspect whose building an order's destination is nearest to. */
+        private FortAspect nearestAspect(int x, int y) {
+            FortAspect best = null;
+            double bestGap = Double.MAX_VALUE;
+            for (Fort.Place place : fort.places()) {
+                double gap = Math.hypot(place.x() - x, place.y() - y);
+                if (gap < bestGap) {
+                    bestGap = gap;
+                    best = place.aspect();
+                }
+            }
+            return best;
+        }
+
+        private void observeCommander(BattleSimulation sim, int tick) {
+            if (firstSeenTick < 0 && sim.playerSeesCell((int) sim.world().x(generator), (int) sim.world().y(generator))) {
+                firstSeenTick = tick;
+            }
+            CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(Faction.MARINE);
+            CommandDirective directive = snapshot == null ? null : snapshot.directiveFor(squadId);
+            ObjectiveAssignment order = sim.getSquad(squadId).assignedObjective;
+            if (directive == null || order == null || order.targetCellX() < 0
+                    || !directive.reason().startsWith("DEFENCE_STRUCTURE_")) {
+                return;
+            }
+            FortAspect aspect = nearestAspect(order.targetCellX(), order.targetCellY());
+            String line = directive.reason() + "->" + aspect;
+            if (orders.isEmpty() || !orders.get(orders.size() - 1).endsWith(line)) orders.add("t" + tick + " " + line);
+            if (firstOrderTick < 0) {
+                firstOrderTick = tick;
+                firstOrderAspect = aspect;
+            }
+        }
+
         @Override public void observe(BattleSimulation sim, int tick) {
             if (tick == SHIP_TICK) squadHpStart = squadHp(sim);
             Fort.Place plant = fort.place(FortAspect.POWER);
@@ -325,6 +437,7 @@ public final class ShieldFortScene implements BehaviorScene {
             for (ShieldDomeService.DomeView d : sim.shieldDomes().domes()) if (d.entityId() == generator) dome = d;
             if (dome != null) {
                 holderAtEnd = dome.holder();
+                unpoweredNow = sim.shieldDomes().isUnpowered(generator);
                 if (tick == SHIP_TICK) unpoweredAtShip = sim.shieldDomes().isUnpowered(generator);
                 if (sim.shieldDomes().isUnpowered(generator) && tick < SHIP_TICK) maxUnpoweredTicks++;
                 if (tick >= SHIP_TICK) {
@@ -337,6 +450,7 @@ public final class ShieldFortScene implements BehaviorScene {
                     }
                 }
             }
+            if (squadId >= 0) observeCommander(sim, tick);
             for (int i = 0; i < knot.length; i++) {
                 if (dead[i] || knot[i] == 0L || sim.getRoster().isAliveById(knot[i])) continue;
                 dead[i] = true;

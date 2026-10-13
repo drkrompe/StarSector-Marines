@@ -187,6 +187,7 @@ public final class TenderSystem {
             if (sortie.damaged) flight.repairing(clock);
             sim.takeOffTheField(id);
             t.dockedDefender(id);
+            cues.flight(TenderCues.Kind.DOCK, t.faction(), t.bayX(), t.bayY(), id, sim.getSimTickIndex());
         }
         flight.publishEscort(t.defenders, world);
         t.launchClock += dt;
@@ -229,6 +230,7 @@ public final class TenderSystem {
             body.teleport(bx, by, t.bayMouthDegrees());
             sim.world().setPos(id, bx, by);
         }
+        cues.flight(TenderCues.Kind.LAUNCH, t.faction(), bx, by, id, sim.getSimTickIndex());
         return id;
     }
 
@@ -413,6 +415,7 @@ public final class TenderSystem {
             if (flight.step(sortie, body.x, body.y, t.bayX(), t.bayY(), t.bayMouthDegrees(), clock, dt)) {
                 sim.takeOffTheField(id);
                 t.dockedBuilder(id);
+                cues.flight(TenderCues.Kind.DOCK, t.faction(), t.bayX(), t.bayY(), id, sim.getSimTickIndex());
                 continue;
             }
             float[] push = DroneSeparation.push(id, body.x, body.y, mateIds, xs, ys, n, BUILDER_SEPARATION);
