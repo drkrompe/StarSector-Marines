@@ -186,7 +186,7 @@ Do not run builds or leave generated task files there.
   road reserve. Source frames remain 1920x1080. These are factory-loadout
   battle controls; campaign offers, roster launch and settlement are separate.
   `-Pmission=supply-route` checks the campaign construction/roster-overlay seam
-  for Junction, Last Lift, Thunder Run and recurring Route Security on the Relay Nine map
+  for Junction, Thunder Run and recurring Route Security on the Relay Nine map
   with eight/twenty-four named marines.
   It verifies fitted airframes, exact named seats and untouched employer/civilian
   craft across mixed lift, paired six-seat boats and repeated single-boat trips.

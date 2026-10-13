@@ -36,15 +36,15 @@ public final class DebugMissionCatalog {
         RELIEF("Wayline", "Hold Until Relieved", "Reinforce the freight checkpoint against road attacks.", 1, false),
         COUNTERATTACK("Wayline", "Take Back the Depot", "Recover Wayward, capture dispatch and hold against two counterattacks.", 1, false),
         JUNCTION("Broken Supply Route", "Open the Junction", "Capture the three road posts while militia hold your gains.", 2, true),
-        LAST_LIFT("Broken Supply Route", "Last Lift", "Evacuation branch: escort and board a fresh civilian manifest.", 2, true),
-        RELAY_NINE("Legacy scenarios", "Relay Nine", "Legacy capture-and-hold chapter; this map now serves recurring Route Security.", 2, true),
+        LAST_LIFT("Shelved concepts", "Last Lift concept", "Escort and board a civilian manifest; later campaign placement and designation undecided.", 2, true),
+        RELAY_NINE("Battlefield fixtures", "Relay Nine", "Capture-and-hold map used by recurring Route Security.", 2, true),
         THUNDER_RUN("Broken Supply Route", "Thunder Run", "Open the corridor for the tank, APCs and three loaded freight haulers.", 2, true),
         DUST_LEDGER("The Corvus Account", "The Dust Ledger", "Seize the dispatch archive and extract on Asharu.", 2, true),
         BLIND_WATCH("The Corvus Account", "Blind Watch", "Cover the planters at the three Warion installations.", 3, true),
         COLD_ACCOUNT("The Corvus Account", "A Cold Account", "Secure the records, withdraw and call in the Navy on Garnir.", 4, true),
         MILITIA_RELIEF("Repeatable work", "Militia Relief", "A fresh checkpoint relief posting.", 1, false),
         DEPOT_CLEARANCE("Repeatable work", "Depot Clearance", "Clear the depot without the story Hound or warehouse counterattacks.", 1, false),
-        CREW_RECOVERY("Repeatable work", "Crew Recovery", "A fresh rescue manifest; no previous rescues or losses.", 2, true),
+        CREW_RECOVERY("Shelved concepts", "Crew Recovery concept", "Detached rescue variation; no campaign posting.", 2, true),
         ROUTE_SECURITY("Repeatable work", "Route Security", "A fresh relay security contract.", 2, true),
         VETERANS_JOB("Independent stories", "The Veteran's Job", "Raid the broker's cache and extract.", 3, false),
         SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
@@ -66,20 +66,20 @@ public final class DebugMissionCatalog {
             };
         }
         boolean opening() { return this == RELIEF || this == COUNTERATTACK || this == MILITIA_RELIEF || this == DEPOT_CLEARANCE; }
-        /** Local story order; parallel branches share a number, repeatables stay distinct. */
+        /** Local story order; detached concepts and repeatables stay distinct. */
         public String sequence() {
             return switch (this) {
                 case RELIEF -> "01";
                 case COUNTERATTACK -> "02";
                 case JUNCTION -> "03";
-                case LAST_LIFT -> "04A";
-                case RELAY_NINE -> "04B";
-                case THUNDER_RUN -> "05";
+                case LAST_LIFT -> "D1";
+                case RELAY_NINE -> "MAP";
+                case THUNDER_RUN -> "04";
                 case DUST_LEDGER, BLIND_WATCH, COLD_ACCOUNT -> "01";
                 case MILITIA_RELIEF -> "R1";
                 case DEPOT_CLEARANCE -> "R2";
-                case CREW_RECOVERY -> "R3";
-                case ROUTE_SECURITY -> "R4";
+                case CREW_RECOVERY -> "D2";
+                case ROUTE_SECURITY -> "R3";
                 case VETERANS_JOB -> "S1";
                 case SILENT_COLONY -> "E1";
                 case SALVAGE_RIGHTS -> "02";
@@ -90,20 +90,21 @@ public final class DebugMissionCatalog {
         public String location() {
             if(this==SALVAGE_RIGHTS || this==COLD_START || this==WORKING_PASSAGE)return "Asharu";
             if (corvus() != null) return corvus().planetName;
-            return this == VETERANS_JOB || this == SILENT_COLONY ? "Unfixed site" : "Jangala";
+            return this == VETERANS_JOB || this == SILENT_COLONY || this == LAST_LIFT || this == CREW_RECOVERY ? "Unfixed site" : "Jangala";
         }
         public String sequenceHint() {
             return switch (this) {
                 case RELIEF -> "Wayline introduction";
                 case COUNTERATTACK -> "After Jangala 01 / Relief";
                 case JUNCTION -> "After Jangala 02 / Counterattack";
-                case LAST_LIFT -> "After 03 / Evacuation branch, alternative to 04B";
-                case RELAY_NINE -> "After 03 / Freight branch, alternative to 04A";
-                case THUNDER_RUN -> "After 04B / Freight branch finale";
+                case LAST_LIFT -> "Later campaign / Placement and designation undecided";
+                case RELAY_NINE -> "Detached battlefield / Used by Route Security";
+                case THUNDER_RUN -> "After 03 / Junction";
                 case DUST_LEDGER -> "Corvus Account 1 of 3 / Begins after Broken Supply Route";
                 case BLIND_WATCH -> "Corvus Account 2 of 3 / After Asharu 01";
                 case COLD_ACCOUNT -> "Corvus Account 3 of 3 / After Warion 01";
-                case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY -> "Repeatable work / Outside the numbered story sequence";
+                case CREW_RECOVERY -> "Detached rescue variation / No campaign posting";
+                case MILITIA_RELIEF, DEPOT_CLEARANCE, ROUTE_SECURITY -> "Repeatable work / Outside the numbered story sequence";
                 case VETERANS_JOB -> "Standalone story / Location varies in campaign";
                 case SILENT_COLONY -> "Campaign event / Location varies in campaign";
                 case SALVAGE_RIGHTS -> "A Working Ship 1 of 3 / After Garnir 01";

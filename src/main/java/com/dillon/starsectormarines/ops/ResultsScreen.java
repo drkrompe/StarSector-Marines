@@ -211,17 +211,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         }
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
             props.put("storyClasses", "story-dispatch console-readout");
-            props.put("storyPortrait", outcome.lastLiftOutcome != null ? SupplyRouteCampaign.IONA_PORTRAIT : OpeningBroker.PORTRAIT);
-            props.put("storySender", (outcome.lastLiftOutcome != null ? "Iona Serr" : OpeningBroker.NAME) + " / WAYLINE DISPATCH");
+            props.put("storyPortrait", OpeningBroker.PORTRAIT);
+            props.put("storySender", OpeningBroker.NAME + " / WAYLINE DISPATCH");
             props.put("storyProgress", outcome.missionSource == MissionSource.RECURRING ? "RECURRING WORK / JOB REPORT" : "BROKEN SUPPLY ROUTE");
             String report = outcome.victory ? "Objective confirmed. Payment: " + outcome.payoutEarned + " cr." : "Operation withdrawn. No payment; confirmed losses remain on record.";
-            if (outcome.lastLiftOutcome != null) {
-                int stranded = outcome.lastLiftOutcome.attempt().people().size()
-                        - outcome.lastLiftOutcome.rescued().size() - outcome.lastLiftOutcome.dead().size();
-                report += " This sortie: " + outcome.lastLiftOutcome.rescued().size() + " rescued / "
-                        + outcome.lastLiftOutcome.dead().size() + " confirmed dead / " + stranded + " still stranded."
-                        + (stranded > 0 ? " Retry covers those still stranded." : " This crew has no remaining rescue attempts.");
-            }
             if (outcome.freightOutcome != null) {
                 var freight = outcome.freightOutcome;
                 int waiting = freight.attempt().cargo().size() - freight.delivered().size() - freight.lost().size();
@@ -241,7 +234,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storySender","BASIN RECLAMATION / CONTRACT RECORD");
             props.put("storyProgress",passage.departed()?"MORROW / PHYSICAL CLIMB-OUT CONFIRMED":passage.disabled()?"CRITICAL DISABLE / DEPARTURE ABORTED":"DEPARTURE INCOMPLETE");
             props.put("storyMessage",(outcome.victory
-                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Contract settled. Morrow and a minimum working crew join your fleet as the final payment in kind. The cooperative retains the Colossus, its stores and the reopened yard. No additional cash payment.")
+                    ? (outcome.missionSource.isDebug()?"Training record only; no fleet transfer.":"Contract settled. Morrow and a minimum working crew join your fleet as the final payment in kind. The cooperative retains the Colossus, its shipment and the reopened yard. No additional cash payment.")
                     : "The claim and completed repairs remain. Vale will recover and refit the same grounded hull for another departure; confirmed losses remain on the account.") + " Cooperative militia lost: "+passage.militiaLost()+".");
         }
         if(outcome!=null && outcome.coldStart!=null) {

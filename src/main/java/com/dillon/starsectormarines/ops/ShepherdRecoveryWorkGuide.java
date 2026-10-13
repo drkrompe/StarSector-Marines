@@ -15,7 +15,7 @@ record ShepherdRecoveryWorkGuide(ShepherdRecoveryProgress progress,OpeningBroker
         case "location"->destination==null?"Asharu / Corvus":destination.label();
         case "route"->progress.departed()?"Yard reopened. Morrow joined the fleet.":"Marine operations > Tamsin Vale";
         case "preparation"->progress.departed()?"Contract closed. Morrow and her working crew have joined the fleet."
-                :"Reopen Vale's yard; earn Morrow. Two squads recommended. Replenish first.";
+                :"Castle wants the grounded tender in the deal. Two squads recommended; replenish first.";
         case "courseDisabled"->destination==null;
         case "courseAction"->plotCourse;
         default->throw new IllegalArgumentException("Unknown recovery guide property: "+property);

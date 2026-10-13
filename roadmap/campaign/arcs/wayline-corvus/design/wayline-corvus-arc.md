@@ -4,6 +4,8 @@ Status: ACTIVE — investigation and military-intervention direction; live balan
 
 Written: 2026-10-13
 
+Updated: 2026-10-13 — entry follows the closed Thunder Run freight account.
+
 ## Premise, place and cast
 
 Mara Venn follows the Sable Wake pirate crew's sale of Wayline sailing schedules
@@ -25,7 +27,7 @@ when shipped.
 
 ## Entry and chapter sequence
 
-Either closed Broken Supply Route branch opens the arc, including exhausted
+The closed Thunder Run freight account opens the arc, including exhausted
 failure. Recurring arrangements retain their original sites. Defeat retries the
 same chapter; accepted victory advances to the next actual planet. A missing
 destination pauses work instead of relocating it.

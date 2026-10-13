@@ -386,7 +386,7 @@ public final class ShieldFortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("ordered-within-two-pulses-of-sighting",
                         t.firstSeenTick >= 0 && t.firstOrderTick >= t.firstSeenTick
                                 && t.firstOrderTick - t.firstSeenTick <= 150,
-                        "generator first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick));
+                        "generator or works first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick));
                 verdicts.add(Verdict.of("company-holds-the-plant-unscripted",
                         t.powerTakenTick > 0 && fort.place(FortAspect.POWER).control().holder() == Faction.MARINE,
                         "plant taken at tick " + t.powerTakenTick));
@@ -519,10 +519,18 @@ public final class ShieldFortScene implements BehaviorScene {
             return best;
         }
 
-        private void observeCommander(BattleSimulation sim, int tick) {
-            if (firstSeenTick < 0 && sim.playerSeesCell((int) sim.world().x(generator), (int) sim.world().y(generator))) {
-                firstSeenTick = tick;
+        /** Whether the generator or any of the fort's works is in the company's view, which is all that discloses it. */
+        private boolean fortInView(BattleSimulation sim) {
+            if (sim.playerSeesCell((int) sim.world().x(generator), (int) sim.world().y(generator))) return true;
+            int[] works = fort.exteriorCells();
+            for (int i = 0; i + 1 < works.length; i += 2) {
+                if (sim.playerSeesCell(works[i], works[i + 1])) return true;
             }
+            return false;
+        }
+
+        private void observeCommander(BattleSimulation sim, int tick) {
+            if (firstSeenTick < 0 && fortInView(sim)) firstSeenTick = tick;
             CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(Faction.MARINE);
             CommandDirective directive = snapshot == null ? null : snapshot.directiveFor(squadId);
             ObjectiveAssignment order = sim.getSquad(squadId).assignedObjective;

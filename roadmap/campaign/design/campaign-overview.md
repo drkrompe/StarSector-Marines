@@ -4,7 +4,7 @@ Status: ACTIVE — campaign route and planning index; individual arcs retain the
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — Limited Warrant completes the first recovered-suit acquisition route.
+Updated: 2026-10-13 — direct Wayline freight sequence, reserved evacuation concept and the first recovered-suit acquisition route.
 
 ## The company's journey
 
@@ -22,7 +22,7 @@ they are not extra mandatory chapters in this sequence.
 Company preparation / Castle's first lessons
   -> Wayline: An Open Road — Jangala, Corvus
   -> Broken Supply Route — accepted Wayline office and local sites
-       Open the Junction -> Last Lift OR Thunder Run
+       Open the Junction -> Thunder Run
   -> The Corvus Account — Asharu -> Warion -> Garnir
   -> A Working Ship — Asharu, Corvus
        Salvage Rights -> Cold Start -> Working Passage -> Morrow joins fleet
@@ -40,8 +40,8 @@ Read the arc overview for its missions, cast and rewards, then its local
 | Arc home under `arcs/` | Overview | Entry and exit | Current scope |
 | --- | --- | --- | --- |
 | `wayline-opening/` | `wayline-opening-arc.md` | Accessible Mara Venn office, canonically Jangala; completing both chapters opens Broken Supply Route. | Both chapters, first-payment correspondence and separate recurring jobs implemented; first-offer discovery and linked live acceptance remain. |
-| `broken-supply-route/` | `broken-supply-route-arc.md` | Completed opening arc; the accepted local site is frozen. Either closed branch leads onward, including a finite rescue/freight ledger closed in failure. | Junction, permanent support choice, both alternative finales, persistent losses and recurring arrangements implemented; live campaign/save acceptance remains. |
-| `wayline-corvus/` | `wayline-corvus-arc.md` | Closed supply-route branch; Dust Ledger, Blind Watch and A Cold Account cross three existing Corvus worlds. Cold Account victory and acknowledgment of its aftermath enable the Shepherd referral. | Three chapters and their campaign sequence implemented; player-controlled difficulty tuning, live travel/save acceptance and broader generated-map access remain open. |
+| `broken-supply-route/` | `broken-supply-route-arc.md` | Completed opening arc; the accepted local site is frozen. The closed freight account leads onward, including exhausted failure. | Junction, direct Thunder Run follow-on, persistent freight losses and Route Security implemented; live campaign/save acceptance remains. |
+| `wayline-corvus/` | `wayline-corvus-arc.md` | Closed freight account; Dust Ledger, Blind Watch and A Cold Account cross three existing Corvus worlds. Cold Account victory and acknowledgment of its aftermath enable the Shepherd referral. | Three chapters and their campaign sequence implemented; player-controlled difficulty tuning, live travel/save acceptance and broader generated-map access remain open. |
 | `shepherd-recovery/` | `shepherd-recovery-arc.md` | Post-Cold Account reference to Tamsin Vale on Asharu; actual Working Passage departure and fleet handover unlock the Agreus referral. | All three contracts and once-only Morrow/crew transfer implemented; live campaign/save and later owned support acceptance remain. |
 | `a-small-war/` | `a-small-war-arc.md` | Actual Morrow handover; optional referral to Baronet Elian Rusk on existing Agreus in Arcadia. Cold Start alone is insufficient. | Referral, Water Under Seal, Limited Warrant and Recovered Specter reward implemented. Live transition/first-suit acceptance, Chapters 3–5, further suit rewards and yard agreement remain open. |
 
@@ -50,7 +50,7 @@ Read the arc overview for its missions, cast and rewards, then its local
 | Step | What changes for the company | Authority for detail |
 | --- | --- | --- |
 | First Wayline work | First fees and reputation with the drivers; an equipment choice and actual issue; the recovered Hound after the depot. | `wayline-opening-arc.md`, `progression-nouns.md` |
-| Supply-route commitment | Two-squad coordination, fitted lift, owned heavy support and a permanent choice about whom Wayline can help. Optional Secondhand Wings is an investment, not a required chapter. | `broken-supply-route-arc.md`, `company-view-nouns.md` |
+| Supply-route recovery | Two-squad coordination, fitted lift, owned heavy support and physical freight escort. Optional Secondhand Wings is an investment, not a required chapter. | `broken-supply-route-arc.md`, `company-view-nouns.md` |
 | Corvus pursuit | Greater initiative and wider objectives, followed by the contrast with Hegemony military power at Garnir. Cooperation grants no permanent military protection. | `wayline-corvus-arc.md` |
 | Shepherd recovery | The company earns a real construction tender by restoring the cooperative's yard and protecting departure. A recovery claim or grounded gun does not itself grant a ship. | `shepherd-recovery-arc.md` |
 | Agreus sponsorship | Limited Warrant grants bounded procurement terms, 30,000 credits and a Recovered Specter cargo card. Further recovered/pirate technology and the yard agreement remain planned. Water Under Seal pays 26,000 credits and opens that offer without granting equipment. | `a-small-war-arc.md`, `agreus-latchkey.md`, `power-suit-infantry.md` |
