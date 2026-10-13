@@ -205,7 +205,7 @@ public final class SquadMoraleSystem {
      * team flips, which is what makes the squad replan and redistribute its
      * role slots around the team that just peeled — or just rejoined.
      */
-    private void updateFireTeamMorale(Squad squad, float dt) {
+    static void updateFireTeamMorale(Squad squad, float dt) {
         int aliveTotal = 0;
         int brokenAlive = 0;
         float weightedMorale = 0f;
@@ -225,7 +225,7 @@ public final class SquadMoraleSystem {
                 // Recovery rate scales with cap so a mauled team recovers
                 // proportionally slower toward its lower ceiling — constant
                 // time-to-clear across team strengths.
-                team.morale = Math.min(cap, team.morale + MORALE_RECOVERY_RATE * cap * dt);
+                team.morale = Math.min(cap, team.morale + MORALE_RECOVERY_RATE * squad.moraleRecoveryMultiplier * cap * dt);
             } else {
                 // Under fire — no recovery; also re-clamp in case the cap
                 // dropped (a team member died this tick) below current morale.

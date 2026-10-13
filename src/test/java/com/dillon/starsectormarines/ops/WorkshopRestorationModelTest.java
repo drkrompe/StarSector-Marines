@@ -41,6 +41,7 @@ class WorkshopRestorationModelTest {
                     "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
             loader.reload();
             Map<String, Object> props = new LinkedHashMap<>();
+            props.put("equipmentAction", (Runnable) () -> {});
             props.put("survey", ShipConditionModel.workshopOnly());
             props.put("workshop", model.row()); props.put("roomTitle", "SHIP");
             props.put("roomCopy", "Inspect her workshop."); props.put("contextLabel", "SECOND WIND");

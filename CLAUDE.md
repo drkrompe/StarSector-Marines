@@ -1081,6 +1081,12 @@ Do not run builds or leave generated task files there.
 
 ### Visual snapshot workflow
 
+**Every preview shown to the user must be rendered at 1920x1080 with 100% UI
+scaling.** Verify both settings before displaying or opening a preview. Other
+resolutions and UI scales may be checked internally, but must not be shown to
+the user. Resizing an image rendered at another UI scale does not satisfy this
+rule.
+
 `createSnapshots` is the only top-level task for deterministic visual evidence.
 Do not add per-domain Gradle tasks such as `renderTurretPreviews`; add a
 `SnapshotSuite` provider to the shared catalog instead. Both the Gradle task and

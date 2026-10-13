@@ -2,14 +2,15 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — Starting cash reduced to 500; protected conversion payment and separate bootstrap stores; live start/save acceptance remains.
+Updated: 2026-10-12 — Opening and yard dialogue imply shared history at Harker's Claim and Castle's relationship with Nessa Venn; live start/save acceptance remains.
 
 ## Outcome
 
 An explicit new-game choice puts the player in command of an unconverted Cerberus.
-The illustrated Second Wind prologue introduces the mining-colony escape, the
+The illustrated Second Wind prologue introduces the escape from the mining asteroid Harker's Claim, the
 crew's trust in their captain, and Castle's practical plan to fund a new company.
-Castle directs the player to a populated planet with a working spaceport. There the
+Castle directs the player to Jangala and Nessa Venn, an old freight colleague now
+working as a yard forewoman, or an accessible fallback port. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
 existing paid-lift, Mira specialty, squad founding and assignment tutorial, ending
@@ -64,6 +65,9 @@ cannot replenish it. Ordinary starts receive no depot.
 - Final course, objective text and Intel marker share the accessible destination;
   Jangala-specific contact and Corvus copy are absent for fallback ports. No port
   leaves a readable spaceport requirement and an exit instead of a dead button.
+- Castle's memories and the crew's belongings suggest their history; navigation
+  instructions stay in the UI and Intel. Nessa's personal yard dialogue belongs
+  only to the original Second Wind conversion on Jangala.
 - Review all six production pages at 1920x1080 and 100% scale through the
   `company-prologue` snapshot suite. Live host dismissal and save/load remain open.
 - Refuse installation in space, on stations, at inaccessible or nonworking ports,

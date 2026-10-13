@@ -120,7 +120,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
                 () -> context.goTo(ScreenId.MECH_LAB),
-                () -> context.goTo(ScreenId.BOAT_DECK));
+                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
     }
 
     private static void requireWiredElements(MarkupInstance component) {

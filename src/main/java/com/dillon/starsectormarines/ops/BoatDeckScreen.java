@@ -215,7 +215,7 @@ public final class BoatDeckScreen implements Screen {
                 () -> context.goTo(ScreenId.MECH_LAB),
                 // The room's own route puts the deck back, the way the Mech
                 // Lab's does: a page already open is not a dead button.
-                viewModel.backToDeckAction());
+                viewModel.backToDeckAction(), context::openEngineering);
         return props;
     }
 

@@ -136,9 +136,9 @@ public final class ShipViewScreen implements Screen {
         props.put("equipmentAction", equipmentAction(context));
         props.put("workshop", workshop.row());
         props.put("survey", survey.row());
-        props.put("roomTitle", "COMPANY SHIP  //  WALK THE SHIP");
+        props.put("roomTitle", "ENGINEERING  //  SHIP CONDITION");
         props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "COMPANY SHIP / CONDITION");
+        props.put("contextLabel", "SHIP SERVICES");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 context::roomAboard,
                 this::close,
@@ -146,7 +146,7 @@ public final class ShipViewScreen implements Screen {
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.SHIP_VIEW),
                 () -> context.goTo(ScreenId.MECH_LAB),
-                () -> context.goTo(ScreenId.BOAT_DECK));
+                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
         return props;
     }
 

@@ -105,6 +105,12 @@ public final class ShipConditionModel {
             benefit = state.mechBay() ? "RESTORED: One working mech gantry. Visit Mech Lab to fit Wayward."
                     : "MISSION 2: Complete Take Back the Depot. Mech Lab restoration is included with Wayward's recovery; no separate credit bill.";
             reason = state.mechBay() ? "Restored with the depot recovery." : "Locked until the second story mission is complete.";
+        } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.MESS_HALL) {
+            copy = state.messHall() ? "Hot meals and a table together. You can hear the difference already. They have somewhere to be a company again."
+                    : "The mess took a hit. We are feeding everyone from field rations in the working quarters, but they deserve better. The yard can seal the breach and put the galley and tables right.";
+            benefit = (state.messHall() ? "RESTORED: " : "NEXT: ") + "Company infantry recover morale 25% faster once incoming fire stops. Applies to future deployments from this active company home.";
+            reason = state.messHall() ? "Morale limits and recovery delay are unchanged. No additional food upkeep." : "Field rations keep the company ready for its first mission.";
+            if (!state.messHall()) work = Work.MESS_HALL;
         } else if (selectedRoom != null && state.applies() && ShipConditionStage.spareBillets(graph).contains(selectedRoom)) {
             copy = state.billets() ? "Fresh racks, sealed plating and room for the company to grow. Let us keep these quarters fit for the people who sleep here."
                     : "These two bunkrooms took the same hit. Racks are crushed and the pressure seals are gone. The yard can reopen both as one job.";
