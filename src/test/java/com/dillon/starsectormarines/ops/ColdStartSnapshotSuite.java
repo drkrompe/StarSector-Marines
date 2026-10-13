@@ -517,7 +517,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
         frames.add(document(context, renderer, "contract-board.png", MissionSelectScreen.COMPONENT_PATHS,
                 MissionSelectScreen.ROOT_COMPONENT, board));
         var outcome = MissionOutcome.builder().mission(mission).victory(true).payoutEarned(ShepherdRecoveryProgress.COLD_PAYMENT)
-                .marinesEngaged(24).marinesLost(3).alliesEngaged(10).alliesLost(1)
+                .marinesEngaged(24).marinesLost(3).alliesEngaged(16).alliesLost(1)
                 .coldStart(new ColdStartProgress.Report(true, true, true, true, 1)).build();
         var debrief = ResultsScreen.previewProps(true, false);
         debrief.put("missionName", mission.name);

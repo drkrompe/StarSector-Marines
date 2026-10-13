@@ -124,7 +124,7 @@ class MissionObjectiveFamiliesTest {
         var post = new ColdStartPicket("south_haul", 5, 176, 38, 151, 96, 3);
         post.observe(10, 3, 0, true, false);
         var contact = MissionObjectiveFamilies.coldStartPicket(post.report());
-        assertEquals("UNDER FIRE", contact.phase());
+        assertEquals("CONTACT REPORTED", contact.phase());
         assertEquals(-1, contact.progress());
         assertEquals("3/3 militia alive", contact.progressText());
         post.observe(20, 1, 0, true, false);
