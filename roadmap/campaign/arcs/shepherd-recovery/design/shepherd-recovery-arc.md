@@ -4,12 +4,19 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
+Updated: 2026-10-13 — Castle's contingent salvage bargain follows the direct Thunder Run freight sequence.
+
 ## Premise, place and cast
 
 On Asharu, the Basin Reclamation Cooperative pays the company to reopen its
 shipbreaking yard after armed scrappers occupy it. Yardmaster Tamsin Vale
-supplies technicians, equipment and holders; Castle negotiates company fees and
-the repaired Shepherd Morrow as the final payment in kind. Mara introduces them.
+supplies technicians, equipment and holders. Her priority is a shipment found in
+the Colossus, whose manifest she keeps with her own handlers. Castle negotiates
+the damaged Shepherd Morrow in place of a third cash fee, drawing on the company's
+experience rebuilding Second Wind before knowing how useful the repaired tender
+will be. Vale requires the company to finish opening the haul road before taking
+the ship. Mara introduces them. The shipment's contents and legality remain open;
+no new cargo reward or investigation objective follows from her reticence.
 
 Vale's cooperative operates commercially in Hegemony-dominated Corvus. Its
 recovery permit is local, and the armed occupiers are a particular salvage outfit.
@@ -28,7 +35,7 @@ temporary work documents in its stories folder are folded and deleted on shippin
 ## Entry and chapter sequence
 
 A Cold Account victory and acknowledgement of its aftermath unlock the optional
-offer. The earlier rescue/freight choice and Hound survival do not gate it.
+offer. The freight outcome and Hound survival do not gate it.
 The company can replenish before accepting; the opportunity has no hidden expiry.
 
 | Chapter | Tactical objective | Accepted victory reward | Delivery state |

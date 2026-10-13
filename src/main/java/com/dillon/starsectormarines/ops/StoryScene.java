@@ -27,7 +27,7 @@ enum StoryScene {
     WORKING_PASSAGE("salvage-rights", "ASHARU / MORROW DEPARTURE CORRIDOR");
 
     private static final Pattern ROUTE_RECORD = Pattern.compile(
-            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1234])_(0|[1-9][0-9]*)_[1-9][0-9]*");
+            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([134])_(0|[1-9][0-9]*)_[1-9][0-9]*");
     final String image;
     final String location;
 
@@ -38,12 +38,7 @@ enum StoryScene {
 
     static StoryScene forMission(Mission mission) {
         if (mission == null) return null;
-        if (mission.source != MissionSource.STORY) return forRecord(mission.id, mission.source);
-        return switch (SupplyRouteCampaign.choice(mission)) {
-            case BrokenSupplyRouteProgress.LIFT -> RILL;
-            case BrokenSupplyRouteProgress.RELAY -> THUNDER;
-            default -> forRecord(mission.id, mission.source);
-        };
+        return forRecord(mission.id, mission.source);
     }
 
     static StoryScene forRecord(String id, MissionSource source) {
@@ -85,10 +80,9 @@ enum StoryScene {
         Matcher match = ROUTE_RECORD.matcher(id);
         if (!match.matches()) return null;
         if ((source == MissionSource.STORY) != match.group(2).equals("0")) return null;
-        if (source == MissionSource.RECURRING && !match.group(1).matches("[23]")) return null;
+        if (source == MissionSource.RECURRING && !match.group(1).equals("3")) return null;
         return switch (match.group(1)) {
             case "1" -> JUNCTION;
-            case "2" -> RILL;
             case "3" -> RELAY;
             case "4" -> THUNDER;
             default -> null;

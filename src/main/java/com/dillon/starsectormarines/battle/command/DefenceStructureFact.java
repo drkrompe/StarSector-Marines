@@ -16,15 +16,33 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * @param reachCells      how far from the anchor a side must stand to take or hold it, in cells
  * @param seenCellX       the cell whose being in view discloses the structure to a side that did not build it. It is the
  *                        anchor for a bare structure; for a fort it is the battery platform, because the bunker the
- *                        commander is sent to stands inside walls nobody outside can see
+ *                        commander is sent to stands inside walls nobody outside can see. It is also the key under
+ *                        which a sighting is remembered
  * @param seenCellY       as {@code seenCellX}
  * @param fortId          the fort this aspect belongs to, or {@code -1} for a bare structure. Facts sharing a fort id are
  *                        one defence whose aspects a commander chooses between
  * @param family          what sort of fort the aspect belongs to, which says what losing each aspect costs
+ * @param seenCells       further cells, as packed {@code x, y} pairs, any one of which in view also discloses the
+ *                        structure: for a fort, its works (wall, gates, bastion nests), which a company walking up to
+ *                        the fort sees long before it sees a platform standing inside them. Empty for a bare structure
  */
 public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
                                    boolean threatened, int reachCells, int seenCellX, int seenCellY,
-                                   int fortId, Family family) {
+                                   int fortId, Family family, int[] seenCells) {
+
+    private static final int[] NO_CELLS = new int[0];
+
+    public DefenceStructureFact {
+        if (seenCells == null) seenCells = NO_CELLS;
+    }
+
+    /** An aspect of a fort disclosed only by sighting {@code seenCellX, seenCellY}. */
+    public DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
+                                boolean threatened, int reachCells, int seenCellX, int seenCellY,
+                                int fortId, Family family) {
+        this(kind, cellX, cellY, holder, originalHolder, threatened, reachCells, seenCellX, seenCellY,
+                fortId, family, NO_CELLS);
+    }
 
     /** An aspect of no fort, disclosed at a cell other than its own. */
     public DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,

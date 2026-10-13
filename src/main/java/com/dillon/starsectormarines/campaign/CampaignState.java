@@ -28,7 +28,7 @@ public final class CampaignState implements Serializable {
 
     private static final int INITIAL_CAPACITY = 16;
 
-    /** Null before the authored Rill evacuation is commissioned; absent in older saves. */
+    /** Reserved evacuation prototype ledger; no current campaign operation commissions it. */
     public LastLiftProgress lastLift;
     /** Null in pre-arc saves; introduced explicitly at the broker. */
     public BrokenSupplyRouteProgress brokenSupplyRoute;

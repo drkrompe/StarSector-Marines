@@ -243,13 +243,14 @@ class WaylineNarrationTest {
     }
 
     @Test
-    void supplyChaptersResolveAcrossRetriesWithoutVoicingChoicesOrRecurringJobs() throws Exception {
+    void activeSupplyChaptersResolveAcrossRetriesWithoutVoicingShelvedOrRecurringJobs() throws Exception {
         WaylineNarration catalog = catalog();
-        String[] chapters = {"junction", "last_lift", "relay_nine", "thunder_run"};
+        String[] chapters = {"junction", "thunder_run"};
+        int[] operations = {1, 4};
         for (int i = 0; i < chapters.length; i++) {
             String chapter = "story_supply_route_" + chapters[i];
             for (int attempt : new int[]{1, 2, 12}) {
-                String id = "supply_route_v1_" + (i + 1) + "_0_" + attempt;
+                String id = "supply_route_v1_" + operations[i] + "_0_" + attempt;
                 assertEquals(chapter, WaylineNarration.storyMissionId(
                         Mission.builder().id(id).source(MissionSource.STORY).build()));
                 assertNotNull(catalog.find(chapter, "briefing"));
@@ -258,6 +259,7 @@ class WaylineNarrationTest {
             }
         }
         for (String id : List.of("supply_route_choice_2", "supply_route_choice_3",
+                "supply_route_v1_2_0_1", "supply_route_v1_3_0_1",
                 "supply_route_v1_2_1_1", "supply_route_v1_3_4_2", "supply_route_v1_5_0_1",
                 "supply_route_v1_1_0_0", "supply_route_v1_1_0_1_extra", "unknown")) {
             assertNull(WaylineNarration.storyMissionId(
