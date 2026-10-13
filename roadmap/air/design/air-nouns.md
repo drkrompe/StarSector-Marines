@@ -1859,30 +1859,35 @@ shrink that changes a hull's physical scale.
 A **tender** is an overhead hull whose job is its drones: the vanilla Shepherd
 fitted as a mobile construction ship. It is not the Shepherd boat. The boat is a
 shuttle-layer craft that lifts a squad for one sortie; the tender is a warship
-body that hovers and stays, composed with a complement, a small stock of build
-charges and a line of build orders. Nothing in it is a second flight, drone or
-turret model.
+body that hovers and stays, composed with a complement and a line of build
+orders. Nothing in it is a second flight, drone or turret model.
 
 **The body is a warship; the drones are drones; the product is a turret.** The
 hull is fitted from the same `.ship`, hull table and sprite as any capital, with
 the vanilla variant's guns left off, and is flown by the warship helm to a station.
-Its complement is the hull's built-in wing, half defence drones and half builders.
+It can be fitted from a campaign Shepherd as a warship is from its fleet member,
+and from the stock hull otherwise. Its complement is the hull's built-in wing, half
+defence drones and half builders, drawn as the Shepherd's own wing is in fleet
+combat (the Borer sprite, at hull scale), which is a look and nothing else.
 A defence drone is the shipped armed drone whose squad is anchored to the tender
 instead of a hub; a builder is the same unit unarmed. A finished site is an
 ordinary map-turret entity from the turret catalog, so what it can do and how it
 dies are the turret's, not the tender's.
 
-**A build is a visible job with a clock.** A laid site draws a charge and joins a
-line. The tender holds station a few cells short of it, the builders fly out and
+**A build is a visible job with a clock, and it is free.** A laid site joins a line;
+nothing is spent. The tender keeps an optional cap on build charges that defaults to
+unlimited, so a cost is a number to set rather than a rule to build. The tender holds station a few cells short of it, the builders fly out and
 work a ring around it, and progress is linear in the builders present against a
 full crew, so one builder takes three times as long and none take forever. A
 site is stood down, with the builders sent home into the bay, while hostile units
 are inside a threat radius wider than any rifle's reach, and resumes when the
-ground is clear. A cancelled or failed order returns its charge; a lost drone and
-a spent charge are gone for the battle.
+ground is clear. A lost drone is gone for the battle.
 
-**A tender is hittable like any ship, and only by ordnance.** Its drones are what
-a rifle can reach. The shipped drone's strength is left alone, so a screen of
+**A tender is a weak ship, hittable like any ship, and only by ordnance.** It is
+not a combatant; it is pressed into the role. It carries the vanilla Shepherd's own
+hit points, armour and omni shield on the hull's own flux, the shield raising itself
+by the ordinary automatic policy, and no defensive buff beyond that. Its drones are
+what a rifle can reach. The shipped drone's strength is left alone, so a screen of
 three stops a lone raider and loses to a fire team; the lever for more is more
 drones, never a tougher drone. `tender-ship.md` carries the rejected alternatives,
 the build candidates and the open questions.
