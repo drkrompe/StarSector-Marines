@@ -17,7 +17,7 @@
     <div id="mission-preparation" class="{preparationClasses}">
       <div id="mission-preparation-label" class="label heading tone-accent">COMPANY PREPARATION</div>
       <button id="mission-prepare-replay" onclick="{prepareReplay}">CASTLE'S REMINDER</button>
-      <button id="mission-prepare-armory" onclick="{prepareArmory}">RAISE SQUAD / ARMORY</button>
+      <button id="mission-prepare-armory" onclick="{prepareArmory}">RAISE SQUAD</button>
       <button id="mission-prepare-barracks" onclick="{prepareBarracks}">COMMANDERS / BARRACKS</button>
     </div>
     <div id="mission-briefing-body" class="mission-briefing-body">

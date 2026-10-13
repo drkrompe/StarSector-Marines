@@ -30,6 +30,20 @@ public record BuildOption(String id, String label, String structureId, float bui
     public static final BuildOption VULCAN_TURRET = new BuildOption(
             "vulcan-turret", "Vulcan turret", TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 12f, 1);
 
-    /** Every option a tender offers, in the order a player selects them. */
-    public static final List<BuildOption> ALL = List.of(VULCAN_TURRET);
+    /**
+     * The next three are catalog turrets through the same structure path. Time and cost scale from
+     * the vulcan by the structure's own weight (structure plus armour: 140, 180, 195, 210) and by
+     * its weapon's reach and force score (8, 10, 12, 14).
+     */
+    public static final BuildOption ARBALEST_TURRET = new BuildOption(
+            "arbalest-turret", "Arbalest turret", TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 15f, 2);
+
+    public static final BuildOption FLAK_TURRET = new BuildOption(
+            "flak-turret", "Dual flak turret", TurretCatalogRegistry.DUAL_FLAK_STRUCTURE_ID, 17f, 2);
+
+    public static final BuildOption MORTAR_TURRET = new BuildOption(
+            "mortar-turret", "Heavy mortar", TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID, 18f, 3);
+
+    /** Every option a tender offers, in the order a player selects them (number keys 1-4). */
+    public static final List<BuildOption> ALL = List.of(VULCAN_TURRET, ARBALEST_TURRET, FLAK_TURRET, MORTAR_TURRET);
 }

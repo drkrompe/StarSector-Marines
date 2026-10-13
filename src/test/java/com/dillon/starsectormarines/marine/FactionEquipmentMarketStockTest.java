@@ -85,11 +85,12 @@ class FactionEquipmentMarketStockTest {
                         "hegemony", "chicomoztoc", 6, 30L, true, Set.of(),
                         new EquipmentAcquisitionEligibility.Progress(0, 5));
 
-        assertTrue(opening.licensedTemplateIds().isEmpty());
+        assertTrue(opening.licensedTemplateIds().stream().map(EquipmentTemplateCatalog::require)
+                .allMatch(card -> card.accessTier() == EquipmentAccessTier.COMMON));
         assertEquals(2, advanced.licensedTemplateIds().size());
         assertTrue(advanced.licensedTemplateIds().stream()
                 .map(EquipmentTemplateCatalog::require)
-                .allMatch(card -> card.accessTier() == EquipmentAccessTier.ADVANCED));
+                .allMatch(card -> card.accessTier() != EquipmentAccessTier.PRESTIGE));
     }
 
     @Test

@@ -5,16 +5,17 @@ import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneLook;
+import com.dillon.starsectormarines.battle.drone.DroneSeparation;
+import com.dillon.starsectormarines.battle.drone.SortieFlight;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.warship.Warship;
 
 import java.util.ArrayList;
@@ -54,20 +55,26 @@ public final class TenderSystem {
     public static final float PILOT_LEASH_CELLS = 26f;
     /** A builder this close to the site is working it. */
     static final float WORK_RADIUS = 3.2f;
-    /** Radius, in cells, of the ring a builder works on. */
-    static final float ORBIT_RADIUS = 1.4f;
-    static final float ORBIT_DEG_PER_SEC = 70f;
     /**
-     * Hostile units this close to a site stop the work on it and send the builders
-     * home. Wider than any rifle's reach (a DMR is 32), because a builder that
+     * Hostile units the tender's side knows of ({@link TenderThreat}) this close to a site
+     * stop the work on it and send the builders home. Wider than any rifle's reach (a DMR is 32), because a builder that
      * waits to be shot at from outside the old radius is a builder lost for
      * nothing; the screen's job is to clear the ground so the work can resume.
      */
     static final float THREAT_CELLS = 30f;
-    /** A returning drone this close to the bay is in it. */
-    static final float DOCK_RADIUS = 1.8f;
     /** Seconds between one defence drone leaving the bay and the next. */
     static final float LAUNCH_INTERVAL = 0.8f;
+    /** Seconds between one builder leaving the bay and the next. */
+    static final float BUILDER_LAUNCH_INTERVAL = 0.55f;
+    /** Seconds between one defence drone being released to fly home and the next. */
+    static final float RECALL_GAP = 0.4f;
+    /** Seconds between one builder being released to fly home and the next. */
+    static final float BUILDER_RECALL_GAP = 0.7f;
+    /** Builders closer than this push each other apart, in cells. */
+    static final float BUILDER_SEPARATION = 1.5f;
+    /** A builder this close to its station turns to face the site. */
+    static final float STATION_FACE_CELLS = 0.8f;
+    static final float FACE_DEG_PER_SEC = 240f;
     private static final float DESTROY = 1.0e6f;
 
     private final List<Tender> tenders = new ArrayList<>();
@@ -112,6 +119,7 @@ public final class TenderSystem {
             }
             tickDefence(t, dt, sim);
             t.pointDefence().tick(dt, sim, t);
+            TenderDirector.direct(t, sim, dt);
             tickOrders(t, dt, sim);
             tickBuilders(t, dt, sim);
         }
@@ -138,23 +146,42 @@ public final class TenderSystem {
     // ---- defence -----------------------------------------------------------------------------
 
     private void tickDefence(Tender t, float dt, BattleSimulation sim) {
+        TenderFlight flight = t.flight;
         for (Long id : new ArrayList<>(t.defenders)) {
             if (sim.resolveUnit(id) == 0L) t.lostDefender(id);
         }
-        if (!t.defenceOut()) {
-            for (Long id : new ArrayList<>(t.defenders)) {
-                sim.takeOffTheField(id);
-                t.dockedDefender(id);
+        flight.scan(sim, t.faction(), t.anchorX(), t.anchorY());
+        World world = sim.world();
+        flight.publishEscort(t.defenders, world);
+        flight.trackBay(t.bayX(), t.bayY(), dt);
+        int called = 0;
+        for (Long id : new ArrayList<>(t.defenders)) {
+            TenderFlight.Sortie sortie = flight.of(id);
+            AirBody body = world.kinematics(id);
+            if (sortie == null || body == null) continue;
+            if (!t.defenceOut()) {
+                flight.recall(sortie, clock + SortieFlight.stagger(called++, RECALL_GAP), false);
+            } else if (sortie.leg != TenderFlight.Leg.RECOVER && world.hp(id) < world.maxHp(id) * TenderFlight.RETREAT_FRACTION) {
+                flight.recall(sortie, clock, true);
+            } else {
+                flight.resume(sortie);
             }
-            return;
+            if (!flight.step(sortie, body.x, body.y, t.bayX(), t.bayY(), t.bayMouthDegrees(), clock, dt)) continue;
+            if (sortie.damaged) flight.repairing(clock);
+            sim.takeOffTheField(id);
+            t.dockedDefender(id);
         }
+        flight.publishEscort(t.defenders, world);
         t.launchClock += dt;
-        if (t.defenceReserve() <= 0 || t.launchClock < LAUNCH_INTERVAL) return;
+        if (!t.defenceOut() || t.launchClock < LAUNCH_INTERVAL) return;
+        if (t.defenceReserve() - flight.underRepair(clock) <= 0) return;
         t.launchClock = 0f;
         Squad squad = defenceSquad(t, sim);
         long id = launch(t, sim, true, squad.id);
         if (id == 0L) return;
+        flight.begin(id, true, t.defenders.size());
         t.launchedDefender(id);
+        flight.publishEscort(t.defenders, world);
         if (sim.resolveUnit(squad.leaderId) == 0L) squad.leaderId = id;
     }
 
@@ -167,7 +194,7 @@ public final class TenderSystem {
         return sim.getSquad(t.defenceSquadId);
     }
 
-    /** Spawns one drone at the bay: an armed screening drone in {@code squadId}, or an unarmed builder when {@code armed} is false. */
+    /** Spawns one drone in the bay's mouth: an armed screening drone in {@code squadId}, or an unarmed builder when {@code armed} is false. */
     private long launch(Tender t, BattleSimulation sim, boolean armed, int squadId) {
         float bx = t.bayX();
         float by = t.bayY();
@@ -180,7 +207,7 @@ public final class TenderSystem {
         if (id == 0L) return 0L;
         AirBody body = sim.world().kinematics(id);
         if (body != null) {
-            body.teleport(bx, by, t.ship().facingDegrees);
+            body.teleport(bx, by, t.bayMouthDegrees());
             sim.world().setPos(id, bx, by);
         }
         return id;
@@ -206,6 +233,7 @@ public final class TenderSystem {
     // ---- orders ------------------------------------------------------------------------------
 
     private void tickOrders(Tender t, float dt, BattleSimulation sim) {
+        t.blockedSeconds = Math.max(0f, t.blockedSeconds - dt);
         t.sweep();
         ConstructionOrder o = t.current();
         if (o == null) return;
@@ -238,7 +266,8 @@ public final class TenderSystem {
                                 && ship.speed() <= ARRIVE_SPEED;
                 if (there) {
                     o.startWork();
-                    deployBuilders(t, sim);
+                    t.builderClock = BUILDER_LAUNCH_INTERVAL;
+                    deployBuilders(t, 0f, sim);
                 }
             }
             case WORKING -> work(t, o, dt, sim);
@@ -246,12 +275,15 @@ public final class TenderSystem {
         }
     }
 
-    private void deployBuilders(Tender t, BattleSimulation sim) {
-        while (t.builderReserve() > 0) {
-            long id = launch(t, sim, false, -1);
-            if (id == 0L) return;
-            t.launchedBuilder(id);
-        }
+    /** Launches the next builder once the gap since the last has passed, so they leave the bay in a line. */
+    private void deployBuilders(Tender t, float dt, BattleSimulation sim) {
+        t.builderClock += dt;
+        if (t.builderReserve() <= 0 || t.builderClock < BUILDER_LAUNCH_INTERVAL) return;
+        t.builderClock = 0f;
+        long id = launch(t, sim, false, -1);
+        if (id == 0L) return;
+        t.flight.begin(id, false, t.flight.freeStation(t.builders, t.builderComplement()));
+        t.launchedBuilder(id);
     }
 
     private void work(Tender t, ConstructionOrder o, float dt, BattleSimulation sim) {
@@ -267,9 +299,15 @@ public final class TenderSystem {
             t.retire(o, "no builders left");
             return;
         }
-        boolean contested = hostileNear(sim, t.faction(), o.siteX(), o.siteY()) || outOfReach(t, o);
+        if (TenderThreat.anyHit(t.builders, world, t.builderHp) | t.builderLostSinceLastLook()) {
+            t.blockedSeconds = TenderThreat.BLOCK_SECONDS;
+        }
+        o.underFire(t.underFire());
+        float[] known = TenderThreat.known(sim, t);
+        boolean contested = t.underFire() || TenderThreat.near(known, o.siteX(), o.siteY(), THREAT_CELLS)
+                || outOfReach(t, o);
         // Builders stood down for a threat come back out once the ground is clear.
-        if (!contested) deployBuilders(t, sim);
+        if (!contested) deployBuilders(t, dt, sim);
         int crew = t.builderComplement();
         if (!o.work(dt, onSite, crew, contested)) return;
         String name = "tender-turret-" + nextSite++;
@@ -282,30 +320,32 @@ public final class TenderSystem {
         return t.piloted() && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
     }
 
-    private static boolean hostileNear(BattleSimulation sim, Faction side, float x, float y) {
-        UnitRosterService roster = sim.getRoster();
-        World world = sim.world();
-        long[] dense = roster.denseArray();
-        float r2 = THREAT_CELLS * THREAT_CELLS;
-        for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            long u = dense[i];
-            if (!side.hostileTo(roster.identity().faction(u))) continue;
-            float dx = world.x(u) - x;
-            float dy = world.y(u) - y;
-            if (dx * dx + dy * dy <= r2) return true;
-        }
-        return false;
-    }
 
     // ---- builders ----------------------------------------------------------------------------
 
-    /** Steers every builder: onto the working site's ring while there is work, otherwise home to the bay. */
+    /**
+     * Steers every builder through its sortie: out through the bay's mouth, to its own
+     * station on the site's ring while there is work, and, when the work stops, home in
+     * the order it left, each docking only on arrival.
+     */
     private void tickBuilders(Tender t, float dt, BattleSimulation sim) {
+        TenderFlight flight = t.flight;
         ConstructionOrder o = t.current();
         boolean working = o != null && o.phase() == ConstructionOrder.Phase.WORKING && !o.contested();
         World world = sim.world();
         List<Long> ids = new ArrayList<>(t.builders);
         int n = ids.size();
+        long[] mateIds = new long[n];
+        float[] xs = new float[n];
+        float[] ys = new float[n];
+        for (int i = 0; i < n; i++) {
+            mateIds[i] = ids.get(i);
+            xs[i] = world.x(mateIds[i]);
+            ys[i] = world.y(mateIds[i]);
+        }
+        float towardTender = o == null ? 0f
+                : AirBody.facingToward(t.ship().x - o.siteX(), t.ship().y - o.siteY());
+        int released = 0;
         for (int i = 0; i < n; i++) {
             long id = ids.get(i);
             if (sim.resolveUnit(id) == 0L) {
@@ -313,23 +353,32 @@ public final class TenderSystem {
                 continue;
             }
             AirBody body = world.kinematics(id);
-            if (body == null) continue;
-            float gx;
-            float gy;
-            if (working) {
-                double a = Math.toRadians(clock * ORBIT_DEG_PER_SEC + 360f * i / Math.max(1, n));
-                gx = o.siteX() + ORBIT_RADIUS * (float) Math.cos(a);
-                gy = o.siteY() + ORBIT_RADIUS * (float) Math.sin(a);
-            } else {
-                gx = t.bayX();
-                gy = t.bayY();
-                if (body.distanceTo(gx, gy) <= DOCK_RADIUS) {
-                    sim.takeOffTheField(id);
-                    t.dockedBuilder(id);
-                    continue;
-                }
+            TenderFlight.Sortie sortie = flight.of(id);
+            if (body == null || sortie == null) continue;
+            if (!working) flight.recall(sortie, clock + SortieFlight.stagger(released++, BUILDER_RECALL_GAP), false);
+            else flight.resume(sortie);
+            if (flight.step(sortie, body.x, body.y, t.bayX(), t.bayY(), t.bayMouthDegrees(), clock, dt)) {
+                sim.takeOffTheField(id);
+                t.dockedBuilder(id);
+                continue;
             }
-            AirSteeringSystem.steer(body, gx, gy, SteeringMode.CRUISE, Drone.HANDLING, dt);
+            float[] push = DroneSeparation.push(id, body.x, body.y, mateIds, xs, ys, n, BUILDER_SEPARATION);
+            float[] goal = sortie.goal;
+            if (goal != null) {
+                AirSteeringSystem.steer(body, goal[0] + push[0], goal[1] + push[1], SteeringMode.CRUISE,
+                        Drone.HANDLING, dt);
+            } else if (o != null) {
+                float[] station = BuilderStations.station(o.siteX(), o.siteY(), towardTender, sortie.slot,
+                        t.builderComplement(), clock, sortie.phase);
+                AirSteeringSystem.steer(body, station[0] + push[0], station[1] + push[1],
+                        SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
+                if (body.distanceTo(station[0], station[1]) < STATION_FACE_CELLS) {
+                    float toSite = AirBody.facingToward(o.siteX() - body.x, o.siteY() - body.y);
+                    body.facingDegrees = TurretAim.slewToward(body.facingDegrees, toSite, FACE_DEG_PER_SEC * dt);
+                }
+            } else {
+                AirSteeringSystem.steer(body, body.x, body.y, SteeringMode.STATION, Drone.HANDLING, dt);
+            }
             world.setPos(id, body.x, body.y);
         }
     }

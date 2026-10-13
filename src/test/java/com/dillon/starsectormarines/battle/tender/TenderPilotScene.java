@@ -55,7 +55,7 @@ public final class TenderPilotScene implements BehaviorScene {
     private static final int LAY_A_AT = 60;
     private static final int LAY_B_AT = 80;
     private static final int RECALL_AT = 1000;
-    private static final int DEPLOY_AT = 1060;
+    private static final int DEPLOY_AT = 1220;
     private static final int CANCEL_AT = 1300;
     private static final int LAY_C_AT = 1350;
     private static final int RELEASE_AT = 1450;
@@ -220,8 +220,8 @@ public final class TenderPilotScene implements BehaviorScene {
                     siteBWaitedInTransit = true;
                 }
             }
-            if (tick == RECALL_AT + 40) defenceAfterRecall = tender.defendersOut();
-            if (tick == DEPLOY_AT + 240) defenceAfterDeploy = tender.defendersOut();
+            if (tick == RECALL_AT + 200) defenceAfterRecall = tender.defendersOut();
+            if (tick == DEPLOY_AT + 200) defenceAfterDeploy = tender.defendersOut();
             if (tick == CANCEL_AT + 2) sitesAfterCancel = TenderPilot.liveSites(tender);
             if (tick == RELEASE_AT) {
                 control.exit();

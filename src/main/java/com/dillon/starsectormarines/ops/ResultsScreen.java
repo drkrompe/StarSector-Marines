@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.battle.audio.NarrationSequence;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -38,19 +39,29 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             "data/ui/components/missions/mission-results.mlx");
 
     private final NarrationSequence debriefNarration = new NarrationSequence();
+    private final DebriefRewardPrompt rewardPrompt = new DebriefRewardPrompt(new Reactor(),
+            () -> context.openFleetArmoryWorkspaceFrom(ScreenId.RESULTS), this::startDebriefNarration);
+    private MissionOutcome narratedOutcome;
     private MissionOutcome presentedOutcome;
     private MarkupInstance resultMarkup;
 
     @Override protected void onAttach() {
         MissionOutcome outcome = context.getLastOutcome();
-        if (outcome != presentedOutcome) {
-            presentedOutcome = outcome;
-            debriefNarration.start(MissionDebriefConversation.lines(outcome, WaylineNarration.builtins()));
+        presentedOutcome = outcome;
+        rewardPrompt.present(outcome, CompanyPreparationGuide.roster());
+        if (!rewardPrompt.visible()) startDebriefNarration();
+    }
+
+    private void startDebriefNarration() {
+        if (presentedOutcome != narratedOutcome) {
+            narratedOutcome = presentedOutcome;
+            debriefNarration.start(MissionDebriefConversation.lines(presentedOutcome, WaylineNarration.builtins()));
         }
     }
 
     @Override protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
         resultMarkup = instance;
+        rewardPrompt.bind(built, instance, this::onCancel);
     }
 
     @Override protected void onAdvance(float dt) {
@@ -85,6 +96,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         putStoryDebrief(props, outcome);
         putFirstRefit(props, outcome, CompanyPreparationGuide.roster(),
                 () -> context.openFleetArmoryWorkspaceFrom(ScreenId.RESULTS));
+        props.put("rewardPrompt", rewardPrompt.row());
         boolean preparation = outcome != null && !outcome.missionSource.isDebug();
         props.put("preparationClasses", preparation ? "console-action" : "hidden");
         props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
@@ -147,6 +159,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
 
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("rewardPrompt", DebriefRewardPrompt.hidden());
         props.put("title", Strings.get("resultsHeader"));
         props.put("preparationClasses", "hidden");
         props.put("preparationLabel", "PREPARE COMPANY");
@@ -160,7 +173,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     static void putFirstRefit(Map<String, Object> props, MissionOutcome outcome, MarineRoster roster, Runnable open) {
         boolean available = outcome != null && !outcome.missionSource.isDebug() && FirstRefit.available(roster);
         props.put("refitClasses", available ? "results-refit console-readout" : "hidden");
-        props.put("refitCopy", "Castle has Wayline's new weapon and armor patterns ready in Armory. Choose Steady Line or Forward Screen and try the equipment with free Machine Shop fitting. Wounded and understrength squads can equip now. You can return here for any unclaimed salvage.");
+        props.put("refitCopy", "Wayline offers one free technology transfer. Compare both paths in Equipment, then fit learned gear for free, even while marines recover. Pending salvage stays here.");
         props.put("refitAction", open);
     }
 

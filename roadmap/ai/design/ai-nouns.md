@@ -864,7 +864,8 @@ Form-up is an execution suspension, not an assignment writer or ownership
 transfer. The authoritative directive remains inspectable and may be updated
 while a tagged campaign squad assembles; tactical goals consume a derived
 executable assignment that is null until the manifest arrives or the timeout
-expires. Selected-squad and dump diagnostics show both the authoritative order
+expires. A player's leased order is exempt: it executes immediately on a
+partial squad, and later lifts rejoin it as late arrivals. Selected-squad and dump diagnostics show both the authoritative order
 and the READY/SUSPENDED execution state.
 
 A **commander snapshot** is the immutable explanation published after commit.

@@ -1,9 +1,9 @@
 <template props="selectedSquadName,armorComparisonSummary,armorComparisonCards,backToFireTeams,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="armor-comparison-root" class="armor-comparison-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / ARMOR COMPARISON" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / ARMOR COMPARISON" />
 
     <div id="comparison-breadcrumb" class="panel">
-      <button id="comparison-breadcrumb-companies" onclick="{back}">Companies</button>
+      <button id="comparison-breadcrumb-companies" onclick="{back}">Back</button>
       <div id="comparison-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
       <button id="back-to-fireteams" onclick="{backToFireTeams}">{selectedSquadName}</button>
       <div id="comparison-separator-current" class="breadcrumb-separator label tone-muted">/</div>

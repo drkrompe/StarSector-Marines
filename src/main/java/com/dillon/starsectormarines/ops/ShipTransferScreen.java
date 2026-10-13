@@ -138,7 +138,7 @@ public final class ShipTransferScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "transfer-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
                 "transfer-room-bar", "transfer-body",
                 "transfer-fleet-list", "transfer-stage", "transfer-plan",

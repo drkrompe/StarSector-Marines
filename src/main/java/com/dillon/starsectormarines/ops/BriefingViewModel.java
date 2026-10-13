@@ -203,6 +203,11 @@ final class BriefingViewModel {
 
     /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */
     static void applyVisibility(MarkupInstance markup, Map<String, Object> props) {
+        UiElement preparation = markup.requireElement("mission-preparation");
+        if (preparation.hasClass("briefing-assign-hidden")) {
+            // Button-only hiding styles cannot collapse this toolbar's descendants.
+            preparation.parent().remove(preparation);
+        }
         boolean narrated = Boolean.TRUE.equals(props.get("narrationAvailable"));
         markup.requireElement("mission-overview").classed("narrated", narrated);
         if (!narrated) {
