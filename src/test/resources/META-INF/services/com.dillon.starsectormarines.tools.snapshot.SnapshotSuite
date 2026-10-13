@@ -108,3 +108,4 @@ com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsSceneSnapshotSu
 com.dillon.starsectormarines.battle.world.gen.ship.SecondWindLanceSnapshotSuite
 com.dillon.starsectormarines.tools.terrainauthoring.ShepherdBasinSnapshotSuite
 com.dillon.starsectormarines.battle.shield.ShieldDomeSceneSnapshotSuite
+com.dillon.starsectormarines.battle.salvage.FieldSalvageSnapshotSuite
