@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-13 — aircraft against ships built (G3) with the shield-type threat weighting; carrier flux and standoff biases built (owner: carriers hang back and save flux); support-ship no-bombardment decided but deferred; ship class threat weights built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
+Updated: 2026-10-13 — hull priority for strike craft confirmed by the owner; aircraft against ships built (G3) with the shield-type threat weighting; carrier flux and standoff biases built (owner: carriers hang back and save flux); support-ship no-bombardment decided but deferred; ship class threat weights built; slices 1 (posture and readout), 2 (objective-aware, friendly-aware fire and landing-denial intercept) and 3 (ship weapons against aircraft) built.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -288,4 +288,4 @@ Standoff is the existing machinery (`WarshipSystem.standoffStation`, declared ca
 ## Open questions: ship class
 
 1. **The multipliers and carrier numbers are a first table, not tuned.** They were chosen to keep the capital row unchanged and to make one armed craft enough to turn a frigate or carrier to the air fight. Armed craft remain only the air layer's strike sorties.
-2. **Aircraft against ships: three calls made building G3, open for the owner.** (a) A hull always outranks the ground for an eligible sortie, with no mission or posture input; a side with a hostile capital overhead sends its first two craft at it. (b) A sortie is aimed at the hull\'s centre at dispatch and does not follow a moving hull. (c) Shield factors (0.85 front, 0.7 omni) are a first table; phase is treated as front.
+2. **Aircraft against ships: three calls made building G3; (a) decided, (b) and (c) open.** (a) *Decided (owner):* a hull always outranks the ground for an eligible sortie, with no mission or posture input, so a side with a hostile capital overhead sends its first two craft at it. That is right by threat: the most dangerous thing on the field to a ship's side is a ship. (b) A sortie is aimed at the hull\'s centre at dispatch and does not follow a moving hull. (c) Shield factors (0.85 front, 0.7 omni) are a first table; phase is treated as front.
