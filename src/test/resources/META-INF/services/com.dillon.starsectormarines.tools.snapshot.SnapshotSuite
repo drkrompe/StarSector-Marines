@@ -120,3 +120,4 @@ com.dillon.starsectormarines.battle.battery.FortressBatterySceneSnapshotSuite
 com.dillon.starsectormarines.battle.salvage.FieldSalvageSnapshotSuite
 com.dillon.starsectormarines.ops.EngineeringOverlaySnapshotSuite
 com.dillon.starsectormarines.ops.ColdStartSnapshotSuite
+com.dillon.starsectormarines.battle.air.CloseAirSupportSceneSnapshotSuite
