@@ -52,7 +52,8 @@ public final class ThunderRunCompound {
         return new Cell(251, detachment % 2 == 0 ? 65 : 85);
     }
     public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
-    public static final List<Cell> ANTI_AIR_POSTS = List.of(new Cell(115, 63), new Cell(145, 64));
+    public static final List<Cell> ANTI_AIR_POSTS = List.of(new Cell(119, 27), new Cell(155, 23));
+    public static final List<Cell> RIDGE_GUARDS = List.of(new Cell(116, 30), new Cell(153, 29));
     public static final List<Cell> EXIT_GUNS = List.of(new Cell(304, 65), new Cell(304, 85));
     public static final List<String> SITE_NAMES = List.of("Convoy staging", "Dispatch Post", "East Crossing", "Outbound Gate");
     public record Layout(MapResult map, List<TacticalNode> sites) {
@@ -69,9 +70,12 @@ public final class ThunderRunCompound {
                 ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
                 ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 75, 270, 64))).run(c);
         for (Cell gun : ANTI_AIR_POSTS) {
-            c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
-            c.grid.setWalkable(gun.x, gun.y, false);
-            c.grid.setSeeThrough(gun.x, gun.y, true);
+            for (int y = gun.y - 1; y <= gun.y + 1; y++) for (int x = gun.x - 1; x <= gun.x + 1; x++) {
+                if (!c.grid.isWalkable(x, y)) throw new IllegalStateException("Ridge AA footprint obstructed");
+                c.topology.setGroundKind(x, y, GroundKind.STRIPED);
+                c.grid.setWalkable(x, y, false);
+                c.grid.setSeeThrough(x, y, true);
+            }
         }
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
@@ -99,7 +103,8 @@ public final class ThunderRunCompound {
         requireRoute(map, 275, 2);
         requireRoute(map, 275, 141);
         for (Cell gun : EXIT_GUNS) requireRoute(map, gun.x + 2, gun.y);
-        for (Cell gun : ANTI_AIR_POSTS) requireRoute(map, gun.x - 1, gun.y);
+        for (Cell gun : ANTI_AIR_POSTS) requireRoute(map, gun.x + 2, gun.y);
+        for (Cell guard : RIDGE_GUARDS) requireRoute(map, guard.x, guard.y);
         for (Cell post : SUPPORT_POSTS) requireRoute(map, post.x, post.y);
         for (var posts : COMPANY_POSTS) for (Cell post : posts) requireRoute(map, post.x, post.y);
         for (int site = 0; site < 4; site++) for (int section = 0; section < 2; section++) {
@@ -181,6 +186,10 @@ public final class ThunderRunCompound {
         for (int[] lot : new int[][]{{282,118,319,143},{38,87,68,112},
                 {130,87,156,112}})
             shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.TOP);
+        // Small occupied service settlements against the ridge, outside its solid faces.
+        // These furnish actual rooms without adding territorial capture requirements.
+        shell(c, 104, 25, 113, 31, Frontage.RIGHT);
+        shell(c, 141, 18, 150, 27, Frontage.RIGHT);
     }
     private static void terrain(GenContext c) {
         boolean[] reserved = new boolean[c.width * c.height];
@@ -224,8 +233,16 @@ public final class ThunderRunCompound {
     }
     /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
     private static void fortifications(GenContext c) {
-        // Separate AA pits overlook the first convoy leg, far outside the western insertion corridor.
-        for (Cell gun : ANTI_AIR_POSTS) supportEmplacement(c, gun, false);
+        // Gravel courts connect the ridge settlements to the existing low-ground flank.
+        for (Cell gun : ANTI_AIR_POSTS) {
+            pave(c, gun.x - 3, gun.y - 3, gun.x + 3, gun.y + 3, GroundKind.COURTYARD);
+            supportEmplacement(c, gun, false);
+        }
+        for (Cell guard : RIDGE_GUARDS) {
+            pave(c, guard.x - 1, guard.y, guard.x + 1, guard.y + 1, GroundKind.COURTYARD);
+            fixture(c, guard.x - 1, guard.y + 2, "doodad.sandbag-straight-n");
+            fixture(c, guard.x + 1, guard.y + 2, "doodad.sandbag-straight-n");
+        }
         // Dispatch looks east along the verge; Crossing covers its western side road.
         supportEmplacement(c, SUPPORT_POSTS.get(0), true);
         supportEmplacement(c, SUPPORT_POSTS.get(1), false);

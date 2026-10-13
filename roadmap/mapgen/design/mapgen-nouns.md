@@ -289,8 +289,13 @@ leaving usable loading courts and recesses outside their actual footprints.
 The checkpoint's terminal blocks retain the mass needed to contain the road. Its fifteen-cell carriageway is reserved
 before facilities, perimeter runs and dressing. Cliff-backed northern and
 southern hills replace outer filler blocks, leaving low-ground infantry routes
-behind the roadside facilities. Cross streets remain full-width cuts through
-the hills, and the entire western staging and boat approach stays clear.
+behind the roadside facilities. Northern ridge-side settlements place missile
+batteries, guard courts and small service buildings in accessible low-ground
+clearings. Their full emplacement footprints and infantry approaches remain
+connected without opening the mountain faces. A future occupied hilltop would
+require an authored ramp, never a blanket walkability change. Cross streets
+remain full-width cuts through the hills, and the entire western staging and
+boat approach stays clear.
 Finished berths, interior anchors and the road-reserve approaches remain
 connected; no terrain or furnishing may narrow the vehicle road. The terminal
 blocks retain pedestrian service alleys around the checkpoint, while cargo,

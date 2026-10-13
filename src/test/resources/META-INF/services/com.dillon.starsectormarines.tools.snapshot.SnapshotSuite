@@ -134,3 +134,4 @@ com.dillon.starsectormarines.ops.ShipCommandUiSnapshotSuite
 com.dillon.starsectormarines.ops.BoatRecoverySnapshotSuite
 com.dillon.starsectormarines.battle.fort.BatteryFortSceneSnapshotSuite
 com.dillon.starsectormarines.ops.BatteryFortMapSnapshotSuite
+com.dillon.starsectormarines.battle.air.RidgeAirDefenceSceneSnapshotSuite

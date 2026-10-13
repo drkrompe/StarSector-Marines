@@ -138,12 +138,15 @@ public final class StructureDef {
         }
         JSONObject artJson = json.optJSONObject("art");
         StructureArt art = artJson != null ? StructureArt.parse(id, artJson) : null;
+        TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));
+        if (mount.weapon.guidance != null && role != TurretRole.AA)
+            throw new JSONException("Air-guided weapon requires an AA structure: " + id);
         return new StructureDef(
                 id, TurretMountDef.requireText(catalog, "displayName"),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount,
                 batteryLoadoutId, fireControlRadius, dome, art,
-                TurretRole.valueOf(json.optString("targetRole", "A2G")),
+                role,
                 json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null);
     }
 }

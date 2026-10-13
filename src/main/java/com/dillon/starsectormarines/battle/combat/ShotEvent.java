@@ -33,9 +33,12 @@ public class ShotEvent {
     public final float fromX;
     public final float fromY;
     public final float fromZ;
-    public final float toX;
-    public final float toY;
-    public final float toZ;
+    /** Fixed resolved endpoint, or the current/terminal position of a guided flight. */
+    public float toX;
+    public float toY;
+    public float toZ;
+    /** Optional simulation-owned curved flight; presentation never steers it. */
+    public GuidedMissile guidedFlight;
     public final boolean hit;
     public final Faction shooterFaction;
     /** Firing entity id, or {@code 0L} for anonymous/aerial legacy sources. */
