@@ -243,6 +243,8 @@ public final class TenderSystem {
     private void tickOrders(Tender t, float dt, BattleSimulation sim) {
         t.blockedSeconds = Math.max(0f, t.blockedSeconds - dt);
         t.sweep();
+        // A tender whose station time is spent is leaving: no new standoff may pull it back.
+        if (t.ship().departing()) return;
         ConstructionOrder o = t.current();
         if (o == null) return;
         NavigationGrid grid = sim.getGrid();
