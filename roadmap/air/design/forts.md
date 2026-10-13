@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 — slices 1 and 2 built (battery fort and its aspects); shield fort, redoubt/citadel, command awareness and art remain.
+Updated: 2026-10-13 — battery fort rebuilt as defence in depth (outer belt, bastioned works, differentiated interior); shield fort, redoubt/citadel and command awareness remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -89,14 +89,33 @@ missions that want one.
 - **Aspects do not respawn.** A wrecked aspect stays wrecked for the battle; a taken one can
   be retaken.
 
+## Defence in depth (standing direction)
+
+A fort is never a wall round a pad. It is layered outside in, and a layer that is only a rectangle is a failed layer:
+
+1. **Outer belt.** An irregular ring of trench, sandbag line, wire and nests with firing steps, standing off the main
+   works across an open killing ground (the glacis). It is not a box: it kinks and re-enters so no stretch is
+   enfiladed end to end, it opens in front of each gate where the approach lane crosses it, and it follows the ground
+   it is given: a cell the city or a neighbour holds is simply not drawn. The belt is cover and obstacle by the existing
+   semantics (sandbag and trench cells are walkable heavy cover; wire is a breachable fixture), never decoration.
+2. **Main works.** A thick chamfered trace with an angled bastion at each corner (nests inside them), and a gatehouse
+   with a baffle at each gate so the way in turns under fire. Walls use the ordinary wall-health machinery.
+3. **Interior.** Buildings read by function: the fire-control bunker low and hardened inside its own berm, the
+   magazine apart from the guns inside a double berm, the power plant with its plant standing in a fenced yard, and the
+   battery in a revetted pit entered round a turn. Paving exists only where vehicles drive; the rest is earth and cover.
+4. **Siting.** The works and glacis need clear ground, loose stone is levelled, and forts never stand flush: a placed
+   fort's whole footprint, belt included, is closed to the next.
+
+New fort kinds follow the same order. Capture, aspects and mission authority are unchanged by it.
+
 ## Built: battery fort and aspects (slices 1 and 2)
 
-- **Layout.** `BatteryFort` is a 48x36 authored `CompoundLayout`: a wall ring with two gates, a main street and a
-  postern lane, a fire-control bunker, a magazine and a power building (each a walled building with one door), the
-  battery platform in the rear gun court and a nest in each inner corner. `BatteryFortStage` stamps it at one of four
-  cardinal turns on ground the city has left free (city is prior; roads and precinct claims are respected), turns the
-  main gate to face the map centre where it can, and paves a lane from each gate toward the nearest road. The lane is
-  ground paint only; it is not in the road graph. Fort walls carry wall-health, so they can be breached.
+- **Layout.** `BatteryFort` is the authored frame (works, gates, buildings, lanes) and `FortBelt` the outer belt; both
+  rotate as one at four cardinal turns. `BatteryFortStage` stamps it on ground the city has left free (city is prior;
+  roads and precinct claims are respected), turns the main gate to face the map centre where it can, and paves a lane
+  from each gate toward the nearest road (ground paint only, not in the road graph). Fort walls carry wall-health, so
+  they can be breached. The belt uses the earthworks sheet `fort-earthworks` (trench sections by connection mask, thick
+  sandbag, concertina wire), produced through the geometry-first loop.
 - **Declaration.** `GroundDefences` carries declared forts by `FortKind` (BATTERY_FORT today). `MissionDefencePolicy`
   stays the only decider; Conquest's untuned first pass converts its declared batteries into forts
   (`CONQUEST_BATTERIES_AS_FORTS`, one line to turn off). Bare structures remain for scenes and debug, the DEBUG dial
@@ -122,5 +141,4 @@ missions that want one.
 4. **Redoubt and citadel.**
 5. **Command awareness** — `DefenceStructureTactics` reasons about aspects (which one to take
    or wreck first for the effect wanted) using only what a side knows.
-6. **Art** — the fort's buildings and aspect states through the geometry-first loop, with
-   animated parts as layers.
+6. **Art** — earthworks done (`fort-earthworks`); the fort's buildings and aspect states, with animated parts as layers, remain.
