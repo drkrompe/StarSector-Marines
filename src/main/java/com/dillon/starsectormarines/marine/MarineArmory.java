@@ -158,10 +158,12 @@ public final class MarineArmory implements Serializable {
     public boolean canIssue(SquadArmorPlan plan) {
         MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
         if (plan == null || catalog == null) return false;
-        for (MarineArmorCatalogDef pattern : catalog.all()) {
-            if (pattern.armorClass() == plan.armorClass() && ownsArmorTemplate(pattern.id())) return true;
+        try {
+            issue(plan);
+            return true;
+        } catch (IllegalStateException unavailable) {
+            return false;
         }
-        return false;
     }
 
     /** Issues one plan from this armoury's own stock. */

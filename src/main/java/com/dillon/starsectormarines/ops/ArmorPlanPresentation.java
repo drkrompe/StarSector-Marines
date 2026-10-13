@@ -13,7 +13,7 @@ final class ArmorPlanPresentation {
         SquadArmorDoctrine issued = armory.armorDoctrineById(id);
         if (issued != null) return issued.displayName();
         SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(id);
-        if (plan != null) return plan.displayName() + " (" + plan.armorClass().displayName() + " unavailable)";
+        if (plan != null) return plan.displayName() + " (" + plan.armorClassDisplayName() + " unavailable)";
         return id == null ? "No armor plan" : "Unavailable armor plan: " + id;
     }
 }

@@ -201,9 +201,11 @@ public final class HeadlessArmoryPreviewRenderer {
 
         private LayeredUnitAssets loadFamily(LayeredArmorFamily family) {
             String armorRoot = MODULAR_ROOT + "armor/" + familyDirectory(family) + "/";
+            boolean articulatedShoulders = family == LayeredArmorFamily.SPECTER_HEAVY
+                    || family == LayeredArmorFamily.ARBALEST_HEAVY;
             LayeredUnitAssets loaded = new LayeredUnitAssets(
                     sprite(armorRoot + "body.png"), sprite(armorRoot + "head.png"),
-                    sprite(family == LayeredArmorFamily.SPECTER_HEAVY
+                    sprite(articulatedShoulders
                             ? armorRoot + "foot.png" : FOOT), null,
                     sprite(MODULAR_ROOT + "weapons/rifle.png"),
                     sprite(MODULAR_ROOT + "weapons/laser-gun.png"),
@@ -214,9 +216,9 @@ public final class HeadlessArmoryPreviewRenderer {
                     sprite(FLASH),
                     sprite(MODULAR_ROOT + "weapons/grades/surplus/rifle.png"),
                     sprite(MODULAR_ROOT + "weapons/grades/masterwork/dmr.png"),
-                    family == LayeredArmorFamily.SPECTER_HEAVY
+                    articulatedShoulders
                             ? optionalSprite(armorRoot + "shoulder-left.png") : null,
-                    family == LayeredArmorFamily.SPECTER_HEAVY
+                    articulatedShoulders
                             ? optionalSprite(armorRoot + "shoulder-right.png") : null);
             for (SpecialEquipmentDef def : SpecialEquipmentRegistry.installed().all()) {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
@@ -268,6 +270,7 @@ public final class HeadlessArmoryPreviewRenderer {
                 case FURNACE_LINE -> "furnace-line";
                 case REAVER -> "reaver";
                 case SPECTER_HEAVY -> "specter-heavy";
+                case ARBALEST_HEAVY -> "specter-heavy/paints/olive";
                 case BULWARK_HEAVY -> "bulwark-heavy";
                 case RELIQUARY_HEAVY -> "reliquary-heavy";
                 case LIONS_MANTLE -> "lions-mantle";

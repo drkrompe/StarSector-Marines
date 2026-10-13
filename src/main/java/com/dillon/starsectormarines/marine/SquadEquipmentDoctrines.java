@@ -29,6 +29,7 @@ public final class SquadEquipmentDoctrines {
     public static final String CHURCH_LINE_ARMOR = "armor:church-line";
     public static final String SINDRIAN_LINE_ARMOR = "armor:sindrian-line";
     public static final String OUTLAW_LINE_ARMOR = "armor:outlaw-line";
+    public static final String SALVAGE_ASSISTED_ARMOR = "armor:salvage-assisted";
     public static final String HEGEMONY_SHOCK_ARMOR = "armor:hegemony-shock";
     public static final String CORPORATE_HEAVY_ARMOR = "armor:corporate-heavy";
     public static final String LEAGUE_HEAVY_ARMOR = "armor:league-heavy";
@@ -196,6 +197,12 @@ public final class SquadEquipmentDoctrines {
             plan(OUTLAW_LINE_ARMOR, "Outlaw Veteran Protection",
                     "Veterans of a trade that rewards volume and speed over anything else.",
                     ArmorTradition.PIRATES, SquadRoleMix.BALANCED),
+            new SquadArmorPlan(SALVAGE_ASSISTED_ARMOR, "@loadoutSalvageAssistedName",
+                    "@loadoutSalvageAssistedDescription",
+                    ArmorTradition.INDEPENDENT, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
+                    List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT, ArmorClass.POWER_SUIT)),
             powerSuitPlan(HEGEMONY_SHOCK_ARMOR, "Hegemony XIV Shock Protection",
                     "A deliberate breach: two teams through the door and one making the hole bigger.",
                     ArmorTradition.HEGEMONY, SquadRoleMix.BREACH),
