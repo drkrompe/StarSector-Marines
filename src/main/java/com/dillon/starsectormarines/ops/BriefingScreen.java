@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
+
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 
 import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
@@ -500,6 +502,15 @@ public class BriefingScreen implements Screen {
         BriefingViewModel.putLandingCraft(props, mission, lift(),
                 readiness != null ? readiness.selectedReady() : 0,
                 debug || mission.source == MissionSource.STATIONING ? null : ShipsBoatsAboard.carrier());
+        String repairingLift = !debug && mission.source != MissionSource.STATIONING && lift().isEmpty()
+                ? ShipsBoatsAboard.recoveryBlocker() : null;
+        if (repairingLift != null) {
+            String grounded = Strings.get("boatGrounded");
+            props.put("landingCraftTitle", grounded);
+            props.put("landingCraftSchedule", repairingLift);
+            props.put("landingCraftHint", new SpecSheet(grounded, grounded, null, "command", List.of(),
+                    List.of(repairingLift, Strings.get("boatRepairCopy"))));
+        }
         props.put("carrierRows", retainedCarrierRows());
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
@@ -1065,7 +1076,8 @@ public class BriefingScreen implements Screen {
                         ? canReinforce ? "REINFORCE +" + reinforcement + "  ·  " + cargoCost + " CARGO"
                                 : "NEED " + shortfall + "  ·  NO MARINES"
                         : readiness != null ? "ASSIGN " + readiness.selectedShortfall() : "BLOCKED";
-        props.put("deploymentStatus", canAccept ? "Ready to deploy" : label);
+        String recovery = !debug && !transportOk ? ShipsBoatsAboard.recoveryBlocker() : null;
+        props.put("deploymentStatus", recovery != null ? recovery : canAccept ? "Ready to deploy" : label);
         props.put("deployLabel", canAccept ? "DEPLOY" : canReinforce ? "REINFORCE"
                 : !transportOk || !commandOk || readiness == null || readiness.needsPersonnel()
                         ? "DEPLOY" : "ASSIGN SQUADS");

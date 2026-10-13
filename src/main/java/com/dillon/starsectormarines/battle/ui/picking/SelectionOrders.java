@@ -11,6 +11,10 @@ public final class SelectionOrders {
     public static void requestMove(BattleSimulation sim, Selection selection, int x, int y) {
         if (sim == null || selection == null || sim.directControl().active()
                 || !sim.getGrid().inBounds(x, y)) return;
+        if (selection.hasWarshipSelection()) {
+            sim.shipCommands().requestMove(selection.getSelectedWarship(), x + .5f, y + .5f);
+            return;
+        }
         long vehicle = selection.getSelectedVehicleId();
         if (vehicle != 0L) {
             sim.getVehicleMoveOrderService().requestMove(vehicle, x, y);
