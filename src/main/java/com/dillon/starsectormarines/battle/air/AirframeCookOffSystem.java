@@ -134,8 +134,10 @@ public final class AirframeCookOffSystem {
         ignite(airframe, x, y, faction);
     }
 
-    public void crash(long airframe, float x, float y, Faction faction, float hullRadius) {
+    public void crash(long airframe, float x, float y, Faction faction, float hullRadius, float vx, float vy) {
+        if (burned.contains(airframe)) return;
         ignite(airframe, x, y, faction, Math.max(BLAST_RADIUS_CELLS, Math.min(8f, hullRadius + 3f)), true);
+        effects.spawnCrashBlastFan(x, y, vx, vy, hullRadius);
     }
 
     private void ignite(long airframe, float x, float y, Faction faction) {

@@ -846,7 +846,8 @@ public class AirSystem {
                             && body.y < navigation.getGrid().getHeight() - 1;
                     if (before < AirCrashMotion.FALL_SECONDS && mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
                             && onMap && airframeCookOff != null) {
-                        airframeCookOff.crash(id, body.x, body.y, world.airFaction(id), frame.targetRadiusCells());
+                        airframeCookOff.crash(id, body.x, body.y, world.airFaction(id), frame.targetRadiusCells(),
+                                body.vx, body.vy);
                     }
                     if (mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
                             && AirCrashMotion.skid(body, dt - airborneSeconds)) {
