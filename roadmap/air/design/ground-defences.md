@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — slices 1 to 4 built (profile signals; multi-cell structures; fortress battery; shield generator and dome); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-14 — slices 1 to 4 built; placement authority moved from map generation to the mission (a mission declares batteries and a shield generator, stages place exactly that); owner answers folded in: either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the two
@@ -108,7 +108,7 @@ capital that is not another ship.
    read in `TargetProfileResolver` (ground defences is true for Ground Defenses *or* its
    Heavy Batteries upgrade, which keeps the network), carried through fixture JSON, and
    restatable by a mission (`Mission.defences`, the DEBUG "Ground defences" dial on
-   Conquest). Nothing in map generation reads them yet. `DetachmentResolver.planetHasHeavyArmaments`
+   Conquest). Map generation does not read them; a mission definition may (see slice 3, *Placement authority*). `DetachmentResolver.planetHasHeavyArmaments`
    is left as it is: it also counts heavy industry, so it is not the same question.
 2. **Multi-cell structures** (built, art outstanding): the turret catalog takes odd
    footprints larger than one cell, centred on the anchor cell. As built: `StructureDef`
@@ -124,11 +124,20 @@ capital that is not another ship.
    batteries, vanilla station-module guns, ground-to-ship aim at a hull in the envelope, the
    envelope as a hazard warship AI keeps out of, fire control and its capture rules, and the
    Orbital Barrage lock. As built:
-   - *Placement.* `FortressBatteryStage` runs after the overwatch towers and stands batteries
-     only when the target profile's `heavyBatteries` is true (the market, or the mission's
-     `defences`); with no declaration the map is unchanged. How many is a first-pass function
-     of map area (one per 24000 cells, one to four), not a statement of how often battles have
-     them. Sites are open outdoor ground with a clear apron, deep band first.
+   - *Placement authority.* The mission declares, the map obeys. `GroundDefences` (battery count,
+     shield generator yes/no) is the declaration; `MissionDefencePolicy.declare` is the one place a
+     mission's declaration is decided and `MissionLaunch` stamps it on the profile
+     (`TargetProfile.declaredDefences`). Precedence: the mission's explicit `Mission.defences`
+     (the DEBUG dial) wins, then the mission type's policy, then none. A mission that says
+     nothing carries no defences. The market's three signals stay on the profile as inputs a
+     policy may read, and no generator stage or setup step reads them or derives a count from map
+     area. **Conquest's policy** lives in `MissionDefencePolicy.conquest`: it reads the market's
+     Heavy Batteries and Planetary Shield and declares four batteries and a shield generator
+     accordingly, an untuned first-pass mission-design choice that a designer changes there.
+   - *Placement.* `FortressBatteryStage` runs after the overwatch towers and stands exactly the
+     declared number of batteries; with none declared the map is unchanged. Sites are open
+     outdoor ground with a clear apron, deep band first; fewer are placed if the ground cannot
+     hold them.
    - *Guns.* A structure that names a `battery` block in the turret catalog is registered as a
      battery when spawned, held by the side that spawned it. Its `BatteryLoadout` is a set of
      vanilla weapon ids taken from station modules (`citadel`: Gauss, Mjolnir, Heavy Mauler from
@@ -177,9 +186,9 @@ capital that is not another ship.
    red for the enemy's, a pool gauge ring, amber recovery rim, hit marks, core glow and capture arc;
    an enemy dome draws only where the map has been seen. Sounds are the game's own
    `hit_shield_heavy_gun`, `shield_burnout` and `shield_raise` through the warship cue path.
-   A Conquest whose profile states a planetary shield places one beside the keep, held by the
-   garrison (`ShieldGeneratorPlacement.nearKeep`); how many missions state one stays mission
-   design's call. All figures are first-pass and **untuned** (1500 flux, 60 per second, 9 s
+   A mission that declares a shield generator gets one beside the keep, held by the
+   garrison (`ShieldGeneratorPlacement.nearKeep`); which missions declare one is
+   `MissionDefencePolicy`'s call. All figures are first-pass and **untuned** (1500 flux, 60 per second, 9 s
    overload, 16 cells). Evidence: `ShieldDomeServiceTest` and the `shield-dome` scene (control,
    dome, destroyed). Still to do: generator art (a placeholder pad and the dome's core glow stand
    in), AI awareness (no squad is sent to take or wreck a generator and nothing orders a
@@ -187,7 +196,7 @@ capital that is not another ship.
    its entity faction is fixed), a campaign mission that places one for a market-held
    shield, and the barrage-targeting preview showing a dome (barrage is absorbed, not denied, so
    `shielded-fire-support-zones.md`'s denial contract needs reconciling with the owner's decision).
-5. **Defence nests**: the dispersed posts, sized by the mission; anti-air already exists.
+5. **Defence nests**: the dispersed posts, sized by the mission's declaration (a count to add to `GroundDefences`); anti-air already exists.
 
 ## Decided
 
