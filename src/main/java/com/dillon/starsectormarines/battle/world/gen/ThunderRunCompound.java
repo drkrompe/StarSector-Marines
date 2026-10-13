@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
@@ -68,13 +69,7 @@ public final class ThunderRunCompound {
                 ThunderRunCompound::buildings, ThunderRunCompound::perimeter,
                 ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
                 ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 75, 270, 64))).run(c);
-        for (Cell gun : ANTI_AIR_POSTS) {
-            for (int y = gun.y - 1; y <= gun.y + 1; y++) for (int x = gun.x - 1; x <= gun.x + 1; x++) {
-                if (!c.topology.terrainSurface().isFullSummit(x, y) || c.grid.isWalkable(x, y))
-                    throw new IllegalStateException("Ridge AA must stand entirely on an impassable summit");
-                c.doodads.add(new Doodad(x, y, TileRegistry.installed().doodad("doodad.fl-striped-yellow")));
-            }
-        }
+        for (Cell gun : ANTI_AIR_POSTS) summitBattery(c, gun);
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
             c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
@@ -204,9 +199,9 @@ public final class ThunderRunCompound {
             circulation[flank[0]][flank[1]] = true;
             for (int i = 0; i < Paths.cellCount(path); i++) circulation[Paths.cellX(path, i)][Paths.cellY(path, i)] = true;
         }
-        // Reserve summit mounts from optional dressing without opening their terrain.
+        // Clear working compounds around the summit mounts without opening their terrain.
         for (Cell gun : ANTI_AIR_POSTS)
-            for (int y = gun.y - 3; y <= gun.y + 3; y++) for (int x = gun.x - 3; x <= gun.x + 3; x++)
+            for (int y = gun.y - 7; y <= gun.y + 4; y++) for (int x = gun.x - 7; x <= gun.x + 7; x++)
                 circulation[x][y] = true;
         // Keep optional woods out of the sight lanes between the summits and the convoy circuit.
         // This reserves vegetation only: authored walls and terrain keep their collision and LOS.
@@ -219,6 +214,50 @@ public final class ThunderRunCompound {
             }
         }
         c.put(BspKeys.ROAD_RESERVATION, circulation);
+    }
+
+    /** Prepared remote SAM compounds: surface overlays never change the mountain's topology. */
+    private static void summitBattery(GenContext c, Cell gun) {
+        var concrete = TileRegistry.installed().block("installation.concrete-floor");
+        // Clip the hardstand to complete summit cells, retaining the natural cliff rim.
+        for (int dy = -6; dy <= 3; dy++) for (int dx = -6; dx <= 6; dx++) {
+            if (Math.abs(dx) == 6 && (dy == -6 || dy == 3)) continue;
+            int x = gun.x + dx, y = gun.y + dy;
+            if (c.topology.terrainSurface().isFullSummit(x, y)) {
+                int[] tile = concrete.resolve(false, false, false, false, x, y);
+                c.doodads.add(new Doodad(x, y, new TileManifest.TileFrame(tile[0], tile[1]),
+                        concrete.sheetPath, Doodad.COVER_NONE, 0f, 1, 1, null, concrete.cellPx));
+            }
+        }
+        // Painted clearance around the traversing launcher; equipment stays behind it.
+        for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++)
+            summitProp(c, gun.x + dx, gun.y + dy, "doodad.fl-striped-yellow");
+        for (int dx = -4; dx <= 4; dx++)
+            summitProp(c, gun.x + dx, gun.y - 6, "doodad.sandbag-straight-s");
+        for (int dy = -4; dy <= 1; dy++) {
+            summitProp(c, gun.x - 5, gun.y + dy, "doodad.sandbag-straight-w");
+            summitProp(c, gun.x + 5, gun.y + dy, "doodad.sandbag-straight-e");
+        }
+        summitProp(c, gun.x - 3, gun.y - 4, "doodad.military-radar-dish");
+        summitProp(c, gun.x - 2, gun.y - 3, "doodad.military-command-console");
+        summitProp(c, gun.x + 3, gun.y - 4, "doodad.industrial-generator");
+        summitProp(c, gun.x + 2, gun.y - 3, "doodad.industrial-cable-reel");
+        summitProp(c, gun.x + 4, gun.y - 3, "doodad.industrial-drum-cluster");
+        summitProp(c, gun.x - 3, gun.y, "doodad.industrial-crate-stack");
+        summitProp(c, gun.x - 3, gun.y + 1, "doodad.industrial-pallet-stack");
+        summitProp(c, gun.x + 3, gun.y, "doodad.industrial-crate-stack");
+        summitProp(c, gun.x + 4, gun.y + 1, "doodad.industrial-crate-stack");
+    }
+
+    private static void summitProp(GenContext c, int x, int y, String id) {
+        var definition = TileRegistry.installed().doodad(id);
+        if (definition == null) throw new IllegalStateException("Missing SAM-site prop: " + id);
+        var prop = new Doodad(x, y, definition);
+        for (int yy = y; yy < y + prop.footprintCellsY; yy++)
+            for (int xx = x; xx < x + prop.footprintCellsX; xx++)
+                if (!c.topology.terrainSurface().isFullSummit(xx, yy) || c.grid.isWalkable(xx, yy))
+                    throw new IllegalStateException("SAM site must remain on an impassable summit: " + xx + "," + yy);
+        c.doodads.add(prop);
     }
 
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
