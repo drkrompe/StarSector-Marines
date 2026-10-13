@@ -7,7 +7,7 @@ power-suit protection is a separate armor-pattern choice under
 Status: IN PROGRESS — systems and running presentation are established;
 hostile capability readability and special-item coordination remain open.
 Written: 2026-08-27
-Updated: 2026-10-13 — shoulder missiles launch from physical mounts with a committed firing pose.
+Updated: 2026-10-13 — squad pod usage rotates among ready carriers with authored spacing between salvos.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -97,6 +97,15 @@ triggers a short pod brace, kick, muzzle flash, and return to the carried pose.
 The pod may aim independently of the wearer's primary. A blocked body-to-muzzle
 segment prevents the launch before ammunition is spent. Opening covers and
 individual loaded-tube states remain later animation work.
+
+Pod carriers share a squad firing cadence. One eligible suit launches a salvo,
+then the next eligible squadmate gets the next opportunity after the authored
+interval. Ammunition stays individual, failed launch opportunities spend
+nothing, and rifles keep firing. The shared cadence starts only on a committed
+salvo and does not synchronize separate squads. Target legality is reassessed
+when an opportunity opens, so a missing or obstructed carrier cannot stall the
+formation. This coordinates integral pods; coordination with carried special
+items remains separate open work.
 
 Further equipment should have a recognizable physical vocabulary when it has
 room to read at battle scale. These are proposed next assets, not shipped art:

@@ -342,6 +342,6 @@ class SystemFxSystemTest {
                 IntegralSystemEffect.MISSILE_POD, SpecialResourceMode.AMMUNITION,
                 1f, 0f, 2,
                 null, new MissilePodSpec("weapon.micro-missile"), null, null,
-                new SightedStandoffSpec(5f));
+                new SightedStandoffSpec(5f, 1.5f));
     }
 }

@@ -92,6 +92,7 @@
           "resource": "ammunition",
           "policy": "sighted-standoff-contact",
           "minimumStandoffCells": 5.0,
+          "squadSalvoIntervalSeconds": 1.5,
           "durationSeconds": 1.0,
           "startingAmmo": 2,
           "weaponId": "weapon.micro-missile"
@@ -624,6 +625,7 @@
           "resource": "ammunition",
           "policy": "sighted-standoff-contact",
           "minimumStandoffCells": 7.0,
+          "squadSalvoIntervalSeconds": 1.5,
           "durationSeconds": 1.0,
           "startingAmmo": 1,
           "weaponId": "weapon.micro-missile"
@@ -670,6 +672,7 @@
           "resource": "ammunition",
           "policy": "sighted-standoff-contact",
           "minimumStandoffCells": 6.0,
+          "squadSalvoIntervalSeconds": 1.5,
           "durationSeconds": 1.0,
           "startingAmmo": 4,
           "weaponId": "weapon.micro-missile"

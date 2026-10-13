@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.marine.SightedStandoffSpec;
 
 import java.util.Locale;
 import java.util.Random;
+import java.util.TreeMap;
 
 /**
  * Stateless per-tick sweep over the units whose armour pattern carries a
@@ -153,6 +154,11 @@ public final class IntegralSystemSystem {
     private final ShotService shots;
     private final Random rng;
     private final LongBucket nearbySquadmates = new LongBucket();
+    private final TreeMap<Integer, PodCandidate> podCandidates = new TreeMap<>();
+
+    private record PodCandidate(long shooter, long target, float bodyBearing,
+                                MissilePodMountGeometry.Pose mount, IntegralSystemDef def,
+                                Squad squad) {}
 
     public IntegralSystemSystem(UnitRosterService rosterService, BallisticResolver resolver,
                                 ShotService shots, Random rng) {
@@ -181,6 +187,7 @@ public final class IntegralSystemSystem {
         fog.clearCarriedSweepSources();
         long[] live = rosterService.denseArray();
         int count = rosterService.liveCount();
+        podCandidates.clear();
         for (int i = 0; i < count; i++) {
             long id = live[i];
             if (!systems.has(id)) continue;
@@ -204,6 +211,9 @@ public final class IntegralSystemSystem {
                     }
                 }
                 case SIGHTED_STANDOFF_CONTACT -> {
+                    Squad squad = rosterService.squad().hasSquad(id)
+                            ? sim.getSquad(rosterService.squad().squadId(id)) : null;
+                    if (squad != null && !squad.podCadence.ready(sim.getSimTickIndex())) continue;
                     long target = standoffTarget(id, def, sim);
                     if (target != 0L) {
                         float bodyBearing = podBodyBearing(id, sim, motion);
@@ -213,10 +223,18 @@ public final class IntegralSystemSystem {
                         boolean legalOrigin = def.missilePod().mount() == null
                                 || legalPodOrigin(sim.getGrid(), rosterService.world().renderX(id),
                                     rosterService.world().renderY(id), mount);
-                        if (legalOrigin && systems.activate(id)) {
-                            fireMissilePod(id, target, def.missilePod(), mount);
-                            systems.recordPodLaunch(id, mount.muzzleX(), mount.muzzleY(),
-                                    bodyBearing, mount.bearingDegrees());
+                        if (legalOrigin) {
+                            PodCandidate candidate = new PodCandidate(id, target, bodyBearing,
+                                    mount, def, squad);
+                            if (squad == null) {
+                                launchPod(candidate, systems, sim.getSimTickIndex());
+                            } else if (squad.podCadence.ready(sim.getSimTickIndex())) {
+                                PodCandidate incumbent = podCandidates.get(squad.id);
+                                if (squad.podCadence.prefers(id,
+                                        incumbent == null ? 0L : incumbent.shooter())) {
+                                    podCandidates.put(squad.id, candidate);
+                                }
+                            }
                         }
                     }
                 }
@@ -244,6 +262,26 @@ public final class IntegralSystemSystem {
                 }
                 default -> { /* No integral system declares the carried-item policies. */ }
             }
+        }
+        // All carriers' timers and live legality have been evaluated before
+        // choosing a successor. Dense-roster order cannot monopolize the pod.
+        for (PodCandidate candidate : podCandidates.values()) {
+            launchPod(candidate, systems, sim.getSimTickIndex());
+        }
+        podCandidates.clear();
+    }
+
+    private void launchPod(PodCandidate candidate, IntegralSystemService systems, int tick) {
+        if (!systems.activate(candidate.shooter())) return;
+        fireMissilePod(candidate.shooter(), candidate.target(), candidate.def().missilePod(),
+                candidate.mount());
+        systems.recordPodLaunch(candidate.shooter(), candidate.mount().muzzleX(),
+                candidate.mount().muzzleY(), candidate.bodyBearing(),
+                candidate.mount().bearingDegrees());
+        if (candidate.squad() != null) {
+            candidate.squad().podCadence.committed(candidate.shooter(), tick,
+                    candidate.def().sightedStandoff().squadSalvoIntervalSeconds(),
+                    BattleSimulation.TICK_DT);
         }
     }
 
