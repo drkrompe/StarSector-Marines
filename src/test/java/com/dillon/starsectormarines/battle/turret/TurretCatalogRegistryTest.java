@@ -142,6 +142,37 @@ class TurretCatalogRegistryTest {
     }
 
     @Test
+    void catalogAcceptsOddMultiCellFootprintsAndRejectsEvenOrEmptyOnes() throws Exception {
+        WeaponRegistry weapons = loadWeapons();
+        TurretCatalogRegistry registry = new TurretCatalogRegistry();
+        registry.ingest(catalog("mount.big", "weapon.turret-vulcan", "structure.big", "mount.big", 3, 3), weapons);
+        StructureDef big = registry.getStructure("structure.big");
+        assertEquals(3, big.footprintCellsX);
+        assertEquals(3, big.footprintCellsY);
+        assertTrue(big.isMultiCell());
+        TurretCatalogRegistry wide = new TurretCatalogRegistry();
+        wide.ingest(catalog("mount.w", "weapon.turret-vulcan", "structure.w", "mount.w", 5, 3), weapons);
+        assertTrue(wide.getStructure("structure.w").isMultiCell());
+        assertFalse(registry.getStructure("structure.big") == null);
+        for (int[] bad : new int[][]{{2, 2}, {3, 4}, {0, 1}, {-1, 1}}) {
+            assertThrows(JSONException.class, () -> new TurretCatalogRegistry().ingest(
+                    catalog("mount.ok", "weapon.turret-vulcan", "structure.bad", "mount.ok", bad[0], bad[1]), weapons));
+        }
+    }
+
+    @Test
+    void shippedStructuresAreOneCellExceptTheFortressPlaceholder() {
+        for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
+            if (structure.id.equals("structure.fortress-battery-placeholder")) {
+                assertEquals(3, structure.footprintCellsX);
+                assertEquals(3, structure.footprintCellsY);
+            } else {
+                assertFalse(structure.isMultiCell(), structure.id);
+            }
+        }
+    }
+
+    @Test
     void catalogRejectsDuplicateMountAndStructureIds() throws Exception {
         WeaponRegistry weapons = loadWeapons();
         JSONObject duplicateMount = catalog(
