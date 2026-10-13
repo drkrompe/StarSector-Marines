@@ -51,6 +51,12 @@ public final class DefenceStructureCommandScene implements BehaviorScene {
     /** "Near the generator" for an order or a squad: well inside the dome's capture radius plus a margin. */
     private static final int NEAR = 8;
     private static final String RIFLE = "weapon.smg";
+    /** One command pulse in ticks (2.5 s at 30 Hz): the soonest a commander can act on what it has just learned. */
+    private static final int PULSE_TICKS = 75;
+    /** The retaking squad must be at the generator's doorstep, and the generator back in its hands, by this tick. */
+    private static final int RETAKE_BOUND_TICK = 2400;
+    /** Tough enough to be standing when the capture completes, not so tough the squad can never finish them. */
+    private static final float HOLDER_HEALTH = 150f;
 
     @Override public String id() { return "defence-structure-command"; }
 
@@ -82,7 +88,7 @@ public final class DefenceStructureCommandScene implements BehaviorScene {
             // The company's holders: tough enough to still be standing at the generator when the order is read.
             for (int i = 0; i < 3; i++) {
                 builder.unit("holder-" + i, Faction.MARINE, UnitType.MARINE, GEN_X + 3, GEN_Y - 1 + i,
-                        spec -> spec.moveSpeed(0f).health(1_000_000f));
+                        spec -> spec.moveSpeed(0f).health(HOLDER_HEALTH));
             }
         } else {
             builder.squad("company").faction(Faction.MARINE).size(6).at(20, 50).primary(RIFLE).done();
@@ -123,6 +129,14 @@ public final class DefenceStructureCommandScene implements BehaviorScene {
             case "take" -> {
                 verdicts.add(Verdict.of("ordered-to-the-generator", t.firstOrderTick >= 0,
                         "commander reason " + t.firstOrderReason + " to within " + NEAR + " cells of it, first at tick " + t.firstOrderTick));
+                // The order cannot come before the company has seen the generator (the commander is never told of
+                // ground nobody has looked at), and then it is owed within one command pulse. How late the sighting
+                // is belongs to the walk across the map, which is not what this loop is about.
+                verdicts.add(Verdict.of("ordered-within-a-pulse-of-sighting",
+                        t.firstSeenTick >= 0 && t.firstOrderTick >= t.firstSeenTick
+                                && t.firstOrderTick - t.firstSeenTick <= PULSE_TICKS,
+                        "generator first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick
+                                + " (pulse is " + PULSE_TICKS + " ticks)"));
                 verdicts.add(Verdict.of("squad-gets-there", t.nearestSquad <= NEAR,
                         String.format(Locale.ROOT, "nearest approach %.1f cells", t.nearestSquad)));
                 verdicts.add(Verdict.of("taken-or-wrecked", !generatorStands || holderAtEnd == Faction.MARINE,
@@ -150,10 +164,18 @@ public final class DefenceStructureCommandScene implements BehaviorScene {
                         "first retake order tick " + t.firstRetakeTick));
                 verdicts.add(Verdict.of("garrison-ordered-to-retake", t.fellTick >= 0 && t.firstRetakeTick >= t.fellTick,
                         "commander reason DEFENCE_STRUCTURE_RETAKE first at tick " + t.firstRetakeTick));
+                verdicts.add(Verdict.of("retaking-squad-reaches-the-generator", t.nearestSquad <= NEAR,
+                        String.format(Locale.ROOT, "nearest approach %.1f cells", t.nearestSquad)));
+                verdicts.add(Verdict.of("generator-retaken-in-time",
+                        t.retakenTick >= 0 && t.retakenTick <= RETAKE_BOUND_TICK && holderAtEnd == Faction.DEFENDER,
+                        "back in the garrison's hands at tick " + t.retakenTick + " (bound " + RETAKE_BOUND_TICK
+                                + "), held by " + holderAtEnd + " at the end"));
             }
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("firstOrderTick", t.firstOrderTick);
+        metrics.put("firstSeenTick", t.firstSeenTick);
+        metrics.put("retakenTick", t.retakenTick);
         metrics.put("nearestSquadCells", Math.round(t.nearestSquad * 10f) / 10f);
         metrics.put("fellTick", t.fellTick);
         metrics.put("firstDefendTick", t.firstDefendTick);
@@ -167,6 +189,8 @@ public final class DefenceStructureCommandScene implements BehaviorScene {
         private final Faction side;
         int firstOrderTick = -1;
         int fellTick = -1;
+        int firstSeenTick = -1;
+        int retakenTick = -1;
         String firstOrderReason = "none";
         int firstDefendTick = -1;
         int firstRetakeTick = -1;
@@ -188,6 +212,11 @@ public final class DefenceStructureCommandScene implements BehaviorScene {
                     && sim.defenceStructures().get(0).holder() != sim.defenceStructures().get(0).originalHolder()) {
                 fellTick = tick;
             }
+            if (fellTick >= 0 && retakenTick < 0 && !sim.defenceStructures().isEmpty()
+                    && sim.defenceStructures().get(0).holder() == sim.defenceStructures().get(0).originalHolder()) {
+                retakenTick = tick;
+            }
+            if (firstSeenTick < 0 && sim.playerSeesCell(GEN_X, GEN_Y)) firstSeenTick = tick;
             // The order counts only if the commander says why it gave it: a lane order that happens to end near the
             // generator is not the commander treating the generator as work.
             CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(side);

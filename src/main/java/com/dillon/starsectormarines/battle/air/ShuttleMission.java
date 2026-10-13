@@ -43,6 +43,10 @@ public final class ShuttleMission {
 
     /** Terminal loss, retained when the air entity is reaped; GONE alone also means a safe return. */
     public boolean destroyed;
+    public float crashSeconds;
+    public float crashStartAltitude;
+    /** Mutable mission station; transport landing coordinates remain immutable. */
+    public float orbitCentreX, orbitCentreY;
 
     /** Stagger / re-arm countdown burned down during PENDING before launch. */
     public float pendingDelay;
@@ -537,7 +541,7 @@ public final class ShuttleMission {
      */
     public boolean isOverTheBattle() {
         return switch (state) {
-            case PENDING, GONE,
+            case PENDING, GONE, CRASHING,
                  LOADING, PAD_ASCENT,
                  TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL,
                  LANDING_ROLL, TAXI_IN -> false;

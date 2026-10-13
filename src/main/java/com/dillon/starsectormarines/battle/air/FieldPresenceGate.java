@@ -68,7 +68,7 @@ final class FieldPresenceGate {
     }
 
     private static boolean stillInbound(ShuttleMission mission) {
-        return mission.marinesRemaining > 0
+        return !mission.destroyed && mission.marinesRemaining > 0
                 && mission.state != ShuttleState.DEPARTING
                 && mission.state != ShuttleState.GONE;
     }

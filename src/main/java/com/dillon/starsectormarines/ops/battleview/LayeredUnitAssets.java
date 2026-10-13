@@ -29,6 +29,7 @@ public final class LayeredUnitAssets {
     private final EnumMap<LayeredWeaponFamily, EnumMap<EquipmentGrade, LayeredSpriteCache>>
             gradeWeapons = new EnumMap<>(LayeredWeaponFamily.class);
     private final Map<String, LayeredSpriteCache> specialEquipment = new LinkedHashMap<>();
+    private final Map<String, LayeredSpriteCache> integralSystems = new LinkedHashMap<>();
 
     public LayeredUnitAssets(LayeredSpriteCache body, LayeredSpriteCache head,
                              LayeredSpriteCache foot, LayeredSpriteCache foreClaw,
@@ -95,6 +96,14 @@ public final class LayeredUnitAssets {
         return specialEquipment.get(equipmentId);
     }
 
+    public void registerIntegralSystem(String systemId, LayeredSpriteCache sprite) {
+        if (systemId != null && sprite != null) integralSystems.put(systemId, sprite);
+    }
+
+    public LayeredSpriteCache integralSystem(String systemId) {
+        return integralSystems.get(systemId);
+    }
+
     /**
      * Every image this family can draw, for a consumer that has to see all of
      * them rather than pick one — the {@link UnitAtlas}'s layout, which needs
@@ -108,6 +117,7 @@ public final class LayeredUnitAssets {
             all.addAll(variants.values());
         }
         all.addAll(specialEquipment.values());
+        all.addAll(integralSystems.values());
         return all;
     }
 

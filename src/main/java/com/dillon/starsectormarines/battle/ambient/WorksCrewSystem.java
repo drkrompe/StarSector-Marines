@@ -142,7 +142,7 @@ public final class WorksCrewSystem {
             long carrier = posting.inbound(billet);
             if (carrier == 0L) continue;
             ShuttleMission flight = sim.world().mission(carrier);
-            if (flight == null || flight.state == ShuttleState.GONE) {
+            if (flight == null || flight.destroyed || flight.state == ShuttleState.GONE) {
                 posting.setInbound(billet, 0L);
             }
         }

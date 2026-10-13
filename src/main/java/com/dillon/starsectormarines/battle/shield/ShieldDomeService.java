@@ -48,8 +48,12 @@ public final class ShieldDomeService {
 
     /** Seconds a freshly taken generator's dome stays down while it reboots under its new holder. */
     public static final float REBOOT_SECONDS = 4f;
-    /** How long an absorbed round's mark lingers for the renderer. */
+    /** How long an absorbed round's brief flash mark lingers for the renderer. */
     public static final float HIT_MARK_SECONDS = 0.6f;
+    /** How long an absorbed round's impact is kept, so its ripple can cross the dome and fade. */
+    public static final float IMPACT_SECONDS = 1.8f;
+    /** Most impacts one dome keeps at once; a heavier barrage drops the oldest. */
+    public static final int MAX_IMPACTS_PER_DOME = 24;
     /** Seconds a hit or drop flash takes to fade. */
     public static final float FLASH_SECONDS = 0.35f;
     /** Sim-seconds between capture evaluations. */
@@ -116,7 +120,7 @@ public final class ShieldDomeService {
             dome.absorbedFlux += cost;
             dome.hits++;
             dome.hitFlash = 1f;
-            marks.add(new HitMark(dome.holder, det.endpointX, det.endpointY));
+            recordImpact(dome, det.endpointX, det.endpointY, cost);
             if (dome.cueGap <= 0f) {
                 cues.add(new WarshipSoundCue(WarshipSoundCue.Kind.DOME_ABSORB, ABSORB_SOUND_ID,
                         det.endpointX, det.endpointY, ABSORB_CUE_VOLUME));
@@ -128,6 +132,19 @@ public final class ShieldDomeService {
             return true;
         }
         return false;
+    }
+
+    /** Keeps a bounded run of impacts per dome: the oldest goes when a barrage exceeds the cap. */
+    private void recordImpact(Dome dome, float x, float y, float cost) {
+        int held = 0;
+        int oldest = -1;
+        for (int i = 0; i < marks.size(); i++) {
+            if (marks.get(i).domeId != dome.entityId) continue;
+            if (oldest < 0) oldest = i;
+            held++;
+        }
+        if (held >= MAX_IMPACTS_PER_DOME) marks.remove(oldest);
+        marks.add(new HitMark(dome.entityId, dome.holder, x, y, cost));
     }
 
     /**
@@ -254,7 +271,9 @@ public final class ShieldDomeService {
         snapshot = List.copyOf(views);
         List<HitView> hits = new ArrayList<>(marks.size());
         for (HitMark m : marks) {
-            hits.add(new HitView(m.holder, m.x, m.y, Math.max(0f, m.remaining / HIT_MARK_SECONDS)));
+            float age = IMPACT_SECONDS - m.remaining;
+            hits.add(new HitView(m.holder, m.x, m.y, Math.max(0f, 1f - age / HIT_MARK_SECONDS),
+                    m.domeId, m.cost, Math.max(0f, age)));
         }
         markSnapshot = List.copyOf(hits);
     }
@@ -305,16 +324,26 @@ public final class ShieldDomeService {
         }
     }
 
-    /** One round a dome took, with how fresh the mark is ({@code 1} just now, {@code 0} gone). */
-    public record HitView(Faction holder, float x, float y, float freshness) {}
+    /**
+     * One round a dome took. {@code freshness} is {@code 1} just now and falls to
+     * {@code 0} over {@link #HIT_MARK_SECONDS}; the impact itself is kept for
+     * {@link #IMPACT_SECONDS}, its {@code ageSeconds} so far, so a ripple can cross
+     * the dome after the flash is gone. {@code cost} is the flux the round added.
+     */
+    public record HitView(Faction holder, float x, float y, float freshness,
+                          long domeId, float cost, float ageSeconds) {}
 
     private static final class HitMark {
+        final long domeId;
         final Faction holder;
         final float x;
         final float y;
-        float remaining = HIT_MARK_SECONDS;
+        final float cost;
+        float remaining = IMPACT_SECONDS;
 
-        HitMark(Faction holder, float x, float y) {
+        HitMark(long domeId, Faction holder, float x, float y, float cost) {
+            this.domeId = domeId;
+            this.cost = cost;
             this.holder = holder;
             this.x = x;
             this.y = y;

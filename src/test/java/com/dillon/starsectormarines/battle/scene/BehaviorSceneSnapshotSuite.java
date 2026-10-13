@@ -80,6 +80,9 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         return null;
     }
 
+    /** Allow review suites to keep their close view at the requested output resolution. */
+    protected float closeViewScale() { return 2f / 3f; }
+
     /**
      * Opt-in: assemble the animations with the adaptive palette, which keeps
      * soft gradients (glow, dust, cloud) that the compact palette posterises
@@ -135,7 +138,8 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                         float[] close = closeView(id);
                         if (close == null) return null;
                         BattleReviewFrameRenderer closer = new BattleReviewFrameRenderer(context.modRoot(),
-                                width * 2 / 3, height * 2 / 3, close[0], close[1], close[2]);
+                                Math.round(width * closeViewScale()), Math.round(height * closeViewScale()),
+                                close[0], close[1], close[2]);
                         return shadows ? closer.withUnitShadows() : closer;
                     });
                     if (closeRenderer != null) {

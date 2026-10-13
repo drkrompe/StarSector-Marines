@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -631,6 +632,11 @@ public class AirSystem {
         }
     }
 
+    public boolean hasCrashingCraft() {
+        for (long id : air) if (world.mission(id).state == ShuttleState.CRASHING) return true;
+        return false;
+    }
+
     public void tick(float dt) {
         advanceShuttles(dt);
         tickAirThreat(dt);
@@ -652,7 +658,7 @@ public class AirSystem {
         LongBucket scratch = new LongBucket();
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
-            if (!craft.isAirborne(id)) continue;
+            if (!craft.isAirborne(id) || mission.destroyed) continue;
             AirBody body = world.kinematics(id);
             Faction faction = world.airFaction(id);
             scratch.clear();
@@ -668,6 +674,8 @@ public class AirSystem {
                 // relation owns it now and this reads the same answer every
                 // other consumer reads.
                 if (!engagement.reachesAltitude(e)) continue;
+                if (roster.turretState().isTurret(e)
+                        && roster.turretState().structure(e).targetRole == TurretRole.AA) continue;
                 posts++;
             }
             if (posts == 0) continue;
@@ -678,34 +686,26 @@ public class AirSystem {
     }
 
     /**
-     * Shoot-down: the shuttle dies with its undelivered marines aboard. Terminal like the
-     * DEPARTING→GONE transition — set GONE; {@link #reapGoneCraft} destroys the entity (dropping every
-     * component) at end of tick.
+     * Shoot-down records the loss once, including any undelivered passengers.
      *
      * <p>Grounded and airborne draw the one distinction {@code air-nouns.md} asks for. A craft killed
      * taxiing, holding short, or partway down a roll is under its own power on the ground, and the same
      * full tank under the same thin skin that makes a hardstand kill worth a fire team's time — it gets
-     * the same cook-off blast and a wreck that stays where it stopped. A craft lost at altitude falls; it
-     * does not leave a neat hull at the coordinates it was flying over, so it keeps the plain crash FX
-     * this always used and leaves no ground wreck.
+     * the same cook-off blast and a wreck that stays where it stopped. A craft lost at altitude
+     * retains its momentum through CRASHING, trailing fire as it falls. Impact causes a larger
+     * blast and leaves a permanent ground wreck before the air entity is reaped.
      */
     private void shootDown(long id, AirBody body, ShuttleMission mission, String killedBy) {
-        if (mission.isOnItsWheelsAndExposed()) {
-            groundedShootDown(id, body, mission);
-        } else {
-            // Crash FX: a burning wreck + smoke-plume column at the crash site, so a shot-down dropship
-            // reads as a flaming wreck instead of just vanishing. Both feed the smoke/fire puff lists the
-            // renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same path turret/mech/hub wrecks
-            // use — so it shows in the bridge and standalone alike. Clamp to an in-bounds cell (a shuttle
-            // can be shot down a few cells off-map on an exit leg) and co-locate the plume on that cell.
-            NavigationGrid grid = navigation.getGrid();
-            int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
-            int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
-            effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
-            effects.spawnSmokingWreck(wx, wy);
-        }
-
+        if (mission.destroyed) return;
+        boolean grounded = mission.isOnItsWheelsAndExposed();
         mission.destroyed = true;
+        if (grounded) groundedShootDown(id, body, mission);
+        else {
+            mission.crashSeconds = 0f;
+            mission.crashStartAltitude = world.altitudeT(id);
+            effects.spawnBurningSmokePlume(body.x,
+                    body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)));
+        }
         if (mission.pickup != null) mission.pickup.lose();
         handBackToField(mission, /*recovered*/ false, world.hp(id));
         // Written before the state flips, because GONE is the end of anything
@@ -716,7 +716,7 @@ public class AirSystem {
                 mission.pickup == null ? stillAboard(mission) : mission.pickup.passengers().stream()
                         .map(p -> p.soldierId()).filter(Objects::nonNull).toList(),
                 mission.pickup == null ? Math.max(0, mission.marinesRemaining) : mission.pickup.passengers().size()));
-        mission.state = ShuttleState.GONE;
+        mission.state = grounded ? ShuttleState.GONE : ShuttleState.CRASHING;
         LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + killedBy + " with "
                 + mission.marinesRemaining + " marine(s) still aboard.");
     }
@@ -758,7 +758,7 @@ public class AirSystem {
      */
     public void destroyAircraft(long id) {
         ShuttleMission mission = world.mission(id);
-        if (mission == null || mission.state == ShuttleState.GONE) return;
+        if (mission == null || mission.destroyed || mission.state == ShuttleState.GONE) return;
         shootDown(id, world.kinematics(id), mission, "ground fire");
     }
 
@@ -776,6 +776,10 @@ public class AirSystem {
         if (airframeCookOff != null) {
             airframeCookOff.cookOff(id, body.x, body.y, faction);
         }
+        settleGroundWreck(id, body);
+    }
+
+    private void settleGroundWreck(long id, AirBody body) {
         if (airfield == null) return;
         GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
         airfield.addGroundWreck(wreck);
@@ -829,6 +833,31 @@ public class AirSystem {
             AirHandling flight = frame.flight();
             ShuttleType carrier = ShuttleType.fromAirframe(frame);
             switch (mission.state) {
+                case CRASHING: {
+                    float before = mission.crashSeconds;
+                    mission.crashSeconds += dt;
+                    body.x += body.vx * dt;
+                    body.y += body.vy * dt;
+                    body.vx *= (float) Math.exp(-.7f * dt);
+                    body.vy *= (float) Math.exp(-.7f * dt);
+                    body.facingDegrees += 65f * dt;
+                    float t = Math.min(1f, mission.crashSeconds / 1.6f);
+                    world.setAltitudeT(id, mission.crashStartAltitude * (1f - t * t));
+                    if ((int) (before * 5) != (int) (mission.crashSeconds * 5))
+                        effects.spawnPropDamage(body.x, body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)),
+                                PropDamage.Effect.FIRE, 3f);
+                    if (t >= 1f) {
+                        // A hull that falls off the map does not teleport back onto its edge.
+                        if (body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
+                                && body.y < navigation.getGrid().getHeight() - 1) {
+                            if (airframeCookOff != null) airframeCookOff.crash(id, body.x, body.y,
+                                    world.airFaction(id), frame.targetRadiusCells());
+                            settleGroundWreck(id, body);
+                        }
+                        mission.state = ShuttleState.GONE;
+                    }
+                    break;
+                }
                 case SHIP_DEPARTURE:
                 case SHIP_RETURN:
                     ShipBayTransit transit = mission.shipTransit;
@@ -1007,7 +1036,7 @@ public class AirSystem {
                 case ORBIT: {
                     // Round the ring at the ring's pace. The clock runs only here, so the visit
                     // is the time the guns actually had the ground and not the glide in.
-                    float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.lzX, mission.lzY,
+                    float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
                             mission.orbitRadius, mission.orbitClockwise);
                     AirSteeringSystem.steer(body, ahead[0], ahead[1], SteeringMode.CRUISE,
                             GunshipOrbit.paced(flight, body.speed(), dt), dt);
@@ -1141,7 +1170,7 @@ public class AirSystem {
                         // Not coming to a point at all: joining a ring about it. The carrot is the
                         // tangent point while the craft is still outside, so it arrives on the ring
                         // already heading round it rather than at the centre and then out again.
-                        float[] join = GunshipOrbit.carrot(body.x, body.y, mission.lzX, mission.lzY,
+                        float[] join = GunshipOrbit.carrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
                                 mission.orbitRadius, mission.orbitClockwise);
                         AirSteeringSystem.steer(body, join[0], join[1], SteeringMode.CRUISE, flight, dt);
                         world.setAltitudeT(id, 1f);
