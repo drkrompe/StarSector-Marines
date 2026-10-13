@@ -9,6 +9,15 @@ public final class ColdStartProgress {
     private Phase phase;
     private boolean delivered, powered, constructed, contested;
     private float work;
+    private boolean companyPresent, crewPresent, carrierArrived, carrierAlive, crewAlive, turretComplete, responseReachedYard;
+
+    public boolean companyPresent() { return companyPresent; }
+    public boolean crewPresent() { return crewPresent; }
+    public boolean carrierArrived() { return carrierArrived; }
+    public boolean carrierAlive() { return carrierAlive; }
+    public boolean crewAlive() { return crewAlive; }
+    public boolean turretComplete() { return turretComplete; }
+    public boolean responseReachedYard() { return responseReachedYard; }
 
     public ColdStartProgress(boolean cargoDelivered, boolean shorePower) {
         if (shorePower && !cargoDelivered) throw new IllegalArgumentException("Power needs delivered repair cargo");
@@ -29,6 +38,13 @@ public final class ColdStartProgress {
                         boolean turretComplete, boolean responseReachedYard) {
         if (!Float.isFinite(dt) || dt < 0) throw new IllegalArgumentException("Invalid mission time");
         if (terminal()) return;
+        this.companyPresent = companyPresent;
+        this.crewPresent = crewPresent;
+        this.carrierArrived = carrierArrived;
+        this.carrierAlive = carrierAlive;
+        this.crewAlive = crewAlive;
+        this.turretComplete = turretComplete;
+        this.responseReachedYard = responseReachedYard;
         if (!crewAlive || (!delivered && !carrierAlive)) { phase = Phase.FAILED; return; }
         contested = enemyPresent;
         boolean safe = companyPresent && crewPresent && !enemyPresent;

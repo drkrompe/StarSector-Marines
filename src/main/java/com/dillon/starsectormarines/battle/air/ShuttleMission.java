@@ -283,7 +283,7 @@ public final class ShuttleMission {
     public int passesLeft;
 
     /**
-     * Whether this sortie is a gunship's: it rings {@link #lzX}/{@link #lzY} with a flank toward it
+     * Whether this sortie is a gunship's: it circles {@link #lzX}/{@link #lzY}
      * until {@link #orbitSecondsLeft} runs out, rather than landing or running in at the point.
      * Set by {@link GunshipOrbit#begin}; a craft with this set never has a payload to put down.
      */

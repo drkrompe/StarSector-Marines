@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
@@ -169,7 +170,7 @@ public final class BarracksScreen implements Screen {
         // different compartment from the one on screen.
         props.put("contextLabel", reactor.computed(() -> viewModel.command().inspecting()
                 ? ShipBreadcrumb.of(context.companyDeck().ship(), context.companyDeck().quartersFor(viewModel.sceneMarines()))
-                : ShipBreadcrumb.of(context.companyDeck().ship(), null) + " / PERSONNEL COMMAND"));
+                : Strings.format("openingBarracksPersonnelCommand", ShipBreadcrumb.of(context.companyDeck().ship(), null))));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 context::roomAboard,
                 this::close,

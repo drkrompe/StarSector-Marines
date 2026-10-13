@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -15,6 +16,8 @@ public final class FirstRefit implements Serializable {
         FORWARD_SCREEN("Forward Screen", "wayline:forward-screen", SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR,
                 "Learn Milspec Lancer pulse rifles and Janus scout suits. Six pulse rifles and five scout billets trade line protection for eyes and mobility.");
         public final String label, weapons, armor, description;
+        public String label() { return Strings.get("openingRefitPath" + name()); }
+        public String description() { return Strings.get("openingRefitPathDescription" + name()); }
         Path(String label, String weapons, String armor, String description) {
             this.label = label; this.weapons = weapons; this.armor = armor; this.description = description;
         }

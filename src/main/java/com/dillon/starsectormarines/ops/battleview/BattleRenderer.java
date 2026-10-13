@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 
@@ -13,7 +12,6 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
-import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -105,8 +103,6 @@ public class BattleRenderer {
     private static final float  KIT_DROP_PULSE_HZ    = 0.6f;
     private static final int    PROGRESS_ARC_SEGMENTS = 32;
     private static final int    OBJECTIVE_RING_SEGMENTS = 40;
-    private static final float  OBJECTIVE_RING_THICKNESS_PX = 2f;
-    private static final float  OBJECTIVE_ARC_THICKNESS_PX = 3f;
 
     /**
      * Sim-seconds the barrel sprite eases forward to its at-rest position after a shot.
@@ -315,11 +311,13 @@ public class BattleRenderer {
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new DroneRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
+                new MissionMarkerRenderSystem(),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
-                        compoundMarkers.collect(
-                                ctx.sim, ctx.sim.getCompoundService(), ctx.camera, out, ctx.alphaMult)),
+                        { if (MissionObjectiveProjection.capture(ctx.sim).objectives().stream()
+                                .noneMatch(item -> item.id().startsWith("territory-")))
+                            compoundMarkers.collect(ctx.sim, ctx.sim.getCompoundService(), ctx.camera, out, ctx.alphaMult); }),
                 new ConvoyRenderSystem(sprites),
                 // Convoy debug overlays (own-GL line passes) paint over the convoy sprites.
                 RenderSystem.of(RenderLayer.CONVOY, (ctx, out) ->
@@ -917,73 +915,10 @@ public class BattleRenderer {
         float now = (float) (System.currentTimeMillis() / 1000.0);
         float cellPx = rc.camera.cellPxSize();
         objectiveArcMesh.reset();
-        boolean hasChargeSites = false;
-        collectMissionMarkers(sim, out, alphaMult);
-
-        // Cold Account owns the disclosure and extraction timing of its internal evidence objective.
-        if (sim.getColdAccount() == null) for (Objective objective : sim.getObjectives()) {
-            if (!(objective instanceof RaidObjective raid)) continue;
-            collectRaidMarker(out, raid, false, cellPx, alphaMult);
-            collectRaidMarker(out, raid, true, cellPx, alphaMult);
-        }
-
-        for (Objective o : sim.getObjectives()) {
-            if (!(o instanceof ChargeSiteObjective)) continue;
-            hasChargeSites = true;
-            ChargeSiteObjective site = (ChargeSiteObjective) o;
-            float cx = rc.camera.cellToScreenX(site.cellX() + 0.5f);
-            float cy = rc.camera.cellToScreenY(site.cellY() + 0.5f);
-            float progress = site.progress() / Math.max(0.001f, site.plantDuration());
-            BattlefieldMarkerPresentation.ObjectiveMarker marker =
-                    BattlefieldMarkerPresentation.sabotage(site.siteId(),
-                            site.isComplete(), site.planterOnSite(), progress);
-            float radius = BattlefieldMarkerPresentation.objectiveRadius(cellPx)
-                    * BattlefieldMarkerPresentation.pulse(now, marker.emphasized());
-            float ringInner = radius - OBJECTIVE_RING_THICKNESS_PX;
-            appendObjectiveAnnulus(cx, cy, 0f, ringInner - 1f,
-                    OBJECTIVE_CORE, 0.72f * alphaMult);
-            appendObjectiveAnnulus(cx, cy, ringInner, radius,
-                    marker.tone(), marker.opacity() * alphaMult);
-            if (marker.emphasized() && marker.progress() > 0f) {
-                float arcOuter = ringInner - 2.5f;
-                PolyTess.appendArc(objectiveArcMesh, cx, cy,
-                        arcOuter - OBJECTIVE_ARC_THICKNESS_PX, arcOuter,
-                        marker.progress(), PROGRESS_ARC_SEGMENTS,
-                        BattlefieldMarkerPresentation.PROGRESS.getRed() / 255f,
-                        BattlefieldMarkerPresentation.PROGRESS.getGreen() / 255f,
-                        BattlefieldMarkerPresentation.PROGRESS.getBlue() / 255f,
-                        alphaMult);
-            }
-            emitObjectiveTicks(out, cx, cy,
-                    BattlefieldMarkerPresentation.objectiveRadius(cellPx),
-                    marker.tone(), marker.opacity() * alphaMult);
-        }
-
-        if (sim.getSalvageRights()!=null && !sim.getSalvageRights().progress().terminal()) {
-            var recovery=sim.getSalvageRights();
-            float cx=rc.camera.cellToScreenX(recovery.targetX()+.5f);
-            float cy=rc.camera.cellToScreenY(recovery.targetY()+.5f);
-            Color tint=BattlefieldMarkerPresentation.PROGRESS;
-            appendObjectiveAnnulus(cx,cy,cellPx*2,cellPx*2+2,tint,.9f*alphaMult);
-            out.addCustom(RenderLayer.OBJECTIVES,()->{
-                objectiveMarkerFont.ensureLoaded();
-                drawObjectiveText(recovery.displayName(),cx,cy,tint,.8f,alphaMult);
-            });
-        }
-        if (sim.getColdStart() != null && !sim.getColdStart().progress().terminal()) {
-            var repair = sim.getColdStart();
-            float cx = rc.camera.cellToScreenX(repair.targetX() + .5f);
-            float cy = rc.camera.cellToScreenY(repair.targetY() + .5f);
-            Color tint = BattlefieldMarkerPresentation.PROGRESS;
-            appendObjectiveAnnulus(cx, cy, cellPx * 2, cellPx * 2 + 2, tint, .9f * alphaMult);
-            out.addCustom(RenderLayer.OBJECTIVES, () -> {
-                objectiveMarkerFont.ensureLoaded();
-                drawObjectiveText(repair.displayName(), cx, cy, tint, .8f, alphaMult);
-            });
-        }
         if (sim.getColdAccount() != null) {
             var intervention = sim.getColdAccount();
             for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout(), intervention.companyRecovered())) {
+                if (marker.kind() != ColdAccountMarkers.Kind.DANGER) continue;
                 float cx = rc.camera.cellToScreenX(marker.x());
                 float cy = rc.camera.cellToScreenY(marker.y());
                 float radius = cellPx * marker.radius();
@@ -1068,92 +1003,6 @@ public class BattleRenderer {
         }
 
         if (!objectiveArcMesh.isEmpty()) out.addPoly(RenderLayer.OBJECTIVES, objectiveArcMesh);
-        if (hasChargeSites) {
-            out.addCustom(RenderLayer.OBJECTIVES,
-                    () -> drawChargeSiteLabels(sim, alphaMult));
-        }
-    }
-
-    private void collectRaidMarker(DrawList out, RaidObjective raid, boolean extraction,
-                                   float cellPx, float alpha) {
-        int x = extraction ? raid.egressCellX() : raid.targetCellX();
-        int y = extraction ? raid.egressCellY() : raid.targetCellY();
-        float cx = rc.camera.cellToScreenX(x + .5f);
-        float cy = rc.camera.cellToScreenY(y + .5f);
-        float pocketRadius = (extraction ? RaidObjective.EGRESS_RADIUS : RaidObjective.TARGET_RADIUS) * cellPx;
-        if (!ViewCull.of(rc.camera).visibleScreen(cx, cy, Math.max(260f, pocketRadius * 2))) return;
-        var marker = BattlefieldMarkerPresentation.raid(extraction, raid.phase(),
-                raid.serviceProgress() / raid.serviceDuration());
-        Color tone = marker.tone();
-        float opacity = marker.opacity() * alpha;
-        float radius = BattlefieldMarkerPresentation.objectiveRadius(cellPx);
-        // The outer ring shows the real service/return pocket, not an invented capture zone.
-        appendObjectiveAnnulus(cx, cy, Math.max(0, pocketRadius - 1.5f), pocketRadius, tone, opacity * .55f);
-        appendObjectiveAnnulus(cx, cy, 0, radius - 2, OBJECTIVE_CORE, .85f * alpha);
-        appendObjectiveAnnulus(cx, cy, radius - 2, radius, tone, opacity);
-        if (marker.progress() > 0 && !extraction) {
-            PolyTess.appendArc(objectiveArcMesh, cx, cy, radius + 3, radius + 6,
-                    marker.progress(), PROGRESS_ARC_SEGMENTS,
-                    tone.getRed() / 255f, tone.getGreen() / 255f, tone.getBlue() / 255f, opacity);
-        }
-        String label = extraction ? "2 / LANDING ZONE" : "1 / " + raid.targetName().toUpperCase(Locale.ROOT);
-        float labelX = Math.max(rc.camera.vpX() + 132,
-                Math.min(rc.camera.vpX() + rc.camera.vpW() - 132, cx));
-        float labelY = cy - radius - 12;
-        if (labelY - 30 < rc.camera.vpY() + 4) labelY = cy + radius + 42;
-        final float textY = Math.min(rc.camera.vpY() + rc.camera.vpH() - 6, labelY);
-        out.addSolidRect(RenderLayer.OBJECTIVES, labelX - 130, textY - 30, labelX + 130, textY + 3,
-                .03f, .06f, .08f, .85f * alpha);
-        out.addCustom(RenderLayer.OBJECTIVES, () -> {
-            objectiveMarkerFont.ensureLoaded();
-            drawObjectiveText(marker.code(), cx, cy + objectiveMarkerFont.getLineHeight() * .42f,
-                    tone, 1f, alpha);
-            drawObjectiveText(label, labelX, textY, BattlefieldMarkerPresentation.LABEL, .85f, alpha);
-            drawObjectiveText(marker.status(), labelX, textY - 15, tone, .8f, alpha);
-        });
-    }
-
-    /** Named public geometry and friendly payloads remain visible without debug overlays. */
-    private void collectMissionMarkers(BattleSimulation sim, DrawList out, float alpha) {
-        var picture = MissionObjectiveProjection.capture(sim);
-        List<float[]> labels = new ArrayList<>();
-        for (var item : picture.objectives()) for (var marker : item.markers()) {
-            float rawX = rc.camera.cellToScreenX(marker.x() + .5f);
-            float rawY = rc.camera.cellToScreenY(marker.y() + .5f);
-            boolean onScreen = rawX >= rc.camera.vpX() && rawX <= rc.camera.vpX() + rc.camera.vpW()
-                    && rawY >= rc.camera.vpY() && rawY <= rc.camera.vpY() + rc.camera.vpH();
-            if (!onScreen && !marker.id().equals(item.focusMarkerId())) continue;
-            float x = Math.max(rc.camera.vpX() + 145, Math.min(rc.camera.vpX() + rc.camera.vpW() - 145, rawX));
-            float y = Math.max(rc.camera.vpY() + 70, Math.min(rc.camera.vpY() + rc.camera.vpH() - 70, rawY));
-            Color tone = marker.state() == MissionObjectiveSnapshot.State.COMPLETE ? BattlefieldMarkerPresentation.VALID
-                    : marker.state() == MissionObjectiveSnapshot.State.FAILED ? BattlefieldMarkerPresentation.INVALID
-                    : BattlefieldMarkerPresentation.PROGRESS;
-            float r = tone.getRed() / 255f, g = tone.getGreen() / 255f, b = tone.getBlue() / 255f;
-            // Fixed-size beacons deliberately do not pretend to be the mission's service footprint.
-            appendObjectiveAnnulus(x, y, 8, 11, tone, alpha);
-            if (onScreen && (x != rawX || y != rawY)) out.addLine(RenderLayer.OBJECTIVES, x, y, rawX, rawY, 1, r, g, b, alpha);
-            if (!onScreen) {
-                float dx = rawX - x, dy = rawY - y;
-                float length = Math.max(1, (float) Math.hypot(dx, dy));
-                out.addLine(RenderLayer.OBJECTIVES, x, y, x + dx / length * 30, y + dy / length * 30, 2, r, g, b, alpha);
-            }
-            float labelY = y - 19;
-            for (int attempt = 0; attempt < 8; attempt++) {
-                boolean overlap = false;
-                for (float[] prior : labels) if (Math.abs(prior[0] - x) < 282 && Math.abs(prior[1] - labelY) < 38) overlap = true;
-                if (!overlap) break;
-                labelY += 38;
-            }
-            labelY = Math.min(rc.camera.vpY() + rc.camera.vpH() - 12, labelY);
-            labels.add(new float[]{x, labelY});
-            final float textY = labelY;
-            out.addSolidRect(RenderLayer.OBJECTIVES, x - 140, textY - 31, x + 140, textY + 3, .03f, .06f, .08f, .88f * alpha);
-            out.addCustom(RenderLayer.OBJECTIVES, () -> {
-                objectiveMarkerFont.ensureLoaded();
-                drawObjectiveText(marker.name(), x, textY, BattlefieldMarkerPresentation.LABEL, .85f, alpha);
-                drawObjectiveText((onScreen ? "" : "OFF SCREEN / ") + marker.status(), x, textY - 15, tone, .8f, alpha);
-            });
-        }
     }
 
     private void appendObjectiveAnnulus(float cx, float cy, float inner,
@@ -1162,45 +1011,6 @@ public class BattleRenderer {
                 OBJECTIVE_RING_SEGMENTS,
                 color.getRed() / 255f, color.getGreen() / 255f,
                 color.getBlue() / 255f, alpha);
-    }
-
-    private static void emitObjectiveTicks(DrawList out, float cx, float cy,
-                                           float radius, Color color, float alpha) {
-        float inner = radius + 2f;
-        float outer = inner + 4f;
-        float r = color.getRed() / 255f;
-        float g = color.getGreen() / 255f;
-        float b = color.getBlue() / 255f;
-        out.addLine(RenderLayer.OBJECTIVES, cx - outer, cy, cx - inner, cy,
-                1.5f, r, g, b, alpha);
-        out.addLine(RenderLayer.OBJECTIVES, cx + inner, cy, cx + outer, cy,
-                1.5f, r, g, b, alpha);
-        out.addLine(RenderLayer.OBJECTIVES, cx, cy - outer, cx, cy - inner,
-                1.5f, r, g, b, alpha);
-        out.addLine(RenderLayer.OBJECTIVES, cx, cy + inner, cx, cy + outer,
-                1.5f, r, g, b, alpha);
-    }
-
-    private void drawChargeSiteLabels(BattleSimulation sim, float alphaMult) {
-        objectiveMarkerFont.ensureLoaded();
-        float cellPx = rc.camera.cellPxSize();
-        for (Objective objective : sim.getObjectives()) {
-            if (!(objective instanceof ChargeSiteObjective site)) continue;
-            float progress = site.progress() / Math.max(0.001f, site.plantDuration());
-            BattlefieldMarkerPresentation.ObjectiveMarker marker =
-                    BattlefieldMarkerPresentation.sabotage(site.siteId(),
-                            site.isComplete(), site.planterOnSite(), progress);
-            float cx = rc.camera.cellToScreenX(site.cellX() + 0.5f);
-            float cy = rc.camera.cellToScreenY(site.cellY() + 0.5f);
-            drawObjectiveText(marker.code(), cx,
-                    cy + objectiveMarkerFont.getLineHeight() * 0.42f,
-                    BattlefieldMarkerPresentation.LABEL, 1f, alphaMult);
-            if (marker.emphasized()) {
-                drawObjectiveText(marker.status(), cx,
-                        cy - BattlefieldMarkerPresentation.objectiveRadius(cellPx) - 3f,
-                        marker.tone(), 0.76f, alphaMult);
-            }
-        }
     }
 
     private void drawObjectiveText(String text, float centerX, float y,

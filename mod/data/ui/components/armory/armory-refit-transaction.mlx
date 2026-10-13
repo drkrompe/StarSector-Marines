@@ -3,7 +3,7 @@
     <div id="loadout-summary" class="panel loadout-summary">{inspection.summary}</div>
     <div id="loadout-workspace-body" class="loadout-workspace-body">
       <div id="loadout-roll" class="panel loadout-roll">
-        <div class="heading loadout-heading" id="loadout-roll-heading">SQUAD / CURRENT EQUIPMENT</div>
+        <div class="heading loadout-heading" id="loadout-roll-heading">{i18n.openingUiLoadoutSquadCurrentEquipment}</div>
         <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
         <div id="loadout-billets" class="loadout-billets">
           <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
@@ -21,7 +21,7 @@
       </div>
       <div id="loadout-inspection" class="loadout-inspection">
         <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
-        <div class="loadout-column-headings" id="loadout-column-headings"><div class="tone-edge" id="loadout-current-heading">CURRENT ISSUE</div><div class="tone-accent" id="loadout-proposed-heading">PROPOSED ISSUE</div></div>
+        <div class="loadout-column-headings" id="loadout-column-headings"><div class="tone-edge" id="loadout-current-heading">{i18n.openingUiLoadoutCurrentIssue}</div><div class="tone-accent" id="loadout-proposed-heading">{i18n.openingUiLoadoutProposedIssue}</div></div>
         <div id="loadout-item-list" class="loadout-item-list">
           <div each="item in inspection.items" key="{item.id}" id="{item.id}" class="{item.classes}" style="{item.style}">
             <div class="loadout-item-heading" id="{item.headingRowId}"><div class="heading" id="{item.kindId}">{item.kind}</div><div class="tone-accent" id="{item.changeId}">{item.change}</div></div>

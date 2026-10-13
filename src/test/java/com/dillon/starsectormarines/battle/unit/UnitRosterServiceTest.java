@@ -1039,4 +1039,23 @@ public class UnitRosterServiceTest {
         assertEquals(0, r.indexOf(c));
         assertEquals(0.9f, w.wanderDwellTimer(c), 1e-6f);
     }
+
+    @Test
+    public void aStandingStructureChangesSidesAndFollowsItsSliceButAPersonDoesNot() {
+        UnitRosterService r = roster();
+        long structure = r.spawn(MapTurret.create("t", Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 5, 5));
+        long marine = r.spawn(unit("m"));
+        assertEquals(1, r.factionLiveCount(Faction.DEFENDER));
+
+        r.reassignFaction(structure, Faction.MARINE);
+
+        assertEquals(Faction.MARINE, r.identity().faction(structure));
+        assertEquals(0, r.factionLiveCount(Faction.DEFENDER));
+        assertEquals(2, r.factionLiveCount(Faction.MARINE));
+        assertTrue(r.isCapturedStructure(structure));
+        assertFalse(r.isCapturedStructure(marine));
+        assertThrows(IllegalArgumentException.class, () -> r.reassignFaction(marine, Faction.DEFENDER));
+        r.release(structure);
+        assertEquals(1, r.factionLiveCount(Faction.MARINE), "release removes it from its new slice");
+    }
 }

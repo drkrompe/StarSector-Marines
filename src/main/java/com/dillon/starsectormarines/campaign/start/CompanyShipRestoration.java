@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipRestoration;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -67,15 +68,15 @@ public final class CompanyShipRestoration {
     public record Offer(ShipRestoration state, int credits, String refusal) { }
     public static String refusal(Work work, ShipRestoration state, boolean home, boolean active,
                                  boolean complete, boolean docked, int credits) {
-        if (!home || !state.applies()) return "House the company aboard Second Wind's original hull.";
-        if (work.complete(state)) return "This work is already complete.";
-        if (!active) return "The converted company ship must be active.";
-        if (work.berth > 0 && !state.mechBay()) return "Recover Wayward in Take Back the Depot to restore the first mech berth.";
+        if (!home || !state.applies()) return Strings.get("openingCompanyShipRestorationHouseTheCompanyAboardSecondWindS");
+        if (work.complete(state)) return Strings.get("openingCompanyShipRestorationThisWorkIsAlreadyComplete");
+        if (!active) return Strings.get("openingCompanyShipRestorationTheConvertedCompanyShipMustBeActive");
+        if (work.berth > 0 && !state.mechBay()) return Strings.get("openingCompanyShipRestorationRecoverWaywardInTakeBackTheDepot");
         if (work.berth > 0 && state.workingMechBerths() != work.berth - 1)
-            return "Restore the preceding mech berth first.";
-        if (!complete) return "Complete Hold Until Relieved before ordering this work.";
-        if (!docked) return "Dock at an accessible planetary spaceport for yard work.";
-        if (credits < work.price) return "Insufficient credits.";
+            return Strings.get("openingCompanyShipRestorationRestoreThePrecedingMechBerthFirst");
+        if (!complete) return Strings.get("openingCompanyShipRestorationCompleteHoldUntilRelievedBeforeOrderingThis");
+        if (!docked) return Strings.get("openingCompanyShipRestorationDockAtAnAccessiblePlanetarySpaceportFor");
+        if (credits < work.price) return Strings.get("openingCompanyShipRestorationInsufficientCredits");
         return null;
     }
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster, Work work) {

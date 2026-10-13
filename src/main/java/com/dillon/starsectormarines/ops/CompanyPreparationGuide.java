@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -36,12 +37,9 @@ final class CompanyPreparationGuide {
         if (!needsLocalStores) return lesson;
         var destination = CerberusCompanyStart.destination();
         String port = destination == null ? depot.marketId() : destination.getName();
-        return new PreparationGuide.Lesson(lesson.milestone(), "OUR STORES ARE STILL RESERVED",
-                "Nothing was spent by leaving, Commander. Our remaining shuttle parts and squad stores are waiting at "
-                        + port + ". They are held ashore, so this shipboard view cannot draw them. "
-                        + "Return to that planet and choose Marine operations in its planet menu. "
-                        + "We will pick up where we left off; there is no need to buy those stores again.",
-                List.of("page-nav-return"), destination == null ? "RETURN" : "RETURN TO DEPOT", () -> {
+        return new PreparationGuide.Lesson(lesson.milestone(), Strings.get("openingCompanyPreparationGuideOurStoresAreStillReserved"),
+                Strings.format("openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur", port),
+                List.of("page-nav-return"), destination == null ? Strings.get("openingCompanyPreparationGuideReturn") : Strings.get("openingCompanyPreparationGuideReturnToDepot"), () -> {
                     if (destination != null && Global.getSector() != null)
                         Global.getSector().getCampaignUI().layInCourseForNextStep(destination);
                     leave.run();
@@ -56,19 +54,18 @@ final class CompanyPreparationGuide {
         if (!CompanyPreparation.required(roster)) return null;
         if (roster.companyShipId() != null) return handoff(roster, context);
         if (CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, model.preparationBill());
-        return new PreparationGuide.Lesson(0, "CHOOSE OUR COMPANY SHIP",
-                "Commander, choose a home with quarters and a boat bay. These stores cover one reusable shuttle and a fully equipped squad. Mira already has her appointment and first training point.\n\n"
-                        + model.preparationBill(),
+        return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideChooseOurCompanyShip"),
+                Strings.format("openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd", model.preparationBill()),
                 List.of("transfer-commit", "transfer-fleet-list"), null, null);
     }
 
     static PreparationGuide.Lesson foundingLesson(MarineOpsContext context, String bill) {
         boolean installed = MercenaryCompanyConversion.installed(CerberusCompanyStart.startingShip());
-        return new PreparationGuide.Lesson(0, installed ? "OUR COMPANY COMMAND VESSEL" : "MERCENARY COMPANY CONVERSION",
+        return new PreparationGuide.Lesson(0, installed ? Strings.get("openingCompanyPreparationGuideOurCompanyCommandVessel") : Strings.get("openingCompanyPreparationGuideMercenaryCompanyConversion"),
                 CerberusCompanyStart.instructions() + (installed && bill != null ? "\n\n" + bill : ""),
                 installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit")
                         : List.of("page-nav-return"),
-                installed ? "CHOOSE SHIP" : null,
+                installed ? Strings.get("openingCompanyPreparationGuideChooseShip") : null,
                 installed ? () -> context.goTo(ScreenId.SHIP_TRANSFER) : null);
     }
 
@@ -81,16 +78,16 @@ final class CompanyPreparationGuide {
     private static PreparationGuide.Lesson handoff(MarineRoster roster, MarineOpsContext context) {
         Step step = roster.officerInduction().step(roster);
         if (step == Step.SHIP && CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, null);
-        if (step == Step.SHIP) return new PreparationGuide.Lesson(0, "A HOME FOR THE COMPANY",
+        if (step == Step.SHIP) return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideAHomeForTheCompany"),
                 OfficerInductionGuide.line(Step.SHIP, "Mira Hale").text(),
-                List.of("company-hq-ship"), "CHOOSE SHIP", () -> context.goTo(ScreenId.SHIP_TRANSFER));
+                List.of("company-hq-ship"), Strings.get("openingCompanyPreparationGuideChooseShip"), () -> context.goTo(ScreenId.SHIP_TRANSFER));
         boolean waiting = context.shipGettingReady();
-        return new PreparationGuide.Lesson(step == Step.LIFT ? 1 : 2, waiting ? "PREPARING OUR SHIP" : "LET'S GET THE COMPANY READY",
-                waiting ? "The crew is preparing our quarters and hangar. Once the deck is ready, we will commission our lift, meet Mira and muster her squad."
-                        : step == Step.LIFT ? "Our home is ready. Come down to the Boat Deck and we will commission our first shuttle."
-                        : "Our lift is aboard. Come to Barracks; Mira is waiting to take charge of our first formation.",
+        return new PreparationGuide.Lesson(step == Step.LIFT ? 1 : 2, waiting ? Strings.get("openingCompanyPreparationGuidePreparingOurShip") : Strings.get("openingCompanyPreparationGuideLetSGetTheCompanyReady"),
+                waiting ? Strings.get("openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd")
+                        : step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideOurHomeIsReadyComeDownTo")
+                        : Strings.get("openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks"),
                 List.of(step == Step.LIFT ? "page-nav-boats" : "page-nav-barracks"),
-                step == Step.LIFT ? "BOAT DECK" : "MEET MIRA", waiting ? null : context::openOfficerInduction);
+                step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideBoatDeck") : Strings.get("openingCompanyPreparationGuideMeetMira"), waiting ? null : context::openOfficerInduction);
     }
 
     static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model, MarineOpsContext context) {
@@ -101,16 +98,16 @@ final class CompanyPreparationGuide {
         if (!CompanyPreparation.required(roster)) return null;
         if (roster.officerInduction().step(roster) == Step.LIFT) {
             boolean building = model.fabricationFocused();
-            return new PreparationGuide.Lesson(1, roster.boatDeck().wreckInBerth(0) ? "REPAIR OUR FIRST HERMES" : "COMMISSION OUR FIRST SHUTTLE",
-                    (roster.boatDeck().wreckInBerth(0) ? "Second Wind came with two wrecked Hermes. This one is accessible; the other is behind the sealed second bay. Let us patch this one for our opening contracts." : OfficerInductionGuide.line(Step.LIFT, "Mira Hale").text())
-                            + (building ? " Check the material bill, then confirm the work." : " Select the first berth on the right.")
-                            + (CerberusCompanyStart.depot() != null ? " Our prepaid stores are available while docked at the conversion planet." : ""),
+            return new PreparationGuide.Lesson(1, roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideRepairOurFirstHermes") : Strings.get("openingCompanyPreparationGuideCommissionOurFirstShuttle"),
+                    (roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes") : OfficerInductionGuide.line(Step.LIFT, "Mira Hale").text())
+                            + (building ? Strings.get("openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe") : Strings.get("openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight"))
+                            + (CerberusCompanyStart.depot() != null ? Strings.get("openingCompanyPreparationGuideOurPrepaidStoresAreAvailableWhileDocked") : ""),
                     building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
                             : List.of("boat-list"), null, null);
         }
-        return new PreparationGuide.Lesson(1, "LIFT READY",
-                "Good. That boat is ours, with a place on the deck and a bill paid. It can make repeated trips to carry the squad. Plating and drive upgrades can wait. Now let us give Mira her first command.",
-                List.of("page-nav-barracks"), "MEET MIRA", next);
+        return new PreparationGuide.Lesson(1, Strings.get("openingCompanyPreparationGuideLiftReady"),
+                Strings.get("openingCompanyPreparationGuideGoodThatBoatIsOursWithA"),
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetMira"), next);
     }
 
     static PreparationGuide.Lesson armory(MarineRoster roster, MarineOpsContext context) {
@@ -122,13 +119,13 @@ final class CompanyPreparationGuide {
         Step step = roster.officerInduction().step(roster);
         if (step == Step.SHIP || step == Step.LIFT || step == Step.INTRODUCTION || step == Step.SPECIALTY)
             return new PreparationGuide.Lesson(step == Step.SHIP ? 0 : step == Step.LIFT ? 1 : 2,
-                    "ONE STEP AT A TIME", "We will muster the squad once our ship, lift and field commander are ready. Let us finish that preparation first.",
-                    List.of(), "CONTINUE", next);
-        if (step == Step.FORMATION) return new PreparationGuide.Lesson(3, "MUSTER OUR FIRST SQUAD",
-                "Twelve Marines, thirty-six supplies and twenty-four food. This order gives them their baseline field kit and stores as well as their places on the roll. Check the highlighted bill and Found Line Squad; then we will assign them to Mira.",
+                    Strings.get("openingCompanyPreparationGuideOneStepAtATime"), Strings.get("openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur"),
+                    List.of(), Strings.get("openingCompanyPreparationGuideContinue"), next);
+        if (step == Step.FORMATION) return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideMusterOurFirstSquad"),
+                Strings.get("openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty"),
                 List.of("found-squad"), null, null);
-        return new PreparationGuide.Lesson(3, "A FORMATION NEEDS ITS OFFICER",
-                "The squad and its field kit are on the roll. Return to Barracks and give Mira her standing command. Assigning the squad costs no further stores.",
-                List.of("page-nav-barracks"), "BARRACKS", next);
+        return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideAFormationNeedsItsOfficer"),
+                Strings.get("openingCompanyPreparationGuideTheSquadAndItsFieldKitAre"),
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideBarracks"), next);
     }
 }
