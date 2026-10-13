@@ -746,7 +746,9 @@ an L-shaped depot encloses a northern loading recess. The broad central
 warehouse still screens long sightlines, and the maintenance reserve retains
 its separate building behind the perimeter.
 
-Wayline supplies **Kestrel**, a named Mudskipper gunship under employer control.
+Recovering the depot lets Wayline afford hired close air support. The Junction
+briefing introduces **Kestrel**, a contracted Mudskipper gunship and crew under
+employer control, as a concrete sign of the cooperative recovering its strength.
 It enters as the company approaches the first site, works that position, then
 covers the militia settling onto captured ground before following the company's
 advance. It has a bounded visit and uses the ordinary gunship weapons and flight
@@ -802,8 +804,12 @@ equipment is part of this objective.
 
 ## Authored freight finale
 
-**Kestrel returns on Thunder Run** after Dispatch is secured, announcing the
-same crew that covered the Junction. Two twin-launcher missile batteries on
+**Kestrel returns on Thunder Run** after Dispatch is secured. The briefing
+promises renewed air support and additional hired ground muscle: a heavy tank
+and two reinforced APCs for the final breakthrough. It does not disclose the
+missile ambush or direct the company to assault the inaccessible hilltops.
+The inbound call identifies the same crew that covered the Junction.
+Two twin-launcher missile batteries on
 the northern hilltops cover its opening pass. Kestrel enters from the west
 and sweeps left to right ahead of the eastbound column. An actual missile
 launch interrupts the pass: Kestrel banks forward and away from the ridge,
