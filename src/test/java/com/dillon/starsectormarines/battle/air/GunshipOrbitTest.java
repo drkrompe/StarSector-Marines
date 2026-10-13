@@ -78,12 +78,6 @@ class GunshipOrbitTest {
     }
 
     @Test
-    void theInboardFlankIsTheRightHandOneOnAClockwiseRing() {
-        assertEquals(1f, GunshipOrbit.inboardSide(true));
-        assertEquals(-1f, GunshipOrbit.inboardSide(false));
-    }
-
-    @Test
     void theRingIsTightEnoughForTheAirframeToFly() {
         AirHandling paced = GunshipOrbit.paced(ShuttleType.MUDSKIPPER, 0f, 1f / 30f);
         assertTrue(paced.minTurnRadiusCells() < GunshipOrbit.RADIUS_CELLS,

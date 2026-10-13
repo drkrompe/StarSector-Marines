@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -424,11 +425,11 @@ public class AirSystem {
 
     /**
      * Puts a gunship into the air: a {@code type} hull that flies in from {@code (entryX, entryY)},
-     * rings {@code (centreX, centreY)} with a flank toward it for
+     * circles overhead of {@code (centreX, centreY)} for
      * {@link GunshipOrbit#STATION_SECONDS}, and leaves by {@code (exitX, exitY)}.
      *
-     * <p>Armed with {@link GunshipArmament}'s broadside guns rather than the hull's own door gun,
-     * and given no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down.
+     * <p>Armed as any armed craft is, with the hull's own turret at the hull's own slot, and given
+     * no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down.
      */
     public long spawnGunship(ShuttleType type, Faction faction,
                              float centreX, float centreY, float entryX, float entryY,
@@ -437,7 +438,8 @@ public class AirSystem {
         ShuttleMission mission = world.mission(id);
         AirBody body = world.kinematics(id);
         GunshipOrbit.begin(mission, body.x, body.y, body.facingDegrees);
-        attachTurrets(id, GunshipArmament.mounts(type, body.facingDegrees));
+        mission.assignedRole = TurretRole.A2G;
+        attachTurrets(id, AirArmament.mounts(type, mission.assignedRole, body.facingDegrees));
         return id;
     }
 
@@ -1429,21 +1431,9 @@ public class AirSystem {
                 aim.target = roster.isAliveById(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
-                if (mt.hasLimitedArc()) {
-                    // A broadside gun fires out of its own side: the field of fire turns with
-                    // the hull, so the arc is re-laid every tick from where the hull now points.
-                    aim.arcCentreDeg = mt.restBearingDeg(body.facingDegrees);
-                    aim.arcHalfWidthDeg = mt.arcHalfWidthDeg;
-                }
 
                 TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
-                if (mt.hasLimitedArc() && aim.target == 0L) {
-                    // Nothing to shoot: the barrel comes back to the beam rather than sitting
-                    // wherever its last target left it as the hull swings on round the ring.
-                    aim.facingDegrees = TurretAim.slewToward(aim.facingDegrees, aim.arcCentreDeg,
-                            aim.turnRateDegPerSec * dt);
-                }
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
                 mt.setTarget(aim.target);

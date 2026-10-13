@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.turret.TurretAim;
 
 /**
  * Runtime state for one hardpoint on an air craft. Pairs with the
@@ -60,35 +59,9 @@ public final class MountedTurret {
      */
     public float recoilTimer = 1f;
 
-    /**
-     * Where the barrel rests and its field of fire is centred, as degrees off the hull's nose
-     * (positive counter-clockwise, so {@code +90} is the port beam and {@code -90} the starboard).
-     * Meaningful only for a mount with a limited {@link #arcHalfWidthDeg}.
-     */
-    public final float restOffsetDeg;
-    /** Half-width of the field of fire about the rest bearing; 180 lets the barrel swing all the way round. */
-    public final float arcHalfWidthDeg;
-
     public MountedTurret(TurretMount mount) {
-        this(mount, 0f, TurretAim.UNRESTRICTED_ARC_DEG);
-    }
-
-    /** A mount that fires only within {@code arcHalfWidthDeg} of {@code restOffsetDeg} off the nose, as a broadside gun does. */
-    public MountedTurret(TurretMount mount, float restOffsetDeg, float arcHalfWidthDeg) {
         this.mount = mount;
         this.ammo = mount.mountDef().ammoCapacity;
-        this.restOffsetDeg = restOffsetDeg;
-        this.arcHalfWidthDeg = arcHalfWidthDeg;
-    }
-
-    /** Whether this mount traverses less than a full circle. */
-    public boolean hasLimitedArc() {
-        return arcHalfWidthDeg < TurretAim.UNRESTRICTED_ARC_DEG;
-    }
-
-    /** World bearing the barrel rests on and its arc is centred on, given the hull's current facing. */
-    public float restBearingDeg(float hullFacingDeg) {
-        return hullFacingDeg + restOffsetDeg;
     }
 
     /** Write the locked target id ({@code 0L} = none) into {@link #targetId}. */

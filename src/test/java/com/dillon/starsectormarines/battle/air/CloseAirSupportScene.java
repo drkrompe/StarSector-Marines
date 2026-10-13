@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
@@ -15,6 +16,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,13 +29,13 @@ import java.util.Map;
  *
  * <p>{@code control} is a garrison in the open with a company watching from the west and nobody
  * calling anything. {@code called} is the same world with the power activated on the garrison. The
- * question is the one the owner asked for: does the craft come in, circle the ground with its
- * <em>flank</em> to it, and fire out of that side, and then leave when its time is spent.
+ * question is the overwatch the owner asked for: does the craft come in, circle overhead of the
+ * ground with the hull's one turret at the hull's own mount, fire on whatever is below from every
+ * side of the ring, and then leave when its time is spent.
  *
- * <p>Judged from the craft's own pose and magazines rather than from the garrison alone, because
- * a gunship that sprayed the ground with its nose guns would kill the garrison just as dead and
- * answer nothing. The flank is measured as the angle between the craft's inboard beam and the
- * bearing to the centre of the ring; the side that fires is read off which mounts spent rounds.
+ * <p>Judged from the craft's own pose and magazine rather than from the garrison alone, because a
+ * gunship that killed the garrison from one corner of the map would answer nothing about circling.
+ * The cover is read off which quarter of the ring the craft was in when each round left.
  */
 public final class CloseAirSupportScene implements BehaviorScene {
 
@@ -51,8 +53,8 @@ public final class CloseAirSupportScene implements BehaviorScene {
     @Override public String id() { return "close-air-support"; }
 
     @Override public String label() {
-        return "Close Air Support: a called Mudskipper gunship enters from the nearest edge, circles the targeted ground "
-                + "with its flank to it, fires out of that side, and leaves when its time is spent";
+        return "Close Air Support: a called Mudskipper gunship enters from the nearest edge, circles overhead of the targeted "
+                + "ground with its one turret on the hull's own mount, fires on it from every side of the ring, and leaves when its time is spent";
     }
 
     @Override public int frameDelayMillis() { return 90; }
@@ -60,9 +62,15 @@ public final class CloseAirSupportScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         InstalledHullSpecs.install();
+        InstalledWeaponSlots.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("control", "called")) reports.add(playOne(loop, frames));
+        try {
+            for (String loop : List.of("control", "called")) reports.add(playOne(loop, frames));
+        } finally {
+            // Process-wide: leave no other scene's aircraft armed by this one's install.
+            TurretSlotResolver.useHullSpecs(null);
+        }
         return reports;
     }
 
@@ -123,14 +131,13 @@ public final class CloseAirSupportScene implements BehaviorScene {
                     t.orbitTicks >= 25 * tps && t.worstRingError <= 3f && t.laps >= 3f,
                     String.format(Locale.ROOT, "%.1f s on the ring, %.1f laps, never more than %.2f cells off a radius of %.0f",
                             t.orbitTicks / tps, t.laps, t.worstRingError, GunshipOrbit.RADIUS_CELLS)));
-            verdicts.add(Verdict.of("keeps-a-flank-to-the-ground",
-                    t.orbitTicks > 0 && t.worstFlankErrorDeg <= 25f,
-                    String.format(Locale.ROOT, "the inboard beam was never more than %.1f degrees off the bearing to the centre "
-                            + "(%s ring)", t.worstFlankErrorDeg, t.clockwise ? "clockwise" : "counter-clockwise")));
-            verdicts.add(Verdict.of("fires-out-of-the-inboard-side-only",
-                    t.inboardRounds > 0 && t.outboardRounds == 0,
-                    t.inboardRounds + " rounds from the guns facing the ring's centre, "
-                            + t.outboardRounds + " from the far beam"));
+            verdicts.add(Verdict.of("one-turret-on-the-hulls-own-mount",
+                    t.mounts == 1 && t.mountAtHullSlot,
+                    t.mounts + " turret(s); at the hull's published weapon slot " + t.mountAtHullSlot));
+            verdicts.add(Verdict.of("covers-the-ground-from-every-side-of-the-ring",
+                    t.quartersFiredFrom >= 3 && t.rounds > 0,
+                    t.rounds + " rounds, fired from " + t.quartersFiredFrom + " of 4 quarters of the ring ("
+                            + java.util.Arrays.toString(t.roundsByQuarter) + ")"));
             verdicts.add(Verdict.of("works-the-garrison", t.garrisonDead >= 8,
                     "garrison dead " + t.garrisonDead + " of " + (GARRISON + RESERVE) + ", first death at tick " + t.firstDeath));
             verdicts.add(Verdict.of("leaves-when-its-time-is-spent",
@@ -143,9 +150,8 @@ public final class CloseAirSupportScene implements BehaviorScene {
         metrics.put("orbitTicks", t.orbitTicks);
         metrics.put("laps", t.laps);
         metrics.put("worstRingError", t.worstRingError);
-        metrics.put("worstFlankErrorDeg", t.worstFlankErrorDeg);
-        metrics.put("inboardRounds", t.inboardRounds);
-        metrics.put("outboardRounds", t.outboardRounds);
+        metrics.put("rounds", t.rounds);
+        metrics.put("quartersFiredFrom", t.quartersFiredFrom);
         metrics.put("garrisonDead", t.garrisonDead);
         metrics.put("goneTick", t.goneTick);
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
@@ -157,10 +163,8 @@ public final class CloseAirSupportScene implements BehaviorScene {
         private final SceneWorld world;
         private final String loop;
         boolean targetSeen;
-        boolean clockwise;
         ShuttleMission mission;
         AirTurrets turrets;
-        int[] startAmmo;
         long craft;
         int firstSeenTick = -1;
         int goneTick = -1;
@@ -168,12 +172,15 @@ public final class CloseAirSupportScene implements BehaviorScene {
         float entryY;
         int orbitTicks;
         float worstRingError;
-        float worstFlankErrorDeg;
         float swept;
         float lastAngle = Float.NaN;
         float laps;
-        int inboardRounds;
-        int outboardRounds;
+        int mounts;
+        boolean mountAtHullSlot;
+        int rounds;
+        int lastAmmo;
+        final int[] roundsByQuarter = new int[4];
+        int quartersFiredFrom;
         int garrisonDead;
         int firstDeath = -1;
 
@@ -203,9 +210,12 @@ public final class CloseAirSupportScene implements BehaviorScene {
                 AirBody body = sim.world().kinematics(craft);
                 entryX = body.x;
                 entryY = body.y;
-                clockwise = mission.orbitClockwise;
-                startAmmo = new int[turrets.mounts.length];
-                for (int i = 0; i < startAmmo.length; i++) startAmmo[i] = turrets.mounts[i].ammo;
+                mounts = turrets.mounts.length;
+                float[][] slots = TurretSlotResolver.resolve(ShuttleType.MUDSKIPPER.renderHullId());
+                mountAtHullSlot = mounts == 1 && slots.length >= 1
+                        && turrets.mounts[0].mount.localOffsetX == slots[0][0]
+                        && turrets.mounts[0].mount.localOffsetY == slots[0][1];
+                lastAmmo = turrets.mounts[0].ammo;
             }
             int dead = 0;
             for (String key : List.of("garrison", "reserve")) {
@@ -233,26 +243,17 @@ public final class CloseAirSupportScene implements BehaviorScene {
             if (orbitTicks > SETTLE_TICKS) {
                 worstRingError = Math.max(worstRingError,
                         Math.abs((float) Math.hypot(body.x - cx, body.y - cy) - GunshipOrbit.RADIUS_CELLS));
-                // The inboard beam: the right-hand side of the heading for a clockwise ring, the left for the other.
-                double heading = Math.toRadians(body.facingDegrees);
-                double rightX = Math.cos(heading);
-                double rightY = Math.sin(heading);
-                double side = clockwise ? 1.0 : -1.0;
-                double toCx = cx - body.x;
-                double toCy = cy - body.y;
-                double len = Math.hypot(toCx, toCy);
-                double dot = (side * rightX * toCx + side * rightY * toCy) / Math.max(1e-6, len);
-                worstFlankErrorDeg = Math.max(worstFlankErrorDeg,
-                        (float) Math.toDegrees(Math.acos(Math.max(-1.0, Math.min(1.0, dot)))));
             }
-            inboardRounds = 0;
-            outboardRounds = 0;
-            for (int i = 0; i < turrets.mounts.length; i++) {
-                MountedTurret mount = turrets.mounts[i];
-                int spent = startAmmo[i] - mount.ammo;
-                boolean inboard = Math.signum(mount.mount.localOffsetX) == GunshipOrbit.inboardSide(clockwise);
-                if (inboard) inboardRounds += spent;
-                else outboardRounds += spent;
+            // Which quarter of the ring the craft was in when each round left the turret.
+            int ammo = turrets.mounts[0].ammo;
+            int spent = lastAmmo - ammo;
+            lastAmmo = ammo;
+            if (spent > 0) {
+                int quarter = Math.floorMod((int) Math.floor((angle + Math.PI) / (Math.PI / 2)), 4);
+                roundsByQuarter[quarter] += spent;
+                rounds += spent;
+                quartersFiredFrom = 0;
+                for (int n : roundsByQuarter) if (n > 0) quartersFiredFrom++;
             }
         }
     }

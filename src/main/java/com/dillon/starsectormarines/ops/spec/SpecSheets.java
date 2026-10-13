@@ -99,7 +99,7 @@ public final class SpecSheets {
             case OrbitalBarrage.ID -> "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.";
             case MarineInsertion.ID -> "Calls a Valkyrie to insert an infantry squad near the selected location.";
             case VehicleSupport.ID -> "Calls a transport to deliver armoured support.";
-            case CloseAirSupport.ID -> "Calls a Mudskipper gunship to circle the selected ground with its broadside guns, then depart.";
+            case CloseAirSupport.ID -> "Calls a Mudskipper gunship to circle overhead of the selected ground and fire on it, then depart.";
             case ShipOnStation.ID -> "Calls a committed ship in from your map edge to hold station over the targeted ground and work it, then depart. One ship per charge.";
             default -> "A support capability available from the committed fleet or employer.";
         };
