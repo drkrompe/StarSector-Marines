@@ -78,4 +78,85 @@ class FortSitingTest {
         assertEquals(6, FortSiting.domeCoverage(garrison, 90, 100, 16f));
         assertEquals(0, FortSiting.domeCoverage(garrison, 100, 160, 16f));
     }
+
+    // ------------------------------------------------------------------------------------------------- slide
+
+    private static final FortSiting.Blocked NOTHING = (x, y, half) -> false;
+
+    @Test
+    void aFreeTargetDoesNotSlide() {
+        Point target = new Point(280, 168);
+        assertEquals(target, FortSiting.slide(WEST_TO_EAST, target, 46, true, NOTHING, List.of()));
+    }
+
+    @Test
+    void aBlockedBatteryTargetSlidesAlongTheLineOfAdvanceAndStaysOnTheApproach() {
+        Point target = new Point(280, 168);
+        // A programmed place holds the ground round the target: a wide band across the way, a short run along it.
+        FortSiting.Blocked place = (x, y, half) -> Math.abs(x - 280) < 30 + half && Math.abs(y - 168) < 30 + half;
+        Point slid = FortSiting.slide(WEST_TO_EAST, target, 46, true, place, List.of());
+        assertTrue(!slid.equals(target), "it did not slide");
+        assertTrue(!place.box(slid.x(), slid.y(), 46), "slid onto the blocked ground: " + slid);
+        assertTrue(FortSiting.approachCost(WEST_TO_EAST, target, slid.x(), slid.y()) < FortSiting.OFF_APPROACH,
+                "left the approach: " + slid);
+    }
+
+    @Test
+    void aBatteryFortPrefersToSlideAlongTheLineOverAcrossIt() {
+        Point target = new Point(280, 168);
+        // Free ground exists both 60 along and 60 across; along is the cheaper move.
+        FortSiting.Blocked ring = (x, y, half) -> {
+            boolean along = Math.abs(x - 340) <= 3 && Math.abs(y - 168) <= 3;
+            boolean across = Math.abs(x - 280) <= 3 && Math.abs(y - 228) <= 3;
+            return !(along || across);
+        };
+        Point slid = FortSiting.slide(WEST_TO_EAST, target, 46, true, ring, List.of());
+        assertEquals(168, slid.y(), 4, "moved across the line: " + slid);
+        assertEquals(340, slid.x(), 4);
+    }
+
+    @Test
+    void aShieldFortTakesTheNearestFreeGroundToTheKeep() {
+        Point keep = new Point(480, 168);
+        // The keep's own place holds everything within 90 cells of it.
+        FortSiting.Blocked garrison = (x, y, half) -> Math.hypot(x - 480, y - 168) < 90 + half;
+        Point at = FortSiting.slide(WEST_TO_EAST, keep, 42, false, garrison, List.of());
+        double reach = Math.hypot(at.x() - 480, at.y() - 168);
+        assertTrue(reach >= 90 + 42 && reach < 90 + 42 + 12, "not the nearest free ground: " + reach);
+    }
+
+    @Test
+    void reservedFortsStandApart() {
+        Point first = new Point(280, 168);
+        Point second = FortSiting.slide(WEST_TO_EAST, new Point(284, 168), 46, true, NOTHING, List.of(first));
+        assertTrue(Math.hypot(second.x() - first.x(), second.y() - first.y()) >= FortSiting.SEPARATION,
+                "stand flush: " + second);
+    }
+
+    @Test
+    void aTargetWithNowhereToGoStaysWhereItWas() {
+        Point target = new Point(280, 168);
+        assertEquals(target, FortSiting.slide(WEST_TO_EAST, target, 46, true, (x, y, half) -> true, List.of()));
+    }
+
+    // -------------------------------------------------------------------------------------------------- dome
+
+    @Test
+    void aDomeCoversItsOwnWorksAtLeast() {
+        assertEquals(31f, FortSiting.domeRadius(new Point(100, 100), 31f, null));
+    }
+
+    @Test
+    void aDomeSitedToProtectTheKeepReachesItsFarthestCorner() {
+        // A fort 70 cells west of a keep whose box is 20 wide and 10 tall.
+        float radius = FortSiting.domeRadius(new Point(100, 100), 31f, new int[]{170, 95, 189, 104});
+        // The farthest corner of the box is the cell edge at (190, 105): a little over 90 cells away.
+        assertTrue(radius >= Math.hypot(90, 5), "does not reach the far corner: " + radius);
+        assertTrue(radius <= 93f, "far larger than the keep needs: " + radius);
+    }
+
+    @Test
+    void aDomeIsCappedSoAFarKeepIsSimplyNotCovered() {
+        assertEquals(FortSiting.MAX_DOME_RADIUS, FortSiting.domeRadius(new Point(0, 0), 30f, new int[]{900, 0, 910, 10}));
+    }
 }

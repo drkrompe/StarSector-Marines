@@ -81,7 +81,7 @@ public final class FortSiting {
     /** Moving a fort off the line of advance costs this many times as much as sliding it along the line. */
     static final int LATERAL_WEIGHT = 2;
     /** What a site off the approach costs: more than any site on the map, so it is taken only when nothing else fits. */
-    static final long OFF_APPROACH = 1_000_000L;
+    public static final long OFF_APPROACH = 1_000_000L;
 
     /**
      * How far a fort at {@code (x, y)} is from standing where a battery fort was aimed ({@code target}), preferring to
@@ -114,6 +114,96 @@ public final class FortSiting {
             if (dx * dx + dy * dy <= limit) covered += v.weight();
         }
         return covered;
+    }
+
+    // ------------------------------------------------------------------------------------------------- slide
+
+    /** Candidate centres are tried on this lattice, in cells, when a target's own ground is not free. */
+    static final int SLIDE_STEP = 6;
+    /** How far a battery fort's target may slide along the line of advance, and across it, in cells. */
+    static final int SLIDE_ALONG = 96;
+    static final int SLIDE_ACROSS = 60;
+    /** How far a shield fort's target may move from the keep in any direction, in cells. */
+    static final int SLIDE_SHIELD = 120;
+    /** Reserved fort centres stay at least this far apart, as the stage's own separation demands. */
+    public static final int SEPARATION = 70;
+
+    /** Whether the square of half-extent {@code half} about a cell is ground nobody may reserve. */
+    @FunctionalInterface
+    public interface Blocked {
+        boolean box(int x, int y, int half);
+    }
+
+    /**
+     * Where a fort aimed at {@code target} can have its ground, when {@code target} itself is spoken for. A battery fort
+     * slides along the line of advance before it leaves it (moving across costs {@link #LATERAL_WEIGHT} times as much and
+     * never leaves the approach); a shield fort takes the nearest free ground to its target. The nearest candidate on a
+     * lattice whose box is not {@code blocked}, in the map and clear of {@code others}, is taken; the target itself when
+     * its own box is free or when nothing is. Deterministic, and it draws no random numbers.
+     */
+    public static Point slide(Anchors a, Point target, int half, boolean batteryFort, Blocked blocked, List<Point> others) {
+        if (fits(a, target, half, blocked, others, batteryFort)) return target;
+        double dx = a.landing().x() - a.keep().x();
+        double dy = a.landing().y() - a.keep().y();
+        double d = Math.hypot(dx, dy);
+        double ux = d < 1 ? 1 : dx / d;
+        double uy = d < 1 ? 0 : dy / d;
+        int along = batteryFort ? SLIDE_ALONG : SLIDE_SHIELD;
+        int across = batteryFort ? SLIDE_ACROSS : SLIDE_SHIELD;
+        List<int[]> offsets = new ArrayList<>();
+        for (int da = -along; da <= along; da += SLIDE_STEP) {
+            for (int dl = -across; dl <= across; dl += SLIDE_STEP) offsets.add(new int[]{da, dl});
+        }
+        offsets.sort((p, q) -> {
+            int byCost = Double.compare(slideCost(p, batteryFort), slideCost(q, batteryFort));
+            if (byCost != 0) return byCost;
+            if (p[0] != q[0]) return Integer.compare(p[0], q[0]);
+            return Integer.compare(p[1], q[1]);
+        });
+        for (int[] o : offsets) {
+            int x = (int) Math.round(target.x() + ux * o[0] - uy * o[1]);
+            int y = (int) Math.round(target.y() + uy * o[0] + ux * o[1]);
+            if (fits(a, new Point(x, y), half, blocked, others, batteryFort)) return new Point(x, y);
+        }
+        return target;
+    }
+
+    private static double slideCost(int[] offset, boolean batteryFort) {
+        return batteryFort ? Math.abs(offset[0]) + LATERAL_WEIGHT * Math.abs(offset[1]) : Math.hypot(offset[0], offset[1]);
+    }
+
+    private static boolean fits(Anchors a, Point at, int half, Blocked blocked, List<Point> others, boolean batteryFort) {
+        if (at.x() < half + 1 || at.y() < half + 1 || at.x() > a.width() - half - 2 || at.y() > a.height() - half - 2) return false;
+        if (batteryFort && approachCost(a, at, at.x(), at.y()) >= OFF_APPROACH) return false;
+        for (Point other : others) {
+            if (Math.hypot(at.x() - other.x(), at.y() - other.y()) < SEPARATION) return false;
+        }
+        return !blocked.box(at.x(), at.y(), half);
+    }
+
+    // -------------------------------------------------------------------------------------------------- dome
+
+    /** UNTUNED: the widest dome a shield fort declares, in cells; a keep out of this reach is simply not covered. */
+    public static final float MAX_DOME_RADIUS = 160f;
+
+    /**
+     * How far a shield fort's dome reaches, in cells: over its own works at least ({@code worksRadius}) and, where the
+     * fort was sited to protect the keep, over the whole of the keep's footprint ({@code keepBox} as left, top, right,
+     * bottom), measured from the generator to the keep's farthest corner. Never more than {@link #MAX_DOME_RADIUS}.
+     * {@code keepBox} may be {@code null} when no keep is being protected.
+     */
+    public static float domeRadius(Point generator, float worksRadius, int[] keepBox) {
+        float reach = worksRadius;
+        if (keepBox != null) {
+            double farthest = 0;
+            for (int x : new int[]{keepBox[0], keepBox[2] + 1}) {
+                for (int y : new int[]{keepBox[1], keepBox[3] + 1}) {
+                    farthest = Math.max(farthest, Math.hypot(x - generator.x(), y - generator.y()));
+                }
+            }
+            reach = Math.max(reach, (float) Math.ceil(farthest + 1));
+        }
+        return Math.min(MAX_DOME_RADIUS, reach);
     }
 
     private static int clamp(int v, int extent) {

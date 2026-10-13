@@ -1788,6 +1788,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } else if (structure.isShieldGenerator()) {
             forts.tagEmitter(tag.fortId(), id, holder);
             shieldDomes.govern(id);
+            if (tag.domeRadius() > 0f) shieldDomes.cover(id, tag.domeRadius());
             restrainFortCore(id);
         } else if (structure.isFortAspectCore()) {
             forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder, structure.id);

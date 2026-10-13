@@ -126,4 +126,17 @@ class ShieldDomeShadingTest {
         ShieldDomeShading.shade(red, 0f, 0.995f, 1f, out);
         assertTrue(out[0] > out[2], "a red dome has more red than blue at its rim");
     }
+
+    @Test
+    void aFortScaleDomeKeepsTheSameRimAndFaintInterior() {
+        // A shield fort declares the ground it covers: several times the bare generator's reach, at game scale.
+        ShieldDomeDraw d = dome();
+        d.radiusCells = 90f;
+        d.radiusPx = 90f * 20f;
+        float rim = ringMean(d, 0.995f);
+        float interior = ringMean(d, 0.3f);
+        assertTrue(rim > 4f * interior, "rim " + rim + " interior " + interior);
+        assertTrue(interior > 0.01f && interior < 0.12f, "interior stays low-alpha: " + interior);
+        assertEquals(0f, alpha(d, ShieldDomeShading.EXTENT + 0.01f, 0f), 1e-6f);
+    }
 }

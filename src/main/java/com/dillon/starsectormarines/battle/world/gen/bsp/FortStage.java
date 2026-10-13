@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortReservations;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
@@ -39,6 +40,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
+
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +77,8 @@ import java.util.function.BiPredicate;
  */
 public final class FortStage implements GenStage {
 
+    private static final Logger LOG = Logger.getLogger(FortStage.class);
+
     /** Hit points of a wall cell of the fort's outer wall: breachable by demolition, not by small arms. */
     public static final int FORT_WALL_HP = BatteryFort.WALL_HP;
     /** Hit points of a wall cell of a fort building. */
@@ -101,8 +106,12 @@ public final class FortStage implements GenStage {
     /** The kinds this stage places, in the order they are placed (and so numbered). */
     private static final List<FortPlan> PLANS = List.of(BatteryFort.PLAN, ShieldFort.PLAN);
 
-    /** Where a fort stands, for evidence. */
-    public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target) {}
+    /**
+     * Where a fort stands, for evidence. {@code domeRadius} is the reach a shield fort's dome was declared to cover, in
+     * cells, and {@code 0} for a fort with no dome.
+     */
+    public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target,
+                         float domeRadius) {}
 
     private final List<Placed> placed = new ArrayList<>();
 
@@ -134,22 +143,30 @@ public final class FortStage implements GenStage {
         FortSiting.Anchors anchors = profile.declaredDefences().siting() == FortSitingPolicy.COVER_THE_APPROACH
                 ? anchorsOf(ctx) : null;
         List<FortSiting.Valued> garrison = anchors != null ? garrisonValues(ctx) : List.of();
+        TacticalNode keep = anchors != null ? keepNode(ctx) : null;
+        Map<FortKind, List<FortSiting.Point>> reserved = ctx.get(BspKeys.FORT_TARGETS);
 
         for (FortPlan plan : PLANS) {
             int budget = profile.declaredDefences().fortCount(plan.kind());
             if (budget <= 0) continue;
             CompoundLayout layout = plan.layout();
-            List<FortSiting.Point> targets = anchors == null ? null : targetsFor(plan, anchors, budget);
+            List<FortSiting.Point> targets = anchors == null ? null : targetsFor(plan, anchors, budget, reserved);
             for (int n = 0; n < budget; n++) {
                 FortSiting.Point target = targets == null ? null : targets.get(n);
                 Placed made = null;
                 if (target != null) {
-                    made = placeNear(plan, layout, ground, sitedFor(plan, sites, anchors, target, garrison), ctx, anchors, target);
+                    made = placeNear(plan, layout, ground, sitedFor(plan, sites, anchors, target, garrison), ctx, anchors, target, keep);
                 }
                 // The declared count stands where ground allows: a fort whose intended ground is taken falls back to
                 // the leftover order rather than vanishing.
-                if (made == null) made = placeNear(plan, layout, ground, sites, ctx, anchors, null);
-                if (made == null) break;
+                if (made == null) made = placeNear(plan, layout, ground, sites, ctx, anchors, null, keep);
+                if (made == null) {
+                    // A declaration that cannot be met is a finding about the map, not something to drop quietly.
+                    LOG.warn("FortStage: the mission declared " + budget + " " + plan.kind() + " and only " + n
+                            + " could stand: no open ground left on this " + ctx.width + "x" + ctx.height + " map for a "
+                            + plan.width() + "x" + plan.height() + " fort");
+                    break;
+                }
             }
         }
         if (placed.isEmpty()) return;
@@ -164,16 +181,17 @@ public final class FortStage implements GenStage {
      * fits. {@code target} is the ground a siting intended, kept for evidence; {@code null} for leftover ground.
      */
     private Placed placeNear(FortPlan plan, CompoundLayout layout, Ground ground, List<Site> order, GenContext ctx,
-                             FortSiting.Anchors anchors, FortSiting.Point target) {
+                             FortSiting.Anchors anchors, FortSiting.Point target, TacticalNode keep) {
         FortSiting.Point facing = anchors == null ? null : anchors.landing();
         for (Site site : order) {
             if (tooClose(site)) continue;
             CompoundLayout.Placement at = fit(plan, layout, ground, site, ctx, facing);
             if (at == null) continue;
             int fortId = placed.size();
-            stamp(ctx, plan, at, fortId, ground);
+            float dome = domeRadius(plan, at, anchors != null ? keep : null);
+            stamp(ctx, plan, at, fortId, ground, dome);
             ground.exclude(plan, at);
-            Placed made = new Placed(at, fortId, plan, target);
+            Placed made = new Placed(at, fortId, plan, target, dome);
             placed.add(made);
             return made;
         }
@@ -190,7 +208,8 @@ public final class FortStage implements GenStage {
             return dx * dx + dy * dy;
         }).thenComparingInt(Site::y).thenComparingInt(Site::x);
         if (plan.kind() == FortKind.SHIELD_FORT) {
-            float radius = TurretCatalogRegistry.requireStructure(plan.centrepieceStructureId()).dome.radiusCells();
+            // A fort's dome is sized to what it covers, at least its own works; rank by that, not by a fixed figure.
+            float radius = plan.worksRadius();
             Map<Site, Integer> covered = new IdentityHashMap<>();
             for (Site s : order) covered.put(s, FortSiting.domeCoverage(garrison, s.x(), s.y(), radius));
             order.sort(Comparator.comparingInt((Site s) -> -covered.get(s)).thenComparing(byDistance));
@@ -202,7 +221,10 @@ public final class FortStage implements GenStage {
         return order;
     }
 
-    private static List<FortSiting.Point> targetsFor(FortPlan plan, FortSiting.Anchors anchors, int count) {
+    private static List<FortSiting.Point> targetsFor(FortPlan plan, FortSiting.Anchors anchors, int count,
+                                                     Map<FortKind, List<FortSiting.Point>> reserved) {
+        List<FortSiting.Point> slid = reserved == null ? null : reserved.get(plan.kind());
+        if (slid != null && slid.size() >= count) return new ArrayList<>(slid.subList(0, count));
         if (plan.kind() == FortKind.BATTERY_FORT) return FortSiting.batteryTargets(anchors, count);
         List<FortSiting.Point> out = new ArrayList<>();
         for (int i = 0; i < count; i++) out.add(FortSiting.shieldTarget(anchors));
@@ -219,7 +241,19 @@ public final class FortStage implements GenStage {
         if (plan == null) return null;
         Precinct landing = plan.landingPlace();
         if (landing == null) return null;
-        Precinct objective = plan.objective();
+        TacticalNode keep = keepNode(ctx);
+        if (keep == null) return null;
+        // The reservation was made against the plan's seeds, before the keep existed; aim at the same ends it did.
+        FortSiting.Anchors stated = FortReservations.anchors(plan, ctx.width, ctx.height);
+        if (stated != null && ctx.get(BspKeys.FORT_TARGETS) != null) return stated;
+        return new FortSiting.Anchors(new FortSiting.Point(keep.anchorX, keep.anchorY),
+                new FortSiting.Point(landing.seedX(), landing.seedY()), ctx.width, ctx.height);
+    }
+
+    /** The keep: the command post nearest the objective place, or {@code null} when the map has none. */
+    private static TacticalNode keepNode(GenContext ctx) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        Precinct objective = plan == null ? null : plan.objective();
         TacticalNode keep = null;
         long best = Long.MAX_VALUE;
         for (TacticalNode node : ctx.tactical) {
@@ -232,9 +266,19 @@ public final class FortStage implements GenStage {
                 best = d;
             }
         }
-        if (keep == null) return null;
-        return new FortSiting.Anchors(new FortSiting.Point(keep.anchorX, keep.anchorY),
-                new FortSiting.Point(landing.seedX(), landing.seedY()), ctx.width, ctx.height);
+        return keep;
+    }
+
+    /**
+     * The reach a fort's dome is declared to cover, in cells: {@code 0} for a plan with no dome; for a shield fort its
+     * own works at least and, when {@code keep} is given (the fort was sited to protect it), the whole of the keep's
+     * footprint.
+     */
+    private static float domeRadius(FortPlan plan, CompoundLayout.Placement at, TacticalNode keep) {
+        if (plan.centrepieceAspect() != FortAspect.EMITTER) return 0f;
+        int[] g = at.cell(plan.centrepiece()[0], plan.centrepiece()[1]);
+        int[] box = keep == null ? null : new int[]{keep.left, keep.top, keep.right, keep.bottom};
+        return FortSiting.domeRadius(new FortSiting.Point(g[0], g[1]), plan.worksRadius(), box);
     }
 
     /** The garrison's places a dome should cover, weighted: the keep most, then the supply compounds. */
@@ -489,7 +533,7 @@ public final class FortStage implements GenStage {
     // ----------------------------------------------------------------------------------------- stamp
 
     static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
-        stamp(ctx, plan, at, fortId, null);
+        stamp(ctx, plan, at, fortId, null, domeRadius(plan, at, null));
     }
 
     /**
@@ -497,7 +541,8 @@ public final class FortStage implements GenStage {
      * the ground and interior dressing, and last the belt, which takes only the cells the ground will give it. A null
      * {@code ground} means open country everywhere, which is what a bare test field is.
      */
-    private static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground) {
+    private static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground,
+                              float domeRadius) {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         int w = plan.width();
@@ -547,7 +592,7 @@ public final class FortStage implements GenStage {
         }
         int[] centrepiece = plan.centrepiece();
         emitStructure(ctx, plan.centrepieceStructureId(), at.cell(centrepiece[0], centrepiece[1]),
-                new FortTag(fortId, plan.centrepieceAspect(), at.x(), at.y(), at.pose().quarterTurns()));
+                new FortTag(fortId, plan.centrepieceAspect(), at.x(), at.y(), at.pose().quarterTurns(), domeRadius));
         int nestNumber = 0;
         for (int[] local : plan.nests()) {
             emitNest(ctx, at.cell(local[0], local[1]), fortId, at, nestNumber++);

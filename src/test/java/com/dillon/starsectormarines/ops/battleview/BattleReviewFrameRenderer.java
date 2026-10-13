@@ -48,11 +48,16 @@ public final class BattleReviewFrameRenderer {
     /** Burning wreckage. Alpha is set per wreck from how much of its life is left. */
     private static final Color WRECK_MARKER = new Color(255, 96, 24, 255);
 
-    /** GL-owned custom and ribbon decorations are deliberately absent — the Java2D drain cannot produce them. */
-    private static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
+    /**
+     * GL-owned custom and ribbon decorations are deliberately absent — the Java2D drain cannot produce them. For the
+     * same reason {@link RenderLayer#MISSION_MARKERS} is absent: its cards are a solid plate with their text drawn as
+     * custom labels, so headless they came out as large empty black panels across the map, hiding what the frame is
+     * for. Places are named by the frame's own annotations; the live HUD is unchanged.
+     */
+    static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DECALS, RenderLayer.VEHICLES, RenderLayer.DOODADS,
             RenderLayer.UNITS, RenderLayer.HAZARDS, RenderLayer.SMOKE,
-            RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.MISSION_MARKERS, RenderLayer.COMPOUND,
+            RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
             RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING);
 
     private final HeadlessUiRenderer renderer;

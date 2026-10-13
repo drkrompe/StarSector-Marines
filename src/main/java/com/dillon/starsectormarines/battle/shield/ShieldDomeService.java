@@ -102,6 +102,20 @@ public final class ShieldDomeService {
     }
 
     /**
+     * Sets how far dome {@code entityId} reaches, in cells: a fort declares what it covers, and the dome is sized to it
+     * rather than to its structure's fixed figure. Its flux budget, dissipation and timings are the spec's own and are
+     * not scaled with the area. A dome that is not registered is ignored.
+     */
+    public synchronized void cover(long entityId, float radiusCells) {
+        Dome dome = find(entityId);
+        if (dome == null) return;
+        DomeSpec own = dome.spec;
+        dome.spec = new DomeSpec(radiusCells, own.fluxCapacity(), own.dissipationPerSecond(), own.overloadSeconds(),
+                own.captureRadiusCells(), own.captureSeconds());
+        publish();
+    }
+
+    /**
      * Gives a governed dome to {@code holder}: it reboots (down for {@link #REBOOT_SECONDS}) and then protects the new
      * holder. Giving it to its current holder does nothing.
      */
@@ -414,7 +428,7 @@ public final class ShieldDomeService {
         final long entityId;
         final float x;
         final float y;
-        final DomeSpec spec;
+        DomeSpec spec;
         final Faction originalHolder;
         Faction holder;
         Faction raider;

@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -97,6 +99,13 @@ public final class BspKeys {
 
     /** The places this map is made of, when it was grown from a precinct plan. */
     public static final GenKey<PrecinctPlan> PRECINCTS = GenKey.of("precincts");
+
+    /**
+     * Where a mission sited its forts as barriers, by kind and in declaration order: the ground reserved for each while
+     * the town was still growing, slid off any place the plan programs. Present (possibly empty) once the reservation has
+     * run, absent when nothing was sited; {@code FortStage} stands each fort as near its entry as the ground allows.
+     */
+    public static final GenKey<Map<FortKind, List<FortSiting.Point>>> FORT_TARGETS = GenKey.of("fortTargets");
 
     /** Per-call First Contract facility and staging reservations. */
     public static final GenKey<OpeningOperationMapPlan> OPENING_OPERATION_PLAN =

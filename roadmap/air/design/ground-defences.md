@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 - where a declared fort stands is the mission's decision too (`FortSitingPolicy`, see `forts.md`); planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder; barrage is absorbed by a dome, not denied; placement authority moved from map generation to the mission; either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-13 - a shield fort sizes its dome from what it covers (`forts.md`); where a declared fort stands is the mission's decision too (`FortSitingPolicy`, see `forts.md`); planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder; barrage is absorbed by a dome, not denied; placement authority moved from map generation to the mission; either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -62,7 +62,8 @@ once.
 
 ## Shield generator
 
-- **What it is.** A structure that projects a dome of a fixed radius, with a flux pool
+- **What it is.** A structure that projects a dome of a fixed radius (a shield fort declares the ground it covers
+  instead; see `forts.md`), with a flux pool
   and dissipation like a ship's shield. Hostile ship-grade ordnance and orbital
   barrage landing inside the dome is absorbed as flux instead of detonating. When the
   pool fills, the dome drops and overloads for a few seconds, then comes back.
