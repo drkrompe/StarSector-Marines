@@ -62,6 +62,18 @@ final class AirframeFootprint {
     private AirframeFootprint() {
     }
 
+    /** Broken airborne wreckage is rough ground. Never clear terrain underneath it. */
+    static void settleCrashDebris(NavigationGrid grid, float cx, float cy, float radius) {
+        int extent = (int) Math.ceil(radius);
+        for (int y = (int) cy - extent; y <= cy + extent; y++) {
+            for (int x = (int) cx - extent; x <= cx + extent; x++) {
+                float dx = x + .5f - cx, dy = y + .5f - cy;
+                if (grid.inBounds(x, y) && dx * dx + dy * dy <= radius * radius)
+                    grid.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, true);
+            }
+        }
+    }
+
     /**
      * Settles a wreck centred on {@code (centerX, centerY)}, blocking movement
      * and nothing else, and stepping clear whoever the hull is coming down on.

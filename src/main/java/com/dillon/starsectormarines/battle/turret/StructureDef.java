@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.shield.DomeSpec;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +35,8 @@ public final class StructureDef {
     public final String batteryLoadoutId;
     /** Cells around the anchor within which standing marks the battery's fire control as taken; zero for a non-battery. */
     public final float fireControlRadius;
+    /** The fort aspect this structure is the core of, or null for a structure that is not a fort core. */
+    public final FortAspect fortAspect;
     /** The painted base and animated overlay layers, or null for a structure drawn as a flat pad under its mount. */
     public final StructureArt art;
 
@@ -43,8 +46,9 @@ public final class StructureDef {
                          int footprintCellsX, int footprintCellsY, float forceScore,
                          String mountId, TurretMountDef mount,
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
-                         StructureArt art, TurretRole targetRole) {
+                         StructureArt art, TurretRole targetRole, FortAspect fortAspect) {
         this.targetRole = targetRole;
+        this.fortAspect = fortAspect;
         this.dome = dome;
         this.art = art;
         this.id = id;
@@ -66,6 +70,11 @@ public final class StructureDef {
     /** Whether this structure is a fortress battery: it carries ship-grade guns and a fire-control point. */
     public boolean isBattery() {
         return batteryLoadoutId != null;
+    }
+
+    /** Whether this structure is the core of a fort aspect: a magazine, power plant or fire-control console. */
+    public boolean isFortAspectCore() {
+        return fortAspect != null;
     }
 
     /** Whether this structure projects a planetary shield dome. */
@@ -134,6 +143,7 @@ public final class StructureDef {
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount,
                 batteryLoadoutId, fireControlRadius, dome, art,
-                TurretRole.valueOf(json.optString("targetRole", "A2G")));
+                TurretRole.valueOf(json.optString("targetRole", "A2G")),
+                json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null);
     }
 }

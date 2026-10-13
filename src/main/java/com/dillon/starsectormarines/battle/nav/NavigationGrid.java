@@ -89,9 +89,17 @@ public class NavigationGrid {
          */
         NO_EDGE_COVER,
         /** Natural obstruction: ordinary cell wall damage cannot clear it; tree ownership may release a whole crown. */
-        NATURAL_SOLID;
+        NATURAL_SOLID,
+        /** Low aircraft fragments: passability stays with the underlying terrain. */
+        CRASH_DEBRIS;
 
         public long mask() { return 1L << ordinal(); }
+    }
+
+    /** Physical ground speed over low debris; this never opens a blocked cell. */
+    public float groundSpeedMultiplier(float x, float y) {
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        return inBounds(cx, cy) && hasTag(cx, cy, CellTag.CRASH_DEBRIS) ? .5f : 1f;
     }
 
     /**

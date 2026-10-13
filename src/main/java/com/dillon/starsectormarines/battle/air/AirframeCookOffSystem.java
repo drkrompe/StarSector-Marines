@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 /**
  * Death-event handler that sets off a parked airframe when it is destroyed on
@@ -97,6 +98,8 @@ public final class AirframeCookOffSystem {
     private final UnitRosterService roster;
     /** Airframes already burned, so a death that somehow arrived twice only goes up once. */
     private final LongOpenHashSet burned = new LongOpenHashSet();
+    private final Long2ObjectOpenHashMap<CrashContact> crashes = new Long2ObjectOpenHashMap<>();
+    private record CrashContact(CrashSweep sweep, LongOpenHashSet struck, float radius, Faction faction) {}
 
     public AirframeCookOffSystem(EffectsService effects, Detonations detonations,
                                  UnitRosterService roster) {
@@ -135,38 +138,50 @@ public final class AirframeCookOffSystem {
     }
 
     public void crash(long airframe, float x, float y, Faction faction, float hullRadius, float vx, float vy) {
-        if (burned.contains(airframe)) return;
-        ignite(airframe, x, y, faction, Math.max(BLAST_RADIUS_CELLS, Math.min(8f, hullRadius + 3f)), true);
+        if (!burned.add(airframe)) return;
+        float radius = Math.max(BLAST_RADIUS_CELLS, Math.min(8f, hullRadius + 3f));
+        float skidRadius = Math.max(1.5f, Math.min(6f, hullRadius + 1f));
+        CrashContact crash = new CrashContact(new CrashSweep(x, y, skidRadius), new LongOpenHashSet(), skidRadius, faction);
+        crashes.put(airframe, crash);
+        effects.spawnVehicleWreck(x, y, radius * 2f, radius);
+        crush(x, y, radius, 900f, 600, crash);
         effects.spawnCrashBlastFan(x, y, vx, vy, hullRadius);
     }
 
-    private void ignite(long airframe, float x, float y, Faction faction) {
-        ignite(airframe, x, y, faction, BLAST_RADIUS_CELLS, false);
+    /** Sweep the actual grounded hull, including the tick that first touches down. */
+    public void skid(long airframe, float x, float y, boolean stopped) {
+        CrashContact crash = crashes.get(airframe);
+        if (crash == null) return;
+        crash.sweep.advance(x, y, (cx, cy) -> crush(cx, cy, crash.radius, 600f, 400, crash));
+        if (stopped) crashes.remove(airframe);
     }
 
-    private void ignite(long airframe, float x, float y, Faction faction, float radius, boolean crash) {
+    private void crush(float x, float y, float radius, float damage, int structureDamage, CrashContact crash) {
+        detonations.crushNow(new PendingDetonation(CombatTelemetryService.NO_ATTACKER,
+                x, y, 0f, radius, damage, 60f, structureDamage, crash.faction,
+                false, radius, true, false), crash.struck);
+    }
+
+    private void ignite(long airframe, float x, float y, Faction faction) {
         if (!burned.add(airframe)) return;
-        if (crash) effects.spawnVehicleWreck(x, y, radius * 2f, radius);
-        else {
-            effects.spawnHeavyImpact(x, y, radius);
-            effects.spawnSmokingWreck((int) Math.floor(x), (int) Math.floor(y));
-        }
+        effects.spawnHeavyImpact(x, y, BLAST_RADIUS_CELLS);
+        effects.spawnSmokingWreck((int) Math.floor(x), (int) Math.floor(y));
         detonations.detonateNow(new PendingDetonation(
                 // Nobody is credited: what kills anyone here is the aircraft's
                 // own fuel, and the round that opened the tank was fired at
                 // the aircraft. An attacker earns the airframe, not the burns.
                 CombatTelemetryService.NO_ATTACKER,
                 x, y, /*remainingTime*/ 0f,
-                radius, crash ? BLAST_DAMAGE * 1.5f : BLAST_DAMAGE, BLAST_PENETRATION,
-                crash ? WALL_DAMAGE * 2 : WALL_DAMAGE, faction, /*aerialDelivery*/ crash,
-                crash ? radius : WALL_DAMAGE_RADIUS_CELLS, /*spawnDustOnWallBreak*/ true,
+                BLAST_RADIUS_CELLS, BLAST_DAMAGE, BLAST_PENETRATION,
+                WALL_DAMAGE, faction, /*aerialDelivery*/ false,
+                WALL_DAMAGE_RADIUS_CELLS, /*spawnDustOnWallBreak*/ true,
                 // Friendly fire on. A fire does not check anybody's colours,
                 // and the ground crew walking out to the aircraft is exactly
                 // who is standing close enough to find that out.
                 /*friendlyFireImmune*/ false,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
                 /*authoredAftermath*/ false,
-                crash ? new long[0] : airframesOnTheirBerths()));
+                airframesOnTheirBerths()));
     }
 
     /**

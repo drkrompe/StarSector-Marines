@@ -131,3 +131,5 @@ com.dillon.starsectormarines.ops.battleview.PodBattleSnapshotSuite
 com.dillon.starsectormarines.battle.air.GunshipCrashSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ShieldDomeLookSnapshotSuite
 com.dillon.starsectormarines.ops.BoatRecoverySnapshotSuite
+com.dillon.starsectormarines.battle.fort.BatteryFortSceneSnapshotSuite
+com.dillon.starsectormarines.ops.BatteryFortMapSnapshotSuite

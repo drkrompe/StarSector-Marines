@@ -15,6 +15,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MovementServiceTest {
 
+    @Test void crashDebrisHalvesPhysicalTravelWithoutChangingTheIssuedSpeed() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        NavigationGrid grid = new NavigationGrid(8, 8);
+        for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) grid.setWalkableFloor(x, y);
+        movement.setNavigationGrid(grid);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.5f);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, 3.5f);
+        world.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, 2f);
+        float clear = movement.previewDirect(id, grid, 1, 0, .3f, .1f).dx();
+        grid.setTag(3, 3, NavigationGrid.CellTag.CRASH_DEBRIS, true);
+        float debris = movement.previewDirect(id, grid, 1, 0, .3f, .1f).dx();
+        assertEquals(clear * .5f, debris, .0001f);
+        assertEquals(2f, movement.moveSpeed(id));
+    }
+
     @Test
     public void staticPositionCanAnswerArrivalWithoutAMovementComponent() {
         EntityWorld world = new EntityWorld();

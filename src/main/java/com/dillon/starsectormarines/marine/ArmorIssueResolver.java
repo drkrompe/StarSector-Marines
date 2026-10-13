@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  * Turns a {@link SquadArmorPlan} into the twelve patterns a squad actually
  * wears, by applying somebody's stock to it ({@code role-and-access.md}).
  *
- * <p>The plan fixes protection class before role or tradition is considered.
+ * <p>The plan fixes each billet's protection class before role or tradition is considered.
  * No fallback crosses that class: a regular section stays regular as stock grows,
  * and a power-suit section is refused until matching shells are owned. The
  * plan supplies the role of each billet and the tradition to prefer; the caller
@@ -29,6 +29,8 @@ public final class ArmorIssueResolver {
 
     private ArmorIssueResolver() {}
 
+    private record Billet(ArmorClass armorClass, ArmorRole role) {}
+
     /**
      * Issues {@code plan} from the patterns {@code available} accepts.
      *
@@ -38,7 +40,9 @@ public final class ArmorIssueResolver {
      * kit — the plan's own tradition again first — and finally to whatever is
      * available within the plan's protection class, because a marine with no suit is worse than a marine in
      * the wrong one, and because a company that has genuinely never bought a
-     * recon suit should still be able to field its sections.
+     * recon suit should still be able to field its sections. Explicit mixed sections
+     * require each power-suit role they request: a missing support shell cannot
+     * silently become an assault shell or ordinary support kit.
      *
      * <p><b>A role with several billets does not put all of them in the same
      * suit.</b> Where the top band for a role holds more than one pattern they
@@ -64,22 +68,25 @@ public final class ArmorIssueResolver {
         }
         List<MarineArmorCatalogDef> stock = new ArrayList<>();
         for (MarineArmorCatalogDef pattern : catalog.all()) {
-            if (pattern.armorClass() == plan.armorClass()
-                    && (available == null || available.test(pattern))) stock.add(pattern);
+            if (available == null || available.test(pattern)) stock.add(pattern);
         }
-        if (stock.isEmpty()) {
-            throw new IllegalStateException("Armour plan '" + plan.id()
-                    + "' cannot be issued: no " + plan.armorClass().displayName() + " armor is available");
-        }
-
-        Map<ArmorRole, List<MarineArmorCatalogDef>> bands = new EnumMap<>(ArmorRole.class);
-        Map<ArmorRole, Integer> dealt = new EnumMap<>(ArmorRole.class);
+        Map<Billet, List<MarineArmorCatalogDef>> bands = new HashMap<>();
+        Map<Billet, Integer> dealt = new HashMap<>();
         List<String> issued = new ArrayList<>(MarineSquad.CAPACITY);
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-            ArmorRole role = plan.roleAt(billet);
-            List<MarineArmorCatalogDef> band = bands.computeIfAbsent(
-                    role, key -> topBand(plan, key, stock));
-            int next = dealt.merge(role, 1, Integer::sum) - 1;
+            Billet requirement = new Billet(plan.armorClassAt(billet), plan.roleAt(billet));
+            List<MarineArmorCatalogDef> band = bands.computeIfAbsent(requirement, key -> {
+                List<MarineArmorCatalogDef> classStock = matching(stock,
+                        pattern -> pattern.armorClass() == key.armorClass());
+                if (classStock.isEmpty()) {
+                    throw new IllegalStateException("Armour plan '" + plan.id()
+                            + "' cannot be issued: no " + key.armorClass().displayName()
+                            + " armor is available");
+                }
+                boolean requiredRole = plan.isMixedClass() && key.armorClass() == ArmorClass.POWER_SUIT;
+                return topBand(plan, key.role(), classStock, requiredRole);
+            });
+            int next = dealt.merge(requirement, 1, Integer::sum) - 1;
             issued.add(band.get(next % band.size()).id());
         }
         return SquadArmorDoctrine.fromIds(plan.id(), plan.displayName(),
@@ -96,11 +103,15 @@ public final class ArmorIssueResolver {
      * can reach, and everything else available at that same tier, worth-first.
      */
     private static List<MarineArmorCatalogDef> topBand(
-            SquadArmorPlan plan, ArmorRole role, List<MarineArmorCatalogDef> stock) {
+            SquadArmorPlan plan, ArmorRole role, List<MarineArmorCatalogDef> stock, boolean requiredRole) {
         List<MarineArmorCatalogDef> candidates = matching(stock,
                 pattern -> pattern.role() == role && pattern.tradition() == plan.tradition());
         if (candidates.isEmpty()) {
             candidates = matching(stock, pattern -> pattern.role() == role);
+        }
+        if (candidates.isEmpty() && requiredRole) {
+            throw new IllegalStateException("Armour plan '" + plan.id()
+                    + "' cannot be issued: no Power suit " + role.displayName() + " armor is available");
         }
         if (candidates.isEmpty()) {
             candidates = matching(stock, pattern -> pattern.role() == ArmorRole.LINE
