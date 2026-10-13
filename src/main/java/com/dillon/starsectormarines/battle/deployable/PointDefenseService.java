@@ -218,7 +218,7 @@ public final class PointDefenseService {
         Interceptable best = null;
         for (int i = 0, n = bodies.size(); i < n; i++) {
             Interceptable b = bodies.get(i);
-            if (b.isIntercepted() || !pod.faction.hostileTo(b.faction())) continue;
+            if (b.isIntercepted() || !b.canBeIntercepted() || !pod.faction.hostileTo(b.faction())) continue;
             float dx = b.x() - podX;
             float dy = b.y() - podY;
             float distanceSq = dx * dx + dy * dy;

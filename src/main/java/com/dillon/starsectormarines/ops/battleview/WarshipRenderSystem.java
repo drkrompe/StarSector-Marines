@@ -391,6 +391,7 @@ public final class WarshipRenderSystem implements RenderSystem {
 
     private void drawShell(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipShell shell) {
         VanillaWeapon w = shell.weapon;
+        if (shell.hasBeam()) drawStandoffBeam(out, cam, cellPx, alpha, shell);
         // The round is where its flight function says it is now, nose along the path's tangent.
         float x = shell.x();
         float y = shell.y();
@@ -420,6 +421,48 @@ public final class WarshipRenderSystem implements RenderSystem {
         out.addLine(RenderLayer.SHUTTLES, cam.cellToScreenX(x), cam.cellToScreenY(y),
                 cam.cellToScreenX(tx), cam.cellToScreenY(ty), widthPx * 0.4f,
                 core.getRed() / 255f, core.getGreen() / 255f, core.getBlue() / 255f, alpha);
+    }
+
+    /**
+     * What a standoff missile does once it has stopped: a thin pulsing paint line to the ground while it
+     * paints, then the payload's own beam, in the colours and width of its weapon, fading as it burns.
+     * Presentation of a landing already committed; nothing here decides damage.
+     */
+    private void drawStandoffBeam(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipShell shell) {
+        WarshipShell.BeamPhase phase = shell.phase();
+        if (phase == WarshipShell.BeamPhase.FLIGHT) return;
+        VanillaBeamLook look = VanillaWeaponLooks.beam(shell.beam().payloadWeaponId());
+        Color fringe = look != null && look.fringe() != null ? look.fringe() : DEFAULT_FLASH;
+        Color core = look != null && look.core() != null ? look.core() : Color.WHITE;
+        float x0 = cam.cellToScreenX(shell.x());
+        float y0 = cam.cellToScreenY(shell.y());
+        float x1 = cam.cellToScreenX(shell.toX);
+        float y1 = cam.cellToScreenY(shell.toY);
+        float progress = shell.phaseProgress();
+        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
+        if (phase == WarshipShell.BeamPhase.PAINT) {
+            float pulse = 0.5f + 0.5f * (float) Math.sin(engineClockSeconds * 14f);
+            float a = (0.25f + 0.35f * progress) * (0.6f + 0.4f * pulse) * alpha;
+            out.addLine(RenderLayer.SHUTTLES, x0, y0, x1, y1, Math.max(1.5f, 0.07f * cellPx),
+                    fringe.getRed() / 255f, fringe.getGreen() / 255f, fringe.getBlue() / 255f, a);
+            if (glow != null) {
+                float size = (0.8f + 1.6f * progress) * cellPx;
+                out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, x1, y1, size, size, 0f,
+                        fringe.getRed() / 255f, fringe.getGreen() / 255f, fringe.getBlue() / 255f, a);
+            }
+            return;
+        }
+        float f = 1f - 0.5f * progress;
+        float widthPx = Math.max(3f, WarshipScale.cells(look != null ? look.widthPx() : 40f) * cellPx * 0.5f);
+        out.addLine(RenderLayer.SHUTTLES, x0, y0, x1, y1, widthPx,
+                fringe.getRed() / 255f, fringe.getGreen() / 255f, fringe.getBlue() / 255f, 0.75f * f * alpha);
+        out.addLine(RenderLayer.SHUTTLES, x0, y0, x1, y1, widthPx * 0.4f,
+                core.getRed() / 255f, core.getGreen() / 255f, core.getBlue() / 255f, f * alpha);
+        if (glow != null) {
+            float size = 5f * cellPx * f;
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, x1, y1, size, size, 0f,
+                    fringe.getRed() / 255f, fringe.getGreen() / 255f, fringe.getBlue() / 255f, 0.9f * f * alpha);
+        }
     }
 
     /**

@@ -40,7 +40,19 @@ public record MissileFlightSpec(
         boolean glowTrail,
         float flameLengthPx,
         float flameWidthPx,
-        Mirv mirv) {
+        Mirv mirv,
+        Standoff standoff) {
+
+    /** A flight read without a standoff payload: every missile but the Dragonfire. */
+    public MissileFlightSpec(Guidance guidance, float launchSpeedPx, float maxSpeedPx, float accelerationPx,
+                             float decelerationPx, float turnRateDegPerSec, float burnSeconds, float armingSeconds,
+                             float hitpoints, Color engineColor, Color contrailColor, float contrailSeconds,
+                             float contrailWidthMult, boolean glowTrail, float flameLengthPx, float flameWidthPx,
+                             Mirv mirv) {
+        this(guidance, launchSpeedPx, maxSpeedPx, accelerationPx, decelerationPx, turnRateDegPerSec, burnSeconds,
+                armingSeconds, hitpoints, engineColor, contrailColor, contrailSeconds, contrailWidthMult, glowTrail,
+                flameLengthPx, flameWidthPx, mirv, null);
+    }
 
     /** What steers the missile, derived from its spec. */
     public enum Guidance { UNGUIDED, HOMING, POORLY_GUIDED, TWO_STAGE, CUSTOM }
@@ -66,7 +78,23 @@ public record MissileFlightSpec(
             float arcDegrees,
             String splitSound,
             Color smokeColor,
-            float warheadHitpoints) {
+            float warheadHitpoints,
+            float flankApproachPx) {
+
+        /** A payload whose warheads do not flank. */
+        public Mirv(int count, float splitRangePx, float minTimeToSplit, boolean canSplitEarly, float damage,
+                    String damageType, float warheadSpeedPx, float damageRadiusPx, float visualRadiusPx,
+                    Color explosionColor, String sprite, float arcDegrees, String splitSound, Color smokeColor,
+                    float warheadHitpoints) {
+            this(count, splitRangePx, minTimeToSplit, canSplitEarly, damage, damageType, warheadSpeedPx,
+                    damageRadiusPx, visualRadiusPx, explosionColor, sprite, arcDegrees, splitSound, smokeColor,
+                    warheadHitpoints, 0f);
+        }
+
+        /** Whether the warheads manoeuvre abeam of the ground before they come in, as the Hydra's platforms do. */
+        public boolean flanks() {
+            return flankApproachPx > 0f;
+        }
 
         /**
          * A payload read without the fan, the split cue, the smoke or the warheads' toughness: a
@@ -77,13 +105,21 @@ public record MissileFlightSpec(
                     Color explosionColor, String sprite) {
             this(count, splitRangePx, minTimeToSplit, canSplitEarly, damage, damageType, warheadSpeedPx,
                     damageRadiusPx, visualRadiusPx, explosionColor, sprite, 180f, null, null,
-                    DEFAULT_WARHEAD_HITPOINTS);
+                    DEFAULT_WARHEAD_HITPOINTS, 0f);
         }
 
         /** The damage the whole payload carries. */
         public float totalDamage() {
             return count * damage;
         }
+    }
+
+    /**
+     * A missile that stops short of its target, paints it and fires a beam payload (the Dragonfire), as
+     * its {@code CUSTOM} behaviour declares: how far short it holds, how long it paints, how long the
+     * beam burns, and the beam weapon it fires. Once the beam is released nothing can stop it.
+     */
+    public record Standoff(float standoffPx, float paintSeconds, float fireSeconds, String payloadWeaponId) {
     }
 
     /** The toughness of a warhead whose spec, and its carrier's, name none. */
@@ -140,7 +176,36 @@ public record MissileFlightSpec(
                 style != null && "GLOW".equals(style.optString("type")),
                 slot == null ? 20f : (float) slot.optDouble("length", 20.0),
                 slot == null ? 4f : (float) slot.optDouble("width", 4.0),
-                "MIRV".equals(behaviourKind) ? mirv(behaviour, warheadProj, row, maxSpeed) : null);
+                "MIRV".equals(behaviourKind) ? mirv(behaviour, warheadProj, row, maxSpeed) : null,
+                "CUSTOM".equals(behaviourKind) ? standoff(behaviour) : null);
+    }
+
+    /** The standoff a {@code CUSTOM} behaviour declares, or {@code null} when it names no beam payload. */
+    private static Standoff standoff(JSONObject behaviour) {
+        String payload = behaviour.optString("payloadWeaponId", "");
+        if (payload.isBlank()) return null;
+        float distance = firstNumber(behaviour.opt("preferredMinFireDistance"));
+        if (distance <= 0f) distance = firstNumber(behaviour.opt("triggerDistance"));
+        if (distance <= 0f) return null;
+        return new Standoff(distance, (float) behaviour.optDouble("targetingTime", 0.0),
+                Math.max(0.1f, (float) behaviour.optDouble("firingTime", 1.0)), payload);
+    }
+
+    /** A spec value that is a number or a range, as its low end; zero when absent. */
+    private static float firstNumber(Object value) {
+        if (value instanceof Number n) return n.floatValue();
+        if (value instanceof JSONArray a && a.length() > 0) return (float) a.optDouble(0, 0.0);
+        return 0f;
+    }
+
+    /** The distance a submunition's {@code angledApproachDist} range averages, in px; zero when it has none. */
+    private static float approach(JSONObject warheadProj) {
+        JSONObject spec = warheadProj == null ? null : warheadProj.optJSONObject("behaviorSpec");
+        JSONArray range = spec == null ? null : spec.optJSONArray("angledApproachDist");
+        if (range == null || range.length() == 0) return 0f;
+        float sum = 0f;
+        for (int i = 0; i < range.length(); i++) sum += (float) range.optDouble(i, 0.0);
+        return sum / range.length();
     }
 
     private static Mirv mirv(JSONObject behaviour, JSONObject warheadProj, Map<String, String> row, float carrierSpeed) {
@@ -173,7 +238,8 @@ public record MissileFlightSpec(
                 Math.max(1f, Math.min(360f, (float) behaviour.optDouble("arc", 180.0))),
                 splitSound == null || splitSound.isBlank() ? null : splitSound,
                 smoke == null ? null : VanillaWeapon.color(smoke, "particleColor"),
-                warheadHp);
+                warheadHp,
+                approach(warheadProj));
     }
 
     private static String warheadSprite(JSONObject warheadProj) {

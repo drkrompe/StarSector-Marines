@@ -65,10 +65,6 @@ public final class WarshipSystem {
     private static final float FIRE_CUE_GAP_SECONDS = 0.3f;
     /** Seconds between two landing cues for one weapon, for the same reason. */
     private static final float IMPACT_CUE_GAP_SECONDS = 0.2f;
-    /** A carrier splits no nearer than this share of its way to the ground, so a close target still gives its warheads room to fan. */
-    private static final float SPLIT_MIN_SHARE = 0.35f;
-    /** A carrier that has to fly a minimum time before it may split is never made to split nearer the ground than this share. */
-    private static final float SPLIT_MAX_SHARE = 0.92f;
     /** How many cluster bodies the cinematic preset splits a Hammer into. */
     private static final int SYNTHETIC_SPLIT_COUNT = 6;
     /** The fan, in degrees, a synthetic cluster leaves the split in. */
@@ -310,7 +306,7 @@ public final class WarshipSystem {
         ships.removeIf(Warship::departed);
         pointDefence.ageMarks(dt);
         interceptables.clear();
-        for (WarshipShell s : shells) if (!s.intercepted) interceptables.add(s);
+        for (WarshipShell s : shells) if (!s.intercepted && s.canBeIntercepted()) interceptables.add(s);
         for (WarheadStrike s : strikes) if (!s.intercepted) interceptables.add(s);
     }
 
@@ -849,7 +845,19 @@ public final class WarshipSystem {
                 shells.remove(i);
                 continue;
             }
-            if (!shell.advance(dt)) continue;
+            boolean spent = shell.advance(dt);
+            // A standoff missile's beam is loose the tick its painting ends, and nothing can stop it after that.
+            PendingDetonation beam = shell.takeBeamRelease();
+            if (beam != null) {
+                sim.detonateNow(beam);
+                if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                    cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
+                }
+                if (beam.damage >= HEAVY_IMPACT_DAMAGE) {
+                    sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
+                }
+            }
+            if (!spent) continue;
             shells.remove(i);
             if (shell.carrier()) {
                 release(shell);
@@ -1284,6 +1292,10 @@ public final class WarshipSystem {
             fireBloom(sim, ship, w, flight, mirv, synthetic, mx, my, m.aimX, m.aimY, seed, preset, archetype);
             return;
         }
+        if (flight.standoff() != null) {
+            fireStandoff(ship, m, w, flight, flight.standoff(), mx, my, lx, ly, visual, blast);
+            return;
+        }
         int burst = Math.max(1, w.burstSize());
         int index = Math.max(0, burst - m.burstRemaining);
         WarshipShell.Footprint footprint = null;
@@ -1327,6 +1339,30 @@ public final class WarshipSystem {
         if (volley != null) volley.bodies.add(shell);
     }
 
+    /**
+     * A standoff missile (the Dragonfire): it flies out to the spec's standoff distance short of the ground
+     * it was sent at, hovers there painting it, and then burns a beam payload that point defence cannot
+     * stop. The beam's damage is the weapon's own, committed here and made on release; the missile is a
+     * hard body until then, and a missile shot down while it flies or paints fires nothing.
+     */
+    private void fireStandoff(Warship ship, Warship.Mount m, VanillaWeapon w, MissileFlightSpec flight,
+                              MissileFlightSpec.Standoff standoff, float mx, float my, float lx, float ly,
+                              float visual, float blast) {
+        float dx = lx - mx;
+        float dy = ly - my;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float ux = dist > 0f ? dx / dist : 0f;
+        float uy = dist > 0f ? dy / dist : 1f;
+        float along = MirvSplit.along(dist, WarshipScale.cells(standoff.standoffPx()), 0f, true, a -> 0.0);
+        long seed = roundSeed(m.slot.id(), m.shotsFired, ship.faction, lx, ly);
+        MissilePath path = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed);
+        PendingDetonation burn = detonation(ship.faction, lx, ly, w.damagePerShot(), penetration(w.damageType()), blast);
+        WarshipShell.BeamPayload payload = new WarshipShell.BeamPayload(standoff.paintSeconds(),
+                standoff.fireSeconds(), burn, standoff.payloadWeaponId());
+        shells.add(new WarshipShell(w, ship.faction, ship, mx, my, lx, ly, path, visual, w.damagePerShot(),
+                penetration(w.damageType()), blast, null, null, flight.hitpoints(), null, 0f).withBeam(payload));
+    }
+
     /** A rack's volley: its aim points scattered over a footprint about the ground the mount chose. */
     private Volley openVolley(Warship.Mount m, Warship ship, VanillaWeapon w, MissileArchetype archetype,
                               MissilePreset preset, float mx, float my, float blast, int burst) {
@@ -1356,7 +1392,7 @@ public final class WarshipSystem {
         WarshipShell best = null;
         float bestLeft = 0f;
         for (WarshipShell s : shells) {
-            if (s.intercepted || s.carrier() || s.shooter != ship || !s.weapon.id().equals(w.id())) continue;
+            if (s.intercepted || s.carrier() || s.hasBeam() || s.shooter != ship || !s.weapon.id().equals(w.id())) continue;
             float left = s.flightSeconds - s.elapsed();
             if (left > bestLeft) {
                 bestLeft = left;
@@ -1404,14 +1440,12 @@ public final class WarshipSystem {
         float ux = dist > 0f ? dx / dist : 0f;
         float uy = dist > 0f ? dy / dist : 1f;
         float splitRange = WarshipScale.cells(mirv.splitRangePx());
-        float along = synthetic ? SYNTHETIC_SPLIT_SHARE * dist : Math.max(dist - splitRange, SPLIT_MIN_SHARE * dist);
+        final float fux = ux;
+        final float fuy = uy;
+        float along = synthetic ? SYNTHETIC_SPLIT_SHARE * dist
+                : MirvSplit.along(dist, splitRange, mirv.minTimeToSplit(), mirv.canSplitEarly(),
+                a -> MissilePath.plan(flight, mx, my, mx + fux * (float) a, my + fuy * (float) a, seed).totalSeconds());
         MissilePath carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed);
-        // The dispenser is not armed until the spec's minimum time: a short shot flies on to split later.
-        for (int guard = 0; guard < 6 && carrier.totalSeconds() < mirv.minTimeToSplit()
-                && along < SPLIT_MAX_SHARE * dist; guard++) {
-            along = Math.min(SPLIT_MAX_SHARE * dist, along * 1.3f + 0.5f);
-            carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed);
-        }
         float releaseX = carrier.landX();
         float releaseY = carrier.landY();
         float blast = Math.max(1f, WarshipScale.cells(mirv.damageRadiusPx()));
@@ -1435,6 +1469,7 @@ public final class WarshipSystem {
         float forward = (float) Math.atan2(uy, ux);
         int[] fan = SwarmLayout.deal(seed, bodies, PERM_STREAM);
         float loop = preset.curvedBloom() ? archetype.bloomLoop() : 0f;
+        boolean flank = mirv.flanks();
         float weave = preset.curvedBloom() ? BLOOM_WEAVE : 0f;
         List<WarshipShell.Warhead> warheads = new ArrayList<>(bodies);
         for (int i = 0; i < bodies; i++) {
@@ -1447,8 +1482,14 @@ public final class WarshipSystem {
             float travel = Math.max(MIN_WARHEAD_SECONDS, chord / warheadSpeed);
             float seconds = travel + Math.min(sheaf.arrivalSeconds()[i], travel * (1f / MIN_SPEED_SHARE - 1f));
             float outward = forward + ((fan[i] + MissilePath.unit(seed, PERM_STREAM + bodies + i)) / bodies - 0.5f) * arc;
+            float bodyLoop = loop;
+            if (flank && preset.curvedBloom()) {
+                // The platforms swing out abeam of the ground, alternate ones to either side, before they come in.
+                outward = BloomFlank.outward(forward, fan[i]);
+                bodyLoop = BloomFlank.loop(WarshipScale.cells(mirv.flankApproachPx()), chord);
+            }
             BloomPath path = BloomPath.plan(seed + i * 0x9E3779B1L, releaseX, releaseY, ax, ay, seconds,
-                    outward, loop, weave);
+                    outward, bodyLoop, weave);
             float radius = fused[1][i];
             warheads.add(new WarshipShell.Warhead(
                     detonation(ship.faction, ax, ay, fused[0][i], penetration(mirv.damageType()), radius),

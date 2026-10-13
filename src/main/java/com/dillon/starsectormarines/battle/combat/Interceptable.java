@@ -36,6 +36,12 @@ public interface Interceptable {
     /** Whether point defence has already destroyed it. */
     boolean isIntercepted();
 
+    /**
+     * Whether point defence may engage it now. True for ordnance generally; false for a payload that is no
+     * longer a body in the air, such as a beam already released, which nothing can shoot down.
+     */
+    default boolean canBeIntercepted() { return true; }
+
     /** Marks it destroyed; it is dropped without landing. */
     void intercept();
 

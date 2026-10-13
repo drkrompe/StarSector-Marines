@@ -264,7 +264,7 @@ public final class WarshipPointDefence {
             consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), 0f, p, null);
         }
         for (WarshipShell s : shells) {
-            if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
+            if (s.intercepted || !s.canBeIntercepted() || !ship.faction.hostileTo(s.faction)) continue;
             consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s);
         }
         for (WarheadStrike s : strikes) {

@@ -39,6 +39,18 @@ public final class WarshipShell implements Interceptable {
                           float aimX, float aimY, BloomPath path, float hitpoints) {
     }
 
+    /**
+     * What a standoff missile does once it has stopped: paint its ground for {@code paintSeconds}, then
+     * burn a beam for {@code fireSeconds}. The beam's damage is the detonation, committed at fire time and
+     * made at the moment of release; the weapon id is the beam's, for its colours.
+     */
+    public record BeamPayload(float paintSeconds, float fireSeconds, PendingDetonation detonation,
+                              String payloadWeaponId) {
+    }
+
+    /** Where a standoff missile is in its sequence. */
+    public enum BeamPhase { FLIGHT, PAINT, FIRE }
+
     /** The ground a volley or sheaf is scattered over, shared by every body of it, for the telegraph. */
     public record Footprint(float x, float y, float radius) {
     }
@@ -68,6 +80,8 @@ public final class WarshipShell implements Interceptable {
     /** Set when point defence has shot the round down; it is dropped without landing. */
     boolean intercepted;
     private boolean inert;
+    private BeamPayload beam;
+    private boolean beamTaken;
 
     WarshipShell(VanillaWeapon weapon, Faction faction, Warship shooter, float fromX, float fromY, float toX,
                  float toY, MissilePath path, float blastCells, float damage, float penetration,
@@ -91,6 +105,58 @@ public final class WarshipShell implements Interceptable {
         this.hitpoints = hitpoints;
         this.splitSoundId = splitSoundId;
         this.splitScale = splitScale;
+    }
+
+    /**
+     * Makes this a standoff missile: it flies to where its path ends, hovers there painting its ground, and
+     * then fires a beam that no point defence can stop. Landing is by the beam, never by the flight.
+     */
+    WarshipShell withBeam(BeamPayload payload) {
+        this.beam = payload;
+        return this;
+    }
+
+    /** Whether this missile ends in a beam rather than a landing. */
+    public boolean hasBeam() {
+        return beam != null;
+    }
+
+    /** The beam this missile will fire, or {@code null}. */
+    public BeamPayload beam() {
+        return beam;
+    }
+
+    /** Where a standoff missile is: still flying out, painting its ground, or firing. A plain round is always in flight. */
+    public BeamPhase phase() {
+        if (beam == null || elapsed < flightSeconds) return BeamPhase.FLIGHT;
+        return elapsed < flightSeconds + beam.paintSeconds() ? BeamPhase.PAINT : BeamPhase.FIRE;
+    }
+
+    /** How far through the current beam phase it is, 0 to 1; zero in flight. */
+    public float phaseProgress() {
+        BeamPhase phase = phase();
+        if (phase == BeamPhase.FLIGHT) return 0f;
+        float start = phase == BeamPhase.PAINT ? flightSeconds : flightSeconds + beam.paintSeconds();
+        float span = phase == BeamPhase.PAINT ? beam.paintSeconds() : beam.fireSeconds();
+        return span <= 1e-4f ? 1f : Math.min(1f, (elapsed - start) / span);
+    }
+
+    /** Seconds until this body is spent: the flight, or for a standoff missile the flight, the painting and the beam. */
+    public float lifeSeconds() {
+        return beam == null ? flightSeconds : flightSeconds + beam.paintSeconds() + beam.fireSeconds();
+    }
+
+    /** Point defence can stop a standoff missile on its way out and while it paints, but not once its beam is loose. */
+    @Override
+    public boolean canBeIntercepted() {
+        return phase() != BeamPhase.FIRE;
+    }
+
+    /** The beam's detonation on the tick the beam is released, once; {@code null} before then and after. */
+    PendingDetonation takeBeamRelease() {
+        if (beam == null || beamTaken || phase() != BeamPhase.FIRE) return null;
+        beamTaken = true;
+        return beam.detonation();
     }
 
     /** How far along the flight, 0 at the muzzle to 1 on the ground. */
@@ -229,7 +295,7 @@ public final class WarshipShell implements Interceptable {
 
     boolean advance(float dt) {
         elapsed += dt;
-        return elapsed >= flightSeconds;
+        return elapsed >= lifeSeconds();
     }
 
     /**
@@ -237,7 +303,7 @@ public final class WarshipShell implements Interceptable {
      * them, and for an inert round (a shot at an aircraft lands through its own seam).
      */
     PendingDetonation landing() {
-        if (!warheads.isEmpty() || inert) return null;
+        if (!warheads.isEmpty() || inert || beam != null) return null;
         return WarshipSystem.detonation(faction, path.landX(), path.landY(), damage, penetration, damageRadius);
     }
 }

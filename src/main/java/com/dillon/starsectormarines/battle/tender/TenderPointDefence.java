@@ -233,7 +233,7 @@ public final class TenderPointDefence {
     private static List<Candidate> gather(BattleSimulation sim, Tender tender) {
         List<Candidate> pool = new ArrayList<>();
         for (Interceptable b : sim.interceptableOrdnance()) {
-            if (b.isIntercepted() || !tender.faction().hostileTo(b.faction())) continue;
+            if (b.isIntercepted() || !b.canBeIntercepted() || !tender.faction().hostileTo(b.faction())) continue;
             pool.add(new Candidate(b, b.x(), b.y(), b.landingX(), b.landingY(), b.hitpoints(), b.speedCells()));
         }
         for (Projectile p : sim.getActiveProjectiles()) {
