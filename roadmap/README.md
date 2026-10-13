@@ -8,6 +8,9 @@ Starsector Marines is a Starsector 0.98a-RC8 mod that adds a Marine Operations
 sub-game on top of the campaign. Setup, build, and repository guidance live in
 [`CLAUDE.md`](../CLAUDE.md).
 
+For the campaign's mission sequence, arc folders, unlocks and planned rewards,
+start with `campaign-overview.md`.
+
 ## Vision
 
 The long-term north star is a MechWarrior 3 / MechCommander Mercenaries-style

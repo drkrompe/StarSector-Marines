@@ -4,16 +4,25 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Agreus referral and first North Weir contract; later chapters and live campaign acceptance remain.
+Updated: 2026-10-13 — arc-specific plans now have their own folders and boards; shared learning work remains here.
+
+Start with `campaign-overview.md` for the authored route and arc directory.
+This board owns work shared across the opening sequence. Each arc's own
+`design/stories.md` owns its remaining implementation and acceptance plans.
 
 | Story | Status | Outcome |
 |---|---|---|
 | `campaign-learning-curve.md` | PLANNED | Track equipment reward collisions, affordability, officer XP versus force growth, advanced mech access and casualty carryover; first tutorial slice in `castle-campaign-lessons.md`. |
-| `shepherd-recovery.md` | IN PROGRESS | All three recovery contracts, physical Working Passage departure and once-only Morrow/crew transfer are implemented; live campaign/save acceptance and subsequent owned support remain. |
-| `a-small-war.md` | IN PROGRESS | Referral, Rusk contact and Water Under Seal connect actual Shepherd handover to Agreus. Live transition/save acceptance, Chapters 2–5, warrant, equipment rewards, Boarding Jack, yard agreement and later military-source gating remain. |
-| `wayline-corvus.md` | IN PROGRESS | Combat playback finds Raid/Assault execution stalls and severe Sabotage losses; fixes, balance and live campaign acceptance remain. |
-| `first-contract-discovery.md` | READY FOR LIVE ACCEPTANCE | Jangala broker, linked opening sequence and HQ course guidance are implemented; verify campaign navigation, fallback and save/reload. |
-| `opening-ladder-live-acceptance.md` | READY | Both chapters have authored maps and headless fitted-boat controls; live-check the linked sequence, lift, losses, and retry. |
-| `broken-supply-route.md` | IN PROGRESS | Campaign choice, named/fitted deployment, settlement and recurring work implemented; live campaign/save acceptance remains. |
 
-The shipped opening-operation implementation is recorded in `shipped.md`.
+## Arc boards
+
+Use the board beside each of these arc overviews:
+
+- `wayline-opening-arc.md` — first-contract discovery and linked opening acceptance.
+- `broken-supply-route-arc.md` — permanent branch choice and rescue/freight acceptance.
+- `wayline-corvus-arc.md` — three-world pursuit, execution and balance.
+- `shepherd-recovery-arc.md` — yard recovery, Morrow's departure and actual handover.
+- `a-small-war-arc.md` — Agreus transition, restricted equipment and the yard agreement.
+
+The historical opening-operation implementation ledger remains in this feature's
+`design/shipped.md`.
