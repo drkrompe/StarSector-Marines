@@ -168,6 +168,13 @@ public final class Mission {
     public final LandingKind landing;
 
     /**
+     * The ground defences the target world is stated to hold, or null for the
+     * ones its market's industries give it. A DEBUG statement only: production
+     * missions read the market.
+     */
+    public final DebugDefences defences;
+
+    /**
      * The route each of those lanes takes, in lane order, or null for lanes
      * that derive their own.
      *
@@ -276,6 +283,7 @@ public final class Mission {
         this.sprawl           = b.sprawl;
         this.standoff         = b.standoff;
         this.landing          = b.landing;
+        this.defences         = b.defences;
         this.lanes            = b.lanes;
         // Not List.copyOf: a null entry is a lane that derives its own route,
         // which is exactly what a mission stating one lane's path and leaving
@@ -342,6 +350,7 @@ public final class Mission {
         private Standoff standoff;
         private Integer lanes;
         private LandingKind landing;
+        private DebugDefences defences;
         private List<LanePath> lanePaths;
         private Long battleSeed;
 
@@ -390,6 +399,7 @@ public final class Mission {
             this.standoff = m.standoff;
             this.lanes = m.lanes;
             this.landing = m.landing;
+            this.defences = m.defences;
             this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
@@ -533,6 +543,12 @@ public final class Mission {
          */
         public Builder alliedGarrisonStrengthMult(float alliedGarrisonStrengthMult) {
             this.alliedGarrisonStrengthMult = alliedGarrisonStrengthMult;
+            return this;
+        }
+
+        /** @param defences stated ground defences of the target world; null reads the market. */
+        public Builder defences(DebugDefences defences) {
+            this.defences = defences;
             return this;
         }
 
