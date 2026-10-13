@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -21,7 +22,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -407,11 +410,28 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final String MUSTER_PROPERTY = "battle.command.muster";
     static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "true"));
 
+    /** Whether the muster is on. For scenes and evidence controls that must hold it fixed. */
+    public static boolean musterEnabled() {
+        return MUSTER_ENABLED;
+    }
+
+    /** Sets the muster switch; the caller restores it. For scenes and evidence controls only. */
+    public static void setMusterEnabled(boolean enabled) {
+        MUSTER_ENABLED = enabled;
+    }
+
     private final TraversalAxis axis;
     /** Assault companies and the foothold element; see {@link AssaultMuster}. */
     private final AssaultMuster muster = new AssaultMuster();
     /** The cell the force came ashore at, remembered once known. Own-force knowledge. */
     private int[] dropZone;
+    /** Ticks a company waits for a lance it has called to come down and join it. UNTUNED. */
+    static final int LANCE_ARRIVAL_ALLOWANCE_TICKS = 1800;
+    /** The fort whose company wants a lance called, set by the pure plan and acted on in {@link #afterCommit}. */
+    private int lanceWishFort = -1;
+    /** Forts a lance has already been called (or found unavailable) for: at most one call per company. */
+    private final Set<Integer> lancedForts = new TreeSet<>();
+    private String lanceNote;
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
@@ -1003,7 +1023,40 @@ public final class ConquestCommand implements ConquestFrontCommand,
             directives.put(squad.id, directive(squad, preferred, preferred, entry.getValue().reason()));
             squads.remove(squad);
         }
+        for (ConquestFrontSnapshot.CompanyState company : result.companies()) {
+            if (company.objectiveId() >= 0 && company.stage().equals("MUSTER") && company.strength() < company.required()
+                    && !lancedForts.contains(company.objectiveId())) {
+                lanceWishFort = company.objectiveId();
+                break;
+            }
+        }
+        if (lanceNote != null) {
+            List<String> notes = new ArrayList<>(result.notes());
+            notes.add(lanceNote);
+            lanceNote = null;
+            return new AssaultMuster.Result(result.orders(), result.companies(), notes);
+        }
         return result;
+    }
+
+    /**
+     * Calls the lance a short company asked for. Serial, after the plan is committed: the plan itself is pure and
+     * only wishes. One call per company; the landed lance is an ordinary machine squad claimed by this command and
+     * joins the company as base of fire the way any free squad does.
+     */
+    @Override
+    public void afterCommit(CommandEffects effects) {
+        if (lanceWishFort < 0 || dropZone == null) return;
+        int fort = lanceWishFort;
+        lanceWishFort = -1;
+        lancedForts.add(fort);
+        if (effects.mechLancesRemaining(Faction.MARINE) <= 0) return;
+        MechDropService.Outcome outcome = effects.callMechLance(Faction.MARINE,
+                SquadCommandClaim.mission(strategyId(), "company muster lance"), dropZone[0], dropZone[1]);
+        lanceNote = "company for fort " + fort + " called a mech lance to the drop zone: " + outcome;
+        if (outcome == MechDropService.Outcome.COMMITTED) {
+            muster.expectReinforcement(fort, effects.tick() + LANCE_ARRIVAL_ALLOWANCE_TICKS);
+        }
     }
 
     /** The drop zone: the beachhead compound's cell, else where the first squads were first seen. */

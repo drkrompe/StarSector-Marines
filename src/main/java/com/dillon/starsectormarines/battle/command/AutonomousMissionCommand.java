@@ -15,4 +15,10 @@ public interface AutonomousMissionCommand<F extends CommandFrame, D>
     }
 
     void publish(CommanderSnapshot<D> snapshot);
+
+    /**
+     * Called once, serially, after a plan has been committed and published. The one place a command that wants a
+     * side effect the pure {@link #plan} cannot make (calling a lance down, say) acts on the live battle.
+     */
+    default void afterCommit(CommandEffects effects) {}
 }

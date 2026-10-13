@@ -65,17 +65,17 @@ import java.util.TreeSet;
 public final class AssaultMusterScene implements BehaviorScene {
 
     private static final int WIDTH = 300;
-    private static final int HEIGHT = 260;
+    private static final int HEIGHT = 420;
     private static final int TICKS = 9000;
-    /** The marines' strength per squad. Five squads of eight is a company of forty. */
-    private static final int SQUAD_SIZE = 8;
-    private static final int SQUADS = 5;
+    /** The marines' strength per squad. Eight squads of ten is a force of eighty. */
+    private static final int SQUAD_SIZE = 10;
+    private static final int SQUADS = 8;
     /** Cells between one squad and the next along the way in, nearest the fort first. */
-    private static final int SPACING = 14;
-    private static final int FIRST_STANDOFF = 60;
+    private static final int SPACING = 16;
+    private static final int FIRST_STANDOFF = 30;
     private static final int GARRISON = 6;
     /** "In reach of the fort" for the readings: well inside the bunker's approaches, outside the walls' nests. */
-    private static final int RING = 30;
+    private static final int RING = 45;
     private static final String RIFLE = "weapon.smg";
 
     @Override public String id() { return "assault-muster"; }
@@ -91,12 +91,12 @@ public final class AssaultMusterScene implements BehaviorScene {
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("control-trickle", "muster")) {
-            boolean restore = ConquestCommand.MUSTER_ENABLED;
-            ConquestCommand.MUSTER_ENABLED = loop.equals("muster");
+            boolean restore = ConquestCommand.musterEnabled();
+            ConquestCommand.setMusterEnabled(loop.equals("muster"));
             try {
                 reports.add(report(loop, playOne(loop, frames)));
             } finally {
-                ConquestCommand.MUSTER_ENABLED = restore;
+                ConquestCommand.setMusterEnabled(restore);
             }
         }
         return reports;
@@ -138,11 +138,10 @@ public final class AssaultMusterScene implements BehaviorScene {
         FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
         List<String> keys = new ArrayList<>();
         for (int i = 0; i < SQUADS; i++) {
-            int standoff = FIRST_STANDOFF + SPACING * i;
+            int standoff = i == 0 ? FIRST_STANDOFF : FIRST_STANDOFF + 40 + SPACING * i;
             int[] at = clamp(terrain.cell(gate.mouthX() + gate.outX() * standoff, gate.mouthY() + gate.outY() * standoff));
             String key = "marines-" + i;
             keys.add(key);
-            System.out.println("DEBUG squad " + key + " at " + at[0] + "," + at[1]);
             builder.squad(key).faction(Faction.MARINE).size(SQUAD_SIZE).at(at[0], at[1]).primary(RIFLE).done();
         }
         int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
@@ -155,16 +154,6 @@ public final class AssaultMusterScene implements BehaviorScene {
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261016L);
         Fort fort = sim.forts().forts().get(0);
-        System.out.println("DEBUG fort at " + fort.battery().x() + "," + fort.battery().y());
-        {
-            StringBuilder sb = new StringBuilder("DEBUG defenders:");
-            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                long u = sim.liveUnitAt(i);
-                if (sim.identity().faction(u) != Faction.DEFENDER) continue;
-                sb.append(" ").append(sim.identity().type(u)).append("@").append((int) sim.world().x(u)).append(",").append((int) sim.world().y(u));
-            }
-            System.out.println(sb);
-        }
         sim.setAutonomousCommander(Faction.MARINE,
                 new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT)),
                 ConquestCommandDisclosure.INSTANCE);
@@ -299,11 +288,6 @@ public final class AssaultMusterScene implements BehaviorScene {
             }
             var snapshot = sim.getCommanderSnapshot(Faction.MARINE);
             if (snapshot != null && snapshot.detail() instanceof ConquestFrontSnapshot front) {
-                if (tick % 150 == 0 && tick < 6000) {
-                    StringBuilder sb = new StringBuilder("DEBUG t" + tick + " alive " + alive + " reach " + marinesInReach + " companies=" + front.companies());
-                    for (ConquestFrontSnapshot.SquadDirective d : front.directives()) sb.append(" | sq" + d.squadId() + " " + d.reason() + " " + d.assignmentKind() + "@" + d.targetCellX() + "," + d.targetCellY());
-                    System.out.println(sb);
-                }
                 boolean foothold = false;
                 for (ConquestFrontSnapshot.CompanyState company : front.companies()) {
                     if (company.stage().equals("FOOTHOLD")) foothold = true;

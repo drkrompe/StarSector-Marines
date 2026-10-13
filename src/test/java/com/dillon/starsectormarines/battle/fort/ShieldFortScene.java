@@ -92,12 +92,16 @@ public final class ShieldFortScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
+        // These loops test the aspect choice by a lone detachment; the phased assault is the assault-muster scene.
+        boolean musterWas = ConquestCommand.musterEnabled();
+        ConquestCommand.setMusterEnabled(false);
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("intact", "power-cut", "control-taken", "control-only", "no-emitter",
                 "commander-cuts-the-power", "emitter-in-view", "emitter-in-view-unrestrained",
                 "commander-wrecks-the-plant", "commander-wrecks-without-charges")) {
             reports.add(report(loop, playRestrained(loop, !loop.endsWith("-unrestrained"), frames)));
         }
+        ConquestCommand.setMusterEnabled(musterWas);
         return reports;
     }
 
