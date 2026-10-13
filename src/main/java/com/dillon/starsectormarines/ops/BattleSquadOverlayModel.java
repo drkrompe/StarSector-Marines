@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.LongConsumer;
 
 /** Render-free projection for the retained selected-squad roster. */
 final class BattleSquadOverlayModel {
@@ -39,9 +40,6 @@ final class BattleSquadOverlayModel {
     private final MutableSignal<String> squadStrength;
     private final MutableSignal<String> moraleLabel;
     private final MutableSignal<String> moraleStyle;
-    private final MutableSignal<String> tacticalScope;
-    private final MutableSignal<String> defendAreaLabel;
-    private final MutableSignal<String> defendAreaClasses;
     private final MutableSignal<List<FireTeamView>> fireTeams;
     private final MutableSignal<String> tooltipClasses;
     private final MutableSignal<String> tooltipTitle;
@@ -51,22 +49,19 @@ final class BattleSquadOverlayModel {
     private final MutableSignal<String> tooltipSystem;
     private final MutableSignal<String> tooltipProfile;
     private final Runnable backAction;
-    private final Runnable defendAreaAction;
+    private final LongConsumer selectMemberAction;
 
     private final Map<String, MemberTile> tilesById = new HashMap<>();
     private String hoveredTileId;
 
     BattleSquadOverlayModel(Reactor reactor, Runnable backAction,
-                            Runnable defendAreaAction) {
+                            LongConsumer selectMemberAction) {
+        this.selectMemberAction = selectMemberAction;
         this.backAction = backAction;
-        this.defendAreaAction = defendAreaAction;
         squadTitle = reactor.signal("SQUAD");
         squadStrength = reactor.signal("0/0");
         moraleLabel = reactor.signal("MORALE --");
         moraleStyle = reactor.signal("width: 0%;");
-        tacticalScope = reactor.signal("TACTICAL ORDER");
-        defendAreaLabel = reactor.signal("DEFEND AREA");
-        defendAreaClasses = reactor.signal("squad-defend-area");
         fireTeams = reactor.signal(emptyTeams());
         tooltipClasses = reactor.signal(TOOLTIP_HIDDEN);
         tooltipTitle = reactor.signal("");
@@ -78,7 +73,7 @@ final class BattleSquadOverlayModel {
     }
 
     BattleSquadOverlayModel(Reactor reactor, Runnable backAction) {
-        this(reactor, backAction, () -> { });
+        this(reactor, backAction, unit -> { });
     }
 
     Map<String, Object> props() {
@@ -87,9 +82,6 @@ final class BattleSquadOverlayModel {
         props.put("squadStrength", squadStrength);
         props.put("moraleLabel", moraleLabel);
         props.put("moraleStyle", moraleStyle);
-        props.put("tacticalScope", tacticalScope);
-        props.put("defendAreaLabel", defendAreaLabel);
-        props.put("defendAreaClasses", defendAreaClasses);
         props.put("fireTeams", fireTeams);
         props.put("tooltipClasses", tooltipClasses);
         props.put("tooltipTitle", tooltipTitle);
@@ -99,12 +91,15 @@ final class BattleSquadOverlayModel {
         props.put("tooltipSystem", tooltipSystem);
         props.put("tooltipProfile", tooltipProfile);
         props.put("backAction", backAction);
-        props.put("defendAreaAction", defendAreaAction);
         return props;
     }
 
+    Presentation update(BattleSimulation sim, int selectedSquadId) {
+        return update(sim, selectedSquadId, 0L, false);
+    }
+
     Presentation update(BattleSimulation sim, int selectedSquadId,
-                        int targetingSquadId) {
+                        long selectedMemberId, boolean memberSelectionEnabled) {
         if (sim == null || selectedSquadId < 0) return hide();
         Squad squad = sim.getSquad(selectedSquadId);
         if (!isPlayerInfantrySquad(squad)) return hide();
@@ -125,18 +120,9 @@ final class BattleSquadOverlayModel {
         for (long unit : live) members.add(capture(sim, squad, unit));
         String label = squad.campaignLabel != null && !squad.campaignLabel.isBlank()
                 ? squad.campaignLabel : "SQUAD " + squad.id;
-        Presentation result = updateProjected(new SquadState(label, squad.aliveMembers,
-                Math.max(squad.aliveMembers, squad.originalSize), squad.morale, members));
-        boolean targeting = selectedSquadId == targetingSquadId;
-        defendAreaLabel.set(targeting ? "CANCEL AREA" : "DEFEND AREA");
-        defendAreaClasses.set(targeting
-                ? "squad-defend-area squad-defend-area-active"
-                : "squad-defend-area");
-        return result;
-    }
-
-    void selectionScope(int count) {
-        tacticalScope.set(count > 1 ? "ALL " + count + " SQUADS" : "TACTICAL ORDER");
+        return updateProjected(new SquadState(label, squad.aliveMembers,
+                Math.max(squad.aliveMembers, squad.originalSize), squad.morale, members),
+                selectedMemberId, memberSelectionEnabled);
     }
 
     static boolean isPlayerInfantrySquad(Squad squad) {
@@ -145,6 +131,11 @@ final class BattleSquadOverlayModel {
     }
 
     Presentation updateProjected(SquadState squad) {
+        return updateProjected(squad, 0L, false);
+    }
+
+    Presentation updateProjected(SquadState squad, long selectedMemberId,
+                                 boolean memberSelectionEnabled) {
         if (squad == null || squad.alive() <= 0) return hide();
         squadTitle.set(squad.label().toUpperCase(Locale.ROOT));
         squadStrength.set(squad.alive() + "/" + Math.max(squad.alive(), squad.original()));
@@ -166,7 +157,8 @@ final class BattleSquadOverlayModel {
             for (int slot = 0; slot < MEMBERS_PER_TEAM; slot++) {
                 String id = "battle-squad-member-" + team + "-" + slot;
                 MemberTile tile = slot < grouped.get(team).size()
-                        ? tile(id, team, slot, grouped.get(team).get(slot))
+                        ? tile(id, team, slot, grouped.get(team).get(slot),
+                                selectedMemberId, memberSelectionEnabled)
                         : emptyTile(id);
                 members.add(tile);
                 tilesById.put(id, tile);
@@ -241,13 +233,15 @@ final class BattleSquadOverlayModel {
                 sim.role().role(unit), sim.identity().armorClass(unit));
     }
 
-    private static MemberTile tile(String id, int team, int slot, MemberState member) {
+    private MemberTile tile(String id, int team, int slot, MemberState member,
+                            long selectedMemberId, boolean memberSelectionEnabled) {
         float hpFraction = member.maxHp() > 0f ? clamp01(member.hp() / member.maxHp()) : 0f;
         Color hpColor = hpFraction < 0.34f ? new Color(0xE9, 0x8B, 0x83)
                 : hpFraction < 0.67f ? new Color(0xFF, 0xD4, 0x64)
                 : new Color(0x78, 0xD4, 0x94);
         String classes = "member-card" + (member.leader() ? " member-leader" : "")
-                + (hpFraction < 0.34f ? " member-critical" : "");
+                + (hpFraction < 0.34f ? " member-critical" : "")
+                + (member.entityId() == selectedMemberId ? " member-selected selected" : "");
         String tag = member.leader() ? "LDR " + (slot + 1) : "M-" + (slot + 1);
         String special = member.specialAbbrev() != null ? member.specialAbbrev()
                 : roleBadge(member.role());
@@ -273,17 +267,26 @@ final class BattleSquadOverlayModel {
                         ? "SUIT SYSTEM · " + member.systemName() + " · " + member.systemStatus()
                         : "SUIT SYSTEM · NONE",
                 "PROFILE · " + member.experience() + " / " + member.aptitude()
-                        + " · " + roleName(member.role()));
+                        + " · " + roleName(member.role()),
+                member.entityId(), !memberSelectionEnabled, () -> selectMember(id));
     }
 
-    private static MemberTile emptyTile(String id) {
+    private void selectMember(String tileId) {
+        // MLX retains the slot's click handler while its occupant changes.
+        MemberTile tile = tilesById.get(tileId);
+        if (tile != null && tile.occupied() && !tile.disabled()) {
+            selectMemberAction.accept(tile.entityId());
+        }
+    }
+
+    private MemberTile emptyTile(String id) {
         return new MemberTile(id, id + "-line", id + "-name", id + "-primary",
                 id + "-special", id + "-hp-track", id + "-hp", false,
                 "member-card member-empty", "—", "", "",
-                "width: 0%;", "", "", "", "", "", "");
+                "width: 0%;", "", "", "", "", "", "", 0L, true, () -> selectMember(id));
     }
 
-    private static List<FireTeamView> emptyTeams() {
+    private List<FireTeamView> emptyTeams() {
         List<FireTeamView> teams = new ArrayList<>(FIRE_TEAM_COUNT);
         for (int team = 0; team < FIRE_TEAM_COUNT; team++) {
             List<MemberTile> members = new ArrayList<>(MEMBERS_PER_TEAM);
@@ -382,7 +385,8 @@ final class BattleSquadOverlayModel {
                       boolean occupied, String classes, String name,
                       String primary, String special, String hpStyle,
                       String tooltipTitle, String tooltipTeam, String tooltipPrimary,
-                      String tooltipSpecial, String tooltipSystem, String tooltipProfile)
+                      String tooltipSpecial, String tooltipSystem, String tooltipProfile,
+                      long entityId, boolean disabled, Runnable selectAction)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -395,6 +399,8 @@ final class BattleSquadOverlayModel {
                 case "hpTrackId" -> hpTrackId;
                 case "hpId" -> hpId;
                 case "occupied" -> occupied;
+                case "disabled" -> disabled;
+                case "selectAction" -> selectAction;
                 case "classes" -> classes;
                 case "name" -> name;
                 case "primary" -> primary;

@@ -747,12 +747,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         BattleMechOverlayModel model = new BattleMechOverlayModel(
                 reactor, () -> { }, (mechId, role) -> { },
-                (mechId, order) -> { }, squadId -> { });
+                (mechId, order) -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
                 3, 303L, "Sirocco Three", MechVariant.SIROCCO.displayName,
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
                 MechLanceOrder.FREE_REIGN,
-                defendAreaTargeting,
                 BattleMechOverlayModel.selectableRoles()));
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

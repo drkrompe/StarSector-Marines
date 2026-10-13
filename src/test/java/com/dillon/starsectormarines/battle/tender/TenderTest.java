@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.tender;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.power.CommandPowerService;
+import com.dillon.starsectormarines.battle.power.YardConstruction;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -37,6 +40,54 @@ class TenderTest {
             for (int y = 0; y < 60; y++) grid.setWalkableFloor(x, y);
         }
         grid.setTag(40, 40, CellTag.WALKABLE, false);
+    }
+
+    @Test
+    void yardCommandTargetsAndQueuesTheExistingGroundedSource() throws Exception {
+        Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
+        BattleControl view = (BattleControl) Proxy.newProxyInstance(BattleControl.class.getClassLoader(),
+                new Class<?>[]{BattleControl.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("getGrid")) return grid;
+                    throw new UnsupportedOperationException(method.getName());
+                });
+        YardConstruction power = new YardConstruction(yard);
+        assertFalse(power.canTarget(20, 20, view));
+        assertTrue(power.canTarget(32, 20, view));
+        power.resolve(32, 20, new CommandPowerService(), view);
+        assertEquals(BuildOption.VULCAN_TURRET, yard.current().option());
+        assertFalse(power.canTarget(32, 20, view));
+        assertEquals(3, yard.builderReserve());
+        assertEquals(0f, power.cpCost);
+    }
+
+    @Test
+    void groundedCompletedPlotStaysReservedAfterOrderSweep() throws Exception {
+        Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
+        ConstructionOrder order = yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid);
+        order.begin();
+        order.startWork();
+        assertTrue(order.work(100f, 3, 3, false));
+        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid));
+        yard.sweep();
+        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid));
+    }
+
+    @Test
+    void groundedConstructionUsesExteriorBayAndRefusesHullCrossingsAndDistantSites() throws Exception {
+        Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
+        assertEquals(25.5f, yard.bayX());
+        assertEquals(20.5f, yard.bayY());
+        assertFalse(yard.defenceOut());
+        assertNotNull(yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid));
+        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 20.5f, 20.5f, grid));
+        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 45.5f, 20.5f, grid));
+        grid.setTag(29, 20, CellTag.WALKABLE, false);
+        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 35.5f, 20.5f, grid));
+        yard.takeHelm();
+        assertFalse(yard.piloted());
+        yard.loseGroundHost();
+        assertFalse(yard.anchorAlive());
+        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 24.5f, grid));
     }
 
     @Test

@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — world selection supports squad groups and ground selection circles.
+Updated: 2026-10-13 — contextual orders live in a compact bottom bar; takeover exposes supported equipment shortcuts.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -508,8 +508,8 @@ existing order authority, including contextual infantry capture and transport
 assignments. A multi-squad selection sends Mech moves to each live chassis in
 its selected lances; a single exact Mech retains its individual move control.
 Each recipient independently validates the order. Group selection does not
-create a new formation, merge squads, or change mission authority. The plate
-shows the group count and the scope of Defend Area; doctrine and lance
+create a new formation, merge squads, or change mission authority. The contextual order bar
+shows the group count and each order’s scope; doctrine and lance
 coordination controls retain their explicit primary scopes.
 
 Selected player members wear green ground circles, the exact primary wears
@@ -558,9 +558,7 @@ role, armour, and readiness without enlarging the persistent HUD. Selecting an
 exact live player Mech replaces that infantry roster with a compact Mech plate:
 variant, deployed doctrine, effective doctrine, the lance-wide Form on Lead or
 Free Reign order, Brawler, Tank, Long Range Support, and Balanced choices, plus
-Reset Doctrine. A separate full-width tactical-order section arms lance-wide
-Defend Area placement; it is vertically separated from coordination and doctrine
-so the additional action cannot compress either control family. Tank is
+Reset Doctrine. Tactical placement orders live in the separate bottom order bar. Tank is
 presentation shorthand for Frontline Support. Scope is
 visible beside the controls: the lance order affects the whole selected battle
 lance, Defend Area affects that whole lance's temporary assignment, and doctrine
@@ -582,14 +580,18 @@ opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 
-The selected-infantry plate and selected-Mech plate expose **Defend Area**
-as a deliberate two-step command rather than overloading the contextual
-right-click gesture. It issues one order for each selected squad or battle lance. A single
+A compact bottom contextual bar above fleet support exposes **Attack Move [A]**
+and **Defend Area [F]** for commandable infantry and Mech selections. Clicking a
+button or pressing its shortcut arms the next world click; pressing the same
+shortcut again cancels. Attack Move uses the existing move/context order path,
+including capture and transport assignments. Right-click retains that existing
+movement behavior. The bar displays order scope and placement/cancellation hints.
+Defend Area is a deliberate two-step command. It issues one order for each selected squad or battle lance. A single
 Mech selection issues one shared order for its whole battle lance.
 The infantry summary row is reserved for squad identity, strength, and morale;
-its contextual controls live in a separate tactical-order row so adding or
-renaming an order cannot compress the status readout.
-Arming it gives the next primary world click to a circular twenty-cell-radius
+its tactical controls live in the bottom bar so adding or renaming an order
+cannot compress the status readout.
+Arming Defend Area gives the next primary world click to a circular twenty-cell-radius
 reticle; right-click, Escape, or selection change cancels without issuing an
 order. Placement returns the input seam to ordinary world selection, while the
 selected squad's accepted circle remains visible as a center and perimeter cue
@@ -599,7 +601,12 @@ center and owns the defensive behavior.
 
 The direct-control entry plate reserves a stable position above the taller of
 infantry and Mech/lance selection panels. It offers takeover of an exact eligible
-player Marine, combat Mech, or deployed APC. Its button or C enters; C or Escape
+player Marine, combat Mech, or deployed APC. With one infantry squad selected,
+clicking a populated fire-team card focuses that exact soldier without changing
+the squad command scope. An amber card and the soldier’s ground ring identify
+the focus; empty cards and group-selection cards do not change it. Selection
+offers a takeover candidate but does not bypass simulation eligibility.
+Its button or Tab enters; Tab or Escape
 returns authority to autonomous behavior. The action camera follows the controlled body with smooth, bounded cursor
 look-ahead beyond a dead zone and retains wheel zoom; carrier-specific movement and firing obey
 `direct-control-nouns.md`.
@@ -652,7 +659,7 @@ Strategic panels, commander/objective rails, power cards, retreat, communication
 and developer panels are hidden together with their input and pointer bounds.
 Selection and command/debug cell overlays also yield. Hidden projections continue
 to refresh, so handback restores current information and the existing selection.
-Entry cancels armed command-power and Defend Area targeting, clears retained focus
+Entry cancels armed command-power and tactical-order targeting, clears retained focus
 and pointer capture, and dismisses retreat confirmation without abandoning the
 battle. The equipment strip and session buttons own only their separate visible
 bounds; the intervening world remains interactive. Movement and fire stop over

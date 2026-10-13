@@ -73,13 +73,6 @@ final class PreparationGuide {
         });
     }
 
-    /** Combat keeps world targeting and shortcuts available outside the portrait. */
-    void combatInput() {
-        document.inputRegions(null);
-        document.onCancel(null);
-        markup.requireElement("preparation-shade").style("opacity: 0.25;");
-    }
-
     Rect calloutBounds() { return visible() ? markup.requireElement("preparation-callout").box().borderBox() : Rect.EMPTY; }
 
     boolean visible() { return current != null; }

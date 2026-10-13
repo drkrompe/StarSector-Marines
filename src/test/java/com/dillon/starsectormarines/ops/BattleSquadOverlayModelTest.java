@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -39,9 +41,8 @@ class BattleSquadOverlayModelTest {
     void mlxProjectsThreeFireTeamsAndHoveredLoadout() throws Exception {
         Reactor reactor = new Reactor();
         AtomicInteger backs = new AtomicInteger();
-        AtomicInteger defendAreas = new AtomicInteger();
         BattleSquadOverlayModel model = new BattleSquadOverlayModel(
-                reactor, backs::incrementAndGet, defendAreas::incrementAndGet);
+                reactor, backs::incrementAndGet);
         model.updateProjected(new BattleSquadOverlayModel.SquadState(
                 "Squad 20", 11, 12, 0.72f, members()));
 
@@ -55,8 +56,6 @@ class BattleSquadOverlayModelTest {
             assertEquals("SQUAD 20", instance.requireElement("battle-squad-title").text());
             assertEquals("11/12", instance.requireElement("battle-squad-strength").text());
             assertEquals(3, instance.requireElement("battle-squad-fireteams").childCount());
-            assertEquals("DEFEND AREA", instance.requireElement(
-                    "battle-squad-defend-area").text());
             for (int team = 0; team < 3; team++) {
                 assertEquals(4, instance.requireElement(
                         "battle-squad-fireteam-" + team + "-members").childCount());
@@ -73,17 +72,9 @@ class BattleSquadOverlayModelTest {
 
             var summary = instance.requireElement("battle-squad-summary")
                     .box().borderBox();
-            var orders = instance.requireElement("battle-squad-orders")
-                    .box().borderBox();
             var fireteams = instance.requireElement("battle-squad-fireteams")
                     .box().borderBox();
-            assertTrue(summary.bottom() <= orders.y(),
-                    "squad identity and command controls occupy separate rows");
-            assertTrue(orders.bottom() <= fireteams.y(),
-                    "command controls remain clear of the fire-team matrix");
-            assertTrue(instance.requireElement("battle-squad-order-label")
-                            .box().borderBox().width() >= 128f,
-                    "the tactical-order caption keeps its authored width");
+            assertTrue(summary.bottom() <= fireteams.y());
 
             var title = instance.requireElement("battle-squad-title").box().borderBox();
             var strength = instance.requireElement("battle-squad-strength")
@@ -96,15 +87,6 @@ class BattleSquadOverlayModelTest {
                     "strength remains clear of the protected morale block");
             assertTrue(morale.width() >= 102f,
                     "morale keeps enough width for its label and bar");
-
-            model.selectionScope(3);
-            instance.flush();
-            assertEquals("ALL 3 SQUADS", instance.requireElement("battle-squad-order-label").text());
-            assertEquals("SQUAD 20", instance.requireElement("battle-squad-title").text(),
-                    "the roster and its statistics still describe the focused squad");
-            model.selectionScope(1);
-            instance.flush();
-            assertEquals("TACTICAL ORDER", instance.requireElement("battle-squad-order-label").text());
 
             model.hover("battle-squad-member-0-0");
             instance.flush();
@@ -129,14 +111,62 @@ class BattleSquadOverlayModelTest {
                     back.y() + back.height() * 0.5f));
             assertEquals(1, backs.get());
 
-            var defend = instance.requireElement("battle-squad-defend-area")
-                    .box().borderBox();
-            assertTrue(document.pointerDown(defend.x() + defend.width() * 0.5f,
-                    defend.y() + defend.height() * 0.5f));
-            assertTrue(document.pointerUp(defend.x() + defend.width() * 0.5f,
-                    defend.y() + defend.height() * 0.5f));
-            assertEquals(1, defendAreas.get());
         }
+    }
+
+    @Test
+    void memberCardsChooseExactIdentitiesAndTrackFocusAcrossRosterChanges() throws Exception {
+        Reactor reactor = new Reactor();
+        Selection selection = new Selection();
+        selection.selectUnit(20, 1L);
+        BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { },
+                unit -> selection.selectUnit(20, unit));
+        var state = new BattleSquadOverlayModel.SquadState("Squad 20", 11, 12, 1f, members());
+        model.updateProjected(state, selection.getSelectedUnitEntityId(), true);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                Path.of("mod").resolve(path)), List.of(BattleSquadOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, BattleSquadOverlay.COMPONENT, model.props())) {
+            UiDocument document = document(instance);
+            assertTrue(instance.requireElement("battle-squad-member-0-0").hasClass("member-selected"));
+            // Hit a label inside a card: bubbling must still choose the exact soldier.
+            click(document, instance.requireElement("battle-squad-member-1-2-primary"));
+            assertEquals(13L, selection.getSelectedUnitEntityId());
+            assertEquals(List.of(20), selection.getSelectedSquadIds());
+            model.updateProjected(state, selection.getSelectedUnitEntityId(), true);
+            instance.flush();
+            document.advance(0f);
+            assertTrue(instance.requireElement("battle-squad-member-1-2").hasClass("member-selected"));
+            assertFalse(instance.requireElement("battle-squad-member-0-0").hasClass("member-selected"));
+            click(document, instance.requireElement("battle-squad-member-2-3"));
+            assertEquals(13L, selection.getSelectedUnitEntityId(), "empty slots cannot change focus");
+
+            var survivors = members().stream().filter(member -> member.entityId() != 11L).toList();
+            model.updateProjected(new BattleSquadOverlayModel.SquadState("Squad 20", 10, 12, 1f,
+                    survivors), selection.getSelectedUnitEntityId(), true);
+            instance.flush();
+            document.advance(0f);
+            assertTrue(instance.requireElement("battle-squad-member-1-1").hasClass("member-selected"));
+            click(document, instance.requireElement("battle-squad-member-1-2"));
+            assertEquals(14L, selection.getSelectedUnitEntityId(), "reused slots bind the current identity");
+
+            selection.selectSquads(List.of(20, 21), 20, 14L, false);
+            model.updateProjected(state, 14L, false);
+            instance.flush();
+            document.advance(0f);
+            click(document, instance.requireElement("battle-squad-member-0-1"));
+            assertEquals(14L, selection.getSelectedUnitEntityId());
+            assertEquals(List.of(20, 21), selection.getSelectedSquadIds(), "group cards must not collapse selection");
+            model.hover("battle-squad-member-0-1");
+            instance.flush();
+            assertFalse(instance.requireElement("battle-squad-tooltip").hasClass("squad-tooltip-hidden"));
+        }
+    }
+
+    private static void click(UiDocument document, UiElement element) {
+        var box = element.box().borderBox();
+        document.pointerDown(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
+        document.pointerUp(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
     }
 
     private static UiDocument document(MarkupInstance instance) {

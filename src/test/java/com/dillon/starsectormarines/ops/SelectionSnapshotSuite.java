@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -37,6 +38,10 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        return List.of(renderSelection(context, true), renderSelection(context, false));
+    }
+
+    private SnapshotArtifact renderSelection(SnapshotContext context, boolean group) throws Exception {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                 new HeadlessBattleSceneRenderer(context.modRoot(), true));
@@ -51,6 +56,7 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
             Selection selection = new Selection();
             selection.selectSquads(List.of(world.squadId("alpha"), world.squadId("bravo")),
                     world.squadId("alpha"), world.members("alpha")[0], false);
+            if (!group) selection.selectUnit(world.squadId("alpha"), world.members("alpha")[2]);
             selection.hoverSquad(world.squadId("hover"));
             BattleSceneHostPass pass = new BattleSceneHostPass() {
                 @Override public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {
@@ -68,8 +74,8 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
             BufferedImage image = renderer.renderHostPass(pass, 1920, 1080);
             Reactor reactor = new Reactor();
             BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { });
-            model.update(sim, selection.getSelectedSquadId(), Selection.NONE);
-            model.selectionScope(selection.squadCount());
+            model.update(sim, selection.getSelectedSquadId(),
+                    selection.getSelectedUnitEntityId(), selection.squadCount() == 1);
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                     List.of(BattleSquadOverlay.COMPONENT_PATH));
             loader.reload();
@@ -84,7 +90,20 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
                 graphics.drawImage(plate, 12, 800, null);
                 graphics.dispose();
             }
-            return List.of(new SnapshotArtifact("selected-and-hovered.png", image));
+            BattleOrderOverlayModel orders = new BattleOrderOverlayModel(reactor, mode -> {});
+            orders.update(selection.squadCount(), false, group ? Mode.DEFEND_AREA : Mode.ATTACK_MOVE);
+            MarkupLoader orderLoader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                    List.of(BattleOrderOverlay.COMPONENT_PATH));
+            try (var markup = orderLoader.reloadAndBuild(reactor, BattleOrderOverlay.COMPONENT, orders.props())) {
+                UiDocument document = new UiDocument(markup.root());
+                for (var style : markup.styles()) document.addStyleSheet(style);
+                document.theme(MarineOpsThemes.standard());
+                var plate = renderer.render(document, (int) BattleOrderOverlay.WIDTH, (int) BattleOrderOverlay.HEIGHT);
+                Graphics2D graphics = image.createGraphics();
+                graphics.drawImage(plate, (1920 - plate.getWidth()) / 2, 1080 - 12 - plate.getHeight(), null);
+                graphics.dispose();
+            }
+            return new SnapshotArtifact(group ? "selected-and-hovered.png" : "single-member-focus.png", image);
         }
     }
 }
