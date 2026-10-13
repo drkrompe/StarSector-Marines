@@ -47,11 +47,25 @@ public record IntegralSystemDef(
         MissilePodSpec missilePod,
         PerceptionSweepSpec perceptionSweep,
         BraceSpec brace,
-        IntegralSystemPolicySpec policy) implements Serializable {
+        IntegralSystemPolicySpec policy,
+        EquipmentLayerDef carrierLayer) implements Serializable {
+
     public String displayName() { return Strings.resolve(displayName); }
 
     public String description() { return Strings.resolve(description); }
 
+    /** Existing behavior-only construction leaves hardware presentation absent. */
+    public IntegralSystemDef(String id, String displayName, EquipmentGrade grade,
+                             String description, IntegralSystemEffect effect,
+                             SpecialResourceMode resourceMode, float durationSeconds,
+                             float cooldownSeconds, int startingAmmo,
+                             BreacherAssistSpec breacherAssist, MissilePodSpec missilePod,
+                             PerceptionSweepSpec perceptionSweep, BraceSpec brace,
+                             IntegralSystemPolicySpec policy) {
+        this(id, displayName, grade, description, effect, resourceMode, durationSeconds,
+                cooldownSeconds, startingAmmo, breacherAssist, missilePod, perceptionSweep,
+                brace, policy, null);
+    }
 
     /**
      * Keys that would express an integral system as durability. Rejected by
@@ -158,7 +172,17 @@ public record IntegralSystemDef(
                 missilePod,
                 perceptionSweep,
                 brace,
-                parsePolicy(json, armorId, id, effect));
+                parsePolicy(json, armorId, id, effect),
+                parseCarrierLayer(json, id));
+    }
+
+    private static EquipmentLayerDef parseCarrierLayer(JSONObject json, String systemId)
+            throws JSONException {
+        if (!json.has("presentation")) return null;
+        JSONObject presentation = json.getJSONObject("presentation");
+        return presentation.has("carrierLayer")
+                ? EquipmentLayerDef.parse(presentation.getJSONObject("carrierLayer"), systemId)
+                : null;
     }
 
     /**

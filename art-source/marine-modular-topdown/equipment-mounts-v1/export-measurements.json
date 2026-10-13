@@ -1,0 +1,144 @@
+{
+  "missile-pod": {
+    "source_sha256": "751714fb0fcae158b8ecf260f04fe80b8be6eabfa2be67f905a489f9cdf20dc2",
+    "source_registration": {
+      "crop": [
+        394,
+        217,
+        860,
+        1031
+      ],
+      "hardware_alpha8_bounds": [
+        396,
+        219,
+        858,
+        1029
+      ],
+      "note": "Measured hardware bounds at alpha >= 8 plus two source pixels of retained fringe. Remote alpha 1..7 specks are outside this measured registration. Generated hardware alpha is unchanged."
+    },
+    "source_dimensions": [
+      1254,
+      1254
+    ],
+    "measured_region": [
+      394,
+      217,
+      860,
+      1031
+    ],
+    "source_content_bounds": [
+      394,
+      217,
+      860,
+      1031
+    ],
+    "source_content_size": [
+      466,
+      814
+    ],
+    "source_aspect_error": 0.09357084357084344,
+    "export_canvas": [
+      128,
+      192
+    ],
+    "export_content_size": [
+      87,
+      152
+    ],
+    "export_content_origin": [
+      20,
+      20
+    ],
+    "alpha_bounds": [
+      20,
+      20,
+      107,
+      172
+    ],
+    "target_content_size_sw": [
+      0.24,
+      0.38
+    ],
+    "actual_content_size_sw": [
+      0.2175,
+      0.38
+    ],
+    "export_canvas_size_sw": [
+      0.32,
+      0.48000000000000004
+    ],
+    "orientation": "north-forward; orthographic overhead",
+    "alpha_processing": "retained generated alpha; resampling only"
+  },
+  "screen-emitter": {
+    "source_sha256": "b24b96db0335c8ac44a64e1a6ce6f7ce0dbabb390d8ce1f4f79fc7aac06fbd56",
+    "source_registration": {
+      "crop": [
+        412,
+        318,
+        841,
+        945
+      ],
+      "hardware_alpha8_bounds": [
+        414,
+        320,
+        839,
+        943
+      ],
+      "note": "Measured hardware bounds at alpha >= 8 plus two source pixels of retained fringe. Remote alpha 1..7 specks are outside this measured registration. Generated hardware alpha is unchanged."
+    },
+    "source_dimensions": [
+      1254,
+      1254
+    ],
+    "measured_region": [
+      412,
+      318,
+      841,
+      945
+    ],
+    "source_content_bounds": [
+      412,
+      318,
+      841,
+      945
+    ],
+    "source_content_size": [
+      429,
+      627
+    ],
+    "source_aspect_error": 0.08771929824561397,
+    "export_canvas": [
+      128,
+      160
+    ],
+    "export_content_size": [
+      66,
+      96
+    ],
+    "export_content_origin": [
+      31,
+      32
+    ],
+    "alpha_bounds": [
+      31,
+      32,
+      97,
+      128
+    ],
+    "target_content_size_sw": [
+      0.18,
+      0.24
+    ],
+    "actual_content_size_sw": [
+      0.16499999999999998,
+      0.24
+    ],
+    "export_canvas_size_sw": [
+      0.32,
+      0.39999999999999997
+    ],
+    "orientation": "north-forward; orthographic overhead",
+    "alpha_processing": "retained generated alpha; resampling only"
+  }
+}

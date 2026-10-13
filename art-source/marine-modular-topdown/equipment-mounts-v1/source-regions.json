@@ -1,0 +1,12 @@
+{
+  "missile-pod": {
+    "crop": [394, 217, 860, 1031],
+    "hardware_alpha8_bounds": [396, 219, 858, 1029],
+    "note": "Measured hardware bounds at alpha >= 8 plus two source pixels of retained fringe. Remote alpha 1..7 specks are outside this measured registration. Generated hardware alpha is unchanged."
+  },
+  "screen-emitter": {
+    "crop": [412, 318, 841, 945],
+    "hardware_alpha8_bounds": [414, 320, 839, 943],
+    "note": "Measured hardware bounds at alpha >= 8 plus two source pixels of retained fringe. Remote alpha 1..7 specks are outside this measured registration. Generated hardware alpha is unchanged."
+  }
+}

@@ -18,7 +18,35 @@ public record EquipmentLayerDef(
         float recoilShoulders,
         Occlusion firingOcclusion,
         boolean visibleWhileCarried,
-        boolean replacePrimaryWhileUsing) implements Serializable {
+        boolean replacePrimaryWhileUsing,
+        Attachment attachment) implements Serializable {
+
+    /** Authored joint registration; actor preserves existing carrier geometry. */
+    public enum Attachment {
+        ACTOR("actor"), BODY("body"),
+        LEFT_SHOULDER("left-shoulder"), RIGHT_SHOULDER("right-shoulder");
+
+        private final String key;
+
+        Attachment(String key) { this.key = key; }
+
+        static Attachment fromKey(String key, String owner) throws JSONException {
+            for (Attachment candidate : values()) {
+                if (candidate.key.equalsIgnoreCase(key)) return candidate;
+            }
+            throw new JSONException("Equipment '" + owner
+                    + "' has unknown carrier attachment '" + key + "'");
+        }
+    }
+
+    public EquipmentLayerDef(String spritePath, float widthShoulders, float heightShoulders,
+                             float pivotX, float pivotY, State carried, State using,
+                             float recoilShoulders, Occlusion firingOcclusion,
+                             boolean visibleWhileCarried, boolean replacePrimaryWhileUsing) {
+        this(spritePath, widthShoulders, heightShoulders, pivotX, pivotY, carried, using,
+                recoilShoulders, firingOcclusion, visibleWhileCarried,
+                replacePrimaryWhileUsing, Attachment.ACTOR);
+    }
 
     public enum Occlusion {
         UNDER_BODY("under-body"),
@@ -61,7 +89,8 @@ public record EquipmentLayerDef(
                         "recoilShoulders", equipmentId),
                 optionalOcclusion(json, "firingOcclusion", equipmentId),
                 json.optBoolean("visibleWhileCarried", false),
-                json.optBoolean("replacePrimaryWhileUsing", false));
+                json.optBoolean("replacePrimaryWhileUsing", false),
+                Attachment.fromKey(json.optString("attachment", "actor"), equipmentId));
     }
 
     private static State parseState(JSONObject json, String equipmentId) throws JSONException {

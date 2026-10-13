@@ -22,6 +22,9 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.Global;
@@ -77,6 +80,7 @@ public class BattleSprites {
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class);
     private final Map<String, LayeredSpriteCache> specialEquipmentLayers = new LinkedHashMap<>();
+    private final Map<String, LayeredSpriteCache> integralSystemLayers = new LinkedHashMap<>();
     private boolean layeredUnitSpritesLoadAttempted;
 
     // ---- modular layered heavy mech ---------------------------------------
@@ -716,6 +720,17 @@ public class BattleSprites {
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         specialEquipmentLayers.clear();
+        integralSystemLayers.clear();
+        MarineArmorCatalogRegistry armorRegistry = MarineArmorCatalogRegistry.installed();
+        if (armorRegistry != null) {
+            for (MarineArmorCatalogDef armor : armorRegistry.all()) {
+                IntegralSystemDef system = armor.integralSystem();
+                EquipmentLayerDef layer = system != null ? system.carrierLayer() : null;
+                if (layer == null) continue;
+                LayeredSpriteCache sprite = loadLayeredSprite(layer.spritePath());
+                if (sprite != null) integralSystemLayers.put(system.id(), sprite);
+            }
+        }
         SpecialEquipmentRegistry equipmentRegistry = SpecialEquipmentRegistry.installed();
         if (equipmentRegistry != null) {
             for (SpecialEquipmentDef def : equipmentRegistry.all()) {
@@ -943,6 +958,9 @@ public class BattleSprites {
                         ? loadLayeredSprite(familyRoot + "shoulder-right.png") : null);
         for (Map.Entry<String, LayeredSpriteCache> entry : specialEquipmentLayers.entrySet()) {
             assets.registerSpecialEquipment(entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, LayeredSpriteCache> entry : integralSystemLayers.entrySet()) {
+            assets.registerIntegralSystem(entry.getKey(), entry.getValue());
         }
         layeredUnitSprites.put(familyId, assets);
     }
