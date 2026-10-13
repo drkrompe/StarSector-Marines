@@ -2,21 +2,21 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 
-import java.util.Arrays;
 
 /** Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog. */
 final class NightLightingRenderSystem implements RenderSystem {
     private final PolyMesh shade = new PolyMesh(4096);
+    private final NightLightingPass pass = new NightLightingPass();
+    private final DoodadRenderSystem doodads;
+
+    NightLightingRenderSystem(BattleSprites sprites) { doodads = new DoodadRenderSystem(sprites); }
+    void dispose() { pass.dispose(); }
     private CellTopology topology;
     private NightLighting lighting;
     private float[] pools, reds, greens, blues;
     private int width;
-    private boolean[] observedSurfaces = new boolean[0];
 
     public RenderLayer layer() { return RenderLayer.NIGHT_LIGHTING; }
 
@@ -29,11 +29,9 @@ final class NightLightingRenderSystem implements RenderSystem {
         var visible = camera.visibleCells(1, ground.getWidth(), ground.getHeight());
         var fog=ctx.sim.getFogOfWar();
         boolean useFog=ctx.hostProfile.fogClipsLighting() && fog.isInitialized();
-        if (useFog) {
-            int cells = ground.getWidth() * ground.getHeight();
-            if (observedSurfaces.length != cells) observedSurfaces = new boolean[cells];
-            markObservedSurfaces(ctx.sim.getDoodads(), ctx.sim.getGrid(), fog, observedSurfaces);
-        }
+        pass.reset(camera);
+        if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
+        boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
         int steps = camera.cellPxSize() >= 24 ? 8 : camera.cellPxSize() >= 12 ? 4 : 2;
         shade.reset();
         for (int y = visible.minY(); y <= visible.maxY(); y++) for (int x = visible.minX(); x <= visible.maxX(); x++) {
@@ -42,23 +40,19 @@ final class NightLightingRenderSystem implements RenderSystem {
                 float px=x+(sx+.5f)/steps, py=y+(sy+.5f)/steps;
                 int cellIndex = y * ground.getWidth() + x;
                 float pool=useFog && !fog.cellRevealedArray()[cellIndex]
-                        && !observedSurfaces[cellIndex] ? 0f : sample(pools,px,py);
-                float dark=night.darkness()*(1-.92f*Math.min(1,pool));
-                float warm=.11f*Math.min(1,pool);
-                float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
-                if (alpha<=0f) continue;
-                float divisor=Math.max(.001f,pool);
-                float r=(.012f*weight+warm*sample(reds,px,py)/divisor)/alpha;
-                float g=(.019f*weight+warm*sample(greens,px,py)/divisor)/alpha;
-                float b=(.037f*weight+warm*sample(blues,px,py)/divisor)/alpha;
+                        ? 0f : sample(pools,px,py);
                 float x0=Math.round(camera.cellToScreenX(x+(float)sx/steps));
                 float x1=Math.round(camera.cellToScreenX(x+(sx+1f)/steps));
                 float y0=Math.round(camera.cellToScreenY(y+(float)sy/steps));
                 float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
-                shade.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,r,g,b,alpha*ctx.alphaMult);
+                appendShade(masked ? pass.fogShade() : shade, night, pool, px, py,
+                        x0, y0, x1, y1, ctx.alphaMult);
+                if (masked) appendShade(pass.litShade(), night, sample(pools,px,py), px, py,
+                        x0, y0, x1, y1, ctx.alphaMult);
             }
         }
-        out.addPoly(layer(),shade);
+        if (masked) out.addCustom(layer(), pass);
+        else out.addPoly(layer(),shade);
         for (var lamp:night.lamps()) {
             if (!visible.contains((int)lamp.x(),(int)lamp.y())) continue;
             if (useFog
@@ -76,24 +70,18 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
     }
 
-    /**
-     * Lighting admission for the same solid artwork the fog pass admits. This
-     * derived mask is never observation: ground in sprite gaps retains its fog,
-     * actors remain concealed and structural sight/navigation remain unchanged.
-     */
-    static void markObservedSurfaces(Iterable<Doodad> props, NavigationGrid grid,
-                                     FogOfWarService fog, boolean[] surfaces) {
-        Arrays.fill(surfaces, false);
-        for (Doodad prop : props) {
-            if (!DoodadRenderSystem.hasObservedSurface(prop, grid, fog)) continue;
-            for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++) {
-                int gx = prop.cellX + x, gy = prop.cellY + y;
-                if (prop.hasFogSurfaceAt(x, y) && grid.inBounds(gx, gy)
-                        && grid.blocksStructuralLineOfSight(gx, gy)) surfaces[grid.index(gx, gy)] = true;
-            }
-        }
+    private void appendShade(PolyMesh mesh, NightLighting night, float pool, float px, float py,
+                             float x0, float y0, float x1, float y1, float alphaMult) {
+        float dark=night.darkness()*(1-.92f*Math.min(1,pool));
+        float warm=.11f*Math.min(1,pool);
+        float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
+        if (alpha<=0f) return;
+        float divisor=Math.max(.001f,pool);
+        float r=(.012f*weight+warm*sample(reds,px,py)/divisor)/alpha;
+        float g=(.019f*weight+warm*sample(greens,px,py)/divisor)/alpha;
+        float b=(.037f*weight+warm*sample(blues,px,py)/divisor)/alpha;
+        mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,r,g,b,alpha*alphaMult);
     }
-
     /** Ground contact, splayed feet and an elevated head remain visible during the outage. */
     private void floodlight(DrawList out, NightLighting.Lamp lamp, float x, float y,
                             float px, boolean powered, float alpha) {

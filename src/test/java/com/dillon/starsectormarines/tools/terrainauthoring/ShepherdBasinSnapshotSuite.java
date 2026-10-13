@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.EnumSet;
+import java.util.Arrays;
+import java.awt.image.BufferedImage;
 
 /** Opt-in map authoring acceptance. No battle, repair timer or campaign reward is simulated here. */
 public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
@@ -130,8 +132,32 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                         + ", hostileCellRevealed=" + sim.getFogOfWar().isCellRevealed(hostileX, hostileY)
                         + ", hostileVisibility=" + sim.getFogOfWar().getUnitVisibility(0)
                         + ", liveCount=" + sim.getRoster().liveCount());
-            frames.add(new SnapshotArtifact("player-" + name + "-observed.png",
-                    renderer.renderHostPass(playerPass(sim, centerX, centerY), 1920, 1080)));
+            boolean[] revealed = sim.getFogOfWar().cellRevealedArray().clone();
+            BufferedImage powered = renderer.renderHostPass(playerPass(sim, centerX, centerY), 1920, 1080);
+            frames.add(new SnapshotArtifact("player-" + name + "-observed.png", powered));
+            NightLighting original = sim.getTopology().nightLighting();
+            BufferedImage outage;
+            try {
+                sim.getTopology().setNightLighting(new NightLighting(original.darkness(), original.lamps(), Set.of()));
+                outage = renderer.renderHostPass(playerPass(sim, centerX, centerY), 1920, 1080);
+            } finally {
+                sim.getTopology().setNightLighting(original);
+            }
+            frames.add(new SnapshotArtifact("player-" + name + "-observed-outage.png", outage));
+            if (!Arrays.equals(revealed, sim.getFogOfWar().cellRevealedArray())
+                    || sim.getFogOfWar().getUnitVisibility(0) != FogOfWarService.VIS_HIDDEN)
+                throw new IllegalStateException("Rendering and power controls changed player observation");
+            int litHiddenPixels = 0;
+            for (int y = 0; y < 1080; y++) for (int x = 0; x < 1920; x++) {
+                int gx = (int)Math.floor(centerX + (x + .5f - 960) / 32);
+                int gy = (int)Math.floor(centerY + (540 - y - .5f) / 32);
+                if (!sim.getGrid().inBounds(gx, gy) || revealed[sim.getGrid().index(gx, gy)]) continue;
+                if (powered.getRGB(x, y) != outage.getRGB(x, y)) litHiddenPixels++;
+            }
+            if ("hull".equals(name) && litHiddenPixels == 0)
+                throw new IllegalStateException("Observed opaque hull must receive lamp light on its hidden far surface");
+            System.out.println("[shepherd-basin] player " + name + ": " + litHiddenPixels
+                    + " lit pixels over unrevealed ground; reveal and hidden hostile unchanged");
         }
     }
 
