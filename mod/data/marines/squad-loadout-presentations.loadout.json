@@ -70,7 +70,7 @@
       "rarity": "COMMON",
       "provenance": "Independent frontier",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "lore": "A frontier quartermaster calls it a protection schedule because inventory sounds better than desperation. Each team gives its leader the one sound Ward kit, then distributes an expired Cordon shell, a breaker-yard Lashplate harness, and sealed fatigues according to fit rather than hope."
+      "lore": "The founding issue: twelve basic Ward security kits over field fatigues. Thin protection and a firing brace keep the squad serviceable, but there are no scout sensors, assault shells, or support harnesses. New equipment specifications open those roles."
     },
     {
       "id": "armor:sindrian-security",
