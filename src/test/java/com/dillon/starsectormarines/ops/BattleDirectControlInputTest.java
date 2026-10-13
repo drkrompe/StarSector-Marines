@@ -294,6 +294,22 @@ class BattleDirectControlInputTest {
     }
 
     @Test
+    void theXKeyIsTheCancelBuildsRequestAndRearmsOnlyAfterItIsReleased() {
+        BattleDirectControlInput input = active();
+        List<DirectControlAbility> requests = new ArrayList<>();
+        Predicate<DirectControlAbility> accept = ability -> { requests.add(ability); return true; };
+        var press = event(Kind.DOWN, 0, 0, Keyboard.KEY_X);
+        input.process(BattleDirectControlInput.capture(List.of(press, event(Kind.DOWN, 0, 0, Keyboard.KEY_X))),
+                () -> {}, () -> {}, selection -> false, accept, NO_CHROME);
+        assertEquals(List.of(DirectControlAbility.CANCEL_BUILDS), requests);
+        assertTrue(press.isConsumed());
+        input.reconcileAbilityKeyReleases(false, false, false);
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_X))),
+                () -> {}, () -> {}, selection -> false, accept, NO_CHROME);
+        assertEquals(List.of(DirectControlAbility.CANCEL_BUILDS, DirectControlAbility.CANCEL_BUILDS), requests);
+    }
+
+    @Test
     void rejectedAbilityPressNeverQueuesLaterAfterPauseChromeOrViewportUnblocks() {
         for (int blockedBy = 0; blockedBy < 4; blockedBy++) {
             BattleDirectControlInput input = active();

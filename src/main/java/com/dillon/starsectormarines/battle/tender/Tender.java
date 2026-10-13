@@ -70,6 +70,8 @@ public final class Tender implements DroneAnchor {
     private final TenderPointDefence pointDefence = new TenderPointDefence();
     int defenceSquadId = -1;
     float launchClock;
+    private boolean helmed;
+    private boolean defenceOutBeforeHelm = true;
 
     private Tender(Warship ship, List<WarshipSlot> bays, int complement) {
         this.ship = ship;
@@ -232,6 +234,35 @@ public final class Tender implements DroneAnchor {
         this.defenceOut = out;
     }
 
+    /** Whether a pilot has the helm. A piloted tender stays where it is flown and does not station itself at a site. */
+    public boolean piloted() {
+        return helmed;
+    }
+
+    /**
+     * Hands the tender to a pilot: the hull's own helm is taken and what the defence drones were
+     * told is remembered. The hull's autonomy is given back by {@link #releaseHelm}.
+     */
+    public void takeHelm() {
+        if (helmed) return;
+        helmed = true;
+        defenceOutBeforeHelm = defenceOut;
+        ship.takeHelm();
+    }
+
+    /**
+     * Gives the tender back as the pilot found it: every build the pilot laid is withdrawn (a
+     * hand order does not outlive the hand), the defence drones go back to what they were doing,
+     * and the hull returns to its station or route.
+     */
+    public void releaseHelm() {
+        if (!helmed) return;
+        helmed = false;
+        cancelAll();
+        defenceOut = defenceOutBeforeHelm;
+        ship.releaseHelm();
+    }
+
     /** The orders still live, in the order they will be worked. */
     public List<ConstructionOrder> orders() {
         return Collections.unmodifiableList(orders);
@@ -253,6 +284,7 @@ public final class Tender implements DroneAnchor {
         int cy = (int) Math.floor(y);
         if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
         for (ConstructionOrder other : orders) {
+            if (other.phase().terminal()) continue;
             if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < SITE_SPACING) return null;
         }
         if (metered()) stock -= option.cost();
