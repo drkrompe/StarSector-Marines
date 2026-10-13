@@ -8,22 +8,27 @@
       </button>
       <button id="page-nav-hq" class="{hqClasses}" onclick="{hqAction}">
         <div id="page-nav-hq-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-hq-news" class="page-nav-news">NEW</div>
         <div id="page-nav-hq-legend" class="console-key-legend">HQ</div>
       </button>
       <button id="page-nav-barracks" class="{barracksClasses}" onclick="{barracksAction}">
         <div id="page-nav-barracks-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-barracks-news" class="page-nav-news">NEW</div>
         <div id="page-nav-barracks-legend" class="console-key-legend">BARRACKS</div>
       </button>
       <button id="page-nav-armory" class="{armoryClasses}" onclick="{armoryAction}">
         <div id="page-nav-armory-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-armory-news" class="page-nav-news">NEW</div>
         <div id="page-nav-armory-legend" class="console-key-legend">ARMORY</div>
       </button>
       <button id="page-nav-mech-lab" class="{mechLabClasses}" onclick="{mechLabAction}">
         <div id="page-nav-mech-lab-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-mech-lab-news" class="page-nav-news">NEW</div>
         <div id="page-nav-mech-lab-legend" class="console-key-legend">MECH LAB</div>
       </button>
       <button id="page-nav-boats" class="{boatsClasses}" onclick="{boatsAction}">
         <div id="page-nav-boats-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-boats-news" class="page-nav-news">NEW</div>
         <div id="page-nav-boats-legend" class="console-key-legend">BOATS</div>
       </button>
     </div>
@@ -43,7 +48,7 @@
 
   #marine-ops-console-lock { width: 34px; height: 34px; pointer-events: none; }
   #marine-ops-console-vent { width: 78px; height: 34px; pointer-events: none; }
-  #marine-ops-page-routes { flex-direction: row; width: 740px; gap: 6px; }
+  #marine-ops-page-routes { flex-direction: row; width: 920px; gap: 6px; }
   #marine-ops-page-routes button {
     flex-direction: row;
     align-items: center;
@@ -107,5 +112,15 @@
     text-align: right;
     border-width: 2px;
   }
+  .page-nav-news { position: absolute; width: 0px; height: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  #marine-ops-page-routes .page-nav-new .page-nav-news {
+    position: static; width: auto; height: auto; opacity: 1;
+    color: #ffd464;
+    padding: 1px 2px;
+    border-width: 1px;
+    border-color: #aa8742;
+    background-color: #27271f;
+  }
+  #marine-ops-page-routes .page-nav-new .console-toggle-lamp { position: absolute; width: 0px; height: 0px; opacity: 0; }
   #page-nav-return-lamp { width: 0px; border-width: 0px; }
 </style>

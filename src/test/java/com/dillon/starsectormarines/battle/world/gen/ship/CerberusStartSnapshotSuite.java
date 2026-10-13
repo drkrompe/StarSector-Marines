@@ -23,6 +23,11 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.ShipInterior;
+import com.dillon.starsectormarines.ops.ShipConditionModel;
+import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
+import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipConditionStage;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -61,6 +66,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                 CompanyShip ship = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER, 20,
                         50 + (conversion ? 18 : 0), 100 - (conversion ? 25 : 0),
                         outline.aspect(), outline, spec.getString("spriteName"), conversion, state);
+                if (conversion && state == BoatBayState.DAMAGED) frames.addAll(condition(context, ship));
                 if (ship.quarters() != conversion) throw new AssertionError("Frigate eligibility");
                 for (long seed : conversion ? new long[]{42, 81, 417, 2026, 987654} : new long[]{42}) {
                     var generator = new ShipDeckGenerator();
@@ -146,6 +152,55 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
         }
         return List.copyOf(frames);
     }
+    private List<SnapshotArtifact> condition(SnapshotContext context, CompanyShip hull) throws Exception {
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        for (long seed : new long[]{42, 81, 417, 2026, 987654}) {
+            List<String> baseline = null;
+            for (int phase : new int[]{0, 1, 2}) {
+                boolean restored = phase > 0;
+                var state = new ShipRestoration(true, restored, phase == 2, phase == 2);
+                var ship = hull.withWorkshop(WorkshopState.BURIED).withRestoration(state);
+                var deck = CompanyDeck.home(ship, seed, null, List::of, List::of, () -> new boolean[]{true});
+                try {
+                    while (!deck.ready()) Thread.onSpinWait();
+                    deck.advance(1f / 30f);
+                    var graph = deck.rooms();
+                    assertPreparationAccess(deck.map(), graph);
+                    if (baseline == null) baseline = layout(graph);
+                    else if (!baseline.equals(layout(graph))) throw new AssertionError("Condition repairs moved rooms");
+                    long gantries = deck.map().gantries.stream().filter(g -> g.holds == Gantry.Holds.MACHINE).count();
+                    if (gantries != (restored ? 1 : 0)) throw new AssertionError("Sealed Mech Lab offers a gantry");
+                    if (deck.has(RoomPurpose.VEHICLE_BAY) != restored) throw new AssertionError("Mech Lab navigation disagrees with condition");
+                    int billets = ShipInterior.of(ship, graph).facility(RoomPurpose.BARRACKS).capacity();
+                    if (graph.damaged(deck.room(RoomPurpose.BARRACKS).id())) throw new AssertionError("Default Barracks opens sealed quarters");
+                    if (billets != (phase == 2 ? 54 : 36)) throw new AssertionError("Wrong usable billet count: " + billets);
+                    for (var room : graph.compartments()) if (ShipConditionStage.sealed(graph, room, state)) {
+                        if (deck.map().fixtureTasks.stream().anyMatch(t -> room.contains(t.cellX(), t.cellY()))) throw new AssertionError("Sealed room offers work");
+                        for (int y = room.top(); y <= room.bottom(); y++) for (int x = room.left(); x <= room.right(); x++)
+                            if (room.contains(x, y) && deck.map().grid.isWalkable(x, y)) throw new AssertionError("Crew can enter sealed room");
+                    }
+                    if (seed == 42) {
+                        Reactor reactor = new Reactor();
+                        var model = new ShipConditionModel(reactor, () -> deck,
+                                work -> new CompanyShipRestoration.Offer(state, 12000, restored ? "Work complete." : null),
+                                work -> "Snapshot only", () -> new CompanyBayRestoration.Offer(true, 12000, null), () -> "Snapshot only",
+                                room -> {}, () -> {});
+                        String name = phase == 2 ? "restored" : phase == 1 ? "mission-two" : "damaged";
+                        frames.add(new SnapshotArtifact("condition-" + name + "-ship.png",
+                                UiSnapshotSuite.renderShipCondition(context, deck, model, reactor, 1f, null)));
+                        model.select(deck.room(RoomPurpose.VEHICLE_BAY).id());
+                        for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact("condition-" + name + "-mech-" + scale + ".png",
+                                UiSnapshotSuite.renderShipCondition(context, deck, model, reactor, scale, RoomPurpose.VEHICLE_BAY)));
+                        model.select(ShipConditionStage.spareBillets(graph).get(0).id());
+                        frames.add(new SnapshotArtifact("condition-" + name + "-billets.png",
+                                UiSnapshotSuite.renderShipCondition(context, deck, model, reactor, 1f, null)));
+                    }
+                } finally { deck.dismiss(); }
+            }
+        }
+        return frames;
+    }
+
     private List<SnapshotArtifact> workshop(SnapshotContext context, CompanyShip hull) throws Exception {
         List<SnapshotArtifact> frames = new ArrayList<>();
         for (long seed : new long[]{42, 81, 2026}) {

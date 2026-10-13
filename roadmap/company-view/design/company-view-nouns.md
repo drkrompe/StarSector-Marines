@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Wayline relief introduces Castle's optional two-path squad equipment lesson.
+Updated: 2026-10-12 -- room-condition restoration and persistent unread room opportunities.
 
 ## Purpose
 
@@ -116,6 +116,18 @@ shared mapping instead of assigning paths independently in each screen.
   does not choose the pattern, because the hull already has.
 
 ## Surface boundary
+
+New optional company opportunities publish an unread marker on their destination
+room tab. The contract board also exposes a direct preparation detour so a player
+moving straight from one mission to the next can discover them. Second-bay
+restoration, Secondhand Wings, the first Armory refit and Wayward's gantry induction
+have independent saved read receipts. Opening the actual offer or lesson clears
+its receipt; entering an unrelated room does not. Reviewing spends nothing and
+does not require finishing the purchase or tutorial. Completed opportunities stop
+advertising themselves, while a later unlock raises a fresh marker. Eligibility
+comes from the owning feature; money and docking requirements never turn unread
+news into invisible news. Existing saves discover currently available unread
+opportunities once. The retained shell presents these facts without owning rewards.
 
 The retained Company -> Squad -> Fire Team hierarchy is shared across two rooms
 with different intent. Barracks opens on officer commands and an independent
@@ -1231,6 +1243,30 @@ working stations change immediately after a committed order. Fabrication preview
 and commits use the same current installed-tool quote. A company that changes
 ships receives the new home's benefits, never a discount left over from an old
 screen. `machine-shop-restoration.md` owns this chain's live acceptance.
+
+**Walk the Ship** is also the room-condition survey. Selecting a compartment on
+the actual deck or its list entry focuses that room and shows Castle's portrait,
+a condition blurb, its working benefit and any next repair. Sealed structural
+rooms are distinct from accessible damaged rooms and usable rooms on faulty
+power. Workshop stages retain their own reviewed orders; the second boat bay can
+also be repaired here through its existing yard authority.
+
+The original hull reserves its Mech Lab as a sealed wreck until **Take Back the
+Depot**, the second story mission. Completion supplies restoration of the single
+mech gantry with Wayward's recovery, so the first-mech fitting lesson opens into
+a working bay without another bill. The completed chapter is the durable repair
+fact, including on older saves. Ordinary ships are unaffected.
+
+Two spare company bunkrooms start sealed, leaving 36 of the converted hull's
+54 billets usable. A 4,000-credit yard order after Relief restores both rooms and
+18 billets. A separate 3,000-credit distribution repair restores steady lighting
+in working rooms throughout the hull; it offers crew comfort and a visible
+restoration, not a combat buff. Structural rooms remain on emergency power until
+their own repairs. Both orders require the active converted original company home
+at an accessible planetary spaceport, include labor and materials, and recheck
+funds and completion at payment. Inspection and review spend nothing. Every view
+rebuilds from the same current condition after an order. `ship-condition-survey.md`
+owns live acceptance of this survey and its new restoration paths.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and

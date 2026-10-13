@@ -33,12 +33,13 @@ class SecondhandWingsModelTest {
         var deck = new BoatDeck(); deck.reconcile("second-wind", ShuttleType.HERMES, 2);
         var boats = new BoatDeckViewModel(reactor, deck, FabricationResources.NONE, "Second Wind");
         AtomicInteger credits = new AtomicInteger(7000);
+        AtomicInteger reviewed = new AtomicInteger();
         var wings = new SecondhandWingsModel(reactor, deck,
                 () -> new Offer(!deck.secondhandWingsPurchased(), SecondhandWings.refusal(deck,
                         true, true, true, true, true, credits.get()), credits.get()),
                 review -> SecondhandWings.purchase(deck, review, null,
                         n -> { credits.addAndGet(-n); return true; }), boats::refresh,
-                () -> boats.selectBoatAction(0).run());
+                () -> boats.selectBoatAction(0).run(), reviewed::incrementAndGet);
         var props = BoatDeckViewModelTest.props(boats); props.put("wings", wings.row());
         var loader = new MarkupLoader(path -> Files.readString(Path.of(path)), List.of(
                 "mod/data/ui/components/marine-ops-page-nav.mlx", "mod/data/ui/components/boat-deck/boat-deck.mlx"));
@@ -48,8 +49,11 @@ class SecondhandWingsModelTest {
             document.theme(MarineOpsThemes.standard());
             TutorialModal.bind(document, markup, wings::visible, "wings-modal", "boat-deck-root", wings::dismiss, () -> { });
             document.layout(1920, 1080);
+            assertEquals(0, reviewed.get(), "Constructing or rendering the room does not acknowledge the offer");
             click(document, markup, "wings-resume");
             assertTrue(wings.visible());
+            assertEquals(1, reviewed.get(), "Opening Castle's actual conversation acknowledges discovery");
+            assertEquals(7000, credits.get(), "Discovery never spends credits");
             var modal = markup.requireElement("wings-dialog").box().borderBox();
             assertTrue(modal.x() >= 0 && modal.right() <= 1920 && modal.y() >= 0 && modal.bottom() <= 1080);
             click(document, markup, "boat:0");

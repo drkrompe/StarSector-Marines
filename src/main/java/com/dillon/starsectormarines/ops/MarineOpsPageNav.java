@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 
 import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 
 /** Shared property contract for the persistent shipboard-room navigation shell. */
@@ -140,6 +141,11 @@ final class MarineOpsPageNav {
 
     /** Update existing controls after designation or asynchronous deck preparation. */
     static void refresh(MarkupInstance markup, Page current, Function<RoomPurpose, Aboard> aboard) {
+        refresh(markup, current, aboard, List.of());
+    }
+
+    static void refresh(MarkupInstance markup, Page current, Function<RoomPurpose, Aboard> aboard,
+                        List<CompanyNotices.Notice> notices) {
         if (markup == null) return;
         for (Page page : Page.values()) {
             if (page.button() == null) continue;
@@ -149,6 +155,8 @@ final class MarineOpsPageNav {
             markup.requireElement(id)
                     .classed("page-nav-absent", available == Aboard.NO)
                     .classed("page-nav-waiting", available == Aboard.UNKNOWN)
+                    .classed("page-nav-new", available != Aboard.NO
+                            && notices.stream().anyMatch(notice -> notice.page == page))
                     .classed("selected", selected)
                     .classed("page-nav-current", selected);
         }

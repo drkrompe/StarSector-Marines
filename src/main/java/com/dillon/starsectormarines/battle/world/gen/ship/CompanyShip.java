@@ -32,7 +32,17 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
                           int minCrew, int maxCrew, int cargo, float aspect,
-                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay, WorkshopState workshop, boolean aeroshuttleConversion) {
+                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay, WorkshopState workshop, boolean aeroshuttleConversion, ShipRestoration restoration) {
+
+    public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
+                       int cargo, float aspect, HullSilhouette outline, String art,
+                       boolean conversion, BoatBayState boatBay, WorkshopState workshop, boolean aeroshuttleConversion) {
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, workshop, aeroshuttleConversion, ShipRestoration.NONE);
+    }
+
+    public CompanyShip withRestoration(ShipRestoration state) {
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, workshop, aeroshuttleConversion, state);
+    }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
                        int cargo, float aspect, HullSilhouette outline, String art,
@@ -42,7 +52,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
 
     public CompanyShip withAeroshuttleConversion(boolean installed) {
         return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art,
-                mercenaryConversion, boatBay, workshop, installed);
+                mercenaryConversion, boatBay, workshop, installed, restoration);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
@@ -51,7 +61,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, WorkshopState.NONE);
     }
     public CompanyShip withWorkshop(WorkshopState state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, state, aeroshuttleConversion);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, state, aeroshuttleConversion, restoration);
     }
 
     public enum BoatBayState { NONE, DAMAGED, RESTORED }
@@ -62,7 +72,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip withBoatBay(BoatBayState state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state, workshop, aeroshuttleConversion);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state, workshop, aeroshuttleConversion, restoration);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
@@ -71,7 +81,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip converted() {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay, workshop, aeroshuttleConversion);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay, workshop, aeroshuttleConversion, restoration);
     }
 
     public boolean quarters() { return mercenaryConversion || hullClass.quarters(); }
@@ -82,6 +92,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         // the deck is actually laid out inside.
         if (outline != null) aspect = outline.aspect();
         if (hullClass == null) throw new IllegalArgumentException("a hull class is required");
+        if (restoration == null) throw new IllegalArgumentException("restoration state is required");
         if (workshop == null) throw new IllegalArgumentException("workshop state is required");
         if (boatBay == null) throw new IllegalArgumentException("boat bay condition is required");
         if (role == null) throw new IllegalArgumentException("a hull role is required");
@@ -114,7 +125,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
 
     /** What this hull owes in rooms, and how much deck to lay them out on. */
     public DeckSizing.DeckPlan deckPlan() {
-        return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, mercenaryConversion, boatBay).withWorkshop(workshop).withBoats(ShipsBoats.carriedBy(this));
+        return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, mercenaryConversion, boatBay).withWorkshop(workshop).withRestoration(restoration).withBoats(ShipsBoats.carriedBy(this));
     }
 
     /**
