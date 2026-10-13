@@ -234,7 +234,7 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
                 var next = sequence.progress().phase();
                 if (next != phase) {
                     report.append("  phase=").append(next).append(" tick=").append(sim.getSimTickIndex()).append(" landed=").append(landed.size()).append('\n');
-                    frames.add(frame(context, fixture.id() + "-" + next.name().toLowerCase() + ".png", sim, "WATER UNDER SEAL / " + next, true));
+                    frames.add(frame(context, fixture.id() + "-" + next.name().toLowerCase() + "-" + sim.getSimTickIndex() + ".png", sim, "WATER UNDER SEAL / " + next, true));
                     if (next == WaterUnderSealProgress.Phase.CONSTRUCTION) { requestedBuild = false; buildAccepted = false; }
                     phase = next;
                 }
