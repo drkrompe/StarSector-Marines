@@ -164,6 +164,8 @@ import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
+import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -1274,6 +1276,13 @@ public final class BattleSetup {
         BattleSimulation sim = buildMap(map, vehiclePlacements,
                 Collections.emptyList(), parkedAircraft, seed).sim();
         sim.setSurface(surfaceOf(effectiveProfile));
+
+        if (checkpoint != null) {
+            // Relief ends when its finite assault is broken. Keep the first exploration find
+            // in the defended inner yard, where the company can reach it during that fight.
+            sim.setFieldSalvageSites(List.of(new SalvagePlacement.Site(SalvageResource.METALS,
+                    new SalvagePlacement.Cell(45, 36), 36, 35, 50, 38)));
+        }
 
         sim.addObjective(new EliminateFactionObjective(
                 Faction.MARINE, Faction.DEFENDER));
