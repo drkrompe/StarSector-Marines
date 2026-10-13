@@ -86,7 +86,7 @@ class FactionEquipmentCatalogTest {
                         new MarineArmory().ownedEquipmentTemplateIds()));
 
         assertTrue(failure.getMessage().contains(
-                "equipment-template:weapon.field-rifle:surplus"));
+                "equipment-template:weapon.field-rifle:milspec"));
     }
 
     @Test
