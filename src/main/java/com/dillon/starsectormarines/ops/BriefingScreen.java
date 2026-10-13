@@ -695,6 +695,10 @@ public class BriefingScreen implements Screen {
                     mission.defences != null ? mission.defences.name() : "mission default",
                     false, false,
                     () -> cycleDebugDefences(-1), () -> cycleDebugDefences(1)));
+            controls.add(conquestControl("debug-map-mech-drop", "Called mech lances",
+                    mission.mechDrop != null ? mission.mechDrop.name() : "mission default",
+                    false, false,
+                    () -> cycleDebugMechDrop(-1), () -> cycleDebugMechDrop(1)));
             controls.add(conquestControl("debug-map-landing", "Landing place",
                     mission.landing != null ? mission.landing.name() : "derived",
                     false, false,
@@ -853,6 +857,20 @@ public class BriefingScreen implements Screen {
         int current = mission.defences != null ? mission.defences.ordinal() + 1 : 0;
         int next = Math.floorMod(current + step, values.length + 1);
         Mission adjusted = DebugMissionDifficulty.atDefences(mission,
+                next == 0 ? null : values[next - 1]);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    /** Steps the DEBUG briefing through the mission's own mech-drop answer and the stated lance counts. */
+    private void cycleDebugMechDrop(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        DebugMechDrop[] values = DebugMechDrop.values();
+        int current = mission.mechDrop != null ? mission.mechDrop.ordinal() + 1 : 0;
+        int next = Math.floorMod(current + step, values.length + 1);
+        Mission adjusted = DebugMissionDifficulty.atMechDrop(mission,
                 next == 0 ? null : values[next - 1]);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
 import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.power.YardConstruction;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -2491,6 +2492,8 @@ public final class BattleSetup {
         sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
+        // What the mission let each side's commander call down; a mission that declared none leaves the inert service.
+        if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was
@@ -2562,9 +2565,13 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        sim.setAutonomousCommander(Faction.MARINE,
-                new ConquestCommand(tracks, map.lanes),
+        ConquestCommand marineCommand = new ConquestCommand(tracks, map.lanes);
+        sim.setAutonomousCommander(Faction.MARINE, marineCommand,
                 ConquestCommandDisclosure.INSTANCE);
+        // A DEBUG-stated call lands claimed by this commander, at the middle of the drop zone it came down on.
+        sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                SquadCommandClaim.mission(marineCommand.strategyId(), "commander-called mech lance"),
+                () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
         ConquestDefenderStartingForce startingForce =
                 ConquestDefenderStartingForce.capture(sim, tracks);
         ConquestDefenderCommand defenderCommand = new ConquestDefenderCommand(
