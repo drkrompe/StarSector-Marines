@@ -29,7 +29,7 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
         return frames;
     }
     private SnapshotArtifact frame(MarkupLoader loader, HeadlessUiRenderer renderer, int page, String port) {
-        var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 15000, () -> {}, () -> {}, () -> {});
+        var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 500, 5000, () -> {}, () -> {}, () -> {});
         try (var instance = loader.build(new Reactor(), CompanyPrologueScreen.ROOT, props)) {
             var document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);

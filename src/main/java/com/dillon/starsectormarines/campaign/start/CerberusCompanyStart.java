@@ -15,7 +15,7 @@ public final class CerberusCompanyStart implements Script {
     public static final String SHIP_KEY = "sm_cerberus_start_ship";
     private static final String DEPOT_KEY = "sm_preparation_depot";
     private static final String DEPOT_ISSUED = "sm_preparation_depot_issued";
-    public static final int STARTING_CREDITS = 15000;
+    public static final int STARTING_CREDITS = 500;
     public static final int TRAVEL_SUPPLIES = 25;
 
     @Override public void run() {
@@ -36,6 +36,7 @@ public final class CerberusCompanyStart implements Script {
         cargo.addSupplies(TRAVEL_SUPPLIES);
         cargo.addFuel(Math.min(40, cargo.getMaxFuel()));
         sector.getPersistentData().put(SHIP_KEY, ship.getId());
+        FoundingReserve.issue(sector.getPersistentData());
         CompanyPrologue.begin(sector.getPersistentData());
         PlanetAPI planet = destination();
         if (planet != null) {
@@ -89,7 +90,7 @@ public final class CerberusCompanyStart implements Script {
         if (!member.getId().equals(startingShipId())) return;
         var data = Global.getSector().getPersistentData();
         if (data.containsKey(DEPOT_ISSUED)) return;
-        data.put(DEPOT_KEY, new PreparationDepot(market.getId()));
+        data.put(DEPOT_KEY, new PreparationDepot(market.getId(), FoundingReserve.protectedStart(data)));
         data.put(DEPOT_ISSUED, true);
     }
     public static PlanetAPI destination() {
@@ -116,6 +117,8 @@ public final class CerberusCompanyStart implements Script {
         String destination = planet == null ? "an accessible planetary spaceport" : planet.getName();
         if (!MercenaryCompanyConversion.installed(startingShip()))
             return "First we need Mercenary Company Conversion: our permanent barracks and workshop, costing 5,000 credits. "
+                    + (CompanyYard.reservedCredits(startingShip()) > 0
+                    ? "I have kept that payment separate from our spending money. The yard draws it directly, even if the fleet account is empty. " : "")
                     + "Choose Return, dock at " + destination + ", then choose Marine operations in the planet menu. "
                     + "I will bring up the yard order for you. This is not Additional Berthing or an item in the standard Refit picker. "
                     + "We must finish the conversion before designating our command vessel; our prepaid preparation stores will wait in the planetary depot.";

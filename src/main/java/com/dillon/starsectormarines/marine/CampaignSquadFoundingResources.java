@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.start.WorkshopStores;
+import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ public final class CampaignSquadFoundingResources implements SquadFoundingResour
 
     @Override
     public int available(String commodityId) {
-        return WorkshopStores.current().available(commodityId);
+        return WorkshopStores.current(Purpose.SQUAD).available(commodityId);
     }
 
     @Override
@@ -29,6 +30,6 @@ public final class CampaignSquadFoundingResources implements SquadFoundingResour
         Map<String, Integer> bill = new LinkedHashMap<>();
         for (SquadFoundingCost.Line line : cost.lines())
             bill.merge(line.commodityId(), line.quantity(), Integer::sum);
-        return WorkshopStores.current().spend(bill);
+        return WorkshopStores.current(Purpose.SQUAD).spend(bill);
     }
 }

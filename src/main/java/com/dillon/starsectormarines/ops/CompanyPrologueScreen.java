@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
+import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.fs.starfarer.api.Global;
 
 import java.util.LinkedHashMap;
@@ -24,7 +25,8 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         var cargo = Global.getSector().getPlayerFleet().getCargo();
         return model(CompanyPrologue.page(Global.getSector().getPersistentData()),
                 planet == null ? null : planet.getName(), planet != null && "jangala".equals(planet.getId()),
-                cargo.getCrew(), (int) cargo.getCredits().get(), this::next, this::back, this::finish);
+                cargo.getCrew(), (int) cargo.getCredits().get(), CompanyYard.reservedCredits(CerberusCompanyStart.startingShip()),
+                this::next, this::back, this::finish);
     }
     private void next() {
         var saved = Global.getSector().getPersistentData();
@@ -48,7 +50,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
 
     /** Shared production projection for live UI and visual evidence. */
     public static Map<String, Object> model(int page, String destination, boolean jangala,
-                                            int crew, int credits, Runnable next, Runnable back, Runnable skip) {
+                                            int crew, int credits, int reserve, Runnable next, Runnable back, Runnable skip) {
         String port = destination == null ? "a working planetary spaceport" : destination;
         String[] titles = {"SECOND WIND", "WHAT WE LEFT BEHIND", "WHY THEY CALL YOU CAPTAIN",
                 "SOMEWHERE TO DOCK", "A WAY TO EARN", "THE FIRST STEP"};
@@ -70,7 +72,9 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         };
         String[] dialogue = {
                 "Drive's holding. Pressure's stable in the occupied compartments. I'd call that an arrival. Get your breath back, Captain. We made it out.",
-                "We sold what we could carry and pooled the rest. I've kept a travel reserve aboard and arranged a small prepaid consignment for the yard. "
+                reserve > 0 ? "We sold what we could carry and pooled the rest. I've put the conversion payment aside where we can't spend it. "
+                        + "The shuttle parts and our first squad's stores are prepaid too, each held for its own job. What's in the fleet account is all our spending money."
+                        : "We sold what we could carry and pooled the rest. I've kept a travel reserve aboard and arranged a small prepaid consignment for the yard. "
                         + "Enough to get started. Once it's gone, it's gone.",
                 "I've kept convoys supplied and crews paid. I can handle the stores and the paperwork. "
                         + "But you got these people off that rock. That's why they're calling you captain. Now we need somewhere to go.",
@@ -82,7 +86,8 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
                 "There are small surface security contracts. We hire trained marines, repair a shuttle, and give them somewhere to sleep. "
                         + "Our crew keeps the ship running. I'm not sending them down with mining tools and calling them soldiers.",
                 "Dock at " + port + " and choose Marine operations in the planet menu. I'll show you the Mercenary Company Conversion order: "
-                        + "5,000 credits for the yard work. Then we repair the first Hermes and muster a squad using our local prepaid stores. "
+                        + (reserve > 0 ? "5,000 credits, paid directly from the reserve. You won't need money in the fleet account. " : "5,000 credits for the yard work. ")
+                        + "Then we repair the first Hermes and muster a squad using our local prepaid stores. "
                         + "One working boat. One proper squad. We'll start there."
         };
         int index = Math.max(0, Math.min(CompanyPrologue.PAGE_COUNT - 1, page));
@@ -90,7 +95,9 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("title", titles[index]); props.put("narrative", narrative[index]);
         props.put("dialogue", dialogue[index]); props.put("portrait", CompanyManagementGuide.portrait());
         props.put("image", IMAGE); props.put("page", (index + 1) + " / " + CompanyPrologue.PAGE_COUNT);
-        props.put("manifest", crew + " crew aboard  /  " + String.format(Locale.ROOT, "%,d", credits) + " credits");
+        props.put("manifest", crew + " crew aboard  /  " + String.format(Locale.ROOT, "%,d", credits) + " spendable credits");
+        props.put("reserve", reserve > 0 ? String.format(Locale.ROOT, "%,d", reserve) + " credits held for the conversion / first boat and squad stores prepaid"
+                : "Conversion payment due from fleet funds / preparation stores prepaid");
         props.put("destination", destination == null ? "Find a working planetary spaceport" : "Reach " + destination);
         props.put("nextLabel", index < CompanyPrologue.PAGE_COUNT - 1 ? "Continue"
                 : destination == null ? "Take command" : "Set course for " + destination);
