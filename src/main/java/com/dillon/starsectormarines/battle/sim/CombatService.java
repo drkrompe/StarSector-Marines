@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -205,6 +206,23 @@ public final class CombatService {
         int stored = entityWorld.getInt(id, components.COMBAT,
                 BattleComponents.COMBAT_LAST_DAMAGED_TICK);
         return stored == 0 ? Integer.MAX_VALUE : simTick - (stored - 1);
+    }
+
+    /** Sim-seconds {@code id} has stood dug-in-eligible, clamped at the dig-in delay; zero for a non-combatant. */
+    public float digInSeconds(long id) {
+        return has(id) ? entityWorld.getFloat(id, components.COMBAT,
+                BattleComponents.COMBAT_DIG_IN_SECONDS) : 0f;
+    }
+
+    /** Written by {@code DigInSystem} only. No-op for a non-combatant. */
+    public void setDigInSeconds(long id, float seconds) {
+        if (!has(id)) return;
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_DIG_IN_SECONDS, seconds);
+    }
+
+    /** Whether {@code id} is dug in on a fighting position right now; false for a non-combatant or a corpse. */
+    public boolean isDugIn(long id) {
+        return DigInSystem.isDugIn(digInSeconds(id));
     }
 
     /** Cell x the most recent incoming round came from. Meaningless at zero pressure. */
