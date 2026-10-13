@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -10,6 +12,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Supplier;
 
 /** Retained ship selection strip and contextual commands, independent of piloting. */
@@ -46,6 +49,15 @@ final class BattleShipCommandOverlay {
     }
 
     void heroBottomInset(float height) { heroBottomInset = Math.max(0f, height); }
+
+    static float heroBottomInset(PositionAPI position, Selection selection, boolean selectedMech) {
+        if (position == null) return 132f;
+        if (selection != null && (selection.hasSquadSelection() || selection.hasVehicleSelection())) {
+            UiViewport plate = BattleDirectControlOverlay.entryViewport(position, selectedMech);
+            return plate.screenY() + plate.height() - position.getY();
+        }
+        return BattleLayout.PAD + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP + TaskForceStatusPanel.PANEL_H;
+    }
 
     void bottomOffset(float height) { bottomOffset = Math.max(0f, height); }
 
@@ -86,6 +98,13 @@ final class BattleShipCommandOverlay {
     void render(float alpha) {
         if (state.visible() && heroDocument != null) heroDocument.render(heroViewport, alpha);
         if (state.selected() && actionDocument != null) actionDocument.render(actionViewport, alpha);
+    }
+
+    List<BattleHudSurface> surfaces() {
+        var result = new ArrayList<BattleHudSurface>();
+        if (state.visible() && heroDocument != null && heroViewport != null) result.add(new BattleHudSurface(heroDocument, heroViewport));
+        if (state.selected() && actionDocument != null && actionViewport != null) result.add(new BattleHudSurface(actionDocument, actionViewport));
+        return List.copyOf(result);
     }
     void processInput(List<InputEventAPI> events) {
         if (events == null) return;

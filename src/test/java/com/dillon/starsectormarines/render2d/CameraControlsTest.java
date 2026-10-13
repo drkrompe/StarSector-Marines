@@ -10,6 +10,45 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CameraControlsTest {
+    @Test
+    void releaseClaimedByChromeStillEndsAnExistingCameraDrag() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true);
+        controls.process(List.of(event(Kind.RIGHT_DOWN, 50, 50), event(Kind.MOVE, 60, 50)),
+                camera, CameraControls.PointerSpace.SCREEN, (x, y) -> {});
+        InputEventAPI release = event(Kind.RIGHT_UP, 100, 50);
+        release.consume();
+        controls.process(List.of(release, event(Kind.MOVE, 120, 50)), camera,
+                CameraControls.PointerSpace.SCREEN, (x, y) -> {});
+        assertEquals(47.5f, camera.panCellX(), 0.001f);
+    }
+
+    @Test
+    void wheelOverChromeDoesNotZoomTheWorld() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true);
+        float size = camera.cellPxSize();
+        controls.process(List.of(event(Kind.SCROLL, 100, 50)), camera, CameraControls.PointerSpace.SCREEN,
+                (x, y) -> {}, (x, y) -> x >= 100);
+        assertEquals(size, camera.cellPxSize());
+    }
+    @Test
+    void chromeRefusesGestureStartButWorldDragCanFinishAcrossChrome() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true);
+        controls.process(List.of(event(Kind.RIGHT_DOWN, 100, 50), event(Kind.MOVE, 120, 50),
+                        event(Kind.RIGHT_UP, 120, 50)), camera, CameraControls.PointerSpace.SCREEN,
+                (x, y) -> {}, (x, y) -> x >= 100);
+        assertEquals(50f, camera.panCellX());
+        controls.process(List.of(event(Kind.RIGHT_DOWN, 50, 50), event(Kind.MOVE, 110, 50),
+                        event(Kind.RIGHT_UP, 110, 50)), camera, CameraControls.PointerSpace.SCREEN,
+                (x, y) -> {}, (x, y) -> x >= 100);
+        assertEquals(35f, camera.panCellX(), 0.001f);
+        controls.process(List.of(event(Kind.MOVE, 130, 50)), camera, CameraControls.PointerSpace.SCREEN,
+                (x, y) -> {}, (x, y) -> x >= 100);
+        assertEquals(35f, camera.panCellX(), 0.001f);
+    }
+
 
     @Test
     void stationaryRightGestureClicksWithoutPanning() {
@@ -76,6 +115,8 @@ class CameraControlsTest {
                     case "isRMBDownEvent" -> kind == Kind.RIGHT_DOWN;
                     case "isRMBUpEvent" -> kind == Kind.RIGHT_UP;
                     case "isMouseMoveEvent" -> kind == Kind.MOVE;
+                    case "isMouseScrollEvent" -> kind == Kind.SCROLL;
+                    case "getEventValue" -> kind == Kind.SCROLL ? 120 : 0;
                     case "getX" -> x;
                     case "getY" -> y;
                     case "isConsumed" -> consumed[0];
@@ -104,6 +145,7 @@ class CameraControlsTest {
     private enum Kind {
         RIGHT_DOWN,
         RIGHT_UP,
-        MOVE
+        MOVE,
+        SCROLL
     }
 }

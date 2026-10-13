@@ -82,19 +82,44 @@ public final class WarshipDebugPanel implements HudPanel {
         return sim.warships().ships().get(0);
     }
 
+    private float bottomFloor() {
+        BattleLayout layout = ctx.getLayout();
+        float width = Math.min(640f, layout.gridW - 24f);
+        return ctx.bottomHudTop(layout.gridX + (layout.gridW - width) * .5f, width);
+    }
+
+    private float requiredHeight() {
+        Warship ship = ship();
+        if (ship == null || ctx.getLayout() == null) return 0f;
+        font.ensureMetricsLoaded();
+        float width = Math.min(640f, ctx.getLayout().gridW - 24f) - 2f * PAD;
+        Tender tender = DebugTender.of(ctx.getSim(), ship);
+        String line = tender != null ? tender.statusLine() + "  option " + BuildOption.ALL.get(tenderOption).label()
+                : DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
+        String hint = tender != null ? DebugTender.HINT
+                : "F5 low pass to cursor   F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
+        return font.measureWrappedHeight(line, width) + font.measureWrappedHeight(hint, width) + 2f * PAD;
+    }
     @Override public void update(float dt) { }
 
     @Override
     public boolean isVisible() {
-        return DevConfig.DEBUG_WARSHIP_PICKER && ship() != null && ctx.getLayout() != null;
+        return DevConfig.DEBUG_WARSHIP_PICKER && ship() != null && ctx.getLayout() != null
+                && DebugHudLayout.shipTop(ctx) - requiredHeight() >= bottomFloor() + BattleLayout.CONTROLS_GAP;
     }
 
     @Override
     public void handleInput(List<InputEventAPI> events) {
-        if (events == null) return;
+        if (events == null || !isVisible()) return;
         Warship ship = ship();
         for (InputEventAPI e : events) {
-            if (ship == null || e.isConsumed() || !e.isKeyDownEvent()) continue;
+            if (ship == null || e.isConsumed()) continue;
+            if ((e.isLMBDownEvent() || e.isLMBUpEvent() || e.isRMBDownEvent()
+                    || e.isRMBUpEvent() || e.isMouseScrollEvent()) && blocksWorldPointer(e.getX(), e.getY())) {
+                e.consume();
+                continue;
+            }
+            if (!e.isKeyDownEvent()) continue;
             Tender tender = DebugTender.of(ctx.getSim(), ship);
             if (tender != null) {
                 if (handleTenderKey(tender, e.getEventValue())) e.consume();
@@ -189,18 +214,18 @@ public final class WarshipDebugPanel implements HudPanel {
     public void render(float alphaMult) {
         Warship ship = ship();
         BattleLayout layout = ctx.getLayout();
-        if (ship == null || layout == null) return;
+        if (ship == null || layout == null || !isVisible()) return;
         font.ensureLoaded();
         Tender tender = DebugTender.of(ctx.getSim(), ship);
         String line = tender != null ? tender.statusLine() + "  option " + BuildOption.ALL.get(tenderOption).label()
                 : DebugWarship.statusLine(ship) + "  missiles " + ship.missilePreset();
         String hint = tender != null ? DebugTender.HINT
                 : "F5 low pass to cursor   F6 fire at cursor   F7 hold fire   F8 flux on/off   F9 missile preset   F10 go to cursor   F11 add to patrol route";
-        float w = Math.max(font.measureWidth(line), font.measureWidth(hint)) + 2f * PAD;
-        float lineH = font.getLineHeight();
-        float h = 2f * lineH + 2f * PAD;
-        float x = layout.gridX + BattleLayout.PAD;
-        float top = layout.gridY + layout.gridH - BattleLayout.PAD;
+        float w = Math.min(640f, layout.gridW - 24f);
+        float lineHeight = font.measureWrappedHeight(line, w - 2f * PAD);
+        float h = lineHeight + font.measureWrappedHeight(hint, w - 2f * PAD) + 2f * PAD;
+        float x = layout.gridX + (layout.gridW - w) * .5f;
+        float top = DebugHudLayout.shipTop(ctx);
         float y = top - h;
 
         glDisable(GL_TEXTURE_2D);
@@ -214,12 +239,18 @@ public final class WarshipDebugPanel implements HudPanel {
         glVertex2f(x, y + h);
         glEnd();
 
-        font.drawString(line, x + PAD, top - PAD, TEXT, alphaMult);
-        font.drawString(hint, x + PAD, top - PAD - lineH, HINT, alphaMult);
+        font.drawStringWrapped(line, x + PAD, top - PAD, w - 2f * PAD, TEXT, alphaMult);
+        font.drawStringWrapped(hint, x + PAD, top - PAD - lineHeight, w - 2f * PAD, HINT, alphaMult);
     }
 
-    @Override
-    public boolean blocksWorldPointer(float px, float py) {
-        return false;
+    static BattleCommsPanel.Rect bounds(BattleUiContext ctx, float height) {
+        BattleLayout layout = ctx.getLayout();
+        float width = Math.min(640f, layout.gridW - 24f);
+        return new BattleCommsPanel.Rect(layout.gridX + (layout.gridW - width) * .5f,
+                DebugHudLayout.shipTop(ctx) - height, width, height);
+    }
+
+    @Override public boolean blocksWorldPointer(float px, float py) {
+        return isVisible() && bounds(ctx, requiredHeight()).contains(px, py);
     }
 }
