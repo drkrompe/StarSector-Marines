@@ -3164,7 +3164,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         };
     }
 
-    private static CommodityPresentation snapshotCommodities() {
+    static CommodityPresentation snapshotCommodities() {
         return new CommodityPresentation() {
             @Override public String commodityName(String commodityId) {
                 return switch (commodityId) {
@@ -3172,6 +3172,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     case Commodities.HAND_WEAPONS -> "Heavy Armaments";
                     case Commodities.HEAVY_MACHINERY -> "Heavy Machinery";
                     case Commodities.FOOD -> "Food";
+                    case Commodities.METALS -> "Metals";
+                    case Commodities.RARE_METALS -> "Transplutonics";
                     case Commodities.MARINES -> "Marines";
                     default -> CommodityPresentation.super.commodityName(commodityId);
                 };
@@ -3184,6 +3186,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     case Commodities.HEAVY_MACHINERY ->
                             "graphics/icons/cargo/heavymachinery.png";
                     case Commodities.FOOD -> "graphics/icons/cargo/food.png";
+                    case Commodities.METALS -> "graphics/icons/cargo/materials.png";
+                    case Commodities.RARE_METALS -> "graphics/icons/cargo/raremetals.png";
                     case Commodities.MARINES -> "graphics/icons/cargo/marine.png";
                     default -> "";
                 };
