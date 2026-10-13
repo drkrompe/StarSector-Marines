@@ -11,7 +11,7 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `ship-condition-survey.md` | Implemented; live acceptance open | Engineering tab and room survey, sealed mess with morale recovery, spare billets, mission-two Mech Lab and circuit repairs. |
 | `machine-shop-restoration.md` | Implemented; live acceptance open | Clear the fixed workshop, restore reclamation, then install efficient fabrication tools. |
 | `cerberus-bay-restoration.md` | Implemented; live acceptance open | Reserved damaged second bay; optional paid restoration after Hold Until Relieved. |
-| `cerberus-company-start.md` | Implemented; live acceptance open | Single Cerberus, planetary conversion, finite prepaid depot and existing Castle preparation. |
+| `cerberus-company-start.md` | Implemented; live acceptance open | Second Wind origin prologue, single Cerberus, planetary conversion, finite prepaid depot and Castle preparation. |
 | `first-mission-preparation.md` | Implemented; live acceptance open | Ship and combined stores preflight, paid lift, Mira, full squad and first Jangala story handoff. |
 | `boat-condition-and-repairs.md` | Planned | Persist surviving damage, price explicit repairs and teach the first damaged return. |
 | `barracks-turnaround.md` | In progress | Alpha pickup: explicit survivor consolidation, replenishment, preparation navigation and castellan guidance; WIA keep billets. |

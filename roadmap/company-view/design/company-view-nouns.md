@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Engineering navigation, mess welfare restoration and persistent unread room opportunities.
+Updated: 2026-10-12 -- Engineering and mess welfare restoration; protected founding stores and Barracks-owned equipment routes and notices.
 
 ## Purpose
 
@@ -12,10 +12,10 @@ Company view makes the player's force legible as an organization wherever a
 decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
-player-order layer. Barracks, Fleet Armory, Mech Lab and Boat Deck are deliberate
-authoring seams. Barracks organizes officer commands and saved squad profiles,
-and issues explicit replenishment orders. Fleet Armory authors detailed equipment
-and founds formations. Mech Lab and Boat Deck refit their persistent machines.
+player-order layer. Barracks, Mech Lab and Boat Deck are deliberate authoring
+seams. Barracks organizes officer commands and saved squad profiles, and issues
+explicit replenishment orders. Its Equipment workspace retains Fleet Armory
+authoring and formation founding. Mech Lab and Boat Deck refit their persistent machines.
 Each surface acts through the corresponding campaign authority.
 
 This domain owns the shared language and presentation shape of the company. It
@@ -129,10 +129,10 @@ comes from the owning feature; money and docking requirements never turn unread
 news into invisible news. Existing saves discover currently available unread
 opportunities once. The retained shell presents these facts without owning rewards.
 
-The retained Company -> Squad -> Fire Team hierarchy is shared across two rooms
-with different intent. Barracks opens on officer commands and an independent
+Barracks is the single troop-management entry point. Its Equipment workspace
+retains the Company -> Squad -> Fire Team editing hierarchy. Barracks opens on officer commands and an independent
 acting-NCO group, with squad selection for bulk orders. Inspecting one squad
-visits its assigned quarters and muster. Fleet Armory is the detailed
+visits its assigned quarters and muster. Equipment opens the existing Fleet Armory
 inspect/edit path for equipment definitions, exact billet comparison, and issue.
 Its selectable company and squad cards retain readiness, recovery, and reinforcement
 in formation context. A reinforcement control is a secondary card action; selecting
@@ -162,7 +162,13 @@ command display distinguishes current squads from incoming assignments and shows
 overflow against the rank cap before Apply. Unassigned carries an explicit
 operation-commander or acting-NCO fallback rather than a fictional officer portrait or capacity.
 
-Fleet Armory is the only Armory route. The former Armory Administration shell,
+The Armory has no separate top-level tab. Barracks owns its Equipment entry,
+and Equip Squad opens the selected squad directly. Returning preserves the
+Barracks selection and drill-down. Equipment news marks both the Barracks tab
+and its Equipment entry; entering Barracks alone does not acknowledge the lesson.
+The existing editor and inventory transactions remain authoritative.
+
+Fleet Armory is the only detailed equipment editor. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,
 and embedded Mech Lab were retired rather than retained as duplicate UI. Personnel
 reinforcement now lives on formation cards. Mech Lab has returned as its own retained
@@ -258,11 +264,15 @@ fallback without choosing an operation commander in advance.
 ## Squad equipment doctrines
 
 **A Proper Issue** is Castle's optional first squad-refit lesson after the story
-victory in Hold Until Relieved. The debrief and HQ point to the Armory; its
+victory in Hold Until Relieved. The debrief opens the equipment lesson directly and HQ points to Barracks; its
 opening conversation and gallery resume action keep the offer discoverable.
-Accepting Wayline's consignment permanently learns Milspec Stalwart and Lancer
-patterns and the Janus scout suit, plus two reusable weapon plans. Acceptance
-never changes a soldier's kit or creates cargo. Existing collections are retained.
+Wayline offers one free technology transfer: Steady Line permanently teaches
+Milspec Stalwart; Forward Screen teaches Milspec Lancer and Janus scout suits.
+Acceptance grants reusable plan intent for both paths, but only the chosen path's
+technology. The other remains obtainable through open-market specs or mission
+rewards. Both featured Milspec specs circulate in the Common access band; military
+grade and campaign acquisition tier are distinct. Existing learned collections,
+including previously claimed two-path bundles, are never revoked.
 
 The lesson presents exactly two complete equipment paths: **Steady Line** pairs
 three Milspec automatics with a line-holding armor plan; **Forward Screen** pairs
@@ -275,14 +285,25 @@ All learned infantry equipment is freely fitted and swapped by the Machine Shop.
 No supplies, armaments, machinery, or credits are charged for fitting; technology
 acquisition remains the progression gate. Workshop restoration does not gate fitting.
 
-After Relief, the debrief prominently announces the available equipment upgrade
-and opens Castle's lesson directly. The notice remains on later non-debug
-results while the lesson is unfinished. Armory returns to that debrief without
-settling or forfeiting any pending salvage; ordinary settlement actions retain
-their existing ownership.
+After Relief, Castle's portrait reward prompt appears over the debrief before its
+ordinary controls accept input. It leads with the free technology, shows the actual
+Stalwart/Lancer/Janus art, and offers one compact **Choose Free Technology**
+action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
+The prompt does not learn technology. Its primary action opens the full comparison;
+a company with one line squad has that squad selected automatically.
 
-The player accepts the patterns, selects an actual line squad, chooses one path,
-and reviews twelve clickable equipment squares in three fire-team columns of
+Accepting or deferring the handoff acknowledges this presented outcome, so returning
+from the Armory does not immediately repeat it. An unfinished lesson can be prompted
+on the next non-debug debrief; completion ends the reminders. An accepted transfer
+instead offers **Fit Free Equipment**. The persistent debrief/HQ notice remains a
+resume route. Narration waits until the reward prompt is dismissed or the player
+returns. Pending salvage remains untouched across this handoff.
+
+Reward, fit, and navigation actions use compact buttons in action rows, never
+full-width acceptance bars. The two equipment choices remain comparison cards.
+
+The player selects an actual line squad, compares either path without learning it,
+then explicitly accepts one technology transfer. The review shows twelve clickable equipment squares in three fire-team columns of
 four billets, alongside current and proposed equipment. The grid uses the Barracks'
 current-equipment icons, with wounded and vacant slots identified. Selecting a
 square displays current and proposed weapon, armor and
@@ -992,9 +1013,12 @@ A tagged or mission-grouped squad may assemble over several craft or passes. Unt
 present, the form-up gate suspends execution of its advancing assignment while
 retaining the authoritative command directive and still allowing self-defense.
 A timeout prevents a lost lift or split landing from deadlocking the mission.
+The gate holds a squad against its commander only; a player's order sends a
+partial squad forward at once.
 
 A campaign marine who lands outside squad cohesion of a squad that is no longer
-forming up is **rejoining**. That is the case the timeout leaves behind, and it
+held at its landing zone — the timeout expired, or the player sent it on — is
+**rejoining**. That is the case the timeout leaves behind, and it
 is equally a second lift arriving after the squad stepped off or a replacement
 wave joining a squad already in contact. A rejoining marine closes on its squad,
 returns fire at whatever is already within its own reach, and initiates nothing:
@@ -1072,9 +1096,10 @@ request, then closes the HQ rather than routing through those screens itself.
 Company surfaces are places aboard the player's flagship rather than abstract
 application modules. Company HQ is the bridge command station and the nerve center
 for the whole organization. A persistent top shell exposes `RETURN`, `HQ`, `BARRACKS`,
-`ARMORY`, and `MECH LAB`, marks the occupied room, and carries the precise location context at the
-right. `RETURN` closes the shipboard UI; room routes move directly between top-level
-surfaces. Armory company, squad, and fire-team breadcrumbs remain page-specific below
+`MECH LAB`, and `BOATS`, marks the occupied room, and carries the precise location context at the
+right. `RETURN` closes top-level rooms; within Equipment it returns to the caller.
+Room routes move directly between top-level surfaces. Equipment remains selected
+under Barracks. Company, squad, and fire-team breadcrumbs remain page-specific below
 that shell, while the bottom of every room is reserved for its own content. Future
 Briefing Room, medical, logistics, or fabrication surfaces should join the
 same spatial navigation vocabulary only when their real destination exists. A screen
@@ -1148,24 +1173,41 @@ loses an opportunity. Responding to an obligation follows the same deployment
 route as its campaign event notice. Long lists state hidden counts, and missing
 derived inputs are explained rather than silently collapsed.
 
-The HQ introduces no persisted state and no second company hierarchy. Opening its
-Armory transition first shows the owned-company collection as a responsive grid of
-literal selectable portrait cards. Selecting one enters a company-specific squad
-gallery; selecting a squad then exposes its three fire teams, named-marine viewer,
-two squad doctrine slots, and one exact issue action. A breadcrumb keeps the
-completed company and squad levels directly reachable while drilling down. A
-company or squad card is only a presentation container over canonical roster
-authority; neither creates parallel organization. Until a
-multi-company campaign authority exists, the first grid contains exactly the one real
-campaign roster rather than fixture companies. The HQ roster area remains the host
-that the formation, whereabouts, and contract-board stories will expand.
+The HQ introduces no persisted state and no second company hierarchy. Troop
+management routes into Barracks. Its Equipment entry opens the squad equipment
+gallery; Equip Squad bypasses the gallery for the inspected squad's three fire
+teams, named-marine viewer, two squad doctrine slots, and exact issue action.
+Breadcrumbs retain editor navigation, while the Barracks tab returns to the
+personnel workspace. These containers project the canonical roster; none creates
+parallel organization or another inventory economy.
 
 ## Cerberus founding start and planetary stores
 
 The optional Cerberus company start is selected through vanilla character creation.
-It gives the player one unconverted Cerberus, 15,000 credits and travel reserves;
+It gives the player one unconverted Cerberus, 500 spendable credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
+A new selection first opens **Second Wind**, a skippable illustrated bridge prologue
+with Castle's portrait and readable dialogue. The crew escaped an independent mining
+colony after its operator withdrew. They restored a grounded Cerberus; the player
+earned command by organizing the escape, while Castle supplied port and convoy
+logistics experience. Earlier player biography remains open. Pooled savings and
+Castle's finite prepaid consignment explain the starting means. Castle holds the
+5,000-credit conversion payment separately from the fleet account, usable only for
+the original ship's yard conversion. Spending the fleet account down to zero cannot
+prevent that order. The reserve is consumed once, never refunded as cash or renewed
+on load; existing campaigns keep their original funds and payment rules. Civilian crew keep
+the ship running; trained Marines must still be mustered through preparation.
+
+Jangala is a practical first berth, with an old yard contact and regular traffic,
+not a promise of Hegemony protection. The prologue uses the actual accessible
+destination and adjusts its copy if Jangala is unavailable. Its final action plots
+that course and returns to the campaign. The Intel log retains the origin and
+next real preparation instruction. Page progress and explicit completion or skip
+survive saves; ordinary starts and pre-prologue saves do not opt in on load.
+The opening grants no resources, repairs, conversion, recruits or mission progress.
+Its bridge illustration is presentation, not a new hull-condition authority.
+
 A reviewed 5,000-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
 preparation preflight and resumes lift, Mira, squad founding and assignment.
@@ -1182,7 +1224,12 @@ squad-founding bill. It is issued once, saved independently of cargo, and never
 loaded wholesale into the small ship's hold. `WorkshopStores` combines cargo with
 that depot only while interacting with its accessible working planetary port,
 checks the whole order, then consumes local stock before cargo. The existing
-fabrication and squad-founding adapters share that authority. It does not replenish
+fabrication and squad-founding adapters share that authority. New Second Wind starts
+earmark the first Hermes and first squad bills separately: boat jobs cannot consume
+the squad's stores, and other workshop jobs cannot consume either allocation.
+Preparation preflight can inspect both allocations but cannot spend them. Legacy
+depots keep their existing remaining stock and unrestricted spending policy.
+The depot does not replenish
 on reload or on another conversion; unused stock remains at its planet. Ordinary
 starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
 stores rather than claiming every counted item is in the hold.
@@ -1218,6 +1265,10 @@ Delivery ends with Castle directing the player to the real PLATING and DRIVE con
 no additional purchase is required. The conversation overlays the room and owns input
 while open. Later briefings freeze the purchased boats and their actual fittings through
 the shared campaign lift authority. Replayed Depot Clearance never unlocks the offer.
+
+The ship view offers a Machine Shop / Fit Squads control that opens the Armory
+fitting workspace and returns to the ship. Free fitting remains available regardless
+of workshop restoration; repairing production machinery affects boat and mech jobs.
 
 The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,

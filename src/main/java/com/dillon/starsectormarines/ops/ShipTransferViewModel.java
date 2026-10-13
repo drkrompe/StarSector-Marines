@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
@@ -135,7 +136,7 @@ public final class ShipTransferViewModel {
                 ShipTransferViewModel::designate,
                 CompanyMeans.ofPlayer());
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
-        preparation(script == null ? null : script.roster(), new CampaignFabricationResources());
+        preparation(script == null ? null : script.roster(), CampaignFabricationResources.forPreparation());
     }
 
     public ShipTransferViewModel(Reactor reactor, Supplier<List<Candidate>> fleet,
@@ -469,7 +470,9 @@ public final class ShipTransferViewModel {
         revision.get();
         Candidate ship = selected();
         if (ship == null || isHome(ship)) return "";
-        if (CerberusCompanyStart.conversionRequired()) return "Install Mercenary Company Conversion at a planetary port first (5,000 credits).";
+        if (CerberusCompanyStart.conversionRequired()) return CompanyYard.reservedCredits(CerberusCompanyStart.startingShip()) > 0
+                ? "Install Mercenary Company Conversion at a planetary port first (Castle's reserved payment)."
+                : "Install Mercenary Company Conversion at a planetary port first (5,000 credits).";
         if (preparationBlocked()) return "First-mission stores or boat berth missing. Castle's lesson shows the complete bill.";
         TransferCost price = costOf(ship);
         if (price.free()) {

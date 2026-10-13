@@ -63,15 +63,17 @@ public final class AirThreatPicture {
     private final int armedCraft;
     private final int ownAir;
     private final List<InboundDrop> drops;
+    private final ShipClass shipClass;
 
-    private AirThreatPicture(float declared, int hostileShips, float shipWeight, int armedCraft, int ownAir,
-                             List<InboundDrop> drops) {
+    AirThreatPicture(float declared, int hostileShips, float shipWeight, int armedCraft, int ownAir,
+                     List<InboundDrop> drops, ShipClass shipClass) {
         this.declared = declared;
         this.hostileShips = hostileShips;
         this.shipWeight = shipWeight;
         this.armedCraft = armedCraft;
         this.ownAir = ownAir;
         this.drops = Collections.unmodifiableList(drops);
+        this.shipClass = shipClass;
     }
 
     /** What threatens {@code ship} now. Reads the sim and the ships; changes neither. */
@@ -106,7 +108,7 @@ public final class AirThreatPicture {
             InboundDrop drop = dropOf(world, id, mission, faction);
             if (drop != null) drops.add(drop);
         }
-        return new AirThreatPicture(ship.declaredAirThreat(), hostile, weight, armed, own, drops);
+        return new AirThreatPicture(ship.declaredAirThreat(), hostile, weight, armed, own, drops, ship.shipClass());
     }
 
     private static InboundDrop dropOf(World world, long id, ShuttleMission mission, Faction faction) {
@@ -131,9 +133,12 @@ public final class AirThreatPicture {
         return new InboundDrop(id, faction, mission.lzX, mission.lzY, eta, mission.marinesRemaining, mech, mission.state);
     }
 
-    /** The weighted threat to the ship: declared threat plus hostile ships plus a capped share for armed craft. */
+    /**
+     * The weighted threat to the ship: declared threat plus hostile ships plus a capped share for armed craft,
+     * each scaled by the ship's class ({@link AirThreatWeights}).
+     */
     public float score() {
-        return declared + shipWeight + Math.min(ARMED_CRAFT_CAP, armedCraft * ARMED_CRAFT_WEIGHT);
+        return AirThreatWeights.score(shipClass, declared, shipWeight, armedCraft);
     }
 
     public int hostileShips() {

@@ -38,18 +38,28 @@ public final class CompanyYard {
         return refusal(fleet.getFleetData().getMembersListCopy().contains(member),
                 MercenaryCompanyConversion.compatible(member), member != null && member.isMothballed(),
                 MercenaryCompanyConversion.installed(member), accessible(market) && market == dockedMarket(),
-                fleet.getCargo().getCredits().get());
+                Math.max(0, fleet.getCargo().getCredits().get()) + reservedCredits(member));
+    }
+    public static int reservedCredits(FleetMemberAPI member) {
+        return member == null || Global.getSector() == null || MercenaryCompanyConversion.installed(member)
+                ? 0 : FoundingReserve.available(Global.getSector().getPersistentData(), member.getId());
+    }
+    public static int cashCost(FleetMemberAPI member) {
+        return MercenaryCompanyConversion.CREDIT_COST - reservedCredits(member);
     }
     public static String install(FleetMemberAPI member, MarketAPI market) {
         String refused = refusal(member, market);
         if (refused != null) return refused;
+        int reserved = reservedCredits(member);
         ShipVariantAPI refit = member.getVariant().clone();
         refit.setSource(VariantSource.REFIT);
         refit.setHullVariantId(UUID.randomUUID().toString());
         refit.addPermaMod(MercenaryCompanyConversion.ID);
         member.setVariant(refit, false, true);
         member.updateStats();
-        Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(MercenaryCompanyConversion.CREDIT_COST);
+        FoundingReserve.consume(Global.getSector().getPersistentData(), member.getId(), reserved);
+        int cash = MercenaryCompanyConversion.CREDIT_COST - reserved;
+        if (cash > 0) Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(cash);
         Global.getSector().getPlayerFleet().getFleetData().setSyncNeeded();
         CerberusCompanyStart.establishDepot(member, market);
         return null;

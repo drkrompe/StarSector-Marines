@@ -513,18 +513,21 @@ it does not have. The shield (E) is the warship's.
   not repeat. The drone swarm has no order to "go to the cursor", and one is not invented here:
   the defence drones keep the screening behaviour they already have.
 - **Number keys select what to build.** They are the tender's real option list in order (today
-  one: [1] the vulcan turret); a slot with no option behind it is refused and shown as
+  four: [1] vulcan, [2] arbalest, [3] dual flak, [4] heavy mortar); a slot with no option behind it is refused and shown as
   "soon". Choosing is not a handback and changes no running build.
 - **X cancels every unfinished site**; each returns its charge on a metered tender.
 - **A piloted tender does not station itself at a site**, because the hands are what move it.
   A laid site waits until the pilot has flown within 16 cells of it ("fly closer"), then the
   builders launch. If the pilot flies farther than 26 cells from a working site the builders
   go home and the work stops ("out of range"), as a threat stands it down. Everything else
-  about the work is the tender's: the clock, the crew, the threat stand-down.
+  about the work is the tender's: the clock, the crew, the threat stand-down (a known hostile
+  near reads STOOD DOWN; a builder hit reads UNDER FIRE until the site has been quiet for a few seconds).
 - **Handback** is the warship's, plus the tender's own: the hull returns to its prior director,
   station or route; every site the pilot laid is withdrawn (a hand order does not outlive the
   hand; builders already out fly home); and the defence drones return to whatever they were
-  told before entry. Death of the hull, departure, battle end, Tab and Escape release it.
+  told before entry. A tender whose hull carries an ATTACK or DEFEND stance builds for itself
+  while unpiloted; the pilot suspends that choosing, and handback resumes it on its next pass.
+  Death of the hull, departure, battle end, Tab and Escape release it.
 
 The equipment strip shows hull above armour, the hull's flux in the heat row, and read-only
 cards: helm; the selected option with the other slots marked "soon"; the site card (the

@@ -133,6 +133,7 @@ public final class ShipViewScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("equipmentAction", equipmentAction(context));
         props.put("workshop", workshop.row());
         props.put("survey", survey.row());
         props.put("roomTitle", "ENGINEERING  //  SHIP CONDITION");
@@ -147,6 +148,10 @@ public final class ShipViewScreen implements Screen {
                 () -> context.goTo(ScreenId.MECH_LAB),
                 () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
         return props;
+    }
+
+    static Runnable equipmentAction(MarineOpsContext context) {
+        return () -> context.openFleetArmoryWorkspaceFrom(ScreenId.SHIP_VIEW);
     }
 
     private void inspectWorkshop() {

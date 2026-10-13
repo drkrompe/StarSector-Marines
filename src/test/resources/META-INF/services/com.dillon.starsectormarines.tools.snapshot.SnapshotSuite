@@ -89,7 +89,11 @@ com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.SecondhandWingsSnapshotSuite
 com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.FirstRefitSnapshotSuite
+com.dillon.starsectormarines.ops.CompanyPrologueSnapshotSuite
 com.dillon.starsectormarines.ops.SecondSquadSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderBuildSceneSnapshotSuite
+com.dillon.starsectormarines.battle.tender.TenderStanceSceneSnapshotSuite
+com.dillon.starsectormarines.battle.tender.TenderSortieSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderPilotSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderPointDefenceSceneSnapshotSuite
+com.dillon.starsectormarines.ops.BarracksEquipmentSnapshotSuite

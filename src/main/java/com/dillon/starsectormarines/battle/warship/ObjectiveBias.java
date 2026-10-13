@@ -27,7 +27,7 @@ import java.util.Set;
  * must be held. The result is a short list of points; {@link #proximity}
  * turns it into a 0 to 1 weight for a candidate area.
  */
-final class ObjectiveBias {
+public final class ObjectiveBias {
 
     /** Distance, in cells, at which an objective stops pulling the director's choice. */
     static final float FOCUS_RADIUS_CELLS = 40f;
@@ -46,7 +46,7 @@ final class ObjectiveBias {
     private ObjectiveBias() {}
 
     /** The ground the ship's stance cares about, in cells: declared points first, then the battle's own. */
-    static List<float[]> focus(BattleSimulation sim, Warship ship) {
+    public static List<float[]> focus(BattleSimulation sim, Warship ship) {
         List<float[]> out = new ArrayList<>(ship.declaredFocus());
         MissionStance stance = ship.stance();
         if (stance == MissionStance.HOLD) return out;

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.tender;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.warship.DebugWarship;
+import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.Warship;
 
 /**
@@ -41,9 +42,14 @@ public final class DebugTender {
         return sim == null || ship == null ? null : sim.tenders().of(ship);
     }
 
-    /** Lays the first build option at the cell; false when the tender refuses the site. */
-    public static boolean buildAt(BattleSimulation sim, Tender tender, float cellX, float cellY) {
-        return tender.lay(BuildOption.ALL.get(0), cellX, cellY, sim.getGrid()) != null;
+    /** Lays {@code option} at the cell; false when the tender refuses the site. */
+    public static boolean buildAt(BattleSimulation sim, Tender tender, BuildOption option, float cellX, float cellY) {
+        return tender.lay(option, cellX, cellY, sim.getGrid()) != null;
+    }
+
+    /** The option after {@code index} in {@link BuildOption#ALL}, wrapping at the end. */
+    public static int nextOption(int index) {
+        return (index + 1) % BuildOption.ALL.size();
     }
 
     /** Recalls the defence drones into the bay, or sends them back out. */
@@ -51,7 +57,20 @@ public final class DebugTender {
         tender.defenceOut(!tender.defenceOut());
     }
 
+    /**
+     * Cycles the hull's stance HOLD, ATTACK, DEFEND: under ATTACK or DEFEND the tender's
+     * {@link TenderDirector} chooses its own sites; under HOLD it waits to be told.
+     */
+    public static void cycleStance(Tender tender) {
+        MissionStance next = switch (tender.ship().stance()) {
+            case HOLD -> MissionStance.ATTACK;
+            case ATTACK -> MissionStance.DEFEND;
+            case DEFEND -> MissionStance.HOLD;
+        };
+        tender.ship().stance(next);
+    }
+
     /** Hints for the panel's second line. */
     public static final String HINT =
-            "F6 build at cursor   F7 cancel builds   F8 recall/deploy defence drones   F10 go to cursor   F11 add to route";
+            "F6 build at cursor   F7 cancel builds   F8 recall/deploy defence drones   F9 stance   F10 go to cursor   F11 add to route   F12 next build option";
 }

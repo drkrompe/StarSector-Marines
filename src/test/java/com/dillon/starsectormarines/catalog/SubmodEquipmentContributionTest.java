@@ -235,10 +235,8 @@ class SubmodEquipmentContributionTest {
 
         var issueCost = roster.previewSquadEquipment(
                 squad.id(), weapons.id(), armor.id()).issueCost();
-        assertEquals(1, issueCost.heavyArmaments(),
-                "the contributed primary's authored heavy-armament cost must be charged");
-        assertTrue(issueCost.supplies() >= 8,
-                "the contributed primary, armor, and special supply costs must be included");
+        assertTrue(issueCost.isZero(),
+                "learned contributed equipment must fit freely even with legacy cost metadata");
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), weapons.id(), armor.id()));
         MarineSoldier issued = roster.squadMembers(squad).get(0);

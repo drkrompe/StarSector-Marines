@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadProfile;
@@ -68,6 +69,7 @@ public final class BarracksCommandModel {
     public void onPreparationComplete(Runnable action) { preparationComplete = action; }
     private int guideStep;
     private String inspectedId;
+    private Runnable equipmentWorkspace = () -> { };
     private Runnable raiseSquad = () -> { };
     private Runnable missions = () -> { };
     private Consumer<String> editEquipment = id -> { };
@@ -93,6 +95,10 @@ public final class BarracksCommandModel {
         this.changed = changed;
         this.currentDay = currentDay;
         revision = reactor.signal(0);
+        props.put("equipmentWorkspace", (Runnable) () -> equipmentWorkspace.run());
+        bind(reactor, "equipmentLabel", () -> equipmentUnread() ? "EQUIPMENT / NEW" : "EQUIPMENT");
+        bind(reactor, "equipmentClasses", () -> equipmentUnread()
+                ? "flow-button console-action equipment-new" : "flow-button console-action");
         props.put("raiseSquad", (Runnable) () -> raiseSquad.run());
         props.put("missions", (Runnable) () -> missions.run());
         props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
@@ -187,7 +193,7 @@ public final class BarracksCommandModel {
         bind(reactor, "summary", () -> lineSquads().size() + " squads / " + roster.lineReadySoldiers().size()
                 + " ready personnel / " + roster.readyReserveCount() + " reserves");
         bind(reactor, "scopeSummary", () -> filtered().size() + " squads in view / " + selected.size() + " selected");
-        bind(reactor, "empty", () -> filtered().isEmpty() ? "No squads match this view. Raise new formations in Armory." : "");
+        bind(reactor, "empty", () -> filtered().isEmpty() ? "No squads match this view. Choose Raise Squad to form a new unit." : "");
         bind(reactor, "pageLabel", () -> "PAGE " + (pageNumber() + 1) + " / " + pages());
         bind(reactor, "previousDisabled", () -> pageNumber() == 0);
         bind(reactor, "nextDisabled", () -> pageNumber() + 1 >= pages());
@@ -660,7 +666,7 @@ public final class BarracksCommandModel {
             case "page-nav-boats" -> "Commission our first shuttle on the Boat Deck, then return to meet Mira.";
             case "barracks-back-command" -> "Return to the command board to continue.";
             case "officer-formations" -> "Choose View Formations to return to the squad board.";
-            case "barracks-raise-squad" -> "Raise Squad opens Armory. Found a squad there, then return to Barracks.";
+            case "barracks-raise-squad" -> "Raise Squad opens the equipment workspace. Found a squad there, then return to Barracks.";
             case "command:all" -> "Choose All Formations so the unassigned squad is visible.";
             case "barracks-select-all" -> "Mark the squad you want her to lead. You can deselect extra squads if they exceed her capacity.";
             case "barracks-command-list" -> "Recruit an available officer to continue.";
@@ -718,7 +724,7 @@ public final class BarracksCommandModel {
     private String guideHint() {
         if (inductionRequired()) return inductionHint();
         if (detail) return "Use Back to Company to resume preparation. You can still inspect people here.";
-        if (lineSquads().isEmpty()) return "Start with Raise Squad / Armory. Come back here once the company has a formation.";
+        if (lineSquads().isEmpty()) return "Start with Raise Squad. Come back here once the company has a formation.";
         if (guideStep == 5) return localMissions ? "Use Missions when you are ready for another job." : "Use Return when you are ready to leave Barracks.";
         if (organizing || editing) return "Choose Preparation to return to the personnel orders.";
         if (selected.isEmpty() || guideStep <= 1) return "Select a receiving squad on the board. Look for vacant places; wounded billets stay occupied. Next skips any lesson you do not need.";
@@ -741,6 +747,11 @@ public final class BarracksCommandModel {
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", "Guide unavailable", "") : lines.get(Math.min(guideStep, lines.size() - 1));
     }
     public void returnToBriefing(boolean value) { returnToBriefing = value; refresh(); }
+    private boolean equipmentUnread() {
+        return FirstRefit.available(roster)
+                && !roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id);
+    }
+    public void equipmentWorkspace(Runnable action) { equipmentWorkspace = action; }
     public void navigation(Runnable raiseSquad, Consumer<String> editEquipment, Runnable missions, boolean localMissions) {
         this.raiseSquad = raiseSquad; this.editEquipment = editEquipment; this.missions = missions;
         this.localMissions = localMissions; refresh();

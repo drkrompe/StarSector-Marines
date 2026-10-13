@@ -97,6 +97,9 @@ final class BattleDirectTenderStatus {
                     if (TenderSystem.outOfReach(tender, o)) {
                         state = "OUT OF RANGE";
                         tone = Tone.WARN;
+                    } else if (o.underFire()) {
+                        state = "UNDER FIRE";
+                        tone = Tone.WARN;
                     } else if (o.contested()) {
                         state = "STOOD DOWN";
                         tone = Tone.WARN;

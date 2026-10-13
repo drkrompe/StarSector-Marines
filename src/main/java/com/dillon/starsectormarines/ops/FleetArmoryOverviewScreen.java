@@ -127,7 +127,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
         for (String id : List.of(
                 "fleet-armory-overview-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
+                "page-nav-mech-lab", "page-nav-boats",
                 "company-overview-intro", "company-overview-summary",
                 "template-collection-summary", "equipment-access-status",
                 "equipment-access-next",

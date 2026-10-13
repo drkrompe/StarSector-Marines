@@ -87,6 +87,7 @@ public final class BarracksScreen implements Screen {
                 context::openSquadEquipmentFromBarracks,
                 () -> context.goTo(context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.MISSION_SELECT),
                 context.planet != null || context.getSelectedMission() != null);
+        viewModel.command().equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -166,9 +167,9 @@ public final class BarracksScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "barracks-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "barracks-room-bar", "barracks-body",
+                "barracks-room-bar", "barracks-body", "barracks-equipment",
                 "barracks-formation-list", "barracks-stage", "barracks-canvas",
                 "barracks-muster-list")) {
             component.requireElement(id);
