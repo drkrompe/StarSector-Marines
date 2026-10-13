@@ -125,6 +125,16 @@ public final class WarshipShell implements Interceptable {
         return path.headingDegrees(elapsed);
     }
 
+    @Override
+    public float landingX() {
+        return toX;
+    }
+
+    @Override
+    public float landingY() {
+        return toY;
+    }
+
     /** Cells per second along the flight now. */
     @Override
     public float speedCells() {

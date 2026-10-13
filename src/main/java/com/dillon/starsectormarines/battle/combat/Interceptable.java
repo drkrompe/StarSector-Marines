@@ -27,6 +27,12 @@ public interface Interceptable {
     /** How much punishment it takes, in the game's hit points; a tougher body is harder to stop. */
     float hitpoints();
 
+    /** World X of the ground it is bound for, in cells; where it is now when it has no declared aim. */
+    default float landingX() { return x(); }
+
+    /** World Y of the ground it is bound for, in cells. */
+    default float landingY() { return y(); }
+
     /** Whether point defence has already destroyed it. */
     boolean isIntercepted();
 

@@ -1892,6 +1892,20 @@ three stops a lone raider and loses to a fire team; the lever for more is more
 drones, never a tougher drone. `tender-ship.md` carries the rejected alternatives,
 the build candidates and the open questions.
 
+**A tender's point defence is its defence drones, and it is weak.** As in the game, each
+defence drone carries the Borer's mining laser and burns hostile ordnance with it: the
+same `Interceptable` bodies and opted-in ground rounds that warship flak and carried
+pods engage, destroyed rather than damaged, so a stopped body never lands. Reach, damage
+per second and the mount's turn rate are the laser's own table figures (reach at ground
+scale), and a beam is a *dwell*: the body falls when the damage it has taken reaches its
+hit points, so a missile costs one drone seconds, a torpedo is beyond the wing, and a
+salvo bigger than the wing can burn through in the time it crosses saturates it and lands.
+The wing puts its beams on the most urgent body, ordnance bound for the hull before
+anything else, then the ground a drone overflies within its own reach. Only a defence
+drone that is out of the bay, alive and not away chasing a raider fires; a builder
+never does, a docked or recalled drone cannot, and the tender stays a ship with no guns.
+The tracer is drawn through the warship point-defence marks.
+
 ### Authored structural bombardment
 
 A mission may explicitly order a capital to demolish standing structures in a

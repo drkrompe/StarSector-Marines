@@ -67,6 +67,7 @@ public final class Tender implements DroneAnchor {
     private int built;
     private int defenceLost;
     private int builderLost;
+    private final TenderPointDefence pointDefence = new TenderPointDefence();
     int defenceSquadId = -1;
     float launchClock;
 
@@ -144,6 +145,11 @@ public final class Tender implements DroneAnchor {
 
     @Override public boolean anchorAlive() {
         return !ship.destroyed() && !ship.departed();
+    }
+
+    /** The defence drones' point defence: their mining lasers against hostile ordnance. */
+    public TenderPointDefence pointDefence() {
+        return pointDefence;
     }
 
     /** World x of the launch bay drones leave and return through; the hull's centre when it lists none. */
