@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
@@ -132,6 +133,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             var image = renderer.renderRelative(document, 1920, 1080, 1f,
                     MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+            if (file.equals("04-steady-line-review.png")) verifyGrid(document, markup, model);
             if (hover != null) {
                 var target = markup.requireElement(hover);
                 var box = target.box().borderBox();
@@ -163,4 +165,32 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             return new SnapshotArtifact(file, image);
         }
     }
+    /** All twelve real controls must remain visible and select their own billet. */
+    private void verifyGrid(UiDocument document, MarkupInstance markup, FirstRefitModel model) {
+        int selected = 0;
+        var area = markup.requireElement("refit-billets").box().borderBox();
+        for (int i = 0; i < 12; i++) {
+            var cell = markup.requireElement("refit-billet:" + i);
+            if (cell.hasClass("refit-selected")) selected = i;
+            var box = cell.box().borderBox();
+            var column = markup.requireElement("refit-billet:" + (i / 4 * 4)).box().borderBox();
+            var row = markup.requireElement("refit-billet:" + (i % 4)).box().borderBox();
+            if (Math.abs(box.x() - column.x()) > 0.1f || Math.abs(box.y() - row.y()) > 0.1f
+                    || box.bottom() > area.bottom() || box.right() > area.right() || box.width() < 90f)
+                throw new AssertionError("Billet is not a visible square in the 3x4 grid: " + i);
+        }
+        for (int i = 0; i < 12; i++) {
+            var box = markup.requireElement("refit-armor-icon:" + i).box().borderBox();
+            document.pointerDown(box.x() + box.width()/2, box.y() + box.height()/2);
+            document.pointerUp(box.x() + box.width()/2, box.y() + box.height()/2);
+            markup.flush();
+            String position = new String[]{"Alpha", "Bravo", "Charlie"}[i / 4] + " " + (i % 4 + 1);
+            if (!markup.requireElement("refit-billet:" + i).hasClass("refit-selected")
+                    || !model.row().get().get("selectedName").toString().startsWith(position + " / "))
+                throw new AssertionError("Equipment square did not select its own comparison: " + i);
+        }
+        model.selectBillet(selected);
+        markup.flush();
+    }
+
 }

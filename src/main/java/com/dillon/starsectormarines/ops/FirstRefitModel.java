@@ -143,6 +143,12 @@ final class FirstRefitModel {
             Map<String, Object> billet = new LinkedHashMap<>();
             billet.put("id", "refit-billet:" + i); billet.put("nameId", "refit-name:" + i);
             billet.put("detailId", "refit-detail:" + i); billet.put("name", name);
+            billet.put("gridName", (i % MarineSquad.TEAM_SIZE + 1) + " / " + (soldier == null ? "Vacant" : soldier.name()));
+            billet.put("kitId", "refit-kit:" + i);
+            billet.put("armorIconId", "refit-armor-icon:" + i);
+            billet.put("primaryIconId", "refit-primary-icon:" + i);
+            billet.put("armorIcon", soldier == null ? "graphics/ui/formation/marine-cutout-vacant.svg" : soldier.armorDef().iconPath());
+            billet.put("primaryIcon", soldier == null ? "" : EquipmentIcons.primary(soldier.primaryDef(), soldier.primaryGrade()));
             billet.put("detail", (soldier == null ? "" : soldier.status() + " / ") + change);
             billet.put("classes", "refit-billet" + (i == selectedBillet ? " refit-selected selected" : ""));
             billet.put("select", (Runnable) () -> selectBillet(index));
@@ -153,6 +159,14 @@ final class FirstRefitModel {
             }
         }
         props.put("billets", billets);
+        List<Map<String, Object>> fireTeams = new ArrayList<>();
+        if (!billets.isEmpty()) for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            String id = "refit-team:" + team;
+            fireTeams.add(Map.of("id", id, "headingId", id + ":heading", "membersId", id + ":members",
+                    "label", new String[]{"ALPHA", "BRAVO", "CHARLIE"}[team],
+                    "billets", List.copyOf(billets.subList(team * MarineSquad.TEAM_SIZE, (team + 1) * MarineSquad.TEAM_SIZE))));
+        }
+        props.put("fireTeams", fireTeams);
         props.put("selectedName", selectedName);
         props.put("currentItems", items(false));
         props.put("proposedItems", items(true));
