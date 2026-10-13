@@ -93,7 +93,7 @@ public final class FactionEquipmentCatalog {
         }
     }
 
-    /** Every collectible card must be granted at start or offered through an eventual source. */
+    /** Every card needs starter issue, eventual faction access, or a declared authored story owner. */
     public void validateReachability(Collection<String> starterTemplateIds) {
         Set<String> reachable = new HashSet<>(starterTemplateIds);
         EquipmentAcquisitionEligibility.Progress maximumProgress =
@@ -102,10 +102,19 @@ public final class FactionEquipmentCatalog {
                         ContractEligibility.TIER_3_MRB_REQUIRED);
         for (MutablePool pool : pools.values()) {
             for (MutableOffer offer : pool.offers.values()) {
+                if (EquipmentTemplateCatalog.installed().storySource(offer.template.id()) != null)
+                    throw new IllegalStateException("Story-only template also has faction acquisition: " + offer.template.id());
                 boolean eventuallyEligible = offer.sourceWeights.keySet().stream()
                         .anyMatch(source -> EquipmentAcquisitionEligibility.allows(
                                 offer.template, source, maximumProgress));
                 if (eventuallyEligible) reachable.add(offer.template.id());
+            }
+        }
+        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) {
+            if (EquipmentTemplateCatalog.installed().storySource(card.id()) != null) {
+                if (reachable.contains(card.id()))
+                    throw new IllegalStateException("Story-only template also has ordinary acquisition: " + card.id());
+                reachable.add(card.id());
             }
         }
         List<String> stranded = EquipmentTemplateCatalog.all().stream()
@@ -114,7 +123,7 @@ public final class FactionEquipmentCatalog {
                 .toList();
         if (!stranded.isEmpty()) {
             throw new IllegalStateException("Equipment templates have neither starter issue nor "
-                    + "an eventually eligible faction acquisition source: " + stranded);
+                    + "an eventually eligible faction acquisition source or declared story owner: " + stranded);
         }
     }
 

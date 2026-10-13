@@ -185,6 +185,12 @@ public final class MovementService {
     /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #has}. */
     public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
 
+    private float groundMoveSpeed(long id) {
+        float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+        float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        return moveSpeed(id) * (terrain == null ? 1f : terrain.groundSpeedMultiplier(x, y));
+    }
+
     /** Velocity x actually applied by this tick's movement pass, cells/sec — 0 when the mover hasn't moved this tick. Fail-loud on a non-mover; gate on {@link #has}. */
     public float velX(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X); }
 
@@ -325,8 +331,8 @@ public final class MovementService {
         float facing = entityWorld.getFloat(id, components.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
         ManualMechDrive.Step step = aiming
-                ? drive.advanceFacing(axisX, axisY, moveSpeed(id), loadout.variant.relativeMass, facing, dt)
-                : drive.advance(axisX, axisY, moveSpeed(id), loadout.variant.relativeMass, dt);
+                ? drive.advanceFacing(axisX, axisY, groundMoveSpeed(id), loadout.variant.relativeMass, facing, dt)
+                : drive.advance(axisX, axisY, groundMoveSpeed(id), loadout.variant.relativeMass, dt);
         ManualTerrainMotion.Result result = ManualTerrainMotion.move(grid, x, y,
                 step.dx(), step.dy(), radius);
         // The sweep reports position differences: compare against the same float
@@ -378,7 +384,7 @@ public final class MovementService {
             return new ManualTerrainMotion.Result(x, y, 0f, 0f);
         }
         double divisor = Math.max(1d, Math.hypot(axisX, axisY));
-        float distance = Math.max(0f, moveSpeed(id)) * dt * speedScale;
+        float distance = Math.max(0f, groundMoveSpeed(id)) * dt * speedScale;
         float dx = (float) (axisX / divisor * distance);
         float dy = (float) (axisY / divisor * distance);
         return ManualTerrainMotion.move(grid, x, y, dx, dy, radius);
@@ -415,7 +421,7 @@ public final class MovementService {
         int[] path = path(id);
         int index = pathIdx(id), count = Paths.cellCount(path);
         if (index >= count || dt == 0f) return;
-        float step = Math.max(0f, moveSpeed(id)) * dt * Math.max(0f, Math.min(1f, speedScale));
+        float step = Math.max(0f, groundMoveSpeed(id)) * dt * Math.max(0f, Math.min(1f, speedScale));
         if (step == 0f) return;
         float px = world.x(id), py = world.y(id);
         float goalX = Paths.destX(path) + 0.5f, goalY = Paths.destY(path) + 0.5f;
@@ -535,7 +541,7 @@ public final class MovementService {
         ContinuousRoute route = continuousRoute(id);
         if (route != null && (route.pointCount() != count || route.radius() != radius)) return MotionResult.BLOCKED;
         if (!ManualTerrainMotion.canStand(grid, world.x(id), world.y(id), radius)) return MotionResult.BLOCKED;
-        float remaining = Math.max(0f, moveSpeed(id)) * dt;
+        float remaining = Math.max(0f, groundMoveSpeed(id)) * dt;
         float initialX = world.x(id), initialY = world.y(id);
         float traveled = 0f;
         MotionResult outcome = MotionResult.IDLE;
@@ -652,7 +658,7 @@ public final class MovementService {
         float dx = carrot.x - px;
         float dy = carrot.y - py;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        float step = moveSpeed(id) * dt;
+        float step = groundMoveSpeed(id) * dt;
         if (carrot.atEnd && dist <= step + 1e-4f) {
             // Pin on the final cell center so downstream cell reads see
             // exactly the destination cell, and exhaust the cursor (settled).

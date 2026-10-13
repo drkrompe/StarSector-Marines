@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
@@ -32,10 +34,64 @@ public final class GunshipCrashScene implements BehaviorScene {
         List<SceneReport> reports = new ArrayList<>();
         try {
             for (String loop : List.of("live-flak", "cleared-flak", "impact", "momentum", "hover")) reports.add(playOne(loop, frames));
+            reports.add(demolition(frames));
         } finally {
             TurretSlotResolver.useHullSpecs(null);
         }
         return reports;
+    }
+
+    private SceneReport demolition(FrameSink frames) {
+        var builder = SceneBuilder.openGround(96, 54).missionCompletion(false);
+        builder.unit("roofed", Faction.MARINE, UnitType.MARINE, 40, 27);
+        builder.unit("skid", Faction.DEFENDER, UnitType.MARINE, 57, 27);
+        builder.unit("outside", Faction.DEFENDER, UnitType.MARINE, 75, 43);
+        var world = builder.build();
+        try (var sim = world.sim()) {
+            sim.random().setSeed(20261013L);
+            var grid = sim.getGrid();
+            var topology = sim.getTopology();
+            // Roofed shed at first contact and a second wall well beyond the initial blast.
+            for (int y = 23; y <= 31; y++) for (int x = 36; x <= 45; x++) {
+                topology.setBuildingId(x, y, 1);
+                topology.setGroundKind(x, y, GroundKind.INDOOR);
+                if (x == 36 || x == 45 || y == 23 || y == 31) {
+                    topology.setWall(x, y, true);
+                    grid.setWalkable(x, y, false);
+                    grid.setSeeThrough(x, y, false);
+                    grid.setWallHp(x, y, 200);
+                }
+            }
+            for (int y = 25; y <= 29; y++) {
+                topology.setWall(54, y, true);
+                grid.setWalkable(54, y, false);
+                grid.setSeeThrough(54, y, false);
+                grid.setWallHp(54, y, 200);
+            }
+            long craft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, 40, 27, -12, 27, -12, 27);
+            for (var mount : sim.world().airTurrets(craft).mounts) mount.ammo = 0;
+            var mission = sim.world().mission(craft);
+            boolean[] killed = {false};
+            var run = SceneRun.of(world).observe((s, tick) -> {
+                if (!killed[0] && mission.state == ShuttleState.ORBIT) {
+                    var body = s.world().kinematics(craft);
+                    body.x = 40.5f - 18f * AirCrashMotion.FALL_SECONDS;
+                    body.y = 27.5f; body.vx = 18f; body.vy = 0f;
+                    s.applyAimedDamage(craft, 0L, 10000f, 100f);
+                    killed[0] = true;
+                }
+                if (tick % 3 == 0 && tick < 360) frames.frame("demolition", s, tick, "Crash / roofed shed and downstream wall");
+                frames.advanced("demolition", s, tick);
+            });
+            run.run(600);
+            return new SceneReport(id(), "demolition", run.tick(), List.of(
+                    Verdict.of("impact-demolishes-shed", !topology.isWall(36, 27) && !topology.isWall(45, 27)
+                            && topology.isRoofDestroyed(40, 27), "walls breached and roof removed"),
+                    Verdict.of("roof-does-not-spare-contact-occupant", !sim.world().isAlive(world.unit("roofed")), "roofed occupant"),
+                    Verdict.of("skid-demolishes-downstream-wall", !topology.isWall(54, 27), "wall beyond initial blast"),
+                    Verdict.of("skid-damages-downstream-occupant", !sim.world().isAlive(world.unit("skid")), "occupant beyond initial blast"),
+                    Verdict.of("outside-survives", sim.world().isAlive(world.unit("outside")), "outside crash corridor")), Map.of());
+        }
     }
 
     private SceneReport playOne(String loop, FrameSink frames) {
@@ -122,9 +178,14 @@ public final class GunshipCrashScene implements BehaviorScene {
             } else {
                 verdicts.add(Verdict.of("falls-before-contact", fallTicks[0] >= 45 && fallTicks[0] <= 50,
                         "fall ticks=" + fallTicks[0] + ", settled=" + settledTick[0]));
-                verdicts.add(Verdict.of("permanent-blocking-wreck", wrecks == 1 && !sim.getGrid().isWalkable(
+                verdicts.add(Verdict.of("permanent-traversable-wreck", wrecks == 1 && sim.getGrid().isWalkable(
                         sim.getAirfieldService().groundWrecks().get(0).cellX(), sim.getAirfieldService().groundWrecks().get(0).cellY()),
                         "wrecks after " + (impact ? 200 : 140) + " seconds=" + wrecks));
+                if (wrecks == 1) {
+                    var wreck = sim.getAirfieldService().groundWrecks().get(0);
+                    verdicts.add(Verdict.of("wreck-slows-ground-travel", sim.getGrid().groundSpeedMultiplier(
+                            wreck.cellX() + .5f, wreck.cellY() + .5f) == .5f, "half-speed crash debris"));
+                }
                 if (impact) verdicts.add(Verdict.of("impact-hurts-both-sides", hpBefore[0] > hpAfter[0] && hpBefore[1] > hpAfter[1],
                         "friendly " + hpBefore[0] + " -> " + hpAfter[0] + "; enemy " + hpBefore[1] + " -> " + hpAfter[1]));
                 else if (momentum) {

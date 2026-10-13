@@ -130,13 +130,13 @@ public final class BoatDeckScreen implements Screen {
         refreshBayPresentation();
         if (document == null) installDocument();
         var news = CompanyNotices.current();
-        if (!CompanyPreparation.required(roster)) {
+        if (!CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending()) {
             if (news.contains(CompanyNotices.Notice.SECONDHAND_WINGS)) wings.open();
             else if (news.contains(CompanyNotices.Notice.SECOND_BAY)) restoration.row().get().action().run();
         }
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         if (preparationGuide != null) preparationGuide.update();
-        if (document != null && wings != null && !CompanyPreparation.required(roster))
+        if (document != null && wings != null && !CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending())
             TutorialModal.bind(document, markupInstance, wings::visible,
                     "wings-modal", "boat-deck-root", wings::dismiss, this::close);
         input = new StarsectorUiInputAdapter(document, viewport);
@@ -152,7 +152,7 @@ public final class BoatDeckScreen implements Screen {
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             bayElement = candidate.requireElement("boat-deck-canvas");
             bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
-                    viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld);
+                    viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld).recovery(viewModel::berthRecovery);
             built.canvases().set(bayElement, bayCanvas);
             bayElement.onPointerMove(this::pointAtBerth);
             bayElement.onPointerDown(this::pressBerth);
@@ -187,6 +187,7 @@ public final class BoatDeckScreen implements Screen {
         props.put("deckSummary", viewModel.deckSummary());
         props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), restoration.row().get().credits())));
         props.put("boatRows", viewModel.boatRows());
+        props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());
@@ -289,7 +290,7 @@ public final class BoatDeckScreen implements Screen {
         if (liveDeck == null || liveDeck == deck) return;
         deck = liveDeck;
         bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
-                viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld);
+                viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld).recovery(viewModel::berthRecovery);
         document.canvases().set(bayElement, bayCanvas);
         refreshBayPresentation();
         invalidateBay();
@@ -387,6 +388,7 @@ public final class BoatDeckScreen implements Screen {
     @Override
     public void advance(float dt) {
         if (deckMayHaveChanged) adoptChangedDeck();
+        if (viewModel != null) viewModel.refreshTime();
         if (restoration != null) restoration.refresh();
         if (wings != null) wings.refresh();
         if (deck != null && deck.ready()) {
@@ -403,8 +405,9 @@ public final class BoatDeckScreen implements Screen {
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
+        if (bayElement != null) BoatDeckCanvas.fitSurface(bayElement);
         if (preparationGuide != null) preparationGuide.update();
-        if (document != null && wings != null && !CompanyPreparation.required(roster))
+        if (document != null && wings != null && !CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending())
             TutorialModal.bind(document, markupInstance, wings::visible,
                     "wings-modal", "boat-deck-root", wings::dismiss, this::close);
     }

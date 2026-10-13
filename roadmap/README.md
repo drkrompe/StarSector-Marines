@@ -59,7 +59,9 @@ rule, and the boundary with the player's own colonies — is
 `power-suit-infantry.md` develops a durable infantry class between regular
 marines and mechs, preserving named squads and deliberate regular-equipment
 choices. `power-suit-field-acceptance.md` owns its mission balance, live
-persistence and distinct-art acceptance.
+persistence and distinct-art acceptance. Recovered Specter/Arbalest test patterns
+and an eight-regular/four-suit section support that pass; their story introduction
+is reserved for an expedition after the Shepherd actually joins the fleet.
 
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the

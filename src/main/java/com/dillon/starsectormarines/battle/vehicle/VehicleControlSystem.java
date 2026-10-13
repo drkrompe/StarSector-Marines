@@ -374,7 +374,9 @@ public final class VehicleControlSystem {
         float remaining = s.corridor.remainingLength(body.x, body.y);
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
         float curveCap = VehicleController.curvatureSpeedCap(px, py, startIdx, body.x, body.y, type.maxSpeed);
-        float targetSpeed = Math.min(Math.min(type.maxSpeed, taper), curveCap);
+        float terrainSpeed = type.maxSpeed * navigation.getGrid().groundSpeedMultiplier(body.x, body.y);
+        float targetSpeed = Math.min(Math.min(terrainSpeed, taper), curveCap);
+        body.speed = Math.copySign(Math.min(Math.abs(body.speed), terrainSpeed), body.speed);
 
         float cdx = carrot.x - body.x, cdy = carrot.y - body.y;
         float carrotBearing = AirBody.facingToward(cdx, cdy);
@@ -499,7 +501,8 @@ public final class VehicleControlSystem {
         Pose ahead = s.corridor.targetAhead(body.x, body.y, horizon);
 
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
-        body.tick(ahead.x, ahead.y, -VehicleController.WALL_REVERSE_SPEED, dt);
+        body.tick(ahead.x, ahead.y, -VehicleController.WALL_REVERSE_SPEED
+                * grid.groundSpeedMultiplier(body.x, body.y), dt);
 
         if (applySweep(body, type, prevX, prevY, prevFacing, false)) {
             endReverseRecovery(s);
@@ -811,7 +814,8 @@ public final class VehicleControlSystem {
                                 VehicleControlComponent s, float dt) {
         cancelPending(s);
         float total = s.dockingPath.lengthCells(s.dockingTurnRadius);
-        float next = Math.min(total, s.dockingProgressCells + VehicleController.DOCKING_SPEED * dt);
+        float next = Math.min(total, s.dockingProgressCells + VehicleController.DOCKING_SPEED * dt
+                * navigation.getGrid().groundSpeedMultiplier(body.x, body.y));
         var step = VehicleTerrainMotion.sweepReedsShepp(s.dockingStartPose, s.dockingPath,
                 s.dockingTurnRadius, s.dockingProgressCells, next,
                 type.visualLengthCells, type.visualWidthCells, navigation.getGrid());

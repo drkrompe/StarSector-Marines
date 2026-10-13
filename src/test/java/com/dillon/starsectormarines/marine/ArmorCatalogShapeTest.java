@@ -134,8 +134,8 @@ class ArmorCatalogShapeTest {
     }
 
     /**
-     * <b>Every</b> suit at a tier carries a better version of its capability
-     * than <b>every</b> suit at the tier below. Not best-against-best: the floor
+     * Within one armor class, <b>every</b> suit at a tier carries a better version
+     * of its capability than <b>every</b> suit at the tier below. The floor
      * rises, which is what makes a tier mean something when a role spans several
      * ({@code role-and-access.md}).
      *
@@ -149,20 +149,21 @@ class ArmorCatalogShapeTest {
      */
     @Test
     void everySuitAtATierCarriesABetterSystemThanEverySuitBelowIt() {
-        Map<IntegralSystemEffect, Map<Integer, List<Rung>>> ladders =
-                new EnumMap<>(IntegralSystemEffect.class);
+        Map<ArmorClass, Map<IntegralSystemEffect, Map<Integer, List<Rung>>>> ladders =
+                new EnumMap<>(ArmorClass.class);
         for (MarineArmorCatalogDef pattern : catalog().all()) {
             IntegralSystemDef system = pattern.integralSystem();
             if (system == null) continue;
             Double value = systemValue(system);
             if (value == null) continue;
-            ladders.computeIfAbsent(system.effect(), key -> new TreeMap<>())
+            ladders.computeIfAbsent(pattern.armorClass(), key -> new EnumMap<>(IntegralSystemEffect.class))
+                    .computeIfAbsent(system.effect(), key -> new TreeMap<>())
                     .computeIfAbsent(pattern.tier(), key -> new ArrayList<>())
                     .add(new Rung(pattern.id(), value));
         }
         assumeTrue(!ladders.isEmpty(), "no catalogued pattern carries a system here");
 
-        ladders.forEach((effect, byTier) -> {
+        ladders.forEach((armorClass, effects) -> effects.forEach((effect, byTier) -> {
             Rung previousCeiling = null;
             Integer previousTier = null;
             for (Map.Entry<Integer, List<Rung>> rung : byTier.entrySet()) {
@@ -170,7 +171,7 @@ class ArmorCatalogShapeTest {
                         .min(Comparator.comparingDouble(Rung::value)).orElseThrow();
                 if (previousCeiling != null) {
                     assertTrue(floor.value() > previousCeiling.value(),
-                            effect.key + ": " + floor.id() + " at tier " + rung.getKey()
+                            armorClass + " " + effect.key + ": " + floor.id() + " at tier " + rung.getKey()
                                     + " is worth " + round(floor.value()) + ", which does not"
                                     + " beat " + previousCeiling.id() + " at tier "
                                     + previousTier + " on " + round(previousCeiling.value())
@@ -180,7 +181,7 @@ class ArmorCatalogShapeTest {
                         .max(Comparator.comparingDouble(Rung::value)).orElseThrow();
                 previousTier = rung.getKey();
             }
-        });
+        }));
     }
 
     private record Rung(String id, double value) {}

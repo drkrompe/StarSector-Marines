@@ -435,6 +435,7 @@ class BoatDeckViewModelTest {
         props.put("deckSummary", viewModel.deckSummary());
         props.put("materialStock", viewModel.materialStock());
         props.put("boatRows", viewModel.boatRows());
+        props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());

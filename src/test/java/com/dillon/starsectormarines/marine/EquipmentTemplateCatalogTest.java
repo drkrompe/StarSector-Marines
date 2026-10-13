@@ -21,6 +21,59 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EquipmentTemplateCatalogTest {
 
     @Test
+    void recoveredPowerSuitsReserveStoryAcquisitionAndPreserveMilitaryUpgrade() {
+        MarineArmory armory = new MarineArmory();
+        for (String id : List.of("armor.specter-recovered", "armor.arbalest-recovered")) {
+            EquipmentTemplateCard card = EquipmentTemplateCatalog.armor(id);
+            assertEquals("post-shepherd-power-suits", EquipmentTemplateCatalog.installed().storySource(card.id()));
+            assertEquals(EquipmentAccessTier.ADVANCED, card.accessTier());
+            assertEquals(EquipmentTemplateCost.ZERO, card.issueCost());
+            assertFalse(armory.ownsEquipmentTemplate(card.id()));
+            assertTrue(FactionEquipmentCatalog.installed().entries().stream()
+                    .flatMap(pool -> pool.offers().stream())
+                    .noneMatch(offer -> offer.templateId().equals(card.id())));
+            assertTrue(armory.acquireEquipmentTemplate(card.id()));
+            assertFalse(armory.acquireEquipmentTemplate(card.id()));
+            assertTrue(armory.ownsArmorTemplate(id));
+            MarineArmorCatalogDef recovered = MarineArmorCatalogRegistry.require(id);
+            MarineArmorCatalogDef military = MarineArmorCatalogRegistry.require(
+                    id.equals("armor.specter-recovered") ? "armor.specter-heavy" : "armor.arbalest");
+            assertEquals(ArmorClass.POWER_SUIT, recovered.armorClass());
+            assertEquals(3, recovered.tier());
+            assertEquals(4, military.tier());
+            assertEquals(military.role(), recovered.role());
+            assertEquals(military.appearanceFamily(), recovered.appearanceFamily());
+            assertTrue(recovered.armorCapacity() < military.armorCapacity());
+            assertTrue(recovered.armorRating() < military.armorRating());
+        }
+    }
+
+    @Test
+    void storySourceRequiresStableNonemptySlug() throws Exception {
+        JSONObject data = new JSONObject(Files.readString(Path.of(
+                "mod", "data", "marines", "equipment-templates.template.json")));
+        data.getJSONArray("armor").getJSONObject(0).put("storySource", "");
+        assertThrows(Exception.class, () -> new EquipmentTemplateCatalog().ingest(data));
+        data.getJSONArray("armor").getJSONObject(0).put("storySource", "Post Shepherd");
+        assertThrows(Exception.class, () -> new EquipmentTemplateCatalog().ingest(data));
+    }
+
+    @Test
+    void storyOnlyTemplateCannotAlsoEnterFactionRecoveryPool() throws Exception {
+        FactionEquipmentCatalog factions = new FactionEquipmentCatalog();
+        factions.ingest(new JSONObject("""
+                {"fallbackFactionId":"independent","factions":[{
+                  "factionId":"independent","offers":[{
+                    "templateId":"equipment-template:armor.specter-recovered",
+                    "sources":{"recovery":1}
+                  }]
+                }]}
+                """));
+        assertThrows(IllegalStateException.class,
+                () -> factions.validateReachability(List.of()));
+    }
+
+    @Test
     void catalogUsesStableUniqueIdsAndFreeFitting() {
         List<EquipmentTemplateCard> cards = EquipmentTemplateCatalog.all();
 
