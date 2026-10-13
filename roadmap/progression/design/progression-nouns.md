@@ -175,12 +175,11 @@ legibility.
   patron reward, or operational recovery. A source declares eligibility and
   relative selection weight; it does not itself grant, sell, or recover a card.
 - **Equipment access tier** — a card's authored Common, Advanced, or Prestige
-  campaign band. It is independent of grade, armor role, provenance, issue
-  cost, and loadout collectible rarity; acquisition channels interpret it
+  campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret it
   through shared company-history and reputation gates.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
-  the marine; changed incoming issue is paid from ordinary fleet cargo.
+  the marine; the Machine Shop fits learned technology for free.
 - **Telemetry** — battle-local, lifecycle-stable evidence of a combatant's
   activity. It serves the debug balance artifact for all recorded combatants
   and career evidence only for campaign marines.
@@ -369,7 +368,7 @@ paths teach weapon-and-armor issue before the depot operation. The authored
 reward grants Milspec Stalwart and Lancer templates and the Janus scout pattern
 when accepted; it is a story-specific acquisition route, independent of ordinary
 market and MRB gates. It grants no cargo and never equips marines automatically.
-The same template ownership, role-based armor resolution and material transaction
+The same template ownership, role-based armor resolution and free fitting transaction
 apply thereafter. `company-view-nouns.md` owns the guided two-choice presentation.
 
 
@@ -387,11 +386,9 @@ on naming it long after the company can afford siege plate, because nothing in i
 says what the billets are *for*. That path is gone. A weapon definition stays
 per-billet because a fire-team lead's carbine is a real choice with no role model
 above it, and because a weapon has no equivalent of "the best owned suit for this
-job" to resolve against. Issuing changed incoming kit consumes
-base-game supplies, heavy armaments, and heavy machinery as one atomic squad
-transaction; unchanged kit costs nothing, removed kit grants no refund, and food
-remains available to later sustainment costs without being forced into routine
-refits. Marines remain personnel cargo handled by personnel logistics.
+job" to resolve against. Fitting learned kit is an explicit, free Machine Shop transaction. Swapping gear
+never reads or spends supplies, armaments, machinery, or credits and grants no
+refunds. Marines remain personnel cargo handled by personnel logistics.
 
 Squad loadout collection presentation is authored data. Its tier communicates the
 definition's expected power band, while rarity communicates how scarce or prestigious
@@ -405,7 +402,7 @@ Legacy recipe ids remain save-migration input, not live Fleet Armory authority.
 The print-stock economy they fed — owned counts, per-soldier allocation against
 those counts, and fabrication materials — has been deleted along with the
 retired fire-team refit APIs that were its only readers. Equipment is owned as
-permanent template cards, and an issue spends fleet cargo. Existing victory milestones grant template cards, including the
+permanent template cards, and fitting is free. Existing victory milestones grant template cards, including the
 Shattercap after two victories. A deterministic safety net now keeps permanent
 collection breadth at or above 21 cards after five victories, 25 after fifteen,
 29 after thirty, and 30 after forty. Cards already learned or still carried in
@@ -468,7 +465,7 @@ knowledge, so infantry equipment cannot leak into ship production or the ship
 editor. Market, reward, and salvage systems create the same validated cargo
 payload; the S6 acquisition ladder still owns the eligibility of each entrance.
 
-Collectible access tier and issue cost are catalog data rather than a closed
+Collectible access tier is catalog data rather than a closed
 Java list. Each enabled catalog provider may add complete four-grade primary
 families, armor cards, and special-equipment cards after the referenced
 equipment has loaded. Card ids are derived from the stable equipment id,
@@ -482,8 +479,7 @@ application loading.
 The doctrine editor derives primary family/grade, armor, and special-equipment
 choices from the owned cards in that additive catalog. Persisted doctrines,
 resolved billets, and materialized marines retain the contributed equipment ids
-directly, so a learned provider card can be selected, saved, issued for its
-authored cargo cost, and deployed without a Java enum constant. Special items
+directly, so a learned provider card can be selected, saved, freely fitted, and deployed without a Java enum constant. Special items
 then execute through their closed typed activation and AI policy. If that
 provider later disappears, save repair warns, returns unresolved primaries to
 the starter field rifle and unresolved armor to field fatigues, and clears an
@@ -979,8 +975,7 @@ casualty disposition, or deployment membership.
 1. The personnel domain creates and persists a marine; progression retains
    only that marine's quality-bearing fields and assigned kit.
 2. The armory collects templates and authors reusable definitions; one atomic
-   roster command consumes ordinary fleet cargo for changed incoming kit and
-   materializes it on marines.
+   roster command freely fits learned technology onto marines.
 3. Deployment carries the marine's profile and kit into battle. The battle
    resolves shots and damage independently of campaign persistence.
 4. Battle telemetry records combatant evidence and follows the death path.
@@ -995,8 +990,7 @@ manifest and settlement. Progression owns neither, but consumes their stable
 outputs for troop-quality advancement and explanation.
 
 `company-view-nouns.md` owns squad-definition presentation and atomic assignment
-transactions. Progression supplies equipment-template ownership, cargo issue
-costs, and the quality meaning those transactions materialize.
+transactions. Progression supplies equipment-template ownership and the quality meaning those transactions materialize.
 
 ## Presentation law
 
@@ -1132,7 +1126,7 @@ The following are direction, not current behavior:
   weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
   lances, and support delivery remain Mechs authority.
 - A template card is permanent capability, a squad definition is reusable
-  intent, fleet cargo pays changed incoming issue, and materialized kit belongs
+  intent, the Machine Shop fits learned kit for free, and materialized kit belongs
   to the marine. None is a synonym for another.
 - A cargo template card is consumed only by successful Armory learning. It never
   becomes player-faction ship-production knowledge.

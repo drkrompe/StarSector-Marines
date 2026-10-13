@@ -66,8 +66,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         if (!roster.firstRefit().claimed()) throw new AssertionError("Accept control did not claim reward");
         frames.add(frame(context, reactor, model, "02-choose-squad.png", "refit-squad:" + squad.id()));
         frames.add(frame(context, reactor, model, "02b-choose-path.png", "refit-path:STEADY_LINE"));
-        frames.add(frame(context, reactor, model, "03-steady-line-shortfall.png", "refit-issue"));
-        if (roster.firstRefit().complete()) throw new AssertionError("Disabled issue spent missing materials");
+        frames.add(frame(context, reactor, model, "03-steady-line-free-fitting.png", null));
+        if (roster.firstRefit().complete()) throw new AssertionError("Inspection fitted equipment without confirmation");
         stock[0] = new EquipmentTemplateCost(200, 0, 100, 0);
         model.refresh();
         frames.add(frame(context, reactor, model, "04-steady-line-review.png", "refit-path:FORWARD_SCREEN"));

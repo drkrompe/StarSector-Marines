@@ -173,13 +173,13 @@ final class BattleDirectWarshipStatus {
     }
 
     /** What the pilot flies with, and how to get out, so the strip says how to start. */
-    private static ShipCard helmCard(Warship ship) {
+    static ShipCard helmCard(Warship ship) {
         float speed = ship.speed();
         return new ShipCard("HELM", "[WASD] FLY", "[TAB] LEAVE", "",
                 speed > 0.05f ? "UNDERWAY" : "HOVER", speed > 0.05f ? Tone.BUSY : Tone.READY, 1f);
     }
 
-    private static ShipCard shieldCard(Warship ship) {
+    static ShipCard shieldCard(Warship ship) {
         String state = ship.shieldState().toUpperCase(Locale.ROOT);
         Tone tone = switch (ship.shieldState()) {
             case "up" -> Tone.READY;
@@ -204,7 +204,7 @@ final class BattleDirectWarshipStatus {
                 on ? Tone.READY : Tone.BUSY, on ? 1f : 0f);
     }
 
-    private static FluxStatus flux(Warship ship) {
+    static FluxStatus flux(Warship ship) {
         if (!ship.fluxLimited()) return new FluxStatus(false, 0f, "FLUX OFF", "UNLIMITED", Tone.READY);
         float fraction = Math.max(0f, Math.min(1f, ship.fluxFraction()));
         String state = ship.fluxState().toUpperCase(Locale.ROOT);

@@ -56,7 +56,8 @@ final class BattleDirectControlHudModel {
 
     void update(BattleDirectControlStatus.Snapshot snapshot, int selected, boolean paused) {
         boolean mech = snapshot.carrier() == BattleDirectControlStatus.Carrier.MECH;
-        boolean ship = snapshot.carrier() == BattleDirectControlStatus.Carrier.WARSHIP && snapshot.warship() != null;
+        boolean ship = (snapshot.carrier() == BattleDirectControlStatus.Carrier.WARSHIP
+                || snapshot.carrier() == BattleDirectControlStatus.Carrier.TENDER) && snapshot.warship() != null;
         var durability = snapshot.durability();
         reactor.untracked(() -> {
             var heat = snapshot.heat();

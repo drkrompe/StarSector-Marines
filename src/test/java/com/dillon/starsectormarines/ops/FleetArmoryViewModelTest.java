@@ -662,7 +662,7 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void cargoBackedArmoryActionsExposeVanillaCommodityPresentation() {
+    void freeFittingKeepsPersonnelCommodityPresentation() {
         MarineRoster roster = fullSquad();
         EquipmentIssueResources resources = presentedHold();
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
@@ -673,8 +673,7 @@ class FleetArmoryViewModelTest {
                 .findFirst().orElseThrow().select().run();
 
         List<FleetArmoryViewModel.CargoCostRow> costs = viewModel.issueCargoRows().get();
-        assertFalse(costs.isEmpty());
-        assertTrue(costs.stream().allMatch(row -> row.icon().startsWith("vanilla/")));
+        assertTrue(costs.isEmpty());
         assertEquals("vanilla/" + Commodities.MARINES,
                 viewModel.squadCards().get().get(0).reinforceIcon());
     }
@@ -804,7 +803,6 @@ class FleetArmoryViewModelTest {
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
-        props.put("issuableFilter", viewModel.issuableFilter());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("showArmorComparison", (Runnable) () -> { });
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
@@ -862,35 +860,16 @@ class FleetArmoryViewModelTest {
         }
     }
 
-    /**
-     * <b>The supplies switch asks only the supplies question.</b> With an empty
-     * hold, a loadout that would cost cargo to issue is hidden and one that
-     * changes nothing is not — and turning the switch off brings the whole list
-     * back, because the fleet being broke is not a reason to forget what exists.
-     */
     @Test
-    void theSuppliesSwitchHidesWhatTheFleetCannotPayFor() {
+    void emptyCargoDoesNotRestrictKnownEquipment() {
         MarineRoster roster = fullSquad();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                new Reactor(), roster, () -> { }, () -> 0d, emptyHold());
-
-        List<String> everything = tileIds(viewModel.armorDoctrineTiles().get());
-        viewModel.toggleIssuableOnlyAction().run();
-        List<String> affordable = tileIds(viewModel.armorDoctrineTiles().get());
-
-        assertTrue(affordable.size() < everything.size(),
-                "an empty hold cannot pay to re-kit twelve marines into every sheet");
-        assertTrue(everything.containsAll(affordable), "the switch narrows, never adds");
-        for (String id : affordable) {
-            SquadEquipmentPreview preview = roster.previewSquadEquipment(
-                    viewModel.selectedSquadId(), viewModel.selectedWeaponDoctrineId(),
-                    id.substring("armor-doctrine:".length()), emptyHold());
-            assertTrue(preview.issueCost().isZero(),
-                    id + " survived a filter it should not have: " + preview.issueCost());
+        FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster, () -> { }, () -> 0d, emptyHold());
+        for (var tile : model.armorDoctrineTiles().get()) {
+            var preview = roster.previewSquadEquipment(model.selectedSquadId(), model.selectedWeaponDoctrineId(),
+                    tile.id().substring("armor-doctrine:".length()), emptyHold());
+            assertTrue(preview.canApply());
+            assertTrue(preview.issueCost().isZero());
         }
-
-        viewModel.toggleIssuableOnlyAction().run();
-        assertEquals(everything, tileIds(viewModel.armorDoctrineTiles().get()));
     }
 
     /**

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — the wing now flies as a living swarm: staggered launch, recall and retreat as flights home, a loose escort ring, builder stations; control, AI stance and more options are open.
+Updated: 2026-10-13 — the wing now flies as a living swarm: staggered launch, recall and retreat as flights home, a loose escort ring, builder stations; player control through direct control is built; AI stance and more options are open.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
 
@@ -83,15 +83,34 @@ They are not a garrison. A drone has eighteen hit points and a few rifle bursts 
 
 On loss of the hull its drones go with it, as a hub's do. On a clean departure they are recovered.
 
+## Point defence: the drones' mining lasers
+
+As in the game, the Shepherd's drones are its point defence, and the tender fits no flak of its own. Each defence drone carries the Borer's mining laser (`drone_borer`'s only mount) and burns hostile ordnance with it, through the machinery warship flak and carried pods already use: the `Interceptable` bodies warships have in flight (`landingX/Y` added so a defender can tell what is bound for it) plus opted-in ground projectiles, with the tracer posted as a warship point-defence mark so the existing renderer draws the weapon's own beam. No new audio.
+
+- **Everything is the laser's row in the weapon table.** Reach is its range at ground scale (about 27 cells), strength its damage per second, tracking its mount turn rate. Nothing is authored per drone.
+- **A beam is a dwell, not a die roll.** It deals its damage per second while on the bearing and the body is destroyed when the damage taken reaches its hit points. That is what makes it weak and gives saturation honestly: at 30 per second a 60-hit-point Locust costs one drone two seconds, a three-drone wing on one body burns it in under a second but crosses a window of only a second or two, so it stops missiles that arrive singly and about one of two that arrive together, a swarm of forty lands almost untouched, and a torpedo is beyond it. The mount slews at its turn rate, so a body that crosses faster than the mount follows is not burnt.
+- **Whom it protects.** Ordnance bound for the hull (it lands within the hull's half length plus a few cells) outranks everything; then whatever else crosses the drone's own reach, which is the ground it overflies, not an umbrella around the hull. Within a group the body that lands soonest goes first and the wing does not spread: a slow beam wastes the window if it is split.
+- **Who fires.** Only a defence drone that is out of the bay, alive and not pursuing a raider. A drone with a pursuit latch is away fighting and intercepts nothing; a docked or recalled drone is not on the field; a builder never fires.
+- **It does not make the tender a combat ship.** No guns, no flux, no extra hit points. The rejected alternative was reusing the warship per-engagement hit roll for the drones: it ignores damage per second and would have made a wing of three stop a Locust swarm, which the laser cannot.
+
+The mining laser's mount arc in its `.ship` slot (30 degrees) is not applied: the drone body turns with its motion and the mount is treated as a turret at its table turn rate. Mount arc and the drone's own heading are the open refinement.
+
 ## Vulnerability
 
-A tender is a warship body, so it is exactly as hittable as one: **only by ordnance**, through the armour rule, and never by infantry fire. It is a weak ship, not a combatant, pressed into the role haphazardly like its vanilla counterpart: the hull table's 1200 hit points and 200 armour, and the Shepherd's omni shield (arc, upkeep and efficiency from the hull table) on the hull's own flux through the existing shield model. The shield raises itself under the ordinary automatic policy when ordnance threatens the hull and nothing else is added: no buff, no regeneration, no extra flux. With no guns, the only flux on the pool is what the shield absorbs, so a determined raid collapses it and then the hull. Its drones are the targetable thing. Marines shoot the drones, and a builder shot at a site is a builder gone, which is why they stand down rather than work under fire. A tender takes no weapons of its own: the vanilla variant's missile rack and machine gun are deliberately left off, because a gun it could fire would make the drones decoration. Point defence for a tender is a later, separate decision (open question 3).
+A tender is a warship body, so it is exactly as hittable as one: **only by ordnance**, through the armour rule, and never by infantry fire. It is a weak ship, not a combatant, pressed into the role haphazardly like its vanilla counterpart: the hull table's 1200 hit points and 200 armour, and the Shepherd's omni shield (arc, upkeep and efficiency from the hull table) on the hull's own flux through the existing shield model. The shield raises itself under the ordinary automatic policy when ordnance threatens the hull and nothing else is added: no buff, no regeneration, no extra flux. With no guns, the only flux on the pool is what the shield absorbs, so a determined raid collapses it and then the hull. Its drones are the targetable thing. Marines shoot the drones, and a builder shot at a site is a builder gone, which is why they stand down rather than work under fire. A tender takes no weapons of its own: the vanilla variant's missile rack and machine gun are deliberately left off, because a gun it could fire would make the drones decoration. Its point defence is its drones' (next section).
 
 ## Who steers
 
 - **Slice 1:** the debug path. The briefing's WARSHIP DEBUG picker offers "Shepherd (tender)"; the debug panel's keys order a build at the cursor, cancel builds, and recall or deploy the defence drones, and its status line reports hull, shield, builds ("builds free", or the charges left on a metered tender), drones and the current order.
-- **Next:** the player through the existing direct-control carrier seam (`WarshipPilot`): Tab to pilot, left button lays a site, right button recalls or deploys the defence drones, 1-4 choose what to build, fog respected by the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
+- **Player (built):** the existing direct-control carrier seam (`DirectControlSession`, with `TenderPilot` for the hands; `direct-control-nouns.md` Tender owns the bindings and handback). Click the hull, Tab to pilot, WASD flies it, the left button lays a site at the cursor for the selected option, the right button recalls or deploys the defence drones on the press, 1-4 select the option (only slot 1 is filled), X cancels every unfinished site, E is the shield. Fog is the same `revealed` predicate a pilot's laid fire uses. Nothing in the tender needs the pilot; it is the same orders by another hand.
 - **AI by stance:** a tender with a mission stance and no pilot: ATTACK builds forward positions on cleared ground and keeps close to the advance; DEFEND builds on the held ground's approaches. Both are a director over `Tender.lay`, never a second order model.
+
+### Decisions made for the pilot
+
+- **Right button is a press, not a hold-to-send.** The drone swarm has no order to go to a point, and a pilot-directed drone would be a second drone behaviour; the button recalls or deploys, nothing more.
+- **A piloted tender does not station itself.** The pilot's hands are what bring the hull near a site: builders launch once it is within 16 cells, and are called home past 26. An AI tender still holds station five cells short of its site.
+- **Handback withdraws the pilot's sites.** A half-built site is not left for an AI that never chose it; leaving costs the work in hand, which is the honest price of taking the hull away. The defence drones return to what they were told before entry.
+- **Four sites at a time.** A held button paints sites; a short cap keeps the line something a person can read and cancel.
 
 ## Friendly fire and fog
 
@@ -108,13 +127,13 @@ No tender weapon exists, so there is no friendly fire to design. A friendly turr
 ## Open questions for the owner
 
 1. **Resupply and cost.** Building is free and drones are finite for the battle. If a cost is added later, should a build charge be a fabricated item the company carries, a number from the mission, or both?
-2. **Point defence.** Whether a tender should defend its drones' rearming, or itself, with flak is unanswered; slice 1 fits none.
+2. **Point defence strength.** The wing is faithful to the laser and therefore weak against fast, fire-and-forget missiles. If a tender should reliably answer a light Locust volley, the lever is more drones or a stronger wing refit, not a boosted laser.
 3. **Campaign hull condition.** A campaign Shepherd's damage and built-in mods are not yet read into the tender; whether they should be waits on the story that hands the ship over.
 
 ## What is built, and what is not
 
-Built: the hull as a composed warship body (fitted from a campaign member or the stock hull, with the vanilla shield, hit points and armour) with the vanilla drone complement and launch bay, defence drones anchored to it, builder drones, both drawn as the Borer, one free build option with a visible work phase and a build-site marker, stand-down under threat, cancel and failure, the debug picker and panel path, unit tests, and the `tender-build` scene (a plain build, a patrol the screen stops, the same patrol with the screen recalled, and an assault that overruns it).
+Built: point defence by the defence drones' mining lasers (the `tender-point-defence` scene: a light volley mostly shot down, a heavy swarm saturating it, a docked wing and a builder-only crew shooting nothing), and the hull as a composed warship body (fitted from a campaign member or the stock hull, with the vanilla shield, hit points and armour) with the vanilla drone complement and launch bay, defence drones anchored to it, builder drones, both drawn as the Borer, one free build option with a visible work phase and a build-site marker, stand-down under threat, cancel and failure, the debug picker and panel path, unit tests, and the `tender-build` scene (a plain build, a patrol the screen stops, the same patrol with the screen recalled, and an assault that overruns it).
 
 Since added: launch and recovery as real flight (staggered, through the bay's mouth, docking on arrival, leading a moving bay), the escort ring, the leash and break-off, retreat and repair of hurt defenders, builder stations with a welding arc, and separation, with unit tests and the `tender-sortie` scene beside `tender-build`.
 
-Open: player control through direct control, AI by stance, more build options, the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.
+Player control through direct control is built too (the pilot's hands, strip, help panel and the `tender-pilot` scene). Open: AI by stance, more build options, the story hand-out of a campaign Shepherd (a dependency that is not built here), and live acceptance (the choreography has been watched only in headless scenes). They are on the board in `stories.md`.

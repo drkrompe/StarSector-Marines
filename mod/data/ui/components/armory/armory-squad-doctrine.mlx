@@ -1,4 +1,4 @@
-<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,issuableFilter,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply">
+<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
@@ -9,7 +9,6 @@
     <div id="loadout-browser-tools">
       <div id="loadout-browser-summary" class="label tone-edge">{loadoutBrowserSummary}</div>
       <div id="loadout-browser-order" class="label tone-muted">Strongest first</div>
-      <button id="{issuableFilter.id}" class="{issuableFilter.classes}" onclick="{issuableFilter.select}">{issuableFilter.label}</button>
     </div>
 
     <div id="loadout-filter-list">

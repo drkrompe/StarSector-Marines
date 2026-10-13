@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EquipmentTemplateCatalogTest {
 
     @Test
-    void catalogUsesStableUniqueIdsAndBaseCargoCosts() {
+    void catalogUsesStableUniqueIdsAndFreeFitting() {
         List<EquipmentTemplateCard> cards = EquipmentTemplateCatalog.all();
 
         assertEquals(cards.size(), new HashSet<>(cards.stream()
@@ -29,7 +29,7 @@ class EquipmentTemplateCatalogTest {
         assertTrue(cards.stream().allMatch(card -> card.id().startsWith("equipment-template:")));
         assertEquals(EquipmentTemplateCost.ZERO, EquipmentTemplateCatalog.primary(
                 WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE).issueCost());
-        assertEquals(new EquipmentTemplateCost(3, 2, 1, 0),
+        assertEquals(EquipmentTemplateCost.ZERO,
                 EquipmentTemplateCatalog.special(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)).issueCost());
         assertEquals(EquipmentAccessTier.COMMON, EquipmentTemplateCatalog.primary(
                 WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE).accessTier());

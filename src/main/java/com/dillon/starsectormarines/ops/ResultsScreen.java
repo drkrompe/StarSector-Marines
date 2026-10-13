@@ -160,7 +160,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     static void putFirstRefit(Map<String, Object> props, MissionOutcome outcome, MarineRoster roster, Runnable open) {
         boolean available = outcome != null && !outcome.missionSource.isDebug() && FirstRefit.available(roster);
         props.put("refitClasses", available ? "results-refit console-readout" : "hidden");
-        props.put("refitCopy", "Castle has Wayline's new weapon and armor patterns ready in Armory. Choose Steady Line or Forward Screen and review the material bill. Wounded and understrength squads can equip now. You can return here for any unclaimed salvage.");
+        props.put("refitCopy", "Castle has Wayline's new weapon and armor patterns ready in Armory. Choose Steady Line or Forward Screen and try the equipment with free Machine Shop fitting. Wounded and understrength squads can equip now. You can return here for any unclaimed salvage.");
         props.put("refitAction", open);
     }
 
