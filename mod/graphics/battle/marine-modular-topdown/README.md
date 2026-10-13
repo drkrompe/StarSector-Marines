@@ -3,7 +3,9 @@
 Runtime bodies, independently rotating heads, and weapons live under `variants/`.
 `marine-muzzle-flash.png` is shared by every layered infantry family. Feet use
 `marine-foot.png` except Specter, which has an independent boot texture beside
-its body and helmet. Specter's `paints/` directory holds matching casing colors;
+its torso and helmet. Specter also supplies `shoulder-left.png` and
+`shoulder-right.png`, articulated independently over dark joint backing.
+Specter's `paints/` directory holds matching casing colors;
 its default is slate. `marine-rifle.png` is the retained canonical source used by
 `art-source/marine-modular-topdown/build_variants.py` to rebuild the service-rifle layer.
 

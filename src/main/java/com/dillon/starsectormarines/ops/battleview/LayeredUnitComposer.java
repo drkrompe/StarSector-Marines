@@ -193,6 +193,12 @@ final class LayeredUnitComposer {
                     facingDeg, alpha);
         }
 
+        // Armor shells follow authored torso articulation, never helmet look.
+        emitShoulder(out, assets.shoulderLeft, layer(authoredPose, "left-shoulder"),
+                bodyTransform, actorX, actorY, pxPerSw, facingDeg, alpha);
+        emitShoulder(out, assets.shoulderRight, layer(authoredPose, "right-shoulder"),
+                bodyTransform, actorX, actorY, pxPerSw, facingDeg, alpha);
+
         if (assets.foreClaw != null && swipe > 0f) {
             emitClaw(out, assets.foreClaw, leftStrikes ? leftClaw : rightClaw,
                     pxPerSw, alpha);
@@ -225,6 +231,23 @@ final class LayeredUnitComposer {
             } else if (drawPrimaryLayers) {
                 emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
             }
+        }
+    }
+
+    private static void emitShoulder(SpriteEmitter out, LayeredSpriteCache sprite,
+                                     LayerTransform shoulder, LayerTransform body,
+                                     float actorX, float actorY, float swPx,
+                                     float facingDeg, float alpha) {
+        if (sprite == null) return;
+        if (shoulder != null) {
+            emitAuthored(out, sprite, shoulder, actorX, actorY, swPx, facingDeg, 0f, alpha);
+        } else if (body != null) {
+            // Independent shells retain the body's source canvas, so a missing
+            // joint channel rests at the same registration as its torso.
+            emitAuthored(out, sprite, body, actorX, actorY, swPx, facingDeg, 0f, alpha);
+        } else {
+            float[] center = worldPoint(actorX, actorY, 0f, -0.12f, swPx, facingDeg);
+            emitSprite(out, sprite, center[0], center[1], swPx, facingDeg, alpha);
         }
     }
 

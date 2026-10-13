@@ -210,7 +210,11 @@ public final class HeadlessArmoryPreviewRenderer {
                     sprite(MODULAR_ROOT + "weapons/anti-materiel-rifle.png"),
                     sprite(FLASH),
                     sprite(MODULAR_ROOT + "weapons/grades/surplus/rifle.png"),
-                    sprite(MODULAR_ROOT + "weapons/grades/masterwork/dmr.png"));
+                    sprite(MODULAR_ROOT + "weapons/grades/masterwork/dmr.png"),
+                    family == LayeredArmorFamily.SPECTER_HEAVY
+                            ? optionalSprite(armorRoot + "shoulder-left.png") : null,
+                    family == LayeredArmorFamily.SPECTER_HEAVY
+                            ? optionalSprite(armorRoot + "shoulder-right.png") : null);
             for (SpecialEquipmentDef def : SpecialEquipmentRegistry.installed().all()) {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {
@@ -218,6 +222,10 @@ public final class HeadlessArmoryPreviewRenderer {
                 }
             }
             return loaded;
+        }
+
+        private LayeredSpriteCache optionalSprite(String path) {
+            return Files.exists(modRoot.resolve(path)) ? sprite(path) : null;
         }
 
         private LayeredSpriteCache sprite(String path) {
