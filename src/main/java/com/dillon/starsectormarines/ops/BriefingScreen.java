@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.ops.detachment.AgreusConstructionSupport;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 
@@ -1023,6 +1024,15 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
+                BriefingViewModel.info("yard-constables","Rusk's constables","Eight militia / occupy company gains",""),
+                BriefingViewModel.info("yard-inspectors","Supplier inspection party","Two technicians / one must finish the protected inspection",""),
+                BriefingViewModel.info("yard-support","Company support","Working tender required; employer heavy lift for your owned active mech lance",""),
+                BriefingViewModel.info("yard-preserve","Preserve tooling","Marked calibration machine / no bombardment or fighter strikes",""));
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
+                BriefingViewModel.info("warrant-constables","Rusk's constables","Four militia / cover the western return",""),
+                BriefingViewModel.info("warrant-technician","Supplier technician","One technician / recover calibration kit before losing them",""),
+                BriefingViewModel.info("warrant-load","Calibration load","Physical carrier / escort to egress; working company tender required",""));
         if (AgreusArcCampaign.isBattle(mission)) return List.of(
                 BriefingViewModel.info("weir-constables", "Rusk's constables", "Eight militia / hold restored switching rooms", ""),
                 BriefingViewModel.info("weir-technicians", "Edek's repair party", "Two technicians and one repair load / protect both", ""),

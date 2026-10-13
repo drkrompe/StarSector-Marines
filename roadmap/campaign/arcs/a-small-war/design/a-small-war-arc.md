@@ -1,10 +1,10 @@
 # A Small War
 
-Status: ACTIVE — sponsored paramilitary direction; the first two chapters are implemented.
+Status: ACTIVE — sponsored paramilitary direction; the first three chapters are implemented.
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — first two chapters and Recovered Specter reward are ready for live acceptance.
+Updated: 2026-10-13 — First three chapters and both recovered rewards are ready for live campaign acceptance.
 
 ## Premise, place and cast
 
@@ -37,15 +37,17 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 |---|---|---|---|
 | Water Under Seal | North Weir: escort repair cargo, reopen switching rooms, build a road gun and complete handover | 26,000 credits; sponsorship and Limited Warrant offer, no suit pattern | Implemented; live transition and settlement acceptance remain |
 | Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and Recovered Specter cargo card | Implemented; live learning/fitting and save acceptance remain |
-| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | Planned 36,000 credits and Recovered Arbalest card | Planned |
+| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and Recovered Arbalest cargo card | Implemented; live inspection, mixed fitting and save acceptance remain |
 | Terms of Protection | Latchkey/Cinder Steps: escort the signed custody party and defend commissioning work | Planned 32,000 credits and Boarding Jack card on either agreement | Planned; Boarding Jack remains proposed |
 | A Small War | Black Sluice: seize fuel-dispatch sites and hand them to local holders | Planned 44,000 credits, completed settlement and later procurement lead | Planned |
 
-Recommendations are two squads for the first two chapters, then three with
+Recommendations are two squads for the first three chapters, then three with
 construction support. Planned fees and equipment are design targets, not
 accepted encounter balance. North Weir opens the warrant offer; Limited Warrant
-victory awards the card. Explicit learning and Armory fitting remain separate
-player actions. The completed recovery does not open Chapter 3 yet.
+victory awards Specter and opens The Yard's Owners. Its protected inspection awards
+Arbalest. Explicit learning of both cards exposes the mixed section; Armory fitting
+remains a separate player action. Inspection signs no yard agreement and opens no
+fourth chapter.
 
 ## Planned agreement and continuation
 
@@ -57,11 +59,11 @@ Both retain the same core equipment rewards; defeat cannot reset the signature.
 Planned District Escort is a separate 24,000-credit repeatable through the
 chosen contact. The proposed later procurement introduction is a lead requiring
 another authored route. Military suits and a strict story-first acquisition gate
-are not delivered by this arc's first two chapters or by this document.
+are not delivered by this arc's first three chapters or by this document.
 
 ## Remaining work
 
 `a-small-war.md` owns live Corvus-to-Agreus travel/save and first-suit acceptance,
-Chapters 3–5, remaining equipment cards, Boarding Jack, both agreements and
+Chapters 4–5, the Boarding Jack card, Boarding Jack, both agreements and
 recurring escort.
 `campaign-learning-curve.md` tracks acquisition overlap and casualty carryover.
