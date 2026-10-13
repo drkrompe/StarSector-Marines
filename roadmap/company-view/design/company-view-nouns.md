@@ -1013,9 +1013,12 @@ A tagged or mission-grouped squad may assemble over several craft or passes. Unt
 present, the form-up gate suspends execution of its advancing assignment while
 retaining the authoritative command directive and still allowing self-defense.
 A timeout prevents a lost lift or split landing from deadlocking the mission.
+The gate holds a squad against its commander only; a player's order sends a
+partial squad forward at once.
 
 A campaign marine who lands outside squad cohesion of a squad that is no longer
-forming up is **rejoining**. That is the case the timeout leaves behind, and it
+held at its landing zone — the timeout expired, or the player sent it on — is
+**rejoining**. That is the case the timeout leaves behind, and it
 is equally a second lift arriving after the squad stepped off or a replacement
 wave joining a squad already in contact. A rejoining marine closes on its squad,
 returns fire at whatever is already within its own reach, and initiates nothing:
