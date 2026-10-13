@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -83,21 +84,22 @@ public final class FleetArmoryViewModel {
     }
 
     public enum LoadoutFilter {
-        ALL("All"),
-        COMMON("Common"),
-        UNCOMMON("Uncommon"),
-        RARE("Rare"),
-        EXOTIC("Exotic");
+        ALL("openingLoadoutFilterAll"),
+        COMMON("openingLoadoutFilterCommon"),
+        UNCOMMON("openingLoadoutFilterUncommon"),
+        RARE("openingLoadoutFilterRare"),
+        EXOTIC("openingLoadoutFilterExotic");
 
-        private final String label;
+        private final String labelKey;
 
         LoadoutFilter(String label) {
-            this.label = label;
+            this.labelKey = label;
         }
 
         private boolean accepts(SquadLoadoutRarity rarity) {
             return this == ALL || name().equals(rarity.name());
         }
+        String label() { return Strings.get(labelKey); }
     }
 
     private final MarineRoster roster;
@@ -231,7 +233,7 @@ public final class FleetArmoryViewModel {
         organizationTargetCaptainId = reactor.signal(null);
         organizationTargetChosen = reactor.signal(false);
         organizationFeedback = reactor.signal(Feedback.neutral(
-                "Assign several squads to one officer, or leave them unassigned."));
+                Strings.get("openingFleetArmoryAssignSeveralSquadsToOneOfficerOr")));
         organizationPreview = reactor.computed(() -> {
             domainRevision.get();
             return roster.previewCaptainAssignment(organizationTargetCaptainId.get(),
@@ -259,26 +261,25 @@ public final class FleetArmoryViewModel {
         organizationProps.put("applyDisabled", reactor.computed(() -> !organizing.get()
                 || !organizationTargetChosen.get() || !organizationPreview.get().valid()
                 || organizationPreview.get().changedSquadCount() == 0));
-        organizationProps.put("applyLabel", reactor.computed(() -> "Apply to "
-                + organizationCountLabel(organizationSelectedSquadIds.get().size())));
+        organizationProps.put("applyLabel", reactor.computed(() -> Strings.format("openingFleetArmoryApplyTo", organizationCountLabel(organizationSelectedSquadIds.get().size()))));
         organizationProps.put("toolbarCopy", reactor.computed(() -> organizing.get()
-                ? "Select squads below. Assignments change only when you apply."
+                ? Strings.get("openingFleetArmorySelectSquadsBelowAssignmentsChangeOnlyWhen")
                 : organizationFeedback.get().text()));
         organizationProps.put("toolbarCopyClasses", reactor.computed(() ->
                 organizationFeedback.get().succeeded() && !organizing.get()
                         ? "organization-toolbar-copy label tone-good"
                         : "organization-toolbar-copy label tone-muted"));
         organizationProps.put("galleryCopy", reactor.computed(() -> organizing.get()
-                ? "Choose several formations and their officer. Stationed squads are locked to their posting."
-                : "Found a formation from available stores, then inspect its marines and issue doctrine."));
+                ? Strings.get("openingFleetArmoryChooseSeveralFormationsAndTheirOfficerStationed")
+                : Strings.get("openingFleetArmoryFoundAFormationFromAvailableStoresThen")));
         organizationProps.put("startAction", (Runnable) this::beginOrganization);
         organizationProps.put("cancelAction", (Runnable) this::cancelOrganization);
         organizationProps.put("applyAction", (Runnable) this::applyOrganization);
         organization = Map.copyOf(organizationProps);
         feedback = reactor.signal(Feedback.neutral(
-                "Hover equipment names for field notes. Assign a weapon loadout and a tactic sheet, then issue to the squad."));
+                Strings.get("openingFleetArmoryHoverEquipmentNamesForFieldNotesAssign")));
         foundingFeedback = reactor.signal(Feedback.neutral(
-                "The complete bill is required; no partial squad is created."));
+                Strings.get("openingFleetArmoryTheCompleteBillIsRequiredNoPartial")));
 
         companySummary = reactor.computed(this::buildCompanySummary);
         squadCards = reactor.computed(this::buildSquadCards);
@@ -412,7 +413,7 @@ public final class FleetArmoryViewModel {
     public LoadoutFilter loadoutFilter() { return loadoutFilter.peek(); }
     public String selectedSquadName() {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
-        return squad != null ? squad.name() : "Squad";
+        return squad != null ? squad.name() : Strings.get("openingFleetArmorySquad");
     }
     public SquadEquipmentPreview currentSquadEquipmentPreview() {
         return squadEquipmentPreview.get();
@@ -452,7 +453,7 @@ public final class FleetArmoryViewModel {
         clearOrganizationDraft();
         organizing.set(true);
         organizationFeedback.set(Feedback.neutral(
-                "Select squads and choose their home officer."));
+                Strings.get("openingFleetArmorySelectSquadsAndChooseTheirHomeOfficer")));
     }
 
     /** Also used by navigation and detach so no draft survives the gallery. */
@@ -460,7 +461,7 @@ public final class FleetArmoryViewModel {
         clearOrganizationDraft();
         organizing.set(false);
         organizationFeedback.set(Feedback.neutral(
-                "Assign several squads to one officer, or leave them unassigned."));
+                Strings.get("openingFleetArmoryAssignSeveralSquadsToOneOfficerOr")));
     }
 
     private void clearOrganizationDraft() {
@@ -496,11 +497,10 @@ public final class FleetArmoryViewModel {
         if (result.valid()) {
             MarineCaptain captain = roster.byId(organizationTargetCaptainId.peek());
             String target = captain != null ? captain.rank().displayName() + " " + captain.name()
-                    : "Unassigned; falls to operation commander";
+                    : Strings.get("openingFleetArmoryUnassignedFallsToOperationCommander");
             clearOrganizationDraft();
             organizing.set(false);
-            organizationFeedback.set(Feedback.success(organizationCountLabel(result.changedSquadCount())
-                    + " organized  ·  " + target + "."));
+            organizationFeedback.set(Feedback.success(Strings.format("openingFleetArmoryOrganized", organizationCountLabel(result.changedSquadCount()), target)));
         } else {
             organizationFeedback.set(Feedback.neutral(result.reason()));
         }
@@ -528,23 +528,20 @@ public final class FleetArmoryViewModel {
         boolean full = !unassigned
                 && preview.resultingCommandCount() == preview.commandCapacity();
         String detail = unassigned
-                ? preview.currentCommandCount() + " now  ·  "
-                        + preview.resultingCommandCount() + " after apply"
-                : preview.currentCommandCount() + " now  ·  "
-                        + preview.resultingCommandCount() + " / " + preview.commandCapacity()
-                        + " after apply";
-        String state = unassigned ? "Operation commander"
-                : overflow ? "Capacity exceeded"
-                : full ? "At command capacity"
-                : preview.commandCapacity() - preview.resultingCommandCount() + " slots open";
+                ? Strings.format("openingFleetArmoryNowAfterApply", preview.currentCommandCount(), preview.resultingCommandCount())
+                : Strings.format("openingFleetArmoryNowAfterApply2", preview.currentCommandCount(), preview.resultingCommandCount(), preview.commandCapacity());
+        String state = unassigned ? Strings.get("openingFleetArmoryOperationCommander")
+                : overflow ? Strings.get("openingFleetArmoryCapacityExceeded")
+                : full ? Strings.get("openingFleetArmoryAtCommandCapacity")
+                : Strings.format("openingFleetArmorySlotsOpen", preview.commandCapacity() - preview.resultingCommandCount());
         String classes = "organization-target" + (unassigned ? " unassigned" : "")
                 + (selected ? " selected" : "")
                 + (overflow ? " overflow" : full ? " full" : " available");
         return new OrganizationTarget(id, id + ":name", id + ":detail", classes,
-                unassigned ? "Unassigned" : captain.name(), detail,
+                unassigned ? Strings.get("openingFleetArmoryUnassigned") : captain.name(), detail,
                 () -> selectOrganizationTarget(captainId),
                 unassigned ? "" : captain.portraitSprite(),
-                unassigned ? "NO HOME OFFICER" : captain.rank().displayName().toUpperCase(Locale.ROOT),
+                unassigned ? Strings.get("openingFleetArmoryNoHomeOfficer") : captain.rank().displayName().toUpperCase(Locale.ROOT),
                 state, "organization-target-state label "
                         + (overflow ? "tone-danger" : full ? "tone-accent" : "tone-good"),
                 selected ? "border-color: #ffd464; border-width: 2px;" : "",
@@ -557,25 +554,23 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildOrganizationSummary() {
-        if (!organizationTargetChosen.get()) return "Choose an officer or explicit Unassigned.";
+        if (!organizationTargetChosen.get()) return Strings.get("openingFleetArmoryChooseAnOfficerOrExplicitUnassigned");
         SquadCaptainAssignmentResult preview = organizationPreview.get();
         MarineCaptain captain = roster.byId(organizationTargetCaptainId.get());
         String projection = organizationTargetCaptainId.get() == null
-                ? "Unassigned  ·  Falls to operation commander when deployed."
-                : captain == null ? "Chosen officer is no longer available."
-                : captain.rank().displayName() + " " + captain.name() + "  ·  "
-                        + preview.resultingCommandCount() + " / " + preview.commandCapacity()
-                        + " squads after apply.";
+                ? Strings.get("openingFleetArmoryUnassignedFallsToOperationCommanderWhenDeployed")
+                : captain == null ? Strings.get("openingFleetArmoryChosenOfficerIsNoLongerAvailable")
+                : Strings.format("openingFleetArmorySquadsAfterApply", captain.rank().displayName(), captain.name(), preview.resultingCommandCount(), preview.commandCapacity());
         String reason = !preview.valid() ? preview.reason()
                 : preview.changedSquadCount() == 0
-                        ? "Selected squads already have this assignment."
-                        : organizationCountLabel(preview.changedSquadCount()) + " will change officer.";
+                        ? Strings.get("openingFleetArmorySelectedSquadsAlreadyHaveThisAssignment")
+                        : Strings.format("openingFleetArmoryWillChangeOfficer", organizationCountLabel(preview.changedSquadCount()));
         String rejected = organizationFeedback.get().text();
         return projection + "  " + (!rejected.isBlank() ? rejected : reason);
     }
 
     private static String organizationCountLabel(int count) {
-        return count + (count == 1 ? " squad" : " squads");
+        return Strings.format("openingSquadCount", count);
     }
 
     /** Reprojects campaign time, personnel, and cargo authority. */
@@ -605,10 +600,8 @@ public final class FleetArmoryViewModel {
                 selectedArmorDoctrineId.peek(), equipmentIssueResources);
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         feedback.set(result == SquadEquipmentResult.APPLIED
-                ? Feedback.success("Squad equipment issued to "
-                        + (squad != null ? squad.name() : "selected squad")
-                        + (preview.issueCost().isZero() ? "  ·  no cargo required."
-                        : "  ·  " + preview.issueCost().display() + " consumed."))
+                ? Feedback.success(Strings.format("openingFleetArmorySquadEquipmentIssuedTo", (squad != null ? squad.name() : Strings.get("openingFleetArmorySelectedSquad")), (preview.issueCost().isZero() ? Strings.get("openingFleetArmoryNoCargoRequired")
+                        : Strings.format("openingFleetArmoryConsumed", preview.issueCost().display()))))
                 : Feedback.neutral(squadEquipmentMessage(
                         buildSquadEquipmentPreview())));
         domainRevision.update(value -> value + 1);
@@ -626,10 +619,7 @@ public final class FleetArmoryViewModel {
             ready += roster.readyCount(squad);
             wounded += woundedCount(squad);
         }
-        return lineSquads + " squads  ·  " + ready + " RTD  ·  "
-                + wounded + " WIA  ·  "
-                + roster.armory().equipmentTemplateCards().size()
-                + " equipment templates collected";
+        return Strings.format("openingFleetArmorySquadsRtdWiaEquipmentTemplatesCollected", lineSquads, ready, wounded, roster.armory().equipmentTemplateCards().size());
     }
 
     private List<SelectionRow> buildSquadRows() {
@@ -638,9 +628,7 @@ public final class FleetArmoryViewModel {
         List<SelectionRow> rows = new ArrayList<>();
         for (MarineSquad squad : roster.squads()) {
             boolean unavailable = squad.reserve();
-            String label = squad.name() + "  ·  " + roster.readyCount(squad) + " / "
-                    + MarineSquad.CAPACITY + " RTD"
-                    + (squad.stationed() ? "  ·  Stationed" : unavailable ? "  ·  Reserve" : "");
+            String label = Strings.format("openingFleetArmoryRtd", squad.name(), roster.readyCount(squad), MarineSquad.CAPACITY, (squad.stationed() ? "  ·  Stationed" : unavailable ? "  ·  Reserve" : ""));
             rows.add(new SelectionRow("squad:" + squad.id(), label,
                     squad.id().equals(selected) ? "selection-row selected" : "selection-row",
                     unavailable, () -> selectSquad(squad.id())));
@@ -659,7 +647,7 @@ public final class FleetArmoryViewModel {
             String readiness = readinessLabel(ready, MarineSquad.CAPACITY);
             String readinessClass = readinessClass(ready, MarineSquad.CAPACITY);
             String command = durableCommandLabel(squad);
-            String location = squad.stationed() ? "Stationed away" : "Aboard fleet";
+            String location = squad.stationed() ? Strings.get("openingFleetArmoryStationedAway") : Strings.get("openingFleetArmoryAboardFleet");
             String id = "squad-card:" + squad.id();
             cards.add(new SquadCard(id, id + ":name", id + ":status",
                     id + ":strength", id + ":teams", id + ":command",
@@ -667,9 +655,9 @@ public final class FleetArmoryViewModel {
                     id + ":reinforce", id + ":reinforce-icon", id + ":reinforce-label",
                     "squad-card " + readinessClass,
                     "squad-card-status heading " + readinessTone(ready, MarineSquad.CAPACITY),
-                    squad.name(), readiness, ready + " / " + MarineSquad.CAPACITY + " RTD",
+                    squad.name(), readiness, Strings.format("openingFleetArmoryRtd2", ready, MarineSquad.CAPACITY),
                     assigned == MarineSquad.TEAMS_PER_SQUAD
-                            ? "Squad doctrine issued" : "Individual equipment",
+                            ? Strings.get("openingFleetArmorySquadDoctrineIssued") : Strings.get("openingFleetArmoryIndividualEquipment"),
                     command, location, compactRecoverySummary(squad),
                     equipmentIssueResources.commodityIcon(Commodities.MARINES),
                     reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
@@ -722,8 +710,8 @@ public final class FleetArmoryViewModel {
             String classes = squad.classes() + (organizationMode ? " organizing" : "")
                     + (organizationMode && marked ? " selected" : "")
                     + (organizationMode && stationed ? " locked" : "");
-            String notice = stationed ? "STATIONED  ·  LOCKED"
-                    : marked ? "SELECTED FOR ASSIGNMENT" : "SELECT FORMATION";
+            String notice = stationed ? Strings.get("openingFleetArmoryStationedLocked")
+                    : marked ? Strings.get("openingFleetArmorySelectedForAssignment") : Strings.get("openingFleetArmorySelectFormation");
             String command = organizationMode && formation != null
                     ? durableCommandLabel(formation) : squad.command();
             cards.add(new SquadGalleryCard(squad.id(), classes, squad,
@@ -757,10 +745,10 @@ public final class FleetArmoryViewModel {
 
     private String durableCommandLabel(MarineSquad squad) {
         MarineCaptain captain = roster.captainForSquad(squad.id());
-        if (squad.homeCaptainId() == null) return "Unassigned  ·  Operation commander";
-        if (captain == null) return "Home officer unavailable  ·  Operation commander";
+        if (squad.homeCaptainId() == null) return Strings.get("openingFleetArmoryUnassignedOperationCommander");
+        if (captain == null) return Strings.get("openingFleetArmoryHomeOfficerUnavailableOperationCommander");
         return captain.rank().displayName() + " " + captain.name()
-                + (captain.status() == Status.ACTIVE ? "" : "  ·  Unavailable; operation commander");
+                + (captain.status() == Status.ACTIVE ? "" : Strings.get("openingFleetArmoryUnavailableOperationCommander"));
     }
 
     private static SquadCard emptySquadCard(String id) {
@@ -798,8 +786,7 @@ public final class FleetArmoryViewModel {
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             int target = team;
             String assigned = assignedDoctrineName(squad);
-            String label = teamName(team) + "  ·  " + readyTeamMembers(squad, team)
-                    + " / " + MarineSquad.TEAM_SIZE + " RTD  ·  " + assigned;
+            String label = Strings.format("openingFleetArmoryRtd3", teamName(team), readyTeamMembers(squad, team), MarineSquad.TEAM_SIZE, assigned);
             rows.add(new SelectionRow("team:" + squad.id() + ":" + team, label,
                     team == selected ? "selection-row selected" : "selection-row",
                     false, () -> selectTeam(target)));
@@ -867,9 +854,7 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = plan.armorClass().displayName() + "  ·  "
-                    + titleCase(plan.tradition().key.replace('_', ' '))
-                    + "  ·  FIELDS TIER " + tierMark(maximumArmorTier(issued));
+            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClass().displayName(), titleCase(plan.tradition().key.replace('_', ' ')), tierMark(maximumArmorTier(issued)));
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
@@ -913,7 +898,7 @@ public final class FleetArmoryViewModel {
                 "doctrine-rarity label " + rarityClass, ratingClasses(rating),
                 factionLogoClasses(presentation.factionLogo()),
                 name, presentation.rarity().displayName(), rating,
-                (presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "FIRE " : "GUARD ") + rating + "%", presentation.factionLogo(), metadata,
+                Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
                 carries, carriesSpans, select);
     }
@@ -936,7 +921,7 @@ public final class FleetArmoryViewModel {
     }
 
     private static String doctrineMetadata(SquadLoadoutPresentationDef presentation) {
-        return "TIER " + tierMark(presentation.tier()) + "  ·  " + presentation.provenance();
+        return Strings.format("openingFleetArmoryTier", tierMark(presentation.tier()), presentation.provenance());
     }
 
     private List<LoadoutFilterOption> buildLoadoutFilters() {
@@ -944,7 +929,7 @@ public final class FleetArmoryViewModel {
         List<LoadoutFilterOption> filters = new ArrayList<>();
         for (LoadoutFilter filter : LoadoutFilter.values()) {
             String id = "loadout-filter:" + filter.name().toLowerCase(Locale.ROOT);
-            filters.add(new LoadoutFilterOption(id, filter.label,
+            filters.add(new LoadoutFilterOption(id, filter.label(),
                     filter == selected ? "loadout-filter selected" : "loadout-filter",
                     showLoadoutFilterAction(filter)));
         }
@@ -958,7 +943,7 @@ public final class FleetArmoryViewModel {
                 ? knownWeaponLoadouts() : knownArmorLoadouts();
         int shown = equipmentPickerKind.get() == EquipmentPickerKind.WEAPON
                 ? weaponDoctrineTiles.get().size() : armorDoctrineTiles.get().size();
-        return shown == known ? known + " known" : shown + " of " + known + " known";
+        return shown == known ? Strings.format("openingFleetArmoryKnown", known) : Strings.format("openingFleetArmoryOfKnown", shown, known);
     }
 
     private int knownWeaponLoadouts() {
@@ -1018,13 +1003,13 @@ public final class FleetArmoryViewModel {
                     id + ":description",
                     "comparison-card",
                     armor.displayName(),
-                    "TIER " + tierMark(armor.tier()),
+                    Strings.format("openingFleetArmoryTier2", tierMark(armor.tier())),
                     armor.armorClass().displayName(),
                     armorComparisonStats(id, armor),
                     IntegralSystemCopy.tile(armor),
                     IntegralSystemCopy.iconPath(armor),
                     comparisonSystemClasses(armor),
-                    "ROLE · " + armor.role().displayName() + "\n" + armor.description()));
+                    Strings.format("openingFleetArmoryRole", armor.role().displayName(), armor.description())));
         }
         return List.copyOf(cards);
     }
@@ -1032,23 +1017,22 @@ public final class FleetArmoryViewModel {
     private String buildArmorComparisonSummary() {
         int owned = armorComparisonCards.get().size();
         int catalogued = MarineArmorCatalogRegistry.installed().all().size();
-        return owned + " of " + catalogued
-                + " armor patterns held  ·  sorted by tier, then name";
+        return Strings.format("openingFleetArmoryOfArmorPatternsHeldSortedByTier", owned, catalogued);
     }
 
     private static List<StatMeter> armorComparisonStats(String cardId, MarineArmorCatalogDef armor) {
         float evasion = CatalogCeilings.evasionOf(armor);
         return List.of(
-                StatMeter.of(cardId + ":armor-value", "ARMOR",
+                StatMeter.of(cardId + ":armor-value", Strings.get("openingFleetArmoryArmor"),
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
                         armor.armorCapacity(), CatalogCeilings.armorCapacity()),
-                StatMeter.of(cardId + ":resist", "RESIST",
+                StatMeter.of(cardId + ":resist", Strings.get("openingFleetArmoryResist"),
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
                         armor.armorRating(), CatalogCeilings.armorRating()),
-                StatMeter.of(cardId + ":move", "MOVE",
+                StatMeter.of(cardId + ":move", Strings.get("openingFleetArmoryMove"),
                         String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
                         armor.moveSpeedMult(), CatalogCeilings.moveSpeedMult()),
-                StatMeter.of(cardId + ":evasion", "EVASION",
+                StatMeter.of(cardId + ":evasion", Strings.get("openingFleetArmoryEvasion"),
                         signedPercent(evasion), evasion, CatalogCeilings.armorEvasion()));
     }
 
@@ -1068,7 +1052,7 @@ public final class FleetArmoryViewModel {
     }
 
     private static String titleCase(String value) {
-        if (value == null || value.isBlank()) return "Unclassified";
+        if (value == null || value.isBlank()) return Strings.get("openingFleetArmoryUnclassified");
         String lower = value.toLowerCase(Locale.ROOT).replace('_', ' ');
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
@@ -1078,7 +1062,7 @@ public final class FleetArmoryViewModel {
         SquadLoadoutPresentationDef authored = SquadLoadoutPresentationRegistry.get(id);
         return authored != null ? authored : new SquadLoadoutPresentationDef(
                 id, kind, tier, SquadLoadoutRarity.COMMON,
-                id.startsWith("wayline:") ? "Wayline technology transfer" : "Company-authored", null, fallbackLore != null ? fallbackLore : "");
+                id.startsWith("wayline:") ? Strings.get("openingFleetArmoryWaylineTechnologyTransfer") : Strings.get("openingFleetArmoryCompanyAuthored"), null, fallbackLore != null ? fallbackLore : "");
     }
 
     private static int maximumWeaponTier(SquadWeaponDoctrine doctrine) {
@@ -1099,7 +1083,7 @@ public final class FleetArmoryViewModel {
         return switch (tier) {
             case 1 -> "I";
             case 2 -> "II";
-            case 3 -> "III";
+            case 3 -> Strings.get("openingFleetArmoryIii");
             case 4 -> "IV";
             default -> "V";
         };
@@ -1109,15 +1093,15 @@ public final class FleetArmoryViewModel {
         SquadWeaponDoctrine doctrine = roster.armory().weaponDoctrineById(
                 selectedWeaponDoctrineId.get());
         return doctrine != null
-                ? "Selected  ·  " + doctrine.displayName()
-                : "Choose weapon equipment";
+                ? Strings.format("openingFleetArmorySelected", doctrine.displayName())
+                : Strings.get("openingFleetArmoryChooseWeaponEquipment");
     }
 
     private String buildArmorDoctrineSummary() {
         SquadArmorDoctrine doctrine = roster.armory().armorDoctrineById(
                 selectedArmorDoctrineId.get());
         return doctrine != null
-                ? "Selected  ·  " + doctrine.displayName()
+                ? Strings.format("openingFleetArmorySelected", doctrine.displayName())
                 : ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get());
     }
 
@@ -1170,22 +1154,20 @@ public final class FleetArmoryViewModel {
                     id + ":armor-column",
                     marineCardClasses(soldier, previewing),
                     "marine-status heading " + marineStatusTone(soldier),
-                    marineName(soldier), billet != null ? billet.name() : "Unfilled billet",
+                    marineName(soldier), billet != null ? billet.name() : Strings.get("openingFleetArmoryUnfilledBillet"),
                     marineStatus(soldier), serviceSummary(soldier),
                     personnelSummary(soldier),
-                    armorCatalog != null ? armorCatalog.armorClass().displayName() : "VACANT",
-                    billet != null ? "W " + billet.grade().tierMark() : "W —",
-                    billet != null ? "A " + tierMark(armorCatalog.tier()) : "A —",
+                    armorCatalog != null ? armorCatalog.armorClass().displayName() : Strings.get("openingFleetArmoryVacant"),
+                    billet != null ? Strings.format("openingFleetArmoryW", billet.grade().tierMark()) : Strings.get("openingFleetArmoryW2"),
+                    billet != null ? Strings.format("openingFleetArmoryA", tierMark(armorCatalog.tier())) : Strings.get("openingFleetArmoryA2"),
                     billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
-                            + billet.grade().displayName : "No primary",
+                            + billet.grade().displayName : Strings.get("openingFleetArmoryNoPrimary"),
                     primaryFactionLogo, equipmentFactionLogoClasses(primaryFactionLogo),
                     weaponStats(id, billet, soldier),
-                    billet != null ? armorCatalog.displayName() + "  ·  "
-                            + armorCatalog.role().displayName() + "  ·  Tier "
-                            + tierMark(armorCatalog.tier()) : "No armor",
+                    billet != null ? Strings.format("openingFleetArmoryTier3", armorCatalog.displayName(), armorCatalog.role().displayName(), tierMark(armorCatalog.tier())) : Strings.get("openingFleetArmoryNoArmor"),
                     armorStats(id, billet),
                     armorFactionLogo, equipmentFactionLogoClasses(armorFactionLogo),
-                    special != null ? special.displayName() : "No specialty equipment",
+                    special != null ? special.displayName() : Strings.get("openingFleetArmoryNoSpecialtyEquipment"),
                     specialFactionLogo, equipmentFactionLogoClasses(specialFactionLogo),
                     IntegralSystemCopy.summary(armorCatalog),
                     systemFactionLogo, equipmentFactionLogoClasses(systemFactionLogo),
@@ -1207,21 +1189,19 @@ public final class FleetArmoryViewModel {
     private String buildTargetSummary() {
         domainRevision.get();
         MarineSquad squad = roster.squadById(selectedSquadId.get());
-        return squad == null ? "Select a line squad"
-                : squad.name() + "  ·  12-billet squad issue";
+        return squad == null ? Strings.get("openingFleetArmorySelectALineSquad")
+                : Strings.format("openingFleetArmoryBilletSquadIssue", squad.name());
     }
 
     private String buildCandidateSummary() {
         domainRevision.get();
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(
                 selectedWeaponDoctrineId.get());
-        return "Proposed  ·  "
-                + (weapons != null ? weapons.displayName() : "Choose weapons")
-                + "  /  " + ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get());
+        return Strings.format("openingFleetArmoryProposed", (weapons != null ? weapons.displayName() : Strings.get("openingFleetArmoryChooseWeapons")), ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get()));
     }
 
     private String buildApplyLabel() {
-        return "Fit Squad";
+        return Strings.get("openingLoadoutFitSquad");
     }
 
     private List<CargoCostRow> buildIssueCargoRows() {
@@ -1284,20 +1264,20 @@ public final class FleetArmoryViewModel {
     private void selectTeam(int teamIndex) {
         selectedTeamIndex.set(teamIndex);
         feedback.set(Feedback.neutral(
-                "Inspecting this fire team within the same squad equipment preview."));
+                Strings.get("openingFleetArmoryInspectingThisFireTeamWithinTheSame")));
     }
 
     private void selectWeaponDoctrine(String doctrineId) {
         if (roster.armory().weaponDoctrineById(doctrineId) == null) return;
         selectedWeaponDoctrineId.set(doctrineId);
         feedback.set(Feedback.neutral(
-                "Weapon equipment selected. Special equipment follows this definition."));
+                Strings.get("openingFleetArmoryWeaponEquipmentSelectedSpecialEquipmentFollowsThis")));
     }
 
     private void selectArmorDoctrine(String doctrineId) {
         if (roster.armory().armorDoctrineById(doctrineId) == null) return;
         selectedArmorDoctrineId.set(doctrineId);
-        feedback.set(Feedback.neutral("Armor equipment selected for all twelve billets."));
+        feedback.set(Feedback.neutral(Strings.get("openingFleetArmoryArmorEquipmentSelectedForAllTwelveBillets")));
     }
 
     private void reinforceSquad(String squadId) {
@@ -1309,13 +1289,11 @@ public final class FleetArmoryViewModel {
             feedback.set(Feedback.neutral(reinforcementUnavailableReason(squad)));
         } else {
             String source = result.reservesAssigned() > 0 && result.cargoMarinesConsumed() > 0
-                    ? result.reservesAssigned() + " reserve, "
-                            + result.cargoMarinesConsumed() + " cargo consumed"
+                    ? Strings.format("openingFleetArmoryReserveCargoConsumed", result.reservesAssigned(), result.cargoMarinesConsumed())
                     : result.reservesAssigned() > 0
-                            ? result.reservesAssigned() + " from reserve"
-                            : result.cargoMarinesConsumed() + " cargo consumed";
-            feedback.set(Feedback.success(squad.name() + " reinforced  ·  " + source
-                    + ". Review replacement equipment before deployment."));
+                            ? Strings.format("openingFleetArmoryFromReserve", result.reservesAssigned())
+                            : Strings.format("openingFleetArmoryCargoConsumed", result.cargoMarinesConsumed());
+            feedback.set(Feedback.success(Strings.format("openingFleetArmoryReinforcedReviewReplacementEquipmentBeforeDeployment", squad.name(), source)));
         }
         domainRevision.update(value -> value + 1);
     }
@@ -1325,12 +1303,11 @@ public final class FleetArmoryViewModel {
         SquadFoundingWorkshop.Result result = squadFoundingWorkshop.foundSquad();
         if (!result.succeeded()) {
             foundingFeedback.set(Feedback.neutral(
-                    "Insufficient cargo; the complete founding bill must be aboard."));
+                    Strings.get("openingFleetArmoryInsufficientCargoTheCompleteFoundingBillMust")));
         } else {
             MarineSquad squad = result.squad();
             selectSquad(squad.id());
-            foundingFeedback.set(Feedback.success(squad.name() + " founded  ·  "
-                    + MarineSquad.CAPACITY + " marines ready for issue."));
+            foundingFeedback.set(Feedback.success(Strings.format("openingFleetArmoryFoundedMarinesReadyForIssue", squad.name(), MarineSquad.CAPACITY)));
         }
         domainRevision.update(value -> value + 1);
     }
@@ -1338,11 +1315,9 @@ public final class FleetArmoryViewModel {
     private String buildSelectedSquadReadiness() {
         domainRevision.get();
         MarineSquad squad = roster.squadById(selectedSquadId.get());
-        if (squad == null) return "Select a line squad";
+        if (squad == null) return Strings.get("openingFleetArmorySelectALineSquad");
         int vacancies = roster.vacancies(squad);
-        return roster.readyCount(squad) + " RTD  ·  " + vacancies
-                + (vacancies == 1 ? " open billet  ·  " : " open billets  ·  ")
-                + recoverySummary(squad);
+        return Strings.format("openingFleetArmoryRtd4", roster.readyCount(squad), vacancies, (vacancies == 1 ? Strings.get("openingFleetArmoryOpenBillet") : Strings.get("openingFleetArmoryOpenBillets")), recoverySummary(squad));
     }
 
     private int reinforcementCapacity(MarineSquad squad) {
@@ -1355,28 +1330,28 @@ public final class FleetArmoryViewModel {
 
     private String reinforcementLabel(MarineSquad squad) {
         int capacity = reinforcementCapacity(squad);
-        return capacity > 0 ? "Reinforce +" + capacity : "Reinforce";
+        return capacity > 0 ? Strings.format("openingFleetArmoryReinforce2", capacity) : Strings.get("openingFleetArmoryReinforce");
     }
 
     private String reinforcementUnavailableReason(MarineSquad squad) {
-        if (squad.stationed()) return "Unavailable  ·  This squad is stationed away.";
+        if (squad.stationed()) return Strings.get("openingFleetArmoryUnavailableThisSquadIsStationedAway");
         if (roster.vacancies(squad) <= 0 && woundedCount(squad) > 0) {
-            return "No open billets  ·  WIA marines remain assigned while recovering.";
+            return Strings.get("openingFleetArmoryNoOpenBilletsWiaMarinesRemainAssigned");
         }
-        if (roster.vacancies(squad) <= 0) return "This squad is fully manned.";
-        return "No ready reserve or cargo marines are available.";
+        if (roster.vacancies(squad) <= 0) return Strings.get("openingFleetArmoryThisSquadIsFullyManned");
+        return Strings.get("openingFleetArmoryNoReadyReserveOrCargoMarinesAre");
     }
 
     private String assignedTemplateName(MarineSquad squad, int teamIndex) {
         FireTeamTemplateCard card = roster.armory().templateCardById(
                 squad.teamTemplateCardId(teamIndex));
-        return card != null ? card.displayName() : "Unassigned";
+        return card != null ? card.displayName() : Strings.get("openingFleetArmoryUnassigned");
     }
 
     private String assignedDoctrineName(MarineSquad squad) {
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(
                 squad.weaponDoctrineId());
-        if (weapons == null) return "Individual equipment";
+        if (weapons == null) return Strings.get("openingFleetArmoryIndividualEquipment");
         return weapons.displayName() + "  /  "
                 + ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId());
     }
@@ -1422,7 +1397,7 @@ public final class FleetArmoryViewModel {
         if (specials > 0) {
             SpecialEquipmentDef def = mixed ? null : SpecialEquipmentRegistry.get(only);
             spans.add(span(tileId, "distribution", spans.size(),
-                    specials + " special", def == null ? null : SpecSheets.special(def),
+                    Strings.format("openingFleetArmorySpecial", specials), def == null ? null : SpecSheets.special(def),
                     def == null ? "graphics/ui/equipment/firepower.svg" : def.armoryIconPath()));
         }
         return last(spans);
@@ -1453,8 +1428,7 @@ public final class FleetArmoryViewModel {
         SpecSheet sheet = SpecSheets.weapon(weapon, quoted);
         if (lowest == highest) return sheet;
         return new SpecSheet(sheet.title(),
-                sheet.subtitle() + "  ·  issued " + lowest.displayName + "–"
-                        + highest.displayName + " here",
+                Strings.format("openingFleetArmoryIssuedHere", sheet.subtitle(), lowest.displayName, highest.displayName),
                 sheet.crestPath(), sheet.accent(), sheet.stats(), sheet.notes());
     }
 
@@ -1483,7 +1457,7 @@ public final class FleetArmoryViewModel {
             // cannot yet field into a reason to buy something: the ISSUED line
             // below would otherwise just show twelve of the wrong suit and no
             // explanation ({@code role-and-access.md}).
-            if (!ownsAnyPatternFor(role, plan.armorClass())) part += " (no kit)";
+            if (!ownsAnyPatternFor(role, plan.armorClass())) part += Strings.get("openingFleetArmoryNoKit");
             parts.add(part);
         }
         return String.join("  ·  ", parts);
@@ -1519,7 +1493,7 @@ public final class FleetArmoryViewModel {
      */
     private static String armorCapabilities(List<DoctrineSpan> capabilities) {
         return capabilities.isEmpty()
-                ? "Nothing beyond plate and training" : joinSpans(capabilities);
+                ? Strings.get("openingFleetArmoryNothingBeyondPlateAndTraining") : joinSpans(capabilities);
     }
 
     /**
@@ -1636,8 +1610,7 @@ public final class FleetArmoryViewModel {
             wounded++;
             earliest = Math.min(earliest, soldier.unavailableUntilDay());
         }
-        return wounded == 0 ? "No WIA" : wounded + " WIA  ·  RTD "
-                + formatRemainingCompact(earliest, currentDay.getAsDouble());
+        return wounded == 0 ? Strings.get("openingFleetArmoryNoWia") : Strings.format("openingFleetArmoryWiaRtd", wounded, formatRemainingCompact(earliest, currentDay.getAsDouble()));
     }
 
     @SafeVarargs
@@ -1652,22 +1625,27 @@ public final class FleetArmoryViewModel {
                 earliest = Math.min(earliest, soldier.unavailableUntilDay());
             }
         }
-        return wounded == 0 ? "No wounded personnel"
-                : wounded + " WIA  ·  next RTD " + formatRemaining(earliest, currentDay.getAsDouble());
+        return wounded == 0 ? Strings.get("openingFleetArmoryNoWoundedPersonnel")
+                : Strings.format("openingFleetArmoryWiaNextRtd", wounded, formatRemaining(earliest, currentDay.getAsDouble()));
     }
 
     static String formatRemaining(double unavailableUntilDay, double currentDay) {
-        int hours = Math.max(0, (int) Math.ceil((unavailableUntilDay - currentDay) * 24d));
-        if (hours <= 0) return "now";
-        if (hours < 24) return "in " + hours + "h";
-        int days = hours / 24;
-        int remainder = hours % 24;
-        return "in " + days + "d" + (remainder == 0 ? "" : " " + remainder + "h");
+        return remaining(unavailableUntilDay, currentDay, false);
     }
 
     static String formatRemainingCompact(double unavailableUntilDay, double currentDay) {
-        String remaining = formatRemaining(unavailableUntilDay, currentDay);
-        return remaining.startsWith("in ") ? remaining.substring(3) : remaining;
+        return remaining(unavailableUntilDay, currentDay, true);
+    }
+
+    private static String remaining(double until, double now, boolean compact) {
+        int hours = Math.max(0, (int) Math.ceil((until - now) * 24d));
+        if (hours == 0) return Strings.get("openingRecoveryNow");
+        String prefix = compact ? "openingRecoveryCompact" : "openingRecovery";
+        if (hours < 24) return Strings.format(prefix + "Hours", hours);
+        int days = hours / 24;
+        int remainder = hours % 24;
+        return remainder == 0 ? Strings.format(prefix + "Days", days)
+                : Strings.format(prefix + "DaysHours", days, remainder);
     }
 
     private static MarineSquad firstLineSquad(MarineRoster roster) {
@@ -1677,18 +1655,18 @@ public final class FleetArmoryViewModel {
 
     private static String teamName(int teamIndex) {
         return switch (teamIndex) {
-            case 0 -> "Alpha";
-            case 1 -> "Bravo";
-            case 2 -> "Charlie";
-            default -> "Team";
+            case 0 -> Strings.get("openingFleetArmoryAlpha");
+            case 1 -> Strings.get("openingFleetArmoryBravo");
+            case 2 -> Strings.get("openingFleetArmoryCharlie");
+            default -> Strings.get("openingFleetArmoryTeam");
         };
     }
 
     private static String readinessLabel(int ready, int capacity) {
-        if (ready >= capacity) return "READY";
-        if (ready * 4 >= capacity * 3) return "OPERATIONAL";
-        if (ready > 0) return "RECONSTITUTING";
-        return "STANDING DOWN";
+        if (ready >= capacity) return Strings.get("openingFleetArmoryReady");
+        if (ready * 4 >= capacity * 3) return Strings.get("openingFleetArmoryOperational");
+        if (ready > 0) return Strings.get("openingFleetArmoryReconstituting");
+        return Strings.get("openingFleetArmoryStandingDown");
     }
 
     private static String readinessClass(int ready, int capacity) {
@@ -1709,7 +1687,7 @@ public final class FleetArmoryViewModel {
                 squad.teamTemplateCardId(teamIndex));
         String role = assigned != null && billetIndex < assigned.billets().size()
                 ? assigned.billet(billetIndex).name()
-                : billetIndex == 0 ? "Team Leader" : "Rifleman";
+                : billetIndex == 0 ? Strings.get("openingFleetArmoryTeamLeader") : Strings.get("openingFleetArmoryRifleman");
         return new FireTeamBillet(role, soldier.primaryId(), soldier.primaryGrade(),
                 soldier.specialEquipmentId(), soldier.armorId());
     }
@@ -1734,17 +1712,17 @@ public final class FleetArmoryViewModel {
     private static String marineName(MarineSoldier soldier) {
         return soldier != null
                 ? soldier.enlistedRank().abbreviation() + " " + soldier.name()
-                : "Vacant billet";
+                : Strings.get("openingFleetArmoryVacantBillet");
     }
 
     private String marineStatus(MarineSoldier soldier) {
-        if (soldier == null) return "VACANT";
+        if (soldier == null) return Strings.get("openingFleetArmoryVacant");
         return switch (soldier.status()) {
-            case ACTIVE -> "READY";
-            case WIA -> "WIA  ·  RTD " + formatRemaining(
-                    soldier.unavailableUntilDay(), currentDay.getAsDouble());
-            case MIA -> "MISSING";
-            case KIA -> "KILLED";
+            case ACTIVE -> Strings.get("openingFleetArmoryReady");
+            case WIA -> Strings.format("openingFleetArmoryWiaRtd2", formatRemaining(
+                    soldier.unavailableUntilDay(), currentDay.getAsDouble()));
+            case MIA -> Strings.get("openingFleetArmoryMissing");
+            case KIA -> Strings.get("openingFleetArmoryKilled");
         };
     }
 
@@ -1754,24 +1732,20 @@ public final class FleetArmoryViewModel {
     }
 
     private static String serviceSummary(MarineSoldier soldier) {
-        if (soldier == null) return "No marine assigned";
-        return soldier.profile().experienceTier().displayName + "  ·  "
-                + soldier.aptitude().displayName + " aptitude  ·  "
-                + soldier.armorDef().displayName() + " issue";
+        if (soldier == null) return Strings.get("openingFleetArmoryNoMarineAssigned");
+        return Strings.format("openingFleetArmoryAptitudeIssue", soldier.profile().experienceTier().displayName, soldier.aptitude().displayName, soldier.armorDef().displayName());
     }
 
     private static String personnelSummary(MarineSoldier soldier) {
-        if (soldier == null) return "No personnel record is attached to this vacant billet.";
+        if (soldier == null) return Strings.get("openingFleetArmoryNoPersonnelRecordIsAttachedToThis");
         String experience = soldier.profile().experienceTier().displayName
                 .toLowerCase(Locale.ROOT);
         String aptitude = soldier.aptitude().displayName.toLowerCase(Locale.ROOT);
         SoldierCareer career = soldier.career();
         String record = career.missionsDeployed() == 0
-                ? "No combat deployments are recorded yet."
-                : career.missionsDeployed() + " deployments, " + career.kills()
-                + " confirmed kills, and " + career.timesWounded() + " wounds are on file.";
-        return "A " + experience + " marine assessed with " + aptitude
-                + " aptitude. " + record;
+                ? Strings.get("openingFleetArmoryNoCombatDeploymentsAreRecordedYet")
+                : Strings.format("openingFleetArmoryDeploymentsConfirmedKillsAndWoundsAreOn", career.missionsDeployed(), career.kills(), career.timesWounded());
+        return Strings.format("openingFleetArmoryAMarineAssessedWithAptitude", experience, aptitude, record);
     }
 
     private static List<StatMeter> weaponStats(
@@ -1785,14 +1759,14 @@ public final class FleetArmoryViewModel {
         float dps = InfantryCombatStats.estimatedDps(
                 billet.primaryDef(), billet.grade(), profile);
         return List.of(
-                StatMeter.of(cardId + ":damage", "DMG", formatOneDecimal(damage),
+                StatMeter.of(cardId + ":damage", Strings.get("openingFleetArmoryDmg"), formatOneDecimal(damage),
                         damage, CatalogCeilings.weaponDamage()),
-                StatMeter.of(cardId + ":range", "RNG", formatOneDecimal(range),
+                StatMeter.of(cardId + ":range", Strings.get("openingFleetArmoryRng"), formatOneDecimal(range),
                         range, CatalogCeilings.weaponRange()),
-                StatMeter.of(cardId + ":accuracy", "ACC",
+                StatMeter.of(cardId + ":accuracy", Strings.get("openingFleetArmoryAcc"),
                         String.format(Locale.ROOT, "%.0f%%", accuracy * 100f),
                         accuracy, 1f),
-                StatMeter.of(cardId + ":dps", "DPS", formatOneDecimal(dps),
+                StatMeter.of(cardId + ":dps", Strings.get("openingFleetArmoryDps"), formatOneDecimal(dps),
                         dps, CatalogCeilings.weaponDps(profile)));
     }
 
@@ -1812,7 +1786,7 @@ public final class FleetArmoryViewModel {
                 - InfantryCombatStats.estimatedDps(
                 soldier.primaryDef(), soldier.primaryGrade(), profile);
         return String.format(Locale.ROOT,
-                "DMG %+.1f  ·  RNG %+.0f  ·  ACC %+.0f%%  ·  DPS %+.1f",
+                Strings.get("openingFleetArmoryDmgFRngFAccFDps"),
                 damage, range, accuracy, dps);
     }
 
@@ -1838,16 +1812,16 @@ public final class FleetArmoryViewModel {
         if (billet == null) return List.of();
         MarineArmorCatalogDef armor = billet.armorDef();
         return List.of(
-                StatMeter.of(cardId + ":health", "HEALTH",
+                StatMeter.of(cardId + ":health", Strings.get("openingFleetArmoryHealth"),
                         String.format(Locale.ROOT, "%.0f", UnitType.MARINE.maxHp),
                         UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
-                StatMeter.of(cardId + ":armor-value", "ARMOR",
+                StatMeter.of(cardId + ":armor-value", Strings.get("openingFleetArmoryArmor"),
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
                         armor.armorCapacity(), CatalogCeilings.armorCapacity()),
-                StatMeter.of(cardId + ":resist", "RESIST",
+                StatMeter.of(cardId + ":resist", Strings.get("openingFleetArmoryResist"),
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
                         armor.armorRating(), CatalogCeilings.armorRating()),
-                StatMeter.of(cardId + ":speed", "SPEED",
+                StatMeter.of(cardId + ":speed", Strings.get("openingFleetArmorySpeed"),
                         String.format(Locale.ROOT, "%.1f",
                                 UnitType.MARINE.moveSpeed * armor.moveSpeedMult()),
                         UnitType.MARINE.moveSpeed * armor.moveSpeedMult(),
@@ -1864,7 +1838,7 @@ public final class FleetArmoryViewModel {
         MarineArmorCatalogDef next = billet.armorDef();
         MarineArmorCatalogDef current = soldier.armorDef();
         return String.format(Locale.ROOT,
-                "ARMOR %+.0f  ·  RESIST %+.0f  ·  SPEED %+.1f",
+                Strings.get("openingFleetArmoryArmorFResistFSpeedF"),
                 next.armorCapacity() - current.armorCapacity(),
                 next.armorRating() - current.armorRating(),
                 UnitType.MARINE.moveSpeed
@@ -1872,25 +1846,24 @@ public final class FleetArmoryViewModel {
     }
 
     private static String careerSummary(MarineSoldier soldier) {
-        if (soldier == null) return "Awaiting assignment";
+        if (soldier == null) return Strings.get("openingFleetArmoryAwaitingAssignment");
         SoldierCareer career = soldier.career();
-        if (career.missionsDeployed() == 0) return "No deployments yet";
-        return career.missionsDeployed() + " deployments  ·  " + career.kills()
-                + " kills  ·  wounded " + career.timesWounded() + " times";
+        if (career.missionsDeployed() == 0) return Strings.get("openingFleetArmoryNoDeploymentsYet");
+        return Strings.format("openingFleetArmoryDeploymentsKillsWoundedTimes", career.missionsDeployed(), career.kills(), career.timesWounded());
     }
 
     private static String squadEquipmentMessage(SquadEquipmentPreview preview) {
         return switch (preview.result()) {
-            case APPLIED -> "Ready to fit · All 12 billets";
-            case INVALID_SQUAD -> "Select a line squad.";
-            case SQUAD_NOT_READY -> "The squad changed. Review its current roll.";
-            case STATIONED -> "Unavailable  ·  This squad is stationed away.";
-            case UNKNOWN_WEAPON_DOCTRINE -> "Choose weapon equipment.";
-            case UNKNOWN_ARMOR_DOCTRINE -> "Choose armor equipment.";
+            case APPLIED -> Strings.get("openingLoadoutReadyToFitAllBillets");
+            case INVALID_SQUAD -> Strings.get("openingLoadoutSelectALineSquad");
+            case SQUAD_NOT_READY -> Strings.get("openingLoadoutTheSquadChangedReviewItsCurrentRoll");
+            case STATIONED -> Strings.get("openingLoadoutUnavailableThisSquadIsStationedAway");
+            case UNKNOWN_WEAPON_DOCTRINE -> Strings.get("openingLoadoutChooseWeaponEquipment");
+            case UNKNOWN_ARMOR_DOCTRINE -> Strings.get("openingLoadoutChooseArmorEquipment");
             case MISSING_TEMPLATE ->
-                    "Blocked  ·  One or more required equipment templates are not known.";
+                    Strings.get("openingFleetArmoryBlockedOneOrMoreRequiredEquipmentTemplates");
             case INSUFFICIENT_CARGO ->
-                    "The order changed. Review the current squad.";
+                    Strings.get("openingFleetArmoryTheOrderChangedReviewTheCurrentSquad");
         };
     }
 
@@ -2125,11 +2098,11 @@ public final class FleetArmoryViewModel {
                 case "casualtiesId" -> id + ":casualties";
                 case "commandBlockId" -> id + ":command-block";
                 case "commandHeadingId" -> id + ":command-heading";
-                case "readyCount" -> muster != null ? muster.readyCount() + " Ready" : "";
-                case "woundedCount" -> muster != null ? muster.woundedCount() + " WIA" : "";
-                case "vacantCount" -> muster != null ? muster.vacantCount() + " Open" : "";
+                case "readyCount" -> muster != null ? Strings.format("openingFleetArmoryReady2", muster.readyCount()) : "";
+                case "woundedCount" -> muster != null ? Strings.format("openingFleetArmoryWia", muster.woundedCount()) : "";
+                case "vacantCount" -> muster != null ? Strings.format("openingFleetArmoryOpen", muster.vacantCount()) : "";
                 case "casualties" -> muster == null ? ""
-                        : muster.missingCount() + " MIA  ·  " + muster.killedCount() + " KIA on record";
+                        : Strings.format("openingFleetArmoryMiaKiaOnRecord", muster.missingCount(), muster.killedCount());
                 case "casualtyClasses" -> muster != null
                         && (muster.missingCount() > 0 || muster.killedCount() > 0)
                         ? "squad-casualties label tone-muted" : "squad-casualties hidden";
@@ -2217,7 +2190,7 @@ public final class FleetArmoryViewModel {
                 case "fallbackCopyId" -> id + ":fallback-copy";
                 case "fallbackCopyClasses" -> rank == null ? "organization-fallback-copy label tone-muted"
                         : "organization-fallback-copy hidden";
-                case "fallbackCopy" -> "Falls to the operation commander.";
+                case "fallbackCopy" -> Strings.get("openingFleetArmoryFallsToTheOperationCommander");
                 case "rankLabelId" -> id + ":rank-label";
                 case "rankLabel" -> rankLabel;
                 case "stateId" -> id + ":state";

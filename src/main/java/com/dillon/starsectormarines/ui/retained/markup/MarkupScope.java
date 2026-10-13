@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ui.retained.markup;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -8,6 +10,9 @@ import java.util.Set;
 
 /** Immutable nested name scope used while markup expressions are evaluated. */
 public final class MarkupScope {
+
+    /** Read-only catalog shared by nested components, resolved when their text is bound. */
+    private static final MarkupPropertySource I18N = Strings::get;
 
     public static final MarkupScope EMPTY = new MarkupScope(null, Map.of());
 
@@ -37,6 +42,7 @@ public final class MarkupScope {
     }
 
     public boolean has(String name) {
+        if ("i18n".equals(name)) return true;
         for (MarkupScope scope = this; scope != null; scope = scope.parent) {
             if (scope.values.containsKey(name)) return true;
         }
@@ -50,6 +56,7 @@ public final class MarkupScope {
     }
 
     Object lookup(String name, MarkupExpression expression, String fileName) {
+        if ("i18n".equals(name)) return I18N;
         for (MarkupScope scope = this; scope != null; scope = scope.parent) {
             if (scope.values.containsKey(name)) return scope.values.get(name);
         }

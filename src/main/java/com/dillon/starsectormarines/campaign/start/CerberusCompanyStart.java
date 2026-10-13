@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.intel.CompanyFoundingIntel;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
@@ -110,20 +111,14 @@ public final class CerberusCompanyStart implements Script {
         var script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
         if (script != null && script.roster().companyShipId() != null) {
             if (!script.roster().officerInductionRequired())
-                return "Your company is ready, Commander. The first story contract on Jangala is waiting in Headquarters. Any unused depot stores remain here for our return.";
-            return "Our ship is home now. Stay docked here while we use the prepaid stores: repair the first wrecked Hermes that came with her on the Boat Deck, meet Mira in Barracks and choose her first specialty, then muster a squad in the Armory and assign it to her. I will walk you through each order.";
+                return Strings.get("openingCerberusCompanyStartYourCompanyIsReadyCommanderTheFirst");
+            return Strings.get("openingCerberusCompanyStartOurShipIsHomeNowStayDocked");
         }
         PlanetAPI planet = destination();
-        String destination = planet == null ? "an accessible planetary spaceport" : planet.getName();
+        String destination = planet == null ? Strings.get("openingCerberusCompanyStartAnAccessiblePlanetarySpaceport") : planet.getName();
         if (!MercenaryCompanyConversion.installed(startingShip()))
-            return "First we need Mercenary Company Conversion: our permanent barracks and workshop, costing 5,000 credits. "
-                    + (CompanyYard.reservedCredits(startingShip()) > 0
-                    ? "I have kept that payment separate from our spending money. The yard draws it directly, even if the fleet account is empty. " : "")
-                    + "Choose Return, dock at " + destination + ", then choose Marine operations in the planet menu. "
-                    + "I will bring up the yard order for you. This is not Additional Berthing or an item in the standard Refit picker. "
-                    + "We must finish the conversion before designating our command vessel; our prepaid preparation stores will wait in the planetary depot.";
-        return "The conversion is installed. Stay docked at " + destination
-                + " and open Marine operations, then choose our Cerberus as the company command vessel. "
-                + "The preparation bill includes our finite depot stock while we are docked here. Then we will repair the first Hermes, meet Mira and muster her squad.";
+            return Strings.format("openingCerberusCompanyStartFirstWeNeedMercenaryCompanyConversionOur", (CompanyYard.reservedCredits(startingShip()) > 0
+                    ? Strings.get("openingCerberusCompanyStartIHaveKeptThatPaymentSeparateFrom") : ""), destination);
+        return Strings.format("openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt", destination);
     }
 }

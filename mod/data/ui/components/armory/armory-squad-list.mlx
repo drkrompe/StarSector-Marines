@@ -17,7 +17,7 @@
         </div>
         <div id="{card.squad.casualtiesId}" class="{card.squad.casualtyClasses}">{card.squad.casualties}</div>
         <div id="{card.squad.commandBlockId}" class="squad-command-block surface-dark">
-          <div id="{card.squad.commandHeadingId}" class="squad-command-heading label tone-muted">HOME COMMAND</div>
+          <div id="{card.squad.commandHeadingId}" class="squad-command-heading label tone-muted">{i18n.openingUiArmorySquadListHomeCommand}</div>
           <div id="{card.squad.commandId}" class="squad-command label">{card.command}</div>
         </div>
         <div id="{card.squad.locationId}" class="squad-location label tone-muted">{card.squad.location}</div>
@@ -30,8 +30,8 @@
       </button>
       <button id="{card.founderId}" class="{card.founderClasses}" disabled="{card.foundingDisabled}" onclick="{card.foundSquad}">
         <img id="{card.plusId}" class="found-squad-cta-icon" src="graphics/ui/armory/found-squad.png" />
-        <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">FOUND LINE SQUAD</div>
-        <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">Create the next full formation from available stores.</div>
+        <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">{i18n.openingUiArmorySquadListFoundLineSquad}</div>
+        <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">{i18n.openingUiArmorySquadListCreateTheNextFullFormationFromAvailable}</div>
         <div id="{card.founderCostsId}" class="squad-founder-costs">
           <div each="cost in card.foundingCargoRows" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
             <img id="{cost.iconId}" class="cargo-cost-icon" src="{cost.icon}" />

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
@@ -72,8 +73,7 @@ public final class FleetArmoryOverviewViewModel {
         fleetSummary = reactor.computed(() -> {
             revision.get();
             CompanyCounts counts = counts();
-            return "1 owned company  ·  " + counts.lineSquads + " marine squads  ·  "
-                    + counts.mechSquads + " mech squads";
+            return Strings.format("openingFleetArmoryOverviewOwnedCompanyMarineSquadsMechSquads", counts.lineSquads, counts.mechSquads);
         });
         templateCollectionSummary = reactor.computed(this::buildTemplateCollectionSummary);
         accessStatusSummary = reactor.computed(this::buildAccessStatusSummary);
@@ -95,9 +95,8 @@ public final class FleetArmoryOverviewViewModel {
         CompanyCounts counts = counts();
         Readiness readiness = readiness(counts.readyMarines, counts.authorizedMarines);
         String stationed = counts.stationedSquads == 0
-                ? "All formations aboard"
-                : counts.stationedSquads + (counts.stationedSquads == 1
-                ? " squad stationed" : " squads stationed");
+                ? Strings.get("openingFleetArmoryOverviewAllFormationsAboard")
+                : Strings.format("openingOverviewstationedSquads", counts.stationedSquads);
         String base = "company:" + PRIMARY_COMPANY_ID;
         return new CompanyCard(
                 base, base + ":designation", base + ":name", base + ":status",
@@ -105,13 +104,11 @@ public final class FleetArmoryOverviewViewModel {
                 base + ":recovery", base + ":stationing", base + ":open",
                 "company-card " + readiness.cardClass,
                 "company-status heading " + readiness.toneClass,
-                "FORMATION", "Fleet Marine Company", readiness.label,
-                counts.lineSquads + (counts.lineSquads == 1
-                        ? " marine squad" : " marine squads"),
-                counts.mechSquads + (counts.mechSquads == 1
-                        ? " mech squad" : " mech squads"),
-                counts.readyMarines + " / " + counts.authorizedMarines + " marines RTD",
-                recoverySummary(counts), stationed, "Open Armory", openPrimaryCompany);
+                Strings.get("openingFleetArmoryOverviewFormation"), Strings.get("openingFleetArmoryOverviewFleetMarineCompany"), readiness.label,
+                Strings.format("openingOverviewlineSquads", counts.lineSquads),
+                Strings.format("openingOverviewmechSquads", counts.mechSquads),
+                Strings.format("openingFleetArmoryOverviewMarinesRtd", counts.readyMarines, counts.authorizedMarines),
+                recoverySummary(counts), stationed, Strings.get("openingFleetArmoryOverviewOpenArmory"), openPrimaryCompany);
     }
 
     private String buildTemplateCollectionSummary() {
@@ -123,7 +120,7 @@ public final class FleetArmoryOverviewViewModel {
         }
         int acquiredCards = acquired[0] + acquired[1] + acquired[2];
         List<String> summary = new ArrayList<>();
-        summary.add("TEMPLATE FILE  ·  " + acquiredCards + " acquired");
+        summary.add(Strings.format("openingFleetArmoryOverviewTemplateFileAcquired", acquiredCards));
         for (EquipmentAccessTier tier : EquipmentAccessTier.values()) {
             int count = acquired[tier.ordinal()];
             if (count > 0) summary.add(accessLabel(tier) + " " + count);
@@ -136,10 +133,7 @@ public final class FleetArmoryOverviewViewModel {
         EquipmentAcquisitionEligibility.Progress progress = currentAccessProgress();
         EquipmentAccessTier licensed = EquipmentAcquisitionEligibility.licensedTier(progress);
         EquipmentAccessTier recovery = EquipmentAcquisitionEligibility.recoveryTier(progress);
-        return "CURRENT ACCESS  ·  Licensed / patron " + accessLabel(licensed)
-                + " at MRB " + signed(progress.mrbRep())
-                + "  ·  Recovery " + accessLabel(recovery) + " at "
-                + progress.victories() + " victories  ·  Open market Common only";
+        return Strings.format("openingFleetArmoryOverviewCurrentAccessLicensedPatronAtMrbRecovery", accessLabel(licensed), signed(progress.mrbRep()), accessLabel(recovery), progress.victories());
     }
 
     private String buildAccessNextSummary() {
@@ -149,23 +143,18 @@ public final class FleetArmoryOverviewViewModel {
         EquipmentAccessTier recovery = EquipmentAcquisitionEligibility.recoveryTier(progress);
         if (licensed == EquipmentAccessTier.PRESTIGE
                 && recovery == EquipmentAccessTier.PRESTIGE) {
-            return "All reputation and operational access bands cleared."
-                    + "  ·  Licensed stock still requires Favorable faction standing.";
+            return Strings.get("openingFleetArmoryOverviewAllReputationAndOperationalAccessBandsCleared");
         }
         List<String> next = new ArrayList<>();
         if (licensed != EquipmentAccessTier.PRESTIGE) {
             EquipmentAccessTier target = nextTier(licensed);
-            next.add(accessLabel(target) + " licensed / patron at MRB +"
-                    + EquipmentAcquisitionEligibility.requiredMrb(target));
+            next.add(Strings.format("openingFleetArmoryOverviewLicensedPatronAtMrb", accessLabel(target), EquipmentAcquisitionEligibility.requiredMrb(target)));
         }
         if (recovery != EquipmentAccessTier.PRESTIGE) {
             EquipmentAccessTier target = nextTier(recovery);
-            next.add(accessLabel(target) + " recovery after "
-                    + EquipmentAcquisitionEligibility.requiredRecoveryVictories(target)
-                    + " victories");
+            next.add(Strings.format("openingFleetArmoryOverviewRecoveryAfterVictories", accessLabel(target), EquipmentAcquisitionEligibility.requiredRecoveryVictories(target)));
         }
-        return "NEXT ACCESS  ·  " + String.join("  ·  ", next)
-                + "  ·  Licensed stock requires Favorable faction standing";
+        return Strings.format("openingFleetArmoryOverviewNextAccessLicensedStockRequiresFavorableFaction", String.join("  ·  ", next));
     }
 
     private static EquipmentAccessTier nextTier(EquipmentAccessTier tier) {
@@ -180,9 +169,9 @@ public final class FleetArmoryOverviewViewModel {
 
     private static String accessLabel(EquipmentAccessTier tier) {
         return switch (tier) {
-            case COMMON -> "Common";
-            case ADVANCED -> "Advanced";
-            case PRESTIGE -> "Prestige";
+            case COMMON -> Strings.get("openingFleetArmoryOverviewCommon");
+            case ADVANCED -> Strings.get("openingFleetArmoryOverviewAdvanced");
+            case PRESTIGE -> Strings.get("openingFleetArmoryOverviewPrestige");
         };
     }
 
@@ -216,22 +205,21 @@ public final class FleetArmoryOverviewViewModel {
     }
 
     private String recoverySummary(CompanyCounts counts) {
-        return counts.woundedMarines == 0 ? "No wounded personnel"
-                : counts.woundedMarines + " WIA  ·  RTD "
-                + FleetArmoryViewModel.formatRemainingCompact(
-                counts.earliestRecovery, currentDay.getAsDouble());
+        return counts.woundedMarines == 0 ? Strings.get("openingFleetArmoryOverviewNoWoundedPersonnel")
+                : Strings.format("openingFleetArmoryOverviewWiaRtd", counts.woundedMarines, FleetArmoryViewModel.formatRemainingCompact(
+                counts.earliestRecovery, currentDay.getAsDouble()));
     }
 
     private static Readiness readiness(int ready, int authorized) {
         if (authorized <= 0 || ready <= 0) {
-            return new Readiness("STANDING DOWN", "company-card-unready", "tone-danger");
+            return new Readiness(Strings.get("openingFleetArmoryOverviewStandingDown"), "company-card-unready", "tone-danger");
         }
         float ratio = ready / (float) authorized;
-        if (ratio >= 1f) return new Readiness("READY", "company-card-ready", "tone-good");
+        if (ratio >= 1f) return new Readiness(Strings.get("openingFleetArmoryOverviewReady"), "company-card-ready", "tone-good");
         if (ratio >= 0.75f) {
-            return new Readiness("OPERATIONAL", "company-card-operational", "tone-accent");
+            return new Readiness(Strings.get("openingFleetArmoryOverviewOperational"), "company-card-operational", "tone-accent");
         }
-        return new Readiness("RECONSTITUTING", "company-card-unready", "tone-danger");
+        return new Readiness(Strings.get("openingFleetArmoryOverviewReconstituting"), "company-card-unready", "tone-danger");
     }
 
     private record CompanyCounts(int lineSquads, int mechSquads, int readyMarines,

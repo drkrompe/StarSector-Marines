@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 
-import java.util.Locale;
 
 /**
  * Where aboard a room screen is, said as the deck says it.
@@ -48,15 +48,15 @@ final class ShipBreadcrumb {
      * this reads correctly both before and after that choice exists.
      */
     private static String designation(CompanyShip ship) {
-        return words(ship.hullClass().name()) + " " + words(ship.role().name());
+        return Strings.format("openingShipDesignation", words(ship.hullClass().name()), words(ship.role().name()));
     }
 
     /** Where on the deck: the longitudinal zone and the side of the spine. */
     private static String station(DeckGraph.Compartment room) {
-        return words(room.zone().name()) + " " + words(room.side().name());
+        return Strings.format("openingShipStation", words(room.zone().name()), words(room.side().name()));
     }
 
     private static String words(String constant) {
-        return constant.replace('_', ' ').toUpperCase(Locale.ROOT);
+        return Strings.get("openingShipWord" + constant);
     }
 }

@@ -12,11 +12,11 @@
         <div id="company-hq-assessment-header" class="label heading tone-edge">{assessmentHeader}</div>
         <div id="company-hq-assessment-copy" class="label assessment-copy">{assessment}</div>
       </div>
-      <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">DEBUG MISSIONS</button>
+      <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">{i18n.openingUiCompanyHqDebugMissions}</button>
     </div>
 
-    <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">A PROPER ISSUE / Choose one free Wayline technology transfer. Meet Castle in Barracks Equipment.</button>
-    <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">SECONDHAND WINGS / Castle has a lead on two surplus Aeroshuttles. Review on the Boat Deck.</button>
+    <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">{i18n.openingUiCompanyHqAProperIssueChooseOneFreeWayline}</button>
+    <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">{i18n.openingUiCompanyHqSecondhandWingsCastleHasALeadOn}</button>
 
     <div id="company-hq-main" class="company-hq-main">
       <div id="company-hq-sidebar" class="company-hq-sidebar">
@@ -97,7 +97,7 @@
               <div id="company-hq-opening-route" class="label opening-copy">{openingGuide.route}</div>
               <div id="company-hq-opening-preparation" class="label tone-muted opening-copy">{openingGuide.preparation}</div>
               <button id="company-hq-opening-course" class="opening-course" disabled="{openingGuide.courseDisabled}" onclick="{openingGuide.courseAction}">
-                <div id="company-hq-opening-course-label" class="console-key-legend">PLOT COURSE</div>
+                <div id="company-hq-opening-course-label" class="console-key-legend">{i18n.openingUiCompanyHqPlotCourse}</div>
                 <img id="company-hq-opening-course-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
               </button>
             </div>
@@ -139,7 +139,7 @@
               <div id="company-hq-focus" class="{newsDesk.classes}">
                 <div id="company-hq-focus-header" class="focus-header">
                   <img id="company-hq-focus-lock" class="focus-lock" src="graphics/ui/console/locking-plate.svg" />
-                  <div id="company-hq-focus-slug" class="label heading tone-accent">DECRYPTED DOSSIER / COMMAND ACCESS</div>
+                  <div id="company-hq-focus-slug" class="label heading tone-accent">{i18n.openingUiCompanyHqDecryptedDossierCommandAccess}</div>
                 </div>
                 <div id="company-hq-dossier-heading" class="dossier-heading">
                   <img id="company-hq-dossier-crest" class="{newsDesk.crestClasses}" src="{newsDesk.crest}" />
@@ -158,7 +158,7 @@
               </div>
               <div id="company-hq-rundown" class="news-rundown">
                 <div id="company-hq-rundown-header" class="rundown-header">
-                  <div id="company-hq-rundown-heading" class="label heading tone-accent">TRANSMISSION ARCHIVE</div>
+                  <div id="company-hq-rundown-heading" class="label heading tone-accent">{i18n.openingUiCompanyHqTransmissionArchive}</div>
                   <div id="company-hq-rundown-count" class="label tone-muted">{newsDesk.count}</div>
                 </div>
                 <div id="company-hq-channel-tabs" class="channel-tabs">

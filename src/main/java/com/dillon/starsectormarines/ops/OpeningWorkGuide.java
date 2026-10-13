@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 
@@ -20,13 +21,13 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
         boolean reliefWon = roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId);
         boolean hasSquad = roster.squads().stream().anyMatch(squad -> !squad.reserve());
         String preparation = !hasSquad
-                ? "Found and equip your first squad in Armory before deployment."
-                : reliefWon ? "The assault is broken. Return to Venn for the depot job."
-                : "Castle has put us forward. Bring marines and lift; Mara provides militia.";
+                ? Strings.get("openingOpeningWorkGuideFoundAndEquipYourFirstSquadIn")
+                : reliefWon ? Strings.get("openingOpeningWorkGuideTheAssaultIsBrokenReturnToVenn")
+                : Strings.get("openingOpeningWorkGuideCastleHasPutUsForwardBringMarines");
         if (roster.officerInduction() != null && roster.officerInduction().companyPreparation()) {
             preparation = roster.officerInductionRequired()
-                    ? "Complete Castle's preparation: company ship, shuttle, Mira's specialty and her first squad."
-                    : !reliefWon ? "First paid job: your shuttle and Mira's squad are ready. Meet Mara at her office."
+                    ? Strings.get("openingOpeningWorkGuideCompleteCastleSPreparationCompanyShipShuttle")
+                    : !reliefWon ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndMira")
                     : preparation;
         }
         return new OpeningWorkGuide(true, reliefWon ? OpeningOperationKind.COUNTERATTACK
@@ -39,14 +40,14 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
             case "crest" -> OpeningBroker.CREST;
             case "portrait" -> OpeningBroker.PORTRAIT;
             case "broker" -> OpeningBroker.NAME;
-            case "affiliation" -> "Wayline / Independent";
-            case "heading" -> kind == OpeningOperationKind.RELIEF ? "FIRST CONTRACT" : "THE DEPOT JOB";
+            case "affiliation" -> Strings.get("openingOpeningWorkGuideWaylineIndependent");
+            case "heading" -> kind == OpeningOperationKind.RELIEF ? Strings.get("openingOpeningWorkGuideFirstContract") : Strings.get("openingOpeningWorkGuideTheDepotJob");
             case "mission" -> kind.displayName;
-            case "payment" -> "Cr. " + NumberFormat.getIntegerInstance().format(kind.payout);
-            case "location" -> destination == null ? "CONTACT UNAVAILABLE" : destination.label();
+            case "payment" -> Strings.format("openingOpeningWorkGuideCr", NumberFormat.getIntegerInstance().format(kind.payout));
+            case "location" -> destination == null ? Strings.get("openingOpeningWorkGuideContactUnavailable") : destination.label();
             case "route" -> destination == null
-                    ? "No accessible planetary office. Check back when a port is available."
-                    : "Marine operations > " + OpeningBroker.NAME;
+                    ? Strings.get("openingOpeningWorkGuideNoAccessiblePlanetaryOfficeCheckBackWhen")
+                    : Strings.format("openingOpeningWorkGuideMarineOperations", OpeningBroker.NAME);
             case "preparation" -> preparation;
             case "courseDisabled" -> !visible || destination == null;
             case "courseAction" -> plotCourse;
