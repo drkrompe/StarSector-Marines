@@ -28,7 +28,7 @@
         </div>
       </div>
     </div>
-    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">Castle's directions remain in your Intel log.</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">Skip introduction</button></div>
+    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">At port: Marine operations / Mercenary Company Conversion. Directions remain in your Intel log.</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">Skip introduction</button></div>
   </div>
 </template>
 <style>
