@@ -41,3 +41,4 @@ com.dillon.starsectormarines.battle.warship.ShipArrivalScene
 com.dillon.starsectormarines.battle.warship.ShipLowPassScene
 
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsScene
+com.dillon.starsectormarines.battle.battery.FortressBatteryScene
