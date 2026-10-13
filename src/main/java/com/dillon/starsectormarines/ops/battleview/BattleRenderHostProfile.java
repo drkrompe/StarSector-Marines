@@ -3,9 +3,11 @@ package com.dillon.starsectormarines.ops.battleview;
 /** Presentation features a battle-renderer host elects to own. */
 public enum BattleRenderHostProfile {
     /** Full battle screen with combat decorators and optional surface-relief FBOs. */
-    STANDALONE_BATTLE(true, true, true, true),
+    STANDALONE_BATTLE(true, true, true, true, true),
+    /** Player-view evidence: battle visibility and decorations, with a non-GL drain. */
+    HEADLESS_BATTLE(true, false, true, false, true),
     /** Bounded room scene: world art only, with host UI and effects kept detached. */
-    EMBEDDED_SCENE(false, false, true, false),
+    EMBEDDED_SCENE(false, false, true, false, false),
     /**
      * A ship's deck, where the world does not fill its own grid.
      *
@@ -14,21 +16,24 @@ public enum BattleRenderHostProfile {
      * paints decking across the space the ship is not — which hides whatever
      * the host has put behind her, including the hull herself.
      */
-    DECK_SCENE(false, false, false, false);
+    DECK_SCENE(false, false, false, false, false);
 
     private final boolean unitDecorationsVisible;
     private final boolean surfaceReliefEnabled;
     private final boolean worldBackingPainted;
     private final boolean residentGroundAllowed;
+    private final boolean fogClipsLighting;
 
     BattleRenderHostProfile(boolean unitDecorationsVisible,
                             boolean surfaceReliefEnabled,
                             boolean worldBackingPainted,
-                            boolean residentGroundAllowed) {
+                            boolean residentGroundAllowed,
+                            boolean fogClipsLighting) {
         this.unitDecorationsVisible = unitDecorationsVisible;
         this.surfaceReliefEnabled = surfaceReliefEnabled;
         this.worldBackingPainted = worldBackingPainted;
         this.residentGroundAllowed = residentGroundAllowed;
+        this.fogClipsLighting = fogClipsLighting;
     }
 
     /**
@@ -77,5 +82,10 @@ public enum BattleRenderHostProfile {
 
     public boolean surfaceReliefEnabled() {
         return surfaceReliefEnabled;
+    }
+
+    /** Player-view lamps obey current observation independently of the graphics drain. */
+    public boolean fogClipsLighting() {
+        return fogClipsLighting;
     }
 }

@@ -52,6 +52,7 @@ public final class ThunderRunCompound {
         return new Cell(251, detachment % 2 == 0 ? 65 : 85);
     }
     public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
+    public static final List<Cell> ANTI_AIR_POSTS = List.of(new Cell(115, 63), new Cell(145, 64));
     public static final List<Cell> EXIT_GUNS = List.of(new Cell(304, 65), new Cell(304, 85));
     public static final List<String> SITE_NAMES = List.of("Convoy staging", "Dispatch Post", "East Crossing", "Outbound Gate");
     public record Layout(MapResult map, List<TacticalNode> sites) {
@@ -67,6 +68,11 @@ public final class ThunderRunCompound {
                 ThunderRunCompound::buildings, ThunderRunCompound::perimeter,
                 ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
                 ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 75, 270, 64))).run(c);
+        for (Cell gun : ANTI_AIR_POSTS) {
+            c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
+            c.grid.setWalkable(gun.x, gun.y, false);
+            c.grid.setSeeThrough(gun.x, gun.y, true);
+        }
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
             c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
@@ -93,6 +99,7 @@ public final class ThunderRunCompound {
         requireRoute(map, 275, 2);
         requireRoute(map, 275, 141);
         for (Cell gun : EXIT_GUNS) requireRoute(map, gun.x + 2, gun.y);
+        for (Cell gun : ANTI_AIR_POSTS) requireRoute(map, gun.x - 1, gun.y);
         for (Cell post : SUPPORT_POSTS) requireRoute(map, post.x, post.y);
         for (var posts : COMPANY_POSTS) for (Cell post : posts) requireRoute(map, post.x, post.y);
         for (int site = 0; site < 4; site++) for (int section = 0; section < 2; section++) {
@@ -217,6 +224,8 @@ public final class ThunderRunCompound {
     }
     /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
     private static void fortifications(GenContext c) {
+        // Separate AA pits overlook the first convoy leg, far outside the western insertion corridor.
+        for (Cell gun : ANTI_AIR_POSTS) supportEmplacement(c, gun, false);
         // Dispatch looks east along the verge; Crossing covers its western side road.
         supportEmplacement(c, SUPPORT_POSTS.get(0), true);
         supportEmplacement(c, SUPPORT_POSTS.get(1), false);

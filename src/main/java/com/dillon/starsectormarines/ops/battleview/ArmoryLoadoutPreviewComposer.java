@@ -204,7 +204,7 @@ public final class ArmoryLoadoutPreviewComposer {
                         color(red, green, blue, alpha)),
                 layered, layered.head, billet.primaryDef(), true, special, billet.grade(),
                 actorX, actorY, shoulderPx, 0f, 0f, 0f,
-                phase, pose, 0, 1f, authoredPose);
+                phase, pose, 0, 1f, authoredPose, billet.armorDef().integralSystem());
     }
 
     static LayerPose idlePose(UnitLayerLayouts layouts, float elapsedSeconds) {

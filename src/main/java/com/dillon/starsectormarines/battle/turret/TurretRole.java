@@ -5,16 +5,13 @@ package com.dillon.starsectormarines.battle.turret;
  * a dedicated anti-air mount doesn't waste shots on infantry, and a point-defense
  * gun doesn't try to chase ground units when a missile is incoming.
  *
- * <p>Today only {@link #A2G} is operationally targetable — there are no
- * airborne entities on the unit list yet, and the in-flight projectile queue
- * isn't surfaced to turret targeting. The other two are named placeholders so
- * the rest of the code can pattern-match on role today; their target lookups
- * return empty until anti-air / point-defense entities land.
+ * <p>Prepared ground AA emplacements acquire airborne entities through the air body
+ * service. Point defense still needs its own projectile target source.
  */
 public enum TurretRole {
     /** Anti-ground. Targets enemy combatant {@code Entity}s on the cell grid. */
     A2G,
-    /** Anti-air. Targets shuttles / fighters once those become targetable entities. */
+    /** Anti-air. Targets airborne shuttles and fighters. */
     AA,
     /** Point defense. Targets in-flight projectiles and missiles once those are surfaced as targets. */
     POINT_DEFENSE

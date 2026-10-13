@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
@@ -1060,6 +1061,7 @@ public final class UnitRenderService implements RenderSystem {
                             primaryWeapon != null ? primaryWeapon[r] : null);
                     EquipmentGrade grade = equipmentGrade != null
                             ? (EquipmentGrade) equipmentGrade[r] : EquipmentGrade.SERVICE;
+                    IntegralSystemDef integralSystem = roster.integralSystems().spec(entityId);
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
                     // Lifted out of the column arrays so the halo's replay of
@@ -1084,13 +1086,13 @@ public final class UnitRenderService implements RenderSystem {
                                         type.drawsLayeredWeapon(), secondary, grade,
                                         cx, cy, shoulderPx, facingDeg, headLookDeg,
                                         locomotion, weaponPhase, weaponPose,
-                                        animationFlags, 1f, pose));
+                                        animationFlags, 1f, pose, integralSystem));
                     }
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primary, type.drawsLayeredWeapon(), secondary, grade,
                             cx, cy, shoulderPx, facingDeg, headLookDeg, locomotion,
                             weaponPhase, weaponPose, animationFlags, unitAlpha,
-                            authoredPose);
+                            authoredPose, integralSystem);
                     continue;
                 }
                 UnitSpriteCache cache = sprites.unitSprites().get(type);

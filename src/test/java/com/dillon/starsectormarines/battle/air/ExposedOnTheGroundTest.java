@@ -337,16 +337,9 @@ class ExposedOnTheGroundTest {
                 "the strip stayed claimed by an aircraft that no longer exists");
     }
 
-    /**
-     * A machine lost at altitude falls; it does not leave a neat hull at the
-     * coordinates it happened to be flying over.
-     *
-     * <p>The distinction {@code air-nouns.md} draws between the two ways a
-     * sortie can end has to survive a taxiway kill acquiring its own wreck —
-     * airborne stays airborne's own picture.
-     */
+    /** A loss at altitude falls first, then leaves its wreck at the actual impact. */
     @Test
-    void anAircraftShotDownInTheAirLeavesNoGroundWreck() {
+    void anAircraftShotDownInTheAirLeavesAnImpactWreck() {
         BattleSimulation sim = openField();
         long craft = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
                 30.5f, 20.5f, 5f, 5f, 5f, 5f, 0f);
@@ -372,7 +365,7 @@ class ExposedOnTheGroundTest {
 
         assertEquals(ShuttleState.GONE, mission.state,
                 "the anti-air cluster did not bring it down");
-        assertTrue(sim.getAirfieldService().groundWrecks().isEmpty(),
-                "a craft lost at altitude falls; it does not leave a hull on the ground");
+        assertEquals(1, sim.getAirfieldService().groundWrecks().size(),
+                "the fallen hull must remain after impact");
     }
 }

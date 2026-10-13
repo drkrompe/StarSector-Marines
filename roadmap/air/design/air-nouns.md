@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a gunship is the sortie that stays (Gunships): a called Mudskipper circles a point overhead and works the ground with its one turret, as an overwatch gunship does; a planetary shield dome takes hostile ship-grade ordnance as flux (Overhead ships); an overhead ship may fly a low pass and a small combat hull may escort a larger one; the ship balance law is a standing law under Overhead ships; a standoff missile's released beam cannot be intercepted.
+Updated: 2026-10-13 � employer gunship stations, aimed ground AA and damaging crashes with lasting wrecks.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -526,10 +526,18 @@ happened. The berth that sortie flew from is still written off — a field
 does not get an airframe back because the wreck is somewhere else — it simply
 has no hulk sitting on its own pad to show for it.
 
-An aircraft lost over the objective leaves an empty stand and no wreck at all:
-the same terminal state as either kind of ground kill, and deliberately not
-the same picture. A craft shot down at altitude falls; it does not leave a
-neat hull at the coordinates it happened to be flying over.
+An aircraft lost at altitude falls with its remaining momentum, trailing fire
+and smoke. Its passengers and sortie are lost immediately; its guns stop firing.
+Ground impact is a separate physical event: a hull-sized explosion damages
+nearby units of either side and structures, then leaves the same charred,
+broken hull at the impact position for the rest of the battle. The impact fire
+burns down and the smoke eventually clears; the wreck never fades with them.
+A hull falling beyond the battlefield does not leave an invented wreck at its
+edge. Battle resolution waits for an ongoing fall to reach impact.
+
+A crashing hull can damage other parked aircraft. This differs from the
+hardstand cook-off's deliberate exclusion of neighboring berthed hulls: falling
+wreckage is an external impact, not a shortcut for raiders clearing a flight line.
 
 **A hull comes apart along a V.** The nose section separates as a wedge and
 what is left splits down the spine, both tears walked so the edges are ragged
@@ -1310,8 +1318,22 @@ Mudskipper's one hardpoint is simply the thing it circles with.
 
 A gunship carries nobody and sets nothing down, borrows no berth, and is as
 exposed as any aircraft in the air: it is a sortie flown for its guns, paid for
-at the card, and it adds nothing to the transport law above. It is not a free
+at the card when player-called, and it adds nothing to the transport law above. It is not a free
 gunship in the sense that law forbids, because nothing was delivered to get it.
+
+An employer may instead supply and direct a mission gunship. It remains an
+ordinary vulnerable aircraft with the same weapons, damage and crash rules;
+its ownership grants no player card, cost, crew seats or campaign airframe.
+Its controller may move the orbit center from friendly progress and public
+mission state. Retasking preserves the remaining station time and the chosen
+orbit direction. See Kestrel in `early-operation-nouns.md`.
+
+Prepared ground AA emplacements acquire hostile airborne craft, traverse,
+and fire visible aimed rounds. Weapon range, structural line of fire, cadence,
+accuracy and ordinary aircraft armor determine the result. They do not attack
+infantry and do not also apply the older abstract turret threat drain. Destroying
+the emplacement removes its future fire; a mission must not script a shoot-down
+regardless of whether the guns survived.
 
 `ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared

@@ -29,6 +29,8 @@ public final class TurretBehavior implements UnitBehavior {
     public void update(long u, BattleSimulation sim) {
         long id = u;
         TurretStateService turretState = sim.turretState();
+        // Air aiming and impacts run serially after aircraft motion.
+        if (turretState.structure(id).targetRole == TurretRole.AA) return;
 
         // Age the per-shot recoil timer every tick; reset to 0 on each fired
         // round below. The renderer reads this to drive barrel slide so a
