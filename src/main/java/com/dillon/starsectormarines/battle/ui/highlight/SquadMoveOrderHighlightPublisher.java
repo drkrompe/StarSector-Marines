@@ -16,21 +16,14 @@ public final class SquadMoveOrderHighlightPublisher {
     public static void publish(Selection selection, BattleSimulation sim,
                                HighlightOverlay overlay) {
         if (selection == null || sim == null || overlay == null) return;
-        int selected = selection.getSelectedSquadId();
-        ActiveOrder order = selected != Selection.NONE
-                ? sim.getSquadMoveOrderService().activeOrder(selected) : null;
-        if (order == null) {
-            overlay.clear(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION);
-            return;
+        List<CellHighlight> areas = new ArrayList<>();
+        for (int selected : selection.getSelectedSquadIds()) {
+            ActiveOrder order = sim.getSquadMoveOrderService().activeOrder(selected);
+            if (order instanceof ActiveDefendAreaOrder defend) {
+                areas.addAll(defendAreaHighlights(defend));
+            }
         }
-        if (order instanceof ActiveDefendAreaOrder defend) {
-            overlay.put(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION,
-                    defendAreaHighlights(defend));
-        } else {
-            overlay.put(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION, List.of(
-                    new CellHighlight(order.destinationX(), order.destinationY(),
-                            HighlightOverlay.COLOR_SQUAD_MOVE_DESTINATION)));
-        }
+        overlay.put(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION, areas);
     }
 
     private static List<CellHighlight> defendAreaHighlights(

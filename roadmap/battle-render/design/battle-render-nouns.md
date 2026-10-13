@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — persistent terrain scars and retained impact decals appear in embedded battle reviews.
+Updated: 2026-10-13 — squad selection uses position-following ground circles beneath actors.
 
 ## Vocabulary
 
@@ -150,6 +150,14 @@ remains legible at distance; presentation geometry does not redefine collision.
 Ordinary building facades and Conquest bunker panes use this shared-edge path.
 Wall-cell windows remain a separate aperture treatment for heavy compound
 perimeters whose aperture genuinely occupies a thick structural cell.
+
+Player squad selection and hover are ground circles in HIGHLIGHTS, below fog
+and actor bodies. They follow each live member's rendered position and physical
+radius rather than tinting its occupied cell. Selected members, the exact
+primary, and hover previews have distinct emphasis. Hostiles receive no
+selection circles; the collector honors current visibility and direct-control
+suppression. The selection model stays in the UI tier and remains independent
+of simulation membership and orders.
 
 Persistent impact marks occupy DECALS beneath props and actors. Standalone
 battles retain their GL accumulator; hosts without it submit the retained

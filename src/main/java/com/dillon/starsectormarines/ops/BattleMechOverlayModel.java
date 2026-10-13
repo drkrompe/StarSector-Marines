@@ -45,6 +45,7 @@ final class BattleMechOverlayModel {
     private final MutableSignal<String> freeReignMeta;
     private final MutableSignal<Boolean> formOnLeadDisabled;
     private final MutableSignal<Boolean> freeReignDisabled;
+    private final MutableSignal<String> tacticalScope;
     private final MutableSignal<String> defendAreaLabel;
     private final MutableSignal<String> defendAreaMeta;
     private final MutableSignal<String> defendAreaClasses;
@@ -78,6 +79,7 @@ final class BattleMechOverlayModel {
         freeReignMeta = reactor.signal("SELECT");
         formOnLeadDisabled = reactor.signal(true);
         freeReignDisabled = reactor.signal(false);
+        tacticalScope = reactor.signal("WHOLE LANCE");
         defendAreaLabel = reactor.signal("DEFEND AREA");
         defendAreaMeta = reactor.signal("PLACE 40-CELL ZONE");
         defendAreaClasses = reactor.signal(DEFEND_AREA_CARD);
@@ -102,6 +104,7 @@ final class BattleMechOverlayModel {
                 MechLanceOrder.FORM_ON_LEAD));
         props.put("freeReignAction", (Runnable) () -> requestLanceOrder(
                 MechLanceOrder.FREE_REIGN));
+        props.put("tacticalScope", tacticalScope);
         props.put("defendAreaLabel", defendAreaLabel);
         props.put("defendAreaMeta", defendAreaMeta);
         props.put("defendAreaClasses", defendAreaClasses);
@@ -141,6 +144,13 @@ final class BattleMechOverlayModel {
                 loadout.deployedRole(), loadout.effectiveRole(), squad.lanceOrder(),
                 targetingSquadId == selectedSquadId,
                 selectableRoles()));
+    }
+
+    void selectionScope(int count) {
+        tacticalScope.set(count > 1 ? "ALL " + count + " SQUADS" : "WHOLE LANCE");
+        if (count > 1) {
+            defendAreaMeta.set("ALL " + count + " SQUADS");
+        }
     }
 
     Presentation updateProjected(MechState mech) {

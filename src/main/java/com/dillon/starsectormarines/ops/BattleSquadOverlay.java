@@ -185,14 +185,16 @@ final class BattleSquadOverlay {
     private BattleSquadOverlayModel.Presentation updateModel(BattleSimulation sim) {
         int selected = selection.hasSquadSelection()
                 ? selection.getSelectedSquadId() : Selection.NONE;
-        if (sim != null && selected != Selection.NONE) {
-            Squad squad = sim.getSquad(selected);
-            if (squad == null || squad.aliveMembers <= 0) {
-                selection.clear();
-                selected = Selection.NONE;
-            }
+        if (sim != null) {
+            selection.retainSquads(id -> {
+                Squad squad = sim.getSquad(id);
+                return squad != null && squad.aliveMembers > 0;
+            });
+            selected = selection.getSelectedSquadId();
         }
-        return model.update(sim, selected, targetingSquadId.getAsInt());
+        var result = model.update(sim, selected, targetingSquadId.getAsInt());
+        model.selectionScope(selection.squadCount());
+        return result;
     }
 
     private boolean insidePanel(float x, float y) {
