@@ -2,7 +2,7 @@
 
 Status: ACTIVE — open progression implementation and acceptance work
 Written: 2026-08-23
-Updated: 2026-10-13 — explicit power-suit class and mixed issue; planned Vesper Reach story supplies recovered reward sequence.
+Updated: 2026-10-13 — explicit power-suit class and mixed issue; planned Agreus story supplies recovered reward sequence.
 
 Read `progression-nouns.md` before changing a progression story, and
 `role-and-access.md` before changing anything about which patterns exist or how

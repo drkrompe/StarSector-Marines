@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — bounded exchange evidence exists; mission balance, live persistence, and final art remain unverified.
 Written: 2026-10-13
-Updated: 2026-10-13 — playable pairs support campaign testing; Vesper Reach introduction authored, runtime arc and later military-source gate remain open.
+Updated: 2026-10-13 — playable pairs support campaign testing; Agreus introduction authored, runtime arc and later military-source gate remain open.
 
 Read `progression-nouns.md`, `personnel-nouns.md`, `combat-durability-nouns.md`,
 `role-and-access.md`, and `power-suit-infantry.md` before this acceptance pass.
@@ -89,7 +89,7 @@ Starsector save and host settlement receipt that it cannot verify. It is not
 permission to call the full live loop accepted.
 
 The narrative unlock remains open: finish Shepherd departure/fleet handover,
-then implement the five-chapter Vesper Reach expedition in `a-small-war.md`.
+then implement the five-chapter expedition to existing Agreus in `a-small-war.md`.
 Its recovered frames and pirate sidegrade precede a later military procurement
 arc in the intended progression. `storySource: post-shepherd-power-suits` reserves
 ownership of the recovered rewards and keeps them out of random acquisition;

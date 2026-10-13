@@ -1,14 +1,17 @@
 # A Small War
 
-Status: PLANNED — authored post-Shepherd arc; no system, missions or rewards from this document are implemented.
+Status: PLANNED — authored post-Shepherd arc on existing Agreus; its missions and story rewards remain unimplemented.
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — relocated to existing Agreus in nearby Arcadia; local concession under Ko Combine administration.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
 `role-and-access.md` and `power-suit-infantry.md` before implementation.
-`vesper-reach.md` owns the new system, its economy and the cast. This story owns
-the five chapters, agreements, equipment rewards and acceptance of their campaign loop.
+`agreus-latchkey.md` owns the existing-world context, authored district and cast.
+This story owns the five chapters, agreements, equipment rewards and acceptance
+of their campaign loop.
 
 ## The promise
 
@@ -18,9 +21,10 @@ formation remains a threat beyond their new suits' protection. The escalation
 is a change in responsibility and endurance, not a demand to administer another
 twenty squads.
 
-**Baronet Elian Rusk** hires the company on **Brackwater**, in the new **Vesper
-Reach** system. His house has a lawful claim on **Latchkey Yard**, inadequate
-security, and a shrinking ability to pay while **Sera Voss's Greyhook flotilla**
+**Baronet Elian Rusk** hires the company on **Agreus**, the existing industrial
+moon of Syrinx in **Arcadia**. His house has a secured claim on **Latchkey Yard**
+under Ko Combine administration, inadequate security, and a shrinking ability to
+pay while **Sera Voss's Greyhook flotilla**
 extracts cargo and levies. **Lenna Saye** represents the workers whose knowledge
 keeps the yard useful. The company can remove Greyhook's coercion, but taking the
 yard also forces a decision about who can work there afterward.
@@ -59,14 +63,34 @@ ordinary mission permission. The briefing explains that requirement and pauses
 these construction-dependent chapters if it cannot be met; it never summons a
 replacement Morrow. A subsequently acquired eligible tender can fill that role.
 
-Vesper Reach requires a separately authored, uniquely identified system with an
-accessible Independent Brackwater market and the locations in `vesper-reach.md`.
-Seed it once through the campaign content/migration path; existing saves must
-receive the same identity without duplicating markets or overwriting a generated
-world. The referral reveals its actual coordinates. Exploration may discover it
-earlier, but neither discovery nor visiting Rusk unlocks these chapters early.
-Exact sector placement needs a generation/compatibility pass before shipping.
-Accepted work freezes its real site; inaccessible or missing sites pause it.
+The destination is existing **Agreus in Arcadia**, about **1.91 light-years from
+Corvus** by the installed vanilla starmap's system-center coordinates. The company
+leaves Corvus through ordinary hyperspace travel; there is no new system to seed.
+Agreus's existing megaport provides a nearby commercial base, subject to the actual
+campaign's access and stocks. The distance is not a fuel quote or a safe-route promise.
+
+Resolve planetary entity `agreus` and its attached market in the existing Arcadia
+system; do not assume a separate market ID. Plot its actual saved location, with
+Syrinx Passage as the vanilla approach. The referral names the destination even
+for a player who has already visited. The Shepherd milestone gates the story,
+not discovery of or travel to Agreus.
+
+New and existing saves initialize only stable story/contact identities and the
+authored local sites from `agreus-latchkey.md`. They do not create or replace a
+planet, market, station, moon or relay. Accepted work freezes the actual destination
+and site. Missing entities, inaccessible markets or an incompatible change of
+administration pause the affected offer with a reason; there is no relocation to
+another planet, ownership reset or fabricated replacement port. Confirm those
+checks against an existing save and any supported campaign-overhaul setup.
+
+Agreus is cold and airless. Silt Basin is an enclosed industrial reclamation
+complex in a depression among hull yards and regolith, with closed fluid circuits
+and buried services.
+Habitats, workshops and transfer galleries are sealed; exposed movement uses
+suitable pressure equipment. Art and briefings must show that preparation for
+regular marines as well as powered wearers, without introducing an oxygen meter
+or a new armor-class requirement. There are no open estuaries, rainfall or
+breathable outdoor districts. Use the actual Agreus surface context when launching.
 
 ## The warrant
 
@@ -77,7 +101,9 @@ Its readable terms precede acceptance of Limited Warrant:
   specifically listed refurbishment patterns after successful recovery.
 - Rusk guarantees the local supplier's release of service documentation,
   calibration tooling and compatible surplus stock. Those suppliers accept his
-  bond; his title does not confer authority over Hegemony or Tri-Tachyon arsenals.
+  bond within his concession's registered procurement terms. The Ko Combine
+  retains planetary administration; Rusk's title confers no authority over its
+  other holdings or over Hegemony or Tri-Tachyon arsenals.
 - The task covers Greyhook's armed occupation and coercion at named sites.
   It grants no planetary police commission, authority to seize civilians, or
   permission for indiscriminate orbital fire.
@@ -101,7 +127,7 @@ Equipment rewards are guaranteed story cards, separate from random recovery.
 | 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Recovered Specter card; the first powered assault role |
 | 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Recovered Arbalest card; the existing eight-regular/four-suit section becomes available once both cards are learned |
 | 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | Boarding Jack card, regardless of the chosen yard agreement; agreement ratified only on victory |
-| 5. A Small War | Black Sluice on the outer Silt Basin: seize the shore fuel-dispatch foothold and hand it to local holders | 3 squads plus construction; Hound optional | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
+| 5. A Small War | Black Sluice on the outer Silt Basin: seize the fuel-dispatch foothold and hand it to local holders | 3 squads plus construction; Hound optional | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
 
 Base completion fees total **168,000 credits** across the arc. House Custody can
 earn the separately disclosed **12,000-credit completion premium** below;
@@ -115,8 +141,10 @@ account. Rebalance the whole ledger against a casualty-carryover run.
 before awarding our own. The company can succeed using the regular equipment
 that brought it through the Shepherd recovery.
 
-North Weir has a protected western service apron, two switching rooms on opposite
-sides of a spill channel, and a lower maintenance road. Tor Edek coordinates the
+North Weir has a protected western service apron, two sealed switching rooms on
+opposite sides of a covered reclamation conduit, and a lower maintenance road.
+Its pumps recover water and process coolant inside closed circuits. Tor Edek
+coordinates the
 repair watch from outside the tactical space. A named repair load and its
 technicians travel through the ordinary convoy/escort path; they stop at contact.
 
@@ -218,8 +246,9 @@ listed in the warrant. The mission rewards its card. After both recovered roles
 are learned, Castle recommends **Salvage-assisted Section**: eight regular
 billets, two powered assault billets and two powered support billets.
 
-During debrief, show the court order, arrears schedule, proposed new leases and
-Lenna's counterproposal as attributable documents. The debt is real. No hidden
+During debrief, show the lease-arbitration order under Combine administration,
+arrears schedule, proposed new leases and Lenna's counterproposal as attributable
+documents. The debt is real. No hidden
 ledger absolves everybody, and clearing pirates has not ratified repossession.
 
 **Lenna, correspondence:** “You have opened the gate. Before you hand over the
@@ -298,8 +327,8 @@ to come and discuss it.” Her threat discloses no exact unseen force or arrival
 
 **Purpose:** finish a bounded local conflict with the company visibly capable of
 holding ground. **Black Sluice**, Greyhook's fuel and dispatch pier on the outer
-Silt Basin, sustains the shore levies and transports their prizes offworld.
-Breaking this foothold matters without defeating every pirate in Vesper Reach.
+Silt Basin, sustains the yard levies and transports their prizes offworld.
+Breaking this foothold matters without defeating every pirate operating in Arcadia.
 
 Chapter 4's recovered levy files include a Runner dispatch order signed by Mika
 Drent. Its load numbers match Nadi's shortage report and identify Black Sluice's
@@ -317,7 +346,7 @@ a seizure target, not an invitation to destroy the district's usable supply.
 2. Take fuel control. The Cask Runners oppose the company along a known transfer
    road while a finite Hookhand reserve covers dispatch. One visible support-gun
    position punishes an exposed frontal approach but has an infantry flank.
-3. Capture dispatch and its shore transfer records. Reclaim any lost required
+3. Capture dispatch and its surface transfer records. Reclaim any lost required
    site, then escort the agreed local custody party to its actual control room.
 4. Victory requires all three sites held, the marked required fuel infrastructure
    preserved, and the living custody party's completed handover. Destruction of
@@ -327,7 +356,7 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
 boss avatar or mandatory escape is needed. The confirmed result is loss of this
-shore facility and its organized levy route. The debrief does not invent her
+surface facility and its organized levy route. The debrief does not invent her
 death, the destruction of her fleet or permanent safety for every settlement.
 
 The ending names the selected agreement, confirmed losses and delivered rewards.
@@ -429,6 +458,14 @@ No capital gun run or fighter fleet is supplied. Construction uses the actual
 selected tender, finite vulnerable builders and existing placement/range rules.
 Allied constables take stable, separate hold duties only after real company gains.
 
+Citadel Arcadia remains a Hegemony logistics and military presence. Greyhook's
+local extortion and cargo diversion exploit scattered contractor yards and
+contested access; they do not establish control of the system. Rusk is paying
+for precise concession security and a working handover. His warrant does not
+command a Hegemony fleet, and this arc neither removes its patrols nor promises
+that civilian transport is safe. Broader authorities and markets keep their
+ordinary campaign behavior.
+
 Each battle authors its finite guards and reserve groups before launch, naming
 their ingress and commitment condition. Normal AI owns combat after arrival.
 Absent/delayed-player controls must not win through employer troops alone.
@@ -462,25 +499,29 @@ MRB tier, generic stationing contract or vanilla faction commission.
 In `meta-progression.md` terms, the arc produces Capability (three patterns) and
 local Standing (a recorded sponsor/yard relationship), gates on actual Shepherd
 recovery and operational Reach, and targets the **Acknowledged** stage. Its
-counter-pressure is committing travel and company recovery to a distant client,
+counter-pressure is committing travel and company recovery to a client outside Corvus,
 choosing which local relationship to disappoint, and the compact's foregone
 premium. It adds no new abstract pressure currency or equipment upkeep system.
 Additional general MRB awards require an explicit existing-authority decision,
 not a line of congratulatory dialogue that quietly changes reputation.
 
 The ending changes this authored local agreement and available work. It does not
-flip Brackwater's vanilla faction, rewrite industry output, seize the player's
-colonies, destroy a vanilla pirate base or grant sector-wide diplomatic standing.
+flip Agreus's vanilla faction, replace Ko Combine administration, rewrite industry
+output, seize the player's colonies, destroy a vanilla pirate base or grant
+sector-wide diplomatic standing.
 Those would be separate campaign mechanics with their own consequences.
 
 ## Implementation order and acceptance
 
 1. Finish and verify Working Passage's exactly-once handover and actual support
    eligibility. Test sale/loss and a different owned tender before connecting this lead.
-2. Add the authored system and stable contacts for new and existing saves. Verify
-   travel, inaccessible-site handling, no duplicate world creation and no automatic
-   vanilla ownership/diplomacy changes. Bind Rusk's authored story identity once;
-   do not alias an arbitrary generated house or silently revive a dormant one.
+2. Resolve existing Agreus and its market, then initialize stable story contacts
+   and local sites for new and existing saves. Verify plotted travel from Corvus,
+   missing/inaccessible/changed-administration handling and idempotent initialization.
+   Create no duplicate world entities and change no vanilla ownership or diplomacy.
+   Bind Rusk's authored story identity once; do not alias an arbitrary generated
+   house or silently revive a dormant one. Verify airless-site presentation with
+   regular and powered infantry before authoring the outdoor encounters.
 3. Deliver Chapters 1-2 with named roster/fitted boats, tender construction,
    preservation objectives, warrant acceptance and the first card. Verify decline,
    retreat, replacement mobilization, duplicate result and save/reload.
@@ -501,4 +542,4 @@ All mission, choice and reward text starts as readable correspondence with Castl
 fact-bound operational briefing. The sample lines above are unrecorded copy, not
 ElevenLabs jobs. Portraits, location art, voice production and native 1920x1080 / 100%
 UI-scale previews require their own authored assets and acceptance. This document
-changes the design; it does not deploy a new system or playable arc.
+changes the design; it does not deploy the authored contacts or playable arc.

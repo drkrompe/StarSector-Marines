@@ -2,7 +2,7 @@
 
 Status: PLANNED
 Written: 2026-10-12
-Updated: 2026-10-13 — planned post-Shepherd suit rewards and military acquisition collision.
+Updated: 2026-10-13 — post-Shepherd suit arc leaves Corvus for existing Agreus; military acquisition collision remains.
 
 Read `early-operation-nouns.md`, `meta-progression.md` and
 `company-view-nouns.md`. `castle-campaign-lessons.md` owns the first tutorial slice.
@@ -55,5 +55,5 @@ alone cannot describe the player's equipment or cash.
 
 `shepherd-recovery.md` owns the planned construction arc. This story does not
 claim its maps already award a working fleet ship or unlock construction.
-`a-small-war.md` owns the planned Vesper Reach expedition and its initial fee
+`a-small-war.md` owns the planned expedition to Agreus in nearby Arcadia and its initial fee
 ledger; its three patterns, travel and casualty pressure need campaign acceptance.
