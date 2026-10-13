@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.setup.DefenderRoster;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
-import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
@@ -26,47 +25,30 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CorvusWaylineCampaignTest {
-    @Test void bothBranchesIncludingExhaustedFailuresContinueWithoutRewritingTheirHistory() {
+    @Test void freightSuccessAndExhaustedFailureContinueWithoutRewritingHistory() {
         assertFalse(CorvusWaylineCampaign.unlocked(null));
-        for (int branch : List.of(2, 3)) for (boolean success : List.of(false, true)) {
-            var route = closedRoute(branch, success);
+        for (boolean success : List.of(false, true)) {
+            var route = closedRoute(success);
             assertTrue(CorvusWaylineCampaign.unlocked(route));
             String prior = route.status();
             Mission offer = CorvusWaylineCampaign.offer(new CorvusWaylineProgress(), "Asharu", route);
-            assertTrue(offer.flavor.contains(prior));
-            assertEquals(prior, route.status());
+            assertTrue(offer.flavor.contains(prior)); assertEquals(prior, route.status());
             assertEquals(success, route.successful());
-            if (branch == 2) {
-                assertEquals(success, offer.flavor.contains("people brought home"));
-                assertEquals(!success, offer.flavor.contains("without a recovery"));
-                assertFalse(offer.flavor.contains("delivered loads"));
-            } else {
-                assertEquals(success, offer.flavor.contains("delivered loads"));
-                assertEquals(!success, offer.flavor.contains("No freight made it through"));
-                assertFalse(offer.flavor.contains("people brought home"));
-            }
+            assertEquals(success, offer.flavor.contains("delivered loads"));
+            assertEquals(!success, offer.flavor.contains("No freight made it through"));
+            assertFalse(offer.flavor.contains("Rill"));
         }
     }
-
-    @Test void earlierRecoveriesRemainMeaningfulEvenWhenTheFinalAttemptFails() {
-        for (int branch : List.of(2, 3)) {
-            var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-            String id = p.missionId(); p.begin(id); p.settle(id, true, null); p.commit(branch);
-            id = p.missionId(); p.begin(id);
-            if (branch == 2) {
-                p.settle(id, false, new LastLiftProgress.Outcome(p.crew().previewAttempt(), List.of(0), List.of(), false));
-                id = p.missionId(); p.begin(id);
-                p.settle(id, false, new LastLiftProgress.Outcome(p.crew().previewAttempt(), List.of(), p.crew().stranded(), false));
-            } else {
-                p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(0), List.of(), false));
-                id = p.missionId(); p.begin(id);
-                p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(), p.freight().waiting(), false));
-            }
-            assertTrue(p.closed()); assertFalse(p.successful());
-            String intro = CorvusWaylineCampaign.introduction(p);
-            assertTrue(intro.contains(branch == 2 ? "people brought home: 1" : "delivered loads: 1"));
-            assertFalse(intro.contains(branch == 2 ? "without a recovery" : "No freight made it through"));
-        }
+    @Test void earlierDeliveriesRemainMeaningfulWhenTheFinalAttemptFails() {
+        var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        String id = p.missionId(); p.begin(id); p.settle(id, true, null);
+        id = p.missionId(); p.begin(id);
+        p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(0), List.of(), false));
+        id = p.missionId(); p.begin(id);
+        p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(), p.freight().waiting(), false));
+        assertTrue(p.closed()); assertFalse(p.successful());
+        String intro = CorvusWaylineCampaign.introduction(p);
+        assertTrue(intro.contains("delivered loads: 1")); assertFalse(intro.contains("No freight made it through"));
     }
 
     @Test void onlyAcceptedResultsAdvanceAndDuplicateForeignOrStaleResultsCannotSettle() throws Exception {
@@ -147,20 +129,13 @@ class CorvusWaylineCampaignTest {
             assertNull(CorvusWaylineProgress.forMission(id));
     }
 
-    static BrokenSupplyRouteProgress closedRoute(int branch, boolean success) {
+    static BrokenSupplyRouteProgress closedRoute(boolean success) {
         var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-        p.begin(p.missionId()); p.settle(p.missionId(), true, null); p.commit(branch);
-        if (branch == 3) {
-            p.begin(p.missionId());
-            p.settle(p.missionId(), success, null, new FreightRunProgress.Outcome(
-                    p.freight().previewAttempt(), success ? List.of(0, 1, 2) : List.of(),
-                    success ? List.of() : List.of(0, 1, 2), success));
-        } else {
-            p.begin(p.missionId());
-            var people = p.crew().stranded();
-            p.settle(p.missionId(), success, new LastLiftProgress.Outcome(
-                    p.crew().previewAttempt(), success ? people : List.of(), success ? List.of() : people, success));
-        }
+        p.begin(p.missionId()); p.settle(p.missionId(), true, null);
+        p.begin(p.missionId());
+        p.settle(p.missionId(), success, null, new FreightRunProgress.Outcome(
+                p.freight().previewAttempt(), success ? List.of(0, 1, 2) : List.of(),
+                success ? List.of() : List.of(0, 1, 2), success));
         return p;
     }
     private static MissionOutcome outcome(Mission m, boolean win, int paid) {

@@ -81,10 +81,11 @@ separate recurring jobs. Relief has an authored freight checkpoint and finite
 road arrivals; Counterattack has a larger freight depot with a joint gate-to-yard
 advance, rear guards and a contact-driven reserve. Both have fitted-boat headless
 replays. Next, complete the linked opening arc's live campaign acceptance. The
-follow-on arc now connects Junction to an explicit evacuation/freight choice,
-actual campaign squads and fitted boats, saved rescue/freight outcomes, one-time
-rewards and separate recurring work. Junction branches directly to Last Lift or Thunder
-Run; the latter supplies a larger corridor and physical employer convoy delivery. `broken-supply-route.md` tracks its live acceptance.
+follow-on arc connects Junction directly to Thunder Run with actual campaign
+squads and fitted boats, saved freight outcomes, one-time rewards and separate
+Route Security work. Thunder Run supplies a larger corridor and physical employer
+convoy delivery. Last Lift's evacuation concept is reserved for later campaign
+reuse, with placement and designation undecided. `broken-supply-route.md` tracks its live acceptance.
 The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
