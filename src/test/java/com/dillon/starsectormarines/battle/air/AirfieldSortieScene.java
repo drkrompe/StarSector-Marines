@@ -370,6 +370,7 @@ final class AirfieldSortieScene {
             // different base's procedure and no loop here flies one.
             case TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL, LANDING_ROLL, TAXI_IN ->
                     "on the ground";
+            case CRASHING -> "falling / aircraft lost";
             case GONE -> scene.outcome()[0];
         };
     }

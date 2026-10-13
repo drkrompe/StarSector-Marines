@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import org.junit.jupiter.api.AfterEach;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
+
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
@@ -51,7 +56,10 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Production campaign construction and named loadouts, with explicit diagnostic controls. */
 @Tag("thunder-run-command-evidence")
 class ThunderRunEvidenceTest {
+    @AfterEach void resetWeaponSlots() { TurretSlotResolver.useHullSpecs(null); }
+
     @Test void reportConvoyFinale() throws Exception {
+        InstalledWeaponSlots.install();
         Path output = Path.of(System.getProperty("thunderrun.command.evidence.outputDir", "build/reports/commander/thunder-run"));
         Files.createDirectories(output);
         int maxTicks = Integer.getInteger("thunderrun.command.evidence.maxTicks", 27000);
@@ -108,7 +116,14 @@ class ThunderRunEvidenceTest {
                 }
                 assertEquals(companySize, seats);
                 assertEquals(ThunderRunPacing.RESERVE_SIZE, sim.getThunderRun().pendingMembers());
-                assertEquals(22, count(sim, Faction.DEFENDER)); // 14 building guards + 6 checkpoint rifles + 2 guns.
+                assertEquals(24, count(sim, Faction.DEFENDER)); // 14 guards + 6 rifles + 2 road guns + 2 AA.
+                if (fixture.optBoolean("clearFlak")) {
+                    for (int i = sim.liveUnitCount() - 1; i >= 0; i--) {
+                        long unit = sim.liveUnitAt(i);
+                        if (sim.turretState().isTurret(unit) && sim.turretState().structure(unit).targetRole == TurretRole.AA)
+                            sim.applyDamage(unit, 10000f, 100f);
+                    }
+                }
                 var column = sim.getThunderRun();
                 assertEquals(fixture.optBoolean("retry")?1:3,column.cargo().size()); assertEquals(column.cargo().size()+(fixture.optBoolean("retry") ? 4 : 5),sim.getConvoyVehicleIds().length);
                 if (fixture.optBoolean("destroyCargo")) for (long vehicle : column.cargo().values()) sim.convoy().destroy(vehicle);
@@ -358,6 +373,8 @@ class ThunderRunEvidenceTest {
                         .put("marinesAlive",count(sim,Faction.MARINE)).put("militiaAlive",militiaCount(sim)).put("raidersAlive",count(sim,Faction.DEFENDER))
                         .put("roadGunsDestroyedAt", new JSONObject(gunDown.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue))))
                         .put("intactFreightBypass",bypass).put("freightRoadClear",true)
+                        .put("kestrelLaunched", sim.getWaylineGunship().launched()).put("kestrelLost", sim.getWaylineGunship().lost())
+                        .put("airWrecks", sim.getAirfieldService().groundWrecks().size())
                         .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot);
                 if(column.outcome()!=null) {
                     int paid=route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome());

@@ -162,5 +162,7 @@ public enum ShuttleState {
     LANDING_ROLL,
     /** Rolling from where it left the strip back to its own shelter. */
     TAXI_IN,
+    /** Disabled, falling with residual momentum; impact leaves a persistent wreck. */
+    CRASHING,
     GONE
 }

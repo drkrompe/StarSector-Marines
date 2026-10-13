@@ -139,7 +139,7 @@ public final class RescuePickupSupportSystem {
         int count = 0;
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = sim.world().mission(id);
-            if (mission == null || !mission.rescueMilitiaTransport
+            if (mission == null || mission.destroyed || !mission.rescueMilitiaTransport
                     || mission.state == ShuttleState.GONE) continue;
             count += mission.marinesRemaining;
         }
@@ -150,7 +150,7 @@ public final class RescuePickupSupportSystem {
         int count = 0;
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = sim.world().mission(id);
-            if (mission == null || !mission.rescuePickupMechTransport
+            if (mission == null || mission.destroyed || !mission.rescuePickupMechTransport
                     || mission.state == ShuttleState.GONE) continue;
             count += mission.marinesRemaining;
         }
@@ -216,7 +216,7 @@ public final class RescuePickupSupportSystem {
         }
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = sim.world().mission(id);
-            if (mission == null || !mission.rescueMilitiaTransport
+            if (mission == null || mission.destroyed || !mission.rescueMilitiaTransport
                     || mission.state == ShuttleState.GONE) continue;
             int point = formationPointOf(mission.rescueGuardX,
                     mission.rescueGuardY);

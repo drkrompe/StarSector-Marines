@@ -44,6 +44,8 @@ public final class GunshipOrbit {
      */
     public static void begin(ShuttleMission mission, float bodyX, float bodyY, float facingDeg) {
         mission.gunship = true;
+        mission.orbitCentreX = mission.lzX;
+        mission.orbitCentreY = mission.lzY;
         mission.strikeSortie = false;
         mission.orbitRadius = RADIUS_CELLS;
         mission.orbitSecondsLeft = STATION_SECONDS;

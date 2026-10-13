@@ -8,7 +8,7 @@ import java.util.List;
  * One aircraft the battle destroyed, remembered after the entity is reaped.
  *
  * <p><b>The entity cannot answer this question later.</b> A shot-down craft is
- * GONE at the end of the tick that killed it and every component goes with it,
+ * eventually reaped after its crash and every component goes with it,
  * so anything the campaign wants to know about the loss has to be copied out at
  * the moment it happens. That is the whole reason this exists as a ledger entry
  * rather than as a query.

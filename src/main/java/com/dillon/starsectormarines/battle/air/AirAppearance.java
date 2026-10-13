@@ -119,6 +119,7 @@ public final class AirAppearance {
             case LANDING_ROLL:
             case TAXI_IN:
                 return 0f;
+            case CRASHING:
             case PENDING:
             case GONE:
                 return 0f;
