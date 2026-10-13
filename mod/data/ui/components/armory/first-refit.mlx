@@ -9,19 +9,6 @@
         <div id="refit-copy" class="refit-copy">{lesson.copy}</div>
       </div>
     </div>
-    <div id="refit-showcase" class="{lesson.showcaseClasses}">
-      <div id="refit-line-example" class="refit-example panel">
-        <canvas id="refit-line-preview" class="refit-example-art" width="250" height="250" />
-        <div id="refit-line-example-title" class="refit-example-title tone-accent">STEADY LINE / HOLD GROUND</div>
-        <div id="refit-line-example-copy" class="refit-example-copy">Milspec Stalwart automatics anchor a line-heavy squad. Sound line suits protect most of the formation; one scout and two support carriers round it out.</div>
-      </div>
-      <div id="refit-scout-example" class="refit-example panel">
-        <canvas id="refit-scout-preview" class="refit-example-art" width="250" height="250" />
-        <div id="refit-scout-example-title" class="refit-example-title tone-accent">FORWARD SCREEN / SCOUT AHEAD</div>
-        <div id="refit-scout-example-copy" class="refit-example-copy">Milspec Lancer pulse rifles and five scout billets. Janus suits bring mobility and sensor sweeps; line armor and support rigs protect the rest.</div>
-      </div>
-    </div>
-    <button id="refit-claim" class="{lesson.claimClasses}" onclick="{lesson.claim}">ACCEPT EQUIPMENT PATTERNS / No material charge</button>
     <div id="refit-work" class="{lesson.workClasses}">
       <div id="refit-hint" class="refit-hint tone-muted">{lesson.squadHint}</div>
       <div id="refit-squads" class="refit-squads">
@@ -33,7 +20,7 @@
           <div id="{path.copyId}" class="refit-path-copy">{path.copy}</div>
         </button>
       </div>
-      <div id="refit-empty" class="{lesson.emptyClasses}">Select a squad and one of the two plans above. Compare equipment before spending any materials.</div>
+      <div id="refit-empty" class="{lesson.emptyClasses}">Select a squad and one of the two plans above. Compare equipment before choosing your one free technology transfer.</div>
       <div id="refit-comparison" class="{lesson.comparisonClasses}">
         <div id="refit-roll" class="refit-roll panel">
           <div id="refit-roll-heading" class="refit-roll-heading tone-edge">CURRENT KIT / Select a square</div>
@@ -89,20 +76,9 @@
           </div>
         </div>
       </div>
-      <div id="refit-bill" class="refit-bill panel">
-        <div id="refit-cost" class="refit-cost">
-          <div id="refit-bill-heading" class="refit-bill-heading">{lesson.billHeading}</div>
-          <div id="refit-materials" class="refit-materials">
-            <div each="cost in lesson.costs" key="{cost.id}" id="{cost.id}" class="refit-material">
-              <img id="{cost.iconId}" class="refit-material-icon" src="{cost.icon}" />
-              <div id="{cost.labelId}" class="refit-material-label">{cost.label}</div>
-            </div>
-          </div>
-        </div>
-        <div id="refit-shortfall" class="refit-shortfall tone-warning">{lesson.shortfall}</div>
-      </div>
       <div id="refit-status" class="refit-status tone-edge">{lesson.status}</div>
-      <button id="refit-issue" class="refit-action console-action" disabled="{lesson.disabled}" onclick="{lesson.issue}">ISSUE TO SQUAD</button>
+      <button id="refit-claim" class="{lesson.claimClasses}" disabled="{lesson.claimDisabled}" onclick="{lesson.claim}">{lesson.claimLabel}</button>
+      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">FIT TO SQUAD / FREE</button>
     </div>
     <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">INSPECT ISSUED SQUAD / Alpha, Bravo, Charlie</button>
     <button id="refit-later" class="refit-later" onclick="{backToSquads}">{lesson.laterLabel}</button>
@@ -116,11 +92,6 @@
   .refit-heading { font-family: heading; height: 22px; }
   .refit-progress { height: 18px; }
   .refit-copy { height: 42px; white-space: normal; }
-  .refit-showcase { flex-direction: row; height: 0px; flex-grow: 1; gap: 16px; }
-  .refit-example { flex-direction: column; width: 0px; flex-grow: 1; padding: 24px; gap: 16px; align-items: center; }
-  .refit-example-art { width: 250px; height: 250px; }
-  .refit-example-title { height: 24px; font-family: heading; }
-  .refit-example-copy { width: 560px; height: 74px; white-space: normal; }
   .refit-work { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; }
   .refit-hint { height: 18px; }
   .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
@@ -137,11 +108,11 @@
   .refit-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-team-heading { height: 18px; text-align: center; font-family: heading; }
   .refit-team-members { flex-direction: column; gap: 6px; }
-  .refit-billet { flex-direction: column; height: 96px; padding: 4px; gap: 4px; border-width: 1px; text-align: left; }
+  .refit-billet { flex-direction: column; height: 108px; padding: 4px; gap: 4px; border-width: 1px; text-align: left; }
   .refit-name { height: 18px; overflow: hidden; }
   .refit-billet-kit { flex-direction: row; height: 34px; gap: 6px; align-items: center; }
   .refit-billet-icon { width: 34px; height: 34px; pointer-events: none; }
-  .refit-detail { height: 36px; white-space: normal; font-family: body; }
+  .refit-detail { height: 48px; white-space: normal; font-family: body; }
   .refit-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-selected-name { height: 22px; }
   .refit-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }
@@ -158,14 +129,6 @@
   .refit-item-subtitle { height: 30px; white-space: normal; }
   .refit-item-stats { height: 20px; }
   .refit-item-system { height: 38px; white-space: normal; }
-  .refit-bill { flex-direction: row; height: 53px; gap: 10px; padding: 6px 8px; }
-  .refit-cost { flex-direction: column; gap: 3px; width: 0px; flex-grow: 2; white-space: normal; }
-  .refit-bill-heading { height: 18px; }
-  .refit-materials { flex-direction: row; gap: 18px; height: 30px; }
-  .refit-material { flex-direction: row; gap: 5px; width: 300px; height: 30px; align-items: center; }
-  .refit-material-icon { width: 30px; height: 30px; }
-  .refit-material-label { width: 260px; height: 24px; white-space: normal; }
-  .refit-shortfall { width: 0px; flex-grow: 1; white-space: normal; }
   .refit-status { height: 28px; white-space: normal; }
   .refit-action { height: 26px; padding: 6px 12px; border-width: 1px; font-family: heading; }
   .refit-later { height: 22px; padding: 4px 12px; border-width: 1px; }

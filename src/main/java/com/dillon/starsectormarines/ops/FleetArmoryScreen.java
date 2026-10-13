@@ -151,7 +151,6 @@ public final class FleetArmoryScreen implements Screen {
                 case ARMOR_COMPARISON -> this::showFireTeams;
                 case FIRST_REFIT -> this::showSquadOverview;
             });
-            if (view == View.FIRST_REFIT) bindFirstRefitPreviews(built, candidate, previewAssets);
             if (view == View.SQUADS) {
                 bindGalleryCanvases(built, candidate, viewModel);
             } else if (view == View.FIRETEAMS) {
@@ -389,13 +388,6 @@ public final class FleetArmoryScreen implements Screen {
         for (String id : required) {
             component.requireElement(id);
         }
-    }
-
-    static void bindFirstRefitPreviews(UiDocument document, MarkupInstance markup, ArmoryLoadoutPreviewComposer.Assets assets) {
-        document.canvases().set(markup.requireElement("refit-line-preview"),
-                new ArmoryMarinePreviewCanvas(() -> FirstRefitModel.example(false), assets));
-        document.canvases().set(markup.requireElement("refit-scout-preview"),
-                new ArmoryMarinePreviewCanvas(() -> FirstRefitModel.example(true), assets));
     }
 
     static void bindFirstRefitSheets(SpecSheetBinder binder, MarkupInstance markup, FirstRefitModel model) {
