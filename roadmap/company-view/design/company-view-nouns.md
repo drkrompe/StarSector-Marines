@@ -717,8 +717,8 @@ Barracks leads with **Preparation**: consolidate survivors, fill vacancies, then
 restore assigned equipment. **Profiles** holds saved loadout and tactic-sheet
 pairings. These are separate explicit orders, not a button that silently spends
 all available resources. Current billet counts state ready, wounded and vacant
-separately. Inspecting a squad can open its exact Armory equipment workspace;
-returning retains the Barracks selection. **Raise Squad** is a tile at the end of
+separately. A squad card's **Loadout** opens that squad's exact Armory equipment
+workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
 the formation board, not a separate page: it pays the same founding bill as the
 Armory desk and files the new squad under the officer whose command is open,
 or leaves it independent when that is All formations, Independent, or a command
