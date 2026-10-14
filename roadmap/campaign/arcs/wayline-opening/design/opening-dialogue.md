@@ -125,7 +125,9 @@ ON THE WALL** and **RAISING HER** are new pages (title, narration and Castle lin
 are new strings); the rest replace existing text.
 
 Facts these pages establish: Harker's Claim is a remote asteroid mine, three
-weeks' haul from the nearest port. Its operator ran it down quietly over years
+weeks' haul from the nearest port, that dug transplutonic ore (the game's
+`rare_ore`, refined into Transplutonics) and was worth the trip while the good
+seams lasted. Its operator ran it down quietly over years
 while telling the workers output was falling, then posted a date when facility
 support (air, heat, power) would end. The last carrier left eleven days before
 that date with the administrators and the payroll; worker passage was priced in
@@ -151,8 +153,9 @@ hull, and lit her drive with four days on it.
 **THE WRITING ON THE WALL** (new page)
 
 New narration
-> Harker's Claim was three weeks' haul from the nearest port, which is why it
-> paid. Then, slowly, it stopped paying. The second shaft was "suspended pending
+> Harker's Claim was three weeks' haul from the nearest port, and the
+> transplutonic ore in its seams was worth every day of it. Then the good seams
+> thinned, and slowly the Claim stopped paying. The second shaft was "suspended pending
 > survey." The drill rigs went out on the carriers "for refurbishment" and never
 > came back. The clinic lost its surgeon to a transfer nobody had applied for.
 > Carriers came monthly instead of weekly, and left heavier than they arrived. The
@@ -161,7 +164,8 @@ New narration
 
 New — Castle
 > I ran the Claim's manifests for nine years. Every month they told us output was
-> down, outbound tonnage went up. They weren't failing, Commander. They were
+> down, outbound tonnage went up. Spare rigs, reactor stock, the clinic's
+> scanner, all listed as ore. They weren't failing, Commander. They were
 > packing.
 
 **WHAT WE LEFT BEHIND**
