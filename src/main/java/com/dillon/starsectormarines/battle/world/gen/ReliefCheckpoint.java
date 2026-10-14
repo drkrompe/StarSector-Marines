@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -60,7 +61,9 @@ public final class ReliefCheckpoint {
         List<Cell> service = List.of(new Cell(114, height - 2), new Cell(114, 30), new Cell(91, 30));
         RoadGraph roads = roads(main, service);
         MapResult map = new MapResult(ctx.grid, ctx.topology, 21, 20, OPENING.x, OPENING.y,
-                ctx.pois, ctx.doodads, new TacticalMap(List.of()), ctx.get(BspKeys.BUILDINGS),
+                ctx.pois, ctx.doodads, new TacticalMap(HeldPlaces.fromBuildings(ctx.pois,
+                        poi -> poi.interiorAnchorX <= GATE.x ? Faction.ALLY : Faction.DEFENDER)),
+                ctx.get(BspKeys.BUILDINGS),
                 List.of(), roads, ctx.landingPads);
         validate(map, relay, main, service);
         return new Layout(map.withInitialDamage(DamageCatalog.relief()), relay, GATE, FORWARD_POST, OPENING, main, service);
