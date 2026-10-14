@@ -64,16 +64,10 @@ final class CampaignLessons {
         return roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
     }
 
-    static PreparationGuide.Lesson formations(MarineRoster roster, MarineOpsContext context,
-                                                boolean equipment) {
+    static PreparationGuide.Lesson formations(MarineRoster roster, MarineOpsContext context) {
         if (next(roster) != Step.FORMATIONS) return null;
-        if (formations(roster) < 2) return later(equipment
-                ? lesson(3, "lessonFormationTitle", "lessonFormationFound", List.of("page-nav-barracks"),
-                        "lessonBarracks", () -> context.goTo(ScreenId.BARRACKS))
-                : lesson(3, "lessonFormationTitle", "lessonFormationFound", List.of("barracks-raise-squad"), null, null),
-                roster);
-        if (equipment) return later(lesson(3, "lessonFormationTitle", "lessonFormationAssign",
-                List.of("page-nav-barracks"), "lessonBarracks", () -> context.goTo(ScreenId.BARRACKS)), roster);
+        if (formations(roster) < 2) return later(lesson(3, "lessonFormationTitle", "lessonFormationFound",
+                List.of("barracks-raise-squad"), null, null), roster);
         boolean full = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()
                 && roster.readyCount(s) == MarineSquad.CAPACITY).count() >= 2;
         // Wounded marines keep their billets, so a squad short only by wounded has nothing for Fill Vacancies to
