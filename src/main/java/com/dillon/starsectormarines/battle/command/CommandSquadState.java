@@ -38,7 +38,50 @@ public record CommandSquadState(
         boolean demolition,
         boolean crew,
         boolean machine,
+        CapabilityProfile capabilities,
+        int originalMembers) {
+
+    /**
+     * Compatibility seam for a row that does not know how strong the squad started: {@code originalMembers} is 0,
+     * which readers take as its present strength. On the full row it is the strength the squad was raised at.
+     */
+    public CommandSquadState(
+        int squadId,
+        Faction faction,
+        int aliveMembers,
+        float centroidX,
+        float centroidY,
+        int anchorCellX,
+        int anchorCellY,
+        int currentZoneId,
+        UnitRole role,
+        boolean localContact,
+        boolean underFireRecently,
+        boolean moraleBroken,
+        String currentGoal,
+        String currentAction,
+        String executionSuspension,
+        ObjectiveAssignment assignment,
+        CommandDirective directive,
+        int activePathMembers,
+        int movingMembers,
+        int coveredFromPrimaryMembers,
+        int primaryEngageableMembers,
+        int primaryEngageableFireTeams,
+        String contactPosture,
+        String contactDoctrine,
+        String contactInitiative,
+        int coolingDownMembers,
+        int[] memberZoneIds,
+        int[] memberCellXs,
+        int[] memberCellYs,
+        CommandGroupIdentity commandGroup,
+        boolean demolition,
+        boolean crew,
+        boolean machine,
         CapabilityProfile capabilities) {
+        this(squadId, faction, aliveMembers, centroidX, centroidY, anchorCellX, anchorCellY, currentZoneId, role, localContact, underFireRecently, moraleBroken, currentGoal, currentAction, executionSuspension, assignment, directive, activePathMembers, movingMembers, coveredFromPrimaryMembers, primaryEngageableMembers, primaryEngageableFireTeams, contactPosture, contactDoctrine, contactInitiative, coolingDownMembers, memberZoneIds, memberCellXs, memberCellYs, commandGroup, demolition, crew, machine, capabilities, 0);
+    }
 
     /**
      * Compatibility seam for a row that says nothing of what the squad's kit can do to a position: its capabilities are
