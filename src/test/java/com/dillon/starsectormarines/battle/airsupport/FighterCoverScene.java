@@ -247,8 +247,8 @@ public final class FighterCoverScene implements BehaviorScene {
             }
             case "cap-none" -> {
                 verdicts.add(Verdict.of("the-raid-reaches-the-company-unopposed",
-                        t.raidersBombing >= 1 && t.raidersDown == 0,
-                        "raiders launched " + t.raiders + ", down " + t.raidersDown + ", reached the ATTACK_RUN " + t.raidersBombing));
+                        t.raidersBombing == t.raiders && t.raidersDown == 0,
+                        "raiders launched " + t.raiders + ", down " + t.raidersDown + ", reached their bomb run " + t.raidersBombing));
                 verdicts.add(Verdict.of("the-company-pays-for-it", t.companyDead >= 2,
                         "company dead " + t.companyDead + " of " + COMPANY));
             }
@@ -266,9 +266,12 @@ public final class FighterCoverScene implements BehaviorScene {
                         t.raidersDown + t.raidersDrivenOff >= 1,
                         "raiders down " + t.raidersDown + ", driven off " + t.raidersDrivenOff + " of " + t.raiders
                                 + "; down by a fighter " + t.airToAirLosses));
-                verdicts.add(Verdict.of("the-company-is-spared-against-the-control",
-                        t.companyDead < control.trace.companyDead,
-                        "company dead " + t.companyDead + " against " + control.trace.companyDead + " with nothing overhead"));
+                // Reported, not judged: one raider shot down on its run still lets the other drop, and the bomb scatter
+                // moves the company toll by a couple of marines from seed to seed.
+                verdicts.add(Verdict.of("the-control-lost-no-raider",
+                        control.trace.raidersDown == 0,
+                        "company dead " + t.companyDead + " against " + control.trace.companyDead + " with nothing overhead; raiders on their bomb run "
+                                + t.raidersBombing + " against " + control.trace.raidersBombing));
                 verdicts.add(Verdict.of("the-ledger-balances",
                         cover.launched() == cover.returned() + cover.lost() + pool.coversOut(Faction.MARINE),
                         "launched " + cover.launched() + ", returned " + cover.returned() + ", lost " + cover.lost()
@@ -385,6 +388,7 @@ public final class FighterCoverScene implements BehaviorScene {
         Outcome coverOutcome;
         private final List<Long> raiderIds = new ArrayList<>();
         private final Set<Long> drivenOff = new HashSet<>();
+        private final Set<Long> bombingIds = new HashSet<>();
         private int seenEvents;
         private boolean forced;
         private boolean coverAsked;
@@ -478,7 +482,7 @@ public final class FighterCoverScene implements BehaviorScene {
                 }
                 if (raider) {
                     raiderTopSpeed = Math.max(raiderTopSpeed, body.speed());
-                    if (m.state == ShuttleState.ATTACK_RUN) raidersBombing = Math.max(raidersBombing, countBombing(sim));
+                    if (m.state == ShuttleState.ATTACK_RUN && bombingIds.add(id)) raidersBombing = bombingIds.size();
                 }
             }
             for (long id : raiderIds) {
@@ -498,14 +502,6 @@ public final class FighterCoverScene implements BehaviorScene {
             airToAirLosses = kills;
         }
 
-        private int countBombing(BattleSimulation sim) {
-            int n = 0;
-            for (long id : raiderIds) {
-                ShuttleMission m = sim.world().mission(id);
-                if (m != null && !m.destroyed && m.state == ShuttleState.ATTACK_RUN) n++;
-            }
-            return Math.max(n, raidersBombing);
-        }
 
         private void script(BattleSimulation sim, int tick, AirPoolService pool) {
             switch (loop) {

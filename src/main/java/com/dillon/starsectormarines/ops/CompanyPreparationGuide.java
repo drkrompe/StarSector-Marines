@@ -126,7 +126,7 @@ final class CompanyPreparationGuide {
                     List.of(), Strings.get("openingCompanyPreparationGuideContinue"), next);
         if (step == Step.FORMATION) return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideMusterOurFirstSquad"),
                 Strings.get("openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty"),
-                List.of("found-squad"), null, null);
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideBarracks"), next);
         return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideAFormationNeedsItsOfficer"),
                 Strings.get("openingCompanyPreparationGuideTheSquadAndItsFieldKitAre"),
                 List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideBarracks"), next);
