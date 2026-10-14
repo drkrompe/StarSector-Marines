@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a crew-served tube is re-crewed by a squadmate when its gunner falls; crew-served fire support: the field mortar tube served by a gunner, now taking an assigned fire mission from a plan or standing order.
+Updated: 2026-10-14 — a marching squad with an assigned fire mission opens a mortar section (a crew halts and works the tube, the rest of the squad is leashed, a window with an engagement extension and a cap); a crew-served tube is re-crewed by a squadmate when its gunner falls; crew-served fire support: the field mortar tube served by a gunner, now taking an assigned fire mission from a plan or standing order.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2088,6 +2088,8 @@ and fires on the section's own belief when nothing there is eligible; a plan's b
 standing missions both assign one (`phased-assault.md`).
 
 When the gunner falls, the nearest living squadmate within 10 cells who carries no special takes the tube up and keeps its rounds; the tube is lost only when nobody can. Numbers are untuned; the scene `field-mortar` reads them.
+
+**A mortar section is a squad behaviour, not a gunner's.** A gunner holding a path never sets up, and a marching squad is always holding paths, so a tube would otherwise be set down only where a squad happened to have stopped. When an assigned fire mission has a target in the tube's band, a *section* opens on the squad (`MortarSections`): a **crew** of about four (the gunner's fire team, topped up with the nearest squadmates) halts and works the tube, and **the rest of the squad is leashed to it** (inside the cohesion radius, outside the crew), free to answer fire in range and to take cover but not to march. The leash is a reflex of the marine, ranked with the rejoin state (`MORTAR_SECTION`), and a broken fire team is not held by it. The section has a **window** (30 seconds from activation): the crew packs up when it runs out and the squad reforms and goes back to its order, unless the tube is **engaged** (a target in the last few seconds), which holds the deadline ahead of the clock up to a cap; a per-squad **cooldown** keeps a squad from setting up every few seconds along its march. A section is a habit and never an order: it is not opened for a squad under a player's order or with a marine under direct control, only for a marching gunner (a halted squad sets up unleashed, as before), and it ends the moment the squad comes under fire. What opens one is a dial (`battle.mortar.sectionTrigger`): an assigned mission by default, a believed hardened target or any worthwhile belief by choice, the broad ones having cost battles on the trial ground (`phased-assault.md`, "Mortar sections: as built").
 
 ### Fighting positions
 
