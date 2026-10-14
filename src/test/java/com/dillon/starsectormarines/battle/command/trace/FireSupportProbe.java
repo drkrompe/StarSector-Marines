@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
+import com.dillon.starsectormarines.battle.deployable.MortarSections;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -71,6 +72,22 @@ final class FireSupportProbe {
         }
     }
 
+    /** Rounds the marines' tubes fired, and how many of them on an assigned mission, as numbers for a summary. */
+    int[] marineRounds() {
+        int rounds = 0;
+        int mission = 0;
+        for (int[] r : tubeRounds.values()) {
+            rounds += r[0];
+            mission += r[1];
+        }
+        return new int[] {rounds, mission};
+    }
+
+    /** Fort nests killed, by mortar, by air and by the ground (the 90-tick heuristic), as numbers for a summary. */
+    int[] nestKills() {
+        return new int[] {seenDead.size(), killedByMortar, killedByAir, killedByGround};
+    }
+
     String describe(BattleSimulation sim) {
         int rounds = 0;
         int mission = 0;
@@ -84,6 +101,11 @@ final class FireSupportProbe {
                         + "rounds fired %d (%d on an assigned mission)%n",
                 mortars.setUps(), mortars.packs(), mortars.lostWithGunner(), mortars.destroyedStanding(), mortars.recrewed(),
                 rounds, mission));
+        MortarSections sections = mortars.sections();
+        out.append(String.format("- mortar sections: opened %d, ended %d (window expired %d, under fire %d, never committed %d), "
+                        + "engagement held a window past its plain length %d times, held %.0fs in all; rounds fired from them %d (%d on a mission)%n",
+                sections.opened(), sections.ended(), sections.expired(), sections.underFire(), sections.abandoned(),
+                sections.extended(), sections.secondsHeld(), sections.roundsFired(), sections.missionRoundsFired()));
         out.append(String.format("- marine air pool: called %d, launched %d, returned %d, lost %d, aborted %d, dropped %d, replaced %d%n",
                 pool.getOrDefault(AirPoolService.EventType.CALLED, 0), pool.getOrDefault(AirPoolService.EventType.LAUNCHED, 0),
                 pool.getOrDefault(AirPoolService.EventType.RETURNED, 0), pool.getOrDefault(AirPoolService.EventType.LOST, 0),

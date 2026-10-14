@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.airsupport.AirStrikeDirector;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
-import com.dillon.starsectormarines.battle.deployable.MortarSections;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
@@ -157,18 +156,9 @@ public final class AssaultMusterScene implements BehaviorScene {
             ConquestCommand.setMusterEnabled(!loop.equals("control-trickle"));
             // The loops that judge the plan's own fire missions leave the squads' standing ones out, which would clear the works first.
             ConquestCommand.setStandingFireMissionsEnabled(!(loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")));
-            // plan-mortar-air judges the plan's own fire missions, and a section (which halts a marching squad to shell what it
-            // believes in) shelled the mission's nest before the company formed: no tube had a target left when it arrived.
-            boolean sectionsOn = MortarSections.isEnabled();
-            if (loop.equals("plan-mortar-air")) {
-                MortarSections.setForEvidence(false, MortarSections.windowSeconds(), MortarSections.extensionSeconds(),
-                        MortarSections.capSeconds(), MortarSections.cooldownSeconds());
-            }
             try {
                 reports.add(report(loop, playOne(loop, window(frames))));
             } finally {
-                MortarSections.setForEvidence(sectionsOn, MortarSections.windowSeconds(), MortarSections.extensionSeconds(),
-                        MortarSections.capSeconds(), MortarSections.cooldownSeconds());
                 ConquestCommand.setMusterEnabled(restore);
                 ConquestCommand.setMusterPlansEnabled(restorePlans);
                 ConquestCommand.setStandingFireMissionsEnabled(restoreStanding);

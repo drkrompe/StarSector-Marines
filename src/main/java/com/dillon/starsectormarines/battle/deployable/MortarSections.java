@@ -57,6 +57,37 @@ public final class MortarSections {
     public static final float DEFAULT_CAP_SECONDS = 90f;
     /** Default seconds after a section ends before the same squad may open another. */
     public static final float DEFAULT_COOLDOWN_SECONDS = 45f;
+    /**
+     * What may open a section, {@code -Dbattle.mortar.sectionTrigger=mission|hardened|any}. A squad whose assigned fire
+     * mission has a target in the tube's band always may; the rest is the dial.
+     * <ul>
+     *   <li>{@link Trigger#MISSION}: nothing else. <b>The default</b>: on the trial ground a section opened for any
+     *       worthwhile belief halted squads for what was mostly soft targets, killed no more nests and lost battles it did not
+     *       lose without it, while a section for an assigned mission fired several times the mission rounds and cost nothing.</li>
+     *   <li>{@link Trigger#HARDENED}: also a believed hardened target in band (a nest, a hub, a machine).</li>
+     *   <li>{@link Trigger#ANY}: also any belief a tube would set down for on a halted section (one hardened target or two
+     *       soft ones).</li>
+     * </ul>
+     */
+    public static final String TRIGGER_PROPERTY = "battle.mortar.sectionTrigger";
+    public static final Trigger DEFAULT_TRIGGER = Trigger.MISSION;
+
+    public enum Trigger {
+        MISSION, HARDENED, ANY;
+
+        static Trigger parse(String raw, Trigger fallback) {
+            if (raw == null) return fallback;
+            for (Trigger t : values()) if (t.name().equalsIgnoreCase(raw.trim())) return t;
+            return fallback;
+        }
+    }
+    public static final String IDLE_PROPERTY = "battle.mortar.sectionIdleSeconds";
+    /**
+     * Default seconds a standing tube may go without a target before its section is closed early. The tube's own idle clock
+     * ({@link FieldMortarService#IDLE_PACK_SECONDS}) lifts it at the same moment, so by default this changes nothing; a
+     * shorter value lets a section that has run out of targets release its squad before the window ends.
+     */
+    public static final float DEFAULT_IDLE_SECONDS = FieldMortarService.IDLE_PACK_SECONDS;
 
     /** People who work the tube: the gunner and the loaders around him. */
     public static final int CREW_SIZE = 4;
@@ -80,6 +111,7 @@ public final class MortarSections {
     private static volatile float extensionSeconds = seconds(EXTENSION_PROPERTY, DEFAULT_EXTENSION_SECONDS);
     private static volatile float capSeconds = seconds(CAP_PROPERTY, DEFAULT_CAP_SECONDS);
     private static volatile float cooldownSeconds = seconds(COOLDOWN_PROPERTY, DEFAULT_COOLDOWN_SECONDS);
+    private static volatile float idleSeconds = seconds(IDLE_PROPERTY, DEFAULT_IDLE_SECONDS);
 
     private static float seconds(String property, float fallback) {
         String raw = System.getProperty(property);
@@ -97,6 +129,15 @@ public final class MortarSections {
     public static float extensionSeconds() { return extensionSeconds; }
     public static float capSeconds() { return capSeconds; }
     public static float cooldownSeconds() { return cooldownSeconds; }
+    public static float idleSeconds() { return idleSeconds; }
+    private static volatile Trigger trigger = Trigger.parse(System.getProperty(TRIGGER_PROPERTY), DEFAULT_TRIGGER);
+    /** What may open a section. */
+    public static Trigger trigger() { return trigger; }
+    /** Evidence seam for the trigger dial. */
+    public static void setTriggerForEvidence(Trigger value) { trigger = value; }
+
+    /** Evidence seam for the idle-close dial alone. */
+    public static void setIdleForEvidence(float seconds) { idleSeconds = seconds; }
 
     /** Evidence seam: sets every dial for the rest of this JVM. Restore the previous values in a {@code finally}. */
     public static void setForEvidence(boolean on, float window, float extension, float cap, float cooldown) {
@@ -163,6 +204,7 @@ public final class MortarSections {
     private float secondsHeld;
     private int rounds;
     private int missionRounds;
+    private int idleClosed;
 
     /** The section {@code squadId} is in, or null. */
     public Section sectionOf(int squadId) {
@@ -185,6 +227,8 @@ public final class MortarSections {
     public int extended() { return extended; }
     /** Sections called off before their tube was ever committed. */
     public int abandoned() { return abandoned; }
+    /** Sections closed early because their standing tube had no target for the idle dial. */
+    public int idleClosed() { return idleClosed; }
     /** Sections ended because the squad came under fire. */
     public int underFire() { return underFire; }
     /** Sections ended in total, for any reason. */
@@ -263,6 +307,10 @@ public final class MortarSections {
             if (shot) {
                 section.endReason = "under fire";
                 underFire++;
+                close(section, mortars);
+            } else if (tube != null && tube.phase() == Phase.SERVING && tube.idleSeconds() >= idleSeconds) {
+                section.endReason = "no target";
+                idleClosed++;
                 close(section, mortars);
             } else if (section.window.expired()) {
                 section.endReason = "window expired";

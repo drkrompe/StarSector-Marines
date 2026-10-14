@@ -166,8 +166,24 @@ public final class MortarTactics {
             SpecialEquipmentDef special = world.specialEquipment(gunner);
             if (!special.hasAvailableUse(world.secondaryAmmo(gunner))) continue;
             if (!worthASetUp(gunner, special, squad, sim)) continue;
+            if (!triggered(gunner, special, squad, sim)) continue;
             sections.open(squad.id, crewFor(gunner, squad, sim), world.x(gunner), world.y(gunner));
         }
+    }
+
+    /**
+     * Whether what is in the gunner's band meets the {@link MortarSections.Trigger section trigger} in force, on top of
+     * {@link #worthASetUp}: any worthwhile belief, only an assigned fire mission's target, or that or a believed hardened
+     * target (a nest, a hub, a machine), which is what a tube outranging a nest is for.
+     */
+    private static boolean triggered(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim) {
+        MortarSections.Trigger trigger = MortarSections.trigger();
+        if (trigger == MortarSections.Trigger.ANY) return true;
+        StructureDef structure = TurretCatalogRegistry.requireStructure(special.deployableEmplacementSpec().structureId());
+        Faction faction = sim.identity().faction(unit);
+        if (missionWorth(unit, squad, faction, structure.mount.weapon, sim) > 0) return true;
+        return trigger == MortarSections.Trigger.HARDENED
+                && worth(unit, squad, faction, structure.mount.weapon, sim, true) >= HARDENED_WEIGHT;
     }
 
     /** The living squadmate who carries a crew-served tube not yet set down, or 0. */
@@ -242,6 +258,11 @@ public final class MortarTactics {
 
     /** The believed targets worth shooting from where the gunner stands: hardened ones weigh more than soft ones. */
     static int worth(long unit, Squad squad, Faction faction, WeaponDef weapon, BattleView sim) {
+        return worth(unit, squad, faction, weapon, sim, false);
+    }
+
+    /** As {@link #worth(long, Squad, Faction, WeaponDef, BattleView)}, optionally counting hardened targets only. */
+    static int worth(long unit, Squad squad, Faction faction, WeaponDef weapon, BattleView sim, boolean hardenedOnly) {
         float near = weapon.minRange + DEAD_ZONE_MARGIN_CELLS;
         float far = weapon.range - RANGE_MARGIN_CELLS;
         World world = sim.world();
@@ -254,7 +275,9 @@ public final class MortarTactics {
             float dy = world.y(id) - world.y(unit);
             float d = (float) Math.sqrt(dx * dx + dy * dy);
             if (d < near || d > far) continue;
-            total += sim.isHardenedTarget(id) ? HARDENED_WEIGHT : SOFT_WEIGHT;
+            boolean hardened = sim.isHardenedTarget(id);
+            if (hardenedOnly && !hardened) continue;
+            total += hardened ? HARDENED_WEIGHT : SOFT_WEIGHT;
         }
         return total;
     }

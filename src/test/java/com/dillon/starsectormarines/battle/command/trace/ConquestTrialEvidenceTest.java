@@ -291,7 +291,17 @@ class ConquestTrialEvidenceTest {
                     .put("wallCellsOpened", wallOpenAtEnd - wallOpenAtStart)
                     .put("companiesFormed", life[0]).put("companiesCommitted", life[1]).put("companiesBroken", life[2])
                     .put("companiesStoodDown", life[3]).put("strikesAsked", life[6])
-                    .put("marinesEnd", marinesEnd).put("defendersStart", defendersAtStart).put("defendersEnd", defendersEnd);
+                    .put("marinesEnd", marinesEnd).put("defendersStart", defendersAtStart).put("defendersEnd", defendersEnd)
+                    .put("tubeSetDowns", sim.fieldMortars().setUps()).put("tubeRounds", fireSupport.marineRounds()[0])
+                    .put("tubeMissionRounds", fireSupport.marineRounds()[1])
+                    .put("nestsKilled", fireSupport.nestKills()[0]).put("nestsKilledByMortar", fireSupport.nestKills()[1])
+                    .put("nestsKilledByAir", fireSupport.nestKills()[2])
+                    .put("sectionsOpened", sim.fieldMortars().sections().opened())
+                    .put("sectionsExpired", sim.fieldMortars().sections().expired())
+                    .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())
+                    .put("sectionsUnderFire", sim.fieldMortars().sections().underFire())
+                    .put("sectionSecondsHeld", Math.round(sim.fieldMortars().sections().secondsHeld()))
+                    .put("sectionRounds", sim.fieldMortars().sections().roundsFired());
             return new Outcome(id, row, detail, json, trace);
         }
     }
