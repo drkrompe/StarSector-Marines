@@ -60,7 +60,9 @@ public final class WorkingPassageCommand implements AutonomousMissionCommand<Wor
             }else if(faction==Faction.ALLY){
                 int team=frame.militia.indexOf(squad.squadId());
                 boolean bendHeld=frame.phase.ordinal()>=Phase.NARROWS.ordinal(),narrowsHeld=frame.phase.ordinal()>=Phase.CLIMB_OUT.ordinal();
-                if(team==0){x=bendHeld?201:82;y=bendHeld?132:124;}
+                // The first team waits beside the pump court, close enough to relieve the
+                // company at the bend while Vale's call that it has done so is still true.
+                if(team==0){x=bendHeld?201:172;y=bendHeld?132:116;}
                 else{x=narrowsHeld?248:bendHeld?210:158;y=narrowsHeld?121:bendHeld?137:124;}
                 radius=4;
             }else {

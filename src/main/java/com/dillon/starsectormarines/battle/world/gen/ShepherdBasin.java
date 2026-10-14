@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.damage.DamageCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
@@ -42,6 +43,20 @@ public final class ShepherdBasin {
     public static final Place NARROWS = new Place("narrows", "Narrows build ground", 252, 110);
     public static final Place LIFT = new Place("lift", "Climb-out yard", 280, 77);
     public static final List<Place> PLACES = List.of(LANDING, WORKSHOP, CRADLE, PUMP, BEND, NARROWS, LIFT);
+    /** Where Vale's militia and repair party stand at the start of every visit. */
+    public static final Place MILITIA = new Place("militia", "Vale's militia", 25, 80);
+    public static final Place REPAIR_PARTY = new Place("repair-party", "Repair technicians", 28, 78);
+    /** The two roads Harlan's crews arrive by. Map-edge entries, not destinations. */
+    public static final Place SOUTH_HAUL_ROAD = new Place("south-haul-road", "South haul road", 194, 2);
+    public static final Place QUARRY_ROAD = new Place("quarry-road", "Quarry road", 301, 145);
+    /** Salvage Rights: the cutting crew already working beside Morrow's south access. */
+    public static final Place CRADLE_CUTTERS = new Place("cradle-cutters", "Cutting crew", 129, 98);
+    /** Cold Start: the day hands' roadside screens and the yard ground each one covers. */
+    public static final Place SOUTH_PICKET = new Place("south-picket", "South haul picket", 176, 38);
+    public static final Place QUARRY_PICKET = new Place("quarry-picket", "Quarry picket", 279, 107);
+    /** Working Passage: the crews waiting on the lane ahead of Morrow. */
+    public static final List<Place> PASSAGE_WATCHES = List.of(new Place("bend-watch", "Bend watch", 214, 123),
+            new Place("narrows-watch", "Narrows watch", 258, 108), new Place("lift-watch", "Climb-out watch", 283, 80));
     /** Full-size service lane; stops keep construction plots within normal builder reach. */
     public static final float[][] HOVER_ROUTE = {{131,115}, {197,115}, {239,99}, {279,77}};
     /** The pump workshop stays above the lane; the first leg bends around its south face. */
@@ -59,6 +74,7 @@ public final class ShepherdBasin {
                 context -> recoveryYard(context, visit),
                 context -> RoadRasterizer.clearReplacedSurfaces(context.topology, WIDTH, HEIGHT),
                 ShepherdBasin::yardSurfaces, ShepherdBasin::terrain, ShepherdBasin::colossusWreck,
+                ShepherdBasin::perimeters,
                 context -> { if (visit == Visit.COLD_START) outerPickets(context); },
                 context -> { if (visit == Visit.WORKING_PASSAGE) hoverLane(context); }, new FinalizeStage(),
                 visit == Visit.COLD_START
@@ -95,7 +111,8 @@ public final class ShepherdBasin {
             }
         }
         if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting(map, visit));
-        return map;
+        // The site was fought over before Vale's crew took it: every visit opens on the same scars.
+        return map.withInitialDamage(DamageCatalog.shepherdBasin());
     }
 
     /** Emergency and portable lights survive the outage; Cold Start restores the yard circuit. */
@@ -203,6 +220,27 @@ public final class ShepherdBasin {
         yard.prop(198, 161, "industrial-crate-stack", 0);
         yard.prop(204, 163, "industrial-crate-stack", 0);
         yard.prop(210, 162, "industrial-pallet-stack", 0);
+    }
+
+    /**
+     * Chain-link around the working site. The perimeters follow the ground rather than
+     * cutting it: roads, buildings and scrap they meet are the gates.
+     */
+    private static void perimeters(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // Recovery yard, workshop, evacuation muster and pump court as one compound.
+        // The west gate is the receiving apron's vehicle way in: Cold Start's cargo
+        // carrier drives through it to the workshop.
+        yard.perimeter(new int[]{42,110, 42,114, 42,118}, 42,79, 162,79, 162,110, 187,110, 187,140, 42,140);
+        // North scrap stock behind the rear service road.
+        yard.perimeter(96,148, 160,148, 160,161, 96,161);
+        // Southern cutting beds and the truck yard above them. The gate keeps the
+        // hollow under the cliff toe reachable.
+        yard.perimeter(new int[]{80,34}, 41,34, 87,34, 87,61, 41,61);
+        // Haul-road security post.
+        yard.perimeter(135,43, 152,43, 152,60, 135,60);
+        // Climb-out yard and the old dispatch office.
+        yard.perimeter(262,56, 302,56, 302,94, 262,94);
     }
 
     private static void grounds(GenContext c) {
