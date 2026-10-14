@@ -871,6 +871,14 @@ Do not run builds or leave generated task files there.
   with the chosen tool; the room is redrawn once per stroke rather than per
   cell. Zoom is explicit with a Fit default, since a vehicle bay is forty cells
   across and a server room is five.
+  The Map damage page opens Relief's actual production map with named removable
+  damage layers. Paint scars, battered equipment or ruins; right-drag erases
+  from the selected layer. Layer visibility, removal, undo/redo and intact
+  comparison rebuild the same base recipe, keeping pristine geometry available.
+  Save writes `mod/data/world/damage/relief.damage.json` atomically. The shared
+  document and brush are recipe-independent; Relief is the first linked host.
+  `createSnapshots -Psnapshot=relief-damage` checks exact intact restoration,
+  production destruction and editor gestures, and renders at 1920x1080 / 100%.
   The Tilesets page opens on a question rather than on a workspace: **what are
   you doing?** Three ways in, each a walkthrough of numbered screens with Back
   and Next, and each screen holding only the controls its own step needs. The

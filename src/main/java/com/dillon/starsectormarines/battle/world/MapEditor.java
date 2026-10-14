@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world;
 
+import java.util.BitSet;
+
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -105,6 +107,15 @@ public final class MapEditor {
             float dx = x + .5f - centerX, dy = y + .5f - centerY;
             if (dx * dx + dy * dy > radius * radius) continue;
             if (damageWall(x, y, amount, attack) && broken != null) broken.accept(x, y);
+        }
+    }
+
+    /** One authored area hit; a multi-cell prop spends structure once even across several selected cells. */
+    public void damageSelectedCells(BitSet cells, int amount) {
+        long attack = ++structuralAttack;
+        for (int at = cells.nextSetBit(0); at >= 0; at = cells.nextSetBit(at + 1)) {
+            int x = at % grid.getWidth(), y = at / grid.getWidth();
+            if (grid.inBounds(x, y)) damageWall(x, y, amount, attack);
         }
     }
 
