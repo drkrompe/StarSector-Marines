@@ -1184,6 +1184,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         for (Map.Entry<Integer, List<DefenceStructureFact>> entry : forts.entrySet()) {
             List<DefenceStructureFact> aspects = entry.getValue();
             if (aspects.stream().noneMatch(a -> frame.perspective().hostileTo(a.holder()))) continue;
+            if (!standsInTheWay(aspects)) continue;
             int cx = 0;
             int cy = 0;
             for (DefenceStructureFact aspect : aspects) {
@@ -1204,6 +1205,65 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     aspects.get(0).works()));
         }
         return objectives;
+    }
+
+    /**
+     * Whether a fort stands between the drop zone and work still to do: the straight line from the drop zone to some
+     * compound still to take crosses the fort's works and belt, plus {@link #FORT_CLEARANCE_CELLS}. A fort that is not
+     * in the way is not a company's objective: lane staging goes round it, and a company gathering for it only holds
+     * squads back. Measured on the trial ground with the fort off the lane, a company gathering for it held about two
+     * squads of seventeen for the whole battle, in the one fixture that then took the keep later and lost more.
+     * With no drop zone or no compound left to take, every fort stands in the way, as before.
+     */
+    private boolean standsInTheWay(List<DefenceStructureFact> aspects) {
+        if (dropZone == null) return true;
+        int[] box = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
+        for (DefenceStructureFact aspect : aspects) {
+            widenCells(box, aspect.cellX(), aspect.cellY());
+            int[] belt = aspect.beltCells();
+            for (int i = 0; i + 1 < belt.length; i += 2) widenCells(box, belt[i], belt[i + 1]);
+            int[] seen = aspect.seenCells();
+            for (int i = 0; i + 1 < seen.length; i += 2) widenCells(box, seen[i], seen[i + 1]);
+        }
+        float left = box[0] - FORT_CLEARANCE_CELLS, right = box[1] + FORT_CLEARANCE_CELLS;
+        float top = box[2] - FORT_CLEARANCE_CELLS, bottom = box[3] + FORT_CLEARANCE_CELLS;
+        boolean anyWork = false;
+        for (CompoundTarget target : compoundTargets) {
+            if (target.state == CompoundService.CompoundState.MARINE_HELD) continue;
+            if (target.node.kind == TacticalNode.Kind.BEACHHEAD) continue;
+            anyWork = true;
+            if (segmentCrossesBox(dropZone[0], dropZone[1], target.captureCellX, target.captureCellY,
+                    left, top, right, bottom)) return true;
+        }
+        return !anyWork;
+    }
+
+    /** Grows a {@code {left, right, top, bottom}} cell box to hold a cell. */
+    private static void widenCells(int[] box, int x, int y) {
+        box[0] = Math.min(box[0], x);
+        box[1] = Math.max(box[1], x);
+        box[2] = Math.min(box[2], y);
+        box[3] = Math.max(box[3], y);
+    }
+
+    /** Whether the segment from {@code (x0, y0)} to {@code (x1, y1)} passes through the box (Liang-Barsky clip). */
+    static boolean segmentCrossesBox(float x0, float y0, float x1, float y1,
+                                     float left, float top, float right, float bottom) {
+        float dx = x1 - x0, dy = y1 - y0;
+        float[] p = {-dx, dx, -dy, dy};
+        float[] q = {x0 - left, right - x0, y0 - top, bottom - y0};
+        float enter = 0f, exit = 1f;
+        for (int i = 0; i < 4; i++) {
+            if (p[i] == 0f) {
+                if (q[i] < 0f) return false;
+            } else {
+                float t = q[i] / p[i];
+                if (p[i] < 0f) enter = Math.max(enter, t);
+                else exit = Math.min(exit, t);
+                if (enter > exit) return false;
+            }
+        }
+        return true;
     }
 
     /**
