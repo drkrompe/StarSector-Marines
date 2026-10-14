@@ -4,7 +4,7 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — Morrow is a wreck from the same fall, not Basin's tender.
+Updated: 2026-10-14 — Morrow is a wreck from the same fall; the company crews her itself.
 
 ## Premise, place and cast
 
@@ -21,10 +21,11 @@ live intelligence actor or cargo reward.
 Morrow is a Shepherd from the same wreckfall, hauled onto the yard's service
 cradle to be broken for parts; the occupiers had begun trying to wake her drone
 bay. Basin owns her as salvage through inspection and repair, and her worth to
-Vale rises as her usefulness is discovered. Her eventual crew are Basin hands who
-worked her back into a ship and choose to follow her. The company earns the original cash fees for those jobs;
-only the new road-work agreement at Working Passage provides conditional title,
-completed by actual physical departure and willing crew consent. Basin retains the
+Vale rises as her usefulness is discovered. Basin is a clan and none of its people
+leave with her: the company crews Morrow from its own fleet and hires afterwards.
+The company earns the original cash fees for those jobs; only the new road-work
+agreement at Working Passage provides conditional title, completed by actual
+physical departure. Basin retains the
 Colossus, shipment, yard, built defenses and militia-secured road.
 
 `shepherd-recovery-dialogue.md` is the chronological dialogue and character
@@ -52,7 +53,7 @@ The company can replenish before accepting; the opportunity has no hidden expiry
 |---|---|---|---|
 | Salvage Rights | Secure store, workshop and cradle; protect the physical inspection party | 18,000 credits; Basin's yard claim and protected inspection | Implemented; live acceptance remains |
 | Cold Start | Escort repair cargo, restore shore power and cover grounded drone construction and repairs | 22,000 credits; completed repairs | Implemented; live acceptance remains |
-| Working Passage | Advance full-size hovering Morrow through constructed holds, protect drive work and complete physical departure | Actual named Shepherd Morrow and willing crew for her minimum complement; no departure cash fee | Implemented; live handover and later support acceptance remain |
+| Working Passage | Advance full-size hovering Morrow through constructed holds, protect drive work and complete physical departure | Actual named Shepherd Morrow, crewed from the company's own fleet; no crew or departure cash fee | Implemented; live handover and later support acceptance remain |
 
 Cold Start uses the current selected company already assembled ashore, rather
 than another insertion flight or a frozen earlier roster. Delivered repair cargo
@@ -62,8 +63,8 @@ holds. A completed timer alone cannot transfer the ship.
 
 ## Resolution and next lead
 
-Only accepted physical departure awards the actual fleet member once, with crew
-consent. Basin retains the Colossus and its contents, yard and built defenses.
+Only accepted physical departure awards the actual fleet member once, without
+crew. Basin retains the Colossus and its contents, yard and built defenses.
 The yard claim, grounded construction and completed repairs confer no substitute fleet ownership.
 The permanent award receipt survives sale or loss; later support requires a
 currently owned eligible working hull and ordinary mission permission.
