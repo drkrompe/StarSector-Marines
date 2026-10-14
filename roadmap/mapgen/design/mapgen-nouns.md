@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Shepherd basin site perimeters and authored battle damage.
+Updated: 2026-10-14 — story maps dig trench through the shared prepared-ground helper.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -173,8 +173,11 @@ battle derives **fighting positions** from the props actually standing: trench
 cells, parapet cells, and the walkable ground on either side of a parapet,
 grouped into connected runs, keeping only runs long enough for a full squad.
 Nothing about a position is authored separately, so every stamper that lays
-earthworks — fort belts, sandbag aprons, gun bays — produces positions without
-knowing they exist, and destroying a parapet shrinks or dissolves its run
+earthworks — fort belts, sandbag aprons, gun bays, a story map's own trench
+line — produces positions without knowing they exist. Forts and story maps lay
+trench through one shared helper, `PreparedGround`, so a trench line looks the
+same wherever it is dug. Relief digs one across the road behind its gate: the
+place a company that has moved up can occupy. Destroying a parapet shrinks or dissolves its run
 through the ordinary prop-damage path. A position has no stored front: trench
 cover is isotropic and a parapet already covers both of its sides, so which side
 to man is a question for the occupant. A classification read off a prop's id
