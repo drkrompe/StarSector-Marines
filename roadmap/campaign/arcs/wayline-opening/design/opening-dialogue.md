@@ -47,6 +47,9 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
    wiped-out defeat that kills her squad's officer six times in ten, wounds her
    instead (out of action for 45 days, the existing wipe injury). No other
    officer gains this protection.
+6. **No contract figures in dialogue.** Lines never name a negotiated fee. They
+   say "credits", "the fee" or "paid", and the amount lives only in the offer's
+   own terms, so a balance pass never has to rewrite or re-record a line.
 
 ## What was wrong
 
@@ -91,7 +94,7 @@ with words. Her yard runs on parts that come up the Wayline road. Mara's older
 sister.
 
 **Mara Venn** — PUBLIC: broker for Wayline, the drivers' freight cooperative;
-Nessa's younger sister. HIDDEN: Relief's 6,000 is most of what is left in the
+Nessa's younger sister. HIDDEN: Relief's fee is most of what is left in the
 cooperative's security fund; if the checkpoint falls, Wayline sells out to a
 bigger hauler. She hires an unlicensed company because it is the only kind she
 can afford, and she knows Castle knows that. TO BE REVEALED: the fund's state, at
@@ -506,8 +509,8 @@ founding officer only)
 ## 5 — The first job
 
 `openingBarracksCommandMaraVennAnsweredWaylineNeedsItsCheckpoint` — Castle
-> Mara Venn answered. Wayline wants its freight checkpoint relieved: six thousand
-> if we break the assault. She sounds like she hasn't slept in a week. I've put
+> Mara Venn answered. Wayline wants its freight checkpoint relieved, and they'll
+> pay if we break the assault. She sounds like she hasn't slept in a week. I've put
 > our name forward. First job, Commander. Choose Ready for the briefing, or follow
 > Mara's directions from HQ. Take Sabine's squad. Let's give Mara a reason to call
 > again.
@@ -530,7 +533,7 @@ recorded briefing carries the same words; changing it needs a new take.
 > stop them taking the road. Land on the rear unloading apron and get to the gate.
 > More of them are coming up the freight and warehouse service roads. Wayline
 > puts in its militia and one shuttle. Eliminate the bandit force, and bring as
-> many of our people home as you can. Six thousand credits on success, agreed in
+> many of our people home as you can. You'll be paid on success, agreed in
 > writing. Break the assault and yours is the first company I call about the
 > depot. One job at a time, Commander.
 
