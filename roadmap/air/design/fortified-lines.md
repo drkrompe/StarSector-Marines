@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — second round of proposals: belt width in weapon reach, ruined/cleared/intact city, no-man's-land terrain, counterattack-then-withdraw, line artillery.
+Updated: 2026-10-14 — owner: prepared positions, not obstacles (no literal razor wire, no mines); routes and funnels always exist; trench and fence lines are broken through by each unit's own abilities; line guns are felt out, not designed ahead.
 
 Read `forts.md` first: what a fort is, its aspects, defence in depth and siting. This doc is
 about what happens when there are many of them.
@@ -27,8 +27,8 @@ exposes the flank of the next. Without that relationship more forts is only more
 
 - **Strongpoint.** A fort from the existing family (battery, shield, redoubt, citadel) acting
   as a node of a line. Nothing about the fort itself changes; it gains neighbours.
-- **Picket line.** The ground between neighbouring strongpoints: trench, sandbag and wire
-  with nests at intervals, the outer belt of `forts.md` run out from one fort to the next. It
+- **Picket line.** The ground between neighbouring strongpoints: trench, sandbag and fence
+  lines with nests at intervals, the outer belt of `forts.md` run out from one fort to the next. It
   is fighting positions manned from the same defender pools, so a line is held where it is
   pressed and thin elsewhere.
 - **Covered gap.** The stretch of picket line inside the fire envelope of the strongpoints at
@@ -63,7 +63,7 @@ exposes the flank of the next. Without that relationship more forts is only more
 ## The feel: 1918 on a planet
 
 The owner's touchstone is the Western Front in its last year, in a science-fiction setting: a
-front that has been dug, wired and concreted for years, where the defence is a system in
+front that has been dug, fenced and concreted for years, where the defence is a system in
 depth rather than a wall, and where an attack is a set-piece of preparation, assault,
 consolidation and the next line. The proposals below take that literally where it helps.
 
@@ -71,7 +71,7 @@ consolidation and the next line. The proposals below take that literally where i
 
 **The line replaces the city where it runs.** A line is not threaded through streets. Where a
 mission declares one, the city is cleared from its ground: buildings are deleted, not
-ruined into cover, and what is left is a belt of earthworks, wire, craters and concrete with
+ruined into cover, and what is left is a belt of earthworks, fence lines, craters and concrete with
 the city resuming behind and in front of it. The cleared belt is the line's own ground, laid
 before the city grows into what remains, the same way a declared fort's footprint is
 reserved today. This keeps the line legible (a trench system, not a maze of rooms), and it is
@@ -80,8 +80,8 @@ than the blocks they replace.
 
 **A line is a system in depth, and a broken line falls back.** Three belts, outside in:
 
-1. **Outpost zone.** Thin: listening posts, wire, a few nests, and no-man's-land in front of
-   it, cratered and wired. It warns and delays; it is not held to the last.
+1. **Outpost zone.** Thin: listening posts, a few nests, and no-man's-land in front of it,
+   cratered and broken. It warns and delays; it is not held to the last.
 2. **Main line of resistance.** The strongpoints and the picket lines between them, with
    communication trenches running back. This is where the line is fought for.
 3. **Support line.** Close in front of the protected objective, lighter, holding the reserve.
@@ -106,7 +106,7 @@ What a line shares is what the 1918 defence shared:
 
 **Performance is a budget the evidence ground measures first.** Fighting positions are manned
 only where pressed and nests are unmanned, which already keeps an idle line cheap. The open
-costs are line-of-sight across long open belts and the number of nests and wire cells. A line
+costs are line-of-sight across long open belts and the number of nests and fighting-position cells. A line
 evidence ground (in the style of the trial ground) measures tick cost alongside outcomes
 before any campaign map carries one, and the cleared belt is expected to offset some of it.
 
@@ -130,9 +130,15 @@ the protected objective stands. A player reads the front at a glance from that g
 - **Craters** are walkable heavy cover and fighting positions, so an attack can go to ground
   in them. Craters made during the battle (mortar, bomb, ship fire) join them, so the ground
   gets more broken the longer it is fought over.
-- **Wire** is laid in belts angled to funnel an attacker into the lanes the nests cover, the
-  way 1918 wire was. Gaps in it are deliberate; cutting it is a job (breaching charges,
-  cutters, shelling).
+- **Funnels, not walls.** There is no literal razor wire and there are no mines: the line
+  should feel like prepared positions, not obstacles. Trench runs, fence lines and sandbag
+  walls are angled so the open routes through the belt run into the lanes the nests cover,
+  the way 1918 wire did. Routes through always exist; the map is never simply blocked off.
+- **Break through, not round.** A trench or fence line is a thing an attack can break
+  through where it chooses, rather than only circumvent. How is each unit's own abilities:
+  whatever a unit already carries (charges, cutters, rockets, a mech's weight, a ship's or
+  a mortar's shells) is how it opens a line, and no line-specific breaching tool is
+  invented for it. A breach is a new route the defender then has to cover.
 - **Dead ground**: low ground out of the line's sight, the attacker's way to close without
   being seen. Siting should leave some on purpose, so a weak point exists to be found.
 - **Wrecks**: crashed boats, knocked-out mechs and vehicles from earlier fighting. Hard cover
@@ -168,11 +174,10 @@ mortar pits stand behind the main line, separate from the fort batteries, which 
 
 ## Open questions (for when this becomes stories)
 
-- Whether a line's guns are a new emplacement kind or crewed field mortars and guns from the
-  existing equipment, dug into pits.
-- How an assault crosses wire: dedicated cutters, breaching charges, shelling it, or mechs
-  walking through it.
-- Whether no-man's-land carries mines.
+- A line's guns: a new emplacement kind probably looks better than crewed equipment in pits,
+  but this is felt out in play on the evidence ground rather than designed ahead.
+- Which existing abilities break which line features (a mech through a fence line, charges
+  through a trench wall), settled when the features exist.
 
 ## Prerequisites
 
