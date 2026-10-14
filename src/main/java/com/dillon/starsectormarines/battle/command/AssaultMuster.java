@@ -245,6 +245,21 @@ final class AssaultMuster {
         if (company != null && company.execution != null) company.execution.strikeAnswered(nest, calling, tick);
     }
 
+    /**
+     * Whether the side believes the nest of fort {@code fortId} standing at {@code (x, y)} destroyed, so that no fire mission
+     * is given against it. False for a fort or cell not tracked.
+     */
+    boolean nestBelievedDead(int fortId, int x, int y) {
+        FortAssault.Works works = placed.get(fortId);
+        FortAssault.NestBelief belief = beliefs.get(fortId);
+        if (works == null || belief == null) return false;
+        for (int i = 0; i < works.nests.size(); i++) {
+            int[] nest = works.nests.get(i);
+            if (nest[0] == x && nest[1] == y) return !belief.live(i);
+        }
+        return false;
+    }
+
     /** Sets whether committed companies execute the stamp's assault plan. */
     void plans(boolean enabled) {
         this.plans = enabled;
@@ -414,6 +429,17 @@ final class AssaultMuster {
     /** As above, with the side's air picture: strikes on offer, and what a pass over each nest is believed to cost. */
     Result plan(int tick, Faction perspective, List<Objective> objectives, List<Body> bodies, int[] drop,
                 List<int[]> hostiles, CommandTopology topology, AirSupportFacts airSupport) {
+        return plan(tick, perspective, objectives, bodies, drop, hostiles, null, topology, airSupport);
+    }
+
+    /**
+     * As above, with the cells of the believed hostile <em>emplacements</em> kept apart from the believed men beside them.
+     * A nest is seen alive only by an emplacement standing on it, and a nest never seen is judged by the sight of an own
+     * squad (see {@link FortAssault.NestBelief}); with {@code structures == null} every hostile contact counts for a nest
+     * and a nest never seen stays believed live.
+     */
+    Result plan(int tick, Faction perspective, List<Objective> objectives, List<Body> bodies, int[] drop,
+                List<int[]> hostiles, List<int[]> structures, CommandTopology topology, AirSupportFacts airSupport) {
         clock = tick;
         air = airSupport;
         strikeRequests.clear();
@@ -464,7 +490,9 @@ final class AssaultMuster {
         for (Body body : byId.values()) own.add(new int[] {body.anchorX(), body.anchorY()});
         for (Objective objective : ordered) {
             FortAssault.Works works = worksOf(objective);
-            if (works != null) beliefs.get(objective.fortId()).update(works, hostiles, own);
+            if (works == null) continue;
+            if (structures == null) beliefs.get(objective.fortId()).update(works, hostiles, own);
+            else beliefs.get(objective.fortId()).update(works, structures, own, topology, tick);
         }
 
         for (Objective objective : ordered) {

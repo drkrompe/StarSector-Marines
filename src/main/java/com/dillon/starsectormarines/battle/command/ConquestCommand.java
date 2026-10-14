@@ -1055,9 +1055,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
             return none;
         }
         List<int[]> hostiles = new ArrayList<>();
+        List<int[]> emplacements = new ArrayList<>();
         if (frame.influence() != null) {
             for (CommanderContact contact : frame.influence().contacts()) {
                 hostiles.add(new int[] {contact.cellX(), contact.cellY()});
+                if (contact.structure()) emplacements.add(new int[] {contact.cellX(), contact.cellY()});
             }
         }
         List<AssaultMuster.Body> bodies = new ArrayList<>();
@@ -1073,7 +1075,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         muster.plans(PLANS_ENABLED);
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
-                hostiles, frame.topology(), frame.facts().airSupport());
+                hostiles, emplacements, frame.topology(), frame.facts().airSupport());
         strikeWishes.addAll(result.strikes());
         for (Map.Entry<Integer, AssaultMuster.Order> entry : result.orders().entrySet()) {
             PlanningSquad squad = allSquads.get(entry.getKey());
@@ -1253,7 +1255,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
         for (DefenceStructureFact structure : frame.facts().structures()) {
             if (!frame.perspective().hostileTo(structure.holder())) continue;
             ground.add(new int[] {structure.cellX(), structure.cellY()});
-            if (structure.works() != null) ground.addAll(FortAssault.Works.of(structure.works()).nests);
+            if (structure.works() == null) continue;
+            for (int[] nest : FortAssault.Works.of(structure.works()).nests) {
+                // A nest the side believes destroyed is no ground to fire on.
+                if (!muster.nestBelievedDead(structure.fortId(), nest[0], nest[1])) ground.add(nest);
+            }
         }
         return ground;
     }
