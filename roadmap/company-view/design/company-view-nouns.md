@@ -144,6 +144,11 @@ the rest of an Armory squad card still enters that squad.
 Squad cards show the twelve current billets grouped into Alpha, Bravo, and Charlie.
 A filled marine cutout means ready, an amber medical mark means wounded, and a
 hollow cutout means vacant; counts and a text legend accompany these shapes.
+When the squad's home officer trains Field Medicine, the billet that will carry
+the squad medic in battle wears a green plate with the cross cut out — never the
+bare amber cross of a wound — chosen by the same billet rule the battle uses
+from ready marines other than the NCO. A squad under operation-command fallback
+shows no medic plate, since the card cannot know who will lead it.
 Wounded marines retain their billet. Historical killed and missing personnel do
 not occupy the current establishment. Readiness is distinct from stationing and
 from the selected frame used while organizing squads.

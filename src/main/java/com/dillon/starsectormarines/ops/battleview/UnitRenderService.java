@@ -1171,6 +1171,12 @@ public final class UnitRenderService implements RenderSystem {
                  LayeredAppearance.POSE_AMR_AIM, LayeredAppearance.POSE_AMR_FIRE,
                  LayeredAppearance.POSE_SMOKE_THROW,
                  LayeredAppearance.POSE_SATCHEL_PLANT -> {
+                if ((flags & LayeredAppearance.FLAG_TREATING) != 0) {
+                    // A medic kneels the way a satchel is planted, whatever
+                    // special they actually carry.
+                    AnimationClip kneel = layouts.clip("marine-line", "satchel", "planting");
+                    return kneel != null ? kneel.sample(actionPhase) : null;
+                }
                 if (secondary == null
                         || secondary.presentation().layerClips() == null) {
                     return null;

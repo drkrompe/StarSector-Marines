@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +25,13 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
 
     public enum State { READY, WOUNDED, VACANT }
 
-    /** One current place, with plain value labels for ordinary retained hover UI. */
+    /**
+     * One current place, with plain value labels for ordinary retained hover UI.
+     * {@code medic} marks the billet that carries the squad medic in battle,
+     * present only while the squad's home officer has Field Medicine.
+     */
     public record Billet(int index, String marineId, String name, String rankLabel,
-                         State state, float recoveryDays, boolean leader) {
+                         State state, float recoveryDays, boolean leader, boolean medic) {
         public Billet {
             Objects.requireNonNull(state, "billet state");
         }
@@ -38,7 +45,8 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
                 return identity + " | WIA | Return in "
                         + String.format(Locale.ROOT, "%.1f days", recoveryDays);
             }
-            return identity + " | Ready" + (leader ? " | Squad NCO" : "");
+            return identity + " | Ready" + (leader ? " | Squad NCO" : "")
+                    + (medic ? " | Squad medic" : "");
         }
     }
 
@@ -73,7 +81,7 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
             MarineSoldier marine = index < members.size()
                     ? roster.soldierById(members.get(index)) : null;
             if (marine == null) {
-                billets.add(new Billet(index, null, "Vacant", "", State.VACANT, -1f, false));
+                billets.add(new Billet(index, null, "Vacant", "", State.VACANT, -1f, false, false));
                 continue;
             }
             boolean recovering = marine.status() == MarineSoldierStatus.WIA;
@@ -87,8 +95,9 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
             billets.add(new Billet(index, marine.id(), marine.name(),
                     marine.enlistedRank().abbreviation(),
                     recovering ? State.WOUNDED : State.READY, days,
-                    marine.id().equals(squad.leaderSoldierId())));
+                    marine.id().equals(squad.leaderSoldierId()), false));
         }
+        markMedic(roster, squad, billets);
 
         int missing = 0;
         int killed = 0;
@@ -99,5 +108,23 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
         return new SquadMuster(squad.id(), squad.name(), squad.stationed(), billets,
                 ready, wounded, MarineSquad.CAPACITY - ready - wounded,
                 missing, killed, earliest);
+    }
+
+    /**
+     * Marks the billet {@link SquadMedicine#medicBillet} picks when the squad's
+     * home officer trains Field Medicine: ready marines other than the NCO, the
+     * fire team derived from billet order. A WIA marine does not deploy, so
+     * cannot carry it.
+     */
+    private static void markMedic(MarineRoster roster, MarineSquad squad, List<Billet> billets) {
+        MarineCaptain officer = roster.captainForSquad(squad.id());
+        if (officer == null || officer.career().level(OfficerSpecialty.FIELD_MEDICINE) <= 0) return;
+        int index = SquadMedicine.medicBillet(billets.size(),
+                i -> billets.get(i).state() == State.READY && !billets.get(i).leader(),
+                i -> billets.get(i).teamIndex());
+        if (index < 0) return;
+        Billet b = billets.get(index);
+        billets.set(index, new Billet(b.index(), b.marineId(), b.name(), b.rankLabel(),
+                b.state(), b.recoveryDays(), b.leader(), true));
     }
 }
