@@ -136,8 +136,8 @@ class ShepherdRecoveryCampaignTest {
                     .salvageRights(new SalvageRightsSequence.Report(true, losses)).build();
             var lines = MissionDebriefConversation.lines(result, catalog);
             assertTrue(lines.stream().noneMatch(WaylineNarration.Line::voiced));
-            var peopleLine = lines.stream().filter(line -> line.id().equals("shepherd-debrief-people"))
-                    .findFirst().orElseThrow().text();
+            assertEquals(8, lines.size());
+            var peopleLine = lines.get(6).text();
             if (previousPeopleLine != null) assertNotEquals(previousPeopleLine, peopleLine);
             previousPeopleLine = peopleLine;
         }
