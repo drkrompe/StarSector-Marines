@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — place alarms keep a fort's pressure up after its picket dies or the attack goes inside the walls (offset-41: belt squad held to tick 5026 instead of released at 2701; marine losses 21→46 of 54). Next: a belt garrison holds its own stretch while the attack is elsewhere in the fort, and released or reserve squads stand idle on a patrol that does not move.
+Updated: 2026-10-14 — the "idle" reserve was a responder recalled and re-sent every other pulse as belief of the attack lapsed; threat memory and alarmed-fort threats fix it (trial matrix, same-build control: defender reserve share 68% vs 81%, onsets answered 17/27 vs 12/31, marine losses 201 vs 230 of 324, defender losses level). Next: a belt garrison holds its own stretch while the attack is elsewhere in the fort.
 
 ## Intent
 
@@ -53,9 +53,9 @@ releases them when the pressure passes.
 - A belt garrison holds the stretch it was sent to even when the attack has
   moved round the fort or inside the works; an alarmed fort should redeploy
   its garrison toward where the fort is actually being lost.
-- Released and reserve squads stand on a routine patrol that does not move
-  (offset-41 squads 4 and 6): a released squad should return to a reserve
-  position, not idle on its last cell.
+- The track rally alternates between the remembered contact band and the
+  alarmed fort's rear when both apply; same direction, but each switch resets
+  the route.
 - A structure-defence order left a squad stationary for about 400 ticks
   before a retake moved it; not yet diagnosed.
 - Single runs swing by several hundred dug-in samples; use the trial ground
