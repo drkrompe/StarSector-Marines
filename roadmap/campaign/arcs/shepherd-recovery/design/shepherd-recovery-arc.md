@@ -4,7 +4,7 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — clarify wreckfall history and the chronological dialogue register.
+Updated: 2026-10-14 — Morrow is a wreck from the same fall, not Basin's tender.
 
 ## Premise, place and cast
 
@@ -18,10 +18,11 @@ Her cousin's crew remained hidden inside the Colossus and supplies an offscreen
 report for the first briefing. This adds correspondence, not a rescue mission,
 live intelligence actor or cargo reward.
 
-Morrow is Basin's own working tender, brought to the claim separately. The recent
-attack forced her crew to put her down in the service cradle with damaged controls
-and evacuate; surviving hands return with the repair party. Basin owns her through
-inspection and repair. The company earns the original cash fees for those jobs;
+Morrow is a Shepherd from the same wreckfall, hauled onto the yard's service
+cradle to be broken for parts; the occupiers had begun trying to wake her drone
+bay. Basin owns her as salvage through inspection and repair, and her worth to
+Vale rises as her usefulness is discovered. Her eventual crew are Basin hands who
+worked her back into a ship and choose to follow her. The company earns the original cash fees for those jobs;
 only the new road-work agreement at Working Passage provides conditional title,
 completed by actual physical departure and willing crew consent. Basin retains the
 Colossus, shipment, yard, built defenses and militia-secured road.
