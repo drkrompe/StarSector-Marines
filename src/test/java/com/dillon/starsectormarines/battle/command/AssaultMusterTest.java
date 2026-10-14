@@ -214,10 +214,14 @@ class AssaultMusterTest {
         CommandTopology topology = openTopology();
         AssaultMuster muster = new AssaultMuster();
         List<Objective> objectives = List.of(fort(1, 70, 150, 0));
-        // Squad 2 is still on its way (30 cells from the rally) so the company is not yet everything it can get.
-        List<Body> bodies = List.of(squad(1, 20, 150, 12), squad(2, 50, 150, 12));
-        assertEquals("MUSTER", company(pulse(muster, 0, objectives, bodies, topology)).stage());
-        assertEquals("MUSTER", company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS - 30, objectives, bodies, topology)).stage());
+        // Squad 2 is still on its way, closing on the rally all the while, so the company is not yet everything it can get.
+        assertEquals("MUSTER", company(pulse(muster, 0, objectives, List.of(squad(1, 20, 150, 12), squad(2, 68, 150, 12)), topology)).stage());
+        int[] x = {60, 52, 44};
+        for (int i = 0; i < x.length; i++) {
+            pulse(muster, 1000 * (i + 1), objectives, List.of(squad(1, 20, 150, 12), squad(2, x[i], 150, 12)), topology);
+        }
+        assertEquals("MUSTER", company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS - 30, objectives,
+                List.of(squad(1, 20, 150, 12), squad(2, 40, 150, 12)), topology)).stage());
         List<Body> come = List.of(squad(1, 20, 150, 12), squad(2, 22, 150, 12));
         CompanyState committed = company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS + 700, objectives, come, topology));
         assertEquals("ASSAULT", committed.stage(), "a muster never waits forever");
@@ -395,5 +399,70 @@ class AssaultMusterTest {
         assertEquals(AssignmentReason.ASSAULT_COMMIT, pulse(muster, 60, objectives, strung, topology).orders().get(1).reason());
         strung.set(0, squad(1, 235, 150, 12)); // 15 cells from the fort: in the fight already
         assertEquals(AssignmentReason.ASSAULT_COMMIT, pulse(muster, 90, objectives, strung, topology).orders().get(1).reason());
+    }
+
+    // ------------------------------------------------------------------------------------------ the empty rally
+
+    private static Body laneSquad(int id, int x, int y, int alive, int lane) {
+        return new Body(id, x, y, alive, false, false, false, null, lane);
+    }
+
+    @Test
+    void aCompanyIsNotFormedAroundASquadItsLaneWillNotGiveUp() {
+        // One infantry squad on a lane is that lane's whole share; free is not recruitable. Forming a company anyway left it
+        // standing at a rally with nobody at it until the timeout.
+        CommandTopology topology = openTopology();
+        AssaultMuster muster = new AssaultMuster();
+        List<Body> bodies = List.of(laneSquad(1, 20, 150, 12, 0), laneSquad(2, 60, 150, 12, 2));
+        Result result = pulse(muster, 0, List.of(fort(1, 70, 150, 0)), bodies, topology);
+        assertTrue(result.companies().stream().noneMatch(c -> c.objectiveId() == 1), "no company for a fort nobody can be sent to");
+        assertFalse(muster.active());
+        assertTrue(result.notes().stream().noneMatch(n -> n.contains("formed")));
+        assertTrue(result.orders().isEmpty(), "and no foothold stands on the drop zone for a company that was never formed");
+        assertTrue(result.companies().isEmpty());
+    }
+
+    @Test
+    void aCompanyWhoseRecruitsAreAllGoneDissolvesAtOnceWhenNobodyCanReplaceThem() {
+        CommandTopology topology = openTopology();
+        AssaultMuster muster = new AssaultMuster();
+        List<Body> bodies = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) bodies.add(laneSquad(i, 20 + 8 * i, 150, 12, 1));
+        Result formed = pulse(muster, 0, List.of(fort(1, 70, 150, 0)), bodies, topology);
+        assertFalse(company(formed).squadIds().isEmpty(), "a lane with five squads gives some up");
+        // Everything it recruited dies; the one squad left is the lane's own last share.
+        List<Body> survivors = List.of(laneSquad(1, 28, 150, 12, 1));
+        Result later = pulse(muster, 600, List.of(fort(1, 70, 150, 0)), survivors, topology);
+        assertTrue(later.companies().stream().noneMatch(c -> c.objectiveId() == 1), "not standing there until the timeout");
+        assertTrue(later.notes().stream().anyMatch(n -> n.contains("no squad left to recruit")));
+        assertFalse(muster.active());
+        assertTrue(later.orders().isEmpty(), "and the last squad is the lane's again, not held on the drop zone for a company that is gone");
+    }
+
+    @Test
+    void aRecruitThatIsNoCloserToTheRallyAfterTheStallWindowIsReleasedAndBarredForAWhile() {
+        // A recruit held in a fight or on a path that does not close would otherwise be waited for until the timeout, with
+        // nobody at the rally.
+        CommandTopology topology = openTopology();
+        AssaultMuster muster = new AssaultMuster();
+        List<Objective> objectives = List.of(fort(1, 70, 150, 0));
+        Body lead = squad(1, 20, 150, 12);
+        Result formed = pulse(muster, 0, objectives, List.of(lead, squad(2, 100, 150, 12), squad(3, 60, 150, 12)), topology);
+        assertEquals(List.of(2, 3), company(formed).squadIds());
+        Result walking = pulse(muster, AssaultMuster.STALL_TICKS - 100, objectives,
+                List.of(lead, squad(2, 100, 150, 12), squad(3, 40, 150, 12)), topology);
+        assertEquals(List.of(2, 3), company(walking).squadIds(), "inside the window the stalled recruit is still waited for");
+        Result stalled = pulse(muster, AssaultMuster.STALL_TICKS, objectives,
+                List.of(lead, squad(2, 100, 150, 12), squad(3, 30, 150, 12)), topology);
+        assertEquals(List.of(3), company(stalled).squadIds(), "the one that has not closed is let go, the one walking in is kept");
+        assertFalse(stalled.orders().containsKey(2), "and is the lanes' again, with no order from the company");
+        assertTrue(stalled.notes().stream().anyMatch(n -> n.contains("released squad 2")));
+        Result barred = pulse(muster, AssaultMuster.STALL_TICKS + 30, objectives,
+                List.of(lead, squad(2, 100, 150, 12), squad(3, 28, 150, 12)), topology);
+        assertEquals(List.of(3), company(barred).squadIds(), "it is not taken straight back");
+        Result again = pulse(muster, AssaultMuster.STALL_TICKS + AssaultMuster.RELEASE_BAR_TICKS + 30, objectives,
+                List.of(lead, squad(2, 100, 150, 12), squad(3, 22, 150, 12)), topology);
+        assertTrue(again.companies().isEmpty() || company(again).squadIds().contains(2) || company(again).stage().equals("ASSAULT"),
+                "after the bar it may be recruited again");
     }
 }

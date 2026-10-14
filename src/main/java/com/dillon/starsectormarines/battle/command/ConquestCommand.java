@@ -1042,7 +1042,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             squads.remove(squad);
         }
         for (ConquestFrontSnapshot.CompanyState company : result.companies()) {
-            if (company.objectiveId() >= 0 && company.stage().equals("MUSTER") && company.strength() < company.required()
+            if (company.objectiveId() >= 0 && company.stage().equals("MUSTER") && !company.squadIds().isEmpty()
+                    && company.strength() < company.required()
                     && !lancedForts.contains(company.objectiveId())) {
                 lanceWishFort = company.objectiveId();
                 break;
@@ -1068,7 +1069,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
         int fort = lanceWishFort;
         lanceWishFort = -1;
         lancedForts.add(fort);
-        if (effects.mechLancesRemaining(Faction.MARINE) <= 0) return;
+        if (effects.mechLancesRemaining(Faction.MARINE) <= 0) {
+            // Say so: a short company that never calls looks the same whether the mission declared no allowance or the planner
+            // never wished for one.
+            lanceNote = "company for fort " + fort + " wanted a mech lance: the mission allows none (declared none, or all called)";
+            return;
+        }
         MechDropService.Outcome outcome = effects.callMechLance(Faction.MARINE,
                 SquadCommandClaim.mission(strategyId(), "company muster lance"), dropZone[0], dropZone[1]);
         lanceNote = "company for fort " + fort + " called a mech lance to the drop zone: " + outcome;
