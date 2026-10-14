@@ -42,10 +42,13 @@ import java.util.Set;
  * pressure until {@link #EN_ROUTE_DWELL_PULSES} cool pulses, since a march abandoned halfway is wasted; one that has
  * been closing for {@link #MAX_EN_ROUTE_PULSES} pulses without arriving is given back regardless.
  *
- * <p><b>Fall back.</b> A squad on its place when an enemy is believed inside the run, or that has fallen below
- * {@link #MIN_USEFUL_MEMBERS}, is reported by {@link #fallingBack} for the caller to withdraw to the works (or, with
- * none standing, to release). A squad that has not arrived at a breached place is simply given back. A breached place
- * is not manned again for {@link #BREACH_LOCKOUT_PULSES} pulses.
+ * <p><b>Fall back.</b> A squad on its place when an enemy is believed inside the run within
+ * {@link #BREACH_RANGE_CELLS} of it (a report at the far end of a long run is somebody else's stretch, and a cell
+ * beside the run is not inside it), or that has fallen below {@link #MIN_USEFUL_MEMBERS}, is reported by
+ * {@link #fallingBack} for the caller to withdraw to the works (or, with none standing, to release). A squad that has
+ * not arrived at a breached place is simply given back. A breached place is not manned again for
+ * {@link #BREACH_LOCKOUT_PULSES} pulses. A patrol already below {@link #MIN_USEFUL_MEMBERS} is never sent: it would be
+ * given back the next pulse and sent again, one man and release per pulse for no garrison.
  *
  * <p>State is per commander (so per simulation) and exists only for places already manned or ordered:
  * the consecutive-cool count per garrisonable, the squads ordered but not yet seen carrying the order, which the
@@ -85,6 +88,14 @@ final class GarrisonDirector {
     static final int MIN_USEFUL_MEMBERS = 3;
     /** Pulses a breached place is left unmanned. UNTUNED. */
     static final int BREACH_LOCKOUT_PULSES = 16;
+    /**
+     * How near (Chebyshev cells) to an arrived squad a believed contact inside its run must be to count as the squad
+     * being overrun: a run can be dozens of cells long, and a report at its far end is a flank threat, not a breach of
+     * the stretch this squad holds. UNTUNED.
+     */
+    static final int BREACH_RANGE_CELLS = 16;
+    /** A position that is not known; such a squad is breached by any contact inside its run. */
+    static final int NO_POSITION = Integer.MIN_VALUE;
     /** A believed contact lighter than this (confidence times strength) wakes nothing: a works crew, a fading report. */
     static final float MIN_CONTACT_WEIGHT = 0.5f;
 
@@ -104,7 +115,13 @@ final class GarrisonDirector {
      * A squad manning, or ordered to man, a garrisonable. {@code releasable} is false while it is in a fight;
      * {@code arrived} is whether it stands on its place yet; {@code aliveMembers} is its living strength.
      */
-    record Garrison(int squadId, int garrisonable, boolean releasable, boolean arrived, int aliveMembers) {
+    record Garrison(int squadId, int garrisonable, boolean releasable, boolean arrived, int aliveMembers,
+                    int cellX, int cellY) {
+        /** A squad of unknown position. */
+        Garrison(int squadId, int garrisonable, boolean releasable, boolean arrived, int aliveMembers) {
+            this(squadId, garrisonable, releasable, arrived, aliveMembers, NO_POSITION, NO_POSITION);
+        }
+
         /** A squad on its place at full strength. */
         Garrison(int squadId, int garrisonable, boolean releasable) {
             this(squadId, garrisonable, releasable, true, Integer.MAX_VALUE);
@@ -115,7 +132,12 @@ final class GarrisonDirector {
      * A free patrol and where it stands. A {@code staged} one waits at a fort's works for exactly this call: it is sent
      * without regard to the reserve floor, which protects the roving pool.
      */
-    record Free(int squadId, int x, int y, boolean staged) {
+    record Free(int squadId, int x, int y, boolean staged, int aliveMembers) {
+        /** A patrol of full strength. */
+        Free(int squadId, int x, int y, boolean staged) {
+            this(squadId, x, y, staged, Integer.MAX_VALUE);
+        }
+
         /** A roving patrol. */
         Free(int squadId, int x, int y) {
             this(squadId, x, y, false);
@@ -272,17 +294,16 @@ final class GarrisonDirector {
         }
 
         int breachReads = 0;
-        Set<Integer> breached = Set.of();
+        // Believed contacts standing in a manned run, by run. One cell read per contact, and only while some place is held.
+        Map<Integer, List<Integer>> inRun = Map.of();
         if (!held.isEmpty() && contactCount > 0) {
-            breached = new HashSet<>();
+            Set<Integer> heldRuns = new HashSet<>();
+            for (Garrison squad : held) heldRuns.add(squad.garrisonable());
+            inRun = new HashMap<>();
             for (int i = 0; i < contactCount; i++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dx = -1; dx <= 1; dx++) {
-                        breachReads++;
-                        int run = registry.idAt(contactXY[2 * i] + dx, contactXY[2 * i + 1] + dy);
-                        if (run >= 0) breached.add(run);
-                    }
-                }
+                breachReads++;
+                int run = registry.idAt(contactXY[2 * i], contactXY[2 * i + 1]);
+                if (run >= 0 && heldRuns.contains(run)) inRun.computeIfAbsent(run, k -> new ArrayList<>()).add(i);
             }
         }
 
@@ -295,8 +316,8 @@ final class GarrisonDirector {
             int g = ordered.get(from).garrisonable();
             int to = from;
             while (to < ordered.size() && ordered.get(to).garrisonable() == g) to++;
-            boolean overrun = breached.contains(g);
-            if (overrun) lockout.put(pack(registry.centreX(g), registry.centreY(g)), BREACH_LOCKOUT_PULSES);
+            List<Integer> inside = inRun.get(g);
+            boolean lockPlace = false;
             int cooled = 0;
             if (pressure(g) >= RELEASE_PRESSURE) {
                 cool.remove(g);
@@ -307,6 +328,8 @@ final class GarrisonDirector {
             for (int i = from; i < to; i++) {
                 Garrison squad = ordered.get(i);
                 present.add(squad.squadId());
+                boolean overrun = inside != null && overrunBy(squad, inside, contactXY);
+                if (overrun) lockPlace = true;
                 boolean lost = overrun || squad.aliveMembers() < MIN_USEFUL_MEMBERS;
                 if (squad.arrived()) {
                     closing.remove(squad.squadId());
@@ -329,6 +352,7 @@ final class GarrisonDirector {
                     deferred++;
                 }
             }
+            if (lockPlace) lockout.put(pack(registry.centreX(g), registry.centreY(g)), BREACH_LOCKOUT_PULSES);
             if (stays == 0) cool.remove(g);
             if (stays > 0) have.put(g, stays);
             from = to;
@@ -429,6 +453,18 @@ final class GarrisonDirector {
         return out;
     }
 
+    /** Whether this squad is overrun: a squad still closing by any contact in the run, an arrived one by one near it. */
+    private static boolean overrunBy(Garrison squad, List<Integer> inside, int[] contactXY) {
+        if (!squad.arrived() || squad.cellX() == NO_POSITION) return true;
+        for (int ci : inside) if (near(squad, contactXY[2 * ci], contactXY[2 * ci + 1])) return true;
+        return false;
+    }
+
+    private static boolean near(Garrison squad, int x, int y) {
+        return squad.cellX() == NO_POSITION
+                || Math.max(Math.abs(squad.cellX() - x), Math.abs(squad.cellY() - y)) <= BREACH_RANGE_CELLS;
+    }
+
     private boolean wantsSecond(int g) {
         return pressure(g) >= SECOND_SQUAD_PRESSURE && pulseRegistry.size(g) >= SECOND_SQUAD_MIN_CELLS;
     }
@@ -461,6 +497,7 @@ final class GarrisonDirector {
         boolean ownOutOfReach = false;
         for (int i : candidates) {
             Free squad = free.get(i);
+            if (squad.aliveMembers() < MIN_USEFUL_MEMBERS) continue;
             boolean isOwn = own != null && own[i];
             if (isOwn && ownOutOfReach) continue;
             if (!squad.staged() && !mayTakeRoving) {

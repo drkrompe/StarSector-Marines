@@ -126,6 +126,11 @@ reserved squads first, then the roving pool above its reserve floor. Areas with
 nothing to man are not staged for. `battle.garrison.unifiedRally=false`
 restores separate rally and flow.
 
+A squad below useful strength is never sent to man a place: sending one only
+for it to be released the next pulse was the main source of churn. A breach
+that makes a garrison fall back is a believed enemy inside the place near the
+squad, so one at the far end of a long run, or merely beside it, is not.
+
 ## How it fits what exists
 
 The defender commander already raises a threatened track and forward band from
