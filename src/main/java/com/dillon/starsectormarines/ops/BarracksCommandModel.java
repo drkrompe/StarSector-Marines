@@ -484,38 +484,53 @@ public final class BarracksCommandModel {
         row.put("founderId", id);
         for (String part : List.of("Plus", "Heading", "Title", "Destination", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
-        boolean affordable = shown && foundingResources.canAfford(SquadFoundingCost.STANDARD);
+        boolean ready = shown && raiseCommander() != null && foundingResources.canAfford(SquadFoundingCost.STANDARD);
         row.put("founderClasses", shown ? "raise-squad console-action" : "hidden");
-        row.put("founderDisabled", !affordable);
+        row.put("founderDisabled", !ready);
         row.put("raise", shown ? (Runnable) this::raiseSquad : (Runnable) () -> { });
         row.put("founderDestination", shown ? raiseDestination() : "");
         row.put("founderCosts", shown ? foundingCostRows() : List.of());
     }
-    /** The whole founding bill as one line of items; an item the stores cannot cover is marked short. */
+    /** The whole founding bill as one line of commodity icons and counts; a short item is marked. */
     private List<Map<String, Object>> foundingCostRows() {
-        return SquadFoundingCost.STANDARD.lines().stream().map(line -> row(
-                "id", "barracks-raise-cost:" + line.commodityId(),
-                "label", CompanyResources.number(line.quantity()) + " " + foundingResources.commodityName(line.commodityId()),
-                "classes", foundingResources.available(line.commodityId()) < line.quantity()
-                        ? "label raise-cost short" : "label raise-cost")).toList();
+        return SquadFoundingCost.STANDARD.lines().stream().map(line -> {
+            String id = "barracks-raise-cost:" + line.commodityId();
+            return row("id", id, "iconId", id + ":icon", "labelId", id + ":label",
+                    "icon", foundingResources.commodityIcon(line.commodityId()),
+                    "label", CompanyResources.number(line.quantity()),
+                    "classes", foundingResources.available(line.commodityId()) < line.quantity()
+                            ? "raise-cost short" : "raise-cost");
+        }).toList();
     }
-    /** The officer a raised squad would join, or null for an independent squad. */
+    /**
+     * The officer a raised squad would join, or null when no command has room. A squad is only
+     * raised into a free command slot: the open officer's, or with All formations open, the first
+     * officer on the roll who still has one.
+     */
     private MarineCaptain raiseCommander() {
         MarineCaptain officer = selectedOfficer();
-        if (officer == null) return null;
+        if (officer != null) return hasCommandSlot(officer) ? officer : null;
+        return roster.all().stream().filter(this::hasCommandSlot).findFirst().orElse(null);
+    }
+    private boolean hasCommandSlot(MarineCaptain officer) {
         long held = lineSquads().stream().filter(s -> officer.id().equals(s.homeCaptainId())).count();
-        return held < officer.rank().squadCommandCap() ? officer : null;
+        return held < officer.rank().squadCommandCap();
     }
     private String raiseDestination() {
         MarineCaptain officer = raiseCommander();
         if (officer != null) return Strings.format("openingBarracksCommandRaiseSquadJoins", captainName(officer));
         return selectedOfficer() != null
                 ? Strings.format("openingBarracksCommandRaiseSquadCommandFull", captainName(selectedOfficer()))
-                : Strings.get("openingBarracksCommandRaiseSquadIndependent");
+                : Strings.get("openingBarracksCommandRaiseSquadNoSlot");
     }
-    /** Founds a full line squad from stores and files it under the open command when it has a slot. */
+    /** Founds a full line squad from stores into a free command slot; refuses when there is none. */
     public void raiseSquad() {
         MarineCaptain officer = raiseCommander();
+        if (officer == null) {
+            feedback = raiseDestination();
+            refresh();
+            return;
+        }
         SquadFoundingWorkshop.Result result = founding.foundSquad();
         if (!result.succeeded()) {
             feedback = Strings.get("openingFleetArmoryInsufficientCargoTheCompleteFoundingBillMust");
@@ -523,10 +538,8 @@ public final class BarracksCommandModel {
             return;
         }
         MarineSquad squad = result.squad();
-        if (officer != null) roster.assignCaptainToSquads(officer.id(), Set.of(squad.id()));
-        feedback = officer != null
-                ? Strings.format("openingBarracksCommandRaisedSquadUnder", squad.name(), MarineSquad.CAPACITY, captainName(officer))
-                : Strings.format("openingBarracksCommandRaisedSquadIndependent", squad.name(), MarineSquad.CAPACITY);
+        roster.assignCaptainToSquads(officer.id(), Set.of(squad.id()));
+        feedback = Strings.format("openingBarracksCommandRaisedSquadUnder", squad.name(), MarineSquad.CAPACITY, captainName(officer));
         page = pages() - 1;
         refresh();
     }
