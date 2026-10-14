@@ -130,8 +130,10 @@ news into invisible news. Existing saves discover currently available unread
 opportunities once. The retained shell presents these facts without owning rewards.
 
 Barracks is the single troop-management entry point. Its Equipment workspace
-retains the Company -> Squad -> Fire Team editing hierarchy. Barracks opens on officer commands and an independent
-acting-NCO group, with squad selection for bulk orders. A squad card's Loadout
+retains the Company -> Squad -> Fire Team editing hierarchy. Barracks opens on officer commands (All formations plus one
+card per named officer), with squad selection for bulk orders. The rail offers
+no acting-NCO card: a squad without an officer still fights under its own NCO
+and its card says so, but assignment only ever moves squads to officers. A squad card's Loadout
 opens that squad's Fleet Armory workspace. Equipment opens the existing Fleet Armory
 inspect/edit path for equipment definitions, exact billet comparison, and issue.
 Its selectable company and squad cards retain readiness, recovery, and reinforcement
@@ -729,8 +731,9 @@ separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
 the formation board, not a separate page: it pays the same founding bill as the
 Armory desk and files the new squad under the officer whose command is open,
-or leaves it independent when that is All formations, Independent, or a command
-already at its cap. It works from an empty company.
+or leaves it independent when that is All formations or a command already at its
+cap. Its whole bill reads as one line, each item marked when the stores fall
+short. It works from an empty company.
 
 **Consolidation** transfers ready named marines from explicitly marked donor
 squads into true vacancies of separately selected receiving squads. The preview

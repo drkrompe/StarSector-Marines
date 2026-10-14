@@ -189,8 +189,9 @@ class BarracksCommandModelTest {
                 assertEquals(1, roster.armory().squadProfiles().size());
                 click(document, instance, "barracks-assign-profile");
                 assertEquals(roster.armory().squadProfiles().get(0).id(), squad.squadProfileId());
-                click(document, instance, "command:independent:assign");
-                assertNull(squad.homeCaptainId());
+                assertTrue(((List<?>) value(model, "commands")).stream()
+                        .noneMatch(row -> "command:independent".equals(((Map<?, ?>) row).get("id"))),
+                        "The rail offers officers only; there is no acting-NCO command card");
                 String[] loadout = {null};
                 model.navigation(id -> loadout[0] = id, () -> { }, false);
                 click(document, instance, "formation:" + squad.id() + ":loadout");
