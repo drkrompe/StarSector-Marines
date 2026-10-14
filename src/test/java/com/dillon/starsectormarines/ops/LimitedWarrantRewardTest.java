@@ -2,8 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.story.LimitedWarrantProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
-import com.dillon.starsectormarines.marine.EquipmentTemplateLearning;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCardLearning;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
@@ -28,20 +29,21 @@ class LimitedWarrantRewardTest {
         var names = people.stream().map(person -> person.name()).toList();
         var priorArmor = people.stream().map(person -> person.armorId()).toList();
         assertEquals(30000,AgreusArcCampaign.settleWarrant(p,outcome,cargo,Set.of()));
-        assertEquals(1,cards.size()); assertEquals(EquipmentTemplateCardItemPlugin.ITEM_ID,cards.get(0).getId());
+        assertEquals(1,cards.size()); assertEquals(LoadoutCardItemPlugin.ITEM_ID,cards.get(0).getId());
         assertEquals(AgreusArcProgress.SPECTER_CARD,cards.get(0).getData());
-        assertFalse(roster.armory().ownsEquipmentTemplate(AgreusArcProgress.SPECTER_CARD));
+        assertFalse(roster.armory().ownsArmorTemplate("armor.specter-recovered"));
         assertEquals(-1,AgreusArcCampaign.settleWarrant(p,outcome,cargo,Set.of()));
         cards.clear(); // Sold or discarded: reopening the outcome must not replace it.
         assertEquals(-1,AgreusArcCampaign.settleWarrant(p,outcome,cargo,Set.of())); assertTrue(cards.isEmpty());
-        assertEquals(EquipmentTemplateLearning.Result.LEARNED,EquipmentTemplateLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD));
+        assertEquals(LoadoutCardLearning.Result.LEARNED,LoadoutCardLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD));
         assertEquals(priorArmor,people.stream().map(person -> person.armorId()).toList());
-        assertTrue(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR));
+        assertTrue(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR));
+        assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR));
         assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR));
         assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
         assertEquals(SquadEquipmentResult.APPLIED,roster.applySquadEquipment(squad.id(),
-                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR));
-        assertTrue(people.stream().allMatch(person -> "armor.specter-recovered".equals(person.armorId())));
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR));
+        assertEquals(2,people.stream().filter(person -> "armor.specter-recovered".equals(person.armorId())).count());
         assertEquals(names,people.stream().map(person -> person.name()).toList());
         assertEquals(12,CampaignMarineDeployment.freezeSelection(roster,Set.of(squad.id()),12).size());
     }

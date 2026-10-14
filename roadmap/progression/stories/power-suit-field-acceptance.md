@@ -91,9 +91,9 @@ permission to call the full live loop accepted.
 The narrative unlock remains open: finish Shepherd departure/fleet handover,
 then implement the five-chapter expedition to existing Agreus in `a-small-war.md`.
 Its recovered frames and pirate sidegrade precede a later military procurement
-arc in the intended progression. `storySource: post-shepherd-power-suits` reserves
-ownership of the recovered rewards and keeps them out of random acquisition;
-it does not create a mission or prove that its reward has shipped. Existing
+arc in the intended progression. the recovered suits are ordinary early templates and the
+chapter pays in light mixed tactic-sheet cards built around them; nothing here
+creates a mission or proves that its reward has shipped. Existing
 military acquisitions are retained for compatibility. Their generic sources
 currently permit earlier access; a strict introduction order needs the later
 procurement route and shared acquisition gate as well as this recovered-suit arc.
