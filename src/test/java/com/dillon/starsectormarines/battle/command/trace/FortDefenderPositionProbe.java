@@ -31,6 +31,13 @@ final class FortDefenderPositionProbe {
         int peakClaimed;
         int peakDugIn;
         int peakOverlapping;
+        /** Squad-samples whose garrison node stands its members on prepared ground (a belt garrison). */
+        long preparedGarrisonSquadSamples;
+        int peakPreparedGarrisons;
+        int peakInfantryMembers;
+        int peakPreparedGarrisonMembers;
+        /** Marine-samples standing on a fighting-position cell, claimed or not. */
+        long onPositionMarineSamples;
     }
 
     private final Map<Faction, Tally> tallies = new EnumMap<>(Faction.class);
@@ -43,7 +50,8 @@ final class FortDefenderPositionProbe {
             if (squad.isDroneSquad() || squad.isMechSquad() || squad.aliveMembers <= 0) continue;
             if (squad.faction != Faction.MARINE && squad.faction != Faction.DEFENDER && squad.faction != Faction.ALLY) continue;
             Tally tally = tallies.computeIfAbsent(squad.faction, f -> new Tally());
-            int[] peak = now.computeIfAbsent(squad.faction, f -> new int[3]);
+            int[] peak = now.computeIfAbsent(squad.faction, f -> new int[6]);
+            peak[4] += squad.aliveMembers;
             ObjectiveAssignment assignment = squad.assignmentForExecution();
             if (assignment == null) {
                 tally.unassigned++;
@@ -57,8 +65,18 @@ final class FortDefenderPositionProbe {
                     }
                 }
             }
+            if (squad.assignedNode != null && !squad.assignedNode.standPositions().isEmpty()
+                    && index.isFightingPositionCell(squad.assignedNode.standPositions().get(0).x(),
+                    squad.assignedNode.standPositions().get(0).y())) {
+                tally.preparedGarrisonSquadSamples++;
+                peak[3]++;
+                peak[5] += squad.aliveMembers;
+            }
             for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
+                if (index.isFightingPositionCell(sim.world().cellX(member), sim.world().cellY(member))) {
+                    tally.onPositionMarineSamples++;
+                }
                 if (sim.fightingPositionClaims().cellOf(member) != null) {
                     tally.claimedMarineSamples++;
                     peak[0]++;
@@ -75,6 +93,9 @@ final class FortDefenderPositionProbe {
             tally.peakClaimed = Math.max(tally.peakClaimed, entry.getValue()[0]);
             tally.peakDugIn = Math.max(tally.peakDugIn, entry.getValue()[1]);
             tally.peakOverlapping = Math.max(tally.peakOverlapping, entry.getValue()[2]);
+            tally.peakPreparedGarrisons = Math.max(tally.peakPreparedGarrisons, entry.getValue()[3]);
+            tally.peakInfantryMembers = Math.max(tally.peakInfantryMembers, entry.getValue()[4]);
+            tally.peakPreparedGarrisonMembers = Math.max(tally.peakPreparedGarrisonMembers, entry.getValue()[5]);
         }
     }
 
@@ -96,10 +117,12 @@ final class FortDefenderPositionProbe {
             out.append(String.format(Locale.ROOT,
                     "  - %s: %d samples; DEFEND_AREA squad-samples %d (circle overlaps positions in %d);"
                             + " claimed marine-samples %d (peak %d), dug-in marine-samples %d (peak %d), peak overlapping squads %d;"
-                            + " unassigned squad-samples %d; kinds %s%n",
+                            + " unassigned squad-samples %d; prepared-ground garrison squad-samples %d (peak %d squads, peak %d marines of %d infantry);"
+                            + " on-position marine-samples %d; kinds %s%n",
                     entry.getKey(), t.samples, t.defendAreaSquads, t.overlappingSquads,
                     t.claimedMarineSamples, t.peakClaimed, t.dugInMarineSamples, t.peakDugIn, t.peakOverlapping,
-                    t.unassigned, t.kinds));
+                    t.unassigned, t.preparedGarrisonSquadSamples, t.peakPreparedGarrisons, t.peakPreparedGarrisonMembers, t.peakInfantryMembers, t.onPositionMarineSamples,
+                    t.kinds));
         }
         return out.toString();
     }

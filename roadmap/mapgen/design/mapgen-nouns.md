@@ -182,6 +182,12 @@ instead of its declared role would be a secret convention; the role travels
 with the art through authoring and export. `ai-nouns.md` owns what occupying one
 means.
 
+A stand position may be authored on prepared ground: a fort belt's nests
+publish garrison places whose stand positions are the belt's own trench and
+sandbag cells. Because the fort stage runs after the tactical map is linked, its
+places are added to the finished map; a node left on the generation context at
+that point never reaches the battle, silently.
+
 A late stamper that overwrites earlier structure can strand walkable ground
 behind it. Such an **orphaned pocket** is normally filled in solid, because a
 room with no way in is scenery, and cutting it a new entrance would scatter
