@@ -234,6 +234,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleMechOverlay retainedMechOverlay;
     /** MLX-authored compact command-power deck at bottom-center. */
     private BattlePowerOverlay retainedPowerOverlay;
+    /** MLX-authored read-only air support pool plate under the top-right command rail. */
+    private BattleAirOverlay retainedAirOverlay;
     private BattleOrderOverlay retainedOrderOverlay;
     /** MLX-authored, confirmation-gated battle exit at bottom-left. */
     private BattleRetreatOverlay retainedRetreatOverlay;
@@ -488,6 +490,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedOverlay != null) {
             retainedOverlay.update(dt, ctx != null ? ctx.getBattleSimulation() : null,
                     speedMultiplier);
+        }
+        if (retainedAirOverlay != null && retainedOverlay != null) {
+            retainedAirOverlay.update(dt, ctx != null ? ctx.getBattleSimulation() : null, position,
+                    retainedOverlay.rightRailBottom());
         }
         if (retainedSquadOverlay != null) {
             retainedSquadOverlay.update(dt,
@@ -899,6 +905,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedOverlay = new BattleHudOverlay(this::setBattleSpeed, camera);
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
+        if (retainedAirOverlay == null) retainedAirOverlay = new BattleAirOverlay();
+        retainedAirOverlay.attach(position, sim, retainedOverlay.rightRailBottom());
         if (retainedSquadOverlay == null) {
             retainedSquadOverlay = new BattleSquadOverlay(selection);
         }
@@ -1064,7 +1072,9 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     @Override public float rightHudBottom() {
-        return retainedOverlay == null ? topCenterContentBottom() : retainedOverlay.rightRailBottom();
+        float rail = retainedOverlay == null ? topCenterContentBottom() : retainedOverlay.rightRailBottom();
+        BattleHudSurface air = retainedAirOverlay == null ? null : retainedAirOverlay.surface();
+        return air == null ? rail : Math.min(rail, air.viewport().screenY());
     }
 
     @Override public float bottomHudTop() {
@@ -1938,6 +1948,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // transparent, so only the compact command surfaces touch the canvas.
         if (!directControlInput.active() && !authoring) {
             if (retainedOverlay != null) retainedOverlay.render(alphaMult);
+            if (retainedAirOverlay != null) retainedAirOverlay.render(alphaMult);
             if (retainedOrderOverlay != null) retainedOrderOverlay.render(alphaMult);
             if (retainedSquadOverlay != null) retainedSquadOverlay.render(alphaMult);
             if (retainedMechOverlay != null) retainedMechOverlay.render(alphaMult);

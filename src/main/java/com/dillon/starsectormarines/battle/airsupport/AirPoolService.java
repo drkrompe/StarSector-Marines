@@ -141,6 +141,41 @@ public final class AirPoolService {
         return out;
     }
 
+    /**
+     * An immutable display snapshot of {@code side}'s pool at sim tick {@code nowTick}; {@link AirPoolView#NONE}
+     * when the side holds none. Reads only: it reserves, launches and regenerates nothing.
+     */
+    public AirPoolView view(Faction side, int nowTick) {
+        if (!hasPool(side)) return AirPoolView.NONE;
+        List<AirPoolView.KindRow> rows = new ArrayList<>();
+        int calls = 0;
+        for (Map.Entry<AirPoolKind, AirPoolStock> stock : allowance(side).stocks().entrySet()) {
+            Ledger l = ledger(side, stock.getKey());
+            AirPoolStock declared = stock.getValue();
+            int held = l.available + l.outFlying + l.reserved;
+            float next = declared.regenSeconds() > 0f && held < declared.cap()
+                    ? Math.max(0f, declared.regenSeconds() - l.regenProgress) : -1f;
+            rows.add(new AirPoolView.KindRow(stock.getKey(), l.available, l.outFlying + l.reserved,
+                    declared.cap(), l.lost, next));
+            calls += l.reserved;
+        }
+        List<AirPoolView.SortieRow> flying = new ArrayList<>();
+        for (Sortie s : sorties) {
+            if (s.side == side) flying.add(new AirPoolView.SortieRow(s.kind, missionOf(s)));
+        }
+        int windowTicks = Math.round(AirPoolView.RECENT_LOSS_SECONDS / BattleSimulation.TICK_DT);
+        int recent = 0;
+        for (Event e : events) {
+            if (e.side() == side && e.type() == EventType.LOST && nowTick - e.tick() <= windowTicks) recent++;
+        }
+        return new AirPoolView(rows, flying, calls, recent);
+    }
+
+    /** What a sortie was sent to do; every pool sortie is a strike until a mission type is recorded on it. */
+    private static AirPoolView.Mission missionOf(Sortie sortie) {
+        return AirPoolView.Mission.STRIKE;
+    }
+
     /** Every ledger line, oldest first. */
     public List<Event> events() {
         return Collections.unmodifiableList(events);
