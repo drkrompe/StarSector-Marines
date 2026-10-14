@@ -346,7 +346,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
                         belief.unitId(), belief.lastSeenCellX(), belief.lastSeenCellY(),
                         belief.lastSeenTick(), belief.confidence(),
                         commandStrength(identity.type(belief.unitId())),
-                        belief.source(), squad.id);
+                        belief.source(), squad.id, identity.type(belief.unitId()).isTurret());
                 CommanderContact old = merged.get(candidate.unitId());
                 if (old == null || prefer(candidate, old)) {
                     merged.put(candidate.unitId(), candidate);
