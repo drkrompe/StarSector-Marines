@@ -258,6 +258,24 @@ class ClearanceRoutePlannerTest {
         return grid;
     }
 
+    @Test
+    void unreachableEndpointCandidatesShareOneFloodOfTheReachableRegion() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        for (int y = 1; y < 39; y++) {
+            for (int x = 1; x < 39; x++) {
+                boolean ring = x >= 20 && x <= 31 && y >= 20 && y <= 31
+                        && (x == 20 || x == 31 || y == 20 || y == 31);
+                if (!ring) grid.setWalkableFloor(x, y);
+            }
+        }
+        // An enclosed island: several legal endpoint candidates, none reachable.
+        var result = planner.findRoute(grid, 3f, 3f, 25.5f, 25.5f, 0.6f, .75f, 1_000_000);
+        assertEquals(ClearanceRoutePlanner.Status.UNREACHABLE, result.status());
+        long latticeNodes = 81L * 81L;
+        assertTrue(result.expandedNodes() <= latticeNodes,
+                "expanded " + result.expandedNodes() + " nodes; one flood is at most " + latticeNodes);
+    }
+
     private ClearanceRoutePlanner.Result route(NavigationGrid grid, float x, float y,
                                                 float targetX, float targetY, float radius,
                                                 float tolerance) {
