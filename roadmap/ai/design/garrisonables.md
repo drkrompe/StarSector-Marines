@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is built for fort-belt fighting positions; o
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — pressure measure settled and the cost model recorded; belts are reactive.
+Updated: 2026-10-13 — flow then local assignment; fort-belt staging, arrival gate and fall back built.
 
 ## Why this exists
 
@@ -89,8 +89,24 @@ fight, not with the number of garrisonables, and hysteresis state exists only
 for manned places. Measured on the fort control it is a few hundredths of a
 millisecond per pulse once warm.
 
-Arrival is the open problem, not cost: a patrol sent from across the map
-reaches a belt after the pressure that called it has often passed.
+## Flow, then local assignment
+
+Manning answers pressure only if a squad can reach the place while the pressure
+lasts, and a patrol sent from across the map usually cannot. So the commander
+works in two tiers.
+
+- **Flow** moves forces toward pressure before they are needed. Believed
+  pressure and fighting in an area pull free squads from the mobile pool to a
+  staging point on their own side of it, still in the pool and still free to
+  be sent elsewhere; a quiet area gives them back after a long dwell. Flow is
+  the anticipation tier and the only one that crosses the map.
+- **Local assignment** mans garrisonables and does other local work only from
+  squads that can arrive in time, estimated cheaply from distance and speed.
+  With nobody local it sends nobody rather than a doomed march, and a squad
+  already closing is not recalled by a lull.
+
+Flow is what makes local assignment work: it changes who is local. Both run on
+the command cadence from the same pressured-block walk.
 
 ## How it fits what exists
 

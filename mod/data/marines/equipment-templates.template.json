@@ -86,7 +86,8 @@
     { "equipmentId": "special.breaching-cutter", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.vibro-blade", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.point-defence-emplacement", "accessTier": "advanced", "issueCost": {} },
-    { "equipmentId": "special.field-revetment", "accessTier": "common", "issueCost": {} }
+    { "equipmentId": "special.field-revetment", "accessTier": "common", "issueCost": {} },
+    { "equipmentId": "special.field-mortar", "accessTier": "advanced", "issueCost": {} }
   ],
   "nonPlayerEquipment": [
     {
