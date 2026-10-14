@@ -51,8 +51,8 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         var hull = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER, 20, 68, 75,
                 outline.aspect(), outline, spec.getString("spriteName"), true, BoatBayState.DAMAGED);
         var roster = new MarineRoster();
-        var mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0f);
-        roster.add(mira); roster.beginCompanyPreparation(mira);
+        var sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0f);
+        roster.add(sabine); roster.beginCompanyPreparation(sabine);
         var boats = roster.boatDeck();
         boats.registerFoundingWrecks("second-wind");
         boats.reconcile("second-wind", ShuttleType.HERMES, 1);

@@ -7,8 +7,8 @@ Updated: 2026-10-13 - follow-on upkeep uses campaign-day recovery; retained walk
 ## Outcome
 
 Castle leads a new company through choosing its mercenary ship, commissioning
-its first shuttle, meeting Mira and choosing her specialty, founding a fully
-equipped twelve-person squad, and assigning that squad to Mira. The completed
+its first shuttle, meeting Sabine and choosing her specialty, founding a fully
+equipped twelve-person squad, and assigning that squad to Sabine. The completed
 sequence hands off to Mara Venn's first story mission, Hold Until Relieved, on
 Jangala through the existing accessible-office policy.
 
@@ -25,7 +25,7 @@ combined remaining cargo bill for one compatible boat and one full squad.
 One boat can make repeated trips. The bill comes from the existing fabrication
 and founding catalogs, combines shared supplies, and is checked again at commit.
 Selection spends nothing; each real workshop order consumes its own bill.
-Mira retains her ordinary appointment point and needs no invented recruitment fee.
+Sabine retains her ordinary appointment point and needs no invented recruitment fee.
 
 Castle uses a portrait, compact controls, SVG milestones and live click-through
 highlights. Actual state advances the lesson. There is no Later control, and Escape

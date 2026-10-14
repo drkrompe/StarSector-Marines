@@ -24,7 +24,7 @@ tutorial slice as full-project localization compliance.
 Opening slice implemented:
 
 - Cerberus prologue, yard conversation and conversion feedback; company founding
-  intel; ship choice and preparation; Hermes commissioning; Mira induction;
+  intel; ship choice and preparation; Hermes commissioning; Sabine induction;
   Barracks guidance, dossiers and company management controls; Armory, Boat Deck,
   Mech Lab, Engineering and restoration feedback now use the catalog.
 - The management recording script keeps its stable line IDs and synthesis text;

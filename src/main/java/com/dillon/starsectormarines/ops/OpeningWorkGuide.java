@@ -27,7 +27,7 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
         if (roster.officerInduction() != null && roster.officerInduction().companyPreparation()) {
             preparation = roster.officerInductionRequired()
                     ? Strings.get("openingOpeningWorkGuideCompleteCastleSPreparationCompanyShipShuttle")
-                    : !reliefWon ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndMira")
+                    : !reliefWon ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndSabine")
                     : preparation;
         }
         return new OpeningWorkGuide(true, reliefWon ? OpeningOperationKind.COUNTERATTACK
