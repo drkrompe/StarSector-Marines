@@ -22,6 +22,10 @@ import com.dillon.starsectormarines.battle.story.ColdStartPicket;
 import com.dillon.starsectormarines.battle.story.DepotHoldProgress;
 import com.dillon.starsectormarines.battle.story.SalvageRightsProgress;
 import java.util.List;
+import java.util.ArrayList;
+import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
+import com.dillon.starsectormarines.battle.story.YardOwnersProgress;
+import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
 
 /** Read-only adapters. Negative progress means the current obligation has no measured clock. */
 public final class MissionObjectiveFamilies {
@@ -158,6 +162,23 @@ public final class MissionObjectiveFamilies {
                         new Marker("weir-road-gun", "Maintenance road gun / build here", sequence.buildX(), sequence.buildY(),
                                 milestones.turretConstructed() ? "COMMISSIONED" : "BUILD HERE", milestones.turretConstructed() ? State.COMPLETE : state,
                                 List.of(), 8)).stream().filter(marker -> !milestones.cargoDelivered() || !marker.id().equals("weir-escort")).toList(), focus);
+    }
+    public static Item yardOwners(YardOwnersSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence);
+        var markers = new ArrayList<Marker>();
+        for (int i = 0; i < 3; i++) {
+            var site = LatchkeyYard.SITES.get(i);
+            markers.add(new Marker("yard-site-"+i,site.name(),site.x(),site.y(),p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED",p.held(i) ? State.COMPLETE : state));
+        }
+        markers.add(new Marker("yard-tools","Calibration machine / preserve",LatchkeyYard.TOOL_X,LatchkeyYard.TOOL_Y,"REQUIRED TOOLING",state));
+        boolean inspecting = p.phase() == YardOwnersProgress.Phase.INSPECTION;
+        int site = Math.min(2,p.phase().ordinal());
+        return new Item("yard-owners","Latchkey Yard",state,p.phase().name(),"Secure dispatch > Tooling hall > Operator entrance > Inspect",sequence.displayName(),
+                inspecting ? timed("Protected inspection",p.inspection(),YardOwnersProgress.INSPECTION_SECONDS)
+                        : timed("Secure site",p.capture(site),YardOwnersProgress.CAPTURE_SECONDS),
+                p.terminal() ? -1 : inspecting ? p.inspection()/YardOwnersProgress.INSPECTION_SECONDS : p.capture(site)/YardOwnersProgress.CAPTURE_SECONDS,
+                p.terminal() ? "" : "Keep all sites clear and occupied by company or constables. Inspection needs a living technician and company infantry inside the tooling hall.",
+                markers, inspecting || p.terminal() ? "yard-tools" : "yard-site-"+site);
     }
     public static Item limitedWarrant(LimitedWarrantSequence sequence) {
         var p = sequence.progress(); var state = state(sequence);

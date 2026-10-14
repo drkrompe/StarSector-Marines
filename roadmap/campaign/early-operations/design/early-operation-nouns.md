@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Relief militia kit and assembly apron; direct freight sequence and Castle's Low Quay recovery bargain.
+Updated: 2026-10-13 — Talon Two aviation identity; Relief assembly apron and Latchkey mixed-squad rewards.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -221,8 +221,28 @@ knowledge satisfies the award without another copy; sale or discard cannot
 renew the entitlement. Learning the card and fitting equipment are separate
 player actions. Learning also exposes the matching Tri-Tachyon Specter Protection
 sheet, so the first recovered assault pattern is usable without an Arbalest
-reward. No equipment is automatically issued. The next yard chapter and its
-Arbalest award remain separate work in `a-small-war.md`.
+reward. No equipment is automatically issued. Victory opens **The Yard's Owners**.
+
+At Latchkey Yard, company infantry captures the dispatch house, tooling hall and
+operator entrance. These gains can be recaptured. Eight employer constables take
+separate holding duties after company gains; two technicians support the inspection.
+Victory requires all three sites held together, the marked calibration machine
+surviving ordinary prop damage, and a living technician completing twelve protected
+seconds at the tooling with company infantry present. Eliminating all raiders does
+not replace that work. Losing the machine or both technicians fails the attempt.
+Three full squads are recommended; the existing two-squad minimum remains. Actual
+owned tender support and employer heavy lift for an owned active mech lance are
+available, without granting a walker, orbital fire or fighter support.
+
+Replacement attempts explicitly refit the machine and provide a new inspection
+party; confirmed tooling and employer losses remain recorded. The active complete
+inspection receipt pays 36,000 credits and awards one Recovered Arbalest cargo
+card under the same once-only ownership rules. Learning both recovered roles
+exposes Salvage-assisted Section: eight regular, two powered assault and two
+powered support billets within the same named squad. Fitting remains explicit.
+The debrief presents the Combine order, Rusk's proposed leases and Lenna's
+counterproposal as attributed claims. It signs no custody agreement and opens no
+fourth chapter; the agreements and remaining arc belong to `a-small-war.md`.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
@@ -797,8 +817,9 @@ warehouse still screens long sightlines, and the maintenance reserve retains
 its separate building behind the perimeter.
 
 Recovering the depot lets Wayline afford hired close air support. The Junction
-briefing introduces **Kestrel**, a contracted Mudskipper gunship and crew under
+briefing introduces **Talon Two**, a contracted Mudskipper gunship and crew under
 employer control, as a concrete sign of the cooperative recovering its strength.
+Talon Two is the aviation callsign, separate from infantry radio actor Kestrel Two.
 It enters as the company approaches the first site, works that position, then
 covers the militia settling onto captured ground before following the company's
 advance. It has a bounded visit and uses the ordinary gunship weapons and flight
@@ -854,19 +875,19 @@ equipment is part of this objective.
 
 ## Authored freight finale
 
-**Kestrel returns on Thunder Run** after Dispatch is secured. The briefing
+**Talon Two returns on Thunder Run** after Dispatch is secured. The briefing
 promises renewed air support and additional hired ground muscle: a heavy tank
 and two reinforced APCs for the final breakthrough. It does not disclose the
 missile ambush or direct the company to assault the inaccessible hilltops.
 The inbound call identifies the same crew that covered the Junction.
 Two twin-launcher missile batteries on
-the northern hilltops cover its opening pass. Kestrel enters from the west
+the northern hilltops cover its opening pass. Talon Two enters from the west
 and sweeps left to right ahead of the eastbound column. An actual missile
-launch interrupts the pass: Kestrel banks forward and away from the ridge,
+launch interrupts the pass: Talon Two banks forward and away from the ridge,
 then attempts to leave the corridor instead of returning to its cover orbit.
 The break preserves momentum and normal hull handling; it grants no dodge
 immunity. Batteries can reacquire and fire further volleys through ordinary
-range, line-of-fire and reload checks. Breaking early can keep Kestrel from
+range, line-of-fire and reload checks. Breaking early can keep Talon Two from
 reaching the second battery. Missile tracking and ordinary durability decide
 whether it escapes or crashes; only an unthreatened pass joins the cover orbit.
 The pass call follows physical commitment, the launch warning an actual missile,
@@ -875,15 +896,15 @@ the loss acknowledgment. Their rotating
 mounts launch visible tracking missiles through ordinary aircraft damage.
 The hilltops and slopes remain impassable, including beneath a destroyed
 battery. Their placement does not invite a valley assault or add a capture
-objective; existing guards retain their roadside duties. Kestrel's loss is an
+objective; existing guards retain their roadside duties. Talon Two's loss is an
 encounter outcome, never a mandatory scripted death. Clearing
-the guns early can preserve the gunship. An unthreatened Kestrel can cover the next
+the guns early can preserve the gunship. An unthreatened Talon Two can cover the next
 crossing until its station time runs out. Losing it does not gate convoy progress,
 increase the company's deployment minimum, or charge the player for Wayline's
 ship. A crash damages the ground and leaves a permanent wreck for that battle,
 using the shared aircraft rules in `air-nouns.md`.
 
-Kestrel's destruction is local to the attempt. Replaying either operation starts
+Talon Two's destruction is local to the attempt. Replaying either operation starts
 with fresh employer support; no persistent hull-loss flag connects the missions
 or retries. Freight receipts and player personnel losses retain their own
 existing campaign rules. Radio acknowledges only observed arrival, station,
@@ -1121,7 +1142,7 @@ Unrecorded characters must receive an explicit voice assignment before synthesis
 they cannot inherit the catalog host's voice. Text-only drafts remain readable
 and silent until recordings have been reviewed and packaged. Junction and Thunder Run
 have recorded dialogue for every authored player line, including Castle's defense
-instructions and Kestrel's support and emergency calls. Aircraft emergencies use
+instructions and Talon Two's support and emergency calls. Aircraft emergencies use
 the explicit interruption policy in `battle-radio-nouns.md`; routine guidance
 cannot defer a missile warning until after the aircraft has gone down.
 

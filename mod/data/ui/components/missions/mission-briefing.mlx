@@ -1,4 +1,4 @@
-<template props="preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -25,8 +25,8 @@
         <div id="mission-briefing-speaker" class="{narrationSpeakerClasses}">
           <img id="mission-briefing-speaker-portrait" class="briefing-speaker-portrait console-well" src="{narrationPortrait}" />
           <div id="mission-briefing-speaker-copy" class="briefing-speaker-copy">
-            <div id="mission-briefing-speaker-name" class="label heading tone-edge">{narrationSpeaker}</div>
-            <div id="mission-briefing-speaker-role" class="label tone-muted">Wayline / Mission contact</div>
+            <div id="mission-briefing-speaker-name" class="label heading tone-edge" style="{narrationNameStyle}">{narrationSpeaker}</div>
+            <div id="mission-briefing-speaker-role" class="label tone-muted">{narrationRole}</div>
             <div id="mission-narration-status" class="label briefing-speaker-status">{narrationStatus}</div>
           </div>
         </div>
@@ -64,7 +64,10 @@
             <div id="mission-reward-value" class="label title tone-good">{rewardValue}</div>
             <div id="mission-reward-terms" class="label tone-muted">{rewardTerms}</div>
           </div>
-          <div id="mission-flavor" class="label mission-flavor surface-dark">{missionFlavor}</div>
+          <div id="mission-flavor" class="label mission-flavor surface-dark" style="{missionFlavorStyle}">{missionFlavor}</div>
+          <div id="mission-dialogue-wrap" class="mission-flavor" style="{missionDialogueStyle}">
+            <mission-dialogue turns="{missionDialogue}" />
+          </div>
           <div id="mission-info-rows" class="mission-info-rows">
             <div each="row in missionRows" key="{row.id}" id="{row.id}" class="info-row">
               <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>

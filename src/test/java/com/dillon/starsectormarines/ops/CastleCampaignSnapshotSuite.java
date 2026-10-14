@@ -50,7 +50,8 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
             BriefingViewModel.putDebugDrawer(props, false, false, () -> {});
             BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 24, 24);
             var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
-                    List.of("data/ui/components/missions/mission-briefing.mlx"));
+                    List.of("data/ui/components/missions/mission-dialogue.mlx",
+                            "data/ui/components/missions/mission-briefing.mlx"));
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             for (int step = 0; step < 3; step++) {

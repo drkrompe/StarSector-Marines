@@ -49,6 +49,16 @@ Shared catalog slice implemented:
   controls and shared weapon, suit-system, mech-component and chassis hover sheets
   in English and expanded copy at 1920x1080 / 100%.
 
+Contract-board slice implemented:
+
+- MissionSelectScreen owns catalog-backed empty states, broker roles and its own
+  story status copy, dossier labels, commitment/payment summaries, quantity forms,
+  tier/risk/presence labels and navigation markup. Names and saved identities stay
+  unchanged. Variable messages are formatted as complete translated patterns.
+- Domain-owned mission names, legacy story flavor, route status, broker introductions
+  and branch consequences still require the broader story sweep; extracting the
+  screen does not claim those domains are localized.
+
 Remaining Alpha gate: built-in/saved squad-definition names and role copy,
 historical saved commendation text,
 mission briefing/results and battle guidance, and the remaining story radio/UI.

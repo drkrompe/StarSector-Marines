@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -40,6 +41,9 @@ final class BriefingViewModel {
         props.put("prepareArmory", (Runnable) () -> { });
         props.put("prepareBarracks", (Runnable) () -> { });
         props.put("screenHeader", "Mission Briefing");
+        props.put("missionDialogue", List.of());
+        props.put("missionDialogueStyle", MissionDialogue.HIDDEN_STYLE);
+        props.put("missionFlavorStyle", "");
         putNarration(props, null, false);
         props.put("replayNarrationAction", (Runnable) () -> { });
         props.put("stopNarrationAction", (Runnable) () -> { });
@@ -183,13 +187,15 @@ final class BriefingViewModel {
     static void putNarration(Map<String, Object> props, WaylineNarration.Line line, boolean playing) {
         boolean available = line != null;
         props.put("narrationAvailable", available);
-        props.put("narrationSpeaker", available ? line.speaker() : "");
+        props.put("narrationSpeaker", available ? MissionDialogue.speakerName(line.speaker()) : "");
         props.put("narrationPortrait", available ? line.portrait() : "");
+        props.put("narrationRole", available ? narrationRole(line) : "");
+        props.put("narrationNameStyle", available ? MissionDialogue.speakerStyle(line.speaker()) : "");
         props.put("narrationSpeakerClasses", "briefing-speaker console-well" + (available && playing ? " speaking" : ""));
         props.put("narrationStatus", narrationStatus(available && playing));
     }
 
-    /** Mutate only the retained playback indicator; terrain refreshes and replay keep the portrait's identity. */
+    /** Update the retained playback indicator independently of the contact identity. */
     static void updateNarration(MarkupInstance markup, boolean playing) {
         UiElement speaker = markup.requireElement("mission-briefing-speaker");
         if (speaker.parent() == null) return;
@@ -197,8 +203,35 @@ final class BriefingViewModel {
         markup.requireElement("mission-narration-status").text(narrationStatus(playing));
     }
 
+    /** Project the current turn without rebuilding the briefing or restarting its recording. */
+    static void updateNarration(MarkupInstance markup, WaylineNarration.Line line, boolean playing) {
+        updateNarration(markup, playing);
+        if (line == null || markup.requireElement("mission-briefing-speaker").parent() == null) return;
+        UiElement name = markup.requireElement("mission-briefing-speaker-name");
+        String displayName = MissionDialogue.speakerName(line.speaker());
+        if (!displayName.equals(name.text())) {
+            name.text(displayName).style(MissionDialogue.speakerStyle(line.speaker()));
+        }
+        markup.requireElement("mission-briefing-speaker-portrait").imageSource(line.portrait());
+        markup.requireElement("mission-briefing-speaker-role").text(narrationRole(line));
+    }
+
+    private static String narrationRole(WaylineNarration.Line line) {
+        String speaker = line.speaker();
+        int slash = speaker == null ? -1 : speaker.indexOf('/');
+        if (slash < 0 || speaker.substring(slash + 1).isBlank()) return Strings.get("briefingMissionContact");
+        String role = speaker.substring(slash + 1).trim();
+        return switch (role) {
+            case "WAYLINE" -> Strings.get("briefingRoleWayline");
+            case "COMPANY OPERATIONS" -> Strings.get("briefingRoleCompanyOperations");
+            case "COMPANY COMMAND" -> Strings.get("briefingRoleCompanyCommand");
+            case "BASIN RECLAMATION" -> Strings.get("briefingRoleBasinReclamation");
+            case "HOUSE RUSK" -> Strings.get("briefingRoleHouseRusk");
+            default -> role;
+        };
+    }
     private static String narrationStatus(boolean playing) {
-        return playing ? "PLAYING BRIEFING" : "BRIEFING RECORDING";
+        return Strings.get(playing ? "briefingNarrationPlaying" : "briefingNarrationRecording");
     }
 
     /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */

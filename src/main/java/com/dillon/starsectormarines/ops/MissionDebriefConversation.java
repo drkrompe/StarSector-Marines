@@ -25,6 +25,7 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (yardOwners(outcome)) return "LATCHKEY / CASTLE, RUSK & LENNA";
         if (limitedWarrant(outcome)) return "LIMITED WARRANT / CASTLE & RUSK";
         if (waterUnderSeal(outcome)) return "NORTH WEIR / CASTLE & RUSK";
         if (outcome != null && outcome.workingPassage != null) return "REGISTRY TRANSFER / CASTLE & VALE";
@@ -35,6 +36,7 @@ final class MissionDebriefConversation {
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (yardOwners(outcome)) return yardLines(outcome);
         if (limitedWarrant(outcome)) return warrantLines(outcome);
         if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
@@ -91,6 +93,28 @@ final class MissionDebriefConversation {
                 .filter(Objects::nonNull).toList();
     }
 
+    private static boolean yardOwners(MissionOutcome o) {
+        return o != null && o.missionSource == MissionSource.STORY && AgreusArcProgress.yardOwners(o.missionId) && o.yardOwners != null;
+    }
+    private static List<WaylineNarration.Line> yardLines(MissionOutcome o) {
+        var r = o.yardOwners;
+        String cost = "Company casualties: " + o.marinesLost + ". Inspection technicians lost: " + r.techniciansLost()
+                + ". Constables lost: " + r.constablesLost() + ".";
+        if (!o.victory) return List.of(
+                yardLine("withdrawal","CASTLE",(r.toolingLost() ? "The marked calibration machine was destroyed. " : "The inspection was not completed. ") + cost),
+                yardLine("replacement","RUSK","No completion fee or pattern is released. A new mobilization will fund replacement inspectors and tooling refit. This loss stays on the account; no custody agreement has been chosen."));
+        return List.of(
+                yardLine("award","RUSK","Thirty-six thousand credits and the Recovered Arbalest refurbishment pattern. The inspection settles this contract; it does not settle the yard's custody."),
+                yardLine("issue","CASTLE","Learn the Arbalest card from fleet cargo. Once both recovered patterns are learned, fit Salvage-assisted Section in the Armory: eight regular marines, two Specter breachers and two Arbalest support wearers. Their names and lift seats stay the same; no equipment has changed automatically."),
+                yardLine("order","COMBINE REGISTRY / LEASE-ARBITRATION ORDER","Rusk's secured claim remains recognized under Combine administration. The yard's arrears are enforceable. Inspection grants neither repossession nor collection authority to this company."),
+                yardLine("leases","HOUSE RUSK / ARREARS AND PROPOSED LEASES","The outstanding debt remains on the yard account. House Custody would place tool access under Rusk's office, with new workshop leases and debt deductions. These are proposed terms, not a signed instruction."),
+                yardLine("counterproposal","LENNA SAYE / YARD ASSOCIATION","You have opened the gate. Before you hand over the keys, read who is allowed through it tomorrow. Our Yard Compact keeps inspected common-service access under a repayment schedule; Rusk appoints security and the association operates the shops. Those benches repair the weir's pumps too."),
+                yardLine("cost","CASTLE",cost + " Read both proposals before any further commitment. Custody remains unsigned; the next commission is not available yet."));
+    }
+    private static WaylineNarration.Line yardLine(String beat,String speaker,String text) {
+        return new WaylineNarration.Line("yard-debrief-"+beat,"story_agreus_yard_owners","debrief.yard_owners."+beat,text,12f,10,15f,List.of(),
+                speaker,speaker.equals("CASTLE") ? CompanyManagementGuide.portrait() : OpeningBroker.CREST,false,false);
+    }
     private static boolean limitedWarrant(MissionOutcome outcome) {
         return outcome != null && outcome.missionSource == MissionSource.STORY
                 && AgreusArcProgress.limitedWarrant(outcome.missionId) && outcome.limitedWarrant != null;

@@ -151,6 +151,16 @@ class MissionMlxTest {
             assertFalse(speaker.hasClass("speaking"));
             assertEquals(portrait, instance.requireElement("mission-briefing-speaker-portrait"));
             assertEquals(OpeningBroker.PORTRAIT, portrait.imageSource());
+            var castle = new WaylineNarration.Line("castle-briefing", "chapter", "briefing.castle",
+                    "The company is ready.", 2, 1, 10, List.of(), "CASTLE / COMPANY OPERATIONS",
+                    "graphics/portraits/castle.png");
+            BriefingViewModel.updateNarration(instance, castle, true);
+            assertEquals("Castle", instance.requireElement("mission-briefing-speaker-name").text());
+            assertEquals(castle.portrait(), portrait.imageSource());
+            assertEquals("COMPANY OPERATIONS", instance.requireElement("mission-briefing-speaker-role").text());
+            BriefingViewModel.updateNarration(instance, line, false);
+            assertEquals(OpeningBroker.NAME, instance.requireElement("mission-briefing-speaker-name").text());
+            assertEquals(line.portrait(), portrait.imageSource());
         }
     }
 

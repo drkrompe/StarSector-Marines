@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -124,6 +125,7 @@ class TilesetBlockExportTest {
         sofa.ballisticHalfHeight = 0.42;
         sofa.fogSurface = List.of(".");
         sofa.preferredWallSide = "N";
+        sofa.fightingPosition = "parapet";
         TilesetExport.Entry crate = piece(1, "doodad.test.crate");
         crate.cover = "med";
         List<TilesetExport.Entry> entries = List.of(sofa, crate);
@@ -141,6 +143,8 @@ class TilesetBlockExportTest {
         assertEquals(DoodadCover.MED.defaultBallisticHalfHeight(),
                 registry.doodad("doodad.test.crate").ballisticHalfHeight, 1e-6f);
         assertNull(registry.doodad("doodad.test.crate").preferredWallSide);
+        assertEquals(FightingPositionRole.PARAPET, registry.doodad("doodad.test.sofa").fightingPosition);
+        assertEquals(FightingPositionRole.NONE, registry.doodad("doodad.test.crate").fightingPosition);
         assertEquals(List.of("."), registry.doodad("doodad.test.sofa").fogSurface);
         assertEquals(List.of("#"), registry.doodad("doodad.test.crate").fogSurface);
     }
