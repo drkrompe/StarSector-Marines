@@ -313,9 +313,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
         props.put("issueCargoClasses", viewModel.issueCargoClasses());
-        props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyLabel", viewModel.applyLabel());
-        props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) this::returnFromWorkspace);
@@ -367,7 +364,7 @@ public final class FleetArmoryScreen implements Screen {
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
                 "loadout-roll", "loadout-billets", "loadout-inspection", "squad-equip-row",
-                "transaction-result", "apply-squad-equipment", "transaction-feedback")
+                "transaction-result", "transaction-feedback")
                 : view == View.DESIGNER
                 ? List.of("equipment-designer-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",

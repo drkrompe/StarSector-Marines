@@ -145,7 +145,6 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<List<MarineViewerCard>> marineCards;
     private final ComputedSignal<String> targetSummary;
     private final ComputedSignal<String> candidateSummary;
-    private final ComputedSignal<String> applyLabel;
     private final ComputedSignal<String> transactionSummary;
     private final ComputedSignal<String> transactionClasses;
     private final ComputedSignal<Boolean> applyDisabled;
@@ -310,7 +309,6 @@ public final class FleetArmoryViewModel {
         });
         targetSummary = reactor.computed(this::buildTargetSummary);
         candidateSummary = reactor.computed(this::buildCandidateSummary);
-        applyLabel = reactor.computed(this::buildApplyLabel);
         issueCargoRows = reactor.computed(this::buildIssueCargoRows);
         issueCargoClasses = reactor.computed(() -> issueCargoRows.get().isEmpty()
                 ? "cargo-costs empty" : "cargo-costs");
@@ -386,7 +384,6 @@ public final class FleetArmoryViewModel {
     public Signal<List<MarineViewerCard>> marineCards() { return marineCards; }
     public Signal<String> targetSummary() { return targetSummary; }
     public Signal<String> candidateSummary() { return candidateSummary; }
-    public Signal<String> applyLabel() { return applyLabel; }
     public Signal<String> transactionSummary() { return transactionSummary; }
     public Signal<String> transactionClasses() { return transactionClasses; }
     public Signal<Boolean> applyDisabled() { return applyDisabled; }
@@ -829,8 +826,13 @@ public final class FleetArmoryViewModel {
                     maximumWeaponTier(doctrine), doctrine.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
+            SquadEquipmentPreview candidate = roster.previewSquadEquipment(
+                    selectedSquadId.get(), doctrine.id(), selectedArmorDoctrineId.get(),
+                    equipmentIssueResources);
             tiles.add(weaponTile(id, doctrine, doctrine.id().equals(selected),
-                    () -> selectWeaponDoctrine(doctrine.id())));
+                    () -> selectWeaponDoctrine(doctrine.id()))
+                    .withIssue(() -> issueWeaponDoctrine(doctrine.id()),
+                            !candidate.canApply(), issueReason(candidate)));
         }
         return rankedByRating(tiles);
     }
@@ -866,6 +868,9 @@ public final class FleetArmoryViewModel {
                     maximumArmorTier(issued), plan.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
             String id = "armor-doctrine:" + plan.id();
+            SquadEquipmentPreview candidate = roster.previewSquadEquipment(
+                    selectedSquadId.get(), selectedWeaponDoctrineId.get(), plan.id(),
+                    equipmentIssueResources);
             // The authored tier is what the sheet IS; the issued band is what
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
@@ -878,7 +883,9 @@ public final class FleetArmoryViewModel {
                     presentation, metadata,
                     roleComposition(plan), joinSpans(patterns), patterns,
                     armorCapabilities(capabilities), capabilities,
-                    () -> selectArmorDoctrine(plan.id())));
+                    () -> selectArmorDoctrine(plan.id()))
+                    .withIssue(() -> issueArmorDoctrine(plan.id()), !candidate.canApply(),
+                            issueReason(candidate)));
         }
         return rankedByRating(tiles);
     }
@@ -914,7 +921,7 @@ public final class FleetArmoryViewModel {
                 name, presentation.rarity().displayName(), rating,
                 Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
-                carries, carriesSpans, select);
+                carries, carriesSpans, select, null, true, "");
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -1212,8 +1219,24 @@ public final class FleetArmoryViewModel {
         return Strings.format("openingFleetArmoryProposed", (weapons != null ? weapons.displayName() : Strings.get("openingFleetArmoryChooseWeapons")), ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get()));
     }
 
-    private String buildApplyLabel() {
-        return Strings.get("openingLoadoutFitSquad");
+    /** Why a card's Issue is refused, or what pressing it will do. */
+    private String issueReason(SquadEquipmentPreview candidate) {
+        if (!candidate.canApply()) return squadEquipmentMessage(candidate);
+        MarineSquad squad = roster.squadById(selectedSquadId.get());
+        return Strings.format("loadoutIssueReady",
+                squad != null ? squad.name() : Strings.get("openingFleetArmorySelectedSquad"));
+    }
+
+    private void issueWeaponDoctrine(String doctrineId) {
+        if (roster.armory().weaponDoctrineById(doctrineId) == null) return;
+        selectedWeaponDoctrineId.set(doctrineId);
+        applySquadEquipmentSelection();
+    }
+
+    private void issueArmorDoctrine(String doctrineId) {
+        if (roster.armory().armorDoctrineById(doctrineId) == null) return;
+        selectedArmorDoctrineId.set(doctrineId);
+        applySquadEquipmentSelection();
     }
 
     private List<Row> buildIssueCargoRows() {
@@ -1899,11 +1922,36 @@ public final class FleetArmoryViewModel {
             String description, String composition, String distribution,
             List<DoctrineSpan> distributionSpans, String carries,
             List<DoctrineSpan> carriesSpans,
-            Runnable select) implements MarkupPropertySource {
+            Runnable select, Runnable issue, boolean issueDisabled,
+            String issueReason) implements MarkupPropertySource {
+        /** The same card carrying its own Issue action and the reason it may be refused. */
+        DoctrineTile withIssue(Runnable action, boolean disabled, String reason) {
+            return new DoctrineTile(id, headerId, nameId, rarityId, ratingId, metadataRowId,
+                    factionLogoId, metadataId, descriptionId, compositionId, distributionId,
+                    carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
+                    rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
+                    distribution, distributionSpans, carries, carriesSpans, select, action,
+                    disabled, reason);
+        }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "wrapId" -> id + ":wrap";
+                case "wrapStyle" -> "height: " + (188 + 48 * ((distributionSpans.size() + 1) / 2)
+                        + (issue != null ? 34 : 0)) + "px;";
+                case "issueId" -> id + ":issue";
+                case "issueRowId" -> id + ":issue-row";
+                case "issueReasonId" -> id + ":issue-reason";
+                case "issue" -> issue;
+                case "issueDisabled" -> issueDisabled;
+                case "issueReason" -> issueReason;
+                case "issueRowClasses" -> issue != null
+                        ? "doctrine-issue-row" : "doctrine-issue-row-hidden";
+                case "issueReasonClasses" -> issueDisabled
+                        ? "doctrine-issue-reason label danger-surface tone-danger"
+                        : "doctrine-issue-reason label good-surface tone-good";
                 case "headerId" -> headerId;
                 case "nameId" -> nameId;
                 case "rarityId" -> rarityId;
