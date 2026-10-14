@@ -11,8 +11,13 @@ Updated: 2026-10-14 — Morrow transfers without crew; the company crews her its
 Unlock after **A Cold Account** is won and its aftermath has been acknowledged,
 regardless of the earlier freight outcome. This is an optional new
 contract, not an automatic launch or a timed demand while the company is depleted.
-Mara makes the introduction. Wayline remains a trusted former employer; this
-contract belongs to someone with a different business and a different stake.
+Mara makes the introduction because Basin is a Wayline account: it buys its
+supplies, fuel and heavy machinery through her, and its repair machinery is
+waiting undelivered in Wayline's shed. Vale is a customer, not a friend, and
+suspects her outsized fuel order leaked through Wayline's dispatch. Wayline
+remains the company's trusted former employer; this contract is Vale's.
+`shepherd-recovery-dialogue.md` owns the referral message, which the HQ notice
+currently only titles.
 
 **Basin Reclamation Cooperative**, an Independent association of local repair
 shops and industrial operators on **Asharu**, wants its inland recovery corridor

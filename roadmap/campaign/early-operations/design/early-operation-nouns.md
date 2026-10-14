@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Morrow is salvage from the same wreckfall; her transfer carries no crew.
+Updated: 2026-10-14 — Basin is a Wayline account; Morrow's transfer carries no crew.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -22,7 +22,11 @@ Use the arc's own open-work board before changing its plan.
 
 **A Working Ship** is the post-**A Cold Account** recovery arc on Asharu.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
-Cooperative**, an authored local Independent employer. Castle's bargain exchanges
+Cooperative**, an authored local Independent employer. Basin is a Wayline account:
+it buys supplies, fuel and heavy machinery through Mara, so the referral is a
+supplier recovering a customer, not a favour between friends. Vale suspects her
+own outsized fuel order leaked through Wayline's dispatch while its schedules were
+being sold; that remains her unproven suspicion. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
 basin grew into the cooperative's shipbreaking yard around its claim. Three
 cycles ago, the Colossus and accompanying ships came down during unnamed low-orbit
