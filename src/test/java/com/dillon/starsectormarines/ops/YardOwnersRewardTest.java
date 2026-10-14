@@ -2,8 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.story.YardOwnersProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
-import com.dillon.starsectormarines.marine.EquipmentTemplateLearning;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCardLearning;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
@@ -27,14 +28,14 @@ class YardOwnersRewardTest {
         var roster = new MarineRoster(); var squad = roster.createSquad(); var people = roster.recruitToSquad(squad.id(),12);
         var names = people.stream().map(person -> person.name()).toList();
         var prior = people.stream().map(person -> person.armorId()).toList();
-        EquipmentTemplateLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD);
+        LoadoutCardLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD);
         assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
         var cards = new ArrayList<SpecialItemData>(); var cargo = cargo(cards); var outcome = victory(m);
         assertEquals(36000,AgreusArcCampaign.settleYard(p,outcome,cargo,Set.of(AgreusArcProgress.SPECTER_CARD)));
-        assertEquals(1,cards.size()); assertEquals(EquipmentTemplateCardItemPlugin.ITEM_ID,cards.get(0).getId());
+        assertEquals(1,cards.size()); assertEquals(LoadoutCardItemPlugin.ITEM_ID,cards.get(0).getId());
         assertEquals(AgreusArcProgress.ARBALEST_CARD,cards.get(0).getData());
-        assertFalse(roster.armory().ownsEquipmentTemplate(AgreusArcProgress.ARBALEST_CARD));
-        assertEquals(EquipmentTemplateLearning.Result.LEARNED,EquipmentTemplateLearning.learn(roster.armory(),cards.get(0).getData()));
+        assertFalse(roster.armory().ownsArmorTemplate("armor.arbalest-recovered"));
+        assertEquals(LoadoutCardLearning.Result.LEARNED,LoadoutCardLearning.learn(roster.armory(),cards.get(0).getData()));
         assertEquals(prior,people.stream().map(person -> person.armorId()).toList());
         assertTrue(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
         assertEquals(SquadEquipmentResult.APPLIED,roster.applySquadEquipment(squad.id(),SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
@@ -62,11 +63,11 @@ class YardOwnersRewardTest {
         assertEquals(36000,AgreusArcCampaign.settleYard(p,victory(m),cargo,Set.of(AgreusArcProgress.ARBALEST_CARD)));
         assertTrue(cards.isEmpty()); assertTrue(p.yardCompleted());
     }
-    @Test void lateSpecterLearningStillEnablesMixedSheetWithoutAnotherReward() {
+    @Test void armorLearnedPiecemealStillEnablesMixedSheetWithoutTheCard() {
         var roster=new MarineRoster();
-        EquipmentTemplateLearning.learn(roster.armory(),AgreusArcProgress.ARBALEST_CARD);
+        roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.arbalest-recovered"));
         assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
-        EquipmentTemplateLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD);
+        roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.specter-recovered"));
         assertTrue(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
     }
     static MissionOutcome victory(Mission m) {

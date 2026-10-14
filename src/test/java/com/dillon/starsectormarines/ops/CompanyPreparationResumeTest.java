@@ -118,7 +118,8 @@ class CompanyPreparationResumeTest {
             roster.officerInduction().introduce(mira);
             assertCaptured(roster, ScreenId.BARRACKS);
             assertTrue(mira.train(OfficerSpecialty.TACTICAL_COVER));
-            assertEquals(ScreenId.FLEET_ARMORY, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false));
+            assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false),
+                    "Squads are raised in Barracks, so the first formation resumes there");
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.MISSION_SELECT, roster, false));
             ui.remove("getCurrentInteractionDialog");
             assertEquals("RETURN TO DEPOT", CompanyPreparationGuide.withDepotAccess(roster, normal, () -> {}).actionLabel());

@@ -9,9 +9,8 @@ import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.PatronEngagementMemory;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
-import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
-import com.dillon.starsectormarines.marine.FactionEquipmentSource;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCards;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -36,9 +35,7 @@ class PatronEquipmentRewardSystemTest {
 
         assertEquals(2, access.granted.size());
         assertEquals(2, new HashSet<>(access.granted).size());
-        assertTrue(access.granted.stream().allMatch(templateId ->
-                FactionEquipmentCatalog.resolve("hegemony").offers(
-                        templateId, FactionEquipmentSource.PATRON)));
+        assertTrue(access.granted.stream().allMatch(cardId -> LoadoutCard.parse(cardId) != null));
         assertEquals(List.of("House Test", "House Test"), access.patrons);
         assertEquals(2, fixture.state.patronEquipmentRewardCursor);
 
@@ -64,9 +61,8 @@ class PatronEquipmentRewardSystemTest {
     void ownedOrCargoHeldCardsAreNeverDuplicated() {
         Fixture fixture = fixture("tritachyon");
         record(fixture, ContractType.STRIKE, PatronEngagementOutcome.COMPLETED, 10);
-        Set<String> entirePool = new HashSet<>(FactionEquipmentCatalog.offers(
-                "tritachyon", FactionEquipmentSource.PATRON).stream()
-                .map(offer -> offer.templateId()).toList());
+        Set<String> entirePool = new HashSet<>(LoadoutCards.all().stream()
+                .map(LoadoutCard::id).toList());
         FakeAccess access = new FakeAccess();
         access.unavailable.addAll(entirePool);
 
@@ -85,8 +81,7 @@ class PatronEquipmentRewardSystemTest {
         new PatronEquipmentRewardSystem(access).tick(fixture.state, 10);
 
         assertEquals(1, access.granted.size());
-        assertTrue(FactionEquipmentCatalog.resolve("independent").offers(
-                access.granted.get(0), FactionEquipmentSource.PATRON));
+        assertTrue(LoadoutCard.parse(access.granted.get(0)) != null);
     }
 
     @Test
@@ -200,7 +195,7 @@ class PatronEquipmentRewardSystemTest {
         }
 
         @Override
-        public void announce(String patronName, EquipmentTemplateCard template) {
+        public void announce(String patronName, LoadoutCard card) {
             if (failAnnouncements) throw new IllegalStateException("test presentation failure");
             patrons.add(patronName);
         }
