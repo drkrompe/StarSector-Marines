@@ -2077,7 +2077,9 @@ squad holds and digs in there exactly as any garrison holds its post; no claim
 or order is involved. The place ranks below compound perimeter posts, so a belt
 takes only defenders the places that matter more leave over, and those come out
 of the mobile patrol pool: a map with belts has a smaller roving defence. A belt
-squad holds until it dies or breaks; it does not release when its nest falls.
+squad holds until it dies or breaks; it does not release when its nest falls. This
+born garrison is the shape `garrisonables.md` sets out to replace with manning in
+answer to believed pressure.
 
 **What it pays is composure, never protection.** Cover already reduces damage
 and stops rounds, and the cells of a position already carry it; a dug-in damage

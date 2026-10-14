@@ -19,6 +19,7 @@ firing positions remain opt-in experiments.
 | `clear-zone-vantage-probe.md` | DRAFT | Decide whether ClearZone should ask the vantage probe before dropping a target; measured as a one-fixture-each-way trade. |
 | `zone-graph-tiled-rebuild.md` | DRAFT | Scope `ZoneGraph.rebuild()` to the cells that changed; a 26 ms whole-map rebuild on the cell-less dirty path is the largest number left on a breach tick. |
 | `shared-goal-field-cadence.md` | DRAFT | Stop regrowing every shared-goal reverse field on a fifteen-snapshot clock; a 20 ms whole-map Dijkstra per goal per fifteen ticks is the early-battle spike and half of a serial replay's simulation time. |
+| `reactive-garrisons.md` | DRAFT | Fort belts manned from the defender pool only under believed pressure, released after it passes, falling back to the works when breached; first consumer of `garrisonables.md`. |
 
 See `stories.md` in the Mission Command feature for foundation, evidence,
 Conquest, Sabotage, Assault, Raid, Extraction, intervention, and faction-command
