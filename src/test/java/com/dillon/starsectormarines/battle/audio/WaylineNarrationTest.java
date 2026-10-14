@@ -26,22 +26,21 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
-    @Test void salvageBargainRetainsEightStableTurnsAndResolvesTranslationsAtPresentation() throws Exception {
+    @Test void salvageScopeRetainsMatchingAudioAndResolvesTranslationsAtPresentation() throws Exception {
         var catalog = catalog();
         var turns = catalog.briefing("story_shepherd_salvage");
         assertEquals(List.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
-                "basin_salvage_briefing_03", "basin_salvage_briefing_04",
-                "basin_salvage_briefing_05", "basin_salvage_briefing_06",
-                "basin_salvage_briefing_07", "basin_salvage_briefing_08"),
+                "basin_salvage_scope_01", "basin_salvage_briefing_08"),
                 turns.stream().map(WaylineNarration.Line::id).toList());
         try (var translation = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
             for (int index = 0; index < turns.size(); index++) {
                 var turn = turns.get(index);
-                assertEquals("briefing.0" + (index + 1), turn.event());
-                assertEquals(Strings.get("shepherdSalvageBriefTurn" + (index + 1)), turn.text());
+                assertEquals(List.of("briefing.01", "briefing.02", "briefing.03", "briefing.08").get(index), turn.event());
+                assertEquals(Strings.get(List.of("shepherdSalvageBriefTurn1", "shepherdSalvageBriefTurn2",
+                        "shepherdSalvageScope", "shepherdSalvageBriefTurn8").get(index)), turn.text());
                 assertTrue(turn.text().startsWith("Translated "));
-                assertTrue(turn.voiced());
-                assertEquals(index == 1 || index == 3 || index == 5
+                assertEquals(index != 2, turn.voiced());
+                assertEquals(index == 1
                         ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", turn.portrait());
             }
             assertEquals("Literal survives", new WaylineNarration.Line("literal", "chapter", "briefing",
@@ -50,6 +49,30 @@ class WaylineNarrationTest {
         try (var original = new HeadlessStrings(Path.of("mod"))) {
             assertFalse(turns.get(0).text().startsWith("Translated "), "Catalog must not freeze translation");
         }
+    }
+
+    @Test void passageNegotiationHasItsOwnOrderedLocalizedScriptWithoutRetiredAudio() throws Exception {
+        var catalog = catalog();
+        var turns = catalog.briefing("story_shepherd_working_passage");
+        assertEquals(24, turns.size());
+        try (var translation = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
+            for (int index = 0; index < turns.size(); index++) {
+                var turn = turns.get(index);
+                assertEquals(index < 23 ? "basin_passage_negotiation_%02d".formatted(index + 1)
+                        : "basin_passage_instructions_01", turn.id());
+                assertEquals(Strings.get(index < 23 ? "shepherdPassageNegotiation" + (index + 1)
+                        : "shepherdPassageInstructions"), turn.text());
+                assertFalse(turn.voiced(), "Rewritten terms have no recording yet");
+                assertEquals(index < 23 && index % 2 == 1
+                        ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", turn.portrait());
+            }
+        }
+        Set<String> retired = Set.of("basin_salvage_briefing_03", "basin_salvage_briefing_04",
+                "basin_salvage_briefing_05", "basin_salvage_briefing_06",
+                "basin_salvage_briefing_07", "basin_passage_briefing");
+        assertFalse(catalog.lines().stream().anyMatch(line -> retired.contains(line.id())));
+        JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json")).replaceAll("(?m)#.*$", ""));
+        for (String id : retired) assertFalse(sounds.has(id), "Obsolete bargain must not remain playable");
     }
 
     @Test void briefingTurnsRetainAuthoredOrderAndExcludeOtherEventsAndMissions() {
@@ -71,7 +94,7 @@ class WaylineNarrationTest {
             var entry = entries.getJSONObject(i);
             if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
             boolean recorded = entry.getString("id").startsWith("basin_salvage_briefing_") || List.of("basin_briefing", "basin_cold_start_turret_ready", "basin_passage_underway",
-                    "basin_cold_start_power_restored", "basin_cold_start_complete", "basin_passage_briefing",
+                    "basin_cold_start_power_restored", "basin_cold_start_complete",
                     "basin_passage_bend_build", "basin_passage_militia_hold_0", "basin_passage_narrows_build",
                     "basin_passage_militia_hold_1", "basin_passage_departure", "basin_passage_complete")
                     .contains(entry.getString("id"));
@@ -180,9 +203,9 @@ class WaylineNarrationTest {
                 }
             }
             assertEquals(1, matching);
-            for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
+            for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior), line.id() + " supersedes " + prior);
         }
-        assertEquals(140, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(134, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 

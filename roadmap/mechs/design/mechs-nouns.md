@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — a commander may call a mech lance from a mission-declared allowance.
+Updated: 2026-10-14 — a commander may call a mech lance from a mission-declared allowance; the Sirocco cannon is the distance breacher of an assault plan.
 
 ## Purpose
 
@@ -194,6 +194,14 @@ pirate, or salvaged equipment is inherently low quality. They enter the weapon
 catalog and livery family without becoming faction defaults. The Mech Lab exposes
 them as common-market fabrication patterns whose lower material bills preserve
 that commercial floor. No faction doctrine receives one implicitly.
+
+The Sirocco's heavy cannon also carries real structural damage (140 per shell over
+a wide blast, untuned), so it opens a wall section from range over a number of
+shells: an assault plan treats it as a reliable distance breacher beside its
+anti-structure fire, and a squad ordered at a wall turns the torso onto the cell
+and fires at it (`phased-assault.md`, "Capabilities and roles"). Breaching is a
+use of the same weapon, not a separate mode.
+
 The Hound is a quick close-assault strider that lacks long-range pressure. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are

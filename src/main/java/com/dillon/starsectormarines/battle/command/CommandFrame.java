@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.satchel.DemolitionKit;
@@ -82,6 +83,8 @@ public class CommandFrame {
             boolean demolition = false;
             boolean crew = memberCount > 0;
             boolean machine = squad.isMechSquad() || squad.isDroneSquad();
+            List<Armament> arms = new ArrayList<>();
+            int walkers = 0;
             int[] memberZoneIds = new int[memberCount];
             int[] memberCellXs = new int[memberCount];
             int[] memberCellYs = new int[memberCount];
@@ -117,6 +120,18 @@ public class CommandFrame {
                 }
                 // Own-force knowledge: the kit the squad was issued, never anything about an enemy.
                 demolition |= DemolitionKit.carried(sim.world(), member);
+                if (sim.world().hasMechLoadout(member)) {
+                    for (MechWeaponMount mount : sim.world().mechLoadout(member).mounts()) {
+                        if (mount != null) arms.add(Armament.ofMount(mount));
+                    }
+                } else if (!machine) {
+                    walkers++;
+                    arms.add(Armament.ofPrimary(sim.combat().primaryWeaponDef(member)));
+                    if (sim.world().hasSecondaryWeapon(member)) {
+                        arms.add(Armament.ofSpecial(sim.world().specialEquipment(member),
+                                sim.world().secondaryAmmo(member)));
+                    }
+                }
                 crew &= sim.ambientHeld(member);
             }
             if (detail) {
@@ -153,7 +168,8 @@ public class CommandFrame {
                     contact.doctrine().name(),
                     contact.contactInitiative().name(), coolingDownMembers,
                     memberZoneIds, memberCellXs, memberCellYs,
-                    squad.commandGroupIdentity, demolition, crew, machine));
+                    squad.commandGroupIdentity, demolition, crew, machine,
+                    CapabilityProfile.of(arms, walkers, memberCount)));
             if (detail) publicationNanos += System.nanoTime() - rowStageStarted;
         }
         long sortStarted = detail ? System.nanoTime() : 0L;

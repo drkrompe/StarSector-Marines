@@ -38,6 +38,8 @@ import java.awt.Color;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
+import com.dillon.starsectormarines.battle.story.ColdStartProgress;
+import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import java.util.Map;
 import java.nio.file.Files;
@@ -139,7 +141,7 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         frames.add(document(context, renderer, "contract-board.png", MissionSelectScreen.COMPONENT_PATHS,
                 MissionSelectScreen.ROOT_COMPONENT, board));
 
-        addBriefingFrames(context, renderer, mission, frames);
+        addBriefingFrames(context, renderer, mission, frames, "salvage-");
         try (var strings = new HeadlessStrings(context.modRoot(), SalvageRightsSnapshotSuite::expandDialogueCopy)) {
             var translatedMission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
             var translatedBoard = boardProps(new ShepherdRecoveryProgress(), translatedMission);
@@ -157,7 +159,35 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         debrief.put("resultRows", ResultsScreen.resultRows(result, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
         debrief.put("squadRows", List.of());
         ResultsScreen.putStoryDebrief(debrief,result);
-        frames.add(document(context,renderer,"recovery-agreement.png",ResultsScreen.COMPONENT_PATHS,ResultsScreen.ROOT_COMPONENT,debrief));
+        frames.add(document(context,renderer,"salvage-victory-debrief.png",ResultsScreen.COMPONENT_PATHS,ResultsScreen.ROOT_COMPONENT,debrief));
+        String claim = progress.missionId();
+        assertTrue(progress.begin(claim, "Asharu"));
+        progress.settle(claim, "Asharu", true, ShepherdRecoveryProgress.PAYMENT, 0, true);
+        var coldMission = ShepherdRecoveryCampaign.offer(progress, "Asharu");
+        var coldOutcome = MissionOutcome.builder().mission(coldMission).victory(true)
+                .payoutEarned(ShepherdRecoveryProgress.COLD_PAYMENT).marinesEngaged(24).marinesLost(3)
+                .alliesEngaged(16).alliesLost(1)
+                .coldStart(new ColdStartProgress.Report(true, true, true, true, 1)).build();
+        addStoryDebrief(context, renderer, frames, "cold-start-victory-transition.png", coldOutcome);
+        String repair = progress.missionId();
+        assertTrue(progress.begin(repair, "Asharu"));
+        progress.settleColdStart(repair, "Asharu", true, ShepherdRecoveryProgress.COLD_PAYMENT,
+                1, true, true, true, true);
+        var passageMission = ShepherdRecoveryCampaign.offer(progress, "Asharu");
+        frames.add(document(context, renderer, "working-passage-contract-terms.png", MissionSelectScreen.COMPONENT_PATHS,
+                MissionSelectScreen.ROOT_COMPONENT, boardProps(progress, passageMission)));
+        try (var strings = new HeadlessStrings(context.modRoot(), SalvageRightsSnapshotSuite::expandDialogueCopy)) {
+            var expandedMission = ShepherdRecoveryCampaign.offer(progress, "Asharu");
+            frames.add(document(context, renderer, "working-passage-contract-terms-expanded.png", MissionSelectScreen.COMPONENT_PATHS,
+                    MissionSelectScreen.ROOT_COMPONENT, boardProps(progress, expandedMission)));
+            frames.add(document(context, renderer, "working-passage-contract-terms-expanded-conversation-end.png", MissionSelectScreen.COMPONENT_PATHS,
+                    MissionSelectScreen.ROOT_COMPONENT, boardProps(progress, expandedMission)));
+        }
+        addBriefingFrames(context, renderer, passageMission, frames, "working-passage-");
+        var passageOutcome = MissionOutcome.builder().mission(passageMission).victory(true).payoutEarned(0)
+                .marinesEngaged(24).marinesLost(3).alliesEngaged(8).alliesLost(1)
+                .workingPassage(new WorkingPassageProgress.Report(true, false, false, 1)).build();
+        addStoryDebrief(context, renderer, frames, "working-passage-completion-reward.png", passageOutcome);
         var hq = CompanyHqViewModel.preview().props();
         hq.put("openingGuide", new ShepherdRecoveryWorkGuide(progress, null, none));
         var desk = new CompanyHqNewsDesk(new Reactor());
@@ -166,6 +196,16 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                 "data/ui/components/company/company-resource-stock.mlx",
                 "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
                 "data/ui/components/company/company-hq.mlx"), "company-hq", hq));
+    }
+
+    private void addStoryDebrief(SnapshotContext context, HeadlessUiRenderer renderer,
+                                 List<SnapshotArtifact> frames, String filename, MissionOutcome outcome) throws Exception {
+        var props = ResultsScreen.previewProps(true, false);
+        props.put("missionName", outcome.missionName);
+        props.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
+        props.put("squadRows", List.of());
+        ResultsScreen.putStoryDebrief(props, outcome);
+        frames.add(document(context, renderer, filename, ResultsScreen.COMPONENT_PATHS, ResultsScreen.ROOT_COMPONENT, props));
     }
 
     private static Map<String, Object> boardProps(ShepherdRecoveryProgress progress, Mission mission) {
@@ -190,10 +230,10 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
     }
 
     private void addBriefingFrames(SnapshotContext context, HeadlessUiRenderer renderer, Mission mission,
-                                   List<SnapshotArtifact> frames) throws Exception {
+                                   List<SnapshotArtifact> frames, String prefix) throws Exception {
         var props = BriefingViewModel.campaignPreviewProps(false);
         props.put("missionTitle", mission.name);
-        props.put("missionKicker", "SALVAGE RIGHTS / ASHARU");
+        props.put("missionKicker", mission.name.toUpperCase() + " / ASHARU");
         MissionDialogue.put(props, "mission", mission);
         BriefingViewModel.putReward(props, mission);
         BriefingViewModel.putFactionIdentity(props, "employer", "Basin Reclamation Cooperative", null);
@@ -203,16 +243,22 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         BriefingViewModel.putLandingCraft(props, mission,
                 List.of(FittedBoat.standard(ShuttleType.AEROSHUTTLE), FittedBoat.standard(ShuttleType.AEROSHUTTLE)),
                 24, "Second Wind");
-        props.put("missionRows", List.of(
+        boolean passage = ShepherdRecoveryProgress.workingPassage(mission.id);
+        props.put("missionRows", passage ? List.of(
+                BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
+                BriefingViewModel.info("departure", "Departure", "Escort Morrow through the pump bend and narrows to the eastern yard", "")) : List.of(
                 BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
                 BriefingViewModel.info("inspection", "Inspection", "Protect both technicians at Morrow's southern service access", "")));
-        props.put("employerRows", List.of(
+        props.put("employerRows", passage ? List.of(
+                BriefingViewModel.info("basin-holders", "Vale's holders", "Occupy the prepared road defenses", ""),
+                BriefingViewModel.info("basin-builders", "Morrow's builders", "Build road guns within reach of the hovering tender", "")) : List.of(
                 BriefingViewModel.info("basin-militia", "Vale's militia", "Follow the company into the receiving store and workshop", ""),
                 BriefingViewModel.info("basin-technicians", "Inspection party", "Two technicians / Morrow's southern service access", "")));
         var audio = new BriefingReviewAudio();
         var comms = new BriefingComms(new NarrationPlayer(audio::play));
         var recordings = WaylineNarration.parse(new JSONObject(Files.readString(
-                context.modRoot().resolve(WaylineNarration.PATH)))).briefing("story_shepherd_salvage");
+                context.modRoot().resolve(WaylineNarration.PATH)))).briefing(WaylineNarration.storyMissionId(mission));
+        var turns = BriefingComms.conversation(mission, recordings);
         comms.enter(mission, recordings);
         comms.advance(0, false);
         comms.put(props);
@@ -228,36 +274,46 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             instance.styles().forEach(document::addStyleSheet);
             comms.update(instance);
             BriefingViewModel.updateNarration(instance, comms.busy());
-            String[] filenames = {"briefing-comms-01-vale.png", "briefing-comms-02-castle.png",
-                    "briefing-comms-03-vale.png", "briefing-comms-04-negotiation.png",
-                    "briefing-comms-05-vale.png", "briefing-comms-06-castle.png",
-                    "briefing-comms-07-vale.png", "briefing-comms-08-instructions.png"};
-            for (int turn = 0; turn < recordings.size(); turn++) {
-                assertSame(recordings.get(turn), comms.current().recording());
-                assertTrue(comms.busy(), "Each voiced turn owns an audio handle");
-                addCommsFrame(renderer, document, frames, filenames[turn]);
-                assertCommsGeometry(document, instance, turn == 1 || turn == 3 || turn == 5);
-                assertEquals((turn + 1) + " / 8", instance.requireElement("mission-comms-status").text());
+            for (int turn = 0; turn < turns.size(); turn++) {
+                var authored = turns.get(turn);
+                assertEquals(authored, comms.current());
+                assertEquals(authored.recording() != null && authored.recording().voiced(), comms.busy(),
+                        "Voiced turns own playback; revised copy advances by reading time");
+                addCommsFrame(renderer, document, frames,
+                        prefix + String.format("briefing-comms-%02d-%s.png", turn + 1, authored.key()));
+                assertCommsGeometry(document, instance, authored.portrait());
+                var transcript = instance.requireElement("mission-comms-transcript");
+                var body = instance.requireElement("mission-comms-text");
+                if (body.box().borderBox().bottom() > transcript.box().contentBox().bottom()) {
+                    transcript.scrollTop(body.box().borderBox().bottom() - transcript.box().contentBox().bottom());
+                    addCommsFrame(renderer, document, frames,
+                            prefix + String.format("briefing-comms-%02d-%s-end.png", turn + 1, authored.key()));
+                    assertTrue(body.box().borderBox().bottom() <= transcript.box().contentBox().bottom() + 1f,
+                            "Final spoken line is accessible through the transcript scroll pane: " + authored.key());
+                }
+                assertEquals((turn + 1) + " / " + turns.size(), instance.requireElement("mission-comms-status").text());
                 if (turn == 0) {
                     clickControl(document, instance, "mission-deploy", false);
                     assertEquals(1, deployments[0], "Inline conversation leaves deployment controls available");
                 }
                 advanceCommsTurn(comms, document, instance, audio);
             }
-            assertEquals(recordings.stream().map(WaylineNarration.Line::id).toList(), audio.heard);
-            assertEquals(8, audio.stopped, "Every completed turn stops its owned handle");
+            var voiced = turns.stream().map(BriefingComms.Turn::recording)
+                    .filter(line -> line != null && line.voiced()).map(WaylineNarration.Line::id).toList();
+            assertEquals(voiced, audio.heard);
+            assertEquals(voiced.size(), audio.stopped, "Every completed voiced turn stops its owned handle");
             assertFalse(comms.visible(), "The final turn completes automatically");
             assertNull(instance.requireElement("mission-comms-dialog").parent(), "Hidden dialog leaves the layout tree");
-            addCommsFrame(renderer, document, frames, "predeployment-briefing.png");
+            addCommsFrame(renderer, document, frames, prefix + "predeployment-briefing.png");
             clickControl(document, instance, "mission-deploy", true);
             assertEquals(2, deployments[0], "Automatic completion leaves planning input available");
             clickControl(document, instance, "mission-narration-replay", true);
             comms.advance(0, false);
             comms.update(instance);
             BriefingViewModel.updateNarration(instance, comms.busy());
-            addCommsFrame(renderer, document, frames, "briefing-comms-replay.png");
-            assertEquals("vale", comms.current().key());
-            assertCommsGeometry(document, instance, false);
+            addCommsFrame(renderer, document, frames, prefix + "briefing-comms-replay.png");
+            assertEquals(turns.get(0).key(), comms.current().key());
+            assertCommsGeometry(document, instance, turns.get(0).portrait());
             clickControl(document, instance, "mission-comms-skip", true);
             comms.update(instance);
             BriefingViewModel.updateNarration(instance, comms.busy());
@@ -323,7 +379,7 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         document.advance(.25f);
     }
 
-    private static void assertCommsGeometry(UiDocument document, MarkupInstance instance, boolean castle) {
+    private static void assertCommsGeometry(UiDocument document, MarkupInstance instance, String portraitSource) {
         for (String id : List.of("mission-comms-next", "mission-comms-previous")) {
             assertThrows(IllegalArgumentException.class, () -> instance.requireElement(id),
                     "Continuous conversation has no manual turn control: " + id);
@@ -332,12 +388,17 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         var body = instance.requireElement("mission-comms-text");
         var contact = instance.requireElement("mission-briefing-speaker").box().borderBox();
         var dialogue = instance.requireElement("mission-comms-dialog").box().borderBox();
+        var transcript = instance.requireElement("mission-comms-transcript").box().borderBox();
         var controls = instance.requireElement("mission-comms-controls").box().borderBox();
         var header = instance.requireElement("mission-briefing-header").box().borderBox();
-        assertEquals(castle ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", portrait.imageSource());
+        assertEquals(portraitSource, portrait.imageSource());
         assertTrue(portrait.box().borderBox().width() > 0);
         assertTrue(contact.bottom() <= dialogue.y(), "Speaking portrait heads the conversation column");
-        assertTrue(body.box().borderBox().bottom() <= controls.y(), "Current dialogue remains above its controls");
+        assertTrue(transcript.bottom() <= controls.y(),
+                "Clipped dialogue viewport remains above its controls: turn="
+                        + instance.requireElement("mission-comms-status").text()
+                        + " body=" + body.box().borderBox() + " transcript=" + transcript
+                        + " controls=" + controls + " text=" + body.text());
         assertTrue(dialogue.x() < 500 && dialogue.right() < 500, "Conversation occupies the left column");
         for (String id : List.of("mission-threat", "mission-reward")) {
             var box = instance.requireElement(id).box().borderBox();

@@ -98,7 +98,7 @@ class WeaponRegistryParityTest {
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID),
                 26f, 45f, 0.76f, 2.5f, 18f,
                 1, 0f, 0.12f, 86.666664f, 0.30f, 0f,
-                1f, 18, 0.9f, false, false, 1f,
+                1f, 140, 1.1f, false, false, 1f,
                 new Color(0xFF, 0xD0, 0x88), ImpactKind.CANNON_HE,
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
         WeaponDef demolition = WeaponRegistry.require(
