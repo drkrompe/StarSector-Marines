@@ -1,16 +1,15 @@
 package com.dillon.starsectormarines.ops.loot;
 
-import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
-import com.dillon.starsectormarines.marine.FactionEquipmentPicker;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCardPicker;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.List;
 import java.util.Set;
 
-/** Selects at most one faction-authored template candidate for high-risk salvage. */
+/** Selects at most one faction-authored loadout-card candidate for high-risk salvage. */
 final class EquipmentTemplateRecoveryCatalog {
 
     private static final long SEED_SALT = 0x1ff2a7c67b93e451L;
@@ -28,14 +27,14 @@ final class EquipmentTemplateRecoveryCatalog {
                 || unitValue <= 0) {
             return List.of();
         }
-        List<String> selected = FactionEquipmentPicker.pick(request.targetFactionId,
+        List<String> selected = LoadoutCardPicker.pick(request.targetFactionId,
                 FactionEquipmentSource.RECOVERY, 1,
                 LootRoller.seedOf(request) ^ SEED_SALT, unavailableTemplateIds,
                 progress);
         if (selected.isEmpty()) return List.of();
-        EquipmentTemplateCard template = EquipmentTemplateCatalog.require(selected.get(0));
-        return List.of(new LootCandidate(LootKind.SPECIAL, template.id(),
-                template.displayName(), iconPath, unitValue, cargoPerUnit,
+        LoadoutCard card = LoadoutCard.parse(selected.get(0));
+        return List.of(new LootCandidate(LootKind.SPECIAL, card.id(),
+                card.displayName(), iconPath, unitValue, cargoPerUnit,
                 MANIFEST_WEIGHT, 1, 1));
     }
 }

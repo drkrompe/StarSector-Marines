@@ -353,9 +353,9 @@ the duration targets remain tuning goals until measured playback and live review
   playback seeds with no Hound or tube: 4 won, the company averaging about 6 of
   24 alive. Longbow skirmishers outrange the company's rifles. The player's
   recovered Hound, called at the first pad as the campaign resolves it for an
-  owned mech bay (`-Dbattle.coldStart.hound=true`), wins all 8 (about 10 alive);
-  one mortar team with the outranged trial switch
-  (`battle.mortar.answerOutranging`, see `phased-assault.md`) wins 7 (about 13);
+  owned mech bay, wins all 8 (about 10 alive);
+  one mortar team allowed to set up while outranged (an
+  experiment, since removed; see `phased-assault.md`) wins 7 (about 13);
   both together win all 8 with about 18 alive. Decide which the mission should
   expect before tuning the Longbows. Salvage Rights is marginal:
   the inspection crew dies in one or both seeds depending on small layout

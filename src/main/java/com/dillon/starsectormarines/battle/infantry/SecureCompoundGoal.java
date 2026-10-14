@@ -93,8 +93,16 @@ public final class SecureCompoundGoal implements Goal {
 
         int from = ZoneQueries.squadCurrentZone(squad, sim);
         if (from == to) {
+            // The squad is in the compound's zone, which after a breach may be the street as well. What is cleared is
+            // the compound's own ground, entered at its capture cell.
+            CompoundService.Record record = sim.getCompoundService().getRecord(node);
             List<SquadPlan.Step> steps = new ArrayList<>(2);
-            if (!ZoneQueries.zoneClearOfHostiles(to, squad.faction, sim)) {
+            if (record != null && record.captureCellX >= 0) {
+                if (!ZoneQueries.areaClearOfHostiles(to, record.area, squad.faction, sim)) {
+                    steps.add(new SquadPlan.Step(new ClearZone(to, record.area,
+                            record.captureCellX, record.captureCellY)));
+                }
+            } else if (!ZoneQueries.zoneClearOfHostiles(to, squad.faction, sim)) {
                 steps.add(new SquadPlan.Step(new ClearZone(to)));
             }
             int[][] cells = HoldZone.pickHoldCells(node, to, squad.autonomousMemberCount(sim), sim);
