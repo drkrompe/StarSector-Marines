@@ -45,6 +45,7 @@ final class BriefingViewModel {
         props.put("missionDialogueStyle", MissionDialogue.HIDDEN_STYLE);
         props.put("missionFlavorStyle", "");
         putNarration(props, null, false);
+        new BriefingComms().put(props);
         props.put("replayNarrationAction", (Runnable) () -> { });
         props.put("stopNarrationAction", (Runnable) () -> { });
         putLeadership(props, false, false);
@@ -219,7 +220,7 @@ final class BriefingViewModel {
     private static String narrationRole(WaylineNarration.Line line) {
         String speaker = line.speaker();
         int slash = speaker == null ? -1 : speaker.indexOf('/');
-        if (slash < 0 || speaker.substring(slash + 1).isBlank()) return Strings.get("briefingMissionContact");
+        if (slash < 0 || speaker.substring(slash + 1).isBlank()) return MissionDialogue.speakerRole(speaker);
         String role = speaker.substring(slash + 1).trim();
         return switch (role) {
             case "WAYLINE" -> Strings.get("briefingRoleWayline");
@@ -231,7 +232,7 @@ final class BriefingViewModel {
         };
     }
     private static String narrationStatus(boolean playing) {
-        return Strings.get(playing ? "briefingNarrationPlaying" : "briefingNarrationRecording");
+        return Strings.get(playing ? "briefingNarrationPlaying" : "briefingCommsAvailable");
     }
 
     /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */
@@ -243,8 +244,10 @@ final class BriefingViewModel {
         }
         boolean narrated = Boolean.TRUE.equals(props.get("narrationAvailable"));
         markup.requireElement("mission-overview").classed("narrated", narrated);
+        UiElement stop = markup.requireElement("mission-narration-stop");
+        stop.parent().remove(stop);
         if (!narrated) {
-            for (String id : List.of("mission-briefing-speaker", "mission-narration-replay", "mission-narration-stop")) {
+            for (String id : List.of("mission-briefing-speaker", "mission-narration-replay")) {
                 UiElement control = markup.requireElement(id);
                 control.parent().remove(control);
             }

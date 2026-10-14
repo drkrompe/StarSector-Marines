@@ -149,7 +149,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/missions/mission-select.mlx");
     private static final List<String> MISSION_BRIEFING_COMPONENTS = List.of(
             "data/ui/components/missions/mission-dialogue.mlx",
-            "data/ui/components/missions/mission-briefing.mlx");
+            "data/ui/components/missions/mission-comms.mlx",
+                "data/ui/components/missions/mission-briefing.mlx");
     private static final List<String> SQUAD_DEPLOYMENT_COMPONENTS = List.of(
             "data/ui/components/missions/squad-deployment.mlx");
     private static final List<String> STATIONING_COMPONENTS = List.of(

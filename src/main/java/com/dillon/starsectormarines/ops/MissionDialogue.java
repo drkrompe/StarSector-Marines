@@ -20,11 +20,15 @@ public final class MissionDialogue {
     private MissionDialogue() { }
 
     /** Stable identity is separate from the displayed name; an empty name is unvoiced prose. */
-    public record Turn(String speakerKey, String speaker, String text) {
+    public record Turn(String speakerKey, String speaker, String text, String narrationId) {
+        public Turn(String speakerKey, String speaker, String text) {
+            this(speakerKey, speaker, text, "");
+        }
         public Turn {
             speakerKey = Objects.requireNonNull(speakerKey);
             speaker = Objects.requireNonNull(speaker);
             text = Objects.requireNonNull(text);
+            narrationId = narrationId == null ? "" : narrationId;
         }
     }
 
@@ -116,12 +120,35 @@ public final class MissionDialogue {
             case "mara" -> Strings.resolve("@dialogueSpeakerMaraVenn");
             case "rill" -> Strings.resolve("@dialogueSpeakerDrRill");
             case "iona" -> Strings.resolve("@dialogueSpeakerIonaSerr");
-            default -> speaker == null ? "" : speaker.split("/", 2)[0].strip();
+            default -> speaker == null ? "" : Strings.resolve(speaker.split("/", 2)[0].strip());
         };
     }
     /** Includes full radio labels such as CASTLE / COMPANY OPERATIONS. */
     public static String speakerStyle(String speaker) {
         return colorStyle(identity(speaker));
+    }
+
+    /** Company and contact occupy consistent sides, regardless of translated names. */
+    public static boolean speakerOnRight(String speaker) {
+        return !identity(speaker).equals("castle");
+    }
+
+    public static String speakerPortrait(String speaker) {
+        return switch (identity(speaker)) {
+            case "castle" -> "graphics/portraits/castle.png";
+            case "vale" -> "graphics/portraits/tamsin-vale.png";
+            case "mara" -> OpeningBroker.PORTRAIT;
+            default -> "";
+        };
+    }
+
+    public static String speakerRole(String speaker) {
+        return Strings.get(switch (identity(speaker)) {
+            case "castle" -> "briefingRoleCompanyOperations";
+            case "vale" -> "briefingRoleBasinReclamation";
+            case "mara", "iona" -> "briefingRoleWayline";
+            default -> "briefingMissionContact";
+        });
     }
 
     private static String identity(String speaker) {

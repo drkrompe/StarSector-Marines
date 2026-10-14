@@ -142,7 +142,7 @@ class MissionMlxTest {
             player.stop();
             BriefingViewModel.updateNarration(instance, player.busy());
             assertFalse(speaker.hasClass("speaking"));
-            assertEquals("BRIEFING RECORDING", instance.requireElement("mission-narration-status").text());
+            assertEquals("BRIEFING AVAILABLE", instance.requireElement("mission-narration-status").text());
             player.start(line);
             BriefingViewModel.updateNarration(instance, player.busy());
             assertTrue(speaker.hasClass("speaking"));

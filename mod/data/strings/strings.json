@@ -34,6 +34,13 @@
     "missionSelectVictoryAward": "Victory award",
     "missionSelect30000CreditsRecoveredSpecterCardOnceExplicit": "30,000 credits + Recovered Specter card once / explicit learning and fitting",
 
+    "briefingCommsChannel": "MISSION COMMS",
+    "briefingCommsSkip": "Skip briefing",
+    "briefingCommsNext": "Next",
+    "briefingCommsFinish": "Begin planning",
+    "briefingCommsReplay": "Replay briefing",
+    "briefingCommsProgress": "{0} / {1}",
+    "briefingCommsAvailable": "BRIEFING AVAILABLE",
     "briefingMissionContact": "Mission contact",
     "briefingRoleWayline": "WAYLINE",
     "briefingRoleCompanyOperations": "COMPANY OPERATIONS",
