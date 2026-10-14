@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
@@ -184,6 +185,9 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
         try (var sim = BattleSetup.createColdStart(fixture.seed, manifest,
                 new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ARID, SettlementLink.ROAD),
                 fixture.delivered, fixture.powered)) {
+            int mortarTeamEvery = Integer.getInteger("battle.mortarTeamEvery", 0);
+            if (mortarTeamEvery > 0) sim.setSquadSupport(sim.squadSupport().with(Faction.MARINE,
+                    new SquadSupportKit(mortarTeamEvery, 0)));
             if (!fixture.absent) deployment.applyToAuthoredPlayerLift(sim);
             var sequence = sim.getColdStart();
             long initialCarrier = sequence.repairCarrierId();
@@ -263,6 +267,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
             boolean landingFrame = true;
             boolean escortFrame = false;
             int maxTicks = Integer.getInteger("battle.coldStart.maxTicks", fixture.absent ? 3600 : 18000);
+            var mortarTally = new MortarTally();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 if (fixture.support() && supportSquad < 0 && sequence.report(sim).cargoDelivered()) {
                     var picket = sequence.pickets().get(1);
@@ -292,6 +297,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                 }
                 try {
                     sim.advance(BattleSimulation.TICK_DT);
+                    mortarTally.observe(sim);
                 } catch (RuntimeException failure) {
                     report.append("  playback exception tick=").append(sim.getSimTickIndex()).append(" phase=")
                             .append(sequence.progress().phase()).append(" target=").append(sequence.targetX()).append(',')
@@ -448,6 +454,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                         sim.getEntityWorld().getObject(unit, sim.getBattleComponents().IDENTITY,
                                 BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID))) alive++;
             }
+            report.append("  mortarTeamEvery=").append(mortarTeamEvery).append(' ').append(mortarTally.describe(sim)).append('\n');
             report.append("  final=").append(phase).append(" ticks=").append(sim.getSimTickIndex())
                     .append(" complete=").append(sim.isComplete()).append(" landed=").append(landed.size())
                     .append(" companyAlive=").append(alive).append(" companyGroundLost=").append(landed.size() - alive)
