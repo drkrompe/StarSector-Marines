@@ -410,6 +410,23 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final String MUSTER_PROPERTY = "battle.command.muster";
     static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "false"));
 
+    /**
+     * {@code -Dbattle.command.musterPlans=false} sends a committed company at the aspect as the first muster did, without
+     * the stamp's assault plan (base of fire, entry, objective, hold). Only read with the muster on.
+     */
+    public static final String PLANS_PROPERTY = "battle.command.musterPlans";
+    static boolean PLANS_ENABLED = Boolean.parseBoolean(System.getProperty(PLANS_PROPERTY, "true"));
+
+    /** Whether committed companies execute the stamp's assault plan. */
+    public static boolean musterPlansEnabled() {
+        return PLANS_ENABLED;
+    }
+
+    /** Sets the plans switch; the caller restores it. For scenes and evidence controls only. */
+    public static void setMusterPlansEnabled(boolean enabled) {
+        PLANS_ENABLED = enabled;
+    }
+
     /** Whether the muster is on. For scenes and evidence controls that must hold it fixed. */
     public static boolean musterEnabled() {
         return MUSTER_ENABLED;
@@ -1011,8 +1028,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
             bodies.add(new AssaultMuster.Body(squad.id, squad.anchorCellX, squad.anchorCellY, squad.aliveMembers,
                     squad.machine, squad.demolition,
                     squad.underFireRecently || squad.moraleBroken || squad.primaryEngageableMembers > 0,
-                    squad.originalAssignment));
+                    squad.originalAssignment, squad.machine ? -1 : stripFor(squad)));
         }
+        muster.plans(PLANS_ENABLED);
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
                 hostiles, frame.topology());
         for (Map.Entry<Integer, AssaultMuster.Order> entry : result.orders().entrySet()) {
@@ -1117,7 +1135,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     }
                 }
             }
-            objectives.add(new AssaultMuster.Objective(entry.getKey(), aspects.get(0).family(), cx, cy, aspects, contacts));
+            objectives.add(new AssaultMuster.Objective(entry.getKey(), aspects.get(0).family(), cx, cy, aspects, contacts,
+                    aspects.get(0).works()));
         }
         return objectives;
     }
@@ -3107,7 +3126,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         if (reason == AssignmentReason.GROUP_BOUNDED_RALLY
                 || reason == AssignmentReason.MUSTER_FOOTHOLD || reason == AssignmentReason.MUSTER_GATHER
-                || reason == AssignmentReason.ASSAULT_COMMIT || reason == AssignmentReason.ASSAULT_COMPANY_RALLY) {
+                || reason == AssignmentReason.ASSAULT_COMMIT || reason == AssignmentReason.ASSAULT_COMPANY_RALLY
+                || reason == AssignmentReason.ASSAULT_BASE_OF_FIRE || reason == AssignmentReason.ASSAULT_STAGE
+                || reason == AssignmentReason.ASSAULT_ENTRY || reason == AssignmentReason.ASSAULT_HOLD) {
             return CommandStabilityBreak.CONTEXT_INVALIDATED;
         }
         if (old.kind() == AssignmentKind.SECURE_COMPOUND
