@@ -50,7 +50,11 @@ layer is what a squad falls back to when the one in front of it is lost.
 - **Reactive manning.** A garrisonable is manned in proportion to believed
   pressure on it, read from the side's own faction influence, never from hostile
   truth. A quiet garrisonable is empty and its would-be garrison stays in the
-  mobile pool. This generalises what standing to already does for a held
+  mobile pool, except for a token picket where a place must be watched to be
+  defended at all: pressure is belief, and an empty place nobody can see raises
+  none. A fort keeps a small picket at its main gate, and its guns report what
+  they engage, so even an unmanned fort raises the alarm that brings its
+  garrison. This generalises what standing to already does for a held
   building's apertures, from "which windows" to "which places".
 - **Hysteresis.** Manning starts above one pressure level and ends below a lower
   one, after a dwell, so a squad is not marched in and out of a trench on every

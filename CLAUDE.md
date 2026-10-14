@@ -266,7 +266,10 @@ Do not run builds or leave generated task files there.
   `-Dbattle.garrison.flow=false` stops pressure-driven staging and
   `-Dbattle.garrison.fromRally=false` stops manning from taking just-rallied
   patrols (both are needed for the pre-flow behaviour).
-  `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow. The fort report carries a
+  `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow.
+  `-Dbattle.fort.picketSize=0` seats no picket at a fort's main gate (default 4)
+  and `-Dbattle.command.fortReports=false` stops fort guns reporting their
+  targets to their commander; both are the blind-fort controls. The fort report carries a
   `pressure flow:` line and a fighting-position use block per faction. Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add

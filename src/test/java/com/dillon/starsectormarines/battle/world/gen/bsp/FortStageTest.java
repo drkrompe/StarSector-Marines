@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
+import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
@@ -76,18 +78,38 @@ class FortStageTest {
     }
 
     @Test
-    void aReactiveBeltPublishesNoBornGarrison() {
+    void aReactiveBeltSeatsOneTokenPicketByTheMainGate() {
         FortStage.setBornBeltGarrisonForEvidence(false);
+        FortStage.setPicketForEvidence(true);
         try {
             for (int turn = 0; turn < 4; turn++) {
                 GenContext ctx = field(declared(1));
-                FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, turn), 0);
+                CompoundLayout.Placement at = BatteryFort.layout().at(60, 40, turn);
+                FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
 
-                assertTrue(ctx.tactical.isEmpty(), "the belt is empty until the defender commander mans it, turn " + turn);
+                assertEquals(1, ctx.tactical.size(), "one picket holds the belt until the commander mans the rest, turn " + turn);
+                TacticalNode picket = ctx.tactical.get(0);
+                assertEquals(TacticalNode.Kind.GUARDPOST, picket.kind);
+                assertTrue(picket.garrisonSize <= FortStage.PICKET_SIZE && picket.garrisonSize > 0, "a token force, turn " + turn);
+                FortPlan.Gate gate = BatteryFort.PLAN.gates().get(0);
+                int[] mouth = at.cell(gate.mouthX(), gate.mouthY());
+                int nearestOther = Integer.MAX_VALUE;
+                for (FortPlan.Gate other : BatteryFort.PLAN.gates().subList(1, BatteryFort.PLAN.gates().size())) {
+                    int[] m = at.cell(other.mouthX(), other.mouthY());
+                    nearestOther = Math.min(nearestOther, Math.abs(m[0] - picket.anchorX) + Math.abs(m[1] - picket.anchorY));
+                }
+                int toMain = Math.abs(mouth[0] - picket.anchorX) + Math.abs(mouth[1] - picket.anchorY);
+                assertTrue(toMain <= nearestOther, "the picket stands by the main gate, turn " + turn);
                 assertFalse(ctx.doodads.isEmpty(), "the trenches and sandbags themselves still stand");
             }
+
+            FortStage.setPicketForEvidence(false);
+            GenContext bare = field(declared(1));
+            FortStage.stamp(bare, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
+            assertTrue(bare.tactical.isEmpty(), "with no picket the belt is empty until the commander mans it");
         } finally {
             FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
+            FortStage.setPicketForEvidence(BeltGarrisonMode.current().picket());
         }
     }
 

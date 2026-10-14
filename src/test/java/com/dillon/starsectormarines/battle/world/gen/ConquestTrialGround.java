@@ -81,6 +81,8 @@ public final class ConquestTrialGround {
                 LANE_X - 20, LANDING_Y - 10, LANE_X + 20, LANDING_Y + 12, Faction.MARINE, 20, 0));
         sites.add(objective);
         sites.add(keep);
+        // The fort's own nodes: its token picket, or every belt nest under the static control.
+        sites.addAll(c.tactical);
 
         int[][] claim = new int[WIDTH][HEIGHT];
         for (int x = keepRoom.left; x <= keepRoom.right; x++) {

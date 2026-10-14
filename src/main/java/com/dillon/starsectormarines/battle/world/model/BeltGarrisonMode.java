@@ -8,8 +8,8 @@ import java.util.Locale;
  * to pressure, so a control run cannot switch on half of a mode.
  *
  * <ul>
- *   <li>{@link #REACTIVE} (default; also {@code reactive}): belts are empty while quiet and the commander mans the ones
- *       under believed pressure from its mobile pool.</li>
+ *   <li>{@link #REACTIVE} (default; also {@code reactive}): a token picket holds each fort's belt by its main gate
+ *       from the first tick, and the commander mans the rest under believed pressure from its mobile pool.</li>
  *   <li>{@link #STATIC} ({@code static} or {@code true}): each belt nest seats a born garrison from the first tick, the
  *       behaviour reactive manning replaced. A same-build control.</li>
  *   <li>{@link #OFF} ({@code false} or {@code off}): no belt garrison of either kind.</li>
@@ -30,6 +30,14 @@ public enum BeltGarrisonMode {
     /** Whether the generator seats a born squad at each belt nest. */
     public boolean bornGarrison() {
         return this == STATIC;
+    }
+
+    /**
+     * Whether each fort seats a token picket by its main gate: the eyes that raise the pressure the reactive pool
+     * answers, and somebody in the works when it is rushed. Its size is {@code battle.fort.picketSize}.
+     */
+    public boolean picket() {
+        return this == REACTIVE;
     }
 
     /** Whether the defender commander mans belts under pressure. */
