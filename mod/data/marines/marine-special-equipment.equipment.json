@@ -501,12 +501,12 @@
           "replacePrimaryWhileUsing": false
         },
         "layerClips": {
-          "variant": "satchel",
+          "variant": "radio",
           "using": "planting"
         },
         "preview": {
-          "state": "carried",
-          "phase": 0.0
+          "state": "using",
+          "phase": 0.56
         }
       }
     },
