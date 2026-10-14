@@ -4,6 +4,7 @@ Status: PLANNED — design agreed in outline; numbers are starting points for
 measurement, not settled balance.
 
 Written: 2026-10-14
+Updated: 2026-10-14 — medic holds fire while treating; planted vs keep-moving left to the balance pass.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -88,9 +89,27 @@ Starting numbers, for a 25 HP marine who takes 18 from one rifle hit:
 
 The channel ends when its time is up, when the patient is healed to its maxima,
 when either marine dies, or when the patient leaves reach. Breaking under fire
-and holding fire while treating were both considered and **not** adopted. The
-limits are supplies, recovery and cooldown. Whether the medic can shoot
-mid-channel is an open question below.
+was considered and **not** adopted. The limits are supplies, recovery and
+cooldown, plus the two costs below.
+
+**The medic holds fire while treating.** A treatment costs the squad that rifle
+for its duration. This is decided, not a balance knob: hands on the patient are
+the price of the treatment.
+
+**Whether treatment stops movement is left to the balance pass**, so both modes
+are built and selectable:
+
+- **Planted.** Medic and patient both hold position for the channel. This is the
+  cheaper and more vulnerable treatment: two marines stationary for five
+  seconds. A squad advancing under orders leaves them behind for that time and
+  the cohesion pull brings them back afterwards.
+- **Keep moving.** Neither marine stops. The medic follows the patient and keeps
+  treating while the patient is within reach, so a squad on the move is not
+  slowed by its own medicine. Reach failing is the usual way it ends.
+
+A battle switch picks the mode for measurement. Whether "keep moving" then
+becomes a player-facing option, such as a squad stance or per-order choice, is
+decided from that measurement (open question 2).
 
 ## Re-plating broken armor
 
@@ -129,8 +148,10 @@ This must stay inside the yield and goal rules the scenes have already enforced:
   clears the zone; the medic peels off only within the leash.
 - A medic with nobody to treat does not invent work (`YieldFreezeScene`'s
   lesson). Plan-less ticks and wandering are both regressions.
-- The patient does not stop and wait. Reach failing is how a moving patient
-  ends a treatment, and that is acceptable.
+- In planted mode a held marine is held by exactly one caller per tick. The
+  treatment owns the hold and hands it back when the channel ends, so the
+  `FiringLineScene` one-mover rule still holds. In keep-moving mode the
+  treatment never moves the patient; only the medic follows.
 
 ## Out of scope
 
@@ -148,10 +169,9 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 
 1. **Player-chosen medic billet.** A fixed billet is simplest and legible. A
    per-squad choice in the company view is more flexible but is new UI.
-2. **Firing while channelling.** Planted and not firing reads as kneeling over
-   someone and costs a rifle for five seconds. Firing while treating is more
-   forgiving. The user did not pick "medic can't fire" as a limit, so this needs
-   a call.
+2. **Planted or keep moving.** Both are built behind a switch. The balance pass
+   decides the default, and whether "keep moving" becomes a player-facing option
+   (squad stance or per-order choice) rather than only a tuning control.
 3. **Presentation.** A use pose and treatment FX for the medic, a mark on the
    patient, and the designated medic legible on the field and on the squad card
    (`company-view-nouns.md` already uses an amber medical mark for *wounded*;
@@ -165,10 +185,12 @@ This must stay inside the yield and goal rules the scenes have already enforced:
   transition.
 - A `BehaviorScene` (`squad-medic`) with verdicts under `sceneEvidence` and
   frames under `createSnapshots` at 1920x1080 / 100%: a wounded squad with a
-  designated medic against an identical squad with the specialty off, plus a
+  designated medic against an identical squad with the specialty off, the same
+  medic squad advancing under an order in planted and in keep-moving mode, and a
   loop where the patient walks out of reach mid-channel. Readings: health and
-  armor restored, treatments started/completed/interrupted, plan-less ticks,
-  medic distance from squad centroid.
+  armor restored, treatments started/completed/interrupted, rounds the medic
+  fired while channelling (must be zero), plan-less ticks, medic distance from
+  squad centroid, and time for the squad to reach its order in each mode.
 - The armor-restored fact is consumed by every current armor-break consumer, or
   each one is shown to be correct without it.
 - Dossier shows the specialty's exact effects per rank; the squad card shows
