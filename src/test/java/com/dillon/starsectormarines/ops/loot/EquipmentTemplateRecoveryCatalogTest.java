@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.ops.loot;
 
-import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
-import com.dillon.starsectormarines.marine.FactionEquipmentSource;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
+import com.dillon.starsectormarines.marine.EquipmentAccessTier;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,7 @@ class EquipmentTemplateRecoveryCatalogTest {
         assertEquals(LootKind.SPECIAL, candidate.kind);
         assertEquals(1, candidate.minQuantity);
         assertEquals(1, candidate.maxQuantity);
-        assertTrue(FactionEquipmentCatalog.resolve("hegemony").offers(
-                candidate.itemId, FactionEquipmentSource.RECOVERY));
+        assertTrue(LoadoutCard.parse(candidate.itemId) != null);
     }
 
     @Test
@@ -42,9 +42,8 @@ class EquipmentTemplateRecoveryCatalogTest {
     @Test
     void learnedOrCarriedCardsAreExcludedBeforeTheManifestFreezes() {
         LootRollRequest request = request("tritachyon", RiskLevel.HIGH);
-        Set<String> entirePool = Set.copyOf(FactionEquipmentCatalog.resolve("tritachyon")
-                .offers(FactionEquipmentSource.RECOVERY).stream()
-                .map(offer -> offer.templateId()).toList());
+        Set<String> entirePool = Set.copyOf(LoadoutCards.all().stream()
+                .map(LoadoutCard::id).toList());
 
         assertTrue(candidates(request, entirePool).isEmpty());
     }
@@ -54,8 +53,7 @@ class EquipmentTemplateRecoveryCatalogTest {
         LootCandidate candidate = candidates(
                 request("example_oc_without_a_pool", RiskLevel.HIGH), Set.of()).get(0);
 
-        assertTrue(FactionEquipmentCatalog.resolve("independent").offers(
-                candidate.itemId, FactionEquipmentSource.RECOVERY));
+        assertTrue(LoadoutCard.parse(candidate.itemId) != null);
     }
 
     @Test
@@ -73,8 +71,10 @@ class EquipmentTemplateRecoveryCatalogTest {
 
         assertTrue(candidates(hegemony, Set.of(), 4).isEmpty());
         assertEquals(1, candidates(hegemony, Set.of(), 5).size());
-        assertTrue(candidates(tritachyon, Set.of(), 14).isEmpty());
-        assertEquals(1, candidates(tritachyon, Set.of(), 15).size());
+        assertTrue(candidates(tritachyon, Set.of(), 4).isEmpty());
+        assertEquals(1, candidates(tritachyon, Set.of(), 5).size());
+        assertTrue(LoadoutCard.parse(candidates(tritachyon, Set.of(), 14).get(0).itemId)
+                .accessTier() != EquipmentAccessTier.PRESTIGE);
     }
 
     private static List<LootCandidate> candidates(LootRollRequest request,

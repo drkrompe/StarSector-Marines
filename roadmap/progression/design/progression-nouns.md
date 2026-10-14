@@ -174,8 +174,16 @@ legibility.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
+- **Loadout card** — the acquirable form of a squad loadout: one Weapon
+  Loadout or one Tactic Sheet, learned wholesale together with the equipment it
+  needs (every weapon and special item a loadout issues; a sheet plus the armor
+  patterns it is built around). Markets, licences, patrons and salvage offer loadout
+  cards, never single equipment templates; the template stays the permanent capability
+  an Armory owns beneath the card. A card's access tier is the scarcest tier it bundles;
+  a faction offers it through a channel when the faction fields any bundled equipment
+  there. Starter issue and story-reserved equipment are never cards.
 - **Faction equipment source** — one campaign channel through which a faction
-  may make a template card available: ordinary market stock, licensed access,
+  may make a loadout card available: ordinary market stock, licensed access,
   patron reward, or operational recovery. A source declares eligibility and
   relative selection weight; it does not itself grant, sell, or recover a card.
 - **Story equipment source** — a named authored acquisition owner reserved for
@@ -199,14 +207,21 @@ legibility.
 
 Officers have a separate XP/rank ladder and permanent specialty training.
 Appointment grants one choice; each higher rank grants another. Each specialty
-has two ranks, so five lifetime points cannot master all three paths. Existing
+has two ranks, so five lifetime points cannot master all four paths. Existing
 saves receive rank-equivalent choice budgets without retroactive mission claims.
 The dossier shows exact effects, next ranks and affected home squads; deployed
 scope follows frozen command assignment, including borrowed squads.
 
 Tactical Cover improves incoming-accuracy protection by 5/10%; Recovery Planning
 shortens WIA time by 15/30%; Salvage Stewardship adds 10/20 recovery percentage
-points using the strongest participating officer only. These are independent
+points using the strongest participating officer only. Field Medicine gives
+each of the officer's squads one designated medic, without spending anybody's
+loadout: the first middle-team marine other than the leader, in seat order,
+replaced when they fall. The medic walks to the worst-hurt squadmate within
+the cohesion leash, holds fire while treating, and restores health and armor
+over a short channel from a few supplies that recover slowly; never their own
+patient. Whether medic and patient stand still for it is a balance-pass switch
+(`squad-medic.md`). These are independent
 of legacy recruitment traits and the one-shot moral outlook. Every officer
 who actually leads engaged marines receives their own mission XP and service
 entry; operation command is also credited. Per-attempt receipts prevent repeat
@@ -485,8 +500,10 @@ and Lashplate remains a collectible alternative. Cordon starts personnel in the
 existing Green experience band and carries no integral armor system. These are generic circulation categories for early companies and
 low-end defenders, not faction-equivalent powered suits.
 
-A template card may exist in fleet cargo as one parameterized Starsector special
-item whose data is the stable equipment-template id. Right-click learning follows
+A loadout card exists in fleet cargo as one parameterized Starsector special item
+whose data is the stable card id. (Story rewards that still hand out a single recovered
+armor template, and cards held from earlier saves, use the older equipment-template item,
+which keeps learning exactly as described here.) Right-click learning follows
 the familiar blueprint interaction and consumes one card only when it adds a new
 capability to `MarineArmory`; duplicates, invalid data, and an unavailable Armory
 remain unconsumed. This interaction deliberately does not implement a vanilla
@@ -1195,7 +1212,7 @@ The following are direction, not current behavior:
 - A template card is permanent capability, a squad definition is reusable
   intent, the Machine Shop fits learned kit for free, and materialized kit belongs
   to the marine. None is a synonym for another.
-- A cargo template card is consumed only by successful Armory learning. It never
+- A cargo loadout or template card is consumed only by successful Armory learning. It never
   becomes player-faction ship-production knowledge.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.

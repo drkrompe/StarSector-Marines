@@ -399,13 +399,15 @@ with disciplined fire and appropriate anti-armor equipment should overmatch thes
 rigs in exposed combat. Good terrain and supporting tactics can still matter;
 there is no automatic faction-versus-faction defeat modifier.
 
-The two recovered cards already reserve `storySource: post-shepherd-power-suits`.
-This story supplies their proposed reward owner; the marker alone does not ship
-it. The new pirate card should use the same authored source and Advanced access,
-remain outside starter grants, faction pools and collection-floor fallbacks, and
-have its complete pattern/card/presentation declaration before it can be awarded.
+The two recovered suits are ordinary Advanced early templates, a tier below their
+military patterns, offered through faction pools like any other. The Agreus rewards
+are ordinary tactic-sheet cards built around them: the Specter section (two powered
+breachers in a section of regular marines) and the Salvage-assisted section (two
+breachers and two support gunners). A new pirate suit follows the same shape: an
+ordinary template plus a light mixed sheet, with its complete pattern, template and
+presentation declaration before it can be awarded.
 
-Each award delivers its validated template card through ordinary cargo learning.
+Each award delivers its validated loadout card through ordinary cargo learning.
 Learning is explicit and permanent; fitting is an explicit free Armory transaction.
 Already learned or already-carried cards satisfy the award without creating a
 duplicate or resetting the chapter. Award entitlement is recorded once independently
