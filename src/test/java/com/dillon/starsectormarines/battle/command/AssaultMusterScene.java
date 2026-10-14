@@ -149,14 +149,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : loops) {
-            boolean restoreStanding = ConquestCommand.standingFireMissionsEnabled();
-            // The loops that judge the plan's own fire missions leave the squads' standing ones out, which would clear the works first.
-            ConquestCommand.setStandingFireMissionsEnabled(!(loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")));
-            try {
-                reports.add(report(loop, playOne(loop, window(frames))));
-            } finally {
-                ConquestCommand.setStandingFireMissionsEnabled(restoreStanding);
-            }
+            reports.add(report(loop, playOne(loop, window(frames))));
         }
         return reports;
     }
@@ -256,6 +249,10 @@ public final class AssaultMusterScene implements BehaviorScene {
         Fort fort = sim.forts().forts().get(0);
         ConquestCommand command = new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT))
                 .withAssaultStyle(loop.equals("control-trickle") ? AssaultStyle.TRICKLE : AssaultStyle.MUSTER);
+        // The loops that judge the plan's own fire missions leave the squads' standing ones out, which would clear the works first.
+        if (loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")) {
+            command.withoutStandingFireMissionsForEvidence();
+        }
         sim.setAutonomousCommander(Faction.MARINE, command, ConquestCommandDisclosure.INSTANCE);
         Trace trace = new Trace(fort, keys, world);
         trace.command = command;

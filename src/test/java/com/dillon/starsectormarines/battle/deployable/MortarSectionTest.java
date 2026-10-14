@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Tube;
 import com.dillon.starsectormarines.battle.deployable.MortarSections.Section;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.deployable.MortarSections.Stage;
-import com.dillon.starsectormarines.battle.deployable.MortarSections.Trigger;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -15,9 +14,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -46,24 +43,12 @@ class MortarSectionTest {
         InstalledHullSpecs.install();
     }
 
-    /** Most tests ask the broad trigger, so a believed target alone opens a section; the trigger tests set their own. */
-    @BeforeEach
-    void broadTrigger() {
-        MortarSections.setTriggerForEvidence(Trigger.ANY);
-    }
-
-    @AfterEach
-    void restore() {
-        MortarSections.setForEvidence(true, MortarSections.DEFAULT_WINDOW_SECONDS,
-                MortarSections.DEFAULT_EXTENSION_SECONDS, MortarSections.DEFAULT_CAP_SECONDS,
-                MortarSections.DEFAULT_COOLDOWN_SECONDS);
-        MortarSections.setTriggerForEvidence(MortarSections.DEFAULT_TRIGGER);
-        MortarSections.setIdleForEvidence(MortarSections.DEFAULT_IDLE_SECONDS);
-    }
-
-    /** Eight marines marching east, the first with a tube, and a stationary rifle squad {@code distance} cells ahead. */
+    /**
+     * Eight marines marching east, the first with a tube, and a stationary rifle squad {@code distance} cells ahead; the
+     * squad carries a fire mission on the ground the enemy stands on, which is all that opens a section.
+     */
     private static SceneWorld march(int distance) {
-        return march(distance, false);
+        return march(distance, true);
     }
 
     /** As {@link #march(int)}, the squad optionally told to fire a mission on the ground the enemy stands on. */
@@ -129,9 +114,9 @@ class MortarSectionTest {
 
     @Test
     void theOffSwitchIsTheOldBehaviour() {
-        MortarSections.setForEvidence(false, 30f, 10f, 90f, 45f);
         SceneWorld world = march(40);
         BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setEnabledForEvidence(false);
         advanceSeconds(sim, 12f);
         assertEquals(0, sim.fieldMortars().sections().opened(), "no section is ever opened with the dial off");
     }
@@ -140,8 +125,6 @@ class MortarSectionTest {
 
     @Test
     void byDefaultOnlyAnAssignedMissionOpensASection() {
-        assertEquals(Trigger.MISSION, MortarSections.DEFAULT_TRIGGER, "the shipped trigger is the assigned mission");
-        MortarSections.setTriggerForEvidence(Trigger.MISSION);
         BattleSimulation belief = march(40, false).sim();
         advanceSeconds(belief, 14f);
         assertEquals(0, belief.fieldMortars().sections().opened(),
@@ -154,19 +137,10 @@ class MortarSectionTest {
     }
 
     @Test
-    void theTriggerDialReadsItsNames() {
-        assertEquals(Trigger.HARDENED, Trigger.parse("hardened", Trigger.MISSION));
-        assertEquals(Trigger.ANY, Trigger.parse(" ANY ", Trigger.MISSION));
-        assertEquals(Trigger.MISSION, Trigger.parse("mission", Trigger.ANY));
-        assertEquals(Trigger.MISSION, Trigger.parse("nonsense", Trigger.MISSION), "an unknown name is the fallback");
-        assertEquals(Trigger.ANY, Trigger.parse(null, Trigger.ANY));
-    }
-
-    @Test
     void aSectionWhoseTubeHasNothingLeftToShootClosesEarlyWhenTheIdleDialSaysSo() {
-        MortarSections.setIdleForEvidence(4f);
         SceneWorld world = march(40);
         BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setIdleForEvidence(4f);
         long[] team = world.members("team");
         Section section = awaitSection(sim, 400);
         assertNotNull(section);
@@ -177,17 +151,17 @@ class MortarSectionTest {
         for (long id : world.members("enemy")) sim.applyExternalDamage(id, 10_000f, Float.MAX_VALUE);
         advanceSeconds(sim, 4f + 1f);
         assertEquals("no target", section.endReason(), "the section did not wait out its thirty-second window");
-        assertTrue(section.sinceOpen() < MortarSections.DEFAULT_WINDOW_SECONDS);
+        assertTrue(section.sinceOpen() < MortarSections.WINDOW_SECONDS);
     }
 
     // ---- the window, the pack-up and the reform ----
 
     @Test
-    void whenTheWindowRunsOutTheCrewPacksUpAndTheSquadMovesOn() {
         // No extension: a plain window short enough to see end.
-        MortarSections.setForEvidence(true, 12f, 0f, 90f, 45f);
+    void whenTheWindowRunsOutTheCrewPacksUpAndTheSquadMovesOn() {
         SceneWorld world = march(40);
         BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setTimingForEvidence(12f, 0f, 90f, 45f);
         long[] team = world.members("team");
         Section section = awaitSection(sim, 400);
         assertNotNull(section);
@@ -212,9 +186,9 @@ class MortarSectionTest {
 
     @Test
     void anEngagedTubeHoldsTheWindowOpenPastItsPlainLengthButNotPastTheCap() {
-        MortarSections.setForEvidence(true, 8f, 10f, 24f, 45f);
         SceneWorld world = march(40);
         BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setTimingForEvidence(8f, 10f, 24f, 45f);
         long[] team = world.members("team");
         Section section = awaitSection(sim, 400);
         assertNotNull(section);
@@ -254,8 +228,8 @@ class MortarSectionTest {
 
     @Test
     void aSquadMayNotOpenAnotherSectionUntilItsCooldownHasRun() {
-        MortarSections.setForEvidence(true, 30f, 10f, 90f, 5f);
         MortarSections sections = new MortarSections();
+        sections.setTimingForEvidence(30f, 10f, 90f, 5f);
         FieldMortarService mortars = new FieldMortarService();
         BattleControl blind = blindControl();
         assertTrue(sections.mayOpen(3), "a fresh squad may");
@@ -273,7 +247,6 @@ class MortarSectionTest {
 
     @Test
     void aSectionWhoseGunnerNeverCommitsTheTubeIsCalledOffAndCoolsDown() {
-        MortarSections.setForEvidence(true, 30f, 10f, 90f, 5f);
         SceneWorld world = SceneBuilder.openGround(MAP, ROW).missionCompletion(false)
                 .squad("team").faction(Faction.MARINE).size(4).at(12, ROW / 2).primary(RIFLE)
                 .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1).stationary().done()
@@ -281,6 +254,7 @@ class MortarSectionTest {
                 .at(100, ROW / 2).primary(RIFLE).stationary().done()
                 .build();
         BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setTimingForEvidence(30f, 10f, 90f, 5f);
         long[] team = world.members("team");
         // Open one by hand with nothing in band: the gunner can never commit.
         sim.fieldMortars().sections().open(world.squadId("team"), team, 12f, ROW / 2f);
