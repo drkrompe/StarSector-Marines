@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.ops.loot;
 
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
@@ -44,10 +44,10 @@ public final class StarsectorLootCatalog {
     private static void addEquipmentTemplate(List<LootCandidate> out, SettingsAPI settings,
                                              LootRollRequest request) {
         SpecialItemSpecAPI spec = settings.getSpecialItemSpec(
-                EquipmentTemplateCardItemPlugin.ITEM_ID);
+                LoadoutCardItemPlugin.ITEM_ID);
         if (spec == null || spec.getBasePrice() <= 0f) return;
         out.addAll(EquipmentTemplateRecoveryCatalog.candidates(request,
-                EquipmentTemplateCardInventory.playerUnavailableTemplateIds(),
+                LoadoutCardInventory.playerUnavailableCardIds(),
                 Math.max(1, Math.round(spec.getBasePrice())),
                 Math.max(0f, spec.getCargoSpace()), spec.getIconName(),
                 EquipmentAcquisitionEligibility.currentProgress()));

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.SpecialItemData;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ class LootSettlementServiceTest {
 
     @Test
     void selectedTemplateSettlesAsParameterizedSpecialCargo() {
-        String templateId = "equipment-template:weapon.field-rifle:milspec";
+        String templateId = "loadout-card:weapon:weapons:assault";
         LootCandidate candidate = new LootCandidate(LootKind.SPECIAL, templateId,
                 "Rook Milspec", null, 5_000, 1f, 1f, 1, 1);
         LootStack stack = new LootStack(candidate, 1);
@@ -33,7 +33,7 @@ class LootSettlementServiceTest {
         LootSettlementService.addKept(cargo, line);
 
         assertEquals(1, added.size());
-        assertEquals(EquipmentTemplateCardItemPlugin.ITEM_ID, added.get(0).getId());
+        assertEquals(LoadoutCardItemPlugin.ITEM_ID, added.get(0).getId());
         assertEquals(templateId, added.get(0).getData());
     }
 
