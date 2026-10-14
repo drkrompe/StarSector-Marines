@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ class ConquestDefenderFlowTest {
 
     @Test
     void aQuietFieldStagesNobody() {
-        Assumptions.assumeTrue(flowEnabled(), "run without -Dbattle.garrison.flow=false");
         BattleSimulation sim = openSim();
         List<Squad> patrols = patrols(sim, 8);
         sim.advance(BattleSimulation.TICK_DT);
@@ -44,7 +42,6 @@ class ConquestDefenderFlowTest {
 
     @Test
     void pressureOnGroundWithNothingToManIsAnsweredByTheRallyAloneAtItsBandPoint() {
-        Assumptions.assumeTrue(flowEnabled() && unifiedEnabled(), "run without -Dbattle.garrison.flow=false or unifiedRally=false");
         BattleSimulation sim = openSim();
         List<Squad> patrols = patrols(sim, 10);
         addDefender(sim, "reporter", 15, 50, UnitRole.PATROL);
@@ -78,42 +75,7 @@ class ConquestDefenderFlowTest {
     }
 
     @Test
-    void pressureStagesABoundedPicketBehindItAndLeavesAReserve() {
-        Assumptions.assumeTrue(flowEnabled() && !unifiedEnabled(), "the earlier flow: run with -Dbattle.garrison.unifiedRally=false");
-        BattleSimulation sim = openSim();
-        List<Squad> patrols = patrols(sim, 10);
-        addDefender(sim, "reporter", 15, 50, UnitRole.PATROL);
-        for (int i = 0; i < 4; i++) {
-            sim.spawn(new EntitySpec("marine" + i, Faction.MARINE, UnitType.MARINE, 13 + i, 40)
-                    .moveSpeed(0f).health(10_000f));
-        }
-        sim.advance(BattleSimulation.TICK_DT);
-
-        ConquestDefenderCommand command = command(sim);
-        for (int plan = 0; plan < 4; plan++) CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE, sim);
-
-        List<Squad> staged = new ArrayList<>();
-        for (Squad patrol : patrols) {
-            if (patrol.assignedObjective != null && patrol.assignedObjective.kind() == AssignmentKind.DEFEND_AREA) {
-                staged.add(patrol);
-            }
-        }
-        assertTrue(!staged.isEmpty(), "pressure draws a patrol");
-        assertTrue(staged.size() <= GarrisonFlow.MAX_PER_AREA, "one area asks for no more than its cap");
-        for (Squad squad : staged) {
-            assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_GARRISONABLE_STAGE,
-                    command.frontSnapshot().directiveFor(squad.id).reason());
-            assertTrue(squad.assignedObjective.targetCellY() > 40,
-                    "the post is on the defender's side of the contact, further toward its rear");
-            assertTrue(!squad.assignedObjective.isGarrison(), "staging is not manning");
-        }
-        long free = patrols.stream().filter(p -> p.assignedObjective == null).count();
-        assertTrue(free >= GarrisonDirector.RESERVE_FLOOR, "a free patrol is left in reserve");
-    }
-
-    @Test
     void aPoolTooSmallToSpareAPatrolStagesNobody() {
-        Assumptions.assumeTrue(flowEnabled(), "run without -Dbattle.garrison.flow=false");
         BattleSimulation sim = openSim();
         List<Squad> patrols = patrols(sim, 1);
         addDefender(sim, "reporter", 15, 50, UnitRole.GARRISON);
@@ -131,15 +93,6 @@ class ConquestDefenderFlowTest {
                             != ConquestFrontSnapshot.AssignmentReason.DEFENDER_GARRISONABLE_STAGE,
                     "the only patrol is not spared for a post");
         }
-    }
-
-    private static boolean unifiedEnabled() {
-        return !"false".equals(System.getProperty("battle.garrison.unifiedRally"));
-    }
-
-    private static boolean flowEnabled() {
-        return !"false".equals(System.getProperty("battle.garrison.flow"))
-                && !"false".equals(System.getProperty("battle.fort.stagedReserve"));
     }
 
     private static List<Squad> patrols(BattleSimulation sim, int count) {

@@ -127,8 +127,7 @@ its old band point, so a map with nothing to man keeps the plain rally. Each
 squad is reserved to one area at a time — rallied, staged or manning — and
 counted once against its demand. Local assignment draws the area's own
 reserved squads first, then the roving pool above its reserve floor. Areas with
-nothing to man are not staged for. `battle.garrison.unifiedRally=false`
-restores separate rally and flow.
+nothing to man are not staged for.
 
 A squad below useful strength (half its starting strength, and never fewer
 than two) is never sent to man a place, and one that falls below it falls back: sending one only
