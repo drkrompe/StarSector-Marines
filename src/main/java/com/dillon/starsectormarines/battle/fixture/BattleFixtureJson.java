@@ -929,6 +929,13 @@ public final class BattleFixtureJson {
             }
             encoded.put("declaredForts", forts);
         }
+        if (!profile.declaredDefences().airDefended().isEmpty()) {
+            JSONObject air = new JSONObject();
+            for (Map.Entry<FortKind, Integer> fort : profile.declaredDefences().airDefended().entrySet()) {
+                air.put(fort.getKey().name(), fort.getValue());
+            }
+            encoded.put("declaredFortAirDefence", air);
+        }
         if (profile.declaredDefences().siting() != FortSitingPolicy.LEFTOVER_GROUND) {
             encoded.put("declaredFortSiting", profile.declaredDefences().siting().name());
         }
@@ -996,7 +1003,8 @@ public final class BattleFixtureJson {
                 new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
-                        declaredForts(encoded)).withSiting(declaredSiting(encoded)),
+                        declaredForts(encoded, "declaredForts")).withSiting(declaredSiting(encoded))
+                        .withAirDefences(declaredForts(encoded, "declaredFortAirDefence")),
                 declaredMechDrops(encoded), declaredAirPool(encoded), declaredSupportKit(encoded),
                 encoded.has("declaredAssault")
                         ? enumValue(AssaultStyle.class, encoded.getString("declaredAssault"), "assault style")
@@ -1110,9 +1118,9 @@ public final class BattleFixtureJson {
     }
 
     /** The forts a fixture declares by kind; a fixture that predates forts, or states none, declares none. */
-    private static Map<FortKind, Integer> declaredForts(JSONObject encoded) throws Exception {
+    private static Map<FortKind, Integer> declaredForts(JSONObject encoded, String key) throws Exception {
         Map<FortKind, Integer> forts = new EnumMap<>(FortKind.class);
-        JSONObject declared = encoded.optJSONObject("declaredForts");
+        JSONObject declared = encoded.optJSONObject(key);
         if (declared == null) return forts;
         for (Iterator<?> kinds = declared.keys(); kinds.hasNext();) {
             String name = (String) kinds.next();

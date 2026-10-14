@@ -683,6 +683,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
                 addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
+                addBatteryFortAspect(out, battery, FortAspect.AIR_DEFENCE, DefenceStructureFact.Kind.FORT_AIR_DEFENCE, seenX, seenY);
                 continue;
             }
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
@@ -761,6 +762,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
                     (int) Math.floor(room.x()), (int) Math.floor(room.y()),
                     room.control().holder(), dome.originalHolder(), room.control().contested(),
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
+                    fort.exteriorCells(), fortBeltCells(seenX, seenY), fort.frame()));
+        }
+        Fort.Place yard = fort.place(FortAspect.AIR_DEFENCE);
+        if (yard != null && !yard.wrecked() && rosterService.isAliveById(yard.coreId())) {
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FORT_AIR_DEFENCE,
+                    (int) Math.floor(yard.x()), (int) Math.floor(yard.y()),
+                    yard.control().holder(), yard.originalHolder(), yard.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
                     fort.exteriorCells(), fortBeltCells(seenX, seenY), fort.frame()));
         }
@@ -1960,12 +1969,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } else if (structure.isFortAspectCore()) {
             forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder, structure.id);
             restrainFortCore(id);
+        } else if (tag.aspect() == FortAspect.AIR_DEFENCE) {
+            forts.tagAirMount(tag.fortId(), id);
+            // Anti-air does not threaten a person, and a yard is better taken than shot to pieces: restrained like a core.
+            restrainFortCore(id);
         } else {
             forts.tagNest(tag.fortId(), id);
         }
     }
 
-    /** A fort core is not an opportunity target: no squad fires on it unless told to wreck it ({@link FortRestraint}). */
+    /** A fort core (or a yard mount) is not an opportunity target: no squad fires on it unless told to wreck it ({@link FortRestraint}). */
     private void restrainFortCore(long id) {
         unitIndex.restraint().restrain(id);
         unitIndex.withdrawFromHostileScans(id);

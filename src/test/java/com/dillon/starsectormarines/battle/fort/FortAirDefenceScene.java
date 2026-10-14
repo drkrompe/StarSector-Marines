@@ -1,0 +1,475 @@
+package com.dillon.starsectormarines.battle.fort;
+
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService.Event;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService.EventType;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
+import com.dillon.starsectormarines.battle.airsupport.AirStrikeCapability;
+import com.dillon.starsectormarines.battle.airsupport.AirStrikeDirector;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.scene.BehaviorScene;
+import com.dillon.starsectormarines.battle.scene.FrameSink;
+import com.dillon.starsectormarines.battle.scene.SceneBuilder;
+import com.dillon.starsectormarines.battle.scene.SceneReport;
+import com.dillon.starsectormarines.battle.scene.SceneRun;
+import com.dillon.starsectormarines.battle.scene.SceneWorld;
+import com.dillon.starsectormarines.battle.scene.TickObserver;
+import com.dillon.starsectormarines.battle.scene.Verdict;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
+import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
+import com.dillon.starsectormarines.battle.world.gen.fortress.AirDefenceYard;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
+import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+
+/**
+ * A fort's optional anti-air aspect, against the company's own bombers. Each loop stands the same walled fort on the
+ * same field with a garrison inside it and a spotter squad with a radio west of it, and changes one thing about the
+ * anti-air yard (guided battery, flak positions and a plotting console in a sandbagged yard inside the works).
+ *
+ * <ul>
+ *   <li>{@code control}: a fort with no anti-air aspect; a strike is forced onto the garrison. The baseline for what the
+ *       fort's ordinary nests do to a bomber.</li>
+ *   <li>{@code aa-forced}: the same strike, forced, over a fort that carries the aspect. The yard fires on the bomber
+ *       from inside its envelope and the bomber pays.</li>
+ *   <li>{@code declined}: not forced. The side's director has sighted the fort's works, so the yard is a disclosed fact,
+ *       and it estimates the pass at more than an airframe and sends none. {@code declined-control} is the same with
+ *       no aspect.</li>
+ *   <li>{@code wrecked}: the console is destroyed before the strike. The mounts are silent for good, the director's
+ *       estimate falls, and the sky is open.</li>
+ *   <li>{@code unpowered}: the power plant is destroyed before the strike. The yard still fires, at a quarter of the rate.</li>
+ *   <li>{@code taken}: a squad of the company already stands in the yard and takes it. The mounts change sides with the
+ *       yard and do not fire on the company's bomber.</li>
+ *   <li>{@code shield-fort}: as {@code aa-forced}, over a shield fort, to show the aspect is not a battery fort's alone.</li>
+ * </ul>
+ *
+ * <p>Judged from mechanics (does the yard fire, stop, obey its holder, slow without power, and does the director read
+ * it), not from a balance target. The numbers in the reports are evidence for design and are UNTUNED.
+ */
+public final class FortAirDefenceScene implements BehaviorScene {
+
+    static final int WIDTH = 230;
+    static final int HEIGHT = 120;
+    static final int CX = 125;
+    static final int CY = 60;
+    private static final int TICKS = 3300;
+    /** The tick the aspect is wrecked or unpowered, and the tick a strike is forced after it. */
+    private static final int EVENT_TICK = 150;
+    private static final int FORCE_TICK = 900;
+    private static final int SPOTTER_X = 74;
+    /** The radio squad stands well back, out of the fort's reach, so it is never suppressed; the scouts ahead sight the works. */
+    private static final int OBSERVER_X = 24;
+    private static final int GARRISON = 8;
+
+    @Override public String id() { return "fort-air-defence"; }
+
+    @Override public String label() {
+        return "Fort anti-air aspect: a guided battery and flak in a yard inside the works shoot at a bomber in their "
+                + "envelope; wrecking the console silences them, losing the power slows them, taking the yard turns them, "
+                + "and a director that has sighted the fort declines the strike";
+    }
+
+    @Override public int frameDelayMillis() { return 250; }
+
+    @Override
+    public List<SceneReport> play(FrameSink frames) throws Exception {
+        InstalledHullSpecs.install();
+        InstalledWeaponSlots.install();
+        InstalledVanillaData.install();
+        List<SceneReport> reports = new ArrayList<>();
+        try {
+            Run control = playOne("control", frames);
+            Run forced = playOne("aa-forced", frames);
+            Run declinedControl = playOne("declined-control", frames);
+            Run declined = playOne("declined", frames);
+            Run wrecked = playOne("wrecked", frames);
+            Run unpowered = playOne("unpowered", frames);
+            Run taken = playOne("taken", frames);
+            Run shield = playOne("shield-fort", frames);
+            reports.add(report("control", control, control, null));
+            reports.add(report("aa-forced", forced, control, null));
+            reports.add(report("declined-control", declinedControl, control, null));
+            reports.add(report("declined", declined, control, declinedControl));
+            reports.add(report("wrecked", wrecked, control, forced));
+            reports.add(report("unpowered", unpowered, control, forced));
+            reports.add(report("taken", taken, control, forced));
+            reports.add(report("shield-fort", shield, control, forced));
+        } finally {
+            TurretSlotResolver.useHullSpecs(null);
+        }
+        return reports;
+    }
+
+    // ------------------------------------------------------------------------------------------------ world
+
+    private record Stamped(NavigationGrid grid, CellTopology topology, List<DefensePost> posts, FortStage.Placed placed) {}
+
+    private static Stamped stamp(FortKind kind, boolean air) {
+        NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
+        CellTopology topology = new CellTopology(WIDTH, HEIGHT);
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.DIRT);
+            }
+        }
+        GenContext ctx = new GenContext(grid, topology, new Random(7L), WIDTH, HEIGHT, 7L);
+        ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(grid, topology, null));
+        ctx.put(BspKeys.BUILDINGS, BuildingFloodFill.populate(topology, 7L));
+        ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL.withDeclaredDefences(
+                new GroundDefences(0, false).withForts(kind, 1)));
+        FortStage stage = FortStage.pinned(List.of(new FortStage.Pin(kind, CX, CY, 0, CY, air)));
+        stage.run(ctx);
+        return new Stamped(grid, topology, List.copyOf(ctx.defensePosts), stage.placed().get(0));
+    }
+
+    private record Run(Trace trace, BattleSimulation sim, Fort fort) {}
+
+    private static boolean hasAspect(String loop) {
+        return !loop.equals("control") && !loop.equals("declined-control");
+    }
+
+    private static boolean forced(String loop) {
+        return !loop.startsWith("declined");
+    }
+
+    private Run playOne(String loop, FrameSink frames) {
+        FortKind kind = loop.equals("shield-fort") ? FortKind.SHIELD_FORT : FortKind.BATTERY_FORT;
+        Stamped stamped = stamp(kind, hasAspect(loop));
+        FortPlan plan = stamped.placed().plan();
+        AirDefenceYard yard = plan.airDefence();
+        int[] yardCell = stamped.placed().placement().cell(yard.centreX(), yard.centreY());
+        int[] garrisonCell = openNear(stamped.grid(), stamped.placed().placement().cell(yard.centreX() + 5, yard.centreY() + 6));
+
+        SceneBuilder builder = SceneBuilder.over(stamped.grid(), stamped.topology()).posts(stamped.posts())
+                .missionCompletion(false);
+        builder.squad("scouts").faction(Faction.MARINE).size(2).at(SPOTTER_X, CY).primary("weapon.smg")
+                .health(100_000f).stationary()
+                .assigned(id -> ObjectiveAssignment.defendTrack(id, SPOTTER_X, CY)).done();
+        builder.squad("observers").faction(Faction.MARINE).size(3).at(OBSERVER_X, CY).primary("weapon.smg")
+                .special("special.comms-radio", 1).health(100_000f).stationary()
+                .assigned(id -> ObjectiveAssignment.defendTrack(id, OBSERVER_X, CY)).done();
+        builder.squad("garrison").faction(Faction.DEFENDER).size(GARRISON).at(garrisonCell[0], garrisonCell[1])
+                .primary("weapon.smg").health(100_000f).stationary()
+                .assigned(id -> ObjectiveAssignment.defendTrack(id, garrisonCell[0], garrisonCell[1])).done();
+        if (loop.equals("taken")) {
+            builder.squad("raiders").faction(Faction.MARINE).size(6).at(yardCell[0], yardCell[1]).primary("weapon.smg")
+                    .health(100_000f).stationary()
+                    .assigned(id -> ObjectiveAssignment.defendTrack(id, yardCell[0], yardCell[1])).done();
+        }
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.random().setSeed(20261016L);
+        Fort fort = sim.forts().forts().get(0);
+
+        AirPoolStock bombers = new AirPoolStock(3, 3, 60f);
+        // A commander asks for the strike itself (through its observer, as a company's plan does): the pool is not left to
+        // its own director, whose designations need a line of sight no wall lets it have.
+        AirPoolAllowance allowance = AirPoolAllowance.of(bombers, null, /*aiDirected*/ false);
+        sim.setAirPool(new AirPoolService(AirPoolDeclaration.NONE.with(Faction.MARINE, allowance)));
+
+        Trace trace = new Trace(world, fort, garrisonCell);
+        TickObserver script = (s, tick) -> {
+            if (tick == FORCE_TICK) {
+                var pool = s.airPool();
+                trace.outcome = pool.director(Faction.MARINE).strike(s, pool, garrisonCell[0] + 0.5f, garrisonCell[1] + 0.5f,
+                        forced(loop)).name();
+            }
+            if (tick != EVENT_TICK) return;
+            if (loop.equals("wrecked")) s.applyDamage(fort.place(FortAspect.AIR_DEFENCE).coreId(), 1_000_000f, 3.5f, 0f);
+            if (loop.equals("unpowered")) s.applyDamage(fort.place(FortAspect.POWER).coreId(), 1_000_000f, 3.5f, 0f);
+        };
+        SceneRun.of(world).observe(script, trace)
+                .frames(frames, loop, 60, tick -> trace.caption(loop, tick))
+                .run(TICKS);
+        return new Run(trace, sim, fort);
+    }
+
+    private static int[] openNear(NavigationGrid grid, int[] want) {
+        for (int r = 0; r < 12; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int x = want[0] + dx, y = want[1] + dy;
+                    if (grid.inBounds(x, y) && grid.isWalkable(x, y)) return new int[]{x, y};
+                }
+            }
+        }
+        return want;
+    }
+
+    // ------------------------------------------------------------------------------------------------ verdicts
+
+    private SceneReport report(String loop, Run run, Run control, Run other) {
+        Trace t = run.trace();
+        BattleSimulation sim = run.sim();
+        Fort fort = run.fort();
+        List<Verdict> verdicts = new ArrayList<>();
+        AirPoolService pool = sim.airPool();
+        int launched = t.count(EventType.LAUNCHED);
+        int lost = t.count(EventType.LOST);
+        int aborted = t.count(EventType.ABORTED);
+        int returned = t.count(EventType.RETURNED);
+        Trace c = control.trace();
+        switch (loop) {
+            case "control" -> {
+                verdicts.add(Verdict.of("the-forced-strike-flies", launched >= 1, "request " + t.outcome + ", launched " + launched));
+                verdicts.add(Verdict.of("no-yard-no-yard-fire", t.mountShots() == 0 && fort.airMountIds().isEmpty(),
+                        t.mountShots() + " yard rounds, " + fort.airMountIds().size() + " yard mounts"));
+            }
+            case "aa-forced" -> {
+                verdicts.add(Verdict.of("the-yard-is-assembled", fort.place(FortAspect.AIR_DEFENCE) != null
+                                && fort.airMountIds().size() == 3,
+                        fort.airMountIds().size() + " mounts, console " + (fort.place(FortAspect.AIR_DEFENCE) != null)));
+                verdicts.add(Verdict.of("the-yard-fires-on-the-bomber", t.mountShots() > 0 && t.guidedShots() > 0,
+                        t.mountShots() + " yard rounds, " + t.guidedShots() + " guided, first at tick " + t.firstMountShotTick));
+                verdicts.add(Verdict.of("it-fires-from-inside-its-reach",
+                        t.firstMountShotTick >= 0 && t.distanceAtFirstShot <= t.ridgeRange + 1f,
+                        String.format(Locale.ROOT, "craft %.1f cells from the battery at the first round, reach %.0f",
+                                t.distanceAtFirstShot, t.ridgeRange)));
+                // Not a hull comparison: the fort's ordinary nests drain a lone bomber crossing the works on their own,
+                // so the yard's marginal cost to it is not separable here. Its reach and the director's reading are.
+                verdicts.add(Verdict.of("the-director-reads-the-yard",
+                        t.directorRiskAtGarrison > c.directorRiskAtGarrison,
+                        String.format(Locale.ROOT, "believed loss share %.2f against %.2f without the aspect (bomber hull low %.0f%% against %.0f%%, lost %d; "
+                                        + "the nests' area drain is in both)",
+                                t.directorRiskAtGarrison, c.directorRiskAtGarrison, t.minHullShare * 100f,
+                                c.minHullShare * 100f, lost)));
+            }
+            case "declined-control" -> verdicts.add(Verdict.of("a-commander-s-request-is-accepted",
+                    t.outcome.equals("CALLING") && fort.airMountIds().isEmpty(),
+                    String.format(Locale.ROOT, "believed loss share %.2f over the garrison, launched %d",
+                            t.directorRiskAtGarrison, launched)));
+            case "declined" -> {
+                verdicts.add(Verdict.of("the-fort-is-disclosed-once-seen", t.directorKnowsYard,
+                        "the director knows the yard's battery: " + t.directorKnowsYard));
+                verdicts.add(Verdict.of("believed-anti-air-is-too-strong",
+                        t.directorRiskAtGarrison > AirStrikeDirector.RISK_CEILING,
+                        String.format(Locale.ROOT, "believed loss share %.2f over a ceiling of %.2f (%.2f with no aspect)",
+                                t.directorRiskAtGarrison, AirStrikeDirector.RISK_CEILING,
+                                other == null ? Float.NaN : other.trace().directorRiskAtGarrison)));
+                verdicts.add(Verdict.of("no-strike-is-sent",
+                        t.outcome.equals("TOO_DEFENDED") && launched == 0 && pool.available(Faction.MARINE, AirPoolKind.BOMBER) >= 3,
+                        "request " + t.outcome + ", launched " + launched + ", bombers in stock " + pool.available(Faction.MARINE, AirPoolKind.BOMBER)));
+            }
+            case "wrecked" -> {
+                verdicts.add(Verdict.of("the-console-is-wrecked",
+                        fort.place(FortAspect.AIR_DEFENCE).wrecked() && fort.airDefenceWrecked(),
+                        "wrecked " + fort.place(FortAspect.AIR_DEFENCE).wrecked()));
+                verdicts.add(Verdict.of("the-mounts-are-silent-for-good", t.mountShots() == 0,
+                        t.mountShots() + " yard rounds after the console fell at tick " + EVENT_TICK));
+                verdicts.add(Verdict.of("the-director-reads-an-open-sky",
+                        launched >= 1 && t.directorRiskAtGarrison < other.trace().directorRiskAtGarrison,
+                        String.format(Locale.ROOT, "believed loss share %.2f against %.2f with the yard standing; launched %d",
+                                t.directorRiskAtGarrison, other.trace().directorRiskAtGarrison, launched)));
+            }
+            case "unpowered" -> {
+                verdicts.add(Verdict.of("the-plant-is-gone", fort.place(FortAspect.POWER).wrecked(), "plant wrecked"));
+                verdicts.add(Verdict.of("the-yard-still-fires", t.mountShots() > 0, t.mountShots() + " yard rounds"));
+                float slow = t.shotsPerSecondInReach();
+                float full = other.trace().shotsPerSecondInReach();
+                verdicts.add(Verdict.of("at-a-quarter-of-the-rate", slow > 0f && slow < full * 0.6f,
+                        String.format(Locale.ROOT, "%.2f rounds a second while the bomber was in reach, %.2f with power",
+                                slow, full)));
+            }
+            case "taken" -> {
+                verdicts.add(Verdict.of("the-company-takes-the-yard",
+                        fort.place(FortAspect.AIR_DEFENCE).control().holder() == Faction.MARINE && t.flipTick > 0,
+                        "holder " + fort.place(FortAspect.AIR_DEFENCE).control().holder() + ", flipped at tick " + t.flipTick));
+                verdicts.add(Verdict.of("the-mounts-change-sides", t.mountsMarine == fort.airMountIds().size(),
+                        t.mountsMarine + " of " + fort.airMountIds().size() + " mounts are the company's"));
+                verdicts.add(Verdict.of("it-does-not-fire-on-its-own-holders-bomber", t.mountShotsAfterFlip == 0,
+                        t.mountShotsAfterFlip + " yard rounds after the flip"));
+                verdicts.add(Verdict.of("the-director-no-longer-counts-it",
+                        launched >= 1 && t.directorRiskAtGarrison < other.trace().directorRiskAtGarrison,
+                        String.format(Locale.ROOT, "believed loss share %.2f against %.2f with the garrison's yard; launched %d",
+                                t.directorRiskAtGarrison, other.trace().directorRiskAtGarrison, launched)));
+            }
+            case "shield-fort" -> {
+                verdicts.add(Verdict.of("a-shield-fort-carries-the-yard", fort.kind() == FortKind.SHIELD_FORT
+                                && fort.place(FortAspect.AIR_DEFENCE) != null && fort.airMountIds().size() == 3,
+                        fort.airMountIds().size() + " mounts in a " + fort.kind()));
+                verdicts.add(Verdict.of("and-it-fires", t.mountShots() > 0,
+                        t.mountShots() + " yard rounds, hull low " + Math.round(t.minHullShare * 100f) + "%"));
+            }
+            default -> throw new IllegalStateException(loop);
+        }
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("launched", launched);
+        metrics.put("returned", returned);
+        metrics.put("lost", lost);
+        metrics.put("aborted", aborted);
+        metrics.put("minHullPercent", Math.round(t.minHullShare * 100f));
+        metrics.put("yardRounds", t.mountShots());
+        metrics.put("guidedRounds", t.guidedShots());
+        metrics.put("garrisonDead", t.garrisonDead);
+        metrics.put("directorRiskPercent", Math.round(t.directorRiskAtGarrison * 100f));
+        metrics.put("airframesInStock", pool.available(Faction.MARINE, AirPoolKind.BOMBER));
+        return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    // ------------------------------------------------------------------------------------------------ trace
+
+    private static final class Trace implements TickObserver {
+        private final SceneWorld world;
+        private final Fort fort;
+        private final int[] garrisonCell;
+        private final List<Event> events = new ArrayList<>();
+        private int seenEvents;
+        float minHullShare = 1f;
+        int garrisonDead;
+        int firstMountShotTick = -1;
+        float distanceAtFirstShot = Float.NaN;
+        float ridgeRange;
+        int flipTick = -1;
+        int mountsMarine;
+        int mountShotsAtFlip;
+        int mountShotsAfterFlip;
+        String outcome = "none";
+        float directorRiskAtGarrison;
+        boolean directorKnowsYard;
+        private int lastShots;
+        private int inReachTicks;
+        private int shotsInReach;
+
+        Trace(SceneWorld world, Fort fort, int[] garrisonCell) {
+            this.world = world;
+            this.fort = fort;
+            this.garrisonCell = garrisonCell;
+        }
+
+        int count(EventType type) {
+            int n = 0;
+            for (Event e : events) if (e.type() == type) n++;
+            return n;
+        }
+
+        int mountShots() {
+            return lastShots;
+        }
+
+        int guidedShots() {
+            return guidedRounds;
+        }
+
+        /** The guided battery, found while it stands: a dead entity no longer answers what it was. */
+        private long guidedMount(BattleSimulation sim) {
+            if (guided == 0L) {
+                for (long id : fort.airMountIds()) {
+                    if (sim.world().isAlive(id) && sim.turretState().structure(id).mount.weapon.guidance != null) {
+                        guided = id;
+                        guidedRange = sim.turretState().structure(id).mount.weapon.range;
+                    }
+                }
+            }
+            return guided;
+        }
+
+        private long guided;
+        private float guidedRange;
+        private int guidedRounds;
+
+        float shotsPerSecondInReach() {
+            return inReachTicks == 0 ? 0f : shotsInReach / (inReachTicks / 30f);
+        }
+
+        String caption(String loop, int tick) {
+            AirPoolService pool = world.sim().airPool();
+            Fort.Place yard = fort.place(FortAspect.AIR_DEFENCE);
+            String state = yard == null ? "no anti-air aspect"
+                    : yard.wrecked() ? "yard WRECKED" : yard.control().contested() ? "yard CONTESTED"
+                    : "yard " + yard.control().holder().name().toLowerCase(Locale.ROOT);
+            return String.format(Locale.ROOT, "%s / tick %d / %s / yard rounds %d / bomber hull low %.0f%% / lost %d",
+                    loop, tick, state, mountShots(), minHullShare * 100f, pool.lost(Faction.MARINE, AirPoolKind.BOMBER));
+        }
+
+        @Override
+        public void observe(BattleSimulation sim, int tick) {
+            AirPoolService pool = sim.airPool();
+            List<Event> all = pool.events();
+            while (seenEvents < all.size()) events.add(all.get(seenEvents++));
+
+            int dead = 0;
+            for (long u : world.members("garrison")) if (!sim.getRoster().isAliveById(u)) dead++;
+            garrisonDead = dead;
+
+            int shots = 0;
+            for (long id : fort.airMountIds()) shots += sim.telemetry().roundsFired(id);
+            boolean fired = shots > lastShots;
+            if (fired && firstMountShotTick < 0) {
+                firstMountShotTick = tick;
+                long mount = guidedMount(sim);
+                for (long craft : sim.getAirEntityIds()) {
+                    ShuttleMission m = sim.world().mission(craft);
+                    if (m == null || !m.poolSortie) continue;
+                    distanceAtFirstShot = (float) Math.hypot(sim.world().x(craft) - sim.world().x(mount),
+                            sim.world().y(craft) - sim.world().y(mount));
+                }
+                ridgeRange = guidedRange;
+            }
+            Fort.Place yard = fort.place(FortAspect.AIR_DEFENCE);
+            if (yard != null && flipTick < 0 && yard.control().holder() == Faction.MARINE) {
+                flipTick = tick;
+                mountShotsAtFlip = shots;
+            }
+            if (flipTick >= 0) mountShotsAfterFlip = shots - mountShotsAtFlip;
+            if (guidedMount(sim) != 0L) guidedRounds = sim.telemetry().roundsFired(guided);
+            lastShots = shots;
+            if (yard != null) {
+                int marine = 0;
+                for (long id : fort.airMountIds()) if (sim.identity().faction(id) == Faction.MARINE) marine++;
+                mountsMarine = marine;
+            }
+
+            boolean bomberInReach = false;
+            for (long craft : sim.getAirEntityIds()) {
+                ShuttleMission m = sim.world().mission(craft);
+                if (m == null || !m.poolSortie || m.destroyed || sim.world().airframe(craft) == null) continue;
+                minHullShare = Math.min(minHullShare, sim.world().hp(craft) / sim.world().airframe(craft).maxHp());
+                if (guidedMount(sim) != 0L) {
+                    long mount = guided;
+                    float reach = guidedRange;
+                    if (Math.hypot(sim.world().x(craft) - sim.world().x(mount),
+                            sim.world().y(craft) - sim.world().y(mount)) <= reach) {
+                        bomberInReach = true;
+                    }
+                }
+            }
+            if (bomberInReach) {
+                inReachTicks++;
+                if (fired) shotsInReach++;
+            }
+            if (tick >= 200) {
+                directorRiskAtGarrison = AirStrikeCapability.aaRisk(sim, Faction.MARINE,
+                        garrisonCell[0] + 0.5f, garrisonCell[1] + 0.5f);
+                if (!fort.airMountIds().isEmpty()) {
+                    directorKnowsYard = pool.director(Faction.MARINE).knows(fort.airMountIds().get(0));
+                }
+            }
+        }
+    }
+}

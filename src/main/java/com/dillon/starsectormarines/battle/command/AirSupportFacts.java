@@ -40,6 +40,16 @@ public record AirSupportFacts(int calls, Map<Long, Float> riskByCell, float risk
         return risk != null && risk <= riskCeiling;
     }
 
+    /**
+     * Whether the sky is shut over a fort the side knows: a strike is on offer, some works cell was assessed, and every
+     * assessed cell is above the ceiling. The side that wants the sky back takes the anti-air that refuses it.
+     */
+    public boolean blocked() {
+        if (calls <= 0 || riskByCell.isEmpty()) return false;
+        for (float risk : riskByCell.values()) if (risk <= riskCeiling) return false;
+        return true;
+    }
+
     /** Whether a strike is on offer at all. */
     public boolean any() {
         return calls > 0;
