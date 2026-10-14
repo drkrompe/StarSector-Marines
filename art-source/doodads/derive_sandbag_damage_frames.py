@@ -27,6 +27,7 @@ def main():
                 assets[name + ".png"] = {"id": "doodad." + name, "order": len(assets),
                     "cover": "heavy" if state == "damaged" else "none",
                     "ballisticHalfHeight": 0.3 if state == "damaged" else 0,
+                    **({"fightingPosition": "parapet"} if state == "damaged" else {}),
                     "preserveCanvas": True, "padding": 0, "scale": 1}
                 cell = cell.transpose(Image.Transpose.ROTATE_270)
     metadata = sources / "_atlas.json"

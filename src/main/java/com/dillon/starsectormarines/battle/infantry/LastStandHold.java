@@ -45,6 +45,12 @@ public final class LastStandHold implements Action {
         int anchorX = node != null ? node.anchorX : fallbackX;
         int anchorY = node != null ? node.anchorY : fallbackY;
 
+        // Dug in on a fighting position: that cell is the cover this action goes looking for.
+        if (sim.isDugIn(member)) {
+            sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
+
         int[] threat = knownThreat(member, squad, sim);
         int currentX = sim.world().cellX(member);
         int currentY = sim.world().cellY(member);

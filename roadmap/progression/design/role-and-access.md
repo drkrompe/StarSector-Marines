@@ -6,7 +6,7 @@ data, doctrine as a role mix resolved against access, and the Armory surface
 that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-10-13 — first recovered assault card teaches its matching heavy fitting sheet.
+Updated: 2026-10-13 — Both recovered roles can be earned on Agreus before explicit mixed issue.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -224,8 +224,9 @@ Shepherd fleet acquisition and North Weir victory. Explicit learning teaches
 the Tri-Tachyon Specter Protection sheet; fitting that sheet resolves the owned
 recovered assault pattern without needing powered support knowledge. It does
 not teach foreign heavy sheets or the Salvage-assisted Section. That mixed sheet
-still requires both powered roles. Recovered Arbalest's later story award remains
-planned, with explicit developer test acquisition available. Neither recovered
+requires both powered roles. The Yard's Owners supplies Recovered Arbalest's cargo
+card; learning both cards exposes the mixed sheet without issuing any equipment.
+Explicit developer test acquisition remains available. Neither recovered
 template enters ordinary market, patron, license or random recovery pools.
 Military patterns keep their existing acquisition channels and saved ownership.
 

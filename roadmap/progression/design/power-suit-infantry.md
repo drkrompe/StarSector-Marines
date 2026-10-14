@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-13 — Limited Warrant introduces Recovered Specter before later support rewards.
+Updated: 2026-10-13 — Agreus supplies both recovered roles; mixed issue remains a player fitting choice.
 
 ## Purpose
 
@@ -88,8 +88,9 @@ it is a composition choice, not a finite inventory of four shells. Collected
 technology still permits ordinary free fitting. Limited Warrant now awards the
 Recovered Specter cargo card. Learning it teaches the matching Tri-Tachyon Specter
 Protection sheet, enabling explicit assault-suit fitting before the support reward.
-The subsequent Recovered Arbalest and proposed pirate Boarding Jack rewards remain
-planned; `a-small-war.md` owns their sequence and calibration targets. Both existing
+The Yard's Owners awards Recovered Arbalest after a protected tooling inspection.
+Learning both cards exposes Salvage-assisted Section for explicit mixed issue.
+The pirate Boarding Jack reward remains planned in `a-small-war.md`. Both existing
 recovered templates remain outside random faction acquisition. Explicit development
 controls also support campaign-loop testing; neither route automatically changes
 anyone's issued kit.

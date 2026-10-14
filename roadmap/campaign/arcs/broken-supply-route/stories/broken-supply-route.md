@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — campaign integration and headless checks implemented; live acceptance remains.
 Written: 2026-10-10
-Updated: 2026-10-13 — direct Junction-to-Thunder Run progression; evacuation shelved and old-save compatibility removed.
+Updated: 2026-10-13 — Talon Two aviation callsign; recorded gunship dialogue awaits live mix acceptance.
 
 ## Standing model
 
@@ -25,13 +25,13 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 - Launch Junction with actual issued gear and one or several fitted boats.
   Check named squads, acting NCOs, employer separation, boat and passenger losses.
   Verify the two-squad/four-ready-each minimum and larger companies.
-- Watch Kestrel cover the Junction advance and pause over settling militia;
+- Watch Talon Two cover the Junction advance and pause over settling militia;
   check the absence of a player gunship card or support cost. On Thunder Run,
   identify the returning callsign, visible flak and damage warning. Leave the
   guns alive for the crash; clear them early in another attempt for survival.
   Inspect falling fire, impact damage, and the charred hull after its smoke ends.
-  Replay after a loss and verify fresh employer support. New Kestrel radio cues
-  are text-only pending a voice-production pass; verify their live display and
+  Replay after a loss and verify fresh employer support. Talon Two radio cues
+  have recordings; verify their live playback and display and
   that urgent loss cues supersede stale arrival messages.
 - Finish Junction and verify exactly one Thunder Run offer and HQ lead. Back out,
   inspect, cancel deployment and reload: none starts an attempt or grants a reward.

@@ -16,6 +16,25 @@ class UiIntrinsicTextTest {
     private static final FixedFont FONT = new FixedFont(10f, 20);
 
     @Test
+    void nestedAutoColumnsRemeasureWrappedTextAtTheActualContentWidth() {
+        var name = new UiElement("name").text("CASTLE");
+        var body = new UiElement("body").text("ONE TWO THREE").style("white-space: normal");
+        var turn = new UiElement("turn").style("padding: 4px; gap: 2px").child(name).child(body);
+        var conversation = new UiElement("conversation").style("padding: 6px").child(turn);
+        var following = new UiElement("following").preferredHeight(20);
+        var document = document(new UiElement("root").child(conversation).child(following));
+        document.layout(150, 200);
+        assertEquals(130f, body.box().contentBox().width(), EPSILON);
+        assertEquals(62f, following.box().borderBox().y(), EPSILON);
+        document.layout(100, 200);
+        assertEquals(80f, body.box().contentBox().width(), EPSILON);
+        assertEquals(60f, body.box().contentBox().height(), EPSILON);
+        assertEquals(102f, following.box().borderBox().y(), EPSILON);
+        assertEquals(body.box().borderBox().bottom() + 10f,
+                conversation.box().borderBox().bottom(), EPSILON);
+    }
+
+    @Test
     void centeredRowUsesIntrinsicLegendHeightWithoutPaddingOffsets() {
         UiElement legend = new UiElement("legend").text("DEPLOY").grow(1f)
                 .style("width: 0px; text-align: center");

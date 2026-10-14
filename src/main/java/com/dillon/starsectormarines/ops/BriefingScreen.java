@@ -3,10 +3,11 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.ops.detachment.AgreusConstructionSupport;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 
-import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.NarrationSequence;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -175,6 +176,7 @@ public class BriefingScreen implements Screen {
     private static final Logger LOG = Global.getLogger(BriefingScreen.class);
     static final String ROOT_COMPONENT = "mission-briefing";
     static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/mission-dialogue.mlx",
             "data/ui/components/missions/mission-briefing.mlx");
 
     private static final Color FRAME_COLOR   = new Color(0x4A, 0x6B, 0x8C);
@@ -273,7 +275,7 @@ public class BriefingScreen implements Screen {
     private boolean commandDeckInitialized;
     /** Developer controls are opt-in and never consume briefing width on entry. */
     private boolean debugDrawerExpanded;
-    private final NarrationPlayer narration = new NarrationPlayer();
+    private final NarrationSequence narration = new NarrationSequence();
     private boolean narrationAutoplay;
 
     /**
@@ -441,13 +443,14 @@ public class BriefingScreen implements Screen {
         props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission) + "  ·  "
                 + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
         props.put("missionTitle", mission.name);
-        WaylineNarration.Line briefingLine = briefingNarration();
+        WaylineNarration.Line briefingLine = displayedBriefingNarration();
         BriefingViewModel.putNarration(props, briefingLine, narration.busy());
         if (briefingLine != null) {
             props.put("replayNarrationAction", (Runnable) () -> narration.start(briefingNarration()));
             props.put("stopNarrationAction", (Runnable) narration::stop);
         }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
+        MissionDialogue.put(props, "mission", mission);
         props.put("missionRows", retainedMissionRows(mission));
         BriefingViewModel.putReward(props, mission);
         putFactionIdentities(props, mission);
@@ -1021,6 +1024,15 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
+                BriefingViewModel.info("yard-constables","Rusk's constables","Eight militia / occupy company gains",""),
+                BriefingViewModel.info("yard-inspectors","Supplier inspection party","Two technicians / one must finish the protected inspection",""),
+                BriefingViewModel.info("yard-support","Company support","Working tender required; employer heavy lift for your owned active mech lance",""),
+                BriefingViewModel.info("yard-preserve","Preserve tooling","Marked calibration machine / no bombardment or fighter strikes",""));
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
+                BriefingViewModel.info("warrant-constables","Rusk's constables","Four militia / cover the western return",""),
+                BriefingViewModel.info("warrant-technician","Supplier technician","One technician / recover calibration kit before losing them",""),
+                BriefingViewModel.info("warrant-load","Calibration load","Physical carrier / escort to egress; working company tender required",""));
         if (AgreusArcCampaign.isBattle(mission)) return List.of(
                 BriefingViewModel.info("weir-constables", "Rusk's constables", "Eight militia / hold restored switching rooms", ""),
                 BriefingViewModel.info("weir-technicians", "Edek's repair party", "Two technicians and one repair load / protect both", ""),
@@ -2473,7 +2485,7 @@ public class BriefingScreen implements Screen {
             narration.start(briefingNarration());
         }
         narration.advance(dt);
-        if (markupInstance != null) BriefingViewModel.updateNarration(markupInstance, narration.busy());
+        if (markupInstance != null) BriefingViewModel.updateNarration(markupInstance, displayedBriefingNarration(), narration.busy());
         if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
             surveyComplete = true;
             if (survey.failure() != null) LOG.warn("Briefing terrain generation failed", survey.failure());
@@ -2507,11 +2519,17 @@ public class BriefingScreen implements Screen {
         input = null;
     }
 
-    private WaylineNarration.Line briefingNarration() {
+    private WaylineNarration.Line displayedBriefingNarration() {
+        if (narration.current() != null) return narration.current();
+        List<WaylineNarration.Line> lines = briefingNarration();
+        return lines.isEmpty() ? null : lines.get(0);
+    }
+
+    private List<WaylineNarration.Line> briefingNarration() {
         Mission mission = ctx != null ? ctx.getSelectedMission() : null;
         if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.coldStart(mission.id)
-                && !recordedBriefingApplies(mission, ShepherdRecoveryCampaign.current())) return null;
-        return WaylineNarration.builtins().find(WaylineNarration.storyMissionId(mission), "briefing");
+                && !recordedBriefingApplies(mission, ShepherdRecoveryCampaign.current())) return List.of();
+        return WaylineNarration.builtins().briefing(WaylineNarration.storyMissionId(mission));
     }
 
     /** The recorded escort opening cannot describe work already completed on a prior sortie. */

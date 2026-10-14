@@ -35,6 +35,7 @@ public final class WaylineNarration {
             BrokenSupplyRouteProgress.THUNDER, "story_supply_route_thunder_run");
     private static WaylineNarration builtins = new WaylineNarration(List.of());
     private final Map<String, Line> lines = new LinkedHashMap<>();
+    private final Map<String, List<Line>> briefings = new LinkedHashMap<>();
 
     public record Line(String id, String missionId, String event, String text,
                        float durationSeconds, int priority, float expiresSeconds,
@@ -70,7 +71,10 @@ public final class WaylineNarration {
         for (Line line : entries) {
             if (lines.putIfAbsent(line.missionId() + "/" + line.event(), line) != null)
                 throw new IllegalArgumentException("Duplicate narration event: " + line.event());
+            if (line.event().equals("briefing") || line.event().startsWith("briefing."))
+                briefings.computeIfAbsent(line.missionId(), ignored -> new ArrayList<>()).add(line);
         }
+        briefings.replaceAll((missionId, turns) -> List.copyOf(turns));
     }
 
     public static WaylineNarration builtins() { return builtins; }
@@ -112,7 +116,7 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
-        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
+        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.yardOwners(mission.id) ? "story_agreus_yard_owners" : AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
         if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
@@ -143,5 +147,9 @@ public final class WaylineNarration {
     }
 
     public Line find(String missionId, String event) { return lines.get(missionId + "/" + event); }
+    /** Briefing turns retain their authored catalog order, including the legacy single recording. */
+    public List<Line> briefing(String missionId) {
+        return briefings.getOrDefault(missionId, List.of());
+    }
     public List<Line> lines() { return List.copyOf(lines.values()); }
 }

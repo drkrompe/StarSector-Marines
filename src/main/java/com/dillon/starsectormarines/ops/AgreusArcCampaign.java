@@ -32,6 +32,17 @@ public final class AgreusArcCampaign {
             + "The stores are sealed; outside we use pressure protection. Losing the calibration load, or the technician before the kit is recovered, fails the job. "
             + "Authenticated records survive withdrawal. A new mobilization funds replacement calibration material and personnel. "
             + "The reward is a cargo card: learn it, then choose an Armory fitting. Nobody is refitted automatically. ";
+    public static final String YARD_TERMS = "INSPECTION ADDENDUM: Secure Latchkey's dispatch house, tooling hall and operator entrance. Preserve the marked calibration machine. "
+            + "On successful inspection, retain the Recovered Arbalest refurbishment pattern under Rusk's supplier guarantee. "
+            + "No bombardment or fighter strikes: the machines, homes and heating service must survive. Clearing Greyhook does not authorize civilian seizure, new leases or debt collection. "
+            + "Custody remains unsigned pending a separate agreement. Deploying accepts this inspection only; the offer has no deadline.";
+    public static final String YARD_BRIEF = "Castle: Rusk offers 36,000 credits and the Recovered Arbalest service pattern for a working inspection at Latchkey Yard. "
+            + "Secure dispatch first. The constables will hold our gains while we clear the tooling hall and operator entrance. Six seconds of uncontested company presence secures each site; enemy contact can take it back. "
+            + "Hold all three together while a living technician completes twelve uninterrupted seconds at the tools, covered by company infantry. The marked calibration machine must survive ordinary fire and blast damage. "
+            + "Lenna Saye has supplied machine labels and a safe route from the housing frontage. The Hookhands hold the yard and have a finite counterattack; workers are not targets. "
+            + "Bring three full squads if possible, fitted boats and your working tender. Rusk funds heavy lift for your active owned mech lance if available; no walker is supplied. "
+            + "Recovered Specter is useful, but regular issue can do this job. Sealed halls and pressure protection suit Agreus's airless surface. "
+            + "Lost tooling or both inspection technicians ends this attempt. A later mobilization explicitly funds replacement personnel and tooling refit, with the losses kept on record. ";
     public static final String REFERRAL = "Mara Venn: Tamsin Vale sent a reference after Morrow's departure and fleet handover. "
             + "Baronet Elian Rusk needs a company and a working construction tender at North Weir on Agreus, in Arcadia. "
             + "His concession operates under Ko Combine administration. Water Under Seal pays 26,000 credits on victory. "
@@ -72,12 +83,13 @@ public final class AgreusArcCampaign {
     public static boolean atSite(PlanetAPI planet) { var d = destination(); return planet != null && d != null && d.planetId().equals(planet.getId()); }
     public static List<Mission> offers(StoryEligibilityContext ctx) {
         var p = current();
-        if (p == null || p.warrantCompleted() || ctx == null || ctx.roster == null || !isContact(ctx.client)
+        if (p == null || p.yardCompleted() || ctx == null || ctx.roster == null || !isContact(ctx.client)
                 || ctx.client.locked || ctx.client.patronHouseId != -1 || !atSite(ctx.planet)) return List.of();
         return List.of(offer(p, ctx.planet.getName()));
     }
     public static Mission offer(AgreusArcProgress p, String planetName) {
-        if (p == null || p.warrantCompleted()) throw new IllegalArgumentException("No open Agreus contract");
+        if (p == null || p.yardCompleted()) throw new IllegalArgumentException("No open Agreus contract");
+        if (p.warrantCompleted()) return yardOffer(p, planetName);
         if (p.completed()) return warrantOffer(p, planetName);
         String losses = p.techniciansLost() + p.militiaLost() + p.repairLoadsLost() == 0 ? ""
                 : " Previous confirmed employer losses: " + p.techniciansLost() + " technicians, " + p.militiaLost()
@@ -112,6 +124,20 @@ public final class AgreusArcCampaign {
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15302L).build();
     }
+    private static Mission yardOffer(AgreusArcProgress p, String planetName) {
+        String losses = p.yardTechniciansLost() + p.yardConstablesLost() + p.toolingLost() == 0 ? ""
+                : " Confirmed prior losses: " + p.yardTechniciansLost() + " technicians, " + p.yardConstablesLost()
+                + " constables and " + p.toolingLost() + " calibration machines. This is a replacement inspection party and refit, not a pristine-yard report.";
+        return Mission.builder().id(p.nextMissionId()).name("The Yard's Owners").source(MissionSource.STORY)
+                .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
+                .payout(AgreusArcProgress.YARD_PAYMENT).targetPlanetName(planetName).defenderFactionOverride("pirates")
+                .flavor(YARD_BRIEF + losses + "\n\n" + YARD_TERMS)
+                .requirements("Three full squads recommended; minimum two selected squads with four ready marines each. Fitted boats and owned working tender required. "
+                        + "Eight constables, two technicians; employer heavy lift for an owned active mech lance, optional. "
+                        + "36,000 credits and Recovered Arbalest card once on inspected handover. No custody agreement.")
+                .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15303L).build();
+    }
     static TargetProfile profile(Mission m) { requireCurrent(m); return new TargetProfile(0, 0, 0, 0, "pirates", Set.of(),
             SurfaceZoning.forPlanetType(destination().planet().getTypeId()), SettlementLink.ROAD); }
     static void begin(Mission m) {
@@ -123,6 +149,11 @@ public final class AgreusArcCampaign {
         var p = current();
         if (p == null || o == null || o.missionSource != MissionSource.STORY || !owns(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        if (AgreusArcProgress.yardOwners(o.missionId)) {
+            if (o.yardOwners == null || MarineRosterScript.getInstance() == null) return -1;
+            var unavailable = EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+            return settleYard(p,o,Global.getSector().getPlayerFleet().getCargo(),unavailable);
+        }
         if (AgreusArcProgress.limitedWarrant(o.missionId)) {
             if (o.limitedWarrant == null || MarineRosterScript.getInstance() == null) return -1;
             var unavailable = EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
@@ -147,4 +178,16 @@ public final class AgreusArcCampaign {
         if (payment > 0 && !unavailable.contains(AgreusArcProgress.SPECTER_CARD)) cargo.addSpecial(card, 1);
         return payment;
     }
+    static int settleYard(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
+        if (p == null || o == null || cargo == null || unavailable == null || o.yardOwners == null
+                || o.missionSource != MissionSource.STORY || !AgreusArcProgress.yardOwners(o.missionId)
+                || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        var card = EquipmentTemplateCardItemPlugin.itemData(AgreusArcProgress.ARBALEST_CARD);
+        var result = o.yardOwners;
+        int payment = p.settleYard(o.missionId,"agreus",o.victory,o.payoutEarned,result.dispatchHeld(),result.toolingHeld(),
+                result.entranceHeld(),result.inspected(),result.companyPresent(),result.toolingLost(),result.techniciansLost(),result.constablesLost());
+        if (payment > 0 && !unavailable.contains(AgreusArcProgress.ARBALEST_CARD)) cargo.addSpecial(card,1);
+        return payment;
+    }
+
 }

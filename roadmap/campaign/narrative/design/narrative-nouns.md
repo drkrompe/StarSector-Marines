@@ -4,12 +4,14 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-10-13 — procedural officer reports remain distinct from ordered authored mission correspondence.
+
 ## Purpose
 
 Campaign narrative makes contracts legible as a lived patron tapestry without
-claiming omniscience. The comms officer is the player's narrator: every
-briefing is that officer's fact-bound report, not a patron monologue or a
-cinematic cutaway.
+claiming omniscience. The comms officer narrates procedural contracts through
+fact-bound reports. Authored story correspondence may instead present an ordered
+exchange among named characters; it does not make procedural reports omniscient.
 
 ## Vocabulary
 
@@ -24,6 +26,10 @@ cinematic cutaway.
   patron. **Local echo** is a recent same-market engagement by another house.
 - **Remembered target** is a frozen operation location rendered as player-facing
   prose when current economy data can resolve it.
+
+- **Authored dialogue** is immutable, optional mission correspondence whose ordered
+  turns retain stable character identities, named speakers and their words. Plain mission
+  flavor remains a supported source when no explicit dialogue is supplied.
 
 ## Laws
 
@@ -49,6 +55,12 @@ selects at most one relevant fact for the current briefing, composes the
 officer's frame with the patron register, and renders it through the existing
 briefing surfaces. The same frozen facts can ground after-action observation
 without turning either surface into a political simulator.
+
+Contract previews and briefings project the same authored turns. Stable speaker
+colors identify names; dialogue bodies remain white and readable independently
+of audio. Recorded turns may change speakers, with portrait, name and role
+following the current recording. Authored negotiation prose explains its situation;
+commercial choices and their effects remain contract-owned commands.
 
 `contracts-nouns.md` owns commercial terms and terminal outcomes;
 `living-world-nouns.md` owns political and Chronicle truth; `themes.md` owns

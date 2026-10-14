@@ -19,9 +19,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.ops.MissionSource;
+import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import java.util.Set;
+import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AgreusConstructionSupportTest {
+    @Test void yardOffersOnlyOwnedConfiguredMechsBesideTheTenderAndNeverBombardment() {
+        var mission=Mission.builder().id(AgreusArcProgress.YARD_PREFIX+1).source(MissionSource.STORY).type(MissionType.ASSAULT).build();
+        var tender=member("shepherd","owned-tender",Map.of());
+        assertEquals(1,PowerCatalog.resolve(List.of(tender),mission,List.of()).size());
+        var powers=PowerCatalog.resolve(List.of(tender),mission,List.of(MechDeploymentSpec.standard(MechVariant.HOUND)));
+        assertEquals(Set.of(ShipOnStation.ID,MechSupport.ID),powers.stream().map(power -> power.id).collect(Collectors.toSet()));
+        assertEquals(1,powers.stream().filter(power -> power.id.equals(MechSupport.ID)).findFirst().orElseThrow().maxCharges);
+    }
     @Test void onlyCommittedWorkingOwnedTendersContributeSupport() {
         var working = member("shepherd", "replacement-tender", Map.of());
         assertTrue(AgreusConstructionSupport.sources(null).isEmpty());

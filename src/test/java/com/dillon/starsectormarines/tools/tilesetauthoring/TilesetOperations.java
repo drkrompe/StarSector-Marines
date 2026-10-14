@@ -207,6 +207,9 @@ public final class TilesetOperations {
         if (!entry.preferredWallSide.isEmpty()) {
             reasons.add("wall side " + entry.preferredWallSide);
         }
+        if (!entry.fightingPosition.isEmpty()) {
+            reasons.add("fighting position " + entry.fightingPosition);
+        }
         if (entry.footprintX != 1 || entry.footprintY != 1) {
             reasons.add("footprint " + entry.footprintX + "x" + entry.footprintY);
         }

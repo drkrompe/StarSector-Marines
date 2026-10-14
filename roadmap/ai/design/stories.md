@@ -18,6 +18,7 @@ firing positions remain opt-in experiments.
 | `squad-range-quorum.md` | DRAFT | Make `IN_RANGE_OF_TARGET` a quorum instead of an any-member read, without the approach cost the first attempt measured. |
 | `clear-zone-vantage-probe.md` | DRAFT | Decide whether ClearZone should ask the vantage probe before dropping a target; measured as a one-fixture-each-way trade. |
 | `zone-graph-tiled-rebuild.md` | DRAFT | Scope `ZoneGraph.rebuild()` to the cells that changed; a 26 ms whole-map rebuild on the cell-less dirty path is the largest number left on a breach tick. |
+| `fighting-positions.md` | IN PROGRESS | Name trench and sandbag runs as fighting positions; a marine settled on one digs in for a per-marine morale benefit, and defend-area fills their cells. |
 | `shared-goal-field-cadence.md` | DRAFT | Stop regrowing every shared-goal reverse field on a fifteen-snapshot clock; a 20 ms whole-map Dijkstra per goal per fifteen ticks is the early-battle spike and half of a serial replay's simulation time. |
 
 See `stories.md` in the Mission Command feature for foundation, evidence,

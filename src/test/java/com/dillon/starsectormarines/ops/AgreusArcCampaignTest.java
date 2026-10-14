@@ -40,7 +40,12 @@ class AgreusArcCampaignTest {
         assertTrue(warrant.flavor.contains("Yard management and debt enforcement require a separate agreement"));
         assertTrue(p.begin(warrant.id, "agreus"));
         assertEquals(30000, p.settleWarrant(warrant.id, "agreus", true, 30000, true, true, true, true, false, 0, 0));
-        assertThrows(IllegalArgumentException.class, () -> AgreusArcCampaign.offer(p, "Agreus"));
+        var yard = AgreusArcCampaign.offer(p,"Agreus");
+        assertEquals("The Yard's Owners",yard.name); assertEquals(36000,yard.payout);
+        assertTrue(yard.flavor.contains("Custody remains unsigned"));
+        assertTrue(p.begin(yard.id,"agreus"));
+        assertEquals(36000,p.settleYard(yard.id,"agreus",true,36000,true,true,true,true,true,false,0,0));
+        assertThrows(IllegalArgumentException.class, () -> AgreusArcCampaign.offer(p,"Agreus"));
     }
     @Test void missingAgreusHasNoFallbackAndAttachedMarketIdIsNotAssumed() {
         var other = stub(PlanetAPI.class, Map.of("getId", "asharu"));

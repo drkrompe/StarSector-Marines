@@ -333,10 +333,7 @@ public final class DamageResolver {
         float cap = team.cap();
         float drop = 0f;
         if (team.drainCooldown <= 0f) {
-            float hit = (cap > 0f)
-                    ? SquadMoraleSystem.MORALE_DROP_ON_HIT / cap
-                    : SquadMoraleSystem.MORALE_DROP_ON_HIT;
-            drop += hit * moraleImpact;
+            drop += SquadMoraleSystem.hitDrain(cap, moraleImpact, roster.combat().isDugIn(targetId));
             team.drainCooldown = SquadMoraleSystem.MORALE_DRAIN_COOLDOWN;
         }
         if (died) drop += SquadMoraleSystem.MORALE_DROP_ON_DEATH;
