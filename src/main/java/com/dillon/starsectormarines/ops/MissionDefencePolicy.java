@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -72,6 +73,16 @@ public final class MissionDefencePolicy {
     /** The composition of each Conquest lance: one anchor, two skirmishers, one support. UNTUNED. */
     static final List<MechVariant> CONQUEST_MECH_LANCE =
             List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO);
+
+    /**
+     * The pool of bombers and fighters each side holds, tasked by comms operators. A mission's explicit
+     * {@link Mission#airPool} statement (today the DEBUG dial) wins; no mission type declares one on its own yet, so
+     * every other battle declares none and plays as it did before pools.
+     */
+    public static AirPoolDeclaration declareAirPool(Mission mission) {
+        if (mission.airPool != null) return mission.airPool.declaration();
+        return AirPoolDeclaration.NONE;
+    }
 
     /**
      * The mech lances each side's commander may call down on its own authority. A mission's explicit

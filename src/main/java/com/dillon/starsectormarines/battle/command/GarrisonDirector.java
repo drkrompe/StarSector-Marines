@@ -153,6 +153,8 @@ final class GarrisonDirector {
     private int considered;
     private int blockReads;
     private int etaEvals;
+    /** Whether the last {@link #nearest} skipped a roving patrol only because taking it would empty the reserve. */
+    private boolean barredByFloor;
 
     /** The garrisonable cell a squad was ordered to man and has not yet been seen carrying, or {@code null}. */
     int[] pendingCell(int squadId) {
@@ -187,6 +189,16 @@ final class GarrisonDirector {
      */
     int[] warmPlaces() {
         return Arrays.copyOf(warm, warmCount);
+    }
+
+    /** The places the last {@link #evaluate} found at or above {@link #START_PRESSURE}, most pressed first. Valid until the next evaluate. */
+    int[] hotPlaces() {
+        return Arrays.copyOf(hot, hotCount);
+    }
+
+    /** Whether any squad manned or was ordered to man this place as of the last {@link #evaluate} (and since, via {@link #assign}). */
+    boolean isManned(int garrisonable) {
+        return have.getOrDefault(garrisonable, 0) > 0;
     }
 
     /** Whether the place with this centre cell is held unmanned after a breach; for tests and evidence. */
@@ -348,6 +360,7 @@ final class GarrisonDirector {
         long started = profile != null ? System.nanoTime() : 0L;
         List<Man> out = new ArrayList<>();
         int refused = 0;
+        int floorRefused = 0;
         if (hotCount > 0 && pulseRegistry != null) {
             boolean[] used = new boolean[free.size()];
             int left = 0;
@@ -363,6 +376,7 @@ final class GarrisonDirector {
                 int pick = nearest(free, used, g, eligible, left > RESERVE_FLOOR);
                 if (pick < 0) {
                     refused++;
+                    if (barredByFloor) floorRefused++;
                     continue;
                 }
                 used[pick] = true;
@@ -394,6 +408,7 @@ final class GarrisonDirector {
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_MAN, out.size());
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_ETA_EVAL, etaEvals);
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_ETA_REFUSED, refused);
+            profile.recordCount(TickInnerProfile.Bucket.GARRISON_FLOOR_REFUSED, floorRefused);
             profile.record(TickInnerProfile.Bucket.GARRISON_EVAL, System.nanoTime() - started);
         }
         pulseRegistry = null;
@@ -411,6 +426,7 @@ final class GarrisonDirector {
      * search: nothing after it is closer.
      */
     private int nearest(List<Free> free, boolean[] used, int g, Eligibility eligible, boolean mayTakeRoving) {
+        barredByFloor = false;
         int cx = pulseRegistry.centreX(g);
         int cy = pulseRegistry.centreY(g);
         Integer[] order = new Integer[free.size()];
@@ -422,7 +438,10 @@ final class GarrisonDirector {
                 .thenComparingInt(i -> free.get(i).squadId()));
         for (int i : candidates) {
             Free squad = free.get(i);
-            if (!squad.staged() && !mayTakeRoving) continue;
+            if (!squad.staged() && !mayTakeRoving) {
+                barredByFloor = true;
+                continue;
+            }
             etaEvals++;
             if (etaTicks(squad.x(), squad.y(), cx, cy) > MAX_ETA_TICKS) return -1;
             if (eligible.test(squad.squadId(), g)) return i;

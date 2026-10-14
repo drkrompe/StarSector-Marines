@@ -253,7 +253,12 @@ Do not run builds or leave generated task files there.
   Each fixture row reports fighting-position runs and cells at start and end.
   The canonical fixtures declare no forts and so have none; the fort-bearing
   control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
-  (four battery forts and a shield fort; about 50 runs, 5,200 cells). Use
+  (four battery forts and a shield fort; about 50 runs, 5,200 cells).
+  `-Dbattle.fort.beltGarrison=reactive|static|off` selects how belts are manned;
+  `-Dbattle.garrison.flow=false` stops pressure-driven staging and
+  `-Dbattle.garrison.fromRally=false` stops manning from taking just-rallied
+  patrols (both are needed for the pre-flow behaviour). The fort report carries a
+  `pressure flow:` line and a fighting-position use block per faction. Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the

@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is built for fort-belt fighting positions; o
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — flow then local assignment; fort-belt staging, arrival gate and fall back built.
+Updated: 2026-10-13 — general pressure-driven flow (areas, demand, staging cells) and the order local assignment draws forces in.
 
 ## Why this exists
 
@@ -107,6 +107,20 @@ works in two tiers.
 
 Flow is what makes local assignment work: it changes who is local. Both run on
 the command cadence from the same pressured-block walk.
+
+Pressured blocks cluster into **areas**, each with a believed hostile weight.
+An area asks for squads in proportion to that weight and to its pressed
+garrisonables nobody holds, less the squads already local to it. Its staging
+cell sits a standoff behind the area along the side's own rear, or at a held
+fort's works when the area presses that fort's belt. Every area with nobody
+local gets one squad before any gets a second, starting and keeping a post have
+different thresholds, and an area that stays quiet returns its squads.
+
+Local assignment draws staged squads first, then squads the track rally has just
+sent, then the roving pool above its reserve floor. The rally and flow are
+therefore both ways forces become local; the rally currently spends most of the
+pool before flow sees it, and the two are meant to become one per-area
+reservation rather than competitors.
 
 ## How it fits what exists
 

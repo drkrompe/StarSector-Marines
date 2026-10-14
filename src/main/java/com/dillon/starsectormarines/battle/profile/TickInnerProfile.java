@@ -214,6 +214,8 @@ public final class TickInnerProfile {
         /** Count-only: arrival estimates computed for a (free squad, hot place) pair, and hot places left unmanned because no free squad could arrive in time. */
         GARRISON_ETA_EVAL,
         GARRISON_ETA_REFUSED,
+        /** Count-only: of those refusals, the ones where a roving patrol was skipped only to keep the reserve floor. */
+        GARRISON_FLOOR_REFUSED,
         /** Count-only: releases deferred because the squad was still closing on its place, and falls back ordered. */
         GARRISON_HOLD_EN_ROUTE,
         GARRISON_FALL_BACK,
@@ -222,6 +224,16 @@ public final class TickInnerProfile {
         /** Count-only: patrols posted at a fort's works to wait there, and candidate patrols priced for it. */
         GARRISON_STAGE,
         GARRISON_STAGE_EVAL,
+        /** Flow step of the defender plan: wall time, one sample per plan. */
+        FLOW_EVAL,
+        /** Count-only: pressure areas found, squads they asked for in all, squads already local to them, and staged squads given back. */
+        FLOW_AREA,
+        FLOW_DEMAND,
+        FLOW_LOCAL,
+        FLOW_RELEASE,
+        /** Count-only: contact blocks walked and (free squad, area) arrival estimates priced by the flow step. */
+        FLOW_BLOCK,
+        FLOW_ETA_EVAL,
         /** Registry rebuilds (one per fighting-position index change): wall time and count. */
         GARRISON_REGISTRY_BUILD,
         COMMANDER_PLAN,

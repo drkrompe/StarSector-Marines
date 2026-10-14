@@ -166,6 +166,8 @@ public final class DeployableTactics {
      */
     public static boolean tickPlacement(long unit, SpecialEquipmentDef special,
                                         BattleControl sim) {
+        // A crew-served tube is not spent on completion: its life cycle belongs to the field-mortar service.
+        if (special.isCrewServed()) return MortarTactics.tickServing(unit, sim);
         World world = sim.world();
         world.setSecondaryActionTimer(unit,
                 world.secondaryActionTimer(unit) - BattleSimulation.TICK_DT);
