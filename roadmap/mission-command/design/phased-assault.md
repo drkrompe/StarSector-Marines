@@ -1,12 +1,12 @@
 # Phased assault
 
 Status: ACTIVE — direction for how a large attacking force lands, masses and
-assaults a defended position. Slices 1 (foothold and muster), 2 (the mech drop) and 3 (per-stamp assault plans) are built, off by default
-until the evidence below beats the trickle. Slices are on the mission-command board.
+assaults a defended position. Slices 1 (foothold and muster), 2 (the mech drop) and 3 (per-stamp assault plans) are built, on by default (owner decision 2026-10-14; `battle.command.muster=false` is the trickle control).
+Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — phased-assault evidence now lives on the trial ground (see Evidence lives on the trial ground): muster plus plans beats the trickle with the fort on the lane (lances and air win most) and is level with it off the lane; mortar setup diagnosed (marching sections never settle); muster stays off pending the owner.
+Updated: 2026-10-14 — phased-assault evidence now lives on the trial ground (see Evidence lives on the trial ground): muster plus plans beats the trickle with the fort on the lane (lances and air win most) and is level with it off the lane; mortar setup diagnosed (marching sections never settle); the muster (with plans) is now on by default, an owner decision taken on the trial-ground results while the Conquest fort fixtures still disagree (ahead on one of three).
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -170,11 +170,12 @@ without a muster that asks for it. The `mech-drop` scene is the acceptance.
 ## Foothold, muster and assault: as built
 
 Slice 1 lives in `AssaultMuster` (pure planning over frozen inputs, symmetric)
-with `ConquestCommand` as its adapter. **It is off by default**:
-`battle.command.muster=true` turns it on, and off the attacker detaches one or
-two squads at a time to a disclosed fort, which is the control. Scenes and
-evidence turn it on explicitly; it stays off until it beats the control on the
-fort fixtures (see "What the evidence says"). Phases are published per objective
+with `ConquestCommand` as its adapter. **It is on by default** (owner decision
+2026-10-14, on the trial-ground results; the Conquest fort fixtures still disagree):
+`battle.command.muster=false` turns it off, and off the attacker detaches one or
+two squads at a time to a disclosed fort, which is the trickle control. The per-stamp
+plans ride with it (`battle.command.musterPlans`, default true). Scenes that must
+hold the trickle set the switch off explicitly. Phases are published per objective
 in `ConquestFrontSnapshot` (`CompanyState`: stage `FOOTHOLD`, `MUSTER` or
 `ASSAULT`, the plan step, squads, strength against the strength believed needed,
 rally and objective cells, commit deadline, reason), and in the command trace as
@@ -457,13 +458,13 @@ Variants: (a) trickle, production defaults; (b) muster and plans; (c) b plus the
 
 Readings. With the fort on the lane the trickle loses nearly the whole force (64–96 of ~103) and wins one seed late; every muster variant takes the objective on all three seeds and wins more often, and (d) wins all three with fewer losses than (a) on every seed. Each of (b)–(d) formed and committed exactly one company per run, none broken or stood down. With the fort off the lane the trickle simply walks past it and is as good as any variant, so the muster adds nothing there and costs losses on one seed of (b). No fort aspect was taken in most runs (a few wrecked: the magazine or a platform); the fort's wall opened in (c) and (d) (tens of cells, air strikes and breach fire) while (a) and (b) opened at most one cell. Nests killed: 4–8 of 8 in every variant, but by the ground in the trickle and (b) and by air in (c)/(d) (1–5 per run); none by mortar. Pool calls were 8–21 per run with 2–7 airframes lost and replaced; tubes were set down 1–5 times per run, 5–28 rounds, 0–9 on an assigned mission. Strikes asked by the company: 0–5.
 
-Three seeds is small and the fixtures are a controlled construction, but the direction is consistent: **on the trial ground the muster beats the trickle where the fort is in the way, and lances plus air win the most.** Proposal, not flipped: turn `battle.command.muster` on for Conquest once the Conquest fort fixtures (which disagree: ahead on one of three) stop contradicting it, or on the trial result alone if the owner accepts it as the gate. The default stays off.
+Three seeds is small and the fixtures are a controlled construction, but the direction is consistent: **on the trial ground the muster beats the trickle where the fort is in the way, and lances plus air win the most.** **Flipped on by owner decision (2026-10-14):** `battle.command.muster` (with plans) is the default, on the trial result, although the Conquest fort fixtures still disagree (ahead on one of three); `-Dbattle.command.muster=false` keeps the trickle control.
 
 **Mortar setup, diagnosed.** Counting each `tryCommitDeploy` call for the two tube gunners over 9,000 ticks (8 runs, kit declared, muster on): the gunner was **not settled** in 69–90% of calls (the section is marching: a gunner holding a path never sets up, and a standing mission does not stop a walking section), the section believed nothing worth a tube in band in 7–24%, the section was under fire in 1–3%, other-members-moving in 1–3%, and the danger ring was never reached. Fewer than 0.1% of calls had an assigned mission at all: the force has only two tube squads in sixteen, standing missions are only given while a squad is 30–46 cells from disclosed works, and a marching squad passes that band in a few pulses (one squad received them on 7 pulses in 9,000 ticks). Plans do assign missions to the base-of-fire squads, and those are the runs with mission rounds. An experiment that held a lane infantry squad in place (bounded 1,500 ticks, then a cooldown) while it held a standing mission changed three of twelve runs and produced no mission rounds in any, so it was removed; and with lances in play it exposed a mech backstop route search that did not finish in over ten minutes on one run, a latent problem not owned here. What remains: a standing mission that makes the section stop for the mission only works if the order and the target band agree, which needs a sighting-free target pick in the executor, not a hold.
 
 ## Slices
 
-1. **Foothold and muster** (built, off by default) — attacker phases, a rally point at the
+1. **Foothold and muster** (built, on by default) — attacker phases, a rally point at the
    defended drop zone, assault companies formed from squads, a readiness judgement
    (counting the defence) with a timeout and a bounded stand-down, and commit; the
    beachhead is held and the lanes keep half their squads.
