@@ -204,7 +204,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
             if (loop.equals("unpowered")) s.applyDamage(fort.place(FortAspect.POWER).coreId(), 1_000_000f, 3.5f, 0f);
         };
         SceneRun.of(world).observe(script, trace)
-                .frames(frames, loop, 60, tick -> trace.caption(loop, tick))
+                .frames(frames, loop, 110, tick -> trace.caption(loop, tick))
                 .run(TICKS);
         return new Run(trace, sim, fort);
     }

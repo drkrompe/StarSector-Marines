@@ -164,7 +164,7 @@ public final class ShipVsFortScene implements BehaviorScene {
         };
         final Warship shown = ship;
         SceneRun.of(world).observe(script, trace)
-                .frames(frames, loop, 60, tick -> trace.caption(loop, tick, shown))
+                .frames(frames, loop, 100, tick -> trace.caption(loop, tick, shown))
                 .run(TICKS);
         return new Run(trace, ship, fort, sim);
     }
