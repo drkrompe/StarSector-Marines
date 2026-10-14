@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — the muster is off by default (`battle.command.muster=true`): a company counts the nests and gate in front of it, each lane keeps half its squads, a short muster stands down, and a committed company executes the stamp's assault plan (`phased-assault.md`); measured not yet better than the trickle.
+Updated: 2026-10-14 — Conquest carries a mission-declared fire support kit and marine air pool, and muster plus plans now leads the trickle on one of three fort fixtures (still off by default; proposal in the muster section); earlier: the muster is off by default (`battle.command.muster=true`): a company counts the nests and gate in front of it, each lane keeps half its squads, a short muster stands down, and a committed company executes the stamp's assault plan (`phased-assault.md`); measured not yet better than the trickle.
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -230,7 +230,9 @@ as `ConquestFrontSnapshot.companies` and as the assignment reasons
 `ASSAULT_BASE_OF_FIRE`, `ASSAULT_STAGE`, `ASSAULT_ENTRY` and `ASSAULT_HOLD`, which
 the balance report counts as company orders next to its structure orders.
 
-**Measured: the muster does not yet beat the trickle.** Four fixtures that declare
+**Fire support, and the proposal.** A Conquest declares a squad support kit (mortar teams, comms-radio observers) and an AI-directed marine air pool beside its two mech lances (`MissionDefencePolicy`; see `phased-assault.md`, "Conquest fire support kit: as built"), so the plan's strike wishes and fire missions have something to use. With it, on the fort fixtures at 36,000 ticks, muster plus plans leads the trickle on reinforced-south (25 captures with 19 held against 21 with 14, fewer marines lost) and is level on full-strength-west and the checked-in forts fixture; the matrix without forts is not hurt by the kit. **Proposal, not a change:** turn the muster on by default once a further fixture or two agrees; this is one fixture of three. The muster stays off.
+
+**Measured before the kit: the muster does not yet beat the trickle.** Four fixtures that declare
 forts, 36,000 ticks, captures / held (control, muster without the plan, muster
 with it): `reinforced-south` sited 23 / 18, 18 / 17, 21 / 15; `full-strength-west`
 sited 9 / 3, 14 / 3, 16 / 2; unsited, control and plan, south 29 / 24 and 24 / 18,
