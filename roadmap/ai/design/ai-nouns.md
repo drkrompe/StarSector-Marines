@@ -1921,6 +1921,12 @@ Frontage belongs to whoever holds the place, not to whoever is defending the
 mission. An attacker holding a captured compound stands to on the same envelope
 against the counter-attack.
 
+A held place with no rooms, such as a landing zone, is patrolled round its
+edge: the squad walks a ring just outside the ground it holds, pausing to look
+and firing at anything it sees. A hold that only knew how to tour rooms left
+such a squad standing still for the whole battle, which a player reads as
+broken.
+
 A frontage exists only while the envelope in question does, and the envelope is
 whatever is actually closed rather than whatever was drawn. Where map generation leaves a
 wall open on purpose — a reserved road centreline crossing a compound is the

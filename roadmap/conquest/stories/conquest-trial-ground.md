@@ -4,7 +4,7 @@ Status: IN PROGRESS — mission layer extracted and trial ground playing; first 
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — steps 1–3 built; reactive manning blindness fixed (token picket, fort-gun reports, threat memory). Home tracks now follow work and stages stand until reached: across 15 fixtures (9 offset, 6 on-path) the objective falls in 11 and marines win 8, against none before. An offset fort is still walked past rather than engaged; next is lane loans.
+Updated: 2026-10-14 — steps 1–3 built; reactive manning blindness fixed (token picket, fort-gun reports, threat memory). Home tracks follow work, stages stand until reached, step toward the track's compound and go round a fort that is not the objective: the objective falls in all 15 fixtures (9 offset, 6 on-path) and marines win 8, against none before. The 7 timeouts lose the keep: the default trial force (four 12-seat squads, rifles only) runs out of marines.
 
 ## Intent
 
