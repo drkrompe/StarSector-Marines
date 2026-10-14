@@ -161,6 +161,8 @@ public final class MortarSections {
     private int underFire;
     private int ended;
     private float secondsHeld;
+    private int rounds;
+    private int missionRounds;
 
     /** The section {@code squadId} is in, or null. */
     public Section sectionOf(int squadId) {
@@ -189,6 +191,10 @@ public final class MortarSections {
     public int ended() { return ended; }
     /** Total seconds sections spent open (a section's leash is a cost), summed over ended sections. */
     public float secondsHeld() { return secondsHeld; }
+    /** Rounds fired by tubes that sections set down, summed over ended sections. */
+    public int roundsFired() { return rounds; }
+    /** Of those, rounds fired at a body on an assigned fire mission. */
+    public int missionRoundsFired() { return missionRounds; }
 
     /**
      * Opens a section for {@code squadId} crewed by {@code crew} (gunner first), standing where the gunner stands.
@@ -197,8 +203,7 @@ public final class MortarSections {
     public Section open(int squadId, long[] crew, float x, float y) {
         Section section = new Section(squadId, crew, x, y);
         bySquad.put(squadId, section);
-        opened++;
-        return section;
+        opened++;        return section;
     }
 
     /** The serial pass: ages windows, moves sections through their stages and ends them. */
@@ -281,6 +286,10 @@ public final class MortarSections {
     private void finish(Section section, String reason, boolean neverCommitted) {
         if (bySquad.remove(section.squadId, section)) {
             if (section.endReason.isEmpty()) section.endReason = reason;
+            if (section.tube != null) {
+                rounds += section.tube.roundsFired();
+                missionRounds += section.tube.missionRoundsFired();
+            }
             if (neverCommitted) abandoned++;
             ended++;
             secondsHeld += section.sinceOpen;
