@@ -430,6 +430,7 @@ final class HeadlessBattleSprites extends BattleSprites {
                 }
             }
         }
+        loaded.registerSpecialEquipment(TreatmentKitLayer.ASSET_KEY, layer(TreatmentKitLayer.SPRITE));
         MarineArmorCatalogRegistry armorRegistry = MarineArmorCatalogRegistry.installed();
         if (armorRegistry != null) {
             for (MarineArmorCatalogDef armor : armorRegistry.all()) {

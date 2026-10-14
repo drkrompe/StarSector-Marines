@@ -2187,6 +2187,15 @@ objective's door does not turn securing it into holding the apron. An explicit
 defend-area click on a trench remains an ordinary defend area, and Mechs never
 occupy.
 
+A click inside a **held place** (a building a map publishes as a held position)
+occupies the building instead: the player's version of a garrison's held node.
+The squad holds it the way a garrison does. It stands to at the building's
+apertures while hostiles are believed close and walks its rooms while they are
+not. Like a defense area, it stands until superseded or withdrawn. The order
+resolves after the trench and before plain ground, and the cursor announces it
+with the same occupy verb. Where footprints overlap, the smaller place is the
+one pointed at.
+
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than
 walking out to hunt a better firing cell and forfeiting the dig-in. The claims

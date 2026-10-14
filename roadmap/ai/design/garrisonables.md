@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is built for fort-belt fighting positions; o
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — story-map inventory: windows read correctly; half the story maps publish no held places.
+Updated: 2026-10-14 — story maps publish held places; the player occupy order holds a building.
 
 ## Why this exists
 
@@ -173,7 +173,10 @@ has no capture record, marker or supply gate — and it asks for no garrison, so
 publishing one changes nothing until somebody is sent to it. That is
 deliberate: a building is manned in answer to threat or by order, by the same
 law as a trench. Relief and Counterattack publish theirs; the other story maps
-follow the same helper, `HeldPlaces`.
+follow the same helper, `HeldPlaces`. The first consumer is the player's occupy
+order. On any map that publishes held places, a click on a building holds it
+at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
+consumer.
 
 ## Open questions
 

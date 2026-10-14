@@ -1,11 +1,12 @@
 # Squad medic — an officer specialty that designates one medic per squad
 
-Status: IN PROGRESS — the specialty, treatment, AI, both movement modes and the
-`squad-medic` scene are in; presentation, the balance pass and the billet
-choice remain. Numbers are starting points, not settled balance.
+Status: IN PROGRESS — the specialty, treatment, AI, both movement modes,
+battle and squad-card presentation, and the `squad-medic` scene are in; the
+balance pass and the billet choice remain. Numbers are starting points, not
+settled balance.
 
 Written: 2026-10-14
-Updated: 2026-10-14 — simulation and evidence landed; remaining scope narrowed to presentation and balance.
+Updated: 2026-10-14 — presentation landed and folded into the noun docs; remaining scope is balance, billet choice and copy.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -39,8 +40,7 @@ the specialties, and now there are four of them, so taking Field Medicine is a
 real trade against cover, recovery or salvage.
 
 **Which marine is the medic** is decided by billet, not by quality: the first
-marine in the middle fire team other than the leader, in seat order (which is
-NCO first, then roster order), or the first non-leader when the squad has no
+marine in the middle fire team other than the leader, in roster order, or the first non-leader when the squad has no
 middle team. The middle team is preferred so the medic stands near everybody.
 If the medic dies, the next marine by the same rule takes the role on the next
 tick, so the squad does not lose medicine to a single casualty. Whether the
@@ -178,12 +178,7 @@ This must stay inside the yield and goal rules the scenes have already enforced:
    `SquadMedicSystem.setKeepMoving`; planted by default). The balance pass
    decides the default, and whether "keep moving" becomes a player-facing option
    (squad stance or per-order choice) rather than only a tuning control.
-3. **Presentation.** Not started: a use pose and treatment FX for the medic, a
-   mark on the patient, and the designated medic legible on the field and on
-   the squad card (`company-view-nouns.md` already uses an amber medical mark for
-   *wounded*; the medic needs a distinct mark). The review frames label medic
-   and patient as diagnostics only.
-4. **Specialty copy** against the `FIELD_MEDIC` trait, above.
+3. **Specialty copy** against the `FIELD_MEDIC` trait, above.
 
 ## Evidence so far
 
@@ -206,7 +201,6 @@ nothing in the shipped game slows one marine against another to stage it.
 
 ## Remaining acceptance
 
-- Presentation (open question 3), with frames at 1920x1080 / 100%.
 - A balance pass across seeds and against real opposition, settling the
   movement default and the per-rank numbers.
 - Live play: train the specialty on an officer, deploy their squad, and see a

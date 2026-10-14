@@ -24,6 +24,13 @@ public final class LayeredAppearance {
     public static final int FLAG_WEAPON_OVER_SHOULDER = 1 << 2;
     /** The current secondary action began while the actor was mid-stride. */
     public static final int FLAG_ACTION_FROM_MOVING = 1 << 3;
+    /**
+     * A squad medic kneeling over a patient: the plant pose with the treatment kit
+     * in hand, whatever special the medic happens to carry.
+     */
+    public static final int FLAG_TREATING = 1 << 4;
+    /** The held point of the planting clip a kneeling medic shows. */
+    public static final float TREATING_PHASE = 0.56f;
 
     /** Initial fraction of an equipment action used to settle out of locomotion. */
     public static final float ACTION_ENTRY_BLEND_PHASE = 0.18f;

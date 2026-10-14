@@ -1157,6 +1157,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 civilianEvacuation.markDead(event.unitId()));
         deathDispatcher.subscribe(this::recordCommandTraceCasualty);
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
+        facingSystem.setTreatmentPatients(squadMedics::treatingPatientOf);
         this.systemFxSystem = new SystemFxSystem(rosterService);
         this.mechLocomotionSystem = new MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
