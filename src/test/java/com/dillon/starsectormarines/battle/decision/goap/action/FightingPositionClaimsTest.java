@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -74,6 +75,97 @@ class FightingPositionClaimsTest {
         Set<Integer> columns = new HashSet<>();
         for (int c : cells) if (c >= 0) columns.add(c % W);
         return columns;
+    }
+
+    private static FightingPositionIndex trenches(int[][] runs) {
+        List<Doodad> props = new ArrayList<>();
+        DoodadDef def = new DoodadDef("doodad.test.trench", "sheet", 0, 0, DoodadCover.HEAVY, 0.3f,
+                1, 1, null, 0, null, FightingPositionRole.TRENCH);
+        for (int[] run : runs) for (int x = run[0]; x <= run[1]; x++) props.add(new Doodad(x, run[2], def));
+        return FightingPositionIndex.build(W, H, props, (cx, cy) -> true);
+    }
+
+    private static int[] twoTeams(int each) {
+        int[] teams = new int[each * 2];
+        for (int i = each; i < teams.length; i++) teams[i] = 1;
+        return teams;
+    }
+
+    @Test
+    void aLineDrawnAcrossTwoTrenchesSeatsOneFireTeamInEach() {
+        // Two twelve-cell trenches end to end with a gap, and a drag along both.
+        FightingPositionIndex index = trenches(new int[][]{{2, 13, 10}, {22, 33, 10}});
+        FrontageLine line = FrontageLine.facing(2, 10, 33, 10, 18, 2, NO_THREAT, NO_THREAT);
+        Order order = new Order(18, 10, 20, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(12);
+        int[] teams = twoTeams(6);
+
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, teams, new HashSet<>());
+
+        for (int i = 0; i < 6; i++) {
+            assertTrue(cells[i] % W <= 13, "team 0 holds the first trench: " + cells[i] % W);
+            assertTrue(cells[i + 6] % W >= 22, "team 1 holds the second trench: " + cells[i + 6] % W);
+        }
+    }
+
+    @Test
+    void aFireTeamWhoseStretchFallsInTheGapStaysOnOneTrench() {
+        // Three teams of four: the middle team's stretch is mostly the gap between the trenches.
+        FightingPositionIndex index = trenches(new int[][]{{2, 13, 10}, {22, 33, 10}});
+        FrontageLine line = FrontageLine.facing(2, 10, 33, 10, 18, 2, NO_THREAT, NO_THREAT);
+        Order order = new Order(18, 10, 20, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(12);
+        int[] teams = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
+
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, teams, new HashSet<>());
+
+        for (int team = 0; team < 3; team++) {
+            Set<Boolean> sides = new HashSet<>();
+            for (int i = team * 4; i < team * 4 + 4; i++) sides.add(cells[i] % W <= 13);
+            assertEquals(1, sides.size(), "team " + team + " is split across both trenches");
+        }
+    }
+
+    @Test
+    void theLineIsCutForTheWholeSquadEvenBeforeEveryTeamCanBePlaced() {
+        FightingPositionIndex index = trench(4, 35, 10);
+        FrontageLine line = FrontageLine.facing(4, 10, 35, 10, 20, 2, NO_THREAT, NO_THREAT);
+        Order order = new Order(20, 10, 20, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(4);
+
+        // Only team 0 is ready; team 1 is still forming up but owns the far half.
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, new int[4], List.of(0, 1),
+                new HashSet<>());
+
+        for (int c : cells) assertTrue(c % W < 20, "team 0 stays on its own half: " + c % W);
+    }
+
+    @Test
+    void aLineAlongOneLongTrenchSpreadsTheTeamsOverItsLength() {
+        FightingPositionIndex index = trench(4, 35, 10);
+        FrontageLine line = FrontageLine.facing(4, 10, 35, 10, 20, 2, NO_THREAT, NO_THREAT);
+        Order order = new Order(20, 10, 20, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(12);
+
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, twoTeams(6), new HashSet<>());
+
+        for (int i = 0; i < 6; i++) {
+            assertTrue(cells[i] % W < 20, "team 0 on the near half: " + cells[i] % W);
+            assertTrue(cells[i + 6] % W >= 20, "team 1 on the far half: " + cells[i + 6] % W);
+        }
+    }
+
+    @Test
+    void aLineTakesNothingOutsideItsBand() {
+        FightingPositionIndex index = trench(4, 35, 10);
+        // Drawn five cells off the trench: outside the band, so no cell is a post.
+        FrontageLine line = FrontageLine.facing(4, 15, 35, 15, 20, 19, NO_THREAT, NO_THREAT);
+        Order order = new Order(20, 15, 20, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(6);
+
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, new int[6], new HashSet<>());
+
+        for (int c : cells) assertEquals(-1, c, "overflow holds the line on ordinary ground");
     }
 
     @Test

@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is built for fort-belt fighting positions; o
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — story maps publish held places; the player occupy order holds a building.
+Updated: 2026-10-14 — story maps publish held places; the player occupy order holds a building and a dragged line holds a frontage.
 
 ## Why this exists
 
@@ -77,7 +77,8 @@ layer is what a squad falls back to when the one in front of it is lost.
   those inside or adjacent to threatened bands, on its own command cadence.
   Nothing scans every garrisonable every tick; candidate lookup is spatial.
 - **The player's version is manual.** The occupy order is the player assigning
-  a garrisonable by hand. Whether a player's idle squads may opt into reactive
+  a garrisonable by hand, and a dragged line order assigns every fighting
+  position along a drawn frontage, one fire team per stretch. Whether a player's idle squads may opt into reactive
   manning is a later question, not a default.
 
 ## Measuring cheaply

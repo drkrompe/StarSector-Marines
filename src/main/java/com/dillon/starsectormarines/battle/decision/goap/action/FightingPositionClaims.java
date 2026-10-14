@@ -6,17 +6,20 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Who holds which {@link FightingPositionIndex fighting-position} cell. Claims are by marine,
@@ -49,18 +52,36 @@ public final class FightingPositionClaims {
         int cover(int x, int y, int fromDx, int fromDy);
     }
 
-    /** One squad's ordered circle and the threat it believes in ({@code threatX < 0}: none). */
+    /**
+     * One squad's ordered circle and the threat it believes in ({@code threatX < 0}: none). A
+     * line order also carries the drawn {@link FrontageLine}, and then the line's band rather
+     * than the circle is the ground its positions are taken from.
+     */
     public record Order(int centerX, int centerY, int radius, int threatX, int threatY,
-                        int runId) {
+                        int runId, FrontageLine line) {
         /** An order that may use any position run inside the circle. */
         public Order(int centerX, int centerY, int radius, int threatX, int threatY) {
             this(centerX, centerY, radius, threatX, threatY, -1);
         }
 
-        /** Whether the order may take the cell: a position cell inside the circle, on its run if it names one. */
+        public Order(int centerX, int centerY, int radius, int threatX, int threatY, int runId) {
+            this(centerX, centerY, radius, threatX, threatY, runId, null);
+        }
+
+        /** Whether the order may take the cell: a position cell inside its ground, on its run if it names one. */
         boolean admits(FightingPositionIndex index, int x, int y) {
             int run = index.runIdAt(x, y);
-            return run >= 0 && inside(x, y) && (runId < 0 || runId == run);
+            boolean inGround = line != null ? line.covers(x, y) : inside(x, y);
+            return run >= 0 && inGround && (runId < 0 || runId == run);
+        }
+
+        /** Cover a cell gives against the believed threat, else against the line's front, else all round. */
+        int cover(Probe probe, int x, int y) {
+            if (hasThreat()) return probe.cover(x, y, threatX - x, threatY - y);
+            if (line != null) {
+                return probe.cover(x, y, Math.round(line.frontX() * 8f), Math.round(line.frontY() * 8f));
+            }
+            return probe.cover(x, y, 0, 0);
         }
 
         boolean hasThreat() {
@@ -75,6 +96,8 @@ public final class FightingPositionClaims {
     }
 
     private volatile Map<Long, int[]> byMember = Map.of();
+    /** The fire teams each line-holding squad was cut for last tick; tick-phase only. */
+    private Map<Integer, List<Integer>> lineTeams = Map.of();
     private volatile Map<Integer, Long> byCell = Map.of();
 
     /** The cell this marine holds, or {@code null}. The array is shared; do not modify it. */
@@ -131,6 +154,9 @@ public final class FightingPositionClaims {
         long[][] members = new long[n][];
         Order[] orders = new Order[n];
         int[][] cells = new int[n][];
+        int[][] teams = new int[n][];
+        List<List<Integer>> squadTeams = new ArrayList<>();
+        Map<Integer, List<Integer>> nextLineTeams = new HashMap<>();
         Set<Integer> claimed = new HashSet<>();
         for (int s = 0; s < n; s++) {
             Squad squad = squads.get(s);
@@ -140,26 +166,45 @@ public final class FightingPositionClaims {
                     && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
             orders[s] = new Order(area.centerX(), area.centerY(), area.radius(),
                     threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1,
-                    occupyRun(sim, squad));
+                    occupyRun(sim, squad), sim.frontageLineOf(squad.id));
             List<Long> available = new ArrayList<>();
+            TreeSet<Integer> everyTeam = new TreeSet<>();
             for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
+                if (sim.resolveUnit(member) != 0L) everyTeam.add(sim.squad().fireTeamIndex(member));
                 if (squad.availableToPlan(member, sim)) available.add(member);
             }
+            // Teams still in the air count too: a squad landing in lifts has its later teams'
+            // stretches kept for them rather than taken by whoever touched down first.
+            int expected = Math.max(squad.expectedSize, squad.originalSize);
+            for (int t = 0; t * Squad.FIRE_TEAM_SIZE < expected; t++) everyTeam.add(t);
+            squadTeams.add(new ArrayList<>(everyTeam));
             int size = available.size();
             members[s] = new long[size];
             cells[s] = new int[size];
+            teams[s] = new int[size];
             int[] before = new int[size];
+            // A line is cut per fire team, so when the squad's teams change — one lands, or one is
+            // lost — the whole cut is made again rather than kept: a team that took the whole line
+            // while it was alone would otherwise hold the newcomers' share for good.
+            boolean recut = orders[s].line() != null
+                    && !squadTeams.get(s).equals(lineTeams.get(squad.id));
+            if (orders[s].line() != null) nextLineTeams.put(squad.id, squadTeams.get(s));
             for (int i = 0; i < size; i++) {
                 long member = available.get(i);
                 members[s][i] = member;
+                teams[s][i] = sim.squad().fireTeamIndex(member);
                 int[] held = previous.get(member);
-                before[i] = held == null ? -1 : held[1] * width + held[0];
+                before[i] = held == null || recut ? -1 : held[1] * width + held[0];
             }
             retain(index, width, orders[s], probe, before, cells[s], claimed);
         }
         for (int s = 0; s < n; s++) {
-            fill(index, width, orders[s], probe, cells[s], claimed);
+            if (orders[s].line() != null) {
+                fillLine(index, width, orders[s], probe, cells[s], teams[s], squadTeams.get(s), claimed);
+            } else {
+                fill(index, width, orders[s], probe, cells[s], claimed);
+            }
         }
 
         Map<Long, int[]> nextByMember = new HashMap<>();
@@ -172,6 +217,7 @@ public final class FightingPositionClaims {
                 nextByCell.put(cell, members[s][i]);
             }
         }
+        lineTeams = nextLineTeams;
         publish(nextByMember, nextByCell);
     }
 
@@ -223,6 +269,114 @@ public final class FightingPositionClaims {
             if (!order.admits(index, x, y) || !probe.walkable(x, y)) continue;
             if (order.hasThreat() && probe.cover(x, y, order.threatX() - x, order.threatY() - y) <= 0) continue;
             cells[i] = cell;
+            claimed.add(cell);
+        }
+    }
+
+    /** {@link #fillLine} with the squad's teams read off the members being placed. */
+    static void fillLine(FightingPositionIndex index, int width, Order order, Probe probe,
+                         int[] cells, int[] teams, Set<Integer> claimed) {
+        fillLine(index, width, order, probe, cells, teams,
+                new ArrayList<>(new TreeSet<>(Arrays.stream(teams).boxed().toList())), claimed);
+    }
+
+    /**
+     * The line order's {@link #fill}: the drawn line is cut into one stretch per fire team, in
+     * team order from its start, and each team takes free position cells near its own stretch. A
+     * drag along one long trench therefore spreads the teams over its length rather than packing
+     * them at one end, and a drag across two trenches puts teams in each.
+     *
+     * <p>A team stays on one run while that run has room: runs are tried nearest the team's
+     * stretch first, covered runs before uncovered ones, and a team spills onto the next run
+     * only when the first is full. Fire teams fight as teams, so splitting one across two
+     * trenches to stand a cell nearer its stretch is the wrong trade. Members left without a
+     * cell stay -1 and hold the line on ordinary ground.
+     *
+     * @param teams      each member's fire-team index, parallel to {@code cells}
+     * @param squadTeams every team the squad has, ascending, including teams with nobody to place
+     *                   yet: the line is cut for the whole squad, so a team still forming up does
+     *                   not leave its stretch to be taken by the others
+     */
+    static void fillLine(FightingPositionIndex index, int width, Order order, Probe probe,
+                         int[] cells, int[] teams, List<Integer> squadTeams, Set<Integer> claimed) {
+        FrontageLine line = order.line();
+        if (squadTeams.isEmpty()) return;
+        float length = Math.max(1f, line.length());
+        int teamCount = squadTeams.size();
+
+        List<int[]> candidates = new ArrayList<>();
+        int band = FrontageLine.BAND;
+        for (int y = Math.min(line.y0(), line.y1()) - band; y <= Math.max(line.y0(), line.y1()) + band; y++) {
+            for (int x = Math.min(line.x0(), line.x1()) - band; x <= Math.max(line.x0(), line.x1()) + band; x++) {
+                if (x < 0 || y < 0 || x >= width || !order.admits(index, x, y) || !probe.walkable(x, y)) continue;
+                int cell = y * width + x;
+                if (claimed.contains(cell)) continue;
+                candidates.add(new int[]{cell, order.cover(probe, x, y), index.runIdAt(x, y)});
+            }
+        }
+        if (candidates.isEmpty()) return;
+
+        for (int k = 0; k < teamCount; k++) {
+            int team = squadTeams.get(k);
+            List<Integer> slots = new ArrayList<>();
+            for (int i = 0; i < cells.length; i++) if (teams[i] == team && cells[i] < 0) slots.add(i);
+            if (slots.isEmpty()) continue;
+            float from = (float) k / teamCount;
+            float to = (float) (k + 1) / teamCount;
+            float mid = (from + to) * 0.5f;
+            List<int[]> free = new ArrayList<>();
+            for (int[] candidate : candidates) if (!claimed.contains(candidate[0])) free.add(candidate);
+            if (free.isEmpty()) return;
+            Comparator<int[]> nearStretch = Comparator
+                    .<int[]>comparingDouble(c -> {
+                        float t = line.along(c[0] % width, c[0] / width);
+                        return Math.max(0f, Math.max(from - t, t - to)) * length;
+                    })
+                    .thenComparingDouble(c -> Math.abs(line.along(c[0] % width, c[0] / width) - mid))
+                    .thenComparingInt(c -> c[0]);
+            // Each run's best cell for this team decides the run's place in the queue.
+            Map<Integer, int[]> bestOfRun = new HashMap<>();
+            Map<Integer, Boolean> coveredRun = new HashMap<>();
+            for (int[] c : free) {
+                bestOfRun.merge(c[2], c, (a, b) -> nearStretch.compare(a, b) <= 0 ? a : b);
+                if (c[1] > 0) coveredRun.put(c[2], true);
+            }
+            free.sort(Comparator
+                    .<int[]>comparingInt(c -> coveredRun.getOrDefault(c[2], false) ? 0 : 1)
+                    .thenComparing(c -> bestOfRun.get(c[2]), nearStretch)
+                    .thenComparingInt(c -> c[1] > 0 ? 0 : 1)
+                    .thenComparing(nearStretch));
+            List<int[]> chosen = new ArrayList<>(free.subList(0, Math.min(slots.size(), free.size())));
+            float[] start = line.pointAt(from, 0f);
+            handOut(chosen, cells, slots, claimed, width, Math.round(start[0]), Math.round(start[1]));
+        }
+    }
+
+    /**
+     * Gives {@code chosen} cells to the members at {@code slots}, in slot order, along a
+     * nearest-neighbour chain from the chosen cell nearest ({@code startX}, {@code startY}), so
+     * consecutive members stand beside each other.
+     */
+    private static void handOut(List<int[]> chosen, int[] cells, List<Integer> slots,
+                                Set<Integer> claimed, int width, int startX, int startY) {
+        int curX = startX;
+        int curY = startY;
+        int slot = 0;
+        while (!chosen.isEmpty() && slot < slots.size()) {
+            int pick = 0;
+            int pickDistance = Integer.MAX_VALUE;
+            for (int i = 0; i < chosen.size(); i++) {
+                int cell = chosen.get(i)[0];
+                int d = distanceSq(cell % width, cell / width, curX, curY);
+                if (d < pickDistance || (d == pickDistance && cell < chosen.get(pick)[0])) {
+                    pick = i;
+                    pickDistance = d;
+                }
+            }
+            int cell = chosen.remove(pick)[0];
+            curX = cell % width;
+            curY = cell / width;
+            cells[slots.get(slot++)] = cell;
             claimed.add(cell);
         }
     }

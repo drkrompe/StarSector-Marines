@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -389,6 +390,11 @@ public interface BattleView {
      */
     default int occupyRunOf(int squadId) {
         return -1;
+    }
+
+    /** The line the squad's standing player order asked it to hold, or null when it holds no line order. */
+    default FrontageLine frontageLineOf(int squadId) {
+        return null;
     }
 
     /** Whether the marine is dug in: settled on a fighting-position cell for the full dig-in delay. False for non-infantry and the dead. */

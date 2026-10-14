@@ -100,6 +100,49 @@ class CameraControlsTest {
         assertEquals(49.5f, camera.panCellX(), 0.001f);
     }
 
+    @Test
+    void aRightDragBelongsToTheDragOwnerAndDoesNotPan() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true, () -> false);
+        List<float[]> drags = new ArrayList<>();
+        List<float[]> clicks = new ArrayList<>();
+
+        controls.process(List.of(
+                        event(Kind.RIGHT_DOWN, 50, 50),
+                        event(Kind.MOVE, 60, 50),
+                        event(Kind.MOVE, 80, 50),
+                        event(Kind.RIGHT_UP, 80, 50)),
+                camera, CameraControls.PointerSpace.SCREEN,
+                (x, y) -> clicks.add(new float[]{x, y}),
+                (sx, sy, x, y, released) -> drags.add(new float[]{sx, sy, x, y, released ? 1 : 0}),
+                (x, y) -> false);
+
+        assertEquals(0, clicks.size(), "a drag is not also a click");
+        assertEquals(3, drags.size(), "two moves past the threshold, then the release");
+        assertEquals(50f, drags.get(2)[0]);
+        assertEquals(80f, drags.get(2)[2]);
+        assertEquals(1f, drags.get(2)[4], "the last call is the release");
+        assertEquals(50f, camera.panCellX(), "the view stays put while a line is drawn");
+    }
+
+    @Test
+    void theMiddleButtonPans() {
+        BattleCamera camera = camera();
+        boolean[] middle = {true};
+        CameraControls controls = new CameraControls(true, () -> middle[0]);
+
+        controls.process(List.of(event(Kind.MOVE, 50, 50), event(Kind.MOVE, 60, 50)), camera,
+                CameraControls.PointerSpace.SCREEN, (x, y) -> {}, (sx, sy, x, y, released) -> {},
+                (x, y) -> false);
+        assertEquals(47.5f, camera.panCellX(), 0.001f);
+
+        middle[0] = false;
+        controls.process(List.of(event(Kind.MOVE, 90, 50)), camera,
+                CameraControls.PointerSpace.SCREEN, (x, y) -> {}, (sx, sy, x, y, released) -> {},
+                (x, y) -> false);
+        assertEquals(47.5f, camera.panCellX(), 0.001f, "released, the pointer moves without the view");
+    }
+
     private static BattleCamera camera() {
         BattleCamera camera = new BattleCamera(100, 100);
         camera.setViewport(0f, 0f, 200f, 200f, 4f);
