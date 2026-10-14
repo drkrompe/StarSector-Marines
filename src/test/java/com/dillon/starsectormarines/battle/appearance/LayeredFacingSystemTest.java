@@ -186,6 +186,31 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void aTreatingMedicKneelsWithTheKitAndAWalkingOneDoesNot() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long medic = sim.spawn(new EntitySpec("medic", Faction.MARINE, UnitType.MARINE, 5, 5));
+        long patient = sim.spawn(new EntitySpec("patient", Faction.MARINE, UnitType.MARINE, 6, 5));
+        FacingSystem system = new FacingSystem(sim.getEntityWorld(), c, sim.getRoster());
+        system.setTreatmentPatients(unit -> unit == medic ? patient : 0L);
+
+        system.tick();
+        assertEquals(LayeredAppearance.POSE_SATCHEL_PLANT,
+                i(sim, medic, BattleComponents.LAYERED_WEAPON_POSE));
+        assertTrue((i(sim, medic, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_TREATING) != 0, "the kneel carries the treating flag");
+        assertEquals(0, i(sim, patient, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_TREATING, "the patient is not the one treating");
+
+        sim.getEntityWorld().setFloat(medic, c.MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_X, UnitType.MARINE.moveSpeed);
+        system.tick();
+        assertEquals(0, i(sim, medic, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_TREATING,
+                "a medic following a moving patient walks rather than kneels");
+    }
+
+    @Test
     public void rocketSwitchesAboveShoulderOnlyAfterMidpointFire() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)

@@ -22,4 +22,4 @@ rather than settled.
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |
 | `s10-trait-mechanics.md` | Planned | Follows S8 so traits are readable before new mechanics or acquisition. |
-| `squad-medic.md` | In progress | Field Medicine specialty, channelled health/armor treatment, short-leash medic AI, planted and keep-moving modes, and the `squad-medic` scene are in. Presentation (medic/patient marks, use pose, squad card), the balance pass that settles the movement default, and the billet choice remain. |
+| `squad-medic.md` | In progress | Field Medicine specialty, channelled health/armor treatment, short-leash medic AI, planted and keep-moving modes, battle and squad-card presentation, and the `squad-medic` scene are in. The balance pass that settles the movement default, the billet choice and the specialty copy remain. |

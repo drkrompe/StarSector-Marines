@@ -216,12 +216,15 @@ Tactical Cover improves incoming-accuracy protection by 5/10%; Recovery Planning
 shortens WIA time by 15/30%; Salvage Stewardship adds 10/20 recovery percentage
 points using the strongest participating officer only. Field Medicine gives
 each of the officer's squads one designated medic, without spending anybody's
-loadout: the first middle-team marine other than the leader, in seat order,
-replaced when they fall. The medic walks to the worst-hurt squadmate within
+loadout: the first middle-team marine other than the leader, in roster order,
+replaced when they fall. That one billet rule is shared by the battle and the
+company squad card, so the marine marked on the card is the one who treats. The medic walks to the worst-hurt squadmate within
 the cohesion leash, holds fire while treating, and restores health and armor
 over a short channel from a few supplies that recover slowly; never their own
-patient. Whether medic and patient stand still for it is a balance-pass switch
-(`squad-medic.md`). These are independent
+patient. In battle the medic wears a small cross badge; a treatment shows as a
+link to the patient, a progress ring around them, and the medic kneeling over an
+open kit in place of whatever special they carry. Whether medic and patient
+stand still for it is a balance-pass switch (`squad-medic.md`). These are independent
 of legacy recruitment traits and the one-shot moral outlook. Every officer
 who actually leads engaged marines receives their own mission XP and service
 entry; operation command is also credited. Per-attempt receipts prevent repeat
