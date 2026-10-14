@@ -113,14 +113,8 @@ final class BriefingComms {
     }
     void put(Map<String, Object> props) {
         Turn turn = current();
-        boolean left = turn != null && !MissionDialogue.speakerOnRight(turn.key());
         props.put("commsVisible", visible);
-        props.put("commsName", turn == null ? "" : MissionDialogue.speakerName(turn.speaker()));
-        props.put("commsNameStyle", turn == null ? "" : MissionDialogue.speakerStyle(turn.key()));
-        props.put("commsRole", turn == null ? "" : MissionDialogue.speakerRole(turn.key()));
         props.put("commsText", turn == null ? "" : Strings.resolve(turn.text()));
-        props.put("commsLeftPortrait", left ? turn.portrait() : "");
-        props.put("commsRightPortrait", turn != null && !left ? turn.portrait() : "");
         props.put("commsProgress", turn == null ? "" : Strings.format("briefingCommsProgress", Math.min(index + 1, turns.size()), turns.size()));
         props.put("commsNextLabel", Strings.get(index + 1 >= turns.size() ? "briefingCommsFinish" : "briefingCommsNext"));
         props.put("commsNextAction", (Runnable) this::next);
@@ -134,17 +128,18 @@ final class BriefingComms {
         if (!visible && dialog.parent() != null) dialog.parent().remove(dialog);
         if (visible && dialog.parent() == null && dialogParent != null) dialogParent.child(dialog);
         dialog.classed("comms-hidden", !visible);
-        markup.requireElement("mission-comms-name").text((String) props.get("commsName")).style((String) props.get("commsNameStyle"));
-        markup.requireElement("mission-comms-role").text((String) props.get("commsRole"));
+        Turn turn = current();
+        if (turn != null && markup.requireElement("mission-briefing-speaker").parent() != null) {
+            markup.requireElement("mission-briefing-speaker-name").text(MissionDialogue.speakerName(turn.speaker()))
+                    .style(MissionDialogue.speakerStyle(turn.key()));
+            markup.requireElement("mission-briefing-speaker-role").text(MissionDialogue.speakerRole(turn.speaker()));
+            markup.requireElement("mission-briefing-speaker-portrait").imageSource(turn.portrait());
+        }
         markup.requireElement("mission-comms-text").text((String) props.get("commsText"));
         if (displayedRevision != turnRevision) {
             markup.requireElement("mission-comms-transcript").scrollTop(0);
             displayedRevision = turnRevision;
         }
-        String leftPortrait = (String) props.get("commsLeftPortrait");
-        String rightPortrait = (String) props.get("commsRightPortrait");
-        markup.requireElement("mission-comms-portrait-left").imageSource(leftPortrait).classed("comms-hidden", leftPortrait.isBlank());
-        markup.requireElement("mission-comms-portrait-right").imageSource(rightPortrait).classed("comms-hidden", rightPortrait.isBlank());
         markup.requireElement("mission-comms-status").text((String) props.get("commsProgress"));
         markup.requireElement("mission-comms-next").text((String) props.get("commsNextLabel"));
     }

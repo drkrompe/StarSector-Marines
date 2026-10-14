@@ -390,18 +390,19 @@ Unattributed prose remains readable without inventing a speaker. Optional missio
 dialogue is immutable; legacy plain flavor remains supported, and a surface never
 requires audio to reveal the contract's meaning.
 
-Chapter comms open in a skippable modal above the unchanged planning surface.
-One turn carries a portrait, a colored name and role, and white dialogue. Castle
-occupies the company side on the left; mission contacts occupy the right. These
-sides follow stable character identities, independent of translated names.
-Next advances a turn; Skip or Escape returns to planning without accepting terms
-or deploying. Replay Briefing in the command rail starts the conversation again.
+Chapter comms play directly in the briefing's left column. A permanent contact
+header swaps the portrait, colored name and role with the current speaker;
+white dialogue below it shows one turn at a time. Next advances a turn; Skip
+collapses the dialogue without accepting terms or deploying. Replay Briefing in
+the command rail starts it again. Planning controls remain available while the
+player listens or reads; leaving the page stops playback. The size chevrons,
+risk skulls and reward value share the top heading bar, leaving the conversation
+column for the people and their terms.
 Recorded turns advance after playback; unrecorded or unavailable audio waits for
-Next. The final turn returns to planning. The current turn survives terrain
-refreshes and viewport changes, and returning from squad assignment does not
-restart a skipped or completed conversation. Company preparation tutorials take
-input priority over comms; planning controls cannot receive input through either
-modal. Missions without authored dialogue or narration reserve no comms space.
+Next. The current turn survives terrain refreshes and viewport changes, and
+returning from squad assignment does not restart a skipped or completed
+conversation. Company preparation tutorials temporarily take input and playback
+priority. Missions without authored dialogue or narration reserve no comms space.
 Authored correspondence and procedural comms-officer reports remain distinct
 narrative sources.
 Preparation runs asynchronously from campaign-free captured construction inputs.

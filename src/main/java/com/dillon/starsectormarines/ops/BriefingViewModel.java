@@ -190,7 +190,7 @@ final class BriefingViewModel {
         props.put("narrationAvailable", available);
         props.put("narrationSpeaker", available ? MissionDialogue.speakerName(line.speaker()) : "");
         props.put("narrationPortrait", available ? line.portrait() : "");
-        props.put("narrationRole", available ? narrationRole(line) : "");
+        props.put("narrationRole", available ? MissionDialogue.speakerRole(line.speaker()) : "");
         props.put("narrationNameStyle", available ? MissionDialogue.speakerStyle(line.speaker()) : "");
         props.put("narrationSpeakerClasses", "briefing-speaker console-well" + (available && playing ? " speaking" : ""));
         props.put("narrationStatus", narrationStatus(available && playing));
@@ -214,23 +214,9 @@ final class BriefingViewModel {
             name.text(displayName).style(MissionDialogue.speakerStyle(line.speaker()));
         }
         markup.requireElement("mission-briefing-speaker-portrait").imageSource(line.portrait());
-        markup.requireElement("mission-briefing-speaker-role").text(narrationRole(line));
+        markup.requireElement("mission-briefing-speaker-role").text(MissionDialogue.speakerRole(line.speaker()));
     }
 
-    private static String narrationRole(WaylineNarration.Line line) {
-        String speaker = line.speaker();
-        int slash = speaker == null ? -1 : speaker.indexOf('/');
-        if (slash < 0 || speaker.substring(slash + 1).isBlank()) return MissionDialogue.speakerRole(speaker);
-        String role = speaker.substring(slash + 1).trim();
-        return switch (role) {
-            case "WAYLINE" -> Strings.get("briefingRoleWayline");
-            case "COMPANY OPERATIONS" -> Strings.get("briefingRoleCompanyOperations");
-            case "COMPANY COMMAND" -> Strings.get("briefingRoleCompanyCommand");
-            case "BASIN RECLAMATION" -> Strings.get("briefingRoleBasinReclamation");
-            case "HOUSE RUSK" -> Strings.get("briefingRoleHouseRusk");
-            default -> role;
-        };
-    }
     private static String narrationStatus(boolean playing) {
         return Strings.get(playing ? "briefingNarrationPlaying" : "briefingCommsAvailable");
     }
@@ -244,6 +230,12 @@ final class BriefingViewModel {
         }
         boolean narrated = Boolean.TRUE.equals(props.get("narrationAvailable"));
         markup.requireElement("mission-overview").classed("narrated", narrated);
+        if (narrated) {
+            for (String id : List.of("mission-dialogue-wrap", "mission-flavor")) {
+                UiElement transcript = markup.requireElement(id);
+                transcript.parent().remove(transcript);
+            }
+        }
         UiElement stop = markup.requireElement("mission-narration-stop");
         stop.parent().remove(stop);
         if (!narrated) {

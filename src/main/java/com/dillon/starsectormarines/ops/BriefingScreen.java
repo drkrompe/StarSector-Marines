@@ -402,13 +402,6 @@ public class BriefingScreen implements Screen {
         secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
         narration.update(candidate);
-        secondSquadGuide.fallbackInput(() -> List.of(candidate.requireElement(
-                narration.visible() ? "mission-comms-dialog" : "mission-briefing-root")));
-        built.onCancel(() -> {
-            if (secondSquadGuide.visible()) return;
-            if (narration.visible()) narration.stop();
-            else onBack();
-        });
         hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
@@ -2493,7 +2486,7 @@ public class BriefingScreen implements Screen {
         narration.advance(dt, secondSquadGuide != null && secondSquadGuide.visible());
         if (markupInstance != null) {
             narration.update(markupInstance);
-            BriefingViewModel.updateNarration(markupInstance, displayedBriefingNarration(), narration.busy());
+            BriefingViewModel.updateNarration(markupInstance, narration.busy());
         }
         if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
             surveyComplete = true;
@@ -2502,20 +2495,14 @@ public class BriefingScreen implements Screen {
         }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
-        if (hints != null) {
-            if (narration.visible()) hints.clear();
-            else hints.update();
-        }
+        if (hints != null) hints.update();
         if (secondSquadGuide != null) secondSquadGuide.update();
     }
 
     @Override
     public void processInput(List<InputEventAPI> events) {
         if (input != null) input.process(events);
-        if (hints != null) {
-            if (narration.visible()) hints.clear();
-            else hints.update();
-        }
+        if (hints != null) hints.update();
     }
 
     @Override
