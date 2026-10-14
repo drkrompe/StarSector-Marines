@@ -30,7 +30,6 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -42,7 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -93,8 +91,6 @@ class FleetArmoryViewModelTest {
 
     private static final List<String> COMPONENTS = List.of(
             "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
-            "mod/data/ui/components/armory/fleet-armory.mlx",
-            "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
             "mod/data/ui/components/armory/armory-weapon-tech-card.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx",
@@ -671,41 +667,18 @@ class FleetArmoryViewModelTest {
         roster.applySoldierOutcome(outcome, 100f, 1.25f);
         roster.recruitToSquad(roster.reserveSquad().id());
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                new Reactor(), roster, () -> { }, () -> 100d);
+                new Reactor(), roster, () -> 100d);
 
         assertEquals("WIA  ·  RTD in 1d 6h", viewModel.marineCards().get().get(0).status());
         assertTrue(viewModel.marineCards().get().get(0).classes().contains("status-wia"));
-        assertEquals("1 WIA  ·  RTD 1d 6h",
-                viewModel.squadCards().get().get(0).recovery());
-        assertTrue(viewModel.reinforceDisabled().get(), "WIA personnel still hold billets");
     }
 
     @Test
-    void squadCardReinforcesEveryOpenBilletFromReadyReserveInOneClick() {
-        MarineRoster roster = fullSquad();
-        MarineSquad squad = roster.squads().get(0);
-        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
-        outcome.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(outcome, 20f, 1f);
-        roster.recruitToSquad(roster.reserveSquad().id());
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
-
-        FleetArmoryViewModel.SquadCard card = viewModel.squadCards().get().get(0);
-        assertEquals("Reinforce +1", card.reinforceLabel());
-        card.reinforce().run();
-
-        assertEquals(0, roster.vacancies(squad));
-        assertTrue(viewModel.feedbackText().get().contains("reinforced"));
-        assertEquals(MarineSquad.TEAM_SIZE,
-                roster.teamMemberIds(squad, 2).size());
-    }
-
-    @Test
-    void freeFittingKeepsPersonnelCommodityPresentation() {
+    void freeFittingChargesNoCargo() {
         MarineRoster roster = fullSquad();
         EquipmentIssueResources resources = presentedHold();
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                new Reactor(), roster, () -> { }, () -> 0d, resources);
+                new Reactor(), roster, () -> 0d, resources);
 
         viewModel.weaponDoctrineTiles().get().stream()
                 .filter(tile -> !tile.id().endsWith(viewModel.selectedWeaponDoctrineId()))
@@ -713,57 +686,6 @@ class FleetArmoryViewModelTest {
 
         List<CompanyResources.Row> costs = viewModel.issueCargoRows().get();
         assertTrue(costs.isEmpty());
-        assertEquals("vanilla/" + Commodities.MARINES,
-                viewModel.squadCards().get().get(0).reinforceIcon());
-    }
-
-    @Test
-    void squadCardBodyInspectsWhileReinforceRemainsAnIndependentAction() throws Exception {
-        MarineRoster roster = fullSquad();
-        MarineSquad squad = roster.squads().get(0);
-        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
-        outcome.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(outcome, 20f, 1f);
-        roster.recruitToSquad(roster.reserveSquad().id());
-        AtomicInteger inspections = new AtomicInteger();
-        Reactor reactor = new Reactor();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, inspections::incrementAndGet);
-        MarkupLoader loader = new MarkupLoader(
-                path -> Files.readString(Path.of(path)), COMPONENTS);
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build(reactor, "fleet-armory",
-                props(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            document.layout(1920f, 1080f);
-
-            FleetArmoryViewModel.SquadCard card = viewModel.squadCards().get().get(0);
-            UiElement inspect = instance.requireElement(card.openId());
-            UiElement reinforce = instance.requireElement(card.reinforceId());
-            assertSame(inspect, instance.requireElement(card.nameId()).parent());
-            assertSame(instance.requireElement(card.id()), reinforce.parent());
-            assertFalse(reinforce.disabled());
-
-            click(document, inspect);
-            assertEquals(1, inspections.get());
-            assertEquals(1, roster.vacancies(squad));
-
-            click(document, reinforce);
-            assertEquals(1, inspections.get());
-            assertEquals(0, roster.vacancies(squad),
-                    "inspect=" + inspect.box() + " reinforce=" + reinforce.box()
-                            + " card=" + reinforce.parent().box());
-        }
-    }
-
-    private static void click(UiDocument document, UiElement element) {
-        float x = centerX(element);
-        float y = centerY(element);
-        document.pointerDown(x, y);
-        document.pointerUp(x, y);
     }
 
     private static float centerX(UiElement element) {
@@ -790,9 +712,6 @@ class FleetArmoryViewModelTest {
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("squadCards", viewModel.squadCards());
-        props.put("squadGalleryCards", viewModel.squadGalleryCards());
-        props.put("organization", viewModel.organization());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -822,7 +741,6 @@ class FleetArmoryViewModelTest {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
-        props.put("backToSquads", (Runnable) () -> { });
         props.put("backToFireTeams", (Runnable) () -> { });
         putPageNavigation(props);
         return props;
@@ -867,7 +785,7 @@ class FleetArmoryViewModelTest {
     @Test
     void emptyCargoDoesNotRestrictKnownEquipment() {
         MarineRoster roster = fullSquad();
-        FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster, () -> { }, () -> 0d, emptyHold());
+        FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster, () -> 0d, emptyHold());
         for (var tile : model.armorDoctrineTiles().get()) {
             var preview = roster.previewSquadEquipment(model.selectedSquadId(), model.selectedWeaponDoctrineId(),
                     tile.id().substring("armor-doctrine:".length()), emptyHold());
