@@ -2,10 +2,11 @@
   "requestId": "JBHAPbYa1crr4x5QLPbe",
   "characterCost": "7",
   "inputSha256": "0192314ac252c2bb02afa354f29159e7e313a3f38d4a13d445250f47a29a6cc8",
-  "audioSha256": "e9372c8bdfdb2e22c2c5e673c8094716cd8f12cb43ddcc275346f62712f2ca35",
+  "audioSha256": "0a1b9cb39e084063ad71e289d080dc82006b5815185b8a4d05af2a14ec479153",
   "voiceId": "cZH6erlGkOyAQheipyno",
   "modelId": "eleven_v4",
-  "durationSeconds": 1.84,
+  "durationSeconds": 0.8,
   "outputFormat": "mp3_44100_128",
-  "take": 1
+  "take": 1,
+  "edit": "Trimmed the duplicated second 'No' (0.80s onward) from the generated take."
 }
