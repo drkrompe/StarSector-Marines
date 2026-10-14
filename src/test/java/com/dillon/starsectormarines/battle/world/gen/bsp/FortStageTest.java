@@ -19,7 +19,6 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
-import com.dillon.starsectormarines.battle.world.model.BeltGarrisonMode;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -78,57 +77,36 @@ class FortStageTest {
     }
 
     @Test
-    void aReactiveBeltSeatsOneTokenPicketByTheMainGate() {
-        FortStage.setBornBeltGarrisonForEvidence(false);
-        FortStage.setPicketForEvidence(true);
-        try {
-            for (int turn = 0; turn < 4; turn++) {
-                GenContext ctx = field(declared(1));
-                CompoundLayout.Placement at = BatteryFort.layout().at(60, 40, turn);
-                FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
+    void aBeltSeatsOneTokenPicketByTheMainGate() {
+        for (int turn = 0; turn < 4; turn++) {
+            GenContext ctx = field(declared(1));
+            CompoundLayout.Placement at = BatteryFort.layout().at(60, 40, turn);
+            FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
 
-                assertEquals(1, ctx.tactical.size(), "one picket holds the belt until the commander mans the rest, turn " + turn);
-                TacticalNode picket = ctx.tactical.get(0);
-                assertEquals(TacticalNode.Kind.GUARDPOST, picket.kind);
-                assertTrue(picket.garrisonSize <= FortStage.PICKET_SIZE && picket.garrisonSize > 0, "a token force, turn " + turn);
-                FortPlan.Gate gate = BatteryFort.PLAN.gates().get(0);
-                int[] mouth = at.cell(gate.mouthX(), gate.mouthY());
-                int nearestOther = Integer.MAX_VALUE;
-                for (FortPlan.Gate other : BatteryFort.PLAN.gates().subList(1, BatteryFort.PLAN.gates().size())) {
-                    int[] m = at.cell(other.mouthX(), other.mouthY());
-                    nearestOther = Math.min(nearestOther, Math.abs(m[0] - picket.anchorX) + Math.abs(m[1] - picket.anchorY));
-                }
-                int toMain = Math.abs(mouth[0] - picket.anchorX) + Math.abs(mouth[1] - picket.anchorY);
-                assertTrue(toMain <= nearestOther, "the picket stands by the main gate, turn " + turn);
-                assertFalse(ctx.doodads.isEmpty(), "the trenches and sandbags themselves still stand");
+            assertEquals(1, ctx.tactical.size(), "one picket holds the belt until the commander mans the rest, turn " + turn);
+            TacticalNode picket = ctx.tactical.get(0);
+            assertEquals(TacticalNode.Kind.GUARDPOST, picket.kind);
+            assertTrue(picket.garrisonSize <= FortStage.PICKET_SIZE && picket.garrisonSize > 0, "a token force, turn " + turn);
+            FortPlan.Gate gate = BatteryFort.PLAN.gates().get(0);
+            int[] mouth = at.cell(gate.mouthX(), gate.mouthY());
+            int nearestOther = Integer.MAX_VALUE;
+            for (FortPlan.Gate other : BatteryFort.PLAN.gates().subList(1, BatteryFort.PLAN.gates().size())) {
+                int[] m = at.cell(other.mouthX(), other.mouthY());
+                nearestOther = Math.min(nearestOther, Math.abs(m[0] - picket.anchorX) + Math.abs(m[1] - picket.anchorY));
             }
-
-            FortStage.setPicketForEvidence(false);
-            GenContext bare = field(declared(1));
-            FortStage.stamp(bare, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
-            assertTrue(bare.tactical.isEmpty(), "with no picket the belt is empty until the commander mans it");
-        } finally {
-            FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
-            FortStage.setPicketForEvidence(BeltGarrisonMode.current().picket());
+            int toMain = Math.abs(mouth[0] - picket.anchorX) + Math.abs(mouth[1] - picket.anchorY);
+            assertTrue(toMain <= nearestOther, "the picket stands by the main gate, turn " + turn);
+            assertFalse(ctx.doodads.isEmpty(), "the trenches and sandbags themselves still stand");
         }
     }
 
     @Test
-    void everyBeltNestIsGarrisonedFromGroundYouCanStandIn() {
-        FortStage.setBornBeltGarrisonForEvidence(true);
-        try {
-            everyBeltNestIsGarrisonedFromGroundYouCanStandInBody();
-        } finally {
-            FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
-        }
-    }
-
-    private void everyBeltNestIsGarrisonedFromGroundYouCanStandInBody() {
+    void thePicketStandsOnGroundYouCanStandIn() {
         for (int turn = 0; turn < 4; turn++) {
             GenContext ctx = field(declared(1));
             FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, turn), 0);
 
-            assertEquals(FortBelt.nests().size(), ctx.tactical.size(), "one garrison per belt nest, turn " + turn);
+            assertEquals(1, ctx.tactical.size(), "one picket, turn " + turn);
             Set<Long> claimed = new HashSet<>();
             for (TacticalNode node : ctx.tactical) {
                 assertEquals(TacticalNode.Kind.GUARDPOST, node.kind);
@@ -138,7 +116,7 @@ class FortStageTest {
                 assertEquals(node.standPositions().get(0).x(), node.anchorX);
                 for (TacticalNode.StandPosition p : node.standPositions()) {
                     assertTrue(ctx.grid.isWalkable(p.x(), p.y()), "stand cells are open ground");
-                    assertTrue(claimed.add((long) p.x() << 32 | p.y()), "no two garrisons share a cell");
+                    assertTrue(claimed.add((long) p.x() << 32 | p.y()), "no stand cell is listed twice");
                     assertTrue(ctx.doodads.stream().anyMatch(d -> d.cellX == p.x() && d.cellY == p.y()),
                             "a stand cell carries trench or sandbag");
                 }
@@ -151,19 +129,14 @@ class FortStageTest {
     }
 
     @Test
-    void aLinkedTacticalMapReceivesTheBeltGarrisonsDirectly() {
-        FortStage.setBornBeltGarrisonForEvidence(true);
-        try {
-            GenContext ctx = field(declared(1));
-            TacticalMap linked = new TacticalMap(ctx.tactical);
-            ctx.put(BspKeys.TACTICAL_MAP, linked);
-            FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
+    void aLinkedTacticalMapReceivesThePicketDirectly() {
+        GenContext ctx = field(declared(1));
+        TacticalMap linked = new TacticalMap(ctx.tactical);
+        ctx.put(BspKeys.TACTICAL_MAP, linked);
+        FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
 
-            assertEquals(FortBelt.nests().size(), linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the nodes");
-            assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
-        } finally {
-            FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
-        }
+        assertEquals(1, linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the node");
+        assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
     }
 
     @Test

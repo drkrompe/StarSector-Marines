@@ -1,11 +1,12 @@
 {
-  "requestId": "ssDtaCcjgfZ5A27HoLlA",
-  "characterCost": "65",
-  "inputSha256": "cfb31ffb89bf3b7226c261851cff34ae4d6b508661745e7a9276bbca5e2ce6bd",
-  "audioSha256": "23761348163621d7f8b87ce7303f192092f97e9cc57d47a95800ff0832066f97",
+  "requestId": "rHQVNTz67O3w6HPPSoOV",
+  "characterCost": "72",
+  "inputSha256": "7e673b10b2a36e94331519fc269e988c5fa5887b02e8f6d2d4be7bdaf5c8d3f7",
+  "audioSha256": "04b97e10c688bbab5351946d48f805065f16651ba7d3bcfbe97f2d2255dc79fa",
   "voiceId": "cuwCdnt9CKAB9XrTA1j0",
   "modelId": "eleven_v4",
-  "durationSeconds": 8.8,
+  "durationSeconds": 8.78,
   "outputFormat": "mp3_44100_128",
-  "take": 1
+  "take": 1,
+  "edit": "Trimmed the duplicated opening 'Captain' (first 0.74s) from the generated take."
 }

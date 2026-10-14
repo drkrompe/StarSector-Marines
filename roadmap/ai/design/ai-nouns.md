@@ -1020,7 +1020,7 @@ Each faction's commander has a separate **influence snapshot**. It aggregates
 only its own squads' beliefs, what its own forts' guns are engaging, and honest
 friendly combatant presence into topology-aware tactical fields. A gun engaging
 a body knows where it is, so an unmanned or lightly held fort still reports
-the attack on it (`battle.command.fortReports=false` is the control). The snapshot itself is read-only. A consumer
+the attack on it. The snapshot itself is read-only. A consumer
 may act on it only when a mission-specific command contract authorizes that
 action; diagnostics and heatmaps do not acquire assignment authority merely by
 reading the field.
@@ -1053,9 +1053,9 @@ contact, at the depth that contact reached: belief lapses whenever nobody
 happens to be looking, and a threat that lapsed with it recalled its responders
 on one pulse and re-sent them on the next, so they never arrived. An alarmed
 fort (see place alarms under fighting positions) also makes its own track a
-threat, so the reserve answers an attack that no squad can see into.
-`battle.command.threatMemoryTicks=0` and `battle.command.alarmThreats=false`
-are the controls.
+threat, so the reserve answers an attack that no squad can see into. A squad
+standing to at a pressed work of its own fort is not taken for a track rally:
+the work outranks the track.
 
 Conquest attacker capture allocation distinguishes lack of a defender belief
 from positive clearance. It preserves legal capture orders already underway
@@ -1921,6 +1921,12 @@ Frontage belongs to whoever holds the place, not to whoever is defending the
 mission. An attacker holding a captured compound stands to on the same envelope
 against the counter-attack.
 
+A held place with no rooms, such as a landing zone, is patrolled round its
+edge: the squad walks a ring just outside the ground it holds, pausing to look
+and firing at anything it sees. A hold that only knew how to tour rooms left
+such a squad standing still for the whole battle, which a player reads as
+broken.
+
 A frontage exists only while the envelope in question does, and the envelope is
 whatever is actually closed rather than whatever was drawn. Where map generation leaves a
 wall open on purpose — a reserved road centreline crossing a compound is the
@@ -2108,8 +2114,8 @@ never a condition on occupying one. Positions are neutral ground, held by either
 side and by any infantry, never by mechs, vehicles or drones.
 
 A fort belt is manned in answer to believed pressure, not from the first tick,
-except for one token picket: a small garrison (`battle.fort.picketSize`, 4 by
-default, 0 for none) on the belt nest nearest the main gate. It is the fort's
+except for one token picket: a small garrison on the belt nest nearest the main
+gate. It is the fort's
 eyes and somebody in the works when it is rushed; an empty belt with the
 defenders held at the keep never saw an attack at all.
 The defender commander reads its own hostile influence at the blocks each
@@ -2120,9 +2126,7 @@ before any gets a second, one free patrol stays in reserve, and only a bounded
 number are sent per pulse. Manning starts above one pressure level and is
 released below a lower one after a dwell, never while the squad is in a fight;
 the released squad returns to the patrol pool. Belief only: the pressure is the
-defender's own picture. `battle.fort.beltGarrison` selects reactive (default),
-static (a born garrison on every belt nest, the control) or off; only reactive
-seats the picket.
+defender's own picture.
 
 A commander also keeps **place alarms** on its own forts. Belief alone loses an
 attack inside the walls or one that killed the picket, so pressure fades and the
@@ -2135,7 +2139,6 @@ refreshed by each new trigger: conflict retained on ground the commander holds
 to matter, and nowhere else. A fort whose every aspect is held by the enemy is a
 **lost cause**; its alarm is dropped, so squads are no longer fed into it
 piecemeal, and retaking it is the structure planner's question.
-`battle.command.placeAlarms=false` is the belief-only control.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,

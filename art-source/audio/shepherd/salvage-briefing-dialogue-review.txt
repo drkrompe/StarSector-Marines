@@ -1,47 +1,59 @@
-basin_salvage_wreckfall_01 / TAMSIN VALE / BASIN RECLAMATION
-Mara said you'd seen the survey. That Colossus against the north wall came down three cycles ago, after a fight in low orbit. Her escorts are scattered across Asharu.
+basin_salvage_schedules_01 / TAMSIN VALE / BASIN RECLAMATION
+Mara says you're the company that found out who was selling Wayline's schedules.
 
-basin_salvage_first_claim_01 / CASTLE / COMPANY COMMAND
-And your people got to this one first?
+basin_salvage_we_were_01 / CASTLE / COMPANY COMMAND
+We were.
+
+basin_salvage_careful_01 / TAMSIN VALE / BASIN RECLAMATION
+Then you'll understand why I'm careful what I say in front of Wayline's people.
+
+basin_salvage_not_wayline_01 / CASTLE / COMPANY COMMAND
+We're not Wayline's people. We took their contract. Now we'd be taking yours.
+
+basin_salvage_wreckfall_01 / TAMSIN VALE / BASIN RECLAMATION
+We'll see. You've read the survey, so you've seen the valley. Here's the rest. Three cycles back, two fleets fought it out in low orbit over Asharu. A Colossus and a few of her escorts came down here. We were the first crew in. The claim's ours.
+
+basin_salvage_long_time_01 / CASTLE / COMPANY COMMAND
+Three cycles is a long time on one wreck.
 
 basin_salvage_camp_01 / TAMSIN VALE / BASIN RECLAMATION
-First into the basin. We built the camp, cut a road in, spent a season just finding ways through her. The other outfits had their own wrecks to pick over. Then word got out about ours.
+It's a Colossus. You don't strip one in a season. That fight dropped hulls from here to the southern flats, so every crew on Asharu had its own pickings and nobody bothered with us. Then word got round we'd found something.
 
-basin_salvage_opened_hold_01 / CASTLE / COMPANY COMMAND
-You opened something worth talking about.
+basin_salvage_word_question_01 / CASTLE / COMPANY COMMAND
+Got round how?
+
+basin_salvage_fuel_order_01 / TAMSIN VALE / BASIN RECLAMATION
+When we opened the hold, I put in a fuel order with Wayline. Enough to lift something heavy off-world, and a camp like ours never needs that much. A few weeks later Dace Harlan's crew came in shooting at shift change.
+
+basin_salvage_schedules_sold_01 / CASTLE / COMPANY COMMAND
+That's about when Wayline's schedules were being sold.
 
 basin_salvage_occupation_01 / TAMSIN VALE / BASIN RECLAMATION
-Someone certainly thought so. They came in shooting while most of us were on shift. We pulled out who we could. Now they're stripping our yard and calling it an abandoned claim.
+You'd know better than I would. Or it was me, talking too loud in a Jangala bar. I can't prove either. We got most of our people out, and now the roaches are stripping our yard and telling anyone who'll listen it was abandoned.
 
 basin_salvage_survivors_01 / CASTLE / COMPANY COMMAND
-Anyone still inside?
+Most of your people.
 
 basin_salvage_cousin_01 / TAMSIN VALE / BASIN RECLAMATION
-My cousin's crew, tucked away in the Colossus. They've kept a quiet channel open. The new owners are still picking through the stores. Haven't found all our ways in yet.
-
-basin_salvage_manifest_01 / CASTLE / COMPANY COMMAND
-What was in the hold, Vale? I'd like to know what brought this down on you.
-
-basin_salvage_privacy_01 / TAMSIN VALE / BASIN RECLAMATION
-I told one person too many already. You're being paid to get us back to work. There's enough in that contract to leave the contents of my hold out of the conversation.
+My cousin Jory's crew is still inside the Colossus, sealed in where the squatters haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.
 
 basin_salvage_permit_question_01 / CASTLE / COMPANY COMMAND
-Your claim's on file with the local office?
+This is Hegemony space. Is anyone else going to take an interest?
 
 basin_salvage_permit_01 / TAMSIN VALE / BASIN RECLAMATION
-Permit and survey. You're welcome to those. I'd prefer to have the yard working before a Hegemony patrol takes an interest in the rest.
+Our permit's on file at Jangala. The Hegemony doesn't send a patrol over two salvage crews squabbling in a ditch. It'd come quick enough if somebody gave it a reason. So we settle this ourselves, and quietly.
 
 basin_salvage_scope_question_01 / CASTLE / COMPANY COMMAND
-Then let's be clear about the work. We're taking back the yard. Where do we stop?
-
-basin_salvage_inspection_01 / TAMSIN VALE / BASIN RECLAMATION
-At Morrow's cradle. She's our tender; her crew put her down when the attack hit. Get our technicians in to inspect her. If they can mend her, there's a separate fee for bringing up the repair rig and covering the work.
-
-basin_salvage_limits_01 / CASTLE / COMPANY COMMAND
-Your parts and fitters. Our people keep them alive. We're not signing on to chase every scavenger on Asharu.
+Then tell me where it ends. We're not going into your Colossus, and we're not chasing this outfit across Asharu.
 
 basin_salvage_handlers_01 / TAMSIN VALE / BASIN RECLAMATION
-Agreed. My militia have the road beyond the yard. The Colossus is for our handlers, and my cousin's crew will stay out of your way. Nobody's asking your marines to go digging through her.
+Good. I don't want you in her, and Jory's people will keep out of your way. You take the receiving store and the workshop; my militia follow you in and hold them. Then the service cradle.
 
-basin_salvage_briefing_08 / TAMSIN VALE / BASIN RECLAMATION
-Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.
+basin_salvage_cradle_question_01 / CASTLE / COMPANY COMMAND
+What's on the cradle?
+
+basin_salvage_shepherd_01 / TAMSIN VALE / BASIN RECLAMATION
+A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says they've had her panels off for a week.
+
+basin_salvage_orders_01 / TAMSIN VALE / BASIN RECLAMATION
+I want to know what they've taken. Two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.

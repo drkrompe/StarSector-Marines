@@ -1,71 +1,92 @@
 basin_passage_negotiation_01 / TAMSIN VALE / BASIN RECLAMATION
-The haulers are still waiting. Our people can't keep the outer road clear long enough to get them through.
+My haulers are loaded and going nowhere. The roaches have dug in on the outer road, and two nights ago another crew's boat came down at the quarry.
 
 basin_passage_negotiation_02 / CASTLE / COMPANY COMMAND
-That's beyond the yard. You said your militia had it.
+So they're waiting for your shipment to move.
 
 basin_passage_negotiation_03 / TAMSIN VALE / BASIN RECLAMATION
-I thought they could manage. I need your company to open it, with Morrow building positions they can hold after you leave.
+They're waiting for it to move without you beside it. I need the road opened to the eastern yard, with positions along it my militia can hold after you've gone.
 
 basin_passage_negotiation_04 / CASTLE / COMPANY COMMAND
-We took the yard and covered your fitters. Both jobs are finished.
+Positions built by what?
 
 basin_passage_negotiation_05 / TAMSIN VALE / BASIN RECLAMATION
-I know. Send me a price for the road.
+By Morrow. Teo and the fitters have her lift working. She'll hover. She can crawl the road behind you and put her builders down wherever you've cleared.
 
 basin_passage_negotiation_06 / CASTLE / COMPANY COMMAND
-A new contract, paid on handover. Construction and repair cover included. Anything you want moved out of the Colossus stays with your handlers.
+That's a bigger job than the yard. What does it pay?
 
 basin_passage_negotiation_07 / TAMSIN VALE / BASIN RECLAMATION
-I can settle it when the shipment goes. I've paid you, bought parts, kept this camp fed. The next money comes from getting those haulers out.
+A share when the shipment sells.
 
 basin_passage_negotiation_08 / CASTLE / COMPANY COMMAND
-So our pay waits on your buyer. We don't even know what you're selling.
+When it sells. To a buyer we don't know, for cargo you won't describe, out past a crew that's already shown it'll kill for it.
 
 basin_passage_negotiation_09 / TAMSIN VALE / BASIN RECLAMATION
-You don't need to. I've paid everything I owe you.
+You've had every credit I owed you, on time. Wayline hasn't, so you can guess who I paid first.
 
 basin_passage_negotiation_10 / CASTLE / COMPANY COMMAND
-You have. And I'd rather keep it that way. Pay us with Morrow.
+We have, and I'd like it to stay that way. Our payroll doesn't wait on your buyer.
 
 basin_passage_negotiation_11 / TAMSIN VALE / BASIN RECLAMATION
-No. We've just put her back together. Who do you think keeps the machinery working here?
+Then what do you want?
 
 basin_passage_negotiation_12 / CASTLE / COMPANY COMMAND
-Her builders could leave you a defended road. We clear the positions, cover the construction and stay until your militia take over.
+Morrow.
 
 basin_passage_negotiation_13 / TAMSIN VALE / BASIN RECLAMATION
-And I lose the tender I've spent all this getting back. Those repairs were my parts, Castle. My fitters.
+No.
 
-basin_passage_negotiation_14 / CASTLE / COMPANY COMMAND
-I'm not claiming we repaired her. I'm offering you another job for her. You've seen what our company can do.
+basin_passage_negotiation_14 / TAMSIN VALE / BASIN RECLAMATION
+She's the best thing in this yard that isn't in the Colossus. Her bay was meant to carry this camp through the season, and now she flies, she's worth three times that.
 
-basin_passage_negotiation_15 / TAMSIN VALE / BASIN RECLAMATION
-Use her for this. I'll let you keep her until the shipment clears, then pay you out.
+basin_passage_negotiation_15 / CASTLE / COMPANY COMMAND
+Who are you going to sell her to?
 
-basin_passage_negotiation_16 / CASTLE / COMPANY COMMAND
-That still leaves us waiting on it. We need something we can put to work, Vale. You've got a yard full of salvage. We've got a payroll.
+basin_passage_negotiation_16 / TAMSIN VALE / BASIN RECLAMATION
+That's my business.
 
-basin_passage_negotiation_17 / TAMSIN VALE / BASIN RECLAMATION
-The defenses stay here. You don't lift off while my militia are still trying to get into position.
+basin_passage_negotiation_17 / CASTLE / COMPANY COMMAND
+Whoever buys a flying Shepherd has to register her at a Hegemony port. Somebody asks where she came from. Then somebody asks what else came down in this valley.
 
-basin_passage_negotiation_18 / CASTLE / COMPANY COMMAND
-They'll have cover while they move up. We hand the positions over before we leave.
+basin_passage_negotiation_18 / TAMSIN VALE / BASIN RECLAMATION
+Is that a threat?
 
-basin_passage_negotiation_19 / TAMSIN VALE / BASIN RECLAMATION
-And this buys you no part of the Colossus. Nothing in her, nothing that comes out of her.
+basin_passage_negotiation_19 / CASTLE / COMPANY COMMAND
+It's a reason. We've no interest in telling anyone anything. A mercenary company coming out of a wreck field with a recovered hull is nobody's news. It's how we got our first ship.
 
-basin_passage_negotiation_20 / CASTLE / COMPANY COMMAND
-Morrow, with title. That's the whole offer.
+basin_passage_negotiation_20 / TAMSIN VALE / BASIN RECLAMATION
+Take her for the job, then. Bring her back when the road's done, and I'll pay you out of the shipment on top.
 
-basin_passage_negotiation_21 / TAMSIN VALE / BASIN RECLAMATION
-When the road is handed over and she's clear of the basin. Her crew aren't part of a sale. I'll ask who wants to go; you find berths for anyone who does.
+basin_passage_negotiation_21 / CASTLE / COMPANY COMMAND
+That's the same promise with a ship attached.
 
-basin_passage_negotiation_22 / CASTLE / COMPANY COMMAND
-Their choice, our payroll. Send the terms over for the Captain.
+basin_passage_negotiation_22 / TAMSIN VALE / BASIN RECLAMATION
+Then hear mine. You get the hull and nothing else. Every spare we've already pulled off her stays here. The guns she builds stay here. Not a credit for the road, and not a bolt out of the Colossus.
 
-basin_passage_negotiation_23 / TAMSIN VALE / BASIN RECLAMATION
-All right. I'll send them. And Castle? Get her out in one piece. I've had enough of watching ships come down here.
+basin_passage_negotiation_23 / CASTLE / COMPANY COMMAND
+Agreed.
+
+basin_passage_negotiation_24 / TAMSIN VALE / BASIN RECLAMATION
+And she's not yours until the road's handed to my militia and she's clear of this basin. You don't lift while my people are still walking into position.
+
+basin_passage_negotiation_25 / CASTLE / COMPANY COMMAND
+They'll have cover all the way up. We hand over each position before we move on. Who's flying her?
+
+basin_passage_negotiation_26 / TAMSIN VALE / BASIN RECLAMATION
+Your own people. Nobody from Basin goes with her. Not Teo, not anyone.
+
+basin_passage_negotiation_27 / CASTLE / COMPANY COMMAND
+I wasn't going to ask.
+
+basin_passage_negotiation_28 / TAMSIN VALE / BASIN RECLAMATION
+Good. Teo will walk your crew through her before the drive test. Then he comes home.
+
+basin_passage_negotiation_29 / CASTLE / COMPANY COMMAND
+We'll put a crew across from Second Wind. Both ships will be running thin until we can hire. Send the terms and I'll put it to the Captain.
+
+basin_passage_negotiation_30 / TAMSIN VALE / BASIN RECLAMATION
+I'll send them. Get her out in one piece, Castle. I've watched enough ships come down in this valley.
 
 basin_passage_instructions_01 / TAMSIN VALE / BASIN RECLAMATION
-She's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and use Build Vulcan Turret on ground her builders can reach, then prepare the narrows. Cover the work and wait for my militia to take over. Keep the company with her for the drive test. If the drives give out, break off; we'll recover her. The agreement stands.
+Morrow's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and use Build Vulcan Turret on ground her builders can reach, then do the same at the narrows. Cover the work and wait for my militia to take over. Keep the company with her for the drive test. If the drives give out, break off and we'll recover her. The deal stands either way.

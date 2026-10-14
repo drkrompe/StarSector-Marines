@@ -1,0 +1,12 @@
+{
+  "requestId": "mDEBX5HtfycRhBVVJIGC",
+  "characterCost": "18",
+  "inputSha256": "73fb58c62ea843d98a183aca2ef4067b4303736c7181a5a9c5e969fb6a47f496",
+  "audioSha256": "f95c8d9bc40799f3d9e73799f79f4d1aa41254e586108767f5fe4a5b04d9afc6",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "durationSeconds": 1.42,
+  "outputFormat": "mp3_44100_128",
+  "take": 1,
+  "edit": "Trimmed the duplicated second 'And your checkpoints?' (1.42s onward) from the generated take."
+}

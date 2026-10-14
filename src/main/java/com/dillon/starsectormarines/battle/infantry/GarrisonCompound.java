@@ -31,7 +31,8 @@ import java.util.List;
  *
  * <p>The marine holder garrisons whatever area it has — even a single-room
  * captured compound (one garrison zone) runs {@link GarrisonPatrol}, which
- * degenerates to holding/patrolling that one room. Marines never run
+ * degenerates to holding/patrolling that one room, and a node with no rooms
+ * at all, such as a landing zone, runs {@link PerimeterPatrol} round its edge. Marines never run
  * {@link GuardPost} (it is gated on the defender {@code holdsFireUntilKillZone}
  * flag), so this goal is the only marine garrison behavior.
  *
@@ -87,25 +88,25 @@ public final class GarrisonCompound implements Goal {
         TacticalNode node = garrisonNode(squad, sim);
         if (node == null) return null;
         List<Integer> zones = GarrisonArea.garrisonZones(node, GARRISON_MARGIN, sim);
-        if (zones.isEmpty()) return null;
+        if (zones.isEmpty()) {
+            // Open ground, such as a landing zone: walk its edge rather than stand still.
+            return new SquadPlan(List.of(new SquadPlan.Step(new PerimeterPatrol(node))));
+        }
         return new SquadPlan(List.of(new SquadPlan.Step(new GarrisonPatrol(zones))));
     }
 
     /**
      * The compound node this squad should garrison, or null if it isn't a
      * garrison squad for this goal. Marine: the {@code HOLD_NODE} assignment's
-     * target node, when it has any garrison area. Defender: its assigned post,
-     * when the post is the primary node of a multi-building compound (see
+     * target node; one with no rooms (a landing zone) is patrolled round its
+     * edge by {@link PerimeterPatrol}. Defender: its assigned post, when the
+     * post is the primary node of a multi-building compound (see
      * {@link #defenderAreaPatrol}).
      */
     private static TacticalNode garrisonNode(Squad squad, BattleView sim) {
         ObjectiveAssignment a = squad.assignmentForExecution();
         if (a != null && a.kind() == AssignmentKind.HOLD_NODE) {
-            TacticalNode node = a.targetNode();
-            if (node != null && !GarrisonArea.garrisonZones(node, GARRISON_MARGIN, sim).isEmpty()) {
-                return node;
-            }
-            return null;
+            return a.targetNode();
         }
         return defenderAreaPatrol(squad, sim) ? squad.assignedNode : null;
     }

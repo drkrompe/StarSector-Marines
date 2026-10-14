@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
+import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
@@ -1451,20 +1452,20 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,post.interiorAnchorX,post.interiorAnchorY,4),
                     Faction.DEFENDER,"scrapper-watch",node,rng);
         }
-        var cradle=openingDefenseNode(129,98,Faction.DEFENDER,map.grid);
-        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,129,98,4),Faction.DEFENDER,"scrapper-cutters",cradle,rng);
-        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,25,80,8),Faction.ALLY,"basin-militia",null,rng);
+        var cradle=openingDefenseNode(ShepherdBasin.CRADLE_CUTTERS.x(),ShepherdBasin.CRADLE_CUTTERS.y(),Faction.DEFENDER,map.grid);
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.CRADLE_CUTTERS.x(),ShepherdBasin.CRADLE_CUTTERS.y(),4),Faction.DEFENDER,"scrapper-cutters",cradle,rng);
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.MILITIA.x(),ShepherdBasin.MILITIA.y(),8),Faction.ALLY,"basin-militia",null,rng);
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
             if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
                     SalvageRightsCommand.issuer(Faction.ALLY),null,"Vale's militia waits for company gains"))
                 throw new IllegalStateException("Basin militia handoff failed");
         int engineers=sim.mintSquad(Faction.ALLY,UnitType.TECHNICIAN);
-        for(int[] cell:pickSpawnCluster(map.grid,28,78,2))
+        for(int[] cell:pickSpawnCluster(map.grid,ShepherdBasin.REPAIR_PARTY.x(),ShepherdBasin.REPAIR_PARTY.y(),2))
             sim.spawn(new EntitySpec("Cooperative inspection technician",Faction.ALLY,UnitType.TECHNICIAN,cell[0],cell[1]).squad(engineers).role(UnitRole.PATROL));
         sim.getSquad(engineers).originalSize=2;
         sim.claimSquadCommand(engineers,CommandAuthority.MISSION_COMMAND,SalvageRightsCommand.issuer(Faction.ALLY),"Repair party awaits a secured hull");
         List<EntitySpec> reserve=new ArrayList<>();
-        for(int[] cell:pickSpawnCluster(map.grid,194,2,8))
+        for(int[] cell:pickSpawnCluster(map.grid,ShepherdBasin.SOUTH_HAUL_ROAD.x(),ShepherdBasin.SOUTH_HAUL_ROAD.y(),8))
             reserve.add(makeOpeningMilitia("south-haul-scrapper-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         sim.installSalvageRights(receiving,workshop,engineers,reserve);
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
@@ -1679,20 +1680,20 @@ public final class BattleSetup {
         var pump=openingDefenseNode(171,117,Faction.DEFENDER,map.grid);
         if (!shorePower)
             spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,171,117,8),Faction.DEFENDER,"pump-scrapper-watch",pump,rng);
-        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,25,80,8),Faction.ALLY,"basin-militia",null,rng);
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.MILITIA.x(),ShepherdBasin.MILITIA.y(),8),Faction.ALLY,"basin-militia",null,rng);
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
             if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
                     ColdStartCommand.issuer(Faction.ALLY),null,"Vale's militia waits for company gains"))
                 throw new IllegalStateException("Basin militia handoff failed");
         int engineers=sim.mintSquad(Faction.ALLY,UnitType.TECHNICIAN);
-        for(int[] cell:pickSpawnCluster(map.grid,28,78,2))
+        for(int[] cell:pickSpawnCluster(map.grid,ShepherdBasin.REPAIR_PARTY.x(),ShepherdBasin.REPAIR_PARTY.y(),2))
             sim.spawn(new EntitySpec("Cooperative repair technician",Faction.ALLY,UnitType.TECHNICIAN,cell[0],cell[1]).squad(engineers).role(UnitRole.PATROL));
         sim.getSquad(engineers).originalSize=2;
         sim.claimSquadCommand(engineers,CommandAuthority.MISSION_COMMAND,ColdStartCommand.issuer(Faction.ALLY),"Replacement party joins repair mobilization");
         List<EntitySpec> reserve=new ArrayList<>();
         for(int batch=0;batch<4;batch++) {
-            int roadX=batch==2?301:194,roadY=batch==2?145:2;
-            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,6))
+            ShepherdBasin.Place road=batch==2?ShepherdBasin.QUARRY_ROAD:ShepherdBasin.SOUTH_HAUL_ROAD;
+            for(int[] cell:pickSpawnCluster(map.grid,road.x(),road.y(),6))
                 reserve.add(makeOpeningMilitia("repair-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         }
         long carrier=0L;
@@ -1703,7 +1704,8 @@ public final class BattleSetup {
         sim.installColdStart(engineers,carrier,reserve,cargoDelivered,shorePower);
         // These exposed listening posts have their own duties, separate from the yard holders.
         String[] postNames={"south_haul","quarry"};
-        int[][] posts={{176,38,151,96},{279,107,188,112}};
+        ShepherdBasin.Place[] picketPlaces={ShepherdBasin.SOUTH_PICKET,ShepherdBasin.QUARRY_PICKET};
+        int[][] posts={{picketPlaces[0].x(),picketPlaces[0].y(),151,96},{picketPlaces[1].x(),picketPlaces[1].y(),188,112}};
         for(int i=0;i<posts.length;i++) {
             int[] post=posts[i];
             int squad=sim.mintSquad(Faction.ALLY,UnitType.MILITIA);
@@ -1747,11 +1749,11 @@ public final class BattleSetup {
                 mission.cycleLoadouts[cycle]=InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle),rng);
             mission.marineLoadout=mission.cycleLoadouts[0];
         }
-        for(int[] guard:new int[][]{{214,123},{258,108},{283,80}}) {
-            var post=openingDefenseNode(guard[0],guard[1],Faction.DEFENDER,map.grid);
-            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,guard[0],guard[1],4),Faction.DEFENDER,"passage-scrapper-watch",post,rng);
+        for(ShepherdBasin.Place guard:ShepherdBasin.PASSAGE_WATCHES) {
+            var post=openingDefenseNode(guard.x(),guard.y(),Faction.DEFENDER,map.grid);
+            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,guard.x(),guard.y(),4),Faction.DEFENDER,"passage-scrapper-watch",post,rng);
         }
-        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,25,80,8),Faction.ALLY,"basin-militia",null,rng);
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.MILITIA.x(),ShepherdBasin.MILITIA.y(),8),Faction.ALLY,"basin-militia",null,rng);
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
             if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
                     WorkingPassageCommand.issuer(Faction.ALLY),null,"Vale's militia waits for company gains"))
@@ -1760,8 +1762,8 @@ public final class BattleSetup {
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)militia.add(squad.id);
         List<EntitySpec> reserve=new ArrayList<>();
         for(int batch=0;batch<4;batch++) {
-            int roadX=batch==1?301:194,roadY=batch==1?145:2,size=batch==0||batch==2?4:6;
-            for(int[] cell:pickSpawnCluster(map.grid,roadX,roadY,size))
+            ShepherdBasin.Place road=batch==1?ShepherdBasin.QUARRY_ROAD:ShepherdBasin.SOUTH_HAUL_ROAD;int size=batch==0||batch==2?4:6;
+            for(int[] cell:pickSpawnCluster(map.grid,road.x(),road.y(),size))
                 reserve.add(makeOpeningMilitia("passage-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         }
         Tender tender;
@@ -2674,7 +2676,8 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        ConquestCommand marineCommand = new ConquestCommand(tracks, map.lanes);
+        ConquestCommand marineCommand = new ConquestCommand(tracks, map.lanes)
+                .withAssaultStyle(profile == null ? AssaultStyle.MUSTER : profile.declaredAssault());
         sim.setAutonomousCommander(Faction.MARINE, marineCommand,
                 ConquestCommandDisclosure.INSTANCE);
         // A DEBUG-stated call lands claimed by this commander, at the middle of the drop zone it came down on.

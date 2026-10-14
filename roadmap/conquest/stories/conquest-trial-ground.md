@@ -4,7 +4,7 @@ Status: IN PROGRESS — mission layer extracted and trial ground playing; first 
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — steps 1–3 built. The first run found reactive manning blind (no squad sees an attack on an empty fort); fixed in production by a token picket and fort-gun reports. Default matrix at 9000 ticks: no run takes the objective; marines lose 33–40 of 54 with the fort on the path, 21–36 offset.
+Updated: 2026-10-14 — steps 1–3 built; reactive manning blindness fixed (token picket, fort-gun reports, threat memory). Home tracks follow work, stages stand until reached, step toward the track's compound and go round a fort that is not the objective: the objective falls in all 15 fixtures (9 offset, 6 on-path) and marines win 8, against none before. The 7 timeouts lose the keep: the default trial force (four 12-seat squads, rifles only) runs out of marines.
 
 ## Intent
 

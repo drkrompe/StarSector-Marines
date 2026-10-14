@@ -39,12 +39,6 @@ public final class CommanderInfluenceService implements AutoCloseable {
     public static final String ASYNC_PROPERTY = "battle.influence.async";
     public static final int BLOCK_SIZE = 8;
     public static final int UPDATE_INTERVAL_TICKS = 15;
-    /**
-     * Whether a fort's guns report what they are engaging to their side's commander ({@code battle.command.fortReports},
-     * default on). Off is the control in which a fort is seen only through the squads standing in or near it.
-     */
-    public static final boolean FORT_REPORTS = Boolean.parseBoolean(System.getProperty("battle.command.fortReports", "true"));
-
     /** The guns whose current targets their side's commander learns of: a fort's nests, manned or not. */
     @FunctionalInterface
     public interface GunWatch {
@@ -374,24 +368,22 @@ public final class CommanderInfluenceService implements AutoCloseable {
                 }
             }
         }
-        if (FORT_REPORTS) {
-            // A gun engaging a body knows where it is, whoever is or is not in the works with it. This is what lets an
-            // unmanned or lightly held fort raise the pressure that brings its garrison.
-            World world = roster.world();
-            gunWatch.forEachGun(gun -> {
-                if (!roster.isLive(gun) || identity.faction(gun) != faction) return;
-                long target = world.targetId(gun);
-                if (target == 0L || !roster.isLive(target)
-                        || !faction.hostileTo(identity.faction(target))
-                        || !identity.type(target).combatant) {
-                    return;
-                }
-                CommanderContact candidate = new CommanderContact(target, world.cellX(target), world.cellY(target),
-                        captureTick, 1f, commandStrength(identity.type(target)), BeliefSource.DIRECT, -1);
-                CommanderContact old = merged.get(target);
-                if (old == null || prefer(candidate, old)) merged.put(target, candidate);
-            });
-        }
+        // A gun engaging a body knows where it is, whoever is or is not in the works with it. This is what lets an
+        // unmanned or lightly held fort raise the pressure that brings its garrison.
+        World world = roster.world();
+        gunWatch.forEachGun(gun -> {
+            if (!roster.isLive(gun) || identity.faction(gun) != faction) return;
+            long target = world.targetId(gun);
+            if (target == 0L || !roster.isLive(target)
+                    || !faction.hostileTo(identity.faction(target))
+                    || !identity.type(target).combatant) {
+                return;
+            }
+            CommanderContact candidate = new CommanderContact(target, world.cellX(target), world.cellY(target),
+                    captureTick, 1f, commandStrength(identity.type(target)), BeliefSource.DIRECT, -1);
+            CommanderContact old = merged.get(target);
+            if (old == null || prefer(candidate, old)) merged.put(target, candidate);
+        });
         List<CommanderContact> contacts = new ArrayList<>(merged.values());
         contacts.sort(Comparator.comparingLong(CommanderContact::unitId));
         return contacts;

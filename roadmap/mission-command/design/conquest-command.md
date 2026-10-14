@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — Conquest carries a mission-declared fire support kit and marine air pool, and muster plus plans now leads the trickle on one of three fort fixtures (still off by default; proposal in the muster section); earlier: the muster is off by default (`battle.command.muster=true`): a company counts the nests and gate in front of it, each lane keeps half its squads, a short muster stands down, and a committed company executes the stamp's assault plan (`phased-assault.md`); measured not yet better than the trickle.
+Updated: 2026-10-14 — the muster switches are gone: muster with plans is standing behaviour and the trickle is a mission's own declaration (`AssaultStyle`); Conquest also carries a mission-declared fire support kit and marine air pool (`phased-assault.md`).
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -201,9 +201,7 @@ ground.
 
 ## Foothold, muster, assault
 
-**Off by default: `battle.command.muster=true` turns it on** (and
-`battle.command.musterPlans=false` drops the per-stamp plan, leaving a company to
-go at the aspect directly). A disclosed fort is an objective one squad cannot
+**Muster, with the per-stamp plans, is standing behaviour (owner decision 2026-10-14); a mission may choose the trickle instead (`AssaultStyle.TRICKLE`, declared on the mission's `TargetProfile`).** A disclosed fort is an objective one squad cannot
 take, and the squads that reach one a few at a time are cut down by its nests and
 garrison. So, with the muster on, the attacker treats it per objective in three
 phases, owned by `phased-assault.md`: the landing is held by one squad while the
@@ -304,6 +302,15 @@ they were homed on, with twenty-one known contacts, was answered by one squad.
 A new squad now takes the least-loaded track, its natural one winning a tie, so a
 landing that is already spread keeps its lanes. The count is rebuilt from live
 squads each pulse, and the choice is made once per squad.
+
+**Only a track with work in it is anybody's home.** Work is a compound to take
+(the marines' own beachhead is not one); a map whose compounds are known on no
+track balances over all three. On the trial ground every objective stands in
+one third of the map, and balancing over every strip homed a third of the
+company to the empty ones, where the no-front staging rule walked it up open
+ground for the whole battle. An empty strip is ground the front crosses on its
+way to a lane, not a front of its own, so it also does not hold back the
+abreast bound below.
 
 **The zone cap alone was the wrong lever, and it is the right one on top of
 that.** The zone picker ranks every squad onto the nearest believed-defender
@@ -410,7 +417,29 @@ must not become a lone flank walking off ahead of the force that would have to
 support it — is answered by a bound instead. An unscouted track may lead its
 *neighbouring* tracks' friendly lead by the same margin a believed one may lead
 its own, so the line advances abreast and a track that has run out ahead holds
-until the rest come up. The relaxation is confined to staging: a squad already
+until the rest come up. Only neighbours with work count: squads standing in an
+empty strip are crossing to their own, and capping on them held a whole company
+to the pace of its stragglers. A stage the squad has not yet reached stands
+until it arrives, even when the next stage would be too short a step to issue;
+clearing it halted the squad every other pulse, and a line with nothing
+believed ahead crawled a few cells per order. On the trial ground the two
+together took the objective in 11 of 15 fixtures and won 8, against none of
+either before.
+
+**A stage steps toward the work on its track and goes round a fort that is
+not the objective.** Taken straight up from where a squad stands, a stage keeps
+whatever lateral the squad landed or drifted at; on the trial ground with the
+fort off the lane, squads staged up the edge of their track along the fort's
+wire and stood in contact with guns they could not reach for the rest of the
+battle, while the compound they were homed for stood forty cells across the
+same track. So a stage now moves at most one stride sideways toward the next
+compound still to take on its track. Steered alone, that sent squads straight
+through a fort standing on the lane between them and their compound, where they
+died in the works (objective taken in none of six such fixtures). A stage that
+would land on a known hostile fort's works or belt, plus a margin, slides to
+whichever side of it is nearer the squad. Both together took the objective in
+all 15 trial fixtures and won 8, without the muster or the keep law changing.
+The relaxation is confined to staging: a squad already
 in contact is not stuck, and an exterior contact the commander has not yet
 placed stays ambient rather than becoming a fabricated forward order. A blind
 advance is published under its own reason, and does not count as the actionable
