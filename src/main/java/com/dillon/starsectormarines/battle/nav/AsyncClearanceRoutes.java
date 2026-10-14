@@ -17,6 +17,15 @@ import java.util.concurrent.TimeUnit;
  */
 public final class AsyncClearanceRoutes implements AutoCloseable {
     public static final String ENABLED_PROPERTY = "battle.pathfinding.asyncClearance";
+    /**
+     * {@code -Dbattle.pathfinding.clearanceFailureBackoff=false} lets a refused intent
+     * be searched again as soon as the body has drifted half a cell.
+     */
+    public static final String FAILURE_BACKOFF_PROPERTY = "battle.pathfinding.clearanceFailureBackoff";
+    private static final boolean FAILURE_BACKOFF =
+            Boolean.parseBoolean(System.getProperty(FAILURE_BACKOFF_PROPERTY, "true"));
+    /** Ticks a completed refusal stands before body drift may reopen it. */
+    static final int FAILURE_RETRY_TICKS = 90;
     private static final int QUANTUM = 256;
     private static final int RETAIN_TICKS = 300;
     // Every admitted job can retain a frontier between quanta. Worker count
@@ -38,6 +47,7 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
         final long revision;
         final Job task;
         int lastPollTick;
+        int doneTick = -1;
 
         Entry(Request request, long revision, Job task, int tick) {
             this.request = request;
@@ -139,9 +149,11 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
         // Failed proofs can be reconsidered after the body moved substantially.
         var completed = entry != null && entry.task.future.isDone()
                 && !entry.task.future.isCompletedExceptionally() ? entry.task.future.getNow(null) : null;
+        if (completed != null && entry.doneTick < 0) entry.doneTick = tick;
         boolean moved = completed != null && completed.status() != ClearanceRoutePlanner.Status.FOUND
                 && Math.hypot(request.startX - entry.request.startX,
-                request.startY - entry.request.startY) > .5d;
+                request.startY - entry.request.startY) > .5d
+                && (!FAILURE_BACKOFF || tick - entry.doneTick >= FAILURE_RETRY_TICKS);
         if (entry == null || entry.revision != revision || moved || !entry.request.sameIntent(request)) {
             if (entry != null) cancel(entry);
             entries.remove(owner);
@@ -167,6 +179,7 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
             }
         }
         entry.lastPollTick = tick;
+        if (entry.doneTick < 0 && entry.task.future.isDone()) entry.doneTick = tick;
         if (!entry.task.future.isDone()) return new Reply(PathRequestStatus.PENDING, null, revision);
         if (entry.task.future.isCancelled()) {
             entries.remove(owner);
