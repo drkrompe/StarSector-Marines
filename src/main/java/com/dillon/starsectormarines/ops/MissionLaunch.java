@@ -268,7 +268,8 @@ public final class MissionLaunch {
         final TargetProfile profile = marketProfile.withDeclaredDefences(
                 MissionDefencePolicy.declare(m, marketProfile))
                 .withDeclaredMechDrops(MissionDefencePolicy.declareMechDrops(m))
-                .withDeclaredAirPool(MissionDefencePolicy.declareAirPool(m));
+                .withDeclaredAirPool(MissionDefencePolicy.declareAirPool(m))
+                .withDeclaredSupportKit(MissionDefencePolicy.declareSupportKit(m));
 
         // How settled the map is: the mission's own statement where it made one,
         // and the market's size where it did not. Resolved once here rather than

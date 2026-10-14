@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 
 import java.util.Collections;
@@ -79,6 +80,8 @@ import java.util.Set;
  *                      {@link MechDropDeclaration#NONE} for a mission that said nothing.
  * @param declaredAirPool the pools of bombers and fighters the MISSION gives each side, which regenerate and are tasked by
  *                      comms operators; {@link AirPoolDeclaration#NONE} for a mission that said nothing.
+ * @param declaredSupportKit the support kit the MISSION issues some of each side's squads: crew-served mortar teams and
+ *                      forward observers with a comms radio. {@link SquadSupportDeclaration#NONE} for a mission that said nothing.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -92,7 +95,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             boolean planetaryShield,
                             GroundDefences declaredDefences,
                             MechDropDeclaration declaredMechDrops,
-                            AirPoolDeclaration declaredAirPool) {
+                            AirPoolDeclaration declaredAirPool,
+                            SquadSupportDeclaration declaredSupportKit) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -118,6 +122,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (declaredDefences == null) declaredDefences = GroundDefences.NONE;
         if (declaredMechDrops == null) declaredMechDrops = MechDropDeclaration.NONE;
         if (declaredAirPool == null) declaredAirPool = AirPoolDeclaration.NONE;
+        if (declaredSupportKit == null) declaredSupportKit = SquadSupportDeclaration.NONE;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -181,6 +186,26 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                 declaredMechDrops, AirPoolDeclaration.NONE);
     }
 
+    /** The profile with a mech-drop declaration and an air pool but no squad support kit: every caller that predates kits. */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength,
+                         boolean groundDefences,
+                         boolean heavyBatteries,
+                         boolean planetaryShield,
+                         GroundDefences declaredDefences,
+                         MechDropDeclaration declaredMechDrops,
+                         AirPoolDeclaration declaredAirPool) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences,
+                declaredMechDrops, declaredAirPool, SquadSupportDeclaration.NONE);
+    }
+
     /**
      * The profile as it was before the market's ground-defence industries were
      * part of it: every signal except the three defence flags, which read as
@@ -240,7 +265,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit);
     }
 
     /**
@@ -254,7 +279,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit);
     }
 
     /**
@@ -265,7 +290,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool);
+                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit);
     }
 
     /**
@@ -276,7 +301,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit);
     }
 
     /**
@@ -287,6 +312,17 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit);
+    }
+
+    /**
+     * This profile with the mission's declaration of the support kit its squads carry (mortar teams, forward observers),
+     * every other read left as it was. Called once, at the mission boundary (MissionDefencePolicy).
+     */
+    public TargetProfile withDeclaredSupportKit(SquadSupportDeclaration declared) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared);
     }
 }
