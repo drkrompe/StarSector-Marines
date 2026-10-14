@@ -1,6 +1,6 @@
 # Second Wind to Wayline: opening dialogue
 
-Status: SHIPPED — the campaign-start and first-contract dialogue register; applied to the game. The later-chapter hints and Sabine on the company net remain open.
+Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine's voice and her place on the company net remain open.
 
 Written: 2026-10-14
 
@@ -136,15 +136,17 @@ opening shows, and lets the player feel it long before anyone names it.
   never appears in person in this arc.
 
 Hints between Relief and Dust Ledger, one line each, none of them explained.
-Relief's is in the game; the rest are still to write into their chapters:
+After Relief they sit in Mara's written victory message, the one place every
+chapter has; she relays what Castle and Sabine saw rather than borrowing their
+voices:
 
-| Chapter | Seed |
-|---|---|
-| Relief | Mara: the depot raiders "knew which night the gate crew was short." |
-| Counterattack | Castle, on the depot's recovered office: their dispatch board was the one thing the raiders bothered to take. |
-| Open the Junction | Sabine: they were waiting at the junction before our boats were down. Somebody told them we were coming. |
-| Thunder Run | Castle, debrief: every ambush on the corridor sat on the loads that were worth something, and skipped the rest. |
-| Dust Ledger | Mara reads Wayline's own schedules out of a pirate archive, under Prell's authority. |
+| Chapter | Where | Hint |
+|---|---|---|
+| Relief | Radio, during the trips | "They knew which night the depot's gate crew was short. I still don't know how." |
+| Counterattack | Victory message | They left the strongroom alone and took the dispatch board, every route and every schedule on it. |
+| Open the Junction | Victory message | Sabine says they were dug in before your boats were down. Somebody told them we were coming. |
+| Thunder Run | Victory message | Castle's report says every ambush sat on the loads worth something and let the rest go by. |
+| Dust Ledger | Victory message | The archive holds Wayline's own schedules, released under Teodor Prell's dispatch authority, the last batch dated the week he left. |
 
 ## 0 — New game
 
@@ -704,11 +706,12 @@ a chosen voice, and a check that the net is unchanged when she is not deployed.
 It is not part of the text rewrite. Until then her story lines stay text with her
 portrait.
 
+Owner call 6 reaches past the opening. Counterattack, Open the Junction and
+Thunder Run no longer name their fees in Mara's voice. Thunder Run's per-carrier
+schedule is a term the player needs, so it follows her briefing as a plain
+**Terms:** line rather than as something she says.
+
 ## Still open
 
-- The hints for Counterattack, Open the Junction, Thunder Run and Dust Ledger
-  (see Why Wayline) are not yet written into those chapters.
 - Sabine on the company net is its own story under the battle-radio model.
-- Owner call 6 reaches past the opening: Thunder Run's briefing still names its
-  fee schedule in Mara's voice.
 - Sabine's lines are text with her portrait until she has a voice.
