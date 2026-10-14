@@ -558,37 +558,68 @@ founding officer only)
 > Mara's directions from HQ. Take Sabine's squad. Let's give Mara a reason to call
 > again.
 
-`WaylineArc` introduction, Relief — Mara
-> Mara Venn. Castle sent your particulars, and I've read them twice. I broker for
-> Wayline, and since the spring I run it, because our director took a post
-> off-world and somebody had to. A year ago we ran freighters between worlds. We lost three cargoes in a
-> season and sold the hulls to cover them, so now we're drivers on one planet's
-> roads, pooling what's left so nobody has to sell their truck as well. Raiders
-> took our depot a month ago. They knew which night the gate crew was short. Now
-> they're at the checkpoint, and if that falls there's no road left to haul on. Licensed companies cost more than we have. You cost what we have.
-> I'd rather that than nothing, and I expect you would too.
+### Briefing and landing (proposal: the introduction becomes the briefing)
 
-Mara's introduction is shared by every start port, so it does not mention Nessa;
-the sisters are connected only where the player has met Nessa.
+Relief splits Mara's words by where the player is. Before launch she is a
+stranger asking for help, so the briefing is her introduction: who she is, what
+Wayline lost, and what she is asking for. The tactical detail moves into the
+mission, spoken over the radio while the one Hermes makes its three trips, when
+the player is looking at the apron, the gate and the roads it describes. The
+trips take long enough to carry it, and a briefing heard over the ground it
+names is easier to follow than one heard before the map exists.
 
-`WaylineArc.briefing` Relief and the recorded `relief` briefing — Mara. The
-recorded briefing carries the same words; changing it needs a new take.
-> For our first job together, I need you at the freight checkpoint{location}. The
-> watch there is paid from the same collection as your fee; I know half of them
-> from the loading shifts. The raiders already have our depot. This is where we
-> stop them taking the road. Land on the rear unloading apron and get to the gate.
-> More of them are coming up the freight and warehouse service roads. Wayline
-> puts in its militia and one shuttle. Eliminate the bandit force, and bring as
-> many of our people home as you can. You'll be paid on success, agreed in
-> writing. Break the assault and yours is the first company I call about the
-> depot. One job at a time, Commander.
+What the player needs to choose squads and lift stays on the briefing screen as
+unvoiced text, so nothing that matters is only said once over the radio.
 
-**New — Sabine, after the briefing** (briefing correspondence, text with her
-portrait)
+**Briefing, voiced turns** — Mara (replaces the `WaylineArc` introduction and the
+recorded `relief` briefing; ordered `briefing.*` turns). Shared by every start
+port, so it does not mention Nessa; the sisters are connected only where the
+player has met Nessa.
+
+1. > Mara Venn. Castle sent your particulars, and I've read them twice. I broker
+   > for Wayline, and since the spring I run it, because our director took a post
+   > off-world and somebody had to.
+2. > A year ago we ran freighters between worlds. We lost three cargoes in a season
+   > and sold the hulls to cover them, so now we're drivers on one planet's roads,
+   > pooling what's left so nobody has to sell their truck as well.
+3. > Raiders took our depot a month ago. Now they're at our freight
+   > checkpoint{location}, and if that falls there's no road left to haul on. The
+   > watch holding it is paid from the same collection as your fee. I know half of
+   > them from the loading shifts.
+4. > Licensed companies cost more than we have. You cost what we have. Help them
+   > hold that gate, and you'll be paid on success, agreed in writing. I'd rather
+   > you than nothing, and I expect you'd rather us than nothing too. One job at a
+   > time, Commander.
+
+**Briefing, Sabine** (text with her portrait, after Mara)
 > One boat, so we go down in trips. First team takes the apron and holds it until
 > the rest are on the ground. Nobody walks to that gate alone.
 
-The Relief field calls keep their recorded wording.
+**Briefing screen, unvoiced** — the tactical summary
+> Land on the rear unloading apron and reinforce the checkpoint gate. Raiders will
+> come up the freight and warehouse service roads. Wayline supplies its militia
+> and one shuttle. Break the assault and bring as many people home as you can.
+
+**In mission, over the trips** — Mara unless marked. Existing events keep their
+keys; two new beats fire on the second and third player landings.
+
+| Beat | Line |
+|---|---|
+| `started` | Mara here. Your first boat's headed for the rear unloading apron. Our watch is holding the gate, but not for long on their own. |
+| `player_landed` | Sabine: First team down. We hold the apron until the boat's back. |
+| `player_landed` (Mara, after Sabine) | Your people are on the ground. The raiders are coming up the freight and warehouse service roads. That's where the gate gets hit. |
+| `employer_landed` | That's our militia, on the only shuttle we've got. Keep them with your people. They're drivers defending their road. |
+| new: second landing | They knew which night the depot's gate crew was short. I still don't know how. This is where we stop them taking the road as well. |
+| new: third landing | Sabine: That's all of us. Moving to the gate. |
+| `checkpoint_reached` | You've reached the checkpoint. Hold together, and watch the approaches. We need this gate standing when it's over. |
+| `militia_line_weakened` | The checkpoint watch is taking heavy losses. Get support to the line before it breaks. |
+| `militia_line_lost` | We've lost the checkpoint's own watch. Finish this, Commander. Bring the rest of our people home. |
+
+The depot seed ("they knew which night") moves from the introduction into the
+second landing, where it has room to sit. Every Mara line here needs a recording;
+Sabine's are text until she has a voice (see the proposal below). If a landing
+happens in a different order, a line that has not fired yet still fires once; a
+beat whose moment has passed is dropped rather than played late.
 
 ## 6 — First payment
 
@@ -657,6 +688,11 @@ Command still speaks for every other squad. It is not part of the text rewrite.
   broker (`wayline-opening-arc.md`, `early-operation-nouns.md`, and Vale's view of
   her in `shepherd-recovery-dialogue.md`). Prell and the Dust Ledger reveal
   belong in `wayline-corvus-arc.md` and its chapter dialogue.
+- Relief's briefing becomes Mara's introduction as ordered `briefing.*` turns,
+  and the tactical lines move into the mission. `OpeningOperationStoryHooks`
+  needs the count of player landings so the second and third landings can fire
+  their own beats; the briefing screen keeps an unvoiced tactical summary.
+  Every changed Mara line needs a new recording.
 - Sabine's protection changes the standing model in the same commit as the code:
   `personnel-nouns.md` ("grants no immunity from loss") and `company-view-nouns.md`
   ("a surviving officer can carry the unfinished lesson") are rewritten, and the
