@@ -1,9 +1,6 @@
 {
-  "basin_salvage_briefing_01": [{"file": "sounds/story/wayline/basin_salvage_briefing_01.ogg"}],
-  "basin_salvage_briefing_02": [{"file": "sounds/story/wayline/basin_salvage_briefing_02.ogg"}],
   "basin_salvage_briefing_08": [{"file": "sounds/story/wayline/basin_salvage_briefing_08.ogg"}],
   "basin_cold_start_power_restored": [{"file": "sounds/story/wayline/basin_cold_start_power_restored.ogg"}],
-  "basin_cold_start_complete": [{"file": "sounds/story/wayline/basin_cold_start_complete.ogg"}],
   "basin_passage_bend_build": [{"file": "sounds/story/wayline/basin_passage_bend_build.ogg"}],
   "basin_passage_militia_hold_0": [{"file": "sounds/story/wayline/basin_passage_militia_hold_0.ogg"}],
   "basin_passage_narrows_build": [{"file": "sounds/story/wayline/basin_passage_narrows_build.ogg"}],

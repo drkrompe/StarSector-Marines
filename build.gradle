@@ -186,6 +186,7 @@ test {
     inputs.dir('src/main/java')
     inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
     inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
+    inputs.dir('art-source/audio/shepherd')
     inputs.dir('asset-pipeline/src/tool/resources/audio/operation-radio/live')
     inputs.dir('asset-pipeline/src/tool/resources/audio/company-officer')
             .withPropertyName('shippedCatalogs')
