@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts.Place;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.Direction;
@@ -48,7 +49,8 @@ public final class CounterattackDepot {
                 new Place("Loading yard", 95, 46),
                 new Place("Dispatch warehouse", depot.interiorAnchorX, depot.interiorAnchorY));
         MapResult map = new MapResult(c.grid, c.topology, 18, 46, 73, 46,
-                c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS),
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)),
+                c.get(BspKeys.BUILDINGS),
                 List.of(), roads(), c.landingPads);
         for (LandingPad pad : map.landingPads)
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Depot berth obstructed");

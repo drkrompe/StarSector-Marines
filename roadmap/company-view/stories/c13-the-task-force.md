@@ -2,8 +2,8 @@
 
 Status: PARTIAL — bulk home-command assignment implemented; per-officer outcomes implemented; live acceptance remains
 Written: 2026-08-23
-Updated: 2026-10-06 — folded bulk organization semantics into the company and
-personnel noun docs; retained Armory acceptance remains open.
+Updated: 2026-10-14 — the Armory squad gallery and its Organize squads mode were
+retired; bulk assignment acceptance now targets the Barracks formation board.
 
 Read `company-view-nouns.md` before changing this story.
 
@@ -19,16 +19,12 @@ campaign and save/reload pass remains open.
 
 Coordinate the after-action presentation with `c6-after-action-by-fireteam.md`.
 
-### 2. Accept bulk organization in the live company gallery
+### 2. Accept bulk organization on the Barracks formation board
 
-Fleet Armory's company squad gallery stages an explicit multi-squad assignment
-to one active home officer or Unassigned. The roster rechecks the entire batch,
-preserves rank caps and stationed locks, and commits all assignments together.
-The standing model is in `company-view-nouns.md` and `personnel-nouns.md`.
-
-The shared UI snapshot catalog covers valid and over-capacity drafts, explicit
-Unassigned, a twenty-four-squad gallery, and enlarged UI scale. These establish
-headless presentation, not in-game feel or campaign persistence.
+Barracks selects several squads and assigns them to one officer through the
+commander card's capacity-checked Assign Selected. The roster rechecks the entire
+batch, preserves rank caps and stationed locks, and commits all assignments
+together. The standing model is in `company-view-nouns.md` and `personnel-nouns.md`.
 
 The live acceptance still needs a company of roughly twenty squads: move several
 squads between officers, refuse an over-capacity destination, clear assignments,
