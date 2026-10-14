@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.audio.BattleRadioChatter.Cue;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.Actor;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.AssignmentKey;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.Catalog;
+import com.dillon.starsectormarines.battle.audio.OperationRadio.FieldCommand;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.Line;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.Observation;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -99,6 +100,129 @@ class OperationRadioTest {
         assertEquals(ack.portrait(), readback.portrait());
         finish();
         assertFalse(radio.busy());
+    }
+
+    private static Catalog withFieldCommand() {
+        Catalog base = catalog();
+        Map<String, Line> lines = new HashMap<>(base.lines());
+        lines.put("sabine_call", new Line("sabine_call", "command", "Sabine. This is Command.", 1));
+        lines.put("sabine_ack", new Line("sabine_ack", "sabine", "Sabine. Go ahead.", 1));
+        Map<String, String> handoffs = new HashMap<>();
+        Map<String, String> withdraw = new HashMap<>();
+        for (Actor actor : base.actors()) {
+            String id = "sabine_handoff_" + actor.id();
+            lines.put(id, new Line(id, "sabine", id, 1));
+            handoffs.put(actor.id(), id);
+            String out = "sabine_withdraw_" + actor.id();
+            lines.put(out, new Line(out, "sabine", out, 1));
+            withdraw.put(actor.id(), out);
+        }
+        lines.put("withdraw", new Line("withdraw", "command", "Fall back.", 1));
+        FieldCommand field = new FieldCommand("sabine", "SABINE HALE / FIELD COMMAND",
+                "graphics/portraits/sabine-hale.png", "sabine_call", "sabine_ack", handoffs, withdraw);
+        return new Catalog(base.actors(), Map.of(AssignmentKind.ATTACK_MOVE, "order",
+                AssignmentKind.WITHDRAW, "withdraw"), lines, field);
+    }
+
+    /** Always takes the relay when it is offered, so a test sees whether it was offered at all. */
+    private static Random relayWhenOffered() {
+        return new Random(5) {
+            @Override public boolean nextBoolean() { return true; }
+        };
+    }
+
+    private static List<String> exchange(OperationRadio radio, FakeSound sound) {
+        List<String> turns = new ArrayList<>();
+        var turn = radio.beginExchange();
+        while (turn != null) {
+            turns.add(turn.line().id());
+            sound.playing = false;
+            radio.advance(1.3f, true, false, false);
+            turn = radio.advance(0.36f, true, false, false);
+        }
+        return turns;
+    }
+
+    @Test
+    void deployedFieldCommanderRelaysACompanyWideRetaskingToOneCallsign() {
+        FakeSound played = new FakeSound();
+        OperationRadio net = new OperationRadio(withFieldCommand(), relayWhenOffered(), turn -> {
+            played.playing = true;
+            return played;
+        });
+        net.fieldCommanderDeployed(true);
+        net.observe(List.of(order(1, 20), order(2, 30), order(3, 40)));
+        var call = net.beginExchange();
+        assertEquals("sabine_call", call.line().id());
+        assertEquals("COMPANY COMMAND", call.speaker());
+        played.playing = false;
+        net.advance(1.3f, true, false, false);
+        var ack = net.advance(0.36f, true, false, false);
+        assertEquals("sabine_ack", ack.line().id());
+        assertEquals("SABINE HALE / FIELD COMMAND", ack.speaker());
+        assertEquals("graphics/portraits/sabine-hale.png", ack.portrait());
+        List<String> rest = new ArrayList<>();
+        for (var turn = ack; turn != null; ) {
+            played.playing = false;
+            net.advance(1.3f, true, false, false);
+            turn = net.advance(0.36f, true, false, false);
+            if (turn != null) rest.add(turn.line().id());
+        }
+        assertEquals(3, rest.size());
+        assertEquals("order", rest.get(0), "Castle's instruction is the same one a squad would hear");
+        String actor = rest.get(1).replace("sabine_handoff_", "");
+        assertEquals(actor + "_readback", rest.get(2), "The callsign she names is the one that answers");
+    }
+
+    @Test
+    void withdrawalUsesHerLastOutHandoff() {
+        FakeSound played = new FakeSound();
+        OperationRadio net = new OperationRadio(withFieldCommand(), relayWhenOffered(), turn -> {
+            played.playing = true;
+            return played;
+        });
+        net.fieldCommanderDeployed(true);
+        net.observe(List.of(new Observation(1, new AssignmentKey(AssignmentKind.WITHDRAW, "pad")),
+                new Observation(2, new AssignmentKey(AssignmentKind.WITHDRAW, "pad"))));
+        List<String> turns = exchange(net, played);
+        assertEquals("sabine_call", turns.get(0));
+        assertTrue(turns.get(3).startsWith("sabine_withdraw_"), turns.toString());
+    }
+
+    @Test
+    void castleKeepsSingleSquadWorkAndTheWholeNetWhenSheIsNotDeployed() {
+        FakeSound played = new FakeSound();
+        OperationRadio net = new OperationRadio(withFieldCommand(), relayWhenOffered(), turn -> {
+            played.playing = true;
+            return played;
+        });
+        net.fieldCommanderDeployed(true);
+        net.observe(List.of(order(1, 20)));
+        List<String> single = exchange(net, played);
+        assertEquals(4, single.size());
+        assertTrue(single.get(0).endsWith("_call") && !single.get(0).startsWith("sabine"),
+                "One squad's new task stays between Castle and that squad");
+
+        net.reset();
+        net.fieldCommanderDeployed(false);
+        net.observe(List.of(order(1, 20), order(2, 30)));
+        List<String> absent = exchange(net, played);
+        assertTrue(absent.stream().noneMatch(id -> id.startsWith("sabine")),
+                "She speaks only when she is actually down there: " + absent);
+    }
+
+    @Test
+    void fieldCommandMustCoverEveryCallsignInHerOwnVoice() {
+        Catalog full = withFieldCommand();
+        FieldCommand field = full.fieldCommand();
+        Map<String, String> missing = new HashMap<>(field.handoffs());
+        missing.remove("hammer");
+        assertThrows(IllegalArgumentException.class, () -> new Catalog(full.actors(), full.instructions(),
+                full.lines(), new FieldCommand(field.id(), field.label(), field.portrait(), field.call(),
+                        field.ack(), missing, field.withdrawHandoffs())));
+        assertThrows(IllegalArgumentException.class, () -> new Catalog(full.actors(), full.instructions(),
+                full.lines(), new FieldCommand(field.id(), field.label(), field.portrait(), field.call(),
+                        "kestrel_ack", field.handoffs(), field.withdrawHandoffs())));
     }
 
     @Test
@@ -304,7 +428,9 @@ class OperationRadioTest {
             assertEquals(256, portrait.getWidth());
             assertEquals(256, portrait.getHeight());
         }
-        assertEquals(151, catalog.lines().size());
+        assertEquals(165, catalog.lines().size());
+        assertNotNull(catalog.fieldCommand(), "The founding officer has a place on the net");
+        assertNotNull(ImageIO.read(Path.of("mod", catalog.fieldCommand().portrait()).toFile()));
         for (Cue cue : Cue.values()) {
             assertEquals(18, catalog.actors().stream().mapToInt(actor -> actor.reports().get(cue).size()).sum());
         }
