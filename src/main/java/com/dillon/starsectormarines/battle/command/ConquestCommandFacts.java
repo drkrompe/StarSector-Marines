@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,14 +34,17 @@ public final class ConquestCommandFacts {
 
     private final List<Compound> compounds;
     private final List<DefenceStructureFact> structures;
+    private final GarrisonableRegistry garrisonables;
 
     private ConquestCommandFacts(List<Compound> compounds) {
-        this(compounds, List.of());
+        this(compounds, List.of(), null);
     }
 
-    private ConquestCommandFacts(List<Compound> compounds, List<DefenceStructureFact> structures) {
+    private ConquestCommandFacts(List<Compound> compounds, List<DefenceStructureFact> structures,
+                                 GarrisonableRegistry garrisonables) {
         this.compounds = List.copyOf(compounds);
         this.structures = List.copyOf(structures);
+        this.garrisonables = garrisonables;
     }
 
     /**
@@ -62,7 +66,7 @@ public final class ConquestCommandFacts {
                     && sim.structureSighted(structure.seenCellX(), structure.seenCellY());
             if (isDisclosed(ours, seen, remembered)) known.add(structure);
         }
-        return new ConquestCommandFacts(base.compounds, known);
+        return new ConquestCommandFacts(base.compounds, known, sim.garrisonables());
     }
 
     /**
@@ -122,11 +126,19 @@ public final class ConquestCommandFacts {
                     record.captureCellX, record.captureCellY, captureZone,
                     garrison.stream().mapToInt(Integer::intValue).toArray()));
         }
-        return new ConquestCommandFacts(facts, List.of());
+        return new ConquestCommandFacts(facts, List.of(), null);
     }
 
     public List<Compound> compounds() {
         return compounds;
+    }
+
+    /**
+     * The places a squad can man on this map: prepared ground, map terrain rather than a sighting of anyone, so it is
+     * disclosed to every perspective. Immutable and shared; {@code null} for a freeze that did not read it.
+     */
+    public GarrisonableRegistry garrisonables() {
+        return garrisonables;
     }
 
     /** The ground-defence structures this perspective may know of; empty for the other freeze. */

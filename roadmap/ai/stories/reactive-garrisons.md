@@ -1,8 +1,10 @@
 # Reactive garrisons
 
-Status: DRAFT
+Status: IN PROGRESS — slices 1 and 2 built; arrival time and fall back next
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — belts are reactive (`GarrisonableRegistry`, `GarrisonDirector`); on the fort control the patrol pool is back, but patrols arrive 400–3000 ticks after being sent and four of nine were released en route, so few dig in.
 
 ## Intent
 
@@ -32,6 +34,19 @@ releases them when the pressure passes.
 4. **Evidence.** Fort control: belt-manned squad count over time against
    threatened bands, patrol-pool size, dig-in samples, releases and fall backs; a
    scene with one belt under a passing attack showing man, hold, release.
+
+## Findings so far
+
+- Pressure registers on every pressed belt, and evaluation costs about
+  0.01–0.03 ms per pulse warm.
+- Patrols are 100–200 cells from the belts. Ordered between ticks 1380 and
+  2340, they reached the belt between 1770 and 4230, and some never did; pressure
+  episodes are shorter than the march, so four of nine squads were released en
+  route. Next: send only squads that can arrive while the pressure is likely to
+  last, hold the order while a squad is still closing, and consider a fort-local
+  reserve so the nearest free squad is near the belt.
+- Run ids renumber when the index rebuilds; the commander re-resolves a manned
+  run by its centre cell and counts a vanished run as lost.
 
 ## Constraints
 

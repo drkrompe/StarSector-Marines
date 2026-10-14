@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.DepthBand;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegion;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.BeltGarrisonMode;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -103,8 +104,13 @@ public final class FortStage implements GenStage {
     private static final int SUPPLY_WEIGHT = 2;
     private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak"};
 
-    /** Whether belt nests carry a garrison; off only for a same-build control run. */
-    private static final boolean BELT_GARRISON = !"false".equalsIgnoreCase(System.getProperty("battle.fort.beltGarrison"));
+    /** Whether belt nests seat a born garrison: only the {@code static} control mode; the default mans belts reactively. */
+    private static volatile boolean beltGarrison = BeltGarrisonMode.current().bornGarrison();
+
+    /** Evidence and test seam: seats (or stops seating) born belt garrisons for the rest of this JVM. Restore in a {@code finally}. */
+    static void setBornBeltGarrisonForEvidence(boolean born) {
+        beltGarrison = born;
+    }
     /** Trench and sandbag cells offered to one belt garrison as stand positions. */
     private static final int BELT_STAND_CELLS = 8;
     /** A belt run shorter than this is not worth a garrison. */
@@ -729,11 +735,12 @@ public final class FortStage implements GenStage {
      * seats a squad in the belt and the squad holds those cells as it holds any garrison's. The node is anchored on
      * its first stand cell, not on the nest: a node on the nest's own cell would be paired with that nest's
      * {@link DefensePost} and put its squad on a patrol that wanders the box round it. Two nests never share a cell.
-     * Switched off by {@code battle.fort.beltGarrison=false} for a control run.
+     * Seated only under {@code battle.fort.beltGarrison=static}, the same-build control; by default the belt is empty
+     * and the defender commander mans it in answer to pressure ({@link BeltGarrisonMode}).
      */
     private static void garrisonBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, Set<Long> taken,
                                      List<int[]> beltNests) {
-        if (!BELT_GARRISON || beltNests.isEmpty()) return;
+        if (!beltGarrison || beltNests.isEmpty()) return;
         // The tactical map was built and linked before this stage ran, so a node reaches the battle only by being added to it.
         TacticalMap finished = ctx.get(BspKeys.TACTICAL_MAP);
         Set<Long> ground = new HashSet<>();

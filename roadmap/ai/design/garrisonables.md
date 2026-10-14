@@ -1,8 +1,10 @@
 # Garrisonables
 
-Status: DRAFT — direction for reactively manned places; fighting positions are the first kind built.
+Status: ACTIVE — reactive manning is built for fort-belt fighting positions; other kinds remain direction.
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — pressure measure settled and the cost model recorded; belts are reactive.
 
 ## Why this exists
 
@@ -74,6 +76,22 @@ layer is what a squad falls back to when the one in front of it is lost.
   a garrisonable by hand. Whether a player's idle squads may opt into reactive
   manning is a later question, not a default.
 
+## Measuring cheaply
+
+Pressure is the side's own hostile influence, already maintained in 8-cell
+blocks and published as a snapshot; nothing new is computed per cell. Each
+garrisonable records the few blocks it covers, and a block-to-garrisonables
+lookup is derived beside it, rebuilt only when the prepared ground changes and
+never per tick. On each command pulse the commander walks only the blocks its
+believed contacts stand in, prices the garrisonables those blocks can press,
+and re-prices only the ones already manned. The work grows with the size of the
+fight, not with the number of garrisonables, and hysteresis state exists only
+for manned places. Measured on the fort control it is a few hundredths of a
+millisecond per pulse once warm.
+
+Arrival is the open problem, not cost: a patrol sent from across the map
+reaches a belt after the pressure that called it has often passed.
+
 ## How it fits what exists
 
 The defender commander already raises a threatened track and forward band from
@@ -90,8 +108,6 @@ dissolves an envelope — that must survive the move intact.
 
 ## Open questions
 
-- The pressure measure: track band pressure, influence sampled at the place, or
-  both.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
 - Whether attackers use the same assignment for captured ground (holding a taken

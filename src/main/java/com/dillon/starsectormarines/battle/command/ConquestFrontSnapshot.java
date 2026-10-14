@@ -132,6 +132,10 @@ public record ConquestFrontSnapshot(
         DEFENDER_ADJACENT_TRACK_RESPONSE,
         DEFENDER_RELIEF_OBJECTIVE,
         DEFENDER_RESERVE_HOLD,
+        /** A reserve patrol sent to man a garrisonable (a fort belt run) that believed pressure has reached. */
+        DEFENDER_GARRISONABLE_MAN,
+        /** A squad continuing to man a garrisonable while its pressure stays above the release level, or until the dwell ends. */
+        DEFENDER_GARRISONABLE_STAND,
         DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
         /** A squad detached to take or wreck a known enemy-held ground-defence structure (fire control, shield generator). */
         DEFENCE_STRUCTURE_TAKE,

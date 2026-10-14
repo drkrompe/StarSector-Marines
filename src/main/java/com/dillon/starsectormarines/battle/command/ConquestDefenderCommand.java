@@ -11,8 +11,11 @@ import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploym
 import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.world.model.BeltGarrisonMode;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,6 +118,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
     private volatile ConquestFrontSnapshot frontSnapshot;
+    private final GarrisonDirector garrisons = new GarrisonDirector();
+    private int[] contactScratch = new int[128];
 
     private static final class Threat {
         final int track;
@@ -250,6 +255,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     rallyFor(threat, frame.topology()));
         }
 
+        GarrisonableRegistry places = frame.facts().garrisonables();
+        boolean reactive = reactiveManning(places, influence);
+        List<GarrisonDirector.Garrison> held = new ArrayList<>();
+        Map<Integer, PlanningSquad> heldSquads = new TreeMap<>();
         List<PlanningSquad> candidates = new ArrayList<>();
         Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
@@ -264,6 +273,14 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                         : AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED;
                 directives.put(squad.id, directive(squad, home, home, reason));
                 continue;
+            }
+            if (reactive && !hasHigherAuthority(squad)) {
+                GarrisonDirector.Garrison garrison = garrisonOf(squad, places);
+                if (garrison != null) {
+                    held.add(garrison);
+                    heldSquads.put(squad.id, squad);
+                    continue;
+                }
             }
             if (squad.localContact) {
                 clearMissionRally(squad);
@@ -286,6 +303,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 continue;
             }
             candidates.add(squad);
+        }
+
+        Set<Integer> justReleased = new HashSet<>();
+        if (reactive) {
+            standOrRelease(places, influence, held, heldSquads, candidates, directives, justReleased);
         }
 
         int mobileReserve = mobileReserveFor(candidates.size());
@@ -319,6 +341,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
 
         List<String> structureNotes = assignDefenceStructureTasks(frame, candidates, selected, directives);
+        if (reactive) {
+            manGarrisonables(places, frame.topology(), candidates, allSquads, selected, justReleased, directives);
+        }
 
         for (PlanningSquad squad : candidates) {
             if (selected.contains(squad.id)) continue;
@@ -613,6 +638,118 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     }
 
     /**
+     * Whether belts are manned reactively this pulse: the mode asks for it, the map has garrisonables, and the influence
+     * field's block lattice is the one the registry was laid out on.
+     */
+    private static boolean reactiveManning(GarrisonableRegistry places, CommanderInfluenceSnapshot influence) {
+        return BeltGarrisonMode.current().reactiveManning() && places != null && places.count() > 0
+                && influence != null && influence.blockSize() == places.blockSize()
+                && influence.width() == places.blockWidth() && influence.height() == places.blockHeight();
+    }
+
+    /**
+     * The garrisonable this squad is manning or has been ordered to man, or {@code null} when it is an ordinary patrol.
+     * A squad carrying the run-scoped area order is manning it; one the director ordered that the ledger has not yet
+     * shown carrying the order is still counted. The place is found again by its centre cell on the current index, so a
+     * run renumbered or shortened by shelling is followed; a place that is gone releases a squad free to move.
+     */
+    private GarrisonDirector.Garrison garrisonOf(PlanningSquad squad, GarrisonableRegistry places) {
+        ObjectiveAssignment order = squad.assignedObjective;
+        int cellX;
+        int cellY;
+        if (order != null && order.isGarrison()) {
+            cellX = order.targetCellX();
+            cellY = order.targetCellY();
+            garrisons.adopted(squad.id);
+        } else {
+            int[] cell = garrisons.pendingCell(squad.id);
+            if (cell == null) return null;
+            cellX = cell[0];
+            cellY = cell[1];
+        }
+        int place = places.idAt(cellX, cellY);
+        if (place >= 0) return new GarrisonDirector.Garrison(squad.id, place, !squad.localContact);
+        garrisons.forget(squad.id);
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GARRISON_LOST, 1);
+        if (!squad.localContact && order != null && order.isGarrison()) squad.assignedObjective = null;
+        return null;
+    }
+
+    /**
+     * Prices the garrisonables believed pressure has reached, then keeps each manning squad on its place or gives it
+     * back to the pool (and so to this pulse's response) once the place has stayed cool for the dwell.
+     */
+    private void standOrRelease(GarrisonableRegistry places, CommanderInfluenceSnapshot influence,
+                                List<GarrisonDirector.Garrison> held, Map<Integer, PlanningSquad> heldSquads,
+                                List<PlanningSquad> candidates, Map<Integer, SquadDirective> directives,
+                                Set<Integer> justReleased) {
+        int count = 0;
+        for (CommanderContact contact : influence.contacts()) {
+            if (contact.confidence() * contact.strength() < GarrisonDirector.MIN_CONTACT_WEIGHT) continue;
+            if (2 * count + 2 > contactScratch.length) {
+                contactScratch = Arrays.copyOf(contactScratch, contactScratch.length * 2);
+            }
+            contactScratch[2 * count] = contact.cellX();
+            contactScratch[2 * count + 1] = contact.cellY();
+            count++;
+        }
+        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, influence::hostileAt, contactScratch, count, held));
+        for (GarrisonDirector.Garrison garrison : held) {
+            PlanningSquad squad = heldSquads.get(garrison.squadId());
+            int home = homeTrack(squad);
+            if (releasing.contains(squad.id)) {
+                squad.assignedObjective = null;
+                garrisons.forget(squad.id);
+                candidates.add(squad);
+                justReleased.add(squad.id);
+                continue;
+            }
+            int place = garrison.garrisonable();
+            ObjectiveAssignment order = ObjectiveAssignment.defendRun(squad.id, places.centreX(place),
+                    places.centreY(place), places.radius(place), place);
+            if (!order.equals(squad.assignedObjective)) squad.assignedObjective = order;
+            directives.put(squad.id, directive(squad, home, home, squad.localContact
+                    ? AssignmentReason.DEFENDER_LOCAL_CONTACT : AssignmentReason.DEFENDER_GARRISONABLE_STAND));
+        }
+    }
+
+    /**
+     * Sends free patrols from what the track response and structure work left over to the garrisonables under
+     * pressure, nearest first, pickets before massing, never emptying the reserve. Reach follows the response's own
+     * rule: the squad's home track within one of the place's, and a walkable route to it.
+     */
+    private void manGarrisonables(GarrisonableRegistry places, CommandTopology topology,
+                                  List<PlanningSquad> candidates, Map<Integer, PlanningSquad> allSquads,
+                                  Set<Integer> selected, Set<Integer> justReleased,
+                                  Map<Integer, SquadDirective> directives) {
+        List<GarrisonDirector.Free> free = new ArrayList<>();
+        for (PlanningSquad squad : candidates) {
+            if (selected.contains(squad.id) || squad.crew || squad.machine || justReleased.contains(squad.id)) continue;
+            free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY));
+        }
+        List<GarrisonDirector.Man> sent = garrisons.assign(free, (squadId, place) -> {
+            PlanningSquad squad = allSquads.get(squadId);
+            int x = places.centreX(place);
+            int y = places.centreY(place);
+            int track = trackLayout.trackForCell(x, y);
+            if (track >= 0 && Math.abs(homeTrack(squad) - track) > 1) return false;
+            int startX = squad.anchorCellX;
+            int startY = squad.anchorCellY;
+            return topology.inBounds(startX, startY) && topology.isWalkable(startX, startY)
+                    && (startX == x && startY == y || topology.reachable(startX, startY, x, y));
+        });
+        for (GarrisonDirector.Man man : sent) {
+            PlanningSquad squad = allSquads.get(man.squadId());
+            squad.assignedObjective = ObjectiveAssignment.defendRun(squad.id, places.centreX(man.garrisonable()),
+                    places.centreY(man.garrisonable()), places.radius(man.garrisonable()), man.garrisonable());
+            int home = homeTrack(squad);
+            directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_MAN));
+            selected.add(squad.id);
+        }
+    }
+
+    /**
      * Draws squads from the unselected reserve to ground-defence structures this side knows of (see
      * {@link DefenceStructureTactics}): its own when pressed, one taken from it, or an enemy one it has seen. The
      * response to a threatened track has already chosen, so structure work only ever spends the reserve. A squad left
@@ -801,6 +938,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             if (hasHigherAuthority(planned)
                     || planned.assignedObjective != null
                     && planned.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK
+                    && !planned.assignedObjective.isGarrison()
                     && !DefenceStructureTactics.isTask(planned.assignedObjective, structures)) {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND, reason));
