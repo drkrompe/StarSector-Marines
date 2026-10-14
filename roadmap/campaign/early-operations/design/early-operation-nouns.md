@@ -1114,8 +1114,9 @@ replay Mara's historic chapter dialogue accidentally.
 The battle publishes facts without running presentation callbacks or consuming
 randomness. Both story arcs map public keys to recorded character dialogue
 after simulation advance, with mission-speech precedence as defined in
-`battle-radio-nouns.md`. Active chapter briefings play on entry with Replay
-and Stop controls; readable briefing text remains available. The retained evacuation prototype has Mara's operational
+`battle-radio-nouns.md`. Active chapter briefings open skippable portrait comms
+on entry, with Replay available afterward. Readable text remains available even
+when a turn has no recording. The retained evacuation prototype has Mara's operational
 recordings and Iona's written correspondence; a future placement must revisit
 those cast and setting assumptions.
 

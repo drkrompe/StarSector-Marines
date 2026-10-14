@@ -60,6 +60,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
         props.put("prepareBarracks", (Runnable) () -> barracks[0] = true);
         props.put("prepareReplay", (Runnable) () -> replay[0] = true);
         var loader = loader(context, "data/ui/components/missions/mission-dialogue.mlx",
+                "data/ui/components/missions/mission-comms.mlx",
                 "data/ui/components/missions/mission-briefing.mlx");
         try (var markup = loader.reloadAndBuild(new Reactor(), "mission-briefing", props)) {
             var doc = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());

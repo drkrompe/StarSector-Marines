@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import org.json.JSONObject;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -204,23 +208,92 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         props.put("employerRows", List.of(
                 BriefingViewModel.info("basin-militia", "Vale's militia", "Follow the company into the receiving store and workshop", ""),
                 BriefingViewModel.info("basin-technicians", "Inspection party", "Two technicians / Morrow's southern service access", "")));
+        var comms = new BriefingComms(new NarrationPlayer(line -> {
+            throw new AssertionError("Prepared unvoiced exchange must not request sound playback");
+        }));
+        var recordings = WaylineNarration.parse(new JSONObject(Files.readString(
+                context.modRoot().resolve(WaylineNarration.PATH)))).briefing("story_shepherd_salvage");
+        comms.enter(mission, recordings);
+        comms.advance(0, false);
+        comms.put(props);
+        BriefingViewModel.putNarration(props, comms.contact(), false);
+        props.put("replayNarrationAction", (Runnable) comms::replay);
+        var deployments = new int[1];
+        props.put("deployDisabled", false);
+        props.put("deployAction", (Runnable) () -> deployments[0]++);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BriefingScreen.COMPONENT_PATHS);
         try (var instance = loader.reloadAndBuild(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
             BriefingViewModel.applyVisibility(instance, props);
             var document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
             instance.styles().forEach(document::addStyleSheet);
-            frames.add(new SnapshotArtifact("predeployment-briefing.png", renderer.renderRelative(document,
-                    1920, 1080, 1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
-            var dialogue = instance.requireElement("mission-dialogue");
-            assertDialogueGeometry(document, dialogue);
-            var pane = instance.requireElement("mission-overview-copy");
-            var last = dialogue.children().get(dialogue.children().size() - 1);
-            pane.scrollTop(Math.max(0f, last.box().borderBox().bottom() - pane.box().contentBox().bottom()));
-            frames.add(new SnapshotArtifact("predeployment-briefing-conversation-end.png", renderer.renderRelative(document,
-                    1920, 1080, 1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
-            assertTrue(last.box().borderBox().bottom() <= pane.box().contentBox().bottom() + 1f,
-                    "The last authored turn must be reachable through the production briefing scroll pane");
+            document.inputRegions(() -> List.of(instance.requireElement(
+                    comms.visible() ? "mission-comms-dialog" : "mission-briefing-root")));
+            comms.update(instance);
+            addCommsFrame(renderer, document, frames, "briefing-comms-01-vale.png");
+            assertCommsGeometry(document, instance, false);
+            clickControl(document, instance, "mission-deploy", false);
+            assertEquals(0, deployments[0], "Modal correspondence blocks deployment controls");
+            clickControl(document, instance, "mission-comms-next", true);
+            comms.update(instance);
+            addCommsFrame(renderer, document, frames, "briefing-comms-02-castle.png");
+            assertCommsGeometry(document, instance, true);
+            for (int turn = 2; turn < 8; turn++) {
+                clickControl(document, instance, "mission-comms-next", true);
+                comms.update(instance);
+                document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+            }
+            addCommsFrame(renderer, document, frames, "briefing-comms-08-instructions.png");
+            assertEquals("8 / 8", instance.requireElement("mission-comms-status").text());
+            assertCommsGeometry(document, instance, false);
+            clickControl(document, instance, "mission-comms-skip", true);
+            comms.update(instance);
+            assertFalse(comms.visible());
+            assertNull(instance.requireElement("mission-comms-dialog").parent(), "Hidden dialog leaves the layout tree");
+            addCommsFrame(renderer, document, frames, "predeployment-briefing.png");
+            clickControl(document, instance, "mission-deploy", true);
+            assertEquals(1, deployments[0], "Skipping restores planning input");
+            clickControl(document, instance, "mission-narration-replay", true);
+            comms.advance(0, false);
+            comms.update(instance);
+            addCommsFrame(renderer, document, frames, "briefing-comms-replay.png");
+            assertEquals("vale", comms.current().key());
+            assertCommsGeometry(document, instance, false);
         }
+    }
+
+    private static void addCommsFrame(HeadlessUiRenderer renderer, UiDocument document,
+                                      List<SnapshotArtifact> frames, String filename) throws Exception {
+        frames.add(new SnapshotArtifact(filename, renderer.renderRelative(document,
+                1920, 1080, 1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
+    }
+
+    private static void clickControl(UiDocument document, MarkupInstance instance, String id, boolean accepted) {
+        var box = instance.requireElement(id).box().borderBox();
+        float x = box.x() + box.width() / 2f, y = box.y() + box.height() / 2f;
+        document.pointerMoved(x, y);
+        boolean down = document.pointerDown(x, y);
+        boolean up = document.pointerUp(x, y);
+        if (accepted) assertTrue(down && up, "Visible control consumes a click: " + id);
+        instance.flush();
+        document.advance(.25f);
+    }
+
+    private static void assertCommsGeometry(UiDocument document, MarkupInstance instance, boolean castle) {
+        var portrait = instance.requireElement(castle ? "mission-comms-portrait-left" : "mission-comms-portrait-right");
+        var inactive = instance.requireElement(castle ? "mission-comms-portrait-right" : "mission-comms-portrait-left");
+        var body = instance.requireElement("mission-comms-text");
+        var dialog = instance.requireElement("mission-comms-dialog").box().borderBox();
+        var face = portrait.box().borderBox();
+        assertEquals(castle ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", portrait.imageSource());
+        assertTrue(inactive.imageSource().isBlank(), "Only the speaking character has a portrait");
+        assertTrue(face.width() > 0 && face.height() > 0);
+        assertTrue(castle ? face.right() <= body.box().borderBox().x() : face.x() >= body.box().borderBox().right(),
+                "Castle speaks from the left and Vale from the right");
+        assertTrue(dialog.x() >= 0 && dialog.y() >= 0
+                && dialog.right() <= 1920
+                && dialog.bottom() <= 1080, "Modal stays inside the 1920x1080 viewport: " + dialog);
+        assertTextFits(document, body);
+        assertTextFits(document, instance.requireElement("mission-comms-name"));
     }
 
     private static void assertDialogueGeometry(UiDocument document, UiElement dialogue) {

@@ -19,14 +19,14 @@ import java.util.Set;
 public final class ShepherdRecoveryCampaign {
     public static final String NAME="Tamsin Vale", TITLE="A WORKING SHIP / BASIN RECLAMATION";
     public static final List<MissionDialogue.Turn> BRIEF_TURNS = List.of(
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn1"),
-            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn2"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn3"),
-            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn4"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn5"),
-            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn6"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn7"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn8"));
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn1", "basin_salvage_briefing_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn2", "basin_salvage_briefing_02"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn3", "basin_salvage_briefing_03"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn4", "basin_salvage_briefing_04"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn5", "basin_salvage_briefing_05"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn6", "basin_salvage_briefing_06"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn7", "basin_salvage_briefing_07"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn8", "basin_salvage_briefing_08"));
     public static String brief() { return MissionDialogue.transcript(BRIEF_TURNS); }
     public static final String COLD_BRIEF="Tamsin Vale: I've got the distribution rig waiting at the apron. Get it to the workshop, then clear the pump station for our technicians. Once they've connected shore power, we'll see what Morrow's builders can still do. The yard lights should come back with them. "
             +"There's ground outside her east bay for a road gun. Select Build Vulcan Turret and choose a clear spot the builders can reach. Keep them covered while they work; we'll need that gun while the fitters finish inside. "
