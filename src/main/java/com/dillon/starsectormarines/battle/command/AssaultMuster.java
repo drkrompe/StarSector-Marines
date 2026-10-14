@@ -233,8 +233,6 @@ final class AssaultMuster {
     private final Map<Integer, FortAssault.NestBelief> beliefs = new HashMap<>();
     private final Map<Integer, FortAssault.Works> placed = new HashMap<>();
     private final Map<Integer, FortFrame> placedFrames = new HashMap<>();
-    /** Whether a committed company executes the stamp's assault plan; off, it goes at the aspect as in slice 1. */
-    private boolean plans = true;
     /** What the side's air can do for the plan this pulse, and the strikes the plans have asked for in it. */
     private AirSupportFacts air = AirSupportFacts.NONE;
     private final List<StrikeRequest> strikeRequests = new ArrayList<>();
@@ -258,11 +256,6 @@ final class AssaultMuster {
             if (nest[0] == x && nest[1] == y) return !belief.live(i);
         }
         return false;
-    }
-
-    /** Sets whether committed companies execute the stamp's assault plan. */
-    void plans(boolean enabled) {
-        this.plans = enabled;
     }
 
     /** Forgets every company and the foothold element; each squad returns to ordinary command next pulse. */
@@ -803,7 +796,7 @@ final class AssaultMuster {
 
     private void assault(int tick, Faction perspective, Objective objective, Company company, Map<Integer, Body> byId,
                          CommandTopology topology, Map<Integer, Order> orders, List<String> notes) {
-        FortAssault.Works works = plans ? worksOf(objective) : null;
+        FortAssault.Works works = worksOf(objective);
         if (works != null) {
             if (company.execution == null) {
                 Body lead = null;

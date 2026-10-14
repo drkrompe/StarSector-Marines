@@ -420,7 +420,7 @@ public final class FleetArmoryScreen implements Screen {
             return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("found-squad"),
                     "lessonEquipment", this::showFirstRefit);
         if (view == View.SQUADS && CampaignLessons.next(roster) == CampaignLessons.Step.FORMATIONS)
-            return CampaignLessons.formations(roster, context, true, this::showSquadOverview);
+            return CampaignLessons.formations(roster, context, true);
         return CampaignLessons.handoff(roster, context, ScreenId.FLEET_ARMORY);
     }
 

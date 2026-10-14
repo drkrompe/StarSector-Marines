@@ -43,6 +43,11 @@ public final class AirStrikeDirector {
     static final float REPEAT_CELLS = 9f;
     /** Ticks before a struck point is a candidate again. UNTUNED. */
     static final int REPEAT_TICKS = 1200;
+    /**
+     * The director does not place a strike with any of its own side's combatants this close to the aim point. A
+     * strike is a line of bombs, not a point, and the side's own troops are often exactly where its enemy is. UNTUNED.
+     */
+    static final float DANGER_CLOSE_CELLS = 10f;
     /** Most units sampled per look when updating sightings. */
     private static final int SIGHT_SAMPLE = 48;
 
@@ -136,6 +141,7 @@ public final class AirStrikeDirector {
             if (recentlyStruck(x, y)) continue;
             float risk = risk(sim, x, y);
             if (!ignoreRisk && risk > RISK_CEILING) continue;
+            if (dangerClose(sim, x, y)) continue;
             int near = sim.getUnitIndex().countHostileCombatants(x, y, 5f, side, 0L);
             out.add(new Candidate(x, y, true, 3f + 0.5f * near - 2f * risk, AirPoolKind.BOMBER, gun));
         }
@@ -143,7 +149,7 @@ public final class AirStrikeDirector {
         if (densest != 0L) {
             float x = world.x(densest);
             float y = world.y(densest);
-            if (!recentlyStruck(x, y)) {
+            if (!recentlyStruck(x, y) && !dangerClose(sim, x, y)) {
                 float risk = risk(sim, x, y);
                 int near = sim.getUnitIndex().countHostileCombatants(x, y, EnemyConcentration.CLUSTER_RADIUS, side, 0L);
                 if (ignoreRisk || risk <= RISK_CEILING) {
@@ -155,6 +161,21 @@ public final class AirStrikeDirector {
             }
         }
         return out;
+    }
+
+    /** Whether a live combatant of this side stands within {@link #DANGER_CLOSE_CELLS} of the point. */
+    boolean dangerClose(BattleSimulation sim, float x, float y) {
+        UnitRosterService roster = sim.getRoster();
+        long[] ours = roster.factionDenseArray(side);
+        World world = sim.world();
+        float limit = DANGER_CLOSE_CELLS * DANGER_CLOSE_CELLS;
+        for (int i = 0, n = roster.factionLiveCount(side); i < n; i++) {
+            long unit = ours[i];
+            if (!sim.identity().type(unit).combatant) continue;
+            float dx = world.x(unit) - x, dy = world.y(unit) - y;
+            if (dx * dx + dy * dy <= limit) return true;
+        }
+        return false;
     }
 
     private boolean recentlyStruck(float x, float y) {

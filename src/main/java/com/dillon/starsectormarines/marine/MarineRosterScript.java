@@ -58,6 +58,7 @@ public class MarineRosterScript implements EveryFrameScript {
 
     /** Find the registered roster script on the sector, or null if not yet installed. */
     public static MarineRosterScript getInstance() {
+        if (Global.getSector() == null) return null;
         for (EveryFrameScript script : Global.getSector().getScripts()) {
             if (script instanceof MarineRosterScript) {
                 return (MarineRosterScript) script;

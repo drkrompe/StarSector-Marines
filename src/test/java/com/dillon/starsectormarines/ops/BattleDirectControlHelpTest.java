@@ -200,7 +200,7 @@ class BattleDirectControlHelpTest {
             assertTrue(present(markup, "direct-help-row-" + (rows - 1)));
             assertTrue(!present(markup, "direct-help-row-" + rows));
             var panel = markup.requireElement("direct-help-panel").box().borderBox();
-            assertTrue(panel.bottom() <= height + .5f, "every row fits inside the document");
+            assertTrue(panel.bottom() <= height + .5f, "every row fits inside the document: bottom=" + panel.bottom() + " height=" + height + " rows=" + rows + " panel=" + panel);
         }
     }
 }

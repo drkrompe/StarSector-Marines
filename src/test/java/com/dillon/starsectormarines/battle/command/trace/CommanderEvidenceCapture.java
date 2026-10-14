@@ -37,6 +37,13 @@ final class CommanderEvidenceCapture implements AutoCloseable {
      */
     static final String ANNOTATIONS_PROPERTY =
             "commander.evidence.snapshot.annotations";
+    /**
+     * {@code x,y,cellsAcross}: frames a close view centred on that cell, with
+     * shots and impacts drawn, instead of the whole map. Blank for the whole
+     * map. A camera choice only; the battle is the same.
+     */
+    static final String FOCUS_PROPERTY =
+            "commander.evidence.snapshot.focus";
 
     private static final int DEFAULT_FRAME_DELAY_MILLIS = 125;
     private static final int DEFAULT_WIDTH = 960;
@@ -197,8 +204,19 @@ final class CommanderEvidenceCapture implements AutoCloseable {
 
     private BattleReviewFrameRenderer frames() {
         if (frameRenderer == null) {
-            frameRenderer = new BattleReviewFrameRenderer(
-                    Path.of("mod").toAbsolutePath().normalize(), width, height);
+            Path modRoot = Path.of("mod").toAbsolutePath().normalize();
+            String focus = System.getProperty(FOCUS_PROPERTY, "").trim();
+            if (focus.isBlank()) {
+                frameRenderer = new BattleReviewFrameRenderer(modRoot, width, height);
+            } else {
+                String[] parts = focus.split(",");
+                if (parts.length != 3) {
+                    throw new IllegalArgumentException(FOCUS_PROPERTY + " must be x,y,cellsAcross");
+                }
+                frameRenderer = new BattleReviewFrameRenderer(modRoot, width, height,
+                        Float.parseFloat(parts[0].trim()), Float.parseFloat(parts[1].trim()),
+                        Float.parseFloat(parts[2].trim()));
+            }
         }
         return frameRenderer;
     }

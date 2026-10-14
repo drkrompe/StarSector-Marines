@@ -39,7 +39,6 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.DepthBand;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegion;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
-import com.dillon.starsectormarines.battle.world.model.BeltGarrisonMode;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -110,25 +109,8 @@ public final class FortStage implements GenStage {
     private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak",
             "structure.turret-heavy-mg", TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID};
 
-    /** Whether belt nests seat a born garrison: only the {@code static} control mode; the default mans belts reactively. */
-    private static volatile boolean beltGarrison = BeltGarrisonMode.current().bornGarrison();
-
-    /** Evidence and test seam: seats (or stops seating) born belt garrisons for the rest of this JVM. Restore in a {@code finally}. */
-    static void setBornBeltGarrisonForEvidence(boolean born) {
-        beltGarrison = born;
-    }
-    /** Whether each fort seats a token picket at its main gate: reactive manning's eyes. Restore in a {@code finally}. */
-    private static volatile boolean picket = BeltGarrisonMode.current().picket();
-    /**
-     * Members in a fort's picket, from {@code battle.fort.picketSize}; {@code 0} seats none, the control for a reactive
-     * belt with no eyes on it. UNTUNED.
-     */
-    static final int PICKET_SIZE = Math.max(0, Integer.getInteger("battle.fort.picketSize", 4));
-
-    /** Evidence and test seam: seats (or stops seating) fort pickets for the rest of this JVM. Restore in a {@code finally}. */
-    static void setPicketForEvidence(boolean seated) {
-        picket = seated;
-    }
+    /** Members in a fort's token picket, the eyes that raise the pressure the commander's reactive manning answers. UNTUNED. */
+    static final int PICKET_SIZE = 4;
 
     /** Trench and sandbag cells offered to one belt garrison as stand positions. */
     private static final int BELT_STAND_CELLS = 8;
@@ -136,8 +118,6 @@ public final class FortStage implements GenStage {
     private static final int BELT_MIN_STAND_CELLS = 4;
     /** How far (Manhattan) from its nest a belt garrison may stand. */
     private static final int BELT_REACH = 14;
-    /** Squad slots at one belt nest. */
-    private static final int BELT_GARRISON_SIZE = 6;
     /** Below a compound perimeter post (50), so a belt takes only the defenders the places that matter more leave over. */
     private static final int BELT_PRIORITY = 45;
 
@@ -799,19 +779,16 @@ public final class FortStage implements GenStage {
     }
 
     /**
-     * Gives each belt nest a garrison by the ordinary place model: a defender-held {@link TacticalNode.Kind#GUARDPOST}
-     * whose authored stand positions are the trench and sandbag ground nearest the nest, so the defender allocator
-     * seats a squad in the belt and the squad holds those cells as it holds any garrison's. The node is anchored on
-     * its first stand cell, not on the nest: a node on the nest's own cell would be paired with that nest's
-     * {@link DefensePost} and put its squad on a patrol that wanders the box round it. Two nests never share a cell.
-     * Every nest is seated only under {@code battle.fort.beltGarrison=static}, the same-build control. By default one
-     * token picket of {@link #PICKET_SIZE} holds the nest nearest the main gate, and the defender commander mans the rest
-     * in answer to the pressure the picket reports ({@link BeltGarrisonMode}).
+     * Seats the belt's token picket by the ordinary place model: a defender-held {@link TacticalNode.Kind#GUARDPOST} of
+     * {@link #PICKET_SIZE} at the belt nest nearest the main gate, which faces the landing, whose authored stand
+     * positions are the trench and sandbag ground nearest the nest. The rest of the belt is empty; the defender commander
+     * mans it from its mobile pool in answer to the pressure the picket reports. The node is anchored on its first stand
+     * cell, not on the nest: a node on the nest's own cell would be paired with that nest's {@link DefensePost} and put
+     * its squad on a patrol that wanders the box round it.
      */
     private static void garrisonBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, Set<Long> taken,
                                      List<int[]> beltNests) {
-        boolean seatPicket = !beltGarrison && picket && PICKET_SIZE > 0;
-        if ((!beltGarrison && !seatPicket) || beltNests.isEmpty()) return;
+        if (beltNests.isEmpty()) return;
         // The tactical map was built and linked before this stage ran, so a node reaches the battle only by being added to it.
         TacticalMap finished = ctx.get(BspKeys.TACTICAL_MAP);
         Set<Long> ground = new HashSet<>();
@@ -822,43 +799,35 @@ public final class FortStage implements GenStage {
                 ground.add(BeltStandCells.key(cell[0], cell[1]));
             }
         }
-        List<int[]> seated = beltNests;
-        if (seatPicket) {
-            // A reactive belt keeps one token picket: at the nest nearest the main gate, which faces the landing.
-            FortPlan.Gate gate = plan.gates().get(0);
-            int[] mouth = at.cell(gate.mouthX(), gate.mouthY());
-            int[] nearest = null;
-            long best = Long.MAX_VALUE;
-            for (int[] nest : beltNests) {
-                long dx = nest[0] - mouth[0], dy = nest[1] - mouth[1];
-                long d = dx * dx + dy * dy;
-                if (d < best) {
-                    best = d;
-                    nearest = nest;
-                }
+        FortPlan.Gate gate = plan.gates().get(0);
+        int[] mouth = at.cell(gate.mouthX(), gate.mouthY());
+        int[] nest = null;
+        long best = Long.MAX_VALUE;
+        for (int[] candidate : beltNests) {
+            long dx = candidate[0] - mouth[0], dy = candidate[1] - mouth[1];
+            long d = dx * dx + dy * dy;
+            if (d < best) {
+                best = d;
+                nest = candidate;
             }
-            seated = List.of(nearest);
         }
-        int size = seatPicket ? PICKET_SIZE : BELT_GARRISON_SIZE;
-        for (int[] nest : seated) {
-            List<int[]> cells = BeltStandCells.near(ground, nest[0], nest[1], BELT_STAND_CELLS, BELT_REACH);
-            if (cells.size() < BELT_MIN_STAND_CELLS) continue;
-            List<TacticalNode.StandPosition> stands = new ArrayList<>(cells.size());
-            int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
-            for (int[] cell : cells) {
-                ground.remove(BeltStandCells.key(cell[0], cell[1]));
-                stands.add(new TacticalNode.StandPosition(cell[0], cell[1]));
-                left = Math.min(left, cell[0]);
-                top = Math.min(top, cell[1]);
-                right = Math.max(right, cell[0]);
-                bottom = Math.max(bottom, cell[1]);
-            }
-            TacticalNode node = new TacticalNode(TacticalNode.Kind.GUARDPOST, cells.get(0)[0], cells.get(0)[1],
-                    left, top, right, bottom, Faction.DEFENDER, BELT_PRIORITY, Math.min(size, cells.size()),
-                    stands);
-            if (finished != null) finished.add(node);
-            else ctx.tactical.add(node);
+        List<int[]> cells = BeltStandCells.near(ground, nest[0], nest[1], BELT_STAND_CELLS, BELT_REACH);
+        if (cells.size() < BELT_MIN_STAND_CELLS) return;
+        List<TacticalNode.StandPosition> stands = new ArrayList<>(cells.size());
+        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+        for (int[] cell : cells) {
+            ground.remove(BeltStandCells.key(cell[0], cell[1]));
+            stands.add(new TacticalNode.StandPosition(cell[0], cell[1]));
+            left = Math.min(left, cell[0]);
+            top = Math.min(top, cell[1]);
+            right = Math.max(right, cell[0]);
+            bottom = Math.max(bottom, cell[1]);
         }
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.GUARDPOST, cells.get(0)[0], cells.get(0)[1],
+                left, top, right, bottom, Faction.DEFENDER, BELT_PRIORITY, Math.min(PICKET_SIZE, cells.size()),
+                stands);
+        if (finished != null) finished.add(node);
+        else ctx.tactical.add(node);
     }
 
     /** The interior: gun pit, berms and yard furniture, kept off the paved lanes. */

@@ -127,7 +127,7 @@ class ShepherdRecoveryCampaignTest {
         }
     }
 
-    @Test void writtenAgreementRespondsToInspectionLossesWithoutRecordings() throws Exception {
+    @Test void recordedAgreementRespondsToInspectionLosses() throws Exception {
         var catalog = WaylineNarration.parse(new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH))));
         var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
         String previousPeopleLine = null;
@@ -135,9 +135,9 @@ class ShepherdRecoveryCampaignTest {
             var result = MissionOutcome.builder().mission(mission).victory(true)
                     .salvageRights(new SalvageRightsSequence.Report(true, losses)).build();
             var lines = MissionDebriefConversation.lines(result, catalog);
-            assertTrue(lines.stream().noneMatch(WaylineNarration.Line::voiced));
-            var peopleLine = lines.stream().filter(line -> line.id().equals("shepherd-debrief-people"))
-                    .findFirst().orElseThrow().text();
+            assertTrue(lines.stream().allMatch(WaylineNarration.Line::voiced));
+            assertEquals(8, lines.size());
+            var peopleLine = lines.get(6).text();
             if (previousPeopleLine != null) assertNotEquals(previousPeopleLine, peopleLine);
             previousPeopleLine = peopleLine;
         }

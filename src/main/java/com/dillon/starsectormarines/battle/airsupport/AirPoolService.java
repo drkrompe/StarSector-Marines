@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -269,7 +271,8 @@ public final class AirPoolService {
 
     private boolean launch(BattleSimulation sim, PendingCall call, Ledger ledger) {
         World world = sim.world();
-        float[] home = friendlyCentroid(sim, call.side);
+        float[] home = homeGround(sim, call.side);
+        if (home == null) home = friendlyCentroid(sim, call.side);
         if (home == null) home = new float[]{world.x(call.operator), world.y(call.operator)};
         AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
                 sim.getGrid().getHeight(), home[0], home[1], call.x, call.y);
@@ -329,6 +332,27 @@ public final class AirPoolService {
     private Ledger ledger(Faction side, AirPoolKind kind) {
         Map<AirPoolKind, Ledger> perKind = ledgers.get(side);
         return perKind == null ? null : perKind.get(kind);
+    }
+
+    /**
+     * Where the side's aircraft come from: its landing zone for the side that landed, its keep for the side that
+     * holds one, or {@code null} for a side with neither. A sortie crosses the map edge nearest this place, so it comes
+     * in over its own side's ground and its bomb line runs on toward the enemy rather than back over its own troops.
+     *
+     * <p>It used to be the centre of the side's live force, which moves with the advance: on the trial ground, with
+     * the marines gathered short of the keep near the north edge, a marine bomber came in from the enemy's rear,
+     * released over the keep and carried its line of bombs south through the marines waiting for it, killing
+     * seventeen of them in one pass.
+     */
+    private static float[] homeGround(BattleSimulation sim, Faction side) {
+        TacticalMap map = sim.getTacticalMap();
+        if (map == null) return null;
+        TacticalNode keep = null;
+        for (TacticalNode node : map.forFaction(side)) {
+            if (node.kind == TacticalNode.Kind.BEACHHEAD) return new float[]{node.anchorX + 0.5f, node.anchorY + 0.5f};
+            if (node.kind == TacticalNode.Kind.COMMAND_POST && keep == null) keep = node;
+        }
+        return keep == null ? null : new float[]{keep.anchorX + 0.5f, keep.anchorY + 0.5f};
     }
 
     /** The centre of mass of the side's live ground force, or {@code null} when it has nobody on the map. */

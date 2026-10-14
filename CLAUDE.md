@@ -210,6 +210,14 @@ Do not run builds or leave generated task files there.
   bonuses are assumed. Default observation is 18000 ticks with two Aeroshuttles.
   `-Dbattle.corvus.boats=4` selects a different allowed lift count and separate
   output folder; `-Dbattle.corvus.chapter=BLIND_WATCH` selects one chapter.
+  `-Dbattle.corvus.seedOffset=N` replays the chapter on its battle seed plus N
+  (own output folder). `-Dbattle.mortarTeamEvery=N` declares a marine mortar kit
+  (every Nth squad) for Corvus and for `createSnapshots -Psnapshot=cold-start`;
+  both report tube carriers, set-ups, rounds and which set-up gate held the
+  tube back each tick.
+  Cold Start also takes `-Dbattle.coldStart.hound=true` (the recovered Hound
+  through Mech Support at the first pad) and `-Dbattle.coldStart.seeds=a,b,...`
+  (one ordinary fixture per seed, selected as `sweep`).
   Reports retain exact launch fixtures, losses, delivery times, mech output,
   command traces, minute frames and unit/route diagnostics. Corvus also accepts
   `-PsnapshotEveryTicks=15` for denser action replay frames with weapons, impacts
@@ -254,7 +262,11 @@ Do not run builds or leave generated task files there.
   commanders on a synthetic 240x300 trial ground (`ConquestTrialGround`): one
   landing, one battery fort pinned on the lane or offset east of it, one
   objective compound and the keep. The default matrix is both placements at
-  three seeds (seconds, not minutes); `-Pfixture` takes a JSON array setting
+  three seeds with a combined-arms force (sixteen six-seat Aeroshuttles, the
+  Conquest squad kit, two lances, a small air pool; fort-on-lane runs to 18,000
+  ticks), plus a rifles-only control per placement (four twelve-seat Valkyries,
+  the old default), which shows freezes a bigger force hides. A fixture may set
+  `maxTicks`; `-PmaxTicks` overrides all. `-Pfixture` takes a JSON array setting
   `seed`, `placement`, `offset`, `shuttleType`, `shuttles`, `seats`, `cycles`,
   `elites`, `militia`, `patrolSize`, `objectiveGarrison`, `keepGarrison` and
   `risk`. Use it for a commander question; the city map is unfinished.
@@ -262,22 +274,7 @@ Do not run builds or leave generated task files there.
   The canonical fixtures declare no forts and so have none; the fort-bearing
   control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
   (four battery forts and a shield fort; about 50 runs, 5,200 cells).
-  `-Dbattle.fort.beltGarrison=reactive|static|off` selects how belts are manned;
-  `-Dbattle.garrison.flow=false` stops pressure-driven staging and
-  `-Dbattle.garrison.fromRally=false` stops manning from taking just-rallied
-  patrols (both are needed for the pre-flow behaviour).
-  `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow.
-  `-Dbattle.fort.picketSize=0` seats no picket at a fort's main gate (default 4)
-  and `-Dbattle.command.fortReports=false` stops fort guns reporting their
-  targets to their commander; both are the blind-fort controls.
-  `-Dbattle.command.placeAlarms=false` drops the alarm that keeps a fort's
-  pressure up after its eyes are gone. `-Dbattle.command.threatMemoryTicks=0`
-  makes a defender forget a threatened track the pulse its last contact lapses,
-  and `-Dbattle.command.alarmThreats=false` stops an alarmed fort threatening
-  its own track (the two responder-recall controls).
-  `-Dbattle.command.standTo=true` enables the off-by-default experiment that
-  sends a quiet belt garrison to the doorstep of the work its alarmed fort is
-  losing. The fort report carries a
+  The fort report carries a
   `pressure flow:` line and a fighting-position use block per faction. Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
@@ -289,7 +286,9 @@ Do not run builds or leave generated task files there.
   the ground the marines came ashore on is boxed and reads `LZ`, and an arrow
   runs from the beachhead to the keep. Without them a whole-map Conquest frame
   is a picture of a city in which nothing says which grey rectangle is the
-  headquarters. `-PsnapshotAnnotations=false` renders the bare scene. Optional
+  headquarters. `-PsnapshotAnnotations=false` renders the bare scene.
+  `-PsnapshotFocus=x,y,cellsAcross` frames a close view on that cell, with
+  shots and impacts, instead of the whole map. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded
@@ -1187,7 +1186,7 @@ The discovered suite ids and default output directories are:
 | `ship-arrival` | A capital dropping through the cloud deck at the map edge and climbing back out, 1920x1080, whole map and close: the shadow sweeping in from a great height and sharpening as it closes on the hull, the re-entry glow and cloud streaming off it, the downwash dust and the touchdown shock ring, then the climb with its exhaust wake. Full-colour palette plus PNG stills of the key moments. Presentation only: the verdicts are the clocks and the once-only sounds | `build/snapshots/ship-arrival/` |
 | `close-air-support` | A called Mudskipper gunship over a garrison, 1920x1080 whole map plus a close view: it enters off the map, circles overhead of the targeted ground with the hull's one turret on its own mount, fires from every side of the ring, and leaves when its visit is spent, against a no-call control. Verdicts are the scene's | `build/snapshots/close-air-support/` |
 | `shield-dome` | An Onslaught shelling defenders under a planetary shield dome, 1920x1080 with a close view: the rounds absorbed as flux with a pool gauge filling, the overload and the gap in which they land, the recovery, against a no-dome control and a loop with the generator destroyed. Verdicts are the scene's | `build/snapshots/shield-dome/` |
-| `assault-muster` | One battery fort and a company in the planned assault: the `plan` loop only, 1920x1080 at 100% scale, whole map and a close view of the fort's west face as an animation plus a PNG still per frame, across positioning a base of fire, suppression and entry. The verdicts and per-loop readings (control, slice 1 muster, plan, plan with a lance) are `sceneEvidence`'s; forts are not weakened for it | `build/snapshots/assault-muster/` |
+| `assault-muster` | One battery fort and a company in the planned assault: the `plan` loop only, 1920x1080 at 100% scale, whole map and a close view of the fort's west face as an animation plus a PNG still per frame, across positioning a base of fire, suppression and entry. The verdicts and per-loop readings (control-trickle (a mission that chooses the trickle), plan, plan with a lance) are `sceneEvidence`'s; forts are not weakened for it | `build/snapshots/assault-muster/` |
 | `fighting-position` | A twelve-marine squad and a twelve-cell trench, five loops at 1920x1080, 100% scale, with the fighting-position layer (position cells green, claimed cells white, dug-in marines magenta): fighting positions on and off with marines rooted at 1000 health over six enemy placements, a controlled isolation of the composure benefit rather than a battle outcome; a squad filling an empty trench; a free-moving, ordinary-health squad taking and holding a trench under live DMR fire; and overflow onto a shared run (disjoint claims, overflow in ordinary cover). One still per loop | `build/snapshots/fighting-position/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
