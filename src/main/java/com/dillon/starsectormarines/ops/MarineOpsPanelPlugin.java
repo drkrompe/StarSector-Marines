@@ -34,7 +34,7 @@ import java.util.function.Consumer;
  * {@link CompanyViewAbility} — starts on {@code COMPANY_HQ} and must never route
  * to {@code MISSION_SELECT}, {@code BRIEFING},
  * {@code SQUAD_DEPLOYMENT}, {@code BATTLE}, {@code RESULTS}, or {@code LOOT}.
- * {@code BARRACKS}, {@code FLEET_ARMORY_OVERVIEW}, {@code FLEET_ARMORY},
+ * {@code BARRACKS}, {@code FLEET_ARMORY},
  * {@code MECH_LAB}, {@code BOAT_DECK}, and the
  * dev-only {@code UI_WORKBENCH} are safe: none reads a planet. A planet-scoped
  * host reaches everything as before.
@@ -56,7 +56,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
             EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.BARRACKS,
                     ScreenId.SHIP_TRANSFER, ScreenId.UI_WORKBENCH,
                     ScreenId.MISSION_SELECT, ScreenId.DEBUG_MISSIONS,
-                    ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
+                    ScreenId.FLEET_ARMORY,
                     ScreenId.MECH_LAB, ScreenId.BOAT_DECK,
                     ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING,
                     ScreenId.POLITY_DOCTRINE);
@@ -88,7 +88,6 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.UI_WORKBENCH,   new UiWorkbenchScreen());
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
         screens.put(ScreenId.DEBUG_MISSIONS, new DebugMissionScreen());
-        screens.put(ScreenId.FLEET_ARMORY_OVERVIEW, new FleetArmoryOverviewScreen());
         screens.put(ScreenId.FLEET_ARMORY,  new FleetArmoryScreen());
         screens.put(ScreenId.MECH_LAB,      new MechLabScreen());
         screens.put(ScreenId.BOAT_DECK,     new BoatDeckScreen());
