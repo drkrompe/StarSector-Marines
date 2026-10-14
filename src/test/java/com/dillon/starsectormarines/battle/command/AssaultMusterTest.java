@@ -215,10 +215,11 @@ class AssaultMusterTest {
         AssaultMuster muster = new AssaultMuster();
         List<Objective> objectives = List.of(fort(1, 70, 150, 0));
         // Squad 2 is still on its way (30 cells from the rally) so the company is not yet everything it can get.
-        List<Body> bodies = List.of(squad(1, 20, 150, 4), squad(2, 50, 150, 4));
+        List<Body> bodies = List.of(squad(1, 20, 150, 12), squad(2, 50, 150, 12));
         assertEquals("MUSTER", company(pulse(muster, 0, objectives, bodies, topology)).stage());
         assertEquals("MUSTER", company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS - 30, objectives, bodies, topology)).stage());
-        CompanyState committed = company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS + 700, objectives, bodies, topology));
+        List<Body> come = List.of(squad(1, 20, 150, 12), squad(2, 22, 150, 12));
+        CompanyState committed = company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS + 700, objectives, come, topology));
         assertEquals("ASSAULT", committed.stage(), "a muster never waits forever");
         assertTrue(committed.strength() < committed.required(), "and the commit says it went in short");
     }
@@ -228,7 +229,7 @@ class AssaultMusterTest {
         CommandTopology topology = openTopology();
         AssaultMuster muster = new AssaultMuster();
         List<Objective> objectives = List.of(fort(1, 70, 150, 0));
-        List<Body> bodies = List.of(squad(1, 20, 150, 4), squad(2, 22, 150, 4));
+        List<Body> bodies = List.of(squad(1, 20, 150, 12), squad(2, 22, 150, 12));
         assertEquals("MUSTER", company(pulse(muster, 0, objectives, bodies, topology)).stage());
         assertEquals("MUSTER", company(pulse(muster, AssaultMuster.STRAGGLER_GRACE_TICKS - 30, objectives, bodies, topology)).stage());
         CompanyState committed = company(pulse(muster, AssaultMuster.STRAGGLER_GRACE_TICKS + 30, objectives, bodies, topology));
@@ -241,10 +242,12 @@ class AssaultMusterTest {
         CommandTopology topology = openTopology();
         AssaultMuster muster = new AssaultMuster();
         List<Objective> objectives = List.of(fort(1, 160, 150, 0));
-        List<Body> bodies = List.of(squad(1, 20, 150, 4), squad(2, 22, 150, 4), squad(3, 20, 152, 4));
+        List<Body> bodies = List.of(squad(1, 20, 150, 12), squad(2, 22, 150, 12), squad(3, 20, 152, 12));
         CompanyState first = company(pulse(muster, 0, objectives, bodies, topology));
         assertTrue(first.rallyCellX() > DROP[0] + 40, "a far fort is mustered for on the approach, at " + first.rallyCellX());
-        Result late = pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS + 700, objectives, bodies, topology);
+        // One of the two has reached the rally by the timeout (half of what it believes it takes is there); the other is still on its way.
+        List<Body> onTheWay = List.of(squad(1, 20, 150, 12), squad(2, first.rallyCellX(), first.rallyCellY(), 12), squad(3, 20, 152, 12));
+        Result late = pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS + 700, objectives, onTheWay, topology);
         assertEquals("ASSAULT", company(late).stage());
         int sent = 0;
         for (int id : company(late).squadIds()) {
@@ -252,6 +255,45 @@ class AssaultMusterTest {
             sent++;
         }
         assertTrue(sent > 0);
+    }
+
+    @Test
+    void aMusterThatTimesOutFarBelowWhatItBelievesItNeedsStandsDownAndLeavesTheFortToTheLanesForAWhile() {
+        CommandTopology topology = openTopology();
+        AssaultMuster muster = new AssaultMuster();
+        List<Objective> objectives = List.of(fort(1, 70, 150, 0));
+        // Two squads of four are 8 of the 24 a fort is believed to take: a third, under the half it takes to be worth going.
+        List<Body> bodies = List.of(squad(1, 20, 150, 4), squad(2, 22, 150, 4));
+        assertEquals("MUSTER", company(pulse(muster, 0, objectives, bodies, topology)).stage());
+        Result stood = pulse(muster, AssaultMuster.STRAGGLER_GRACE_TICKS + 30, objectives, bodies, topology);
+        assertTrue(stood.companies().stream().noneMatch(c -> c.objectiveId() == 1), "the company is gone");
+        assertTrue(stood.notes().stream().anyMatch(n -> n.contains("stands down")), stood.notes().toString());
+        assertTrue(stood.orders().keySet().stream().noneMatch(id -> id == 2), "its squads are given back to the lanes");
+        int at = AssaultMuster.STRAGGLER_GRACE_TICKS + 30;
+        assertTrue(pulse(muster, at + AssaultMuster.STAND_DOWN_TICKS - 30, objectives, bodies, topology).companies().stream()
+                .noneMatch(c -> c.objectiveId() == 1), "the fort is left alone while the stand-down runs");
+        assertEquals("MUSTER", company(pulse(muster, at + AssaultMuster.STAND_DOWN_TICKS + 30, objectives, bodies, topology)).stage(),
+                "and a company forms again after it");
+    }
+
+    @Test
+    void aMusterThatKeepsStandingDownEventuallyCommitsWithWhatItHasSoItNeverWaitsForever() {
+        CommandTopology topology = openTopology();
+        AssaultMuster muster = new AssaultMuster();
+        List<Objective> objectives = List.of(fort(1, 70, 150, 0));
+        List<Body> bodies = List.of(squad(1, 20, 150, 4), squad(2, 22, 150, 4));
+        int tick = 0;
+        for (int stand = 0; stand < AssaultMuster.STAND_DOWN_LIMIT; stand++) {
+            pulse(muster, tick, objectives, bodies, topology);
+            tick += AssaultMuster.STRAGGLER_GRACE_TICKS + 30;
+            assertTrue(pulse(muster, tick, objectives, bodies, topology).companies().stream().noneMatch(c -> c.objectiveId() == 1),
+                    "stand-down " + (stand + 1));
+            tick += AssaultMuster.STAND_DOWN_TICKS + 30;
+        }
+        pulse(muster, tick, objectives, bodies, topology);
+        tick += AssaultMuster.STRAGGLER_GRACE_TICKS + 30;
+        assertEquals("ASSAULT", company(pulse(muster, tick, objectives, bodies, topology)).stage(),
+                "the stand-downs are used up: it commits short");
     }
 
     @Test

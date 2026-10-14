@@ -63,6 +63,15 @@ final class AssaultMuster {
     static final float FAILURE_GROWTH = 0.25f;
     /** Ticks a muster waits from forming before it commits with what it has. UNTUNED. */
     static final int MUSTER_TIMEOUT_TICKS = 4500;
+    /**
+     * A muster that times out with less than this share of the strength it believes the objective takes stands down
+     * rather than commit: three marines at a fort are a gift to its nests. UNTUNED.
+     */
+    static final float MIN_COMMIT_SHARE = 0.5f;
+    /** Ticks a fort is left to the lanes after a company stood down against it. UNTUNED. */
+    static final int STAND_DOWN_TICKS = 3000;
+    /** Stand-downs per fort before a timed-out muster commits with what it has, so it never waits forever. UNTUNED. */
+    static final int STAND_DOWN_LIMIT = 2;
     /** Ticks allowed per cell of walk for a recruit to reach the rally point. UNTUNED. */
     static final int TICKS_PER_CELL = 12;
     /** Extra ticks a recruit is allowed on top of its walk. UNTUNED. */
@@ -176,6 +185,9 @@ final class AssaultMuster {
     /** Broken attempts per objective: the side's memory that the objective took more than it believed. */
     private final Map<Integer, Integer> failures = new HashMap<>();
     private int footholdSquad = -1;
+    /** Times a company for each fort stood down for want of strength, and until when the fort is left to the lanes. */
+    private final Map<Integer, Integer> standDowns = new HashMap<>();
+    private final Map<Integer, Integer> standDownUntil = new HashMap<>();
     /** What is believed of each fort's nests, kept for as long as the fort is an objective. */
     private final Map<Integer, FortAssault.NestBelief> beliefs = new HashMap<>();
     private final Map<Integer, FortAssault.Works> placed = new HashMap<>();
@@ -386,6 +398,7 @@ final class AssaultMuster {
         for (Objective objective : ordered) {
             Company company = companies.get(objective.fortId());
             if (company == null) {
+                if (tick < standDownUntil.getOrDefault(objective.fortId(), 0)) continue;
                 if (freeBodies(byId).isEmpty()) continue;
                 company = new Company(objective.fortId(), tick);
                 int[] rally = rallyCell(drop[0], drop[1], objective.cellX(), objective.cellY(), ground, hostiles);
@@ -541,6 +554,18 @@ final class AssaultMuster {
             company.fullSince = -1;
         }
         Readiness readiness = judge(arrivedStrength, required, tick, company.timeoutTick);
+        if (readiness == Readiness.TIMED_OUT && arrivedStrength < MIN_COMMIT_SHARE * required
+                && standDowns.getOrDefault(company.fortId, 0) < STAND_DOWN_LIMIT && tick >= company.expectUntil) {
+            // Too little to be worth the lives: the squads go back to the lanes and the muster tries again later. Bounded, so a
+            // force that never grows still commits with what it has the third time.
+            standDowns.merge(company.fortId, 1, Integer::sum);
+            standDownUntil.put(company.fortId, tick + STAND_DOWN_TICKS);
+            companies.remove(company.fortId);
+            notes.add("company for fort " + company.fortId + " stands down: " + Math.round(arrivedStrength) + " at the rally of "
+                    + required + " believed needed is under " + Math.round(MIN_COMMIT_SHARE * 100) + " per cent; its squads return to the lanes until tick "
+                    + (tick + STAND_DOWN_TICKS));
+            return recruited;
+        }
         if (readiness != Readiness.GATHERING && !company.members.isEmpty()) {
             company.stage = Stage.ASSAULT;
             company.stageTick = tick;
