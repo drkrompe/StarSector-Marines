@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 import org.junit.jupiter.api.Test;
 
@@ -191,6 +192,90 @@ class LayeredUnitComposerTest {
                     ? List.of("foot", "foot", "special", "body", "left", "right", "head")
                     : List.of("foot", "foot", "body", "left", "right", "special", "head"), layers);
         }
+    }
+
+    @Test
+    void radioPackStaysOnTheBackInEveryPoseAndDrawsOverTheBodyUnderTheHead() {
+        int[] poses = {LayeredAppearance.POSE_IDLE, LayeredAppearance.POSE_AIMED,
+                LayeredAppearance.POSE_FIRING, LayeredAppearance.POSE_SATCHEL_PLANT};
+        for (int pose : poses) {
+            for (int flags : new int[]{0, LayeredAppearance.FLAG_MOVING}) {
+                List<String> ids = radioDraw(pose, flags, null);
+                assertEquals(List.of("foot", "foot", "rifle", "body", "left", "right", "pack", "head"),
+                        ids, "pose " + pose + " flags " + flags);
+            }
+        }
+    }
+
+    @Test
+    void handsetAndCordAppearOnlyWhileCallingAndCordJoinsPackToHand() {
+        LayerTransform handset = new LayerTransform("handset", "handset", -.24f, .06f,
+                1f, 1f, 6f, .5f, .5f, 36, true);
+        LayerPose calling = new LayerPose(Map.of("handset", handset));
+        // Raised to the ear: cord runs under the head, handset is the topmost layer.
+        assertEquals(List.of("foot", "foot", "rifle", "body", "left", "right", "pack", "cord",
+                        "head", "handset"),
+                radioDraw(LayeredAppearance.POSE_SATCHEL_PLANT, 0, calling));
+        // The same authored layer is ignored outside the call, and hidden frames draw nothing.
+        assertEquals(List.of("foot", "foot", "rifle", "body", "left", "right", "pack", "head"),
+                radioDraw(LayeredAppearance.POSE_IDLE, 0, calling));
+        LayerTransform hidden = new LayerTransform("handset", "handset", -.24f, .06f,
+                1f, 1f, 6f, .5f, .5f, 36, false);
+        assertEquals(List.of("foot", "foot", "rifle", "body", "left", "right", "pack", "head"),
+                radioDraw(LayeredAppearance.POSE_SATCHEL_PLANT, 0,
+                        new LayerPose(Map.of("handset", hidden))));
+    }
+
+    @Test
+    void cordSpansFromHandsetPortToPackPort() {
+        LayerTransform handset = new LayerTransform("handset", "handset", -.24f, .06f,
+                1f, 1f, 0f, .5f, .5f, 36, true);
+        List<float[]> cord = new ArrayList<>();
+        radioEmit(LayeredAppearance.POSE_SATCHEL_PLANT, 0,
+                new LayerPose(Map.of("handset", handset)), (sprite, x, y, width, height, angle,
+                        r, g, b, alpha) -> {
+                    if (sprite.sourcePath.equals("cord")) cord.add(new float[]{x, y, width, height, angle});
+                });
+        assertEquals(1, cord.size());
+        float[] c = cord.get(0);
+        // Handset centred at (-.24,.06) sw from the actor at (0,0), facing north, 100 px per sw:
+        // port (.5,.99) is .49 of the 40px height below centre.
+        float handX = -24f;
+        float handY = 6f - .49f * 40f;
+        // The pack centre sits .17 behind the body pivot (-.12): (0,-29); its port is (.07,.37).
+        float packX = (.07f - .5f) * 40f;
+        float packY = -29f + (.5f - .37f) * 42f;
+        assertEquals((handX + packX) / 2f, c[0], .01f);
+        assertEquals((handY + packY) / 2f, c[1], .01f);
+        assertEquals((float) Math.hypot(packX - handX, packY - handY), c[3], .01f);
+        assertEquals(5f, c[2], .001f);
+    }
+
+    private static List<String> radioDraw(int pose, int flags, LayerPose authored) {
+        List<String> ids = new ArrayList<>();
+        radioEmit(pose, flags, authored, (sprite, x, y, width, height, angle, r, g, b, alpha) ->
+                ids.add(sprite.sourcePath));
+        return ids;
+    }
+
+    private static void radioEmit(int pose, int flags, LayerPose authored,
+                                  LayeredUnitComposer.SpriteEmitter out) {
+        LayeredUnitAssets assets = assets(true);
+        assets.registerSpecialEquipment("radio", sprite("pack"));
+        assets.registerHandset("radio", sprite("handset"), sprite("cord"));
+        EquipmentLayerDef.State state = new EquipmentLayerDef.State(0f, -.17f, 0f,
+                EquipmentLayerDef.Occlusion.OVER_BODY);
+        EquipmentLayerDef carrier = new EquipmentLayerDef("pack", .4f, .42f, .5f, .5f,
+                state, state, 0f, null, true, false, EquipmentLayerDef.Attachment.BODY);
+        HandsetLayer handset = new HandsetLayer("handset", "cord", .16f, .4f, .05f,
+                .5f, .99f, .07f, .37f);
+        SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
+                null, null, SpecialUsePose.PLANT, carrier, null, null, null, null, null, handset);
+        SpecialEquipmentDef radio = new SpecialEquipmentDef("radio", "Radio", null,
+                null, null, null, null, null, 0, null, presentation,
+                null, null, null, null, null);
+        LayeredUnitComposer.emit(out, assets, assets.head, null, true, radio,
+                EquipmentGrade.SERVICE, 0f, 0f, 100f, 0f, 0f, 0f, 0f, pose, flags, 1f, authored);
     }
 
     @Test

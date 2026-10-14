@@ -6,7 +6,9 @@ guide frame, its own alpha is kept (the generator returned a real one) and bound
 grown guide silhouette so a drifted edge cannot add material the geometry never had, then
 downsampled to game scale.
 
-  graphics/battle/fx/comms-radio-pack.png     the pack as worn, 256x333 = the carrier layer's 0.40 x 0.52 aspect
+  graphics/battle/fx/comms-radio-pack.png     the pack as worn from above, 320x336 = the carrier layer's 0.40 x 0.42 aspect
+  graphics/battle/fx/comms-radio-handset.png  the hand set, 200x500 = the handset layer's 0.16 x 0.40 aspect
+  (graphics/battle/fx/comms-radio-cord.png is drawn finished by templates/comms-radio-guide.py)
   graphics/ui/armory/special-comms-radio.png  the set as an icon, cropped square about its alpha, 512 px
 """
 from pathlib import Path
@@ -27,10 +29,14 @@ def load(name):
 
 
 def main():
-    pack = load('comms-radio-pack').resize((256, 333), Image.LANCZOS)
+    pack = load('comms-radio-pack').resize((320, 336), Image.LANCZOS)
     out = ROOT / 'mod/graphics/battle/fx/comms-radio-pack.png'
     pack.save(out)
     print(out.relative_to(ROOT), pack.size)
+    handset = load('comms-radio-handset').resize((200, 500), Image.LANCZOS)
+    out = ROOT / 'mod/graphics/battle/fx/comms-radio-handset.png'
+    handset.save(out)
+    print(out.relative_to(ROOT), handset.size)
     icon = load('comms-radio-icon')
     box = icon.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
     cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
