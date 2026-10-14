@@ -58,7 +58,7 @@
         </button>
         <div id="{tile.issueRowId}" class="{tile.issueRowClasses}">
           <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
-          <button id="{tile.issueId}" class="doctrine-issue-button console-action" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{i18n.loadoutIssueAction}</button>
+          <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{tile.issueLabel}</button>
         </div>
         </div>
       </div>
@@ -77,8 +77,10 @@
 <style>
   .doctrine-card-wrap { flex-direction: column; width: 530px; gap: 2px; }
   .doctrine-issue-row { flex-direction: row; height: 32px; gap: 7px; }
+  .doctrine-issue-reason-empty { width: 0px; flex-grow: 1; height: 32px; }
   .doctrine-issue-row-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
   .doctrine-issue-reason { width: 0px; flex-grow: 1; height: 32px; padding: 6px 7px; border-width: 1px; overflow: hidden; }
+  .doctrine-issue-button.issued { color: #8fd6a6; border-color: #4f9c6b; }
   .doctrine-issue-button { width: 96px; height: 32px; padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }
   .squad-doctrine-strip { flex-direction: column; width: 566px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
@@ -152,6 +154,7 @@
   .cargo-cost-icon { width: 19px; height: 19px; }
   .cargo-cost-label { width: 0px; height: 19px; flex-grow: 1; padding: 2px 0px; color: #b8c6d6; }
   .cargo-cost.short .cargo-cost-label { color: #f09a9a; }
-  #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
+  #squad-equip-row { flex-direction: row; gap: 7px; }
+  .transaction-result-empty { width: 0px; flex-grow: 1; height: 0px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
 </style>
