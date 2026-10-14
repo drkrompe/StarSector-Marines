@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.salvage;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -44,7 +45,9 @@ public final class SalvagePlacement {
             }
             if (clear) candidates.add(new Cell(x, y));
         }
+        // A held place nobody is posted to is a building, not a tactical centre to keep salvage clear of.
         var targets = sim.getTacticalMap() == null ? List.<Cell>of() : sim.getTacticalMap().all().stream()
+                .filter(n -> !HeldPlaces.isUnposted(n))
                 .map(n -> new Cell(n.anchorX, n.anchorY)).toList();
         return place(grid, sim.getMarineLandingPads(), candidates, targets, seed, sim.fieldSalvageSites());
     }

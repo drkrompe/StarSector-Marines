@@ -98,6 +98,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
+import com.dillon.starsectormarines.battle.air.AirToAirFire;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
@@ -174,6 +175,7 @@ import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
+import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
@@ -413,6 +415,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
     private final IntegralSystemSystem integralSystemSystem;
+    private final SquadMedicSystem squadMedics = new SquadMedicSystem();
     /** Per-tick aim + drain of every raised mitigation screen. See {@code combat-durability-nouns.md}. */
     private final MitigationSystem mitigationSystem;
     /** Death-event handler for destroyed turrets ({@code UnitType.isTurret()}) — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
@@ -604,8 +607,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
+
+    /** Aircraft shooting aircraft: the cover fighters' nose guns. For evidence. */
+    public AirToAirFire airToAir() { return airToAir; }
     public void installWaylineGunship(boolean freight) {
         if (simTickIndex != 0 || waylineGunship != null) throw new IllegalStateException("Install Wayline air at setup");
         waylineGunship = new WaylineGunship(freight, storyBeats);
@@ -1249,6 +1256,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     public DirectControlSession directControl() { return directControl; }
+
+    /** Squad medics from officers trained in Field Medicine. */
+    public SquadMedicSystem squadMedics() { return squadMedics; }
 
     public NavigationGrid getGrid() { return grid; }
 
@@ -2311,6 +2321,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return airPool.request(this, side, kind, x, y, believes);
     }
 
+    @Override
+    public AirPoolService.Outcome requestAirStrike(Faction side, float x, float y, boolean believes) {
+        return airPool.requestAt(this, side, x, y, believes, unit -> true);
+    }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);
@@ -2808,6 +2823,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // whole authored duration instead of losing its first tick to this drain.
         mitigationSystem.tick(TICK_DT, directControl.activeUnitId(), directControl.pointAim());
         integralSystemSystem.tick(TICK_DT, this);
+        // Treatments land on patients here, serially, so the dispatch below only
+        // moves or plants the medic and patient it is updating.
+        squadMedics.tick(TICK_DT, this);
         directControl.tick();
         navigation.beginSharedGoalPathSnapshot();
         try {
@@ -3052,6 +3070,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             airCoverSystem.tick(TICK_DT, this);
             airSystem.tick(TICK_DT);
             groundAntiAir.tick(this);
+            airToAir.tick(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —

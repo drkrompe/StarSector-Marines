@@ -59,6 +59,8 @@ import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolView;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
@@ -213,8 +215,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/armory/fleet-armory.mlx",
-            "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
@@ -233,6 +233,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     BattleSquadOverlay.COMPONENT_PATH,
                     BattleMechOverlay.COMPONENT_PATH,
                     BattlePowerOverlay.COMPONENT_PATH,
+                    BattleAirOverlay.COMPONENT_PATH,
                     BattleRetreatOverlay.COMPONENT_PATH);
 
     @Override
@@ -329,25 +330,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
-                new SnapshotArtifact("fleet-armory-squads-wide.png",
-                        renderFleetArmoryWorkspace(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                false, false)),
-                new SnapshotArtifact("fleet-armory-organization-wide.png",
-                        renderFleetArmoryOrganization(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, false)),
-                new SnapshotArtifact("fleet-armory-organization-capacity-wide.png",
-                        renderFleetArmoryOrganization(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, true, false)),
-                new SnapshotArtifact("fleet-armory-organization-unassigned-wide.png",
-                        renderFleetArmoryOrganization(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, true)),
-                new SnapshotArtifact("fleet-armory-organization-large-company.png",
-                        renderFleetArmoryOrganization(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 24, false, false)),
-                new SnapshotArtifact("fleet-armory-founding-wide.png",
-                        renderEmptyFleetArmoryWorkspace(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -439,6 +421,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
                         renderBattleHudPowerOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-air-idle-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(3, 0, 3, 0, 0f, 2, 0, 2, 0, 0f, List.of(), 0))),
+                new SnapshotArtifact("battle-hud-air-sorties-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(1, 2, 3, 0, 20f, 1, 1, 2, 0, -1f, List.of(
+                                        new AirPoolView.SortieRow(AirPoolKind.BOMBER, AirPoolView.Mission.STRIKE),
+                                        new AirPoolView.SortieRow(AirPoolKind.BOMBER, AirPoolView.Mission.STRIKE),
+                                        new AirPoolView.SortieRow(AirPoolKind.FIGHTER, AirPoolView.Mission.COVER)), 0))),
+                new SnapshotArtifact("battle-hud-air-depleted-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(0, 0, 3, 3, 24.2f, 0, 0, 2, 2, 41f, List.of(), 2))),
+                new SnapshotArtifact("battle-hud-air-losses-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(1, 1, 3, 2, 12f, 2, 0, 2, 0, -1f, List.of(
+                                        new AirPoolView.SortieRow(AirPoolKind.BOMBER, AirPoolView.Mission.STRIKE)), 1))),
+                new SnapshotArtifact("battle-hud-air-no-pool-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                AirPoolView.NONE)),
                 new SnapshotArtifact("battle-hud-retreat-wide.png",
                         renderBattleRetreatOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
@@ -934,6 +935,43 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return new ConquestFrontSnapshot.SquadDirective(squadId, track, track,
                 ConquestFrontSnapshot.AssignmentReason.TRACK_ADVANCE,
                 kind, targetZone);
+    }
+
+    private static AirPoolView airView(int bAvail, int bOut, int bCap, int bLost, float bNext,
+                                       int fAvail, int fOut, int fCap, int fLost, float fNext,
+                                       List<AirPoolView.SortieRow> sorties, int recentLosses) {
+        return new AirPoolView(List.of(
+                new AirPoolView.KindRow(AirPoolKind.BOMBER, bAvail, bOut, bCap, bLost, bNext),
+                new AirPoolView.KindRow(AirPoolKind.FIGHTER, fAvail, fOut, fCap, fLost, fNext)),
+                sorties, 0, recentLosses);
+    }
+
+    /** Full-screen evidence for the air support plate under the command rail; absent for a battle with no pool. */
+    private static BufferedImage renderBattleAirOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, AirPoolView view) throws Exception {
+        BufferedImage image = renderBattleHudCommandOverlay(context, renderer, width, height);
+        Reactor reactor = new Reactor();
+        BattleAirOverlayModel model = new BattleAirOverlayModel(reactor);
+        BattleAirOverlayModel.Presentation presentation = model.update(view);
+        if (!presentation.visible()) return image;
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleAirOverlay.COMPONENT, model.props())) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(BattleAirOverlay.DOCUMENT_WIDTH),
+                    Math.round(BattleAirOverlay.documentHeight(presentation.kindCount(), presentation.lineCount())));
+            int railBottom = 12 + Math.round(BattleHudOverlay.CONQUEST_COMMAND_HEIGHT);
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay, width - 12 - overlay.getWidth(), railBottom + 8, null);
+            graphics.dispose();
+            return image;
+        }
     }
 
     /** Full-screen evidence for the compact power deck in its armed state. */
@@ -1670,7 +1708,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("02-barracks-equip-squad.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             clickBarracksFlow(document, markup, "formation:" + squad.id() + ":loadout");
             if (!squad.id().equals(navigation.takeRequestedArmorySquadId())) throw new AssertionError("Wrong squad requested");
-            var editor = new FleetArmoryViewModel(reactor, roster, () -> {}, () -> 100d, snapshotEquipmentResources());
+            var editor = new FleetArmoryViewModel(reactor, roster, () -> 100d, snapshotEquipmentResources());
             editor.selectSquad(squad.id());
             var editorProps = props(editor);
             editorProps.put("returnAction", (Runnable) navigation::returnFromFleetArmoryWorkspace);
@@ -2205,97 +2243,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    /** Organization evidence uses the production draft and ordinary roster authority. */
-    private static BufferedImage renderFleetArmoryOrganization(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, int squadCount, boolean overCapacity,
-            boolean unassigned) throws Exception {
-        return renderFleetArmoryOrganization(context, renderer, width, height,
-                squadCount, overCapacity, unassigned, 1f);
-    }
-
-    private static BufferedImage renderFleetArmoryOrganization(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, int squadCount, boolean overCapacity,
-            boolean unassigned, float uiScale) throws Exception {
-        Reactor reactor = new Reactor();
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(squadCount * MarineSquad.CAPACITY);
-        MarineCaptain captain = new MarineCaptain("Tamsin Vale",
-                "graphics/portraits/portrait_hegemony06.png", Rank.CAPTAIN, 0f);
-        MarineCaptain lieutenant = new MarineCaptain("Rafael Kade",
-                "graphics/portraits/portrait_mercenary04.png", Rank.LIEUTENANT, 0f);
-        roster.add(captain);
-        roster.add(lieutenant);
-        if (squadCount > 6) {
-            List<String> names = List.of("Mara Soren", "Inez Ward", "Jonas Reed",
-                    "Elian Voss", "Nadia Orlov", "Kellan Price");
-            List<String> portraits = List.of("portrait_mercenary05.png", "portrait_hegemony12.png",
-                    "portrait_pirate06.png", "portrait_pirate12.png", "portrait_hegemony13.png",
-                    "portrait_hegemony07.png");
-            for (int index = 0; index < names.size(); index++) {
-                roster.add(new MarineCaptain(names.get(index),
-                        "graphics/portraits/" + portraits.get(index), Rank.LIEUTENANT, 0f));
-            }
-        }
-        List<MarineSquad> squads = roster.squads();
-        Map<String, MarineSoldierStatus> casualties = new LinkedHashMap<>();
-        casualties.put(squads.get(2).memberIds().get(0), MarineSoldierStatus.WIA);
-        casualties.put(squads.get(2).memberIds().get(1), MarineSoldierStatus.WIA);
-        casualties.put(squads.get(2).memberIds().get(11), MarineSoldierStatus.KIA);
-        casualties.put(squads.get(3).memberIds().get(0), MarineSoldierStatus.WIA);
-        casualties.put(squads.get(4).memberIds().get(0), MarineSoldierStatus.WIA);
-        casualties.put(squads.get(4).memberIds().get(10), MarineSoldierStatus.MIA);
-        casualties.put(squads.get(4).memberIds().get(11), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(casualties, 100f, 1.25f);
-        roster.assignCaptainToSquad(captain.id(), squads.get(0).id());
-        roster.assignCaptainToSquad(captain.id(), squads.get(1).id());
-        roster.assignCaptainToSquad(lieutenant.id(), squads.get(2).id());
-        roster.assignCaptainToSquad(lieutenant.id(), squads.get(3).id());
-        if (!roster.bindStationing(42L, captain.id(), List.of(squads.get(5).id()))) {
-            throw new IllegalStateException("Organization snapshot needs one stationed squad");
-        }
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
-                snapshotSquadFoundingResources());
-        viewModel.beginOrganization();
-        viewModel.toggleOrganizationSquad(squads.get(0).id());
-        viewModel.toggleOrganizationSquad(squads.get(2).id());
-        viewModel.toggleOrganizationSquad(squads.get(4).id());
-        viewModel.selectOrganizationTarget(unassigned ? null
-                : overCapacity ? lieutenant.id() : captain.id());
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
-        loader.reload();
-        try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory", props(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            FleetArmoryScreen.bindGalleryCanvases(document, instance, viewModel);
-            return renderRelative(renderer, document, width, height, uiScale);
-        }
-    }
-
-    private static BufferedImage renderEmptyFleetArmoryWorkspace(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
-        Reactor reactor = new Reactor();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, new MarineRoster(), () -> { }, () -> 0d,
-                snapshotEquipmentResources(), snapshotSquadFoundingResources());
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
-        loader.reload();
-        try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory", props(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            return renderRelative(renderer, document, width, height, 1f);
-        }
-    }
-
     private static BufferedImage renderFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen,
@@ -2358,8 +2305,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             roster.recruitToSquad(roster.reserveSquad().id());
         }
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
-                snapshotSquadFoundingResources());
+                reactor, roster, () -> 100d, snapshotEquipmentResources());
         if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().stream()
                 .filter(tile -> tile.id().equals("weapon-doctrine:" + SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS))
                 .findFirst().orElseThrow().select().run();
@@ -2374,7 +2320,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
 
         try (MarkupInstance instance = loader.build(
-                reactor, fireteam ? "fleet-armory-fireteam" : "fleet-armory",
+                reactor, "fleet-armory-fireteam",
                 props(viewModel))) {
             if (fireteam) {
                 instance.requireElement("transaction-feedback")
@@ -2383,7 +2329,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            if (!fireteam) FleetArmoryScreen.bindGalleryCanvases(document, instance, viewModel);
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
@@ -2578,7 +2523,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                 context.modRoot(), context.starsectorCore());
         return List.of(
-                new SnapshotArtifact("founding.png", renderEmptyFleetArmoryWorkspace(context, renderer, 1920, 1080)),
                 new SnapshotArtifact("boat-fitting.png", renderBoatDeck(context, renderer, 1920, 1080, true)),
                 new SnapshotArtifact("boat-shortage.png", renderBoatDeck(context, renderer, 1920, 1080, false, true)),
                 new SnapshotArtifact("mech-large-stock.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "resource-large")),
@@ -3152,15 +3096,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("squadCards", viewModel.squadCards());
-        props.put("squadGalleryCards", viewModel.squadGalleryCards());
-        props.put("organization", viewModel.organization());
-        props.put("foundingCargoRows", viewModel.foundingCargoRows());
-        props.put("cargoStockRows", viewModel.cargoStockRows());
-        props.put("foundingDisabled", viewModel.foundingDisabled());
-        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
-        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
-        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -3190,7 +3125,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
-        props.put("backToSquads", (Runnable) () -> { });
         putArmoryPageNavigation(props);
         return props;
     }

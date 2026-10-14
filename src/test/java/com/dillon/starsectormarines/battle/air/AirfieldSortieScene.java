@@ -366,6 +366,7 @@ final class AirfieldSortieScene {
             case ATTACK_RUN -> "gun run";
             case REPOSITION -> "coming round";
             case ORBIT -> "circling";
+            case INTERCEPT -> "chasing";
             // This scene's aircraft lift off their hardstands; a strip is a
             // different base's procedure and no loop here flies one.
             case TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL, LANDING_ROLL, TAXI_IN ->

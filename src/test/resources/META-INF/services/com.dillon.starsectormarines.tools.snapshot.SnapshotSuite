@@ -151,6 +151,8 @@ com.dillon.starsectormarines.ops.AgreusMapsSnapshotSuite
 com.dillon.starsectormarines.battle.command.AssaultMusterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.squad.FightingPositionSceneSnapshotSuite
 com.dillon.starsectormarines.battle.airsupport.AirStrikeSceneSnapshotSuite
+com.dillon.starsectormarines.battle.airsupport.FighterCoverSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.FieldMortarSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fort.FortAirDefenceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fort.ShipVsFortSceneSnapshotSuite
+com.dillon.starsectormarines.battle.infantry.SquadMedicSceneSnapshotSuite

@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
-import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -13,9 +12,6 @@ import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ops.battleview.ArmoryRangeTrial;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
-import com.dillon.starsectormarines.ops.battleview.OfficerCapacityCanvas;
-import com.dillon.starsectormarines.ops.battleview.OfficerRankCanvas;
-import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -35,18 +31,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Retained company workspace: squad gallery, fire-team breakdown, and atomic issue. */
+/**
+ * Retained equipment workspace for one squad: its loadout and atomic issue, the
+ * equipment designer and armour comparison. Squads are chosen in Barracks.
+ */
 public final class FleetArmoryScreen implements Screen {
 
-    private static final String SQUAD_COMPONENT = "fleet-armory";
     private static final String FIRETEAM_COMPONENT = "fleet-armory-fireteam";
     private static final String DESIGNER_COMPONENT = "fleet-armory-doctrine-designer";
     private static final String ARMOR_COMPARISON_COMPONENT = "armory-armor-comparison";
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/armory/fleet-armory.mlx",
-            "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
@@ -78,12 +74,10 @@ public final class FleetArmoryScreen implements Screen {
     /** The loadout projections the live document's entries were bound against. */
     private List<FleetArmoryViewModel.DoctrineTile> boundWeaponTiles;
     private List<FleetArmoryViewModel.DoctrineTile> boundArmorTiles;
-    private List<FleetArmoryViewModel.SquadCard> boundSquadCards;
-    private List<FleetArmoryViewModel.OrganizationTarget> boundOrganizationTargets;
     private StarsectorUiInputAdapter input;
     private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
-    private View view = View.SQUADS;
+    private View view = View.FIRETEAMS;
     private PositionAPI position;
     private ArmoryRangeTrial rangeTrial;
     private BattleScreen rangeScreen;
@@ -110,25 +104,28 @@ public final class FleetArmoryScreen implements Screen {
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new FleetArmoryViewModel(reactor, roster, this::showSelectedSquad,
-                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources(),
-                    new CampaignSquadFoundingResources());
+            viewModel = new FleetArmoryViewModel(reactor, roster,
+                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources());
         } else {
             viewModel.refresh();
         }
         firstRefit = new FirstRefitModel(reactor, roster, new CampaignEquipmentIssueResources(), id -> {
             viewModel.selectSquad(id);
-            viewModel.refresh();
-            showSelectedSquad();
+            showFireTeams();
         });
-        viewModel.cancelOrganization();
         projectedCampaignHour = campaignHour();
-        view = FirstRefit.available(roster) ? View.FIRST_REFIT : View.SQUADS;
-        if (context.takeRequestedSquadFounding()) view = View.SQUADS;
         String requestedSquad = context.takeRequestedArmorySquadId();
         if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
             viewModel.selectSquad(requestedSquad);
             view = View.FIRETEAMS;
+        } else if (FirstRefit.available(roster)) {
+            view = View.FIRST_REFIT;
+        } else if (viewModel.selectedSquadId() != null) {
+            view = View.FIRETEAMS;
+        } else {
+            // Squads are chosen and raised in Barracks; with none there is no loadout to open.
+            context.returnFromFleetArmoryWorkspace();
+            return;
         }
         installDocument(true);
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -138,7 +135,6 @@ public final class FleetArmoryScreen implements Screen {
 
     private void installDocument(boolean reloadSource) {
         String componentName = switch (view) {
-            case SQUADS -> SQUAD_COMPONENT;
             case FIRETEAMS -> FIRETEAM_COMPONENT;
             case DESIGNER -> DESIGNER_COMPONENT;
             case ARMOR_COMPARISON -> ARMOR_COMPARISON_COMPONENT;
@@ -159,15 +155,12 @@ public final class FleetArmoryScreen implements Screen {
             built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(switch (view) {
-                case SQUADS -> this::cancelGallery;
-                case FIRETEAMS -> this::showSquadOverview;
+                case FIRETEAMS -> this::returnFromWorkspace;
                 case DESIGNER -> this::showFireTeams;
                 case ARMOR_COMPARISON -> this::showFireTeams;
-                case FIRST_REFIT -> this::showSquadOverview;
+                case FIRST_REFIT -> this::leaveFirstRefit;
             });
-            if (view == View.SQUADS) {
-                bindGalleryCanvases(built, candidate, viewModel);
-            } else if (view == View.DESIGNER) {
+            if (view == View.DESIGNER) {
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int slot = index;
                     built.canvases().set(candidate.requireElement("designer-marine-preview:" + index),
@@ -203,11 +196,9 @@ public final class FleetArmoryScreen implements Screen {
         document = built;
         if (view == View.FIRST_REFIT) CompanyNotices.Notice.FIRST_REFIT.review(roster);
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
-                companyLesson(), () -> leaveGallery(dismissDialog)), this::cancelGallery);
+                companyLesson(), dismissDialog), this::returnFromWorkspace);
         markupInstance = candidate;
         specSheets = candidateSheets;
-        boundSquadCards = view == View.SQUADS ? viewModel.squadCards().get() : null;
-        boundOrganizationTargets = view == View.SQUADS ? viewModel.organizationTargets().get() : null;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
         if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
@@ -233,57 +224,13 @@ public final class FleetArmoryScreen implements Screen {
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.armorDoctrineTiles());
     }
 
-    /** Shared production wiring used by the deterministic gallery fixtures. */
-    public static void bindGalleryCanvases(UiDocument document, MarkupInstance instance,
-                                          FleetArmoryViewModel viewModel) {
-        for (FleetArmoryViewModel.SquadCard card : viewModel.squadCards().get()) {
-            String squadId = card.squadId();
-            document.canvases().set(instance.requireElement(card.id() + ":muster"),
-                    new SquadMusterCanvas(() -> viewModel.squadMuster(squadId)));
-        }
-        for (FleetArmoryViewModel.OrganizationTarget target : viewModel.organizationTargets().get()) {
-            String id = target.id();
-            document.canvases().set(instance.requireElement(target.capacityId()),
-                    new OfficerCapacityCanvas(() -> {
-                        FleetArmoryViewModel.OrganizationTarget current =
-                                viewModel.organizationTargetById(id);
-                        return current != null ? current.capacity() : null;
-                    }));
-            document.canvases().set(instance.requireElement(target.rankId()),
-                    new OfficerRankCanvas(() -> {
-                        FleetArmoryViewModel.OrganizationTarget current =
-                                viewModel.organizationTargetById(id);
-                        return current != null ? current.rank() : null;
-                    }));
-        }
-    }
-
-    private void refreshGalleryCanvases() {
-        if (document == null || markupInstance == null) return;
-        List<FleetArmoryViewModel.SquadCard> squads = viewModel.squadCards().get();
-        List<FleetArmoryViewModel.OrganizationTarget> officers = viewModel.organizationTargets().get();
-        if (squads == boundSquadCards && officers == boundOrganizationTargets) return;
-        bindGalleryCanvases(document, markupInstance, viewModel);
-        boundSquadCards = squads;
-        boundOrganizationTargets = officers;
-    }
-
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("firstRefitClasses", FirstRefit.available(roster) ? "console-action" : "hidden");
         props.put("openFirstRefit", (Runnable) this::showFirstRefit);
         props.put("lesson", firstRefit.row());
         props.put("companySummary", viewModel.companySummary());
-        props.put("organization", viewModel.organization());
         props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("squadCards", viewModel.squadCards());
-        props.put("squadGalleryCards", viewModel.squadGalleryCards());
-        props.put("foundingCargoRows", viewModel.foundingCargoRows());
-        props.put("cargoStockRows", viewModel.cargoStockRows());
-        props.put("foundingDisabled", viewModel.foundingDisabled());
-        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
-        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
-        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -316,7 +263,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) this::returnFromWorkspace);
-        props.put("backToSquads", (Runnable) this::showSquadOverview);
         props.put("backToFireTeams", (Runnable) this::showFireTeams);
         if (designerViewModel != null) {
             props.put("squadName", designerViewModel.squadName());
@@ -344,12 +290,12 @@ public final class FleetArmoryScreen implements Screen {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 context::roomAboard,
                 this::returnFromWorkspace,
-                () -> leaveGallery(() -> context.goTo(ScreenId.COMPANY_HQ)),
-                () -> leaveGallery(() -> context.goTo(ScreenId.BARRACKS)),
+                () -> context.goTo(ScreenId.COMPANY_HQ),
+                () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
-                () -> leaveGallery(() -> context.goTo(ScreenId.MECH_LAB)),
-                () -> leaveGallery(() -> context.goTo(ScreenId.BOAT_DECK)),
-                () -> leaveGallery(context::openEngineering));
+                () -> context.goTo(ScreenId.MECH_LAB),
+                () -> context.goTo(ScreenId.BOAT_DECK),
+                context::openEngineering);
     }
 
     private void requireWiredElements(MarkupInstance component) {
@@ -359,7 +305,7 @@ public final class FleetArmoryScreen implements Screen {
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
+                "fireteam-breadcrumb", "armory-first-refit", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
@@ -375,21 +321,11 @@ public final class FleetArmoryScreen implements Screen {
                 "designer-billet-grid", "designer-feedback",
                 "designer-marine-preview:0", "designer-marine-preview:1",
                 "designer-marine-preview:2", "designer-marine-preview:3")
-                : view == View.ARMOR_COMPARISON
-                ? List.of("armor-comparison-root", "marine-ops-page-nav",
+                : List.of("armor-comparison-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
                 "comparison-breadcrumb", "back-to-fireteams",
-                "comparison-intro", "comparison-list")
-                : List.of("fleet-armory-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-mech-lab", "page-nav-boats",
-                "squad-breadcrumb", "squad-overview-intro",
-                "organization-toolbar", "begin-squad-organization", "cancel-squad-organization",
-                "squad-organization-panel", "organization-selected-count",
-                "organization-target-list", "organization-summary", "apply-squad-organization",
-                "squad-founder-costs", "found-squad", "squad-founder-feedback",
-                "squad-card-list");
+                "comparison-intro", "comparison-list");
         for (String id : required) {
             component.requireElement(id);
         }
@@ -414,10 +350,8 @@ public final class FleetArmoryScreen implements Screen {
         if (founding != null) return founding;
         if (view == View.FIRST_REFIT && firstRefit.guide() != null) return firstRefit.guide();
         if (CampaignLessons.next(roster) == CampaignLessons.Step.REFIT)
-            return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("found-squad"),
+            return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("armory-first-refit"),
                     "lessonEquipment", this::showFirstRefit);
-        if (view == View.SQUADS && CampaignLessons.next(roster) == CampaignLessons.Step.FORMATIONS)
-            return CampaignLessons.formations(roster, context, true);
         return CampaignLessons.handoff(roster, context, ScreenId.FLEET_ARMORY);
     }
 
@@ -427,17 +361,10 @@ public final class FleetArmoryScreen implements Screen {
         if (viewport != null) installDocument(false);
     }
 
-    private void showSelectedSquad() {
-        viewModel.cancelOrganization();
-        view = View.FIRETEAMS;
-        previewAnimationSeconds = 0f;
-        if (viewport != null) installDocument(false);
-    }
-
-    private void showSquadOverview() {
-        viewModel.cancelOrganization();
-        view = View.SQUADS;
-        if (viewport != null) installDocument(false);
+    /** First refit is offered before any loadout; leaving it opens the squad it was for. */
+    private void leaveFirstRefit() {
+        if (viewModel.selectedSquadId() != null) showFireTeams();
+        else returnFromWorkspace();
     }
 
     private void showDesigner() {
@@ -460,18 +387,8 @@ public final class FleetArmoryScreen implements Screen {
         if (viewport != null) installDocument(false);
     }
 
-    private void cancelGallery() {
-        if (viewModel.organizing()) viewModel.cancelOrganization();
-        else returnFromWorkspace();
-    }
-
     private void returnFromWorkspace() {
-        leaveGallery(context::returnFromFleetArmoryWorkspace);
-    }
-
-    private void leaveGallery(Runnable route) {
-        viewModel.cancelOrganization();
-        route.run();
+        context.returnFromFleetArmoryWorkspace();
     }
 
     @Override
@@ -493,8 +410,7 @@ public final class FleetArmoryScreen implements Screen {
         // Loadout cards come and go with the rarity and supplies filters, so
         // the entries a reader can ask about are wired after reconciliation
         // rather than only when the document was installed.
-        if (view == View.SQUADS) refreshGalleryCanvases();
-        else if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
+        if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
         if (specSheets != null) specSheets.update();
         if ((view == View.FIRETEAMS || view == View.DESIGNER)
                 && Float.isFinite(dt) && dt > 0f) {
@@ -527,7 +443,6 @@ public final class FleetArmoryScreen implements Screen {
     @Override
     public void detach() {
         closeRange();
-        if (viewModel != null) viewModel.cancelOrganization();
         if (document != null) document.deactivateInput();
         if (specSheets != null) specSheets.clear();
         input = null;
@@ -542,8 +457,6 @@ public final class FleetArmoryScreen implements Screen {
         specSheets = null;
         boundWeaponTiles = null;
         boundArmorTiles = null;
-        boundSquadCards = null;
-        boundOrganizationTargets = null;
         input = null;
     }
 
@@ -589,5 +502,5 @@ public final class FleetArmoryScreen implements Screen {
         }
     }
 
-    private enum View { SQUADS, FIRETEAMS, DESIGNER, ARMOR_COMPARISON, FIRST_REFIT }
+    private enum View { FIRETEAMS, DESIGNER, ARMOR_COMPARISON, FIRST_REFIT }
 }

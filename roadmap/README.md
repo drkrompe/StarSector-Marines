@@ -207,8 +207,8 @@ in Engineering. `ship-condition-survey.md` retains the live acceptance.
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's
 command station, Fleet Armory owns deliberate equipment inspection and issue
-and stages bulk home-officer organization from its company squad gallery,
-and Barracks owns bulk personnel command, saved profiles and replenishment between
+for one squad at a time, and Barracks owns squad choice, home-officer organization,
+bulk personnel command, saved profiles and replenishment between
 operations. The active Alpha pickup, `barracks-turnaround.md`, adds survivor
 consolidation and a guided preparation handoff. Shared stock displays and upgrade
 bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds

@@ -1853,7 +1853,12 @@ A **defense frontage** is the set of **apertures** in a held place's outer
 envelope — the openings through which its interior can be seen into, shot
 through, or entered — each paired with the interior **stance** cell that covers
 it. An aperture is either an **entrance**, which admits bodies, or a **window**,
-which admits only sight and fire. Frontage is derived from live map state
+which admits only sight and fire. A window takes two shapes in the generated
+world: a see-through wall cell, covered from the floor behind it, and the
+**firing recess** that building shells and authored buildings stamp, a floor
+cell in the wall line whose outer edge is closed by a window. The recess is
+walkable, but nobody comes in through it, so it is a window and its defender
+stands in the recess itself. Frontage is derived from live map state
 rather than authored separately: the generators already stamp firing apertures
 into perimeter walls and building shells, and the derivation reads them.
 
@@ -2058,6 +2063,10 @@ connectivity, not the place the squad was sent to occupy. If those two geometrie
 have no usable intersection, a single nearest legal capture-zone post preserves
 presence rather than spreading the squad over unrelated ground. Capture
 authority and completion still belong to the objective, not to post selection.
+The clear and the hold are bounded the same way, to the compound's objective
+area (`conquest-nouns.md`): after a breach, the hostiles a securing squad must
+clear, and the ones its holders turn to fight, are those standing on the
+compound's own ground, not every hostile on the open ground the room now joins.
 
 A selected Marine infantry squad may instead receive a persistent **defend
 area** context through a deliberate two-step command. Its clicked center snaps

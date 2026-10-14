@@ -171,7 +171,7 @@ class ConquestTrialEvidenceTest {
             int fighters = pool.optInt("fighters", 0);
             profile = profile.withDeclaredAirPool(AirPoolDeclaration.NONE.with(Faction.MARINE, AirPoolAllowance.of(
                     new AirPoolStock(bombers, bombers, regen ? 40f : 0f),
-                    new AirPoolStock(fighters, fighters, regen ? 45f : 0f), true)));
+                    new AirPoolStock(fighters, fighters, regen ? 25f : 0f), true)));
         }
         return profile;
     }
@@ -310,6 +310,7 @@ class ConquestTrialEvidenceTest {
                     .put("tubeMissionRounds", fireSupport.marineRounds()[1])
                     .put("nestsKilled", fireSupport.nestKills()[0]).put("nestsKilledByMortar", fireSupport.nestKills()[1])
                     .put("nestsKilledByAir", fireSupport.nestKills()[2])
+                    .put("airPoolByMission", FireSupportProbe.poolJson(sim))
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
                     .put("sectionsExpired", sim.fieldMortars().sections().expired())
                     .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())

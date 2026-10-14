@@ -15,17 +15,17 @@ final class FactionEquipmentMarketStockPlanner {
 
     static StockPlan plan(String factionId, String marketId, int marketSize,
                           long rotation, boolean hasLicenseAccess,
-                          Set<String> ownedTemplateIds,
+                          Set<String> unavailableCardIds,
                           EquipmentAcquisitionEligibility.Progress progress) {
-        Set<String> unavailable = new HashSet<>(ownedTemplateIds != null
-                ? ownedTemplateIds : Set.of());
-        List<String> market = FactionEquipmentPicker.pick(factionId,
+        Set<String> unavailable = new HashSet<>(unavailableCardIds != null
+                ? unavailableCardIds : Set.of());
+        List<String> market = LoadoutCardPicker.pick(factionId,
                 FactionEquipmentSource.MARKET, marketSlots(marketSize),
                 seed(factionId, marketId, rotation, "market"), unavailable, progress);
         unavailable.addAll(market);
 
         List<String> licensed = hasLicenseAccess
-                ? FactionEquipmentPicker.pick(factionId,
+                ? LoadoutCardPicker.pick(factionId,
                         FactionEquipmentSource.LICENSE, licenseSlots(marketSize),
                         seed(factionId, marketId, rotation, "license"),
                         unavailable, progress)
@@ -60,15 +60,15 @@ final class FactionEquipmentMarketStockPlanner {
         return value != null ? value : "";
     }
 
-    record StockPlan(List<String> marketTemplateIds, List<String> licensedTemplateIds) {
+    record StockPlan(List<String> marketCardIds, List<String> licensedCardIds) {
         StockPlan {
-            marketTemplateIds = List.copyOf(marketTemplateIds);
-            licensedTemplateIds = List.copyOf(licensedTemplateIds);
+            marketCardIds = List.copyOf(marketCardIds);
+            licensedCardIds = List.copyOf(licensedCardIds);
         }
 
-        List<String> allTemplateIds() {
-            Set<String> ordered = new LinkedHashSet<>(marketTemplateIds);
-            ordered.addAll(licensedTemplateIds);
+        List<String> allCardIds() {
+            Set<String> ordered = new LinkedHashSet<>(marketCardIds);
+            ordered.addAll(licensedCardIds);
             return List.copyOf(ordered);
         }
     }
