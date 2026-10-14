@@ -75,6 +75,8 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
+import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -108,6 +110,7 @@ import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationSystem;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.AssaultCoordinationSystem;
 import com.dillon.starsectormarines.battle.squad.SquadContactOnsetSystem;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
@@ -429,6 +432,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.squad.SquadAlertSystem squadAlert;
     /** Per-tick squad morale recovery + hysteresis + near-miss drain. Drain on hit/death fires from {@link DamageResolver#resolve}; this system owns the passive recovery + flag transitions. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadMoraleSystem squadMorale;
+    private final DigInSystem digIn;
+    /** Fighting-position cell claims for defend-area squads; recomputed each tick between the squad replan and the unit dispatch. */
+    private final FightingPositionClaims fightingPositionClaims = new FightingPositionClaims();
     /** Per-tick squad-level GOAP replan pass — dispatches each squad to drone / mech / infantry behavior. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadReplanSystem squadReplan;
     /** Divides a shared contact between squads under one attack-move order. */
@@ -1105,6 +1111,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 navigation, rosterService, shots, noiseEvents);
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
+        this.digIn = new DigInSystem(rosterService, this::fightingPositions);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
         this.assaultCoordination = new AssaultCoordinationSystem(rosterService);
         this.squadFormUp = new SquadFormUpSystem(rosterService);
@@ -1523,6 +1530,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
     public int getDoodadCoverAt(int x, int y) {
         return doodadService.getDoodadCoverAt(x, y);
+    }
+
+    @Override
+    public boolean isDugIn(long id) {
+        return rosterService.combat().isDugIn(id);
+    }
+
+    @Override
+    public FightingPositionClaims fightingPositionClaims() {
+        return fightingPositionClaims;
+    }
+
+    @Override
+    public FightingPositionIndex fightingPositions() {
+        return doodadService.fightingPositions();
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }
@@ -2571,6 +2593,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // flag from SquadAlertSystem: a squad out of contact this tick
         // recovers; a squad in contact holds. Runs before the GOAP replan so
         // SurviveContact relevance sees the up-to-date moraleBroken flag.
+        // Dig-in first: the morale drains read who is dug in this tick.
+        digIn.tick(TICK_DT);
         squadMorale.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SQUAD_MORALE);
         // Evaluate fallback chains after alert state is current: an engaged
@@ -2607,6 +2631,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         long goapStageStart = System.nanoTime();
         directControl.validate();
         squadReplan.tick(this);
+        fightingPositionClaims.tick(this);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_SQUAD_REPLAN,
                 System.nanoTime() - goapStageStart);
         // Capture assigned starts and build route fields while every member is

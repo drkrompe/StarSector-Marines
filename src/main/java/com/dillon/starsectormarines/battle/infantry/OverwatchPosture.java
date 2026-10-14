@@ -67,7 +67,8 @@ public final class OverwatchPosture implements Action {
         }
         if (squad.engagementDisciplineHold) {
             sim.world().setTargetId(member, 0L);
-            if (sim.movement().mayRepath(member)) {
+            // A dug-in marine is already in the best cover there is; do not seek another.
+            if (sim.movement().mayRepath(member) && !sim.isDugIn(member)) {
                 int[] dest = sim.getTacticalScoring().findEngagementHoldPosition(
                         member, squad.engagementDisciplineTargetId);
                 if (dest != null && !sim.movement().atCell(member, dest[0], dest[1])) {

@@ -41,7 +41,7 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 | Terms of Protection | Latchkey/Cinder Steps: escort the signed custody party and defend commissioning work | Planned 32,000 credits and Boarding Jack card on either agreement | Planned; Boarding Jack remains proposed |
 | A Small War | Black Sluice: seize fuel-dispatch sites and hand them to local holders | Planned 44,000 credits, completed settlement and later procurement lead | Planned |
 
-Recommendations are two squads for the first three chapters, then three with
+Recommendations are two squads for the first two chapters, then three with
 construction support. Planned fees and equipment are design targets, not
 accepted encounter balance. North Weir opens the warrant offer; Limited Warrant
 victory awards Specter and opens The Yard's Owners. Its protected inspection awards
@@ -64,6 +64,6 @@ are not delivered by this arc's first three chapters or by this document.
 ## Remaining work
 
 `a-small-war.md` owns live Corvus-to-Agreus travel/save and first-suit acceptance,
-Chapters 4–5, the Boarding Jack card, Boarding Jack, both agreements and
+Chapters 4–5, Boarding Jack, both agreements and
 recurring escort.
 `campaign-learning-curve.md` tracks acquisition overlap and casualty carryover.

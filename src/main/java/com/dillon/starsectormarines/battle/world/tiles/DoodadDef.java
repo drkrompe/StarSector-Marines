@@ -81,6 +81,8 @@ public final class DoodadDef {
     public final int sourceCellPx;
     /** Bottom-to-top source-cell mask (# surface, . empty); empty means ground-fog only. */
     public final List<String> fogSurface;
+    /** Whether this prop is prepared ground a squad can occupy; see {@link FightingPositionRole}. */
+    public final FightingPositionRole fightingPosition;
 
     public DoodadDef(String id, String sheetPath, int col, int row, DoodadCover cover) {
         this(id, sheetPath, col, row, cover,
@@ -120,10 +122,20 @@ public final class DoodadDef {
                      DoodadCover cover, float ballisticHalfHeight,
                      int footprintCellsX, int footprintCellsY,
                      WallSide preferredWallSide, int sourceCellPx, List<String> fogSurface) {
+        this(id, sheetPath, col, row, cover, ballisticHalfHeight, footprintCellsX,
+                footprintCellsY, preferredWallSide, sourceCellPx, fogSurface, FightingPositionRole.NONE);
+    }
+
+    public DoodadDef(String id, String sheetPath, int col, int row,
+                     DoodadCover cover, float ballisticHalfHeight,
+                     int footprintCellsX, int footprintCellsY,
+                     WallSide preferredWallSide, int sourceCellPx, List<String> fogSurface,
+                     FightingPositionRole fightingPosition) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
         this.sourceCellPx = Math.max(0, sourceCellPx);
+        this.fightingPosition = fightingPosition == null ? FightingPositionRole.NONE : fightingPosition;
         this.id = id;
         this.sheetPath = sheetPath;
         this.col = col;
