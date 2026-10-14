@@ -79,9 +79,12 @@ The collection safety net starts from three specs, never the old broad starter l
 The campaign founding authority separately charges for personnel and baseline stores;
 equipment fitting itself is free.
 
-Equipment-template acquisition enters the campaign through a parameterized
-special cargo item. Its data is the stable equipment-template id; learning it
-writes only to `MarineArmory`. Do not implement `BlueprintProviderItem` or call
+Equipment acquisition enters the campaign as a **loadout card**: a parameterized
+special cargo item (`LoadoutCardItemPlugin`) whose data is a stable card id naming a
+Weapon Loadout or Tactic Sheet. Markets, patrons and salvage offer only these;
+`LoadoutCardLearning` teaches the whole loadout (its templates, and for a sheet the
+sheet itself) and writes only to `MarineArmory`. The older single-template item
+(`EquipmentTemplateCardItemPlugin`) survives for story rewards and held saves. Do not implement `BlueprintProviderItem` or call
 player-faction known-hull, known-fighter, known-weapon, or known-industry APIs
 for infantry templates, because those are ship-production authorities. Invalid
 cards, duplicates, and an unavailable roster are non-destructive and must not
