@@ -9,6 +9,10 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.SquadProfile;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadFoundingCost;
+import com.dillon.starsectormarines.marine.SquadFoundingResources;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiKey;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -53,6 +57,45 @@ class BarracksCommandModelTest {
         assertTrue(model.squadSheet(squad.id()).notes().stream()
                 .anyMatch(note -> note.contains("Tri-Tachyon Specter Protection (Power suit unavailable)")));
         assertEquals(currentArmor, roster.soldierById(squad.memberIds().get(0)).armorId());
+    }
+
+    @Test void raisingASquadFilesItUnderTheOpenCommandUntilThatCommandIsFull() {
+        var roster = new MarineRoster();
+        var lieutenant = new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f);
+        roster.add(lieutenant);
+        int[] bills = {0};
+        SquadFoundingResources stores = new SquadFoundingResources() {
+            @Override public int available(String commodityId) { return 1_000; }
+            @Override public boolean spend(SquadFoundingCost cost) { bills[0]++; return true; }
+            @Override public String commodityName(String commodityId) { return commodityId; }
+            @Override public String commodityIcon(String commodityId) { return ""; }
+        };
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
+                stores, () -> 0, id -> new PersonnelDrawResult(0, 0)).command();
+        model.selectCommand(lieutenant.id());
+        for (int i = 0; i < lieutenant.rank().squadCommandCap(); i++) model.raiseSquad();
+        assertEquals(lieutenant.rank().squadCommandCap(), roster.squads().stream()
+                .filter(s -> lieutenant.id().equals(s.homeCaptainId())).count());
+        model.raiseSquad();
+        var overflow = roster.squads().get(roster.squads().size() - 1);
+        assertNull(overflow.homeCaptainId(), "A full command does not exceed its cap; the squad stands independent");
+        assertEquals(MarineSquad.CAPACITY, roster.readyCount(overflow));
+        assertEquals(lieutenant.rank().squadCommandCap() + 1, bills[0], "Each raise pays one founding bill");
+    }
+
+    @Test void raiseTileIsTheLastTileAndUnaffordableStoresDisableIt() {
+        var roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
+        @SuppressWarnings("unchecked")
+        var tiles = (List<Map<String, Object>>) value(model, "squads");
+        assertEquals(model.cards().size() + 1, tiles.size());
+        var tile = tiles.get(tiles.size() - 1);
+        assertEquals("barracks-raise-squad", tile.get("founderId"));
+        assertEquals(true, tile.get("founderDisabled"));
+        int before = roster.squads().size();
+        model.raiseSquad();
+        assertEquals(before, roster.squads().size(), "No stores, no squad");
     }
 
     @Test void selectionSpansPagesButNotStationedSquadsAndFiltersDiscardIt() {

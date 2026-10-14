@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadCareer;
+import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -47,6 +48,12 @@ public final class BarracksViewModel {
     public BarracksViewModel(Reactor reactor, MarineRoster roster, DoubleSupplier currentDay,
                             EquipmentIssueResources resources, IntSupplier cargoMarines,
                             Function<String, PersonnelDrawResult> reinforce) {
+        this(reactor, roster, currentDay, resources, SquadFoundingResources.NONE, cargoMarines, reinforce);
+    }
+
+    public BarracksViewModel(Reactor reactor, MarineRoster roster, DoubleSupplier currentDay,
+                            EquipmentIssueResources resources, SquadFoundingResources foundingResources,
+                            IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
@@ -64,7 +71,7 @@ public final class BarracksViewModel {
         });
         selectedSquadSummary = reactor.computed(this::buildSelectedSummary);
         quartersStatus = reactor.computed(this::buildQuartersStatus);
-        command = new BarracksCommandModel(reactor, roster, resources, cargoMarines, reinforce,
+        command = new BarracksCommandModel(reactor, roster, resources, foundingResources, cargoMarines, reinforce,
                 selectedSquadId::set, this::refresh, currentDay);
     }
 

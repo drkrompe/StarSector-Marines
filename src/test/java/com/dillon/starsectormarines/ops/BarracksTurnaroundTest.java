@@ -32,7 +32,7 @@ class BarracksTurnaroundTest {
             @Override public void goTo(ScreenId screen) { routes.add(screen); }
         };
         model.equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
-        model.navigation(() -> {}, context::openSquadEquipmentFromBarracks, () -> {}, false);
+        model.navigation(context::openSquadEquipmentFromBarracks, () -> {}, false);
         model.toggle(squad.id());
         model.inspect(squad.id());
         assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
