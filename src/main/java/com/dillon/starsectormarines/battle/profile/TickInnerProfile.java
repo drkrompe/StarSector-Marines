@@ -234,6 +234,10 @@ public final class TickInnerProfile {
         /** Count-only: contact blocks walked and (free squad, area) arrival estimates priced by the flow step. */
         FLOW_BLOCK,
         FLOW_ETA_EVAL,
+        /** Count-only: squads reserved to pressure areas in all, track rallies sent to an area's staging cell, and areas not staged for because they offer nothing to man. */
+        FLOW_RESERVED,
+        FLOW_RALLY_AREA,
+        FLOW_WORKLESS_AREA,
         /** Registry rebuilds (one per fighting-position index change): wall time and count. */
         GARRISON_REGISTRY_BUILD,
         COMMANDER_PLAN,

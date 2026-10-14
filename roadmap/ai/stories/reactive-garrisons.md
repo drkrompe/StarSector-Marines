@@ -1,10 +1,10 @@
 # Reactive garrisons
 
-Status: IN PROGRESS — reactive manning, arrival gate, fall back and general flow built; unify rally and flow next
+Status: IN PROGRESS — reactive manning, arrival gate, fall back, flow and the unified per-area reservation built; churn and tuning next
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — general flow (`GarrisonFlow`) replaces fort-only staging; letting manning take just-rallied patrols raised fort-control sends from about 5 to about 25 and dug-in squads from 1 to 11–14. Flow staging alone is marginal because the rally spends about 75% of the pool first. Fall backs now occur live (5–8 per run).
+Updated: 2026-10-13 — rally and flow unified (`AreaReservations`): fort-control rally response to a new threatened track 250→19 ticks and canonical maps back to the plain rally, but man/release events rose from 24 to 42 and dug-in marine-samples fell from 2657 to 1506.
 
 ## Intent
 
@@ -50,14 +50,12 @@ releases them when the pressure passes.
 
 ## Next
 
-- Make the track rally and flow one per-area reservation, so the rally's
-  destination is an area's staging cell or garrisonable and flow is not left
-  with the remainder.
-- Stop staging on maps or areas with nothing to man, where it only costs rally
-  share.
-- One published directive showed the staging reason with no assignment cell;
-  find out why.
-- Tune the weights and dwells once the pool split is settled.
+- Churn: the unified reservation sends and releases far more often and digs in
+  for less time. Find what releases squads (area drift, fall backs rising from
+  16 to 23, en-route releases) and damp it before tuning anything else.
+- Tune the weights, dwells, arrival bound and breach lockout.
+- A staging directive without an assignment cell was seen once and not
+  reproduced; it is now guarded (rewritten as a reserve hold), not explained.
 
 ## Constraints
 
@@ -67,7 +65,8 @@ releases them when the pressure passes.
 - Keep and other declared holds remain born garrisons.
 - Deterministic; candidate belts found spatially from threatened bands, on the
   command cadence.
-- `battle.fort.beltGarrison` keeps a same-build control.
+- `battle.fort.beltGarrison`, `battle.garrison.flow`, `battle.garrison.fromRally` and
+  `battle.garrison.unifiedRally` keep same-build controls.
 
 ## Acceptance
 

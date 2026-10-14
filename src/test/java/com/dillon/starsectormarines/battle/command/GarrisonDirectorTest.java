@@ -450,6 +450,51 @@ class GarrisonDirectorTest {
         assertEquals(List.of(0, 1), Arrays.stream(director.warmPlaces()).boxed().sorted().toList());
     }
 
+    @Test
+    void aSquadReservedToThePlacesAreaIsDrawnBeforeANearerOne() {
+        pressure(0, 9f);
+        evaluate(List.of(), 0);
+        // Squad 100 stands next to the trench; squad 101 is farther but reserved to its area.
+        List<Free> free = List.of(new Free(100, 14, 12), new Free(101, 40, 12));
+
+        List<Man> sent = director.assign(free, always(), (squad, place) -> squad == 101);
+
+        assertEquals(List.of(new Man(101, 0)), sent);
+    }
+
+    @Test
+    void aReservedSquadBeyondTheMarchBoundIsPassedOverForANearerOne() {
+        pressure(2, 9f);
+        evaluate(List.of(), 2);
+        // Reserved squad 101 is past the arrival bound of the far trench; squad 100 is close.
+        int cx = registry.centreX(2);
+        List<Free> free = List.of(new Free(100, cx - 4, 12), new Free(101, 5, 12));
+
+        List<Man> sent = director.assign(free, always(), (squad, place) -> squad == 101);
+
+        assertEquals(List.of(new Man(100, 2)), sent);
+    }
+
+    @Test
+    void aReservationDoesNotLetARovingPatrolBelowTheFloor() {
+        pressure(0, 9f);
+        evaluate(List.of(), 0);
+
+        // The only free patrol is roving and reserved to the area: the reserve floor still keeps it.
+        List<Man> sent = director.assign(List.of(new Free(100, 14, 12)), always(), (squad, place) -> true);
+
+        assertTrue(sent.isEmpty());
+    }
+
+    @Test
+    void noPreferenceIsTheOriginalNearestFirstOrder() {
+        pressure(0, 9f);
+        evaluate(List.of(), 0);
+        List<Free> free = List.of(new Free(100, 14, 12), new Free(101, 40, 12), new Free(102, 60, 12));
+
+        assertEquals(List.of(new Man(100, 0)), director.assign(free, always(), null));
+    }
+
     private int lastConsidered() {
         return profile.countOf(TickInnerProfile.Bucket.GARRISON_CANDIDATE);
     }

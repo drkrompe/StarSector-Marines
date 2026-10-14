@@ -37,6 +37,30 @@ class GarrisonFlowTest {
     }
 
     @Test
+    void aThreatenedTrackMapsOntoItsHeaviestWorthwhileAreaOnThatTrack() {
+        // Tracks are 100 cells wide in x.
+        List<Area> areas = areas(new int[][]{{5, 5}, {20, 5}, {35, 5}}, 9f, 30f, 12f);
+        GarrisonFlow.TrackOf trackOf = (x, y) -> x / 100;
+
+        // Centres: x = 44, 164, 284 -> tracks 0, 1, 2.
+        assertEquals(areas.indexOf(areas.stream().filter(a -> a.centreX() < 100).findFirst().orElseThrow()),
+                GarrisonFlow.areaOfTrack(areas, trackOf, 0));
+        assertTrue(GarrisonFlow.areaOfTrack(areas, trackOf, 1) >= 0);
+        assertEquals(-1, GarrisonFlow.areaOfTrack(areas, trackOf, 3), "a track with no area maps onto nothing");
+    }
+
+    @Test
+    void whenTwoAreasShareATrackTheHeavierIsTheRalliesAndAFaintOneIsNone() {
+        List<Area> areas = areas(new int[][]{{2, 2}, {2, 20}, {30, 2}}, 6f, 18f, 0.5f);
+        GarrisonFlow.TrackOf trackOf = (x, y) -> x / 100;
+
+        int onTrackZero = GarrisonFlow.areaOfTrack(areas, trackOf, 0);
+        assertEquals(18f, areas.get(onTrackZero).weight(), 1e-4f);
+        // The faint block alone on track 2 is below the stop weight, so that track maps onto nothing.
+        assertEquals(-1, GarrisonFlow.areaOfTrack(areas, trackOf, 2));
+    }
+
+    @Test
     void blocksWithinTheLinkDistanceShareAnAreaAndFartherOnesDoNot() {
         List<Area> linked = areas(new int[][]{{5, 5}, {8, 5}}, 4f, 4f);
         assertEquals(1, linked.size(), "three blocks apart is within the link");

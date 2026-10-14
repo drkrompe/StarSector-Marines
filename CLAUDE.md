@@ -257,7 +257,8 @@ Do not run builds or leave generated task files there.
   `-Dbattle.fort.beltGarrison=reactive|static|off` selects how belts are manned;
   `-Dbattle.garrison.flow=false` stops pressure-driven staging and
   `-Dbattle.garrison.fromRally=false` stops manning from taking just-rallied
-  patrols (both are needed for the pre-flow behaviour). The fort report carries a
+  patrols (both are needed for the pre-flow behaviour).
+  `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow. The fort report carries a
   `pressure flow:` line and a fighting-position use block per faction. Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
