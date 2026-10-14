@@ -144,7 +144,7 @@ public final class AirStrikeScene implements BehaviorScene {
         Trace trace = new Trace(world, loop, guns, plan, drain);
         int ticks = drain ? DRAIN_TICKS : TICKS;
         SceneRun.of(world).observe(trace)
-                .frames(frames, loop, 15, tick -> trace.caption(loop, tick))
+                .frames(frames, loop, 60, tick -> trace.caption(loop, tick))
                 .run(ticks);
         return new Result(report(loop, trace, sim, light, ticks), trace.garrisonDead);
     }

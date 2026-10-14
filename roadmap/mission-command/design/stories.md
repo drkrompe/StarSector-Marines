@@ -4,7 +4,7 @@ Status: ACTIVE — shared architecture and mission-specific migrations are track
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — phased assault slices 1-3 are built and off by default; see their rows. Earlier: strategic-resolution evidence and compact navigation
+Updated: 2026-10-14 — air strike offered as a plan capability (FortAssault integration open). Earlier: phased assault slices 1-3 built and off by default.
 snapshots are folded into the canonical model; open work remains below.
 
 Read `mission-command-nouns.md`, then the relevant mission design before an
