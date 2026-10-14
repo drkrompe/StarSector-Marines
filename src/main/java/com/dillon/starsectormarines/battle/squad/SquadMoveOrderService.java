@@ -33,7 +33,7 @@ public final class SquadMoveOrderService {
     /** Accepted contextual order projected for execution and UI feedback. */
     public sealed interface ActiveOrder
             permits ActiveMoveOrder, ActiveCaptureOrder, ActiveDefendAreaOrder,
-                    ActiveMountOrder {
+                    ActiveMountOrder, ActiveHoldPlaceOrder {
         int requestedX();
         int requestedY();
         int destinationX();
@@ -49,6 +49,15 @@ public final class SquadMoveOrderService {
     public record ActiveCaptureOrder(int requestedX, int requestedY,
                                      int destinationX, int destinationY,
                                      TacticalNode targetNode)
+            implements ActiveOrder { }
+
+    /**
+     * Hold a building: garrison the held place the click landed in, entered at its interior
+     * anchor. Like a defense area it stands until superseded.
+     */
+    public record ActiveHoldPlaceOrder(int requestedX, int requestedY,
+                                       int destinationX, int destinationY,
+                                       TacticalNode targetNode)
             implements ActiveOrder { }
 
     /**
