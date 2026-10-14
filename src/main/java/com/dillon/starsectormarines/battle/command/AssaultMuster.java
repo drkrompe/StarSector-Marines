@@ -180,6 +180,9 @@ final class AssaultMuster {
         }
     }
 
+    /** How much further than the nearest squad an observer may be and still be the one a company takes. */
+    private static final double OBSERVER_DETOUR_CELLS = 40.0;
+
     private static final class Company {
         final int fortId;
         Stage stage = Stage.MUSTER;
@@ -559,6 +562,14 @@ final class AssaultMuster {
         return out;
     }
 
+    private static boolean hasObserver(Company company, Map<Integer, Body> byId) {
+        for (int id : company.members) {
+            Body body = byId.get(id);
+            if (body != null && body.capabilities().has(AssaultCapability.AIR_DIRECTION)) return true;
+        }
+        return false;
+    }
+
     /** Infantry squads on a lane, whoever has them. */
     private static int laneTotal(Map<Integer, Body> byId, int track) {
         int n = 0;
@@ -608,6 +619,10 @@ final class AssaultMuster {
             boolean massShort = strengthOf(company, byId) < required;
             boolean unstaffed = defence != null && !defence.staffed();
             if (!massShort && !unstaffed) break;
+            // A side with bombers on offer prefers a squad with an observer to direct them, while the company has none.
+            boolean wantsObserver = air.any() && !hasObserver(company, byId);
+            Body observer = null;
+            double observerGap = Double.MAX_VALUE;
             Body pick = null;
             double bestGap = Double.MAX_VALUE;
             // A plan that cannot be staffed wants the squad that fills what it lacks before it wants more of what it has.
@@ -616,6 +631,11 @@ final class AssaultMuster {
                     if (pass == 0 && !fillsAGap(defence, body)) continue;
                     if (pass == 1 && !massShort) continue;
                     double gap = Math.hypot(body.anchorX() - company.rallyX, body.anchorY() - company.rallyY);
+                    if (wantsObserver && body.capabilities().has(AssaultCapability.AIR_DIRECTION)
+                            && (gap < observerGap || (gap == observerGap && observer != null && body.squadId() < observer.squadId()))) {
+                        observer = body;
+                        observerGap = gap;
+                    }
                     if (gap < bestGap || (gap == bestGap && pick != null && body.squadId() < pick.squadId())) {
                         pick = body;
                         bestGap = gap;
@@ -623,6 +643,11 @@ final class AssaultMuster {
                 }
             }
             if (pick == null) break;
+            // An observer is taken ahead of the nearest squad when it is not much further, never at the price of a long wait.
+            if (observer != null && observer != pick && observerGap <= bestGap + OBSERVER_DETOUR_CELLS) {
+                pick = observer;
+                bestGap = observerGap;
+            }
             company.members.add(pick.squadId());
             company.progress.put(pick.squadId(), new double[] {bestGap, tick});
             recruited++;
