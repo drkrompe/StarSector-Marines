@@ -677,9 +677,11 @@ a callsign does, and she never speaks for the ship.
 
 She takes part in the same exchanges under the same rules: sampled from
 accepted assignments, sharing the voice budget, rotating with the callsign cast.
-Exchanges that are about more than one squad, or about the company as a whole,
-are hers to take; single-squad exchanges stay with the callsigns. She is not
-bound to any squad's roster name. She speaks only in battles she is actually
+Her exchanges are **alternatives, not replacements**. Castle keeps talking to
+squads directly, exactly as today; an exchange about more than one squad, or
+about the company as a whole, may be voiced either way, Castle to a callsign or
+Castle through Sabine, and the rotation picks between them. Single-squad
+contact reports stay with the callsigns. She is not bound to any squad's roster name. She speaks only in battles she is actually
 deployed in; when she is wounded or left aboard, the net runs exactly as it does
 today. Examples:
 
