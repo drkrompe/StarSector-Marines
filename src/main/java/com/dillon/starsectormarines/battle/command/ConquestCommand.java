@@ -547,6 +547,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private final Int2IntOpenHashMap squadStripIdx = new Int2IntOpenHashMap();
     /** Live squads per home track, rebuilt each pulse; see {@link #BALANCED_HOME_TRACKS_PROPERTY}. */
     private final int[] stripLoad = new int[STRIP_COUNT];
+    /** Tracks holding a compound to take, rebuilt each pulse: the only tracks a new squad is homed to. */
+    private final boolean[] stripHasWork = new boolean[STRIP_COUNT];
     {
         squadStripIdx.defaultReturnValue(-1);
     }
@@ -915,6 +917,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
                             planned = planned.withDistantCaptureDeferred();
                         }
                         directives.put(squad.id, planned);
+                        continue;
+                    }
+                    if (stillClosingOnStage(squad, frame)) {
+                        // A stage the squad has not reached yet is not spent because the next one would be too
+                        // short a step: clearing it halted the squad every other pulse, so a line with no enemy
+                        // believed ahead crawled a few cells per order.
+                        directives.put(squad.id, directive(squad, preferredTrack, preferredTrack,
+                                trackFront(squad, preferredTrack, frame).believed()
+                                        ? AssignmentReason.TRACK_LINE_ADVANCE
+                                        : AssignmentReason.TRACK_LINE_SCOUT_ADVANCE));
                         continue;
                     }
                     squad.assignedObjective = null;
@@ -2212,14 +2224,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (squad.commandGroup != null && squad.commandGroup.namedOfficer()) {
             idx = groupTracks.computeIfAbsent(squad.commandGroup.groupId(), key -> idxForGroup(squad));
         } else if (BALANCED_HOME_TRACKS_ENABLED) {
-            idx = leastLoadedTrack(stripLoad, idx);
+            idx = leastLoadedTrack(stripLoad, idx, stripHasWork);
             stripLoad[idx]++;
         }
         squadStripIdx.put(squad.id, idx);
         return idx;
     }
 
-    /** Counts the live squads already homed on each track. */
+    /**
+     * Counts the live squads already homed on each track, and marks the tracks
+     * with work in them: a compound to take, which is map geometry and
+     * objective law either side may read. The marines' own beachhead is not
+     * work. A strip with no compound is ground the front crosses on its way to
+     * one, not a front of its own.
+     */
     private void rebuildStripLoad(ConquestCommandFrame frame) {
         Arrays.fill(stripLoad, 0);
         for (CommandSquadState state : frame.squads()) {
@@ -2227,17 +2245,31 @@ public final class ConquestCommand implements ConquestFrontCommand,
             int track = squadStripIdx.get(state.squadId());
             if (track >= 0 && track < STRIP_COUNT) stripLoad[track]++;
         }
+        Arrays.fill(stripHasWork, false);
+        for (ConquestCommandFacts.Compound fact : frame.facts().compounds()) {
+            if (fact.node().kind == TacticalNode.Kind.BEACHHEAD) continue;
+            int track = trackLayout.trackForCell(fact.captureCellX(), fact.captureCellY());
+            if (track >= 0 && track < STRIP_COUNT) stripHasWork[track] = true;
+        }
     }
 
     /**
-     * The track with the fewest squads homed on it; the squad's natural track
-     * wins a tie, then the nearest to it, so a landing that is already spread
-     * keeps its lanes.
+     * The track with the fewest squads homed on it among those with work in
+     * them; the squad's natural track wins a tie, then the nearest to it, so a
+     * landing that is already spread keeps its lanes. Measured on the trial
+     * ground, whose objectives all stand in one third of the map: balancing
+     * over every strip homed a third of the company to an empty one, where the
+     * no-front staging rule walked it up open ground for the whole battle. A map
+     * with work on no track (or none known) balances over all of them.
      */
-    static int leastLoadedTrack(int[] load, int natural) {
-        int best = natural;
+    static int leastLoadedTrack(int[] load, int natural, boolean[] hasWork) {
+        boolean anyWork = false;
+        for (boolean work : hasWork) anyWork |= work;
+        int best = -1;
         for (int track = 0; track < load.length; track++) {
-            if (load[track] < load[best]
+            if (anyWork && !hasWork[track]) continue;
+            if (best < 0
+                    || load[track] < load[best]
                     || load[track] == load[best]
                     && Math.abs(track - natural) < Math.abs(best - natural)) {
                 best = track;
@@ -2673,11 +2705,30 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * through, and the bound that keeps a blind advance from becoming a lone
      * flank walking off ahead of the force that would have to support it.
      */
+    /**
+     * Whether the squad still holds an advance-track order it has not reached: its stage lies at least
+     * {@link #TRACK_LINE_MIN_ADVANCE_CELLS} ahead of it and it can still get there.
+     */
+    private boolean stillClosingOnStage(PlanningSquad squad, ConquestCommandFrame frame) {
+        ObjectiveAssignment cur = squad.assignedObjective;
+        if (cur == null || cur.kind() != AssignmentKind.ADVANCE_TRACK) return false;
+        int squadForward = Math.round(trackLayout.forwardCoordinate(squad.centroidX, squad.centroidY));
+        int stageForward = Math.round(trackLayout.forwardCoordinate(cur.targetCellX(), cur.targetCellY()));
+        if (stageForward < squadForward + TRACK_LINE_MIN_ADVANCE_CELLS) return false;
+        CommandTopology topology = frame.topology();
+        return topology.inBounds(squad.anchorCellX, squad.anchorCellY)
+                && topology.reachable(squad.anchorCellX, squad.anchorCellY, cur.targetCellX(), cur.targetCellY());
+    }
+
     private int neighbourLeadForward(int track, ConquestCommandFrame frame) {
         int lead = NO_FRIENDLY_LEAD;
+        boolean anyWork = false;
+        for (boolean work : stripHasWork) anyWork |= work;
         for (int neighbour = track - 1; neighbour <= track + 1; neighbour++) {
             if (neighbour == track) continue;
             if (neighbour < 0 || neighbour >= STRIP_COUNT) continue;
+            // An empty strip is no front to keep in step with: squads standing in it are crossing to their own.
+            if (anyWork && !stripHasWork[neighbour]) continue;
             lead = Math.max(lead,
                     friendlyLeadForward(neighbour, NO_FRIENDLY_LEAD, frame));
         }
