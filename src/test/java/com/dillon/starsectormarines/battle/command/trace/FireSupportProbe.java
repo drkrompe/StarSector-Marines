@@ -41,6 +41,7 @@ final class FireSupportProbe {
         World w = sim.world();
         int tick = sim.getSimTickIndex();
         for (FieldMortarService.Tube tube : sim.fieldMortars().tubes()) {
+            if (tube.faction != Faction.MARINE) continue;
             tubeRounds.put(tube.entityId() != 0L ? tube.entityId() : -tube.carrierId,
                     new int[] {tube.roundsFired(), tube.missionRoundsFired()});
             if (tube.missionTarget() != 0L) lastMortarAim.put(tube.missionTarget(), tick);
@@ -79,7 +80,7 @@ final class FireSupportProbe {
         }
         FieldMortarService mortars = sim.fieldMortars();
         StringBuilder out = new StringBuilder();
-        out.append(String.format("- fire support: tubes set down %d, lifted %d, lost with gunner %d, shot out %d, re-crewed %d; "
+        out.append(String.format("- fire support: tubes, both sides (set down %d, lifted %d, lost with gunner %d, shot out %d, re-crewed %d); marine tubes: "
                         + "rounds fired %d (%d on an assigned mission)%n",
                 mortars.setUps(), mortars.packs(), mortars.lostWithGunner(), mortars.destroyedStanding(), mortars.recrewed(),
                 rounds, mission));
