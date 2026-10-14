@@ -2111,7 +2111,9 @@ an area with something to man goes to its staging cell, and manning takes the
 area's own reserved patrols first, then the roving pool above its reserve floor. A manned run with an enemy
 believed inside it, or a garrison too small to hold it, falls back to the works
 of the fort it belongs to if the side still holds them, else returns to the pool;
-a breached run is not re-manned for a while.
+a breached run is not re-manned for a while. A squad is sent to man a run only at
+useful strength, and a breach is a believed enemy on the run itself near the
+squad, not one beside the run or at its far end.
 
 **What it pays is composure, never protection.** Cover already reduces damage
 and stops rounds, and the cells of a position already carry it; a dug-in damage

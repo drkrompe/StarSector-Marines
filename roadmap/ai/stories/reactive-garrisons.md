@@ -1,10 +1,10 @@
 # Reactive garrisons
 
-Status: IN PROGRESS — reactive manning, arrival gate, fall back, flow and the unified per-area reservation built; churn and tuning next
+Status: IN PROGRESS — reactive manning, flow and the unified reservation built and churn damped; strength floor and multi-seed evidence next
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — rally and flow unified (`AreaReservations`): fort-control rally response to a new threatened track 250→19 ticks and canonical maps back to the plain rally, but man/release events rose from 24 to 42 and dug-in marine-samples fell from 2657 to 1506.
+Updated: 2026-10-13 — churn diagnosed: 27 of 55 sends were depleted squads released the next pulse; remote breaches a minor cause; area drift, work stealing and re-man ping-pong were not causes. Sends now require useful strength and breaches are local: man/release 42/41→23/21, dug-in marine-samples 1506→2497 (control 2794), rally response kept at 19 ticks, canonical maps unchanged.
 
 ## Intent
 
@@ -50,12 +50,14 @@ releases them when the pressure passes.
 
 ## Next
 
-- Churn: the unified reservation sends and releases far more often and digs in
-  for less time. Find what releases squads (area drift, fall backs rising from
-  16 to 23, en-route releases) and damp it before tuning anything else.
-- Tune the weights, dwells, arrival bound and breach lockout.
+- The useful-strength floor is a fixed three marines against three-to-four-man
+  defender squads, so one casualty forces a fall back; scale it to the squad's
+  starting strength.
+- Single runs swing by several hundred dug-in samples; build a multi-seed fort
+  matrix before tuning any weight or dwell.
+- Some squads still die on marches of a thousand ticks or more.
 - A staging directive without an assignment cell was seen once and not
-  reproduced; it is now guarded (rewritten as a reserve hold), not explained.
+  reproduced; it is guarded, not explained.
 
 ## Constraints
 
