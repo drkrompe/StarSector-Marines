@@ -873,7 +873,7 @@ class ConquestCommandBalanceTest {
                 stageDirectives, defenderDirectives, 100.0 * stageDirectives / Math.max(1, defenderDirectives));
     }
 
-    private static String fortOrders(String trace) {
+    static String fortOrders(String trace) {
         StringBuilder out = new StringBuilder(flowEvidence(trace));
         out.append(RallyResponseEvidence.describe(trace));
         out.append("- structure orders in the command trace:");

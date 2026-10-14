@@ -1,8 +1,10 @@
 # Conquest trial ground
 
-Status: IN PROGRESS — separating the Conquest mission layer from the city generator, then the synthetic map and its harness
+Status: IN PROGRESS — mission layer extracted and trial ground playing; first finding: an unmanned fort is invisible to the defender commander
 
 Written: 2026-10-14
+
+Updated: 2026-10-14 — steps 1–3 built. First run: the defender commander never saw marines at the fort (threat tracks 0 throughout), because its picture is squads' beliefs and a reactive belt has no squad on it; turrets do not report.
 
 ## Intent
 

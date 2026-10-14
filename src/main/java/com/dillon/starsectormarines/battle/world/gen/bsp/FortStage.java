@@ -141,9 +141,30 @@ public final class FortStage implements GenStage {
     public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target,
                          float domeRadius) {}
 
-    private final List<Placed> placed = new ArrayList<>();
+    /**
+     * A fort stood at a stated centre rather than sited: an authored map (a trial ground) says where its fort is and
+     * which way the main gate faces ({@code facingX/Y}, a point the gate turns toward). The ground there must be open.
+     */
+    public record Pin(FortKind kind, int centreX, int centreY, int facingX, int facingY) {}
 
-    public FortStage() {}
+    private final List<Placed> placed = new ArrayList<>();
+    private final List<Pin> pins;
+
+    public FortStage() {
+        this.pins = null;
+    }
+
+    private FortStage(List<Pin> pins) {
+        this.pins = List.copyOf(pins);
+    }
+
+    /**
+     * A stage that stands exactly these forts where they are pinned, ignoring any declaration in the market profile,
+     * and fails when one cannot stand. Must run after the tactical regions are built, like the sited stage.
+     */
+    public static FortStage pinned(List<Pin> pins) {
+        return new FortStage(pins);
+    }
 
     /** The forts this stage stood on its last run, in the order they were placed. */
     public List<Placed> placed() {
@@ -153,6 +174,10 @@ public final class FortStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
         placed.clear();
+        if (pins != null) {
+            runPinned(ctx);
+            return;
+        }
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         if (profile == null) return;
         boolean any = false;
@@ -198,6 +223,31 @@ public final class FortStage implements GenStage {
             }
         }
         if (placed.isEmpty()) return;
+        finish(ctx);
+        ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
+    }
+
+    private void runPinned(GenContext ctx) {
+        if (ctx.get(BspKeys.TACTICAL_REGIONS) == null) {
+            throw new IllegalStateException("FortStage requires TACTICAL_REGIONS - must run after TacticalRegionStage");
+        }
+        Ground ground = new Ground(ctx);
+        for (Pin pin : pins) {
+            FortPlan plan = PLANS.stream().filter(p -> p.kind() == pin.kind()).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("no fort plan for " + pin.kind()));
+            Site site = new Site(pin.centreX(), pin.centreY(), 0, 0L);
+            CompoundLayout.Placement at = fit(plan, plan.layout(), ground, site, ctx,
+                    new FortSiting.Point(pin.facingX(), pin.facingY()));
+            if (at == null) {
+                throw new IllegalStateException("pinned " + pin.kind() + " cannot stand at " + pin.centreX() + ","
+                        + pin.centreY() + ": the ground there is not open");
+            }
+            int fortId = placed.size();
+            float dome = domeRadius(plan, at, null);
+            stamp(ctx, plan, at, fortId, ground, dome);
+            ground.exclude(plan, at);
+            placed.add(new Placed(at, fortId, plan, null, dome));
+        }
         finish(ctx);
         ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
     }
