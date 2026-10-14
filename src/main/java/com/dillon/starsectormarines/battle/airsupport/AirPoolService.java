@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
+import com.dillon.starsectormarines.battle.air.CoverDuty;
+import com.dillon.starsectormarines.battle.air.GunshipOrbit;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
@@ -50,6 +53,8 @@ public final class AirPoolService {
         NO_AIRFRAME,
         /** Nobody on the side can direct a strike at that point; nothing was reserved. */
         NO_OPERATOR,
+        /** Cover was asked for over ground a fighter already covers, or is on its way to; nothing was reserved. */
+        ALREADY_COVERED,
         /** A commander asked for a strike and the director's own estimate of the anti-air over it says no; nothing was reserved. */
         TOO_DEFENDED
     }
@@ -75,10 +80,21 @@ public final class AirPoolService {
         float regenProgress;
     }
 
-    private record PendingCall(Faction side, AirPoolKind kind, long operator, float x, float y, int readyTick) {}
+    /** What the pool has done for a side under one mission, for evidence and readouts. */
+    public record MissionTally(int called, int launched, int returned, int aborted, int lost) {}
+
+    private static final class Tally {
+        int called;
+        int launched;
+        int returned;
+        int aborted;
+        int lost;
+    }
+
+    private record PendingCall(Faction side, AirPoolKind kind, AirMission job, long operator, float x, float y, int readyTick) {}
 
     /** A sortie in the air; holds its mission so a craft reaped on the tick it lands can still be read. */
-    private record Sortie(long craft, ShuttleMission mission, Faction side, AirPoolKind kind, float x, float y) {}
+    private record Sortie(long craft, ShuttleMission mission, Faction side, AirPoolKind kind, AirMission job, float x, float y) {}
 
     private final AirPoolDeclaration declaration;
     private final Map<Faction, Map<AirPoolKind, Ledger>> ledgers = new EnumMap<>(Faction.class);
@@ -86,6 +102,7 @@ public final class AirPoolService {
     private final List<Sortie> sorties = new ArrayList<>();
     private final List<Event> events = new ArrayList<>();
     private final Map<Faction, AirStrikeDirector> directors = new EnumMap<>(Faction.class);
+    private final Map<Faction, Map<AirMission, Tally>> tallies = new EnumMap<>(Faction.class);
 
     public AirPoolService(AirPoolDeclaration declaration) {
         this.declaration = declaration != null ? declaration : AirPoolDeclaration.NONE;
@@ -141,6 +158,39 @@ public final class AirPoolService {
         return out;
     }
 
+    /** What the pool has done for {@code side} under {@code job}. */
+    public MissionTally tally(Faction side, AirMission job) {
+        Tally t = tallies.getOrDefault(side, Map.of()).get(job);
+        return t == null ? new MissionTally(0, 0, 0, 0, 0) : new MissionTally(t.called, t.launched, t.returned, t.aborted, t.lost);
+    }
+
+    private Tally tallyOf(Faction side, AirMission job) {
+        return tallies.computeIfAbsent(side, s -> new EnumMap<>(AirMission.class)).computeIfAbsent(job, j -> new Tally());
+    }
+
+    /** Cover fighters of {@code side} in the air, or called and not yet launched. */
+    public int coversOut(Faction side) {
+        int n = 0;
+        for (Sortie s : sorties) {
+            if (s.side == side && s.job == AirMission.COVER) n++;
+        }
+        for (PendingCall c : pending) {
+            if (c.side == side && c.job == AirMission.COVER) n++;
+        }
+        return n;
+    }
+
+    /** Whether a cover fighter of {@code side} is, or is about to be, on station within {@code radius} cells of the point. */
+    public boolean covers(Faction side, float x, float y, float radius) {
+        for (Sortie s : sorties) {
+            if (s.side == side && s.job == AirMission.COVER && Math.hypot(s.x - x, s.y - y) <= radius) return true;
+        }
+        for (PendingCall c : pending) {
+            if (c.side == side && c.job == AirMission.COVER && Math.hypot(c.x - x, c.y - y) <= radius) return true;
+        }
+        return false;
+    }
+
     /**
      * An immutable display snapshot of {@code side}'s pool at sim tick {@code nowTick}; {@link AirPoolView#NONE}
      * when the side holds none. Reads only: it reserves, launches and regenerates nothing.
@@ -171,9 +221,13 @@ public final class AirPoolService {
         return new AirPoolView(rows, flying, calls, recent);
     }
 
-    /** What a sortie was sent to do; every pool sortie is a strike until a mission type is recorded on it. */
+    /** What a sortie was sent to do, as the display names it. */
     private static AirPoolView.Mission missionOf(Sortie sortie) {
-        return AirPoolView.Mission.STRIKE;
+        return switch (sortie.job) {
+            case BOMB -> AirPoolView.Mission.STRIKE;
+            case STRAFE -> AirPoolView.Mission.STRAFE;
+            case COVER -> AirPoolView.Mission.COVER;
+        };
     }
 
     /** Every ledger line, oldest first. */
@@ -234,12 +288,47 @@ public final class AirPoolService {
         if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
+        int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
+        return call(sim, side, kind, AirMission.strikeOf(kind), operator, x, y, ready);
+    }
+
+    /**
+     * As {@link #request(BattleSimulation, Faction, AirPoolKind, float, float, boolean, LongPredicate)}, but the kind is
+     * the one the ground at the point calls for ({@link AirTasking}): a fighter for soft ground, a bomber for works and
+     * armour, the other when the preferred one is out of stock.
+     */
+    public Outcome requestAt(BattleSimulation sim, Faction side, float x, float y, boolean believes, LongPredicate operators) {
+        AirPoolKind kind = AirTasking.kindAt(sim, this, side, x, y);
+        if (kind == null) return Outcome.NO_AIRFRAME;
+        return request(sim, side, kind, x, y, believes, operators);
+    }
+
+    /**
+     * Has an operator of {@code side} send one fighter to cover the friendly ground at {@code (x, y)}: it flies in, holds a
+     * ring over the ground for a bounded time engaging hostile aircraft and, secondarily, ground threats the side has
+     * sighted near it, and goes home. The fighter is reserved at the call like any other and is the same airframe from
+     * the same stock a strafe uses.
+     *
+     * <p>The ground is the caller's own, so it is believed: an operator within radio range may call it without sight.
+     */
+    public Outcome requestCover(BattleSimulation sim, Faction side, float x, float y, LongPredicate operators) {
+        Ledger ledger = ledger(side, AirPoolKind.FIGHTER);
+        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        Operator operator = CommsOperators.best(sim, side, x, y, true, operators);
+        if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
+        int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
+        return call(sim, side, AirPoolKind.FIGHTER, AirMission.COVER, operator, x, y, ready);
+    }
+
+    private Outcome call(BattleSimulation sim, Faction side, AirPoolKind kind, AirMission job, Operator operator,
+                         float x, float y, int ready) {
+        Ledger ledger = ledger(side, kind);
         ledger.available--;
         ledger.reserved++;
-        int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
-        pending.add(new PendingCall(side, kind, operator.unit(), x, y, ready));
+        pending.add(new PendingCall(side, kind, job, operator.unit(), x, y, ready));
         sim.world().setSecondaryCooldownTimer(operator.unit(), operator.spec().cooldownSeconds());
         events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALLED, x, y));
+        tallyOf(side, job).called++;
         return Outcome.CALLING;
     }
 
@@ -258,6 +347,9 @@ public final class AirPoolService {
         regenerate(sim);
         completeCalls(sim);
         resolveSorties(sim);
+        for (Sortie sortie : sorties) {
+            if (sortie.job == AirMission.COVER) CoverTasking.task(sim, this, sortie.craft, sortie.mission, sortie.side);
+        }
         for (Map.Entry<Faction, AirPoolAllowance> side : declaration.allowances().entrySet()) {
             if (!side.getValue().aiDirected()) continue;
             director(side.getKey()).tick(sim, this);
@@ -319,11 +411,25 @@ public final class AirPoolService {
         mission.poolSortie = true;
         mission.passesLeft = call.kind.passes();
         mission.ordnance = call.kind.ordnance();
+        mission.aaExposure = call.kind.aaExposure();
+        if (call.job == AirMission.COVER) beginCover(world, craft, mission, call);
         ledger.outFlying++;
         ledger.launched++;
-        sorties.add(new Sortie(craft, mission, call.side, call.kind, call.x, call.y));
+        tallyOf(call.side, call.job).launched++;
+        sorties.add(new Sortie(craft, mission, call.side, call.kind, call.job, call.x, call.y));
         events.add(new Event(sim.getSimTickIndex(), call.side, call.kind, EventType.LAUNCHED, call.x, call.y));
         return true;
+    }
+
+    /** Turns a fresh fighter sortie into a patrol: the ring it holds about the ground, sized to what the airframe can fly. */
+    private static void beginCover(World world, long craft, ShuttleMission mission, PendingCall call) {
+        AirBody body = world.kinematics(craft);
+        mission.cover = new CoverDuty(call.x, call.y);
+        mission.orbitCentreX = call.x;
+        mission.orbitCentreY = call.y;
+        mission.orbitRadius = CoverDuty.ringRadius(call.kind.profile().flight().minTurnRadiusCells());
+        mission.orbitClockwise = GunshipOrbit.clockwiseFrom(body.x, body.y, body.facingDegrees, call.x, call.y,
+                mission.orbitRadius);
     }
 
     private void resolveSorties(BattleSimulation sim) {
@@ -337,6 +443,7 @@ public final class AirPoolService {
                 // Shot down: gone from the pool until regeneration replaces it.
                 ledger.outFlying--;
                 ledger.lost++;
+                tallyOf(sortie.side, sortie.job).lost++;
                 sorties.remove(i);
                 events.add(new Event(sim.getSimTickIndex(), sortie.side, sortie.kind, EventType.LOST,
                         sortie.x, sortie.y));
@@ -354,8 +461,10 @@ public final class AirPoolService {
             ledger.available++;
             ledger.returned++;
             sorties.remove(i);
+            tallyOf(sortie.side, sortie.job).returned++;
             if (mission.aborted) {
                 ledger.aborted++;
+                tallyOf(sortie.side, sortie.job).aborted++;
                 events.add(new Event(sim.getSimTickIndex(), sortie.side, sortie.kind, EventType.ABORTED,
                         sortie.x, sortie.y));
             }
