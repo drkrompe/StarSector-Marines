@@ -28,15 +28,6 @@
         <img id="{card.squad.reinforceIconId}" class="squad-reinforce-icon" src="{card.squad.reinforceIcon}" />
         <div id="{card.squad.reinforceLabelId}" class="squad-reinforce-label label">{card.squad.reinforceLabel}</div>
       </button>
-      <button id="{card.founderId}" class="{card.founderClasses}" disabled="{card.foundingDisabled}" onclick="{card.foundSquad}">
-        <img id="{card.plusId}" class="found-squad-cta-icon" src="graphics/ui/armory/found-squad.png" />
-        <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">{i18n.openingUiArmorySquadListFoundLineSquad}</div>
-        <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">{i18n.openingUiArmorySquadListCreateTheNextFullFormationFromAvailable}</div>
-        <div id="{card.founderCostsId}" class="squad-founder-costs">
-          <company-resource-cost each="cost in card.foundingCargoRows" key="{cost.id}" row="{cost}" />
-        </div>
-        <div id="{card.founderFeedbackId}" class="{card.foundingFeedbackClasses}">{card.foundingFeedbackText}</div>
-      </button>
     </div>
   </div>
 </template>
@@ -121,52 +112,5 @@
   .squad-reinforce-icon { width: 18px; height: 18px; }
   .squad-reinforce-label { width: 0px; height: 16px; flex-grow: 1; padding: 2px 0px; text-align: center; }
 
-  .squad-founder-slot {
-    width: 232px;
-    height: 380px;
-    overflow: hidden;
-  }
-  .squad-founder-card {
-    flex-direction: column;
-    width: 216px;
-    height: 364px;
-    padding: 6px;
-    gap: 6px;
-    border-width: 1px;
-    overflow: hidden;
-    font-family: body;
-    text-align: center;
-    background-color: #121719;
-  }
-  .squad-founder-card:hover { background-color: #252d2f; border-color: #dfc588; }
-  .found-squad-cta-icon { width: 80px; height: 80px; }
-  .found-squad-heading { height: 30px; white-space: normal; text-align: center; }
-  .found-squad-copy { height: 32px; white-space: normal; text-align: center; }
-  .squad-founder-costs {
-    flex-direction: column;
-    width: 100%;
-    height: 108px;
-    gap: 2px;
-    overflow: hidden;
-  }
-  .cargo-cost {
-    flex-direction: row;
-    width: 100%;
-    height: 18px;
-    padding: 1px 3px;
-    gap: 4px;
-    border-width: 1px;
-    text-align: left;
-  }
-  .cargo-cost.short { background-color: #321818; border-color: #9f4545; }
-  .cargo-cost-icon { width: 16px; height: 16px; }
-  .cargo-cost-label { width: 0px; height: 16px; flex-grow: 1; padding: 1px 0px; }
-  .squad-founder-feedback {
-    width: 100%;
-    height: 54px;
-    padding: 4px;
-    white-space: normal;
-    text-align: center;
-  }
   .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>

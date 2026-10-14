@@ -1,7 +1,6 @@
-<template props="firstRefitClasses,openFirstRefit,companySummary,squadGalleryCards,cargoStockRows,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="firstRefitClasses,openFirstRefit,companySummary,squadGalleryCards,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / FLEET MARINE COMPANY" />
-    <company-resource-stock stockId="armory-cargo-stock" rows="{cargoStockRows}" />
 
     <div id="squad-breadcrumb" class="panel">
       <button id="squad-breadcrumb-companies" onclick="{back}">{i18n.openingUiFleetArmoryBack}</button>
