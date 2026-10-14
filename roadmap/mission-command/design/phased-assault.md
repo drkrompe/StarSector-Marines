@@ -6,7 +6,7 @@ until the evidence below beats the trickle. Slices are on the mission-command bo
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), readiness counts the defence, lanes keep a share, a muster stands down rather than commit a sliver; `battle.command.muster` now defaults off.
+Updated: 2026-10-14 — the field mortar is a standoff anti-structure and suppression capability source (`special.field-mortar`); slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), muster off by default.
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -73,6 +73,17 @@ A plan is an ordered set of steps over roles, read from the stamp:
 
 Several plans per stamp are allowed (main gate, postern, breach), chosen by what
 the company has (demolition, mechs) and what is believed about the defence.
+
+### Mortar teams as a capability source
+
+A nest outranges a rifle squad, so the base of fire needs something that kills nests from beyond their reach.
+The **field mortar** (`special.field-mortar`; see "Crew-served fire support" in `ai-nouns.md`) is that capability
+in infantry form: catalog data gives its deployed weapon a reach beyond a nest's, a minimum range, splash and
+structure/wall damage, so the capability profile reads it as **standoff, indirect anti-structure with
+suppression** from data alone, with no plan-side special case. Today the tube fires on its section's own belief,
+so a spotter inside sight of the nests is part of the plan's base of fire; there is no way yet to *assign* a fire
+mission to a tube (open on `stories.md`). Evidence: scene `field-mortar` (a section with a tube against a fort's
+wall nests, a rifle-squad control at the same distance, and a loop where the deployed team is rushed).
 
 ## Mech lances arrive without the player
 

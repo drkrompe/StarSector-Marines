@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
@@ -278,6 +279,9 @@ public interface BattleView {
 
     /** Live point-defence emplacements placed out of the carried special slot, and their remaining bounds. */
     PointDefenseService pointDefense();
+
+    /** Crew-served tubes (the field mortar) that carriers have set down or are setting down, and their gunners. */
+    FieldMortarService fieldMortars();
 
     /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
     DeployedCoverService deployedCover();

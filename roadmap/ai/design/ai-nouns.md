@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — added fighting positions: a marine settled on prepared ground digs in for a per-marine composure benefit, defend-area squads claim exclusive position cells, and a claimed marine fights from the cell.
+Updated: 2026-10-14 — added crew-served fire support: the field mortar tube served by a gunner on the squad's own belief.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2053,6 +2053,27 @@ believed threat bearing moves, the squad rotates a spaced firing line and
 claims directional cover facing that report; direct targets are engaged from
 bounded cover without losing moving fire. Broken fire teams still peel under
 cohesion law, and a new player order or hard withdrawal supersedes the defense.
+
+### Crew-served fire support (the field mortar)
+
+A **field mortar** is a special-equipment item whose carrier — the gunner — sets a **tube** down and serves it,
+under the `crew-served-fire-support` policy. The tube is the catalog's indirect, minimum-range weapon
+(`weapon.field-mortar`) mounted on a deployable structure; the gunner is its crew, and the tube belongs to his
+squad.
+
+- **Fair knowledge.** The tube fires for the gunner's squad and only at what that squad *believes*: a spotter's
+  sighting is the squad's belief, so nests nobody has seen are not shelled. A believed target the tube then loses
+  sight of is still fired on at reduced accuracy.
+- **Set up on a halted section.** The gunner sets down only when the section has stopped, has been quiet for a few
+  seconds, believes in something worth a round inside the tube's band (beyond the dead zone, inside reach — one
+  hardened target, or two soft ones) and nobody it believes in is close enough to be on top of it.
+- **Packs up, relocates, can be lost.** An idle tube, an empty magazine or an enemy inside the danger distance
+  packs the tube (carried rounds survive packing). A tube shot out leaves the gunner alive but unarmed for a
+  cooldown; **a dead gunner loses the tube**.
+- **Friendly fire is vetoed** at launch: a round is not fired while a friendly stands under its impact.
+
+What it does not do yet: take an *assigned* fire mission from a commander or plan role (it fires on the section's
+own belief), or be re-crewed when the gunner dies. Numbers are untuned; the scene `field-mortar` reads them.
 
 ### Fighting positions
 
