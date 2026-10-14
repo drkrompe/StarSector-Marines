@@ -146,3 +146,4 @@ com.dillon.starsectormarines.ops.LimitedWarrantSnapshotSuite
 com.dillon.starsectormarines.ops.YardOwnersSnapshotSuite
 com.dillon.starsectormarines.battle.power.MechDropSceneSnapshotSuite
 com.dillon.starsectormarines.ops.RadioPortraitSnapshotSuite
+com.dillon.starsectormarines.ops.AgreusMapsSnapshotSuite

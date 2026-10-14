@@ -66,6 +66,9 @@ public final class RepositionToCover implements Action {
      */
     public static boolean tryReposition(long member, BattleControl sim) {
         if (sim.world().repositionCooldown(member) > 0f) return false;
+        // A dug-in marine's fighting position is the cover; shifting him for a better angle
+        // would end the dig-in the reposition is supposed to be improving on.
+        if (sim.isDugIn(member)) return false;
         long target = sim.targetOf(member);
         if (target == 0L) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
