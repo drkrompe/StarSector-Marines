@@ -34,6 +34,65 @@ public final class StoryServiceYard {
         }
     }
 
+    /**
+     * A site perimeter traced over existing ground, as a closed axis-aligned polygon of
+     * {@code x0, y0, x1, y1, ...} corners. Unlike {@link #fence}, it yields rather than refuses:
+     * roads, buildings, scenery, thresholds and berths it meets become openings in the run.
+     * A side with no opening of its own gets a five-cell gate at its middle, so a perimeter
+     * never seals the ground it encloses.
+     */
+    public void perimeter(int... corners) { perimeter(new int[0], corners); }
+
+    /** As {@link #perimeter(int...)}, with a five-cell gate centred on each {@code x, y} pair of {@code gates}. */
+    public void perimeter(int[] gates, int... corners) {
+        if (corners.length < 8 || corners.length % 2 != 0) throw new IllegalArgumentException("Perimeter needs four or more corners");
+        int n = corners.length / 2;
+        for (int i = 0; i < n; i++) {
+            int ax = corners[2 * i], ay = corners[2 * i + 1];
+            int bx = corners[2 * ((i + 1) % n)], by = corners[2 * ((i + 1) % n) + 1];
+            if (ax != bx && ay != by) throw new IllegalArgumentException("Perimeter sides must be axis-aligned");
+            int px = corners[2 * ((i + n - 1) % n)], py = corners[2 * ((i + n - 1) % n) + 1];
+            int length = Math.abs(bx - ax) + Math.abs(by - ay), dx = Integer.signum(bx - ax), dy = Integer.signum(by - ay);
+            boolean[] open = new boolean[length];
+            boolean hasOpening = false;
+            for (int s = 0; s < length; s++) {
+                int x = ax + dx * s, y = ay + dy * s;
+                open[s] = canFence(x, y) && !inGate(gates, x, y);
+                hasOpening |= !open[s];
+            }
+            if (!hasOpening) for (int s = length / 2 - 2; s <= length / 2 + 2; s++) if (s > 0 && s < length) open[s] = false;
+            for (int s = 0; s < length; s++) {
+                if (!open[s]) continue;
+                int x = ax + dx * s, y = ay + dy * s;
+                prop(x, y, "industrial-fence-" + (s == 0 ? corner(px, py, ax, ay, bx, by) : dx != 0 ? "straight-h" : "straight-v"), 0);
+            }
+        }
+    }
+
+    /** The corner piece joining the side arriving from {@code p} with the side leaving toward {@code b}. */
+    private static String corner(int px, int py, int x, int y, int bx, int by) {
+        boolean north = py > y || by > y, east = px > x || bx > x;
+        return "corner-" + (north ? "s" : "n") + (east ? "w" : "e");
+    }
+
+    private static boolean inGate(int[] gates, int x, int y) {
+        for (int i = 0; i + 1 < gates.length; i += 2)
+            if (Math.abs(gates[i] - x) <= 2 && Math.abs(gates[i + 1] - y) <= 2) return true;
+        return false;
+    }
+
+    private boolean canFence(int x, int y) {
+        if (!c.grid.inBounds(x, y) || !c.grid.isWalkable(x, y) || c.topology.isFixture(x, y)
+                || c.topology.hasBuildingKindHint(x, y)
+                || c.topology.getGroundKind(x, y) == GroundKind.STREET
+                || c.topology.getGroundKind(x, y) == GroundKind.STRIPED) return false;
+        for (int yy = y - 2; yy <= y + 2; yy++) for (int xx = x - 2; xx <= x + 2; xx++)
+            if (c.grid.inBounds(xx, yy) && c.grid.isDoorway(xx, yy)) return false;
+        for (LandingPad pad : c.landingPads)
+            if (x >= pad.left() - 2 && x <= pad.right() + 2 && y >= pad.bottom() - 2 && y <= pad.top() + 2) return false;
+        return true;
+    }
+
     /** Four hazard corner marks define a working bay without carpeting it in warning paint. */
     public void bay(int l, int b, int r, int t) {
         for (int y = b; y <= t; y++) for (int x = l; x <= r; x++) {

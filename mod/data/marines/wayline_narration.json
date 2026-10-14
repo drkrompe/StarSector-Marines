@@ -351,7 +351,7 @@
       "event": "cold_start.south_haul_contact",
       "text": "South haul checkpoint's taking fire. They're day hands, Captain, but they're my hire. Give them a hand if you can.",
       "durationSeconds": 6.4,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -368,7 +368,7 @@
       "event": "cold_start.south_haul_withdrawing",
       "text": "South haul checkpoint's running. Can't say I blame them, for what I'm paying. Cover them back to the inner line.",
       "durationSeconds": 6.24,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -387,7 +387,7 @@
       "event": "cold_start.south_haul_overrun",
       "text": "South haul checkpoint's gone. So much for proper guards. Watch for anyone coming back, and keep that approach covered.",
       "durationSeconds": 7.92,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -395,7 +395,8 @@
       "synthesisText": "[bitter] South haul checkpoint's gone. So much for proper guards. Watch for anyone coming back, and keep that approach covered.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
-        "cold_start.south_haul_contact"
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing"
       ],
       "textKey": "shepherdRadioColdStartSouthHaulOverrun",
       "selectedTake": null
@@ -406,7 +407,7 @@
       "event": "cold_start.south_haul_inner_hold",
       "text": "The south haul hands have made the inner line. They're staying put, at least. Help them hold it.",
       "durationSeconds": 6.16,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -427,7 +428,7 @@
       "event": "cold_start.quarry_contact",
       "text": "Quarry checkpoint has contact. There's only three of them out there, Captain. Support them if you can.",
       "durationSeconds": 5.44,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -444,7 +445,7 @@
       "event": "cold_start.quarry_withdrawing",
       "text": "Quarry checkpoint's falling back. Keep the crossing covered for them.",
       "durationSeconds": 3.84,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -463,7 +464,7 @@
       "event": "cold_start.quarry_overrun",
       "text": "The quarry checkpoint's gone. Keep the inner line covered. There may still be people coming in.",
       "durationSeconds": 5.92,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -471,7 +472,8 @@
       "synthesisText": "[grim] The quarry checkpoint's gone. Keep the inner line covered. There may still be people coming in.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
-        "cold_start.quarry_contact"
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing"
       ],
       "textKey": "shepherdRadioColdStartQuarryOverrun",
       "selectedTake": null
@@ -482,7 +484,7 @@
       "event": "cold_start.quarry_inner_hold",
       "text": "The quarry hands are in, on the inner line with my militia. Keep that ground covered.",
       "durationSeconds": 5.2,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -503,7 +505,7 @@
       "event": "cold_start.inner_line_fortified",
       "text": "The new gun's covering the inner line. Keep the fitters working, Captain. We've bought them some room.",
       "durationSeconds": 5.68,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -520,7 +522,7 @@
       "event": "cold_start.south_entry_denied",
       "text": "That party on the south haul road has broken off at your screen. Keep watching the entry.",
       "durationSeconds": 5.2,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -537,7 +539,7 @@
       "event": "cold_start.quarry_entry_denied",
       "text": "They've broken off at your quarry-road screen. Don't leave the entry open.",
       "durationSeconds": 4.4,
-      "priority": 18,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
@@ -1782,7 +1784,8 @@
         "cold_start.convoy_arrived",
         "cold_start.workshop",
         "cold_start.pump_started",
-        "cold_start.power_restored"
+        "cold_start.power_restored",
+        "cold_start.inner_line_fortified"
       ],
       "selectedTake": null
     },

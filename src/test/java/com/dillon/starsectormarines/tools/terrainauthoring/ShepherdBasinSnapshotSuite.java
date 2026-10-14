@@ -69,8 +69,10 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                 }
                 String name = visit.name().toLowerCase(Locale.ROOT).replace('_','-');
                 try (var scene = new ShipDeckBattleScene(map, 0)) {
-                    frames.add(new SnapshotArtifact(name + ".png", renderer.renderHostPass(daylight(scene.pass(
-                            ShipDeckBattleScene.DeckView.fitting(0,0,ShepherdBasin.WIDTH,ShepherdBasin.HEIGHT,1920,1080))),1920,1080)));
+                    BufferedImage overview = renderer.renderHostPass(daylight(scene.pass(
+                            ShipDeckBattleScene.DeckView.fitting(0,0,ShepherdBasin.WIDTH,ShepherdBasin.HEIGHT,1920,1080))),1920,1080);
+                    frames.add(new SnapshotArtifact(name + ".png", overview));
+                    frames.add(new SnapshotArtifact(name + "-markers.png", ShepherdMissionMarkers.annotate(overview, map, visit)));
                     frames.add(new SnapshotArtifact(name + "-cradle.png", renderer.renderHostPass(daylight(scene.pass(
                             ShipDeckBattleScene.DeckView.fitting(57,75,112,63,1920,1080))),1920,1080)));
                     if (visit == ShepherdBasin.Visit.SALVAGE_RIGHTS) {
@@ -106,6 +108,7 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
                         frames.add(new SnapshotArtifact("colossus-trench-banks.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(102,155,96,54,1920,1080))),1920,1080)));
                     }
+                    if (visit == ShepherdBasin.Visit.WORKING_PASSAGE) battleDamage(frames, renderer, seed, profile);
                     if (visit == ShepherdBasin.Visit.WORKING_PASSAGE)
                         frames.add(new SnapshotArtifact("working-passage-narrows.png", renderer.renderHostPass(daylight(scene.pass(
                                 ShipDeckBattleScene.DeckView.fitting(166,68,128,72,1920,1080))),1920,1080)));
@@ -268,6 +271,29 @@ public final class ShepherdBasinSnapshotSuite implements SnapshotSuite {
             if (map.topology.getBuildingId((int)lamp.x(),(int)lamp.y())==0
                     && lamp.fixture()!=NightLighting.Fixture.TRIPOD_FLOODLIGHT)
                 throw new IllegalStateException("Outdoor light lacks grounded fixture");
+        }
+    }
+
+    /**
+     * Perimeter fencing and the authored battle damage at game-scale, each beside the same
+     * ground generated again without the damage plan. Daylight visit, so the art is legible.
+     */
+    private static void battleDamage(List<SnapshotArtifact> frames, HeadlessUiRenderer renderer,
+                                     long seed, TargetProfile profile) throws Exception {
+        int[][] views = {{84,66,64,36}, {124,36,48,27}, {244,116,48,27}, {92,140,72,40}, {248,52,56,32}, {36,30,64,36}};
+        String[] names = {"yard-south-fence", "security-post", "narrows-watch", "scrap-stock-fence", "climb-out-yard", "cutting-beds"};
+        for (int i = 0; i < views.length; i++) {
+            int[] v = views[i];
+            for (boolean withDamage : new boolean[]{true, false}) {
+                // A scene applies the plan to the map it is given, so each view starts from a fresh generation.
+                MapResult map = ShepherdBasin.generate(seed, profile, ShepherdBasin.Visit.WORKING_PASSAGE);
+                if (!withDamage) map = map.withInitialDamage(null);
+                try (var scene = new ShipDeckBattleScene(map, 0)) {
+                    frames.add(new SnapshotArtifact("battle-damage-" + names[i] + (withDamage ? "" : "-intact") + ".png",
+                            renderer.renderHostPass(daylight(scene.pass(
+                                    ShipDeckBattleScene.DeckView.fitting(v[0],v[1],v[2],v[3],1920,1080))),1920,1080)));
+                }
+            }
         }
     }
 

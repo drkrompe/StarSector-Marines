@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — prepared ground: trench and parapet props declare a fighting-position role, and fighting positions are derived from the props standing.
+Updated: 2026-10-14 — Shepherd basin site perimeters and authored battle damage.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1444,6 +1444,16 @@ raider prize. The gouge is permanent, impassable and transparent to sight;
 the wreck's explicit body and engine arms provide actual opaque obstruction.
 The transparent rear gap does not become an invisible rectangular cover field.
 The wreck persists as scenery across all visits, not a second reward objective.
+Chain-link **site perimeters** enclose the recovery yard, scrap stock, cutting
+beds, security post and climb-out yard. A perimeter follows existing ground
+rather than cutting it: roads, buildings, scrap, thresholds and berths it meets
+become its openings, a side with none gets a gate, and an explicit vehicle gate
+keeps the receiving apron's cargo route open. The site was fought over before
+Vale's crew held it, so every visit opens on the same authored damage plan:
+breached and battered fence runs, two partly collapsed outbuildings and scorched
+approaches. A breach is a real opening. Objective buildings are battered, never
+collapsed. Mission force placements read named basin places, so review markers
+and battle setup cannot disagree about where a force starts.
 `ShepherdBasin` adds servicing equipment on Cold Start and leaves the
 static hull's cradle empty on Working Passage. Its hull is an inert catalog
 doodad with an explicit 24 by 20-cell solid grounded footprint, large enough to

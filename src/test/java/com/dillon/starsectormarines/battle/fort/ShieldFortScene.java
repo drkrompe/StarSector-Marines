@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.fort;
 
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
@@ -92,16 +93,13 @@ public final class ShieldFortScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
-        // These loops test the aspect choice by a lone detachment; the phased assault is the assault-muster scene.
-        boolean musterWas = ConquestCommand.musterEnabled();
-        ConquestCommand.setMusterEnabled(false);
+        // These loops test the aspect choice by a lone detachment (their commanders choose the trickle); the phased assault is the assault-muster scene.
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("intact", "power-cut", "control-taken", "control-only", "no-emitter",
                 "commander-cuts-the-power", "emitter-in-view", "emitter-in-view-unrestrained",
                 "commander-wrecks-the-plant", "commander-wrecks-without-charges")) {
             reports.add(report(loop, playRestrained(loop, !loop.endsWith("-unrestrained"), frames)));
         }
-        ConquestCommand.setMusterEnabled(musterWas);
         return reports;
     }
 
@@ -226,7 +224,8 @@ public final class ShieldFortScene implements BehaviorScene {
             // company comes in on the lane that runs up to the main gate, because a lane that never comes within sight
             // of the generator discloses nothing, and a commander cannot be sent to what nobody has seen.
             sim.setAutonomousCommander(Faction.MARINE,
-                    new ConquestCommand(new ConquestTrackLayout(approach.axis(), WIDTH, HEIGHT)),
+                    new ConquestCommand(new ConquestTrackLayout(approach.axis(), WIDTH, HEIGHT))
+                            .withAssaultStyle(AssaultStyle.TRICKLE),
                     ConquestCommandDisclosure.INSTANCE);
             trace.squadId = world.squadId("company");
         } else if (!viewLoop) {

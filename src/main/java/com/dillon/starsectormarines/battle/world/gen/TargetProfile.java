@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 
@@ -82,6 +83,8 @@ import java.util.Set;
  *                      comms operators; {@link AirPoolDeclaration#NONE} for a mission that said nothing.
  * @param declaredSupportKit the support kit the MISSION issues some of each side's squads: crew-served mortar teams and
  *                      forward observers with a comms radio. {@link SquadSupportDeclaration#NONE} for a mission that said nothing.
+ * @param declaredAssault how the mission's attacking Conquest commander takes defended works: {@link AssaultStyle#MUSTER}, the
+ *                      standing behaviour, for a mission that said nothing, or {@link AssaultStyle#TRICKLE} as that mission's own choice.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -96,7 +99,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             GroundDefences declaredDefences,
                             MechDropDeclaration declaredMechDrops,
                             AirPoolDeclaration declaredAirPool,
-                            SquadSupportDeclaration declaredSupportKit) {
+                            SquadSupportDeclaration declaredSupportKit,
+                            AssaultStyle declaredAssault) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -123,6 +127,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (declaredMechDrops == null) declaredMechDrops = MechDropDeclaration.NONE;
         if (declaredAirPool == null) declaredAirPool = AirPoolDeclaration.NONE;
         if (declaredSupportKit == null) declaredSupportKit = SquadSupportDeclaration.NONE;
+        if (declaredAssault == null) declaredAssault = AssaultStyle.MUSTER;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -203,7 +208,28 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         this(marketSize, stability, defenseLevel, spaceportTier, factionId,
                 functions, surface, link, groundDefence, stationedStrength,
                 groundDefences, heavyBatteries, planetaryShield, declaredDefences,
-                declaredMechDrops, declaredAirPool, SquadSupportDeclaration.NONE);
+                declaredMechDrops, declaredAirPool, SquadSupportDeclaration.NONE, AssaultStyle.MUSTER);
+    }
+
+    /** The profile with every declaration but the assault style, which is the standing {@link AssaultStyle#MUSTER}. */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength,
+                         boolean groundDefences,
+                         boolean heavyBatteries,
+                         boolean planetaryShield,
+                         GroundDefences declaredDefences,
+                         MechDropDeclaration declaredMechDrops,
+                         AirPoolDeclaration declaredAirPool,
+                         SquadSupportDeclaration declaredSupportKit) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences,
+                declaredMechDrops, declaredAirPool, declaredSupportKit, AssaultStyle.MUSTER);
     }
 
     /**
@@ -265,7 +291,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault);
     }
 
     /**
@@ -279,7 +305,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault);
     }
 
     /**
@@ -290,7 +316,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit);
+                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault);
     }
 
     /**
@@ -301,7 +327,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit, declaredAssault);
     }
 
     /**
@@ -312,7 +338,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit, declaredAssault);
     }
 
     /**
@@ -323,6 +349,17 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared, declaredAssault);
+    }
+
+    /**
+     * This profile with the mission's choice of how its attacking commander takes defended works, every other read left
+     * as it was. Called once, at the mission boundary; a mission that never calls it musters.
+     */
+    public TargetProfile withDeclaredAssault(AssaultStyle declared) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declared);
     }
 }
