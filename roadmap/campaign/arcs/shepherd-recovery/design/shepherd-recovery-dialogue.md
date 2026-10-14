@@ -4,7 +4,7 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — full script pass: Morrow is a wreck from the same fall, her value is discovered under pressure, and Vale gives her up only for a reason she can't argue with.
+Updated: 2026-10-14 — Morrow is crewed from the company's own fleet; no Basin hand leaves the valley with her.
 
 ## How to read this script
 
@@ -128,6 +128,9 @@ captain, who decides whether to deploy.
   recovered from a wreck — and Castle has wanted a second hull since before Asharu.
   She does not bring it into the first two conversations, and she does not look at
   Morrow as a prize until Morrow has done something.
+- **HIDDEN:** she knows what a second hull costs before it earns anything. Morrow
+  has to be crewed out of Second Wind's own complement, leaving both ships on
+  skeleton watches until the company can hire. She takes the ship anyway.
 - **TO BE REVEALED, first meeting:** she asks about the hold directly and backs off
   when Vale refuses. She does not forget she asked.
 - **TO BE REVEALED, Cold Start:** it is Castle who connects the rivals' cables in
@@ -164,14 +167,16 @@ open, they can walk out.
 ### Teo and the Basin fitters
 
 Teo is a young Basin fitter, kin to Vale, who gets Morrow's bay answering in Cold
-Start and her lift working before Working Passage. He has wanted off Asharu for
-years. He does not speak on the radio; Vale speaks about him.
+Start and her lift working before Working Passage. He knows her better than anyone
+alive, talks the company's crew through her drives, and stays in the valley. He
+does not speak on the radio; Vale speaks about him.
 
 Morrow's original crew died or scattered three cycles ago; nobody in this arc
-knows or tracks them. The people who go with her when she leaves are Basin hands
-who worked her back into a ship and chose to follow her. The hull agreement cannot
-sell their labor: Vale says they choose, and once they choose, they are on the
-company's books.
+knows or tracks them. **Nobody from Basin leaves with her.** Basin is a clan, and
+its people are not for hire to outsiders, least of all as part of a sale. The
+company crews Morrow out of its own fleet, thinning Second Wind's watch to do it,
+and hires to fill both ships afterwards like any other captain would. The hull
+agreement transfers a ship, never people.
 
 Inspection technicians, fitters and militia are different people with different
 jobs. Losing a post does not mean everyone there died.
@@ -219,8 +224,8 @@ trying to wake Morrow's drone bay.
 | Cold Start briefing | The pickets cannot hold the yard alone; Morrow's bay might help | Whether any builders will answer |
 | Cold Start field | Her builders work; a wreck put up a road gun | Any entitlement to the hull |
 | Cold Start debrief | Morrow is worth more to Vale now; the outer road is still shut | What Vale can pay for more |
-| Working Passage briefing | Vale cannot pay until the shipment moves; refusal, loan, terms; Teo and the volunteers | The manifest, permanently |
-| Climb-out and settlement | Morrow and her volunteer crew join the fleet; upkeep is the company's | No later cargo reveal is promised |
+| Working Passage briefing | Vale cannot pay until the shipment moves; refusal, loan, terms; the company must crew her itself | The manifest, permanently |
+| Climb-out and settlement | Morrow joins the fleet on a skeleton crew drawn from Second Wind; upkeep and hiring are the company's | No later cargo reveal is promised |
 
 ## 1. Salvage Rights
 
@@ -642,11 +647,15 @@ one thing on the table both of them can value, and Vale's first answer is no.
 
 **Castle:** They'll have cover all the way up. We hand over each position before we move on. Who's flying her?
 
-**Vale:** Teo's asked to go with her. A few of the fitters too. They're Basin, Castle, and I'm not selling them with a hull. Ask them yourself. If they say yes, they're on your books.
+**Vale:** Your own people. Nobody from Basin goes with her. Not Teo, not anyone.
 
-**Castle:** Their choice, our payroll. Send the terms and I'll put it to the Captain.
+**Castle:** I wasn't going to ask.
 
-**Vale:** I'll send them. I've known Teo since he could hold a cutter. Get him and that ship out in one piece. I've watched enough of them come down here.
+**Vale:** Good. Teo will walk your crew through her before the drive test. Then he comes home.
+
+**Castle:** We'll put a crew across from Second Wind. Both ships will be running thin until we can hire. Send the terms and I'll put it to the Captain.
+
+**Vale:** I'll send them. Get her out in one piece, Castle. I've watched enough ships come down in this valley.
 
 **Vale:** Morrow's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and use Build Vulcan Turret on ground her builders can reach, then do the same at the narrows. Cover the work and wait for my militia to take over. Keep the company with her for the drive test. If the drives give out, break off and we'll recover her. The deal stands either way.
 
@@ -722,7 +731,7 @@ Cue: `working_passage.militia_hold_1`.
 
 Cue: `working_passage.spool`.
 
-**Vale:** She's in the eastern yard. Teo's spooling her drives. Stay with her, Captain; keep the approach clear.
+**Vale:** She's in the eastern yard. Your crew are spooling her drives, and Teo's talking them through it. Stay with her, Captain; keep the approach clear.
 
 #### Final approach warning
 
@@ -767,16 +776,16 @@ Cue: `working_passage.builders_lost`.
 The departure receipt authorizes the transfer. This is a practical handover
 between people who have worked together and still do not entirely trust each
 other, not a revelation that Vale gave away a wonder-ship. The company has a
-second hull, maintenance to do and new crew to pay. Vale has a road, a shipment
-she can finally move, and fewer of her own people.
+second hull, two thin crews and hiring to do. Vale has a road, a shipment she
+can finally move, and every one of her own people still in the valley.
 
-**Castle:** Registry confirms it, Captain. Morrow's ours. Our engineers are going over to walk her with Teo before we ask anything else of her.
+**Castle:** Registry confirms it, Captain. Morrow's ours. She's flying on a skeleton crew off Second Wind, and Second Wind's not much better off. We'll need to hire before we ask much of either of them.
 
-**Vale:** Have them check the drone-bay filters first. Basin dust gets into everything.
+**Vale:** Have your crew check her drone-bay filters first. Basin dust gets into everything.
 
-**Castle:** Teo and the others have berths and pay on our books. They'll be looked after.
+**Castle:** Any chance of hands from the camp?
 
-**Vale:** They'd better be. He's wanted off Asharu for years. I'd sooner it was on one of ours.
+**Vale:** Try the port at Jangala. Nobody in this valley's leaving it for you.
 
 **If no militia or company personnel were lost:**
 
