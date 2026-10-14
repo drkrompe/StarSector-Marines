@@ -40,7 +40,52 @@ public final class DefenceStructureTactics {
     /** The most squads detached to structure work at one time. UNTUNED first-pass figure. */
     public static final int MAX_TASKS = 2;
 
+    /**
+     * How far from a fort's aspect its prepared ground may be and still be that fort's belt: the belt stands off the
+     * works across the glacis, well outside a bunker's own reach. UNTUNED first-pass figure.
+     */
+    public static final int FORT_BELT_REACH_CELLS = 40;
+
+    /** Radius of the area-defence circle placed on a fort's belt. UNTUNED first-pass figure. */
+    public static final int FORT_BELT_POST_RADIUS_CELLS = 8;
+
+    /** {@code -Dbattle.command.fortBeltPost=false} holds a fort's aspect at its doorstep only, for a control run. */
+    private static final boolean BELT_POST_ENABLED = Boolean.parseBoolean(
+            System.getProperty("battle.command.fortBeltPost", "true"));
+
     private DefenceStructureTactics() {}
+
+    /** Whether a cell can be reached by the squad a post is being chosen for. */
+    @FunctionalInterface
+    interface Reach {
+        boolean to(int x, int y);
+    }
+
+    /**
+     * Where a squad standing to at a held fort's aspect should hold ground: the cell of the fort's belt (its
+     * prepared ground, packed {@code x, y} pairs) nearest the squad that it can reach, or {@code null} when the fort
+     * has no such ground and the squad should hold the doorstep as before. This chooses a place to hold, not a
+     * threat: it reads no hostile position, and the claims inside the circle then prefer the cells covered toward
+     * whatever the squad itself comes to believe. Ties go to the lower row, then the lower column, so the answer is
+     * deterministic.
+     */
+    static int[] beltPost(int[] beltCells, int squadX, int squadY, Reach reach) {
+        int[] best = null;
+        long bestGap = Long.MAX_VALUE;
+        for (int i = 0; i + 1 < beltCells.length; i += 2) {
+            int x = beltCells[i];
+            int y = beltCells[i + 1];
+            long gx = x - squadX;
+            long gy = y - squadY;
+            long gap = gx * gx + gy * gy;
+            boolean better = gap < bestGap
+                    || (gap == bestGap && best != null && (y < best[1] || (y == best[1] && x < best[0])));
+            if (!better || !reach.to(x, y)) continue;
+            bestGap = gap;
+            best = new int[] {x, y};
+        }
+        return best;
+    }
 
     /** Why a structure is work for this side. Declared in priority order. */
     public enum Role { DEFEND, RETAKE, TAKE }
@@ -82,7 +127,7 @@ public final class DefenceStructureTactics {
             return false;
         }
         for (DefenceStructureFact structure : structures) {
-            if (near(assignment.targetCellX(), assignment.targetCellY(), structure)) return true;
+            if (nearForKind(assignment.kind(), assignment.targetCellX(), assignment.targetCellY(), structure)) return true;
         }
         return false;
     }
@@ -231,7 +276,7 @@ public final class DefenceStructureTactics {
             ObjectiveAssignment held = candidate.incumbent();
             if (used.contains(candidate.squadId()) || held == null || held.kind() != kind
                     || (want.wreck && !candidate.demolition())
-                    || !near(held.targetCellX(), held.targetCellY(), want.structure)) continue;
+                    || !nearForKind(held.kind(), held.targetCellX(), held.targetCellY(), want.structure)) continue;
             if (!topology.reachable(candidate.anchorCellX(), candidate.anchorCellY(),
                     held.targetCellX(), held.targetCellY())) continue;
             return new Task(candidate.squadId(), held.withWreckAuthorised(want.wreck), want.role, want.structure,
@@ -259,11 +304,29 @@ public final class DefenceStructureTactics {
         }
         if (best == null) return null;
         ObjectiveAssignment assignment = want.role == Role.DEFEND
-                ? ObjectiveAssignment.defendArea(best.squadId(), bestCell[0], bestCell[1],
-                        Math.max(2, want.structure.reachCells()))
+                ? defendAssignment(best, bestCell, want.structure, topology)
                 : ObjectiveAssignment.attackMove(best.squadId(), bestCell[0], bestCell[1])
                         .withWreckAuthorised(want.wreck);
         return new Task(best.squadId(), assignment, want.role, want.structure, want.reason, want.wreck);
+    }
+
+    /**
+     * Standing to at an aspect: the doorstep circle as ever, except at a fort whose belt has prepared ground, where the
+     * squad holds the belt post the same way (an area defence, so the claims fill the trench) rather than the bare
+     * floor beside the bunker. Only the place of the circle changes; the commander gains no new kind of order.
+     */
+    private static ObjectiveAssignment defendAssignment(Candidate squad, int[] doorstep, DefenceStructureFact structure,
+                                                        CommandTopology topology) {
+        if (structure.ofFort() && BELT_POST_ENABLED) {
+            int[] post = beltPost(structure.beltCells(), squad.anchorCellX(), squad.anchorCellY(),
+                    (x, y) -> topology.isWalkable(x, y)
+                            && topology.reachable(squad.anchorCellX(), squad.anchorCellY(), x, y));
+            if (post != null) {
+                return ObjectiveAssignment.defendArea(squad.squadId(), post[0], post[1], FORT_BELT_POST_RADIUS_CELLS);
+            }
+        }
+        return ObjectiveAssignment.defendArea(squad.squadId(), doorstep[0], doorstep[1],
+                Math.max(2, structure.reachCells()));
     }
 
     private static AssignmentKind kindFor(Role role) {
@@ -298,6 +361,16 @@ public final class DefenceStructureTactics {
             if (best != null) return best;
         }
         return null;
+    }
+
+    /** As {@link #near}, except that an area defence of a fort aspect may stand anywhere on the fort's belt. */
+    private static boolean nearForKind(AssignmentKind kind, int cellX, int cellY, DefenceStructureFact structure) {
+        if (kind == AssignmentKind.DEFEND_AREA && structure.ofFort()) {
+            return cellX >= 0 && cellY >= 0
+                    && Math.max(Math.abs(cellX - structure.cellX()), Math.abs(cellY - structure.cellY()))
+                    <= FORT_BELT_REACH_CELLS;
+        }
+        return near(cellX, cellY, structure);
     }
 
     private static boolean near(int cellX, int cellY, DefenceStructureFact structure) {

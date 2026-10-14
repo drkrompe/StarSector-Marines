@@ -143,6 +143,7 @@ class ConquestCommandBalanceTest {
                      visualRoot, runId, sim)) {
             SquadDensityProbe density = new SquadDensityProbe();
             FortOutcomes forts = new FortOutcomes();
+            FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
             FightingPositionIndex startPositions = sim.fightingPositions();
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
@@ -151,13 +152,14 @@ class ConquestCommandBalanceTest {
                 capture.afterAdvance();
                 density.sample(sim);
                 forts.sample(sim);
+                positionUse.sample(sim);
                 assertEquals(before + 1, sim.getSimTickIndex(),
                         "headless runner must advance exactly one fixed tick");
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             String trace = sim.getCommandTraceJsonLines();
             return new RunResult(trace, CommandTraceAnalyzer.analyze(trace),
-                    density.markdown(runId), forts.describe(sim) + fortOrders(trace),
+                    density.markdown(runId), forts.describe(sim) + fortOrders(trace) + positionUse.describe(),
                     FightingPositionCount.of(startPositions, sim.fightingPositions()));
         }
     }
