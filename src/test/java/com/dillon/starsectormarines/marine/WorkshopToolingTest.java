@@ -38,7 +38,7 @@ class WorkshopToolingTest {
         model.selectBoatAction(0).run();
         var row = model.catalogRows().get().stream().filter(r -> r.id().endsWith("reinforced_plating")).findFirst().orElseThrow();
         assertFalse(row.actionDisabled());
-        assertTrue(row.materials().stream().anyMatch(r -> r.label().equals("SUPPLIES 8 / 8")));
+        assertTrue(row.materials().stream().anyMatch(r -> r.id().endsWith("supplies") && r.label().equals("8") && r.shortfall() == 0));
         equipped[0] = false;
         row.action().run(); // A stale favorable preview cannot underpay after moving hull.
         assertEquals(8, stock.get("supplies"));
