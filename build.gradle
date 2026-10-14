@@ -585,6 +585,8 @@ tasks.register('createSnapshots', JavaExec) {
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
     systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {
@@ -614,6 +616,10 @@ tasks.register('sceneEvidence', JavaExec) {
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
     systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    // Scenes are evidence only if the same world plays the same way twice. The production scheduler splits
+    // 48 or more units across workers and does not, so a scene of a hundred and twenty marines drifted run to run
+    // (breach-charges: 3080 ticks and 40 lost, then 5571 and 53). Serial by default; a -Dbattle switch below overrides.
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {
@@ -623,6 +629,27 @@ tasks.register('sceneEvidence', JavaExec) {
         String selector = providers.gradleProperty('scene').getOrElse('all')
         args projectDir.absolutePath, starsectorCore.absolutePath,
                 output.absolutePath, selector
+    }
+}
+
+// Plays the selected scenes twice and fails on the first reading that differs: the `simDeterminism` question asked of
+// scenes. Opt-in; a `-Dbattle.unitUpdate.minimumParallelUnits=48` switch restores the production scheduler as the control.
+tasks.register('sceneDeterminism', JavaExec) {
+    group = 'verification'
+    description = 'Play behaviour scenes twice and fail on any reading that differs'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.battle.scene.SceneDeterminismCli'
+    workingDir projectDir
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    forwardBattleSwitches(delegate)
+    outputs.upToDateWhen { false }
+    doFirst {
+        String selector = providers.gradleProperty('scene').getOrElse('all')
+        args projectDir.absolutePath, starsectorCore.absolutePath, selector
     }
 }
 
