@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.LongPredicate;
 
 /**
  * An AI side's fire-support officer: decides what ground is worth an aircraft and asks the side's comms operators to
@@ -37,7 +38,7 @@ public final class AirStrikeDirector {
     /** Range within which a unit of the side sights a hostile emplacement, in cells. UNTUNED. */
     static final float SIGHT_CELLS = 30f;
     /** Largest expected airframe share the director will risk on a strike. UNTUNED. */
-    static final float RISK_CEILING = 1.0f;
+    public static final float RISK_CEILING = 1.0f;
     /** Cells within which a point counts as one already struck. */
     static final float REPEAT_CELLS = 9f;
     /** Ticks before a struck point is a candidate again. UNTUNED. */
@@ -95,13 +96,27 @@ public final class AirStrikeDirector {
      * ({@link Outcome#TOO_DEFENDED}).
      */
     public Outcome strike(BattleSimulation sim, AirPoolService service, float x, float y, boolean ignoreRisk) {
+        return strike(sim, service, x, y, ignoreRisk, unit -> true);
+    }
+
+    /**
+     * As {@link #strike(BattleSimulation, AirPoolService, float, float, boolean)}, directed only through an operator the
+     * caller names: a company's plan asks through the observers it brought, not through whoever happens to be nearest.
+     */
+    public Outcome strike(BattleSimulation sim, AirPoolService service, float x, float y, boolean ignoreRisk,
+                          LongPredicate operators) {
         AirPoolKind kind = service.defaultKind(side);
         if (kind == null) return Outcome.NO_AIRFRAME;
         updateSightings(sim);
         if (!ignoreRisk && risk(sim, x, y) > RISK_CEILING) return Outcome.TOO_DEFENDED;
-        Outcome outcome = service.request(sim, side, kind, x, y, true);
+        Outcome outcome = service.request(sim, side, kind, x, y, true, operators);
         if (outcome == Outcome.CALLING) struck.add(new Struck(x, y, sim.getSimTickIndex()));
         return outcome;
+    }
+
+    /** One look at the field without placing a strike: brings the side's sightings, and so its anti-air estimate, up to date. */
+    public void look(BattleSimulation sim) {
+        updateSightings(sim);
     }
 
     /** The share of an airframe a pass over the point is believed to cost, from the guns this side has sighted. */

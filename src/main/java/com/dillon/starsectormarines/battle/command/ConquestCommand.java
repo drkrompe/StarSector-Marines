@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -417,6 +418,32 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final String PLANS_PROPERTY = "battle.command.musterPlans";
     static boolean PLANS_ENABLED = Boolean.parseBoolean(System.getProperty(PLANS_PROPERTY, "true"));
 
+    /**
+     * {@code -Dbattle.command.standingFireMissions=false} stops the commander giving a squad that carries a served tube a
+     * standing fire mission on the nearest disclosed hostile works within the tube's reach; the tube then fires on its
+     * section's own belief only. On by default, and independent of the muster: a mortar section on the lanes is a fire
+     * support asset whether or not a company is mustering.
+     */
+    public static final String STANDING_FIRE_PROPERTY = "battle.command.standingFireMissions";
+    static boolean STANDING_FIRE_ENABLED = Boolean.parseBoolean(System.getProperty(STANDING_FIRE_PROPERTY, "true"));
+
+    /** Whether tube squads are given standing fire missions. */
+    public static boolean standingFireMissionsEnabled() {
+        return STANDING_FIRE_ENABLED;
+    }
+
+    /** Sets the standing-fire switch; the caller restores it. For scenes and evidence controls only. */
+    public static void setStandingFireMissionsEnabled(boolean enabled) {
+        STANDING_FIRE_ENABLED = enabled;
+    }
+
+    /** Nearest a standing mission's ground may be to the tube section: inside this the tube's dead zone and the nests' return fire. UNTUNED. */
+    static final int STANDING_MISSION_MIN_CELLS = 24;
+    /** Farthest a standing mission's ground may be: inside the field mortar's reach with a margin. UNTUNED. */
+    static final int STANDING_MISSION_MAX_CELLS = 46;
+    /** Radius of a standing mission around the works cell it names. UNTUNED. */
+    static final int STANDING_MISSION_RADIUS = 4;
+
     /** Whether committed companies execute the stamp's assault plan. */
     public static boolean musterPlansEnabled() {
         return PLANS_ENABLED;
@@ -449,6 +476,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** Forts a lance has already been called (or found unavailable) for: at most one call per company. */
     private final Set<Integer> lancedForts = new TreeSet<>();
     private String lanceNote;
+    /** Strikes the plan asked for in the last pulse, asked of the air in {@link #afterCommit}, and what the air said. */
+    private final List<AssaultMuster.StrikeRequest> strikeWishes = new ArrayList<>();
+    private final List<String> strikeNotes = new ArrayList<>();
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
@@ -982,6 +1012,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (phase == Phase.LANE_ADVANCE || phase == Phase.FRONT_ADJUST) {
             structureNotes = assignDefenceStructureTasks(frame, squads, committed, allSquads, directives);
         }
+        if (STANDING_FIRE_ENABLED) structureNotes = withStandingFireMissions(frame, allSquads, structureNotes);
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
                 remainingCompounds, keep, directives, allSquads).withGroups(groups.groups())
                 .withCompanies(companyPicture);
@@ -1034,7 +1065,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         muster.plans(PLANS_ENABLED);
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
-                hostiles, frame.topology());
+                hostiles, frame.topology(), frame.facts().airSupport());
+        strikeWishes.addAll(result.strikes());
         for (Map.Entry<Integer, AssaultMuster.Order> entry : result.orders().entrySet()) {
             PlanningSquad squad = allSquads.get(entry.getKey());
             if (squad == null) continue;
@@ -1051,11 +1083,13 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 break;
             }
         }
-        if (lanceNote != null) {
+        if (lanceNote != null || !strikeNotes.isEmpty()) {
             List<String> notes = new ArrayList<>(result.notes());
-            notes.add(lanceNote);
+            if (lanceNote != null) notes.add(lanceNote);
+            notes.addAll(strikeNotes);
             lanceNote = null;
-            return new AssaultMuster.Result(result.orders(), result.companies(), notes);
+            strikeNotes.clear();
+            return new AssaultMuster.Result(result.orders(), result.companies(), notes, result.strikes());
         }
         return result;
     }
@@ -1067,6 +1101,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     @Override
     public void afterCommit(CommandEffects effects) {
+        askForStrikes(effects);
         if (lanceWishFort < 0 || dropZone == null) return;
         int fort = lanceWishFort;
         lanceWishFort = -1;
@@ -1083,6 +1118,24 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (outcome == MechDropService.Outcome.COMMITTED) {
             muster.expectReinforcement(fort, effects.tick() + LANCE_ARRIVAL_ALLOWANCE_TICKS);
         }
+    }
+
+    /**
+     * Asks the air for the strikes the plan wished for, through the observers it named. The air's own judgement applies (a heavily
+     * defended nest is refused as too defended); the answer goes back to the plan, which counts the nest as answered for a
+     * time when a strike is on its way and asks again, or goes without, when it is not.
+     */
+    private void askForStrikes(CommandEffects effects) {
+        if (strikeWishes.isEmpty()) return;
+        for (AssaultMuster.StrikeRequest request : strikeWishes) {
+            FortAssault.StrikeWish wish = request.wish();
+            AirPoolService.Outcome outcome = effects.airStrike(faction(), wish.cellX() + 0.5f, wish.cellY() + 0.5f,
+                    wish.operatorSquads());
+            muster.strikeAnswered(request.fortId(), wish.nest(), outcome == AirPoolService.Outcome.CALLING, effects.tick());
+            strikeNotes.add("company for fort " + request.fortId() + " asked for a strike on the nest at (" + wish.cellX() + ","
+                    + wish.cellY() + "): " + outcome);
+        }
+        strikeWishes.clear();
     }
 
     /** The drop zone: the beachhead compound's cell, else where the first squads were first seen. */
@@ -1147,6 +1200,50 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     aspects.get(0).works()));
         }
         return objectives;
+    }
+
+    /**
+     * Gives every squad that carries a served tube and has an order of its own a standing fire mission on the nearest
+     * disclosed hostile works (a fort's nests, else the structure) that lies in its reach, so the tube fires on what the side
+     * knows is there rather than only on what its section happens to see. A company's fire role already carries its own
+     * mission and is left alone. Own-force knowledge: disclosed structures only, never a hostile's position it has not shown.
+     * Returns the notes with one line per squad given a mission.
+     */
+    private List<String> withStandingFireMissions(ConquestCommandFrame frame, Map<Integer, PlanningSquad> allSquads,
+                                                  List<String> notes) {
+        List<String> out = null;
+        List<int[]> ground = null;
+        for (PlanningSquad squad : allSquads.values()) {
+            if (squad.assignedObjective == null || squad.assignedObjective.firesMission() || squad.aliveMembers <= 0
+                    || squad.anchorCellX < 0 || !squad.capabilities.standoffFirst()
+                    || squad.capabilities.structureFireRange() < STANDING_MISSION_MAX_CELLS) continue;
+            if (ground == null) ground = hostileWorksGround(frame);
+            int[] best = null;
+            double bestGap = Double.MAX_VALUE;
+            for (int[] cell : ground) {
+                double gap = Math.hypot(cell[0] - squad.anchorCellX, cell[1] - squad.anchorCellY);
+                if (gap < STANDING_MISSION_MIN_CELLS || gap > STANDING_MISSION_MAX_CELLS || gap >= bestGap) continue;
+                bestGap = gap;
+                best = cell;
+            }
+            if (best == null) continue;
+            squad.assignedObjective = squad.assignedObjective.withFireMission(
+                    new ObjectiveAssignment.FireMission(best[0], best[1], STANDING_MISSION_RADIUS));
+            if (out == null) out = new ArrayList<>(notes);
+            out.add("squad " + squad.id + " given a standing fire mission on (" + best[0] + "," + best[1] + ")");
+        }
+        return out == null ? notes : out;
+    }
+
+    /** The cells of the disclosed hostile works a tube may be told to fire on: each fort's nests, and every other structure's cell. */
+    private List<int[]> hostileWorksGround(ConquestCommandFrame frame) {
+        List<int[]> ground = new ArrayList<>();
+        for (DefenceStructureFact structure : frame.facts().structures()) {
+            if (!frame.perspective().hostileTo(structure.holder())) continue;
+            ground.add(new int[] {structure.cellX(), structure.cellY()});
+            if (structure.works() != null) ground.addAll(FortAssault.Works.of(structure.works()).nests);
+        }
+        return ground;
     }
 
     /** Whether a structure is an aspect of a fort a company is mustering for, which solo detachments leave alone. */

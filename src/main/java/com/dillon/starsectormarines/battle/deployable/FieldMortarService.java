@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.deployable;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
@@ -12,8 +14,10 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -67,6 +71,11 @@ public final class FieldMortarService {
     /** Cells within which a squadmate's sight of a target counts as a spotted round. UNTUNED. */
     public static final float SPOTTER_REACH_CELLS = 34f;
 
+    /** Lowest belief confidence that counts as the side knowing where somebody is. */
+    public static final float MISSION_MIN_CONFIDENCE = 0.3f;
+    /** Ticks between a tube's looks for a fresh target on its mission. */
+    public static final int MISSION_RELOOK_TICKS = 20;
+
     public enum Phase { SETTING_UP, SERVING, PACKING }
 
     /** One carrier's tube. */
@@ -86,6 +95,11 @@ public final class FieldMortarService {
         volatile int rounds;
         /** Rounds this tube has fired since it was first set down, for evidence. */
         volatile int roundsFired;
+        /** Rounds fired at a body that stood on the tube's assigned fire mission, for evidence. */
+        volatile int missionRoundsFired;
+        /** The body the tube last chose on its mission, or 0, and the tick it last looked. */
+        volatile long missionTarget;
+        volatile int missionLookTick = Integer.MIN_VALUE;
 
         Tube(long carrierId, Faction faction, int cellX, int cellY, int squadId,
              DeployableEmplacementSpec spec, StructureDef structure, int rounds) {
@@ -106,6 +120,8 @@ public final class FieldMortarService {
         public long entityId() { return entityId; }
         public int rounds() { return rounds; }
         public int roundsFired() { return roundsFired; }
+        public int missionRoundsFired() { return missionRoundsFired; }
+        public long missionTarget() { return missionTarget; }
         public float idleSeconds() { return idleSeconds; }
 
         /** Whether the tube may fire this tick: standing, served and holding a round. */
@@ -121,6 +137,9 @@ public final class FieldMortarService {
             rounds = Math.max(0, rounds - 1);
             roundsFired++;
         }
+
+        /** Marks the round just spent as fired on the assigned mission. */
+        public void noteMissionRound() { missionRoundsFired++; }
     }
 
     private final Map<Long, Tube> byCarrier = new ConcurrentHashMap<>();
@@ -128,6 +147,8 @@ public final class FieldMortarService {
     /** Rounds left in a gunner's stash between deployments, so lifting a half-spent tube does not refill it. */
     private final Map<Long, Integer> stash = new ConcurrentHashMap<>();
     private final ThreadLocal<LongBucket> scratch = ThreadLocal.withInitial(LongBucket::new);
+    /** The fire mission each squad's order carries now, read off the orders in the serial pass. */
+    private final Map<Integer, FireMission> missions = new ConcurrentHashMap<>();
     private int lost;
     private int destroyed;
     private int setUps;
@@ -193,6 +214,7 @@ public final class FieldMortarService {
      * emplacement has been killed.
      */
     public void tick(float dt, BattleControl sim) {
+        refreshMissions(sim);
         if (byCarrier.isEmpty()) return;
         for (Tube tube : new ArrayList<>(byCarrier.values())) {
             long carrier = sim.resolveUnit(tube.carrierId);
@@ -280,6 +302,105 @@ public final class FieldMortarService {
     private void forget(Tube tube) {
         byCarrier.remove(tube.carrierId, tube);
         if (tube.entityId != 0L) byEntity.remove(tube.entityId, tube);
+    }
+
+    // ---- fire missions ----
+
+    /**
+     * Reads the fire missions off the squads' orders. A mission is part of a squad's order and ends with it: the tube
+     * serves the ground it was told to for as long as its squad's order says, and on its own belief after.
+     */
+    private void refreshMissions(BattleControl sim) {
+        for (Squad squad : sim.getSquads()) {
+            ObjectiveAssignment order = squad.assignmentForExecution();
+            FireMission mission = order == null ? null : order.fireMission();
+            if (mission == null) missions.remove(squad.id);
+            else missions.put(squad.id, mission);
+        }
+    }
+
+    /** The fire mission {@code squadId}'s order carries, or null. */
+    public FireMission missionOf(int squadId) {
+        return squadId == Squad.NO_SQUAD ? null : missions.get(squadId);
+    }
+
+    /**
+     * The body a tube should be firing at: its current target when that still stands on the mission, else the best body the
+     * <em>side</em> knows to stand on the ground the squad's order names, in the tube's band. Zero when the squad has no
+     * mission or nothing on it is known, in which case the tube fires on its own section's belief as it always did.
+     * Looks again at most every {@link #MISSION_RELOOK_TICKS} ticks.
+     */
+    public long missionTarget(Tube tube, long current, int tick, BattleView sim) {
+        FireMission mission = missionOf(tube.squadId);
+        if (mission == null) {
+            tube.missionTarget = 0L;
+            return 0L;
+        }
+        long held = tube.missionTarget;
+        if (held != 0L && held == current && sim.resolveUnit(held) != 0L && onMission(mission, held, sim)) return held;
+        if (tick - tube.missionLookTick < MISSION_RELOOK_TICKS) return 0L;
+        tube.missionLookTick = tick;
+        float range = tube.structure.mount.weapon.range;
+        float minRange = tube.structure.mount.weapon.minRange;
+        long pick = pickMissionTarget(mission, tube.faction, tube.cellX + 0.5f, tube.cellY + 0.5f, minRange, range, sim);
+        tube.missionTarget = pick;
+        return pick;
+    }
+
+    private static boolean onMission(FireMission mission, long id, BattleView sim) {
+        float dx = sim.world().x(id) - (mission.cellX() + 0.5f);
+        float dy = sim.world().y(id) - (mission.cellY() + 0.5f);
+        return dx * dx + dy * dy <= (float) mission.radiusCells() * mission.radiusCells();
+    }
+
+    /**
+     * The best body standing on {@code mission} that a tube at {@code (originX, originY)} can reach and that the
+     * {@code faction} knows of: a structure before a man, then the nearest to the mission's centre, then the lowest id so
+     * the answer repeats. Fair: a body no squad of the side holds a belief in is never chosen, whatever the order says.
+     */
+    public long pickMissionTarget(FireMission mission, Faction faction, float originX, float originY,
+                                  float minRange, float maxRange, BattleView sim) {
+        float cx = mission.cellX() + 0.5f;
+        float cy = mission.cellY() + 0.5f;
+        LongBucket bucket = scratch.get();
+        sim.getUnitIndex().gather(cx, cy, mission.radiusCells(), bucket);
+        Set<Long> known = null;
+        long best = 0L;
+        boolean bestStructure = false;
+        float bestGap = Float.MAX_VALUE;
+        for (int i = 0, n = bucket.size; i < n; i++) {
+            long id = bucket.ids[i];
+            if (!sim.world().isAlive(id) || !faction.hostileTo(sim.identity().faction(id))) continue;
+            float fromTube = (float) Math.hypot(sim.world().x(id) - originX, sim.world().y(id) - originY);
+            if (fromTube < minRange + 0.5f || fromTube > maxRange) continue;
+            if (!onMission(mission, id, sim)) continue;
+            if (known == null) known = sideKnows(faction, sim);
+            if (!known.contains(id)) continue;
+            boolean structure = sim.identity().type(id).isTurret();
+            float gap = (float) Math.hypot(sim.world().x(id) - cx, sim.world().y(id) - cy);
+            boolean better = best == 0L || (structure && !bestStructure) || (structure == bestStructure
+                    && (gap < bestGap || (gap == bestGap && id < best)));
+            if (better) {
+                best = id;
+                bestStructure = structure;
+                bestGap = gap;
+            }
+        }
+        return best;
+    }
+
+    /** Every body any squad of {@code faction} holds a belief in: the side's picture, not one squad's. */
+    private static Set<Long> sideKnows(Faction faction, BattleView sim) {
+        Set<Long> known = new HashSet<>();
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != faction) continue;
+            for (BelievedContact contact : squad.believedContacts()) {
+                if (contact.confidence() < MISSION_MIN_CONFIDENCE) continue;
+                long id = sim.resolveUnit(contact.unitId());
+                if (id != 0L) known.add(id);
+            }
+        }
+        return known;
     }
 
     // ---- turret-behaviour seam (parallel; read-only on the roster) ----

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
@@ -35,16 +36,18 @@ public final class ConquestCommandFacts {
     private final List<Compound> compounds;
     private final List<DefenceStructureFact> structures;
     private final GarrisonableRegistry garrisonables;
+    private final AirSupportFacts airSupport;
 
     private ConquestCommandFacts(List<Compound> compounds) {
-        this(compounds, List.of(), null);
+        this(compounds, List.of(), null, AirSupportFacts.NONE);
     }
 
     private ConquestCommandFacts(List<Compound> compounds, List<DefenceStructureFact> structures,
-                                 GarrisonableRegistry garrisonables) {
+                                 GarrisonableRegistry garrisonables, AirSupportFacts airSupport) {
         this.compounds = List.copyOf(compounds);
         this.structures = List.copyOf(structures);
         this.garrisonables = garrisonables;
+        this.airSupport = airSupport;
     }
 
     /**
@@ -66,7 +69,7 @@ public final class ConquestCommandFacts {
                     && sim.structureSighted(structure.seenCellX(), structure.seenCellY());
             if (isDisclosed(ours, seen, remembered)) known.add(structure);
         }
-        return new ConquestCommandFacts(base.compounds, known, sim.garrisonables());
+        return new ConquestCommandFacts(base.compounds, known, sim.garrisonables(), airOver(sim, perspective, known));
     }
 
     /**
@@ -126,7 +129,27 @@ public final class ConquestCommandFacts {
                     record.captureCellX, record.captureCellY, captureZone,
                     garrison.stream().mapToInt(Integer::intValue).toArray()));
         }
-        return new ConquestCommandFacts(facts, List.of(), null);
+        return new ConquestCommandFacts(facts, List.of(), null, AirSupportFacts.NONE);
+    }
+
+    /**
+     * The side's air picture over the works of the forts it knows of: the strikes it could place and what a pass over each
+     * nest is believed to cost. {@link AirSupportFacts#NONE} for a side with no pool, or a view that is not a live battle.
+     */
+    private static AirSupportFacts airOver(BattleView sim, Faction perspective, List<DefenceStructureFact> known) {
+        if (!(sim instanceof BattleSimulation live) || !live.airPool().hasPool(perspective)) return AirSupportFacts.NONE;
+        List<int[]> cells = new ArrayList<>();
+        for (DefenceStructureFact structure : known) {
+            if (structure.works() != null && perspective.hostileTo(structure.holder())) {
+                cells.addAll(FortAssault.Works.of(structure.works()).nests);
+            }
+        }
+        return AirSupportFacts.of(live, perspective, cells);
+    }
+
+    /** What the side's air can do for a plan; {@link AirSupportFacts#NONE} when it holds no pool. */
+    public AirSupportFacts airSupport() {
+        return airSupport;
     }
 
     public List<Compound> compounds() {

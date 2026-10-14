@@ -163,8 +163,22 @@ final class AssaultMuster {
 
     record Order(ObjectiveAssignment assignment, AssignmentReason reason) { }
 
-    /** @param orders by squad id; only squads this class claims appear. */
-    record Result(Map<Integer, Order> orders, List<CompanyState> companies, List<String> notes) { }
+    /**
+     * A strike a company's plan wants called, for the commander to ask of the air after the plan is committed.
+     *
+     * @param fortId the objective the company is assaulting
+     */
+    record StrikeRequest(int fortId, FortAssault.StrikeWish wish) { }
+
+    /**
+     * @param orders  by squad id; only squads this class claims appear.
+     * @param strikes the strikes the plans wish asked for this pulse
+     */
+    record Result(Map<Integer, Order> orders, List<CompanyState> companies, List<String> notes, List<StrikeRequest> strikes) {
+        Result(Map<Integer, Order> orders, List<CompanyState> companies, List<String> notes) {
+            this(orders, companies, notes, List.of());
+        }
+    }
 
     private static final class Company {
         final int fortId;
@@ -218,6 +232,15 @@ final class AssaultMuster {
     private final Map<Integer, FortFrame> placedFrames = new HashMap<>();
     /** Whether a committed company executes the stamp's assault plan; off, it goes at the aspect as in slice 1. */
     private boolean plans = true;
+    /** What the side's air can do for the plan this pulse, and the strikes the plans have asked for in it. */
+    private AirSupportFacts air = AirSupportFacts.NONE;
+    private final List<StrikeRequest> strikeRequests = new ArrayList<>();
+
+    /** The commander's report of what the air said to a strike the plan asked for. */
+    void strikeAnswered(int fortId, int nest, boolean calling, int tick) {
+        Company company = companies.get(fortId);
+        if (company != null && company.execution != null) company.execution.strikeAnswered(nest, calling, tick);
+    }
 
     /** Sets whether committed companies execute the stamp's assault plan. */
     void plans(boolean enabled) {
@@ -262,7 +285,10 @@ final class AssaultMuster {
             Body body = byId.get(id);
             if (body != null) profiles.put(id, body.capabilities());
         }
-        return FortAssault.assess(works, beliefs.get(objective.fortId()), from[0], from[1], profiles);
+        boolean operator = false;
+        for (CapabilityProfile profile : profiles.values()) operator |= profile.has(AssaultCapability.AIR_DIRECTION);
+        return FortAssault.assess(works, beliefs.get(objective.fortId()), from[0], from[1], profiles,
+                new FortAssault.Strikes(air, operator, clock));
     }
 
     /** Whether a company that is short of what its plan needs asks for machines: a lance would fill a base of fire or a breach. */
@@ -379,7 +405,15 @@ final class AssaultMuster {
      */
     Result plan(int tick, Faction perspective, List<Objective> objectives, List<Body> bodies, int[] drop,
                 List<int[]> hostiles, CommandTopology topology) {
+        return plan(tick, perspective, objectives, bodies, drop, hostiles, topology, AirSupportFacts.NONE);
+    }
+
+    /** As above, with the side's air picture: strikes on offer, and what a pass over each nest is believed to cost. */
+    Result plan(int tick, Faction perspective, List<Objective> objectives, List<Body> bodies, int[] drop,
+                List<int[]> hostiles, CommandTopology topology, AirSupportFacts airSupport) {
         clock = tick;
+        air = airSupport;
+        strikeRequests.clear();
         Map<Integer, Order> orders = new TreeMap<>();
         List<String> notes = new ArrayList<>();
         Map<Integer, Body> byId = new TreeMap<>();
@@ -475,7 +509,7 @@ final class AssaultMuster {
                     Math.round(weight(byId.get(footholdSquad).alive(), byId.get(footholdSquad).machine())), 0,
                     drop[0], drop[1], drop[0], drop[1], 0, -1, "holds the drop zone while a company musters", ""));
         }
-        return new Result(orders, picture, notes);
+        return new Result(orders, picture, notes, List.copyOf(strikeRequests));
     }
 
     /** The foothold element: one squad that holds the drop zone for as long as any company exists. Sticky. */
@@ -746,6 +780,11 @@ final class AssaultMuster {
                     return;
                 }
                 orders.putAll(planned);
+                for (FortAssault.StrikeWish wish : company.execution.takeWishes()) {
+                    strikeRequests.add(new StrikeRequest(company.fortId, wish));
+                    notes.add("company for fort " + company.fortId + " asks for a strike on the nest at (" + wish.cellX() + ","
+                            + wish.cellY() + ") through squads " + wish.operatorSquads());
+                }
                 return;
             }
         }

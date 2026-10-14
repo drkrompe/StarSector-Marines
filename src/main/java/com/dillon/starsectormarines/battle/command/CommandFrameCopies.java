@@ -13,7 +13,7 @@ final class CommandFrameCopies {
                 source.targetZoneId(), node(source.targetNode()),
                 source.objectiveId(), source.targetCellX(), source.targetCellY(),
                 source.targetRadiusCells(), source.wreckAuthorised(), source.occupyRunId(),
-                source.breachCellX(), source.breachCellY());
+                source.breachCellX(), source.breachCellY(), source.fireMission());
     }
 
     static CommandDirective directive(CommandDirective source) {

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
+import java.util.Objects;
+
 /**
  * One immutable assignment-shaped execution context for a squad. Ordinarily
  * it is the strategic task assigned by the faction's {@link MissionCommand};
@@ -50,6 +52,9 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  *                          wall from where they stand aim at it, and a breaching tool or charge is used on it. {@code -1}
  *                          when the order breaches nothing. A cell of the map, never a hostile identity or position
  * @param breachCellY       see {@code breachCellX}
+ * @param fireMission       a fire mission the squad's crew-served tubes serve: a map cell and radius on which they fire
+ *                          whatever the side knows to stand there, in place of only what the section itself has seen,
+ *                          or {@code null}. A cell of the map, never a hostile identity
  */
 public record ObjectiveAssignment(
         int squadId,
@@ -63,7 +68,33 @@ public record ObjectiveAssignment(
         boolean wreckAuthorised,
         int occupyRunId,
         int breachCellX,
-        int breachCellY) {
+        int breachCellY,
+        FireMission fireMission) {
+
+    /**
+     * A fire mission: the ground a squad's tubes are told to fire on. The commander names a place, never a body, and the
+     * tube fires only at what the side has itself seen stand within it.
+     *
+     * @param cellX        centre of the mission
+     * @param cellY        centre of the mission
+     * @param radiusCells  how far from the centre a target may stand and still be on the mission
+     */
+    public record FireMission(int cellX, int cellY, int radiusCells) {
+        public FireMission {
+            if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
+        }
+    }
+
+    /** The assignment that serves no fire mission. */
+    public ObjectiveAssignment(int squadId, AssignmentKind kind,
+                               int targetZoneId, TacticalNode targetNode,
+                               int objectiveId, int targetCellX,
+                               int targetCellY, int targetRadiusCells,
+                               boolean wreckAuthorised, int occupyRunId,
+                               int breachCellX, int breachCellY) {
+        this(squadId, kind, targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells,
+                wreckAuthorised, occupyRunId, breachCellX, breachCellY, null);
+    }
 
     /** The assignment that breaches no wall: every assignment but a fort company's breach role. */
     public ObjectiveAssignment(int squadId, AssignmentKind kind,
@@ -97,14 +128,26 @@ public record ObjectiveAssignment(
     /** The same order with the permission to wreck the fort aspect at its target cell given or withdrawn. */
     public ObjectiveAssignment withWreckAuthorised(boolean authorised) {
         return wreckAuthorised == authorised ? this : new ObjectiveAssignment(squadId, kind, targetZoneId, targetNode,
-                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised, occupyRunId, breachCellX, breachCellY);
+                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised, occupyRunId, breachCellX, breachCellY, fireMission);
     }
 
     /** The same order, told also to open the wall at this cell (or none, with {@code -1}) when in reach of it. */
     public ObjectiveAssignment withBreach(int cellX, int cellY) {
         return breachCellX == cellX && breachCellY == cellY ? this : new ObjectiveAssignment(squadId, kind,
                 targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells, wreckAuthorised,
-                occupyRunId, cellX, cellY);
+                occupyRunId, cellX, cellY, fireMission);
+    }
+
+    /** The same order, told also to serve a fire mission on this ground (or none, with {@code null}). */
+    public ObjectiveAssignment withFireMission(FireMission mission) {
+        return Objects.equals(fireMission, mission) ? this : new ObjectiveAssignment(squadId, kind,
+                targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells, wreckAuthorised,
+                occupyRunId, breachCellX, breachCellY, mission);
+    }
+
+    /** Whether this order tells its squad's tubes to serve a fire mission. */
+    public boolean firesMission() {
+        return fireMission != null;
     }
 
     /** Whether this order tells its squad to open a wall. */

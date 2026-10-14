@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.AssaultMuster.Order;
 import com.dillon.starsectormarines.battle.command.AssaultRoles.Need;
 import com.dillon.starsectormarines.battle.command.AssaultRoles.Staffing;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.fortress.AssaultApproach;
@@ -14,11 +15,13 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.AssaultApproach.Va
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * The assault plan of a stamped fort, and the executor that drives a committed company through it
@@ -77,6 +80,8 @@ final class FortAssault {
     static final int FIRE_BAND_MACHINE = 3;
     /** Nearest a fire element is put to a nest, whatever its weapons' reach: inside this it is in the nest's face. */
     static final int MIN_FIRE_STANDOFF = 12;
+    /** Cells around a nest's cell a fire mission covers: the nest's turret stands within a cell of it. UNTUNED. */
+    static final int FIRE_MISSION_RADIUS = 3;
     /** The assault element gathers at least this far from every nest believed live. UNTUNED. */
     static final int ASSEMBLY_STANDOFF = 30;
     /** A firing position keeps this far from the approach lane, so the fire element is not in the way in. */
@@ -112,6 +117,13 @@ final class FortAssault {
     /** Ticks the plan waits for a wall to come down before the assault goes in regardless. UNTUNED. */
     static final int BREACH_TIMEOUT_TICKS = 2400;
 
+    /** Ticks a requested strike is taken to be on its way: the call, the corridor in from the map edge, the pass. UNTUNED. */
+    static final int STRIKE_FLIGHT_TICKS = 1200;
+    /** Ticks before a nest whose strike was refused is asked for again. UNTUNED. */
+    static final int STRIKE_RETRY_TICKS = 1500;
+    /** Strikes asked for on one nest before the plan stops counting on the air for it. UNTUNED. */
+    static final int STRIKE_ATTEMPTS = 3;
+
     /** Ticks POSITION waits for the fire element before suppression begins regardless. UNTUNED. */
     static final int POSITION_TIMEOUT_TICKS = 1500;
     /** Ticks since commit after which the assault element is taken to have assembled, wherever it is. UNTUNED. */
@@ -136,6 +148,16 @@ final class FortAssault {
     /** A way in, on the map. */
     record Way(Variant variant, int gateIndex, int mouthX, int mouthY, int outX, int outY, int entryX, int entryY,
                List<Integer> covering) { }
+
+    /**
+     * A strike the plan wants asked for: the nest's cell, and the squads whose observers may direct it. The plan only wishes;
+     * the commander asks the air serially after the plan is committed, and reports the answer back.
+     */
+    record StrikeWish(int nest, int cellX, int cellY, Set<Integer> operatorSquads) {
+        StrikeWish {
+            operatorSquads = Set.copyOf(operatorSquads);
+        }
+    }
 
     /** A fort's plan placed on the map by its frame. */
     static final class Works {
@@ -167,10 +189,26 @@ final class FortAssault {
     static final class NestBelief {
         private final boolean[] seenAlive;
         private final boolean[] dead;
+        /** The tick before which a nest whose strike was refused is not asked for again, and how many strikes it has been asked. */
+        private final Map<Integer, Integer> strikeRefusedUntil = new HashMap<>();
+        private final Map<Integer, Integer> strikesAsked = new HashMap<>();
 
         NestBelief(int nests) {
             seenAlive = new boolean[nests];
             dead = new boolean[nests];
+        }
+
+        /** Whether the air may be counted on for a nest at {@code tick}: not refused lately and not asked too often. */
+        boolean strikeOpen(int nest, int tick) {
+            return tick >= strikeRefusedUntil.getOrDefault(nest, 0) && strikesAsked.getOrDefault(nest, 0) < STRIKE_ATTEMPTS;
+        }
+
+        void strikeAsked(int nest) {
+            strikesAsked.merge(nest, 1, Integer::sum);
+        }
+
+        void strikeRefused(int nest, int untilTick) {
+            strikeRefusedUntil.put(nest, untilTick);
         }
 
         /**
@@ -225,12 +263,49 @@ final class FortAssault {
     }
 
     /**
+     * What a company can ask of the air, frozen for one pulse.
+     *
+     * @param air      the side's strikes on offer and the believed cost of a pass over each nest
+     * @param operator whether the company brought a forward observer to direct them
+     * @param tick     the tick of the pulse, for the nests whose strikes were refused lately
+     */
+    record Strikes(AirSupportFacts air, boolean operator, int tick) {
+        static final Strikes NONE = new Strikes(AirSupportFacts.NONE, false, 0);
+    }
+
+    /**
+     * The nests covering a way in that the company may count a strike for: believed live, not lately refused, over which a
+     * pass is believed to cost no more than the director risks, up to the strikes on offer, least defended first. Empty without an
+     * observer in the company, which is the only way to ask.
+     */
+    static List<Integer> strikeable(Works works, NestBelief belief, Way way, Strikes strikes) {
+        List<Integer> out = new ArrayList<>();
+        if (!strikes.operator() || !strikes.air().any()) return out;
+        for (int i : way.covering()) {
+            int[] nest = works.nests.get(i);
+            if (belief.live(i) && belief.strikeOpen(i, strikes.tick()) && strikes.air().acceptable(nest[0], nest[1])) out.add(i);
+        }
+        out.sort(Comparator.<Integer>comparingDouble(i -> strikes.air().riskByCell().get(
+                AirSupportFacts.key(works.nests.get(i)[0], works.nests.get(i)[1]))).thenComparingInt(i -> i));
+        return out.size() <= strikes.air().calls() ? out : new ArrayList<>(out.subList(0, strikes.air().calls()));
+    }
+
+    /**
      * The believed defence in front of a company, and the way in it would take.
      *
      * @param means    how a breach would be cut, or null for a gate
      * @param staffing what the company's capabilities make of the plan's needs, or null when they were not judged
      */
-    record Defence(Way way, int liveCovering, int liveOther, float strength, BreachMeans means, Staffing staffing) {
+    record Defence(Way way, int liveCovering, int liveOther, float strength, BreachMeans means, Staffing staffing,
+                   List<Integer> strikeNests) {
+        Defence {
+            strikeNests = List.copyOf(strikeNests);
+        }
+
+        Defence(Way way, int liveCovering, int liveOther, float strength, BreachMeans means, Staffing staffing) {
+            this(way, liveCovering, liveOther, strength, means, staffing, List.of());
+        }
+
         Defence(Way way, int liveCovering, int liveOther, float strength) {
             this(way, liveCovering, liveOther, strength, null, null);
         }
@@ -252,11 +327,16 @@ final class FortAssault {
      * cut wall, and bodies to go in.
      */
     static List<Need> needs(Way way, BreachMeans means, int liveCovering) {
+        return needs(way, means, liveCovering, 0);
+    }
+
+    /** As above, with {@code struck} of the covering nests counted as answered from the air and so not asked of the ground. */
+    static List<Need> needs(Way way, BreachMeans means, int liveCovering, int struck) {
         List<Need> needs = new ArrayList<>();
-        if (liveCovering > 0) {
+        if (liveCovering - struck > 0) {
             needs.add(new Need(AssaultRoles.Role.BASE_OF_FIRE,
                     EnumSet.of(AssaultCapability.DIRECT_STRUCTURE_FIRE, AssaultCapability.STANDOFF_STRUCTURE_FIRE),
-                    STRUCTURE_FIRE_PER_NEST * liveCovering, 0f));
+                    STRUCTURE_FIRE_PER_NEST * (liveCovering - struck), 0f));
         }
         if (way.variant() == Variant.BREACH) {
             if (means == BreachMeans.CLOSE) {
@@ -278,6 +358,12 @@ final class FortAssault {
      * missing. Null when the plan offers no way.
      */
     static Defence assess(Works works, NestBelief belief, int fromX, int fromY, Map<Integer, CapabilityProfile> squads) {
+        return assess(works, belief, fromX, fromY, squads, Strikes.NONE);
+    }
+
+    /** As above, counting the strikes the company may call for the nests covering each way in. */
+    static Defence assess(Works works, NestBelief belief, int fromX, int fromY, Map<Integer, CapabilityProfile> squads,
+                          Strikes strikes) {
         Way gate = null;
         int gateCover = Integer.MAX_VALUE;
         double gateGap = Double.MAX_VALUE;
@@ -295,26 +381,29 @@ final class FortAssault {
                 gateGap = gap;
             }
         }
-        Defence gateDefence = gate == null ? null : defenceOf(belief, gate, null, squads);
+        Defence gateDefence = gate == null ? null : defenceOf(works, belief, gate, null, squads, strikes);
         if (breach != null && (gate == null || belief.liveCovering(breach) <= gateCover)) {
             // As covered as the best gate, the breach is still the way a company that brought kit for a wall takes: it
             // chooses where the assault comes in, instead of walking into the gatehouse the nests are laid on. A
             // company with nothing to open a wall cannot staff it and takes the gate.
             for (BreachMeans means : BreachMeans.values()) {
-                Defence defence = defenceOf(belief, breach, means, squads);
+                Defence defence = defenceOf(works, belief, breach, means, squads, strikes);
                 if (defence.staffed()) return defence;
             }
         }
         if (gateDefence != null) return gateDefence;
-        return breach == null ? null : defenceOf(belief, breach, BreachMeans.DISTANCE, squads);
+        return breach == null ? null : defenceOf(works, belief, breach, BreachMeans.DISTANCE, squads, strikes);
     }
 
-    private static Defence defenceOf(NestBelief belief, Way way, BreachMeans means, Map<Integer, CapabilityProfile> squads) {
+    private static Defence defenceOf(Works works, NestBelief belief, Way way, BreachMeans means,
+                                     Map<Integer, CapabilityProfile> squads, Strikes strikes) {
         int covering = belief.liveCovering(way);
         int other = Math.max(0, belief.liveCount() - covering);
         float strength = NEST_COVERING_STRENGTH * covering + NEST_OTHER_STRENGTH * other
                 + (way.variant() == Variant.BREACH ? BREACH_STRENGTH : GATE_STRENGTH);
-        return new Defence(way, covering, other, strength, means, AssaultRoles.assign(needs(way, means, covering), squads));
+        List<Integer> struck = strikeable(works, belief, way, strikes);
+        return new Defence(way, covering, other, strength, means,
+                AssaultRoles.assign(needs(way, means, covering, struck.size()), squads), struck);
     }
 
     /**
@@ -361,6 +450,8 @@ final class FortAssault {
         private final int commitTick;
         private final Map<Integer, Role> roles = new TreeMap<>();
         private final Map<Integer, int[]> firePositions = new TreeMap<>();
+        /** The nest each fire squad was placed against, by index into the works. */
+        private final Map<Integer, Integer> fireNests = new TreeMap<>();
         private final Map<Integer, int[]> breachPositions = new TreeMap<>();
         private final BreachMeans means;
         private Staffing staffing;
@@ -368,6 +459,11 @@ final class FortAssault {
         private int[] heldAspect;
         private int[] fallen;
         private int liveCovering;
+        /** The covering nests the company counted a strike for, the ones it has asked for and until when each is on its way. */
+        private final List<Integer> strikeNests = new ArrayList<>();
+        private final Set<Integer> strikeAsked = new TreeSet<>();
+        private final Map<Integer, Integer> strikeFlight = new TreeMap<>();
+        private final List<StrikeWish> wishes = new ArrayList<>();
 
         Execution(Works works, NestBelief belief, Way way, int tick) {
             this(works, belief, new Defence(way, 0, 0, 0f, way.variant() == Variant.BREACH ? BreachMeans.DISTANCE : null, null), tick);
@@ -380,8 +476,59 @@ final class FortAssault {
             this.way = defence.way();
             this.means = defence.means();
             this.staffing = defence.staffing();
+            this.strikeNests.addAll(defence.strikeNests());
             this.stepTick = tick;
             this.commitTick = tick;
+        }
+
+        /** The strikes the plan wants asked for since it was last drained, each through a squad that carries an observer. */
+        List<StrikeWish> takeWishes() {
+            List<StrikeWish> out = new ArrayList<>(wishes);
+            wishes.clear();
+            return out;
+        }
+
+        /** What the air said to a request: on its way (the nest is taken to be answered for a time) or refused (asked again later). */
+        void strikeAnswered(int nest, boolean calling, int tick) {
+            if (calling) {
+                strikeFlight.put(nest, tick + STRIKE_FLIGHT_TICKS);
+            } else {
+                strikeAsked.remove(nest);
+                belief.strikeRefused(nest, tick + STRIKE_RETRY_TICKS);
+            }
+        }
+
+        /** Whether a strike asked for on a nest still believed live is thought to be on its way. */
+        boolean strikeInFlight(int tick) {
+            for (Map.Entry<Integer, Integer> flight : strikeFlight.entrySet()) {
+                if (flight.getValue() > tick && belief.live(flight.getKey())) return true;
+            }
+            return false;
+        }
+
+        /** Asks for the strikes the plan counted, while the company is still setting up its fire: once per nest, again if it did not work. */
+        private void planStrikes(int tick, Set<Integer> members, Map<Integer, Body> byId) {
+            if (strikeNests.isEmpty() || (step != Step.POSITION && step != Step.SUPPRESS)) return;
+            Set<Integer> operators = new TreeSet<>();
+            for (int id : members) {
+                Body body = byId.get(id);
+                if (body != null && body.capabilities().has(AssaultCapability.AIR_DIRECTION)) operators.add(id);
+            }
+            if (operators.isEmpty()) return;
+            for (int nest : strikeNests) {
+                if (!belief.live(nest)) continue;
+                if (strikeAsked.contains(nest)) {
+                    // Asked and the flight is over with the nest still standing: it may be asked again.
+                    if (strikeFlight.getOrDefault(nest, Integer.MAX_VALUE) > tick) continue;
+                    strikeAsked.remove(nest);
+                    strikeFlight.remove(nest);
+                }
+                if (!belief.strikeOpen(nest, tick)) continue;
+                belief.strikeAsked(nest);
+                strikeAsked.add(nest);
+                int[] cell = works.nests.get(nest);
+                wishes.add(new StrikeWish(nest, cell[0], cell[1], operators));
+            }
         }
 
         Step step() {
@@ -466,6 +613,7 @@ final class FortAssault {
 
             advance(tick, fire, breach, assault, byId, topology, notes);
             sortRoles(fire, breach, assault);
+            planStrikes(tick, members, byId);
 
             Map<Integer, Order> orders = new TreeMap<>();
             switch (step) {
@@ -523,7 +671,23 @@ final class FortAssault {
 
         private Order fireOrder(int id) {
             int[] cell = firePositions.get(id);
-            return new Order(ObjectiveAssignment.attackMove(id, cell[0], cell[1]), AssignmentReason.ASSAULT_BASE_OF_FIRE);
+            ObjectiveAssignment order = ObjectiveAssignment.attackMove(id, cell[0], cell[1]);
+            int[] nest = missionNest(id);
+            // The squad's crew-served tubes are told which nest to fire on; a squad with none carries the order unused.
+            if (nest != null) order = order.withFireMission(new FireMission(nest[0], nest[1], FIRE_MISSION_RADIUS));
+            return new Order(order, AssignmentReason.ASSAULT_BASE_OF_FIRE);
+        }
+
+        /**
+         * The nest a fire squad's tubes are told to fire on: the one it was placed against while that is believed live,
+         * else the first nest covering the way in that is. Own-force knowledge of the fort's disclosed works; whether the
+         * side has seen anything there is the tube's concern, not the plan's.
+         */
+        private int[] missionNest(int id) {
+            Integer placed = fireNests.get(id);
+            if (placed != null && belief.live(placed)) return works.nests.get(placed);
+            for (int i : way.covering()) if (belief.live(i)) return works.nests.get(i);
+            return null;
         }
 
         /**
@@ -671,7 +835,10 @@ final class FortAssault {
                     boolean assembled = assault.isEmpty()
                             || arrivedShare(assault, id -> assembly, byId) >= 0.5f
                             || tick - commitTick >= ASSEMBLY_TIMEOUT_TICKS;
-                    boolean suppressed = liveCovering == 0 || fire.isEmpty() || elapsed >= SUPPRESS_MAX_TICKS;
+                    // A strike on its way is waited for: the nest it was called on is not yet answered for, and the assault does
+                    // not walk up under it.
+                    int suppressMax = SUPPRESS_MAX_TICKS + (strikeInFlight(tick) ? STRIKE_FLIGHT_TICKS : 0);
+                    boolean suppressed = liveCovering == 0 || fire.isEmpty() || elapsed >= suppressMax;
                     boolean walled = way.variant() == Variant.BREACH && !breach.isEmpty() && breachCell(topology) != null
                             && elapsed < BREACH_TIMEOUT_TICKS;
                     if (assembled && suppressed && !walled) {
@@ -723,6 +890,7 @@ final class FortAssault {
         private void assignRoles(Set<Integer> members, Map<Integer, Body> byId) {
             roles.keySet().retainAll(members);
             firePositions.keySet().retainAll(members);
+            fireNests.keySet().retainAll(members);
             breachPositions.keySet().retainAll(members);
             boolean first = roles.isEmpty();
             if (first) {
@@ -806,12 +974,17 @@ final class FortAssault {
             List<Integer> targets = new ArrayList<>();
             for (int i : way.covering()) if (belief.live(i)) targets.add(i);
             if (targets.isEmpty()) return null;
-            int[] nest = works.nests.get(targets.get(turn % targets.size()));
-            int standoff = body.machine() ? FIRE_STANDOFF_MACHINE : FIRE_STANDOFF_INFANTRY;
+            int nestIndex = targets.get(turn % targets.size());
+            int[] nest = works.nests.get(nestIndex);
+            fireNests.put(body.squadId(), nestIndex);
+            // Fire from beyond the nests' reach: a machine does, and so does any squad whose anti-structure fire is arcing
+            // (a served mortar tube reaches fifty cells, a nest twenty-four).
+            boolean standoffFire = body.machine() || body.capabilities().standoffFirst();
+            int standoff = standoffFire ? FIRE_STANDOFF_MACHINE : FIRE_STANDOFF_INFANTRY;
             // Stand inside the reach of what the squad carries: a gun that cannot reach the nest from its place is no base of fire.
             float reach = body.capabilities().structureFireRange();
             if (reach > 0f) standoff = Math.max(MIN_FIRE_STANDOFF, Math.min(standoff, Math.round(reach) - 2));
-            int band = body.machine() ? FIRE_BAND_MACHINE : FIRE_BAND_INFANTRY;
+            int band = standoffFire ? FIRE_BAND_MACHINE : FIRE_BAND_INFANTRY;
             for (boolean needSight : new boolean[] {true, false}) {
                 int[] best = null;
                 double bestGap = Double.MAX_VALUE;

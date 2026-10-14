@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.marine.CommsKitSpec;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongPredicate;
 
 /**
  * Who on a side can direct its air right now, and onto what ground.
@@ -81,11 +82,18 @@ public final class CommsOperators {
      * when nobody can.
      */
     public static Operator best(BattleSimulation sim, Faction side, float targetX, float targetY, boolean believes) {
+        return best(sim, side, targetX, targetY, believes, unit -> true);
+    }
+
+    /** As above, among the operators {@code allowed} accepts: a plan that asks through its own observers. */
+    public static Operator best(BattleSimulation sim, Faction side, float targetX, float targetY, boolean believes,
+                                LongPredicate allowed) {
         Operator best = null;
         int bestRank = Integer.MAX_VALUE;
         float bestDistSq = Float.MAX_VALUE;
         World world = sim.world();
         for (Operator op : available(sim, side)) {
+            if (!allowed.test(op.unit())) continue;
             Knowledge k = knowledge(sim, op, targetX, targetY, believes);
             if (k == Knowledge.NONE) continue;
             float dx = targetX - world.x(op.unit());

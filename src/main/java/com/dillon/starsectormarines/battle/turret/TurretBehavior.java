@@ -89,6 +89,10 @@ public final class TurretBehavior implements UnitBehavior {
             // nothing it has not been shown. A lone gunner works it at a slower cycle.
             s.squadId = tube.squadId;
             s.attackCooldown *= sim.fieldMortars().cooldownScale(tube, sim);
+            // An assigned fire mission outranks what the section happens to see: the body the side knows to stand on the
+            // ground the order names, in the tube's band, is the target; with none the tube fires on its own belief.
+            long mission = sim.fieldMortars().missionTarget(tube, s.target, sim.getSimTickIndex(), sim);
+            if (mission != 0L) s.target = mission;
         }
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
@@ -106,6 +110,7 @@ public final class TurretBehavior implements UnitBehavior {
                     // it goes out on remembered ground at the weapon's blind-fire penalty.
                     s.lastFireHadLos = sim.fieldMortars().spotted(tube, s.target, sim);
                     tube.spendRound();
+                    if (s.target == tube.missionTarget()) tube.noteMissionRound();
                 }
             }
         }
