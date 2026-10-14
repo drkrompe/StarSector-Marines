@@ -210,6 +210,11 @@ Do not run builds or leave generated task files there.
   bonuses are assumed. Default observation is 18000 ticks with two Aeroshuttles.
   `-Dbattle.corvus.boats=4` selects a different allowed lift count and separate
   output folder; `-Dbattle.corvus.chapter=BLIND_WATCH` selects one chapter.
+  `-Dbattle.corvus.seedOffset=N` replays the chapter on its battle seed plus N
+  (own output folder). `-Dbattle.mortarTeamEvery=N` declares a marine mortar kit
+  (every Nth squad) for Corvus and for `createSnapshots -Psnapshot=cold-start`;
+  both report tube carriers, set-ups, rounds and which set-up gate held the
+  tube back each tick.
   Reports retain exact launch fixtures, losses, delivery times, mech output,
   command traces, minute frames and unit/route diagnostics. Corvus also accepts
   `-PsnapshotEveryTicks=15` for denser action replay frames with weapons, impacts
