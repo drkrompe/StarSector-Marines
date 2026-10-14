@@ -73,7 +73,7 @@ final class AssaultMuster {
     /** Stand-downs per fort before a timed-out muster commits with what it has, so it never waits forever. UNTUNED. */
     static final int STAND_DOWN_LIMIT = 2;
     /** Ticks allowed per cell of walk for a recruit to reach the rally point. UNTUNED. */
-    static final int TICKS_PER_CELL = 12;
+    static final int TICKS_PER_CELL = 24;
     /** Extra ticks a recruit is allowed on top of its walk. UNTUNED. */
     static final int ARRIVAL_SLACK_TICKS = 600;
     /**
@@ -81,6 +81,16 @@ final class AssaultMuster {
      * anything yet to come before committing with what it has, rather than standing out the whole timeout. UNTUNED.
      */
     static final int STRAGGLER_GRACE_TICKS = 900;
+    /**
+     * A recruit that has not closed on the rally point by at least {@link #STALL_CLOSE_CELLS} in this many ticks is not
+     * coming (held in a fight, lost, on a path that does not close) and is released rather than waited for; a squad walks
+     * about 0.04 cells a tick, so this is some fifty cells of walking. UNTUNED.
+     */
+    static final int STALL_TICKS = 1200;
+    /** The ground a recruit must gain on the rally point within {@link #STALL_TICKS} to count as still coming. UNTUNED. */
+    static final float STALL_CLOSE_CELLS = 3f;
+    /** Ticks a released recruit is left to the lanes before any company may take it again. UNTUNED. */
+    static final int RELEASE_BAR_TICKS = 3000;
     /** A squad within this many cells of the rally point has arrived. UNTUNED. */
     static final int RALLY_RADIUS_CELLS = 10;
     /**
@@ -167,6 +177,8 @@ final class AssaultMuster {
         int expectUntil = -1;
         /** The stamp's assault plan being executed, once committed against a fort whose works are known. */
         FortAssault.Execution execution;
+        /** Per recruit still walking in: its closest approach to the rally so far and the tick it got there. */
+        final Map<Integer, double[]> progress = new HashMap<>();
 
         int graceFrom(int tick) {
             if (fullSince < 0) fullSince = tick;
@@ -185,6 +197,10 @@ final class AssaultMuster {
     /** Broken attempts per objective: the side's memory that the objective took more than it believed. */
     private final Map<Integer, Integer> failures = new HashMap<>();
     private int footholdSquad = -1;
+    /** Squads released from a muster for not coming up, and the tick they may be recruited again. */
+    private final Map<Integer, Integer> barred = new HashMap<>();
+    /** The tick of the pulse being planned, for the recruit bar. */
+    private int clock;
     /** Times a company for each fort stood down for want of strength, and until when the fort is left to the lanes. */
     private final Map<Integer, Integer> standDowns = new HashMap<>();
     private final Map<Integer, Integer> standDownUntil = new HashMap<>();
@@ -345,6 +361,7 @@ final class AssaultMuster {
      */
     Result plan(int tick, Faction perspective, List<Objective> objectives, List<Body> bodies, int[] drop,
                 List<int[]> hostiles, CommandTopology topology) {
+        clock = tick;
         Map<Integer, Order> orders = new TreeMap<>();
         List<String> notes = new ArrayList<>();
         Map<Integer, Body> byId = new TreeMap<>();
@@ -399,7 +416,9 @@ final class AssaultMuster {
             Company company = companies.get(objective.fortId());
             if (company == null) {
                 if (tick < standDownUntil.getOrDefault(objective.fortId(), 0)) continue;
-                if (freeBodies(byId).isEmpty()) continue;
+                // Free is not the same as recruitable: a lone squad on its lane, or one off the drop zone's ground, is free and
+                // will not be taken, and a company formed around nobody stands at its rally until the timeout.
+                if (recruitable(byId, ground).isEmpty()) continue;
                 company = new Company(objective.fortId(), tick);
                 int[] rally = rallyCell(drop[0], drop[1], objective.cellX(), objective.cellY(), ground, hostiles);
                 company.rallyX = rally[0];
@@ -409,6 +428,13 @@ final class AssaultMuster {
                         + objective.family().name().toLowerCase(Locale.ROOT) + ": rally at (" + rally[0] + "," + rally[1]
                         + "), believes it takes " + requiredNow(objective, company, byId, rally)
                         + ", commits by tick " + company.timeoutTick);
+            }
+            if (company.stage == Stage.MUSTER && company.members.isEmpty() && recruitable(byId, ground).isEmpty()) {
+                // Everything it recruited is gone (dead, in a fight it was not sent to, or taken by a higher authority) and there is
+                // no one to replace them: an empty company holds a fort out of the lanes' work and a rally with nobody at it.
+                companies.remove(company.fortId);
+                notes.add("company for fort " + company.fortId + " dissolved: no squad left to recruit");
+                continue;
             }
             if (company.stage == Stage.MUSTER) {
                 claimedByCompanies += muster(tick, objective, company, byId, drop, hostiles, ground, cap - claimedByCompanies, notes);
@@ -422,7 +448,9 @@ final class AssaultMuster {
                 picture.add(stateOf(tick, objective, company, byId));
             }
         }
-        if (footholdSquad >= 0 && byId.containsKey(footholdSquad)) {
+        // The beachhead is held while a company musters or assaults; with none (stood down, nobody to recruit) the squad
+        // stays on the lanes' work instead of standing on the drop zone for a company that does not exist.
+        if (!companies.isEmpty() && footholdSquad >= 0 && byId.containsKey(footholdSquad)) {
             orders.put(footholdSquad, new Order(
                     ObjectiveAssignment.advanceTrack(footholdSquad, drop[0], drop[1]), AssignmentReason.MUSTER_FOOTHOLD));
             picture.add(new CompanyState(-1, "FOOTHOLD", List.of(footholdSquad), 1,
@@ -472,6 +500,7 @@ final class AssaultMuster {
         List<Body> out = new ArrayList<>();
         for (Body body : freeBodies(byId)) {
             if (!ground.ok(body.anchorX(), body.anchorY())) continue;
+            if (clock < barred.getOrDefault(body.squadId(), 0)) continue;
             if (body.track() >= 0 && !body.machine() && laneFree(byId, body.track()) - 1 < Math.ceil(LANE_KEEP_SHARE * laneTotal(byId, body.track()))) continue;
             out.add(body);
         }
@@ -518,6 +547,7 @@ final class AssaultMuster {
             notes.add("company for fort " + company.fortId + " rally moved to (" + rally[0] + "," + rally[1]
                     + "): a hostile is believed near the old one");
         }
+        releaseStalled(tick, company, byId, notes);
         int recruited = 0;
         while (strengthOf(company, byId) < required && recruited < roomLeft) {
             Body pick = null;
@@ -531,6 +561,7 @@ final class AssaultMuster {
             }
             if (pick == null) break;
             company.members.add(pick.squadId());
+            company.progress.put(pick.squadId(), new double[] {bestGap, tick});
             recruited++;
             company.timeoutTick = Math.max(company.timeoutTick,
                     tick + (int) (TICKS_PER_CELL * bestGap) + ARRIVAL_SLACK_TICKS);
@@ -579,6 +610,37 @@ final class AssaultMuster {
             companies.remove(company.fortId);
         }
         return recruited;
+    }
+
+    /**
+     * Lets go of recruits that are not closing on the rally point. Orders to the rally are advisory to a squad in a fight
+     * or on a path that does not close, and a company waiting on such a squad stands at its rally with nobody at it until the
+     * timeout; the squad is better back on the lanes, which it is already fighting for, and is not taken again at once.
+     */
+    private void releaseStalled(int tick, Company company, Map<Integer, Body> byId, List<String> notes) {
+        company.progress.keySet().removeIf(id -> !company.members.contains(id));
+        List<Integer> released = new ArrayList<>();
+        for (int id : company.members) {
+            Body body = byId.get(id);
+            if (body == null || arrived(company, body)) {
+                company.progress.remove(id);
+                continue;
+            }
+            double gap = Math.hypot(body.anchorX() - company.rallyX, body.anchorY() - company.rallyY);
+            double[] seen = company.progress.get(id);
+            if (seen == null || gap < seen[0] - STALL_CLOSE_CELLS) {
+                company.progress.put(id, new double[] {gap, tick});
+            } else if (tick - seen[1] >= STALL_TICKS) {
+                released.add(id);
+            }
+        }
+        for (int id : released) {
+            company.members.remove(id);
+            company.progress.remove(id);
+            barred.put(id, tick + RELEASE_BAR_TICKS);
+            notes.add("company for fort " + company.fortId + " released squad " + id + ": no closer to the rally in "
+                    + STALL_TICKS + " ticks; it returns to the lanes until tick " + (tick + RELEASE_BAR_TICKS));
+        }
     }
 
     private void gather(Company company, Map<Integer, Body> byId, Map<Integer, Order> orders) {
