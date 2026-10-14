@@ -1,10 +1,10 @@
 # Second Wind to Wayline: opening dialogue
 
-Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine's place on the company net remains open.
+Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine relays company-wide orders on the net; her other ground reports wait on battle evidence.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — applied to strings, the prologue, the yard visit, Relief's briefing and radio, and the first payment; Sabine Hale renamed and protected from death.
+Updated: 2026-10-14 — applied; Sabine Hale renamed, protected from death, voiced, and relaying company-wide orders on the net.
 
 ## How to read this script
 
@@ -664,7 +664,7 @@ Mara — next
 > Get your people in order. When you're ready, come back and we'll talk about the
 > depot. I'd like this to be the start of something. Wayline needs it to be.
 
-## Proposal — Sabine on the company net
+## Sabine on the company net
 
 Sabine joins the existing net as one more voice in its rotation, not as a
 parallel system. What sets her apart is her authority, not her mechanics. The
@@ -700,11 +700,13 @@ today. Examples:
 | Company thinning | **Sabine:** Castle, we're thin down here. I can hold. I can't push. |
 | Squads rejoined | **Castle:** Sabine, how's the line? **Sabine:** Back together. Ready when you are. |
 
-This needs its own story under the battle-radio model: a fixed ground-commander
-actor in the radio catalog, the rule for which exchanges she takes, recordings in
-a chosen voice, and a check that the net is unchanged when she is not deployed.
-It is not part of the text rewrite. Until then her story lines stay text with her
-portrait.
+The first row is in the game, as the battle-radio model's field-command relay
+(`battle-radio-nouns.md`): when several squads are retasked together and she
+leads the deployment, Castle may call her instead of a callsign, read the same
+order, and hear her hand it to one callsign, who answers. Withdrawals use the
+last-out handoff from the fourth row. The other rows each need a confirmed
+battle fact the net does not observe yet (company landed, compound captured,
+company strength, squads reassembled).
 
 Owner call 6 reaches past the opening. Counterattack, Open the Junction and
 Thunder Run no longer name their fees in Mara's voice. Thunder Run's per-carrier
@@ -713,7 +715,8 @@ schedule is a term the player needs, so it follows her briefing as a plain
 
 ## Still open
 
-- Sabine on the company net is its own story under the battle-radio model.
+- Sabine's landing, capture, strength and regroup reports, each once the net
+  can observe its fact.
 
 Sabine has a voice (`art-source/audio/sabine/README.md`): calm and low, without
 the Eastern European accent the brief asked for, which the recording model does
