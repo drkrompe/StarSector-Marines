@@ -57,4 +57,5 @@ com.dillon.starsectormarines.battle.command.AssaultMusterScene
 com.dillon.starsectormarines.battle.power.MechDropScene
 com.dillon.starsectormarines.battle.squad.FightingPositionScene
 com.dillon.starsectormarines.battle.airsupport.AirStrikeScene
+com.dillon.starsectormarines.battle.airsupport.FighterCoverScene
 com.dillon.starsectormarines.battle.deployable.FieldMortarScene

@@ -27,7 +27,7 @@ public enum DebugAirPool {
     /** Bombers at the start / most held / seconds to replace one. UNTUNED. */
     static final AirPoolStock BOMBERS = new AirPoolStock(2, 3, 60f);
     /** Fighters at the start / most held / seconds to replace one. UNTUNED. */
-    static final AirPoolStock FIGHTERS = new AirPoolStock(1, 2, 45f);
+    static final AirPoolStock FIGHTERS = new AirPoolStock(1, 2, 30f);
 
     /** The declaration this statement makes. */
     public AirPoolDeclaration declaration() {
