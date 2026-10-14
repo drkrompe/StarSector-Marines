@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
@@ -20,6 +22,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortReservations;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
+import com.dillon.starsectormarines.battle.world.gen.fortress.BeltStandCells;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
@@ -99,6 +102,19 @@ public final class FortStage implements GenStage {
     private static final int KEEP_WEIGHT = 6;
     private static final int SUPPLY_WEIGHT = 2;
     private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak"};
+
+    /** Whether belt nests carry a garrison; off only for a same-build control run. */
+    private static final boolean BELT_GARRISON = !"false".equalsIgnoreCase(System.getProperty("battle.fort.beltGarrison"));
+    /** Trench and sandbag cells offered to one belt garrison as stand positions. */
+    private static final int BELT_STAND_CELLS = 8;
+    /** A belt run shorter than this is not worth a garrison. */
+    private static final int BELT_MIN_STAND_CELLS = 4;
+    /** How far (Manhattan) from its nest a belt garrison may stand. */
+    private static final int BELT_REACH = 14;
+    /** Squad slots at one belt nest. */
+    private static final int BELT_GARRISON_SIZE = 6;
+    /** Below a compound perimeter post (50), so a belt takes only the defenders the places that matter more leave over. */
+    private static final int BELT_PRIORITY = 45;
 
     /** A candidate centre with the order it is taken in. */
     private record Site(int x, int y, int band, long centreDistSq) {}
@@ -651,6 +667,7 @@ public final class FortStage implements GenStage {
     private static void stampBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground) {
         FortDressing draw = new FortDressing(ctx, at);
         Set<Long> taken = new HashSet<>();
+        List<int[]> beltNests = new ArrayList<>();
         int nestNumber = plan.nests().size();
         for (FortBelt.Cell c : plan.belt()) {
             if (plan.isWorks(c.x(), c.y())) continue;
@@ -699,8 +716,52 @@ public final class FortStage implements GenStage {
                 case NEST -> {
                     draw.earth(c.x(), c.y());
                     emitNest(ctx, cell, fortId, at, nestNumber++);
+                    beltNests.add(cell);
                 }
             }
+        }
+        garrisonBelt(ctx, plan, at, taken, beltNests);
+    }
+
+    /**
+     * Gives each belt nest a garrison by the ordinary place model: a defender-held {@link TacticalNode.Kind#GUARDPOST}
+     * whose authored stand positions are the trench and sandbag ground nearest the nest, so the defender allocator
+     * seats a squad in the belt and the squad holds those cells as it holds any garrison's. The node is anchored on
+     * its first stand cell, not on the nest: a node on the nest's own cell would be paired with that nest's
+     * {@link DefensePost} and put its squad on a patrol that wanders the box round it. Two nests never share a cell.
+     * Switched off by {@code battle.fort.beltGarrison=false} for a control run.
+     */
+    private static void garrisonBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, Set<Long> taken,
+                                     List<int[]> beltNests) {
+        if (!BELT_GARRISON || beltNests.isEmpty()) return;
+        // The tactical map was built and linked before this stage ran, so a node reaches the battle only by being added to it.
+        TacticalMap finished = ctx.get(BspKeys.TACTICAL_MAP);
+        Set<Long> ground = new HashSet<>();
+        for (FortBelt.Cell c : plan.belt()) {
+            if (c.role() != FortBelt.Role.TRENCH && c.role() != FortBelt.Role.BAG) continue;
+            int[] cell = at.cell(c.x(), c.y());
+            if (taken.contains(FortDressing.key(cell[0], cell[1])) && ctx.grid.isWalkable(cell[0], cell[1])) {
+                ground.add(BeltStandCells.key(cell[0], cell[1]));
+            }
+        }
+        for (int[] nest : beltNests) {
+            List<int[]> cells = BeltStandCells.near(ground, nest[0], nest[1], BELT_STAND_CELLS, BELT_REACH);
+            if (cells.size() < BELT_MIN_STAND_CELLS) continue;
+            List<TacticalNode.StandPosition> stands = new ArrayList<>(cells.size());
+            int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+            for (int[] cell : cells) {
+                ground.remove(BeltStandCells.key(cell[0], cell[1]));
+                stands.add(new TacticalNode.StandPosition(cell[0], cell[1]));
+                left = Math.min(left, cell[0]);
+                top = Math.min(top, cell[1]);
+                right = Math.max(right, cell[0]);
+                bottom = Math.max(bottom, cell[1]);
+            }
+            TacticalNode node = new TacticalNode(TacticalNode.Kind.GUARDPOST, cells.get(0)[0], cells.get(0)[1],
+                    left, top, right, bottom, Faction.DEFENDER, BELT_PRIORITY, Math.min(BELT_GARRISON_SIZE, cells.size()),
+                    stands);
+            if (finished != null) finished.add(node);
+            else ctx.tactical.add(node);
         }
     }
 

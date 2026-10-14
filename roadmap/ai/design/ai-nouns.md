@@ -2070,6 +2070,15 @@ cover. The full-squad length is the rule for what counts as a position at all,
 never a condition on occupying one. Positions are neutral ground, held by either
 side and by any infantry, never by mechs, vehicles or drones.
 
+A fort belt is garrisoned the ordinary way. Each belt nest publishes a defender
+garrison place whose authored stand positions are the trench and sandbag cells
+along the belt beside it, so the allocator seats a squad in the trench and the
+squad holds and digs in there exactly as any garrison holds its post; no claim
+or order is involved. The place ranks below compound perimeter posts, so a belt
+takes only defenders the places that matter more leave over, and those come out
+of the mobile patrol pool: a map with belts has a smaller roving defence. A belt
+squad holds until it dies or breaks; it does not release when its nest falls.
+
 **What it pays is composure, never protection.** Cover already reduces damage
 and stops rounds, and the cells of a position already carry it; a dug-in damage
 bonus would count the same ground twice. A hit or near-miss on a dug-in marine

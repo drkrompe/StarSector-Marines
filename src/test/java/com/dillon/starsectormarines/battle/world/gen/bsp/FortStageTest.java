@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -7,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -20,6 +23,8 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,6 +72,45 @@ class FortStageTest {
         GenContext batteriesOnly = field(TargetProfile.NEUTRAL.withDeclaredDefences(new GroundDefences(3, true, 5)));
         new FortStage().run(batteriesOnly);
         assertTrue(batteriesOnly.defensePosts.isEmpty(), "a bare battery is not a fort");
+    }
+
+    @Test
+    void everyBeltNestIsGarrisonedFromGroundYouCanStandIn() {
+        for (int turn = 0; turn < 4; turn++) {
+            GenContext ctx = field(declared(1));
+            FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, turn), 0);
+
+            assertEquals(FortBelt.nests().size(), ctx.tactical.size(), "one garrison per belt nest, turn " + turn);
+            Set<Long> claimed = new HashSet<>();
+            for (TacticalNode node : ctx.tactical) {
+                assertEquals(TacticalNode.Kind.GUARDPOST, node.kind);
+                assertEquals(Faction.DEFENDER, node.defaultGuard);
+                assertFalse(node.standPositions().isEmpty());
+                assertTrue(node.garrisonSize <= node.standPositions().size());
+                assertEquals(node.standPositions().get(0).x(), node.anchorX);
+                for (TacticalNode.StandPosition p : node.standPositions()) {
+                    assertTrue(ctx.grid.isWalkable(p.x(), p.y()), "stand cells are open ground");
+                    assertTrue(claimed.add((long) p.x() << 32 | p.y()), "no two garrisons share a cell");
+                    assertTrue(ctx.doodads.stream().anyMatch(d -> d.cellX == p.x() && d.cellY == p.y()),
+                            "a stand cell carries trench or sandbag");
+                }
+                for (DefensePost post : ctx.defensePosts) {
+                    assertFalse(post.anchorX == node.anchorX && post.anchorY == node.anchorY,
+                            "the node is not paired with a nest post");
+                }
+            }
+        }
+    }
+
+    @Test
+    void aLinkedTacticalMapReceivesTheBeltGarrisonsDirectly() {
+        GenContext ctx = field(declared(1));
+        TacticalMap linked = new TacticalMap(ctx.tactical);
+        ctx.put(BspKeys.TACTICAL_MAP, linked);
+        FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
+
+        assertEquals(FortBelt.nests().size(), linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the nodes");
+        assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
     }
 
     @Test

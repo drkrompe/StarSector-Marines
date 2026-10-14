@@ -1,10 +1,10 @@
 # Fighting-position occupation
 
-Status: IN PROGRESS — slices 1, 2 and 4 built; slice 3 (defenders) in progress; slice 5 waits on art
+Status: IN PROGRESS — slices 1–4 built (slice 3 for fort belts); slice 5 waits on art
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — occupy order, selection overlay and evidence counts built; the canonical Conquest fixtures declare no forts, so `conquest-forts-reinforced-south-v1.json` is the fort-bearing control. The dug-in marker is a cell outline, not a per-marine mark.
+Updated: 2026-10-13 — occupy order, overlay, evidence counts, belt-post structure defence and belt-nest garrisons built; on the fort control 20 belt squads (120 defenders) hold their trenches dug in, drawn from the patrol pool. Ordinary compound garrisons are unchanged.
 
 ## Intent
 
