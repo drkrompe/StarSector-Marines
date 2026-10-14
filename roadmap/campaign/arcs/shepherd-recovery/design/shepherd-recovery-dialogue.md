@@ -4,12 +4,13 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — full script pass: Morrow is a wreck from the same fall, her value is discovered under pressure, and Vale gives her up only for a reason she can't argue with.
+Updated: 2026-10-14 — move the hold question out of the Salvage Rights briefing and onto the drop.
 
 ## How to read this script
 
-This is the chronological dialogue register for **Salvage Rights**, **Cold Start**
-and **Working Passage**, on Asharu in Corvus: briefing, field calls, debrief and
+This is the chronological dialogue register for **A Working Ship**: Mara's
+referral after **A Cold Account**, then **Salvage Rights**, **Cold Start** and
+**Working Passage** on Asharu in Corvus: briefing, field calls, debrief and
 return-to-work lines, in the order they happen. It is also the character
 reference for future writing. A new line should agree with what its speaker knows
 at that point, and with what they are willing to say.
@@ -85,16 +86,23 @@ the hold, her money or her people make her short.
   from the same fall, hauled in to be broken for parts. Her reactor and drone bay
   are the best scrap in the yard outside the Colossus, and Vale had a buyer
   interested in the bay before the attack.
-- **TO BE REVEALED, first meeting (partially):** the leak was hers. She talked to
-  someone she should not have, and she says just enough to show she knows it.
-  She will not say who.
+- **PUBLIC, first meeting:** Basin buys its supplies, fuel and heavy machinery
+  through Wayline, as most crews on Asharu without their own lift do. Mara is her
+  supplier, not her friend.
+- **TO BE REVEALED, first meeting:** where the rumour may have come from. When the
+  hold was opened, Vale put in a Wayline fuel order big enough to lift something
+  heavy off-world, which a salvage camp never needs. Weeks later the rivals came.
+  The order crossed Wayline's dispatch board while its schedules were being sold
+  to pirates; she also talked too freely at Jangala. She suspects both and can
+  prove neither. **UNDECIDED** which, if either, it was.
 - **HIDDEN:** Jory's crew did not stay in the Colossus because they were trapped.
   They stayed to sit on the hold. Vale let family stay behind to guard the cargo
   rather than pull them out with everyone else, and tells herself it was their
   choice. She never says this; a reader can infer it from how she talks about them.
 - **HIDDEN:** Basin is short of money. The company's fees are coming out of what
-  should have bought parts and wages, and the sale of Morrow's bay was meant to
-  carry the camp through this season. Her offer to pay after the shipment moves is
+  should have bought parts and wages, the repair machinery was paid for up front,
+  the Wayline account for supplies and fuel is behind, and the sale of Morrow's bay
+  was meant to carry the camp through this season. Her offer to pay after the shipment moves is
   real, not a dodge.
 - **TO BE REVEALED, Cold Start:** the pickets are too thin to hold the yard after
   the company leaves. She knows it and admits it only when pressed.
@@ -108,15 +116,18 @@ the hold, her money or her people make her short.
   to support all of them.
 
 **Voice:** short, practical, territorial, tired. Salvage talk: hulls, cuts,
-pickings, the yard, the haul road. She calls the rival outfit *the roaches* — a
-working insult, not a speech. She counts in people and money, and she will not
+pickings, the yard, the haul road. She names the rival crew by its boss, Harlan,
+calls it *the squatters* when the abandonment claim is on her mind, and saves
+*roaches* for when she is angry — a couple of times in the whole arc, so it still
+stings. Most of the time it is just *they*. Castle never borrows Vale's insults;
+she says Harlan's crew or the other crew. She counts in people and money, and she will not
 pretend those two never pull against each other. No lectures about scavenger
 society, no announced motives, no threats in every reply. Warmth shows in what
 she notices and who she asks after, never in instant friendship with the company.
 
 ### Castle — company operations, speaking for the captain's interests
 
-Castle arrives with Mara's referral, the survey packet and a proposed security
+Castle arrives with Mara's message, the survey packet and a proposed security
 job, which is about what the player has. She has not met Vale. She can spot gaps
 in an offer and press on them; she cannot know what is in a sealed hold, what
 Vale can afford or whether a broken ship will fly. She prepares terms for the
@@ -128,8 +139,16 @@ captain, who decides whether to deploy.
   recovered from a wreck — and Castle has wanted a second hull since before Asharu.
   She does not bring it into the first two conversations, and she does not look at
   Morrow as a prize until Morrow has done something.
-- **TO BE REVEALED, first meeting:** she asks about the hold directly and backs off
-  when Vale refuses. She does not forget she asked.
+- **HIDDEN:** she knows what a second hull costs before it earns anything. Morrow
+  has to be crewed out of Second Wind's own complement, leaving both ships on
+  skeleton watches until the company can hire. She takes the ship anyway.
+- **TO BE REVEALED, Salvage Rights drop:** with the boats already going down, she
+  asks about the hold directly and backs off when Vale refuses. She does not forget
+  she asked.
+- **TO BE REVEALED, first meeting:** the company spent the Corvus work tracing
+  who sold Wayline's schedules, so Castle cannot wave away Vale's suspicion of
+  Wayline and does not try. She separates the company from its former employer
+  instead: they took Wayline's contract; now they are taking Vale's.
 - **TO BE REVEALED, Cold Start:** it is Castle who connects the rivals' cables in
   Morrow's bay to the problem of holding the yard after the company leaves. The
   idea is a defensive answer to a defensive problem.
@@ -164,23 +183,39 @@ open, they can walk out.
 ### Teo and the Basin fitters
 
 Teo is a young Basin fitter, kin to Vale, who gets Morrow's bay answering in Cold
-Start and her lift working before Working Passage. He has wanted off Asharu for
-years. He does not speak on the radio; Vale speaks about him.
+Start and her lift working before Working Passage. He knows her better than anyone
+alive, talks the company's crew through her drives, and stays in the valley. He
+does not speak on the radio; Vale speaks about him.
 
 Morrow's original crew died or scattered three cycles ago; nobody in this arc
-knows or tracks them. The people who go with her when she leaves are Basin hands
-who worked her back into a ship and chose to follow her. The hull agreement cannot
-sell their labor: Vale says they choose, and once they choose, they are on the
-company's books.
+knows or tracks them. **Nobody from Basin leaves with her.** Basin is a clan, and
+its people are not for hire to outsiders, least of all as part of a sale. The
+company crews Morrow out of its own fleet, thinning Second Wind's watch to do it,
+and hires to fill both ships afterwards like any other captain would. The hull
+agreement transfers a ship, never people.
 
 Inspection technicians, fitters and militia are different people with different
 jobs. Losing a post does not mean everyone there died.
 
-### Mara Venn, the Hegemony and the rival outfit
+### Mara Venn — Wayline broker, Basin's supplier
 
-Mara makes the introduction after the Corvus work. That is a professional referral,
-not a guarantee about Vale's cargo, credit or intentions. She has no speaking turn
-in these conversations.
+Mara brokers for the Wayline freight cooperative out of Jangala. Basin is one of
+Wayline's accounts: supplies, fuel and heavy machinery delivered into the valley,
+the ordinary consumables every outfit has to source locally. Vale and Mara are
+supplier and customer, and neither would call the other a friend.
+
+- **PUBLIC, referral:** Basin's yard is occupied, its account has gone quiet, and
+  heavy machinery Vale has already paid for is sitting in Wayline's shed with
+  nowhere to go. Mara wants a paying customer back, and says so plainly.
+- **HIDDEN:** Mara knows Vale's large fuel order crossed Wayline's dispatch board
+  while Sable Wake was buying its schedules. She does not know that is how the
+  rumour spread, and she does not raise it. Sending a company she trusts is good
+  business, and partly settling a debt she cannot prove she owes.
+- She speaks once, in the referral. In the chapter conversations Vale and Castle
+  talk about her; she does not take part. Her referral is not a guarantee about
+  Vale's cargo, credit or intentions.
+
+### The Hegemony and the rival outfit
 
 Basin works under a local recovery permit filed at Jangala. The Hegemony does not
 patrol a quarrel between two salvage crews; it would take an interest if something
@@ -188,8 +223,10 @@ in this valley looked worth its effort, and Vale would rather it never does. The
 script establishes no confiscation law, imminent patrol, political alliance or
 hidden deadline — only Vale's well-founded preference for being ignored.
 
-The opposition is one armed rival salvage outfit — Vale's roaches. Its claim of
-abandonment is reported by Vale. Its people are opportunists after a rich site who
+The opposition is one armed rival salvage outfit, **Dace Harlan's crew** — another
+family outfit from elsewhere on Asharu, much like Basin. Harlan never appears or
+speaks; the name gives Vale and Castle something to call them besides an insult.
+Its claim of abandonment is reported by Vale. Its people are opportunists after a rich site who
 also saw what a working drone tender could do for whoever holds the yard. They
 need not know the manifest any better than Castle does.
 
@@ -205,33 +242,72 @@ One of the escorts was a Shepherd, broken-backed in the fall. Basin hauled her
 onto the yard's service cradle to be broken for parts. Her name plate reads
 **Morrow**.
 
-Recently, Basin opened a sealed hold in the Colossus. Vale mentioned it to the
-wrong person. Rumours spread, and an armed rival outfit came in shooting at shift
-change. Basin evacuated most of its people; Jory's crew stayed sealed in the
+Basin has bought its supplies, fuel and heavy machinery through Wayline for
+most of that time. Recently, Basin opened a sealed hold in the Colossus, and Vale
+put in a Wayline fuel order far beyond a salvage camp's usual draw. Rumours spread,
+whether from that order or from Vale's own talk, and an armed rival outfit came in
+shooting at shift change. Basin evacuated most of its people; Jory's crew stayed sealed in the
 Colossus. The rivals began stripping the yard and, without Basin knowing, began
 trying to wake Morrow's drone bay.
 
 | Point in the arc | What Castle and the captain learn | What remains withheld |
 |---|---|---|
-| Referral and survey | Location, employer, proposed security work | Everything else |
-| Salvage Rights briefing | The wreckfall, Basin's claim, the leak (in part), Jory's crew, occupied yard, Morrow as scrap | Hold contents, buyer, Basin's finances |
+| Mara's referral | A Wayline customer, an occupied yard, Wayline's own stake in it | Mara's worry about her dispatch board |
+| Salvage Rights briefing | The wreckfall, Basin's claim, the fuel order and Vale's suspicion of Wayline, Jory's crew, occupied yard, Morrow as scrap | Hold contents, buyer, Basin's finances, how the rumour really spread |
+| Salvage Rights drop | Vale will not discuss the hold, and why | Hold contents, permanently |
 | Successful inspection | The rivals were trying to power Morrow's bay, not strip it | Why, or whether it could work |
 | Cold Start briefing | The pickets cannot hold the yard alone; Morrow's bay might help | Whether any builders will answer |
 | Cold Start field | Her builders work; a wreck put up a road gun | Any entitlement to the hull |
 | Cold Start debrief | Morrow is worth more to Vale now; the outer road is still shut | What Vale can pay for more |
-| Working Passage briefing | Vale cannot pay until the shipment moves; refusal, loan, terms; Teo and the volunteers | The manifest, permanently |
-| Climb-out and settlement | Morrow and her volunteer crew join the fleet; upkeep is the company's | No later cargo reveal is promised |
+| Working Passage briefing | Vale cannot pay until the shipment moves; refusal, loan, terms; the company must crew her itself | The manifest, permanently |
+| Climb-out and settlement | Morrow joins the fleet on a skeleton crew drawn from Second Wind; upkeep and hiring are the company's | No later cargo reveal is promised |
+
+## 0. The referral
+
+### After A Cold Account — Mara's introduction
+
+Delivered with the HQ notice *Mara's introduction to Tamsin Vale*, once Cold
+Account's aftermath has been acknowledged. It is business correspondence between
+people who have just been through something together, not a celebration and not a
+favour between friends. It replaces nothing in Cold Account's own aftermath, and
+it does not start a clock: Mara says outright that the work waits for the company.
+
+**Mara:** Castle. Something for when the company's ready, and not before. One of our accounts on Asharu has a problem.
+
+**Castle:** What kind of account?
+
+**Mara:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. They buy their supplies, fuel and heavy machinery off us, same as half the crews on Asharu. Tamsin Vale runs it.
+
+**Castle:** And the problem?
+
+**Mara:** Another salvage crew walked in with guns and took her yard. Her account's gone quiet, and there's a load of heavy machinery she's already paid for sitting in our shed with nowhere to deliver it.
+
+**Castle:** So this is Wayline's problem as much as hers.
+
+**Mara:** I'd like a paying customer back. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
+
+**Castle:** Is she a friend of yours?
+
+**Mara:** She's a customer. Not a happy one. She'll tell you why herself, if she decides she likes you. The survey's attached. I told her you were good and quiet.
 
 ## 1. Salvage Rights
 
 ### Before — the first meeting
 
-Castle has read the survey and Mara's note: a claim on Asharu, a rival outfit in
-the yard, a security job. Vale has Mara's word on the company and nothing else.
-She gives the history because the company needs it to fight, and stops there.
-Nobody has mentioned a ship.
+Castle has read the survey and Mara's message: a Wayline customer on Asharu, a
+rival outfit in the yard, a security job. Vale has Mara's word on the company and
+a grudge against Mara's freight office. She gives the history because the company
+needs it to fight, and stops there. Nobody has mentioned a ship.
 
-**Vale:** Mara says you've read the survey, so you've seen the valley. Here's the rest. Three cycles back, two fleets fought it out in low orbit over Asharu. A Colossus and a few of her escorts came down here. We were the first crew in. The claim's ours.
+**Vale:** Mara says you're the company that found out who was selling Wayline's schedules.
+
+**Castle:** We were.
+
+**Vale:** Then you'll understand why I'm careful what I say in front of Wayline's people.
+
+**Castle:** We're not Wayline's people. We took their contract. Now we'd be taking yours.
+
+**Vale:** We'll see. You've read the survey, so you've seen the valley. Here's the rest. Three cycles back, two fleets fought it out in low orbit over Asharu. A Colossus and a few of her escorts came down here. We were the first crew in. The claim's ours.
 
 **Castle:** Three cycles is a long time on one wreck.
 
@@ -239,21 +315,17 @@ Nobody has mentioned a ship.
 
 **Castle:** Got round how?
 
-**Vale:** I talked to the wrong person. That's all you're getting on it. They came in shooting at shift change. We got most of our people out, and now the roaches are stripping our yard and telling anyone who'll listen it was abandoned.
+**Vale:** When we opened the hold, I put in a fuel order with Wayline. Enough to lift something heavy off-world, and a camp like ours never needs that much. A few weeks later Dace Harlan's crew came in shooting at shift change.
+
+**Castle:** That's about when Wayline's schedules were being sold.
+
+**Vale:** You'd know better than I would. Or it was me, talking too loud in a Jangala bar. I can't prove either. We got most of our people out, and now the roaches are stripping our yard and telling anyone who'll listen it was abandoned.
 
 **Castle:** Most of your people.
 
-**Vale:** My cousin Jory's crew is still inside the Colossus, sealed in where the roaches haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.
+**Vale:** My cousin Jory's crew is still inside the Colossus, sealed in where the squatters haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.
 
-**Castle:** Then I'll ask the obvious question. What did you find?
-
-**Vale:** Salvage. Mine.
-
-**Castle:** My people are going to be shot at over it. I'd like to know what for.
-
-**Vale:** You're being shot at over my yard, my stores and my workshop, and there's money in the contract for every bit of it. Mara will tell you I settle. The last time I talked about that hold, I got this. I won't do it twice with people I met this morning.
-
-**Castle:** Fair. This is Hegemony space, though. Is anyone else going to take an interest?
+**Castle:** This is Hegemony space. Is anyone else going to take an interest?
 
 **Vale:** Our permit's on file at Jangala. The Hegemony doesn't send a patrol over two salvage crews squabbling in a ditch. It'd come quick enough if somebody gave it a reason. So we settle this ourselves, and quietly.
 
@@ -263,28 +335,49 @@ Nobody has mentioned a ship.
 
 **Castle:** What's on the cradle?
 
-**Vale:** A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says the roaches have had her panels off for a week.
+**Vale:** A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says they've had her panels off for a week.
 
-**Castle:** And you want to know what they've taken.
-
-**Vale:** I want two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. The roaches come and go along the south haul road. That's where they'll come back.
+**Vale:** I want to know what they've taken. Two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.
 
 ### During — yard entry and protected inspection
 
 Operational speech gets shorter once the company is on the ground. These calls
 do not reveal unseen enemy positions or send the company into the Colossus.
 
+#### Boats on the way down — the hold question
+
+Cue: `shepherd.salvage.descent` (proposed; no such cue exists yet).
+
+The first boat is committed and descending, and nobody is on the ground. The fleet
+takes long enough to put the company down that the briefing's one unasked
+question fits here, and it lands harder with the company already committed: Castle
+asks while her people are in the air, and Vale answers knowing they are.
+
+This is a four-turn exchange, which the story radio does not support today — each
+cue plays one line. It is the conversation the briefing used to end on, moved;
+`shepherd.salvage.arrival` follows it. If marines reach the ground before the
+exchange has finished, the remaining turns are dropped and the arrival orders
+play: an order outranks an argument.
+
+**Castle:** Vale, while we're on the way down. What did you find in that hold?
+
+**Vale:** Salvage. Mine.
+
+**Castle:** My people are about to be shot at over it. I'd like to know what for.
+
+**Vale:** You're being shot at over my yard, my stores and my workshop, and you're paid for every bit of it. Ask Mara whether I settle. The last time that hold went on anybody's paperwork, I got this. I won't do it twice with people Wayline sent me.
+
 #### Company presence at the yard
 
 Cue: `shepherd.salvage.arrival`.
 
-**Vale:** You're in the yard, Captain. Receiving store first, then the workshop. My militia are behind you. Leave the Colossus to us.
+**Vale:** You're down, Captain. Receiving store first, then the workshop. My militia are behind you. Leave the Colossus to us.
 
 #### Company first comes within sighting range of Morrow
 
 Cue: `shepherd.salvage.morrow_sighted`.
 
-**Vale:** There's the Shepherd. Morrow, by her hull plate. Panels open all down her flank; the roaches have been busy. Let's see what's left in her.
+**Vale:** There's the Shepherd. Morrow, by her hull plate. Panels open all down her flank; somebody's been busy. Let's see what's left in her.
 
 #### Receiving store secured
 
@@ -320,7 +413,7 @@ Cue: `shepherd.salvage.road_warning`.
 
 Cue: `shepherd.salvage.secured`.
 
-**Vale:** They're done. Her bay's still in her, and the roaches had cable run into it. They weren't cutting her up, Captain. They were trying to wake her. Your fee's released.
+**Vale:** They're done. Her bay's still in her, and the squatters had cable run into it. They weren't cutting her up, Captain. They were trying to wake her. Your fee's released.
 
 #### Inspection party lost — failure branch
 
@@ -340,7 +433,7 @@ still owns. The next job is power, not the ship.
 
 **Castle:** They won't have gone far.
 
-**Vale:** They haven't. Jory's counting them on the outer roads. I've got my yard back and no power to work it. The distribution rig's still crated and they stripped the pump station. I'll send another contract: cover my fitters while we get the lights on.
+**Vale:** They haven't. Jory's counting them on the outer roads. I've got my yard back and no power to work it. The heavy machinery to fix that is still in Wayline's shed, and they stripped the pump station. Mara can deliver now there's a yard to deliver to. I'll send another contract: cover my fitters while we get the lights on.
 
 **If no inspection technicians were lost:**
 
@@ -368,11 +461,11 @@ working. Castle's question is how it stays held after the company leaves. Morrow
 bay comes up as a possible answer to that question, and Vale treats spending her
 best scrap on her own defense as a cost, not a gift.
 
-**Vale:** The distribution rig's on the receiving apron. My fitters take it to the workshop, then bring the pump station back and put shore power into the yard. You keep them breathing while they do it.
+**Vale:** Wayline's finally dropped the distribution rig on the receiving apron. My fitters take it to the workshop, then bring the pump station back and put shore power into the yard. You keep them breathing while they do it.
 
 **Castle:** And Jory's crew?
 
-**Vale:** Still on the channel. Still in the Colossus. They won't come out while the roaches are on the roads, and I'm not sending anyone across open ground to fetch them.
+**Vale:** Still on the channel. Still in the Colossus. They won't come out while Harlan's people are on the roads, and I'm not sending anyone across open ground to fetch them.
 
 **Castle:** About those roads. We can get your power back. We can't stay. How does the yard hold once we've gone?
 
@@ -382,11 +475,11 @@ best scrap on her own defense as a cost, not a gift.
 
 **Vale:** Not enough. You know it's not enough.
 
-**Castle:** Your techs said the roaches were trying to wake Morrow's bay. If they thought her builders could hold this yard, so do I.
+**Castle:** Your techs said Harlan's crew were trying to wake Morrow's bay. If they thought her builders could hold this yard, so do I.
 
 **Vale:** That bay's the most saleable thing I own outside the Colossus. Every hour those drones work is wear on it.
 
-**Castle:** And no buyer can collect it while the roaches hold your road.
+**Castle:** And no buyer can collect it while someone else holds your road.
 
 **Vale:** There's a road-gun kit in the stores, and nobody to fit it in a hurry. Fine. Once the yard has power we'll feed some to Morrow and see if any builders answer. If they don't, you're holding with rifles.
 
@@ -409,7 +502,7 @@ Cue: `briefing`.
 
 Cue: `cold_start.convoy_arrived`.
 
-**Vale:** The rig's on the apron, Captain. Stay with it along the workshop road. Those parts took some finding.
+**Vale:** The rig's on the apron, Captain. Stay with it along the workshop road. I paid for every bolt of it.
 
 #### Repair rig delivered to the workshop
 
@@ -559,7 +652,7 @@ no offer and no promise of the ship.
 
 **Castle:** Then why don't you look happier?
 
-**Vale:** Because my haulers still can't get out. The roaches have pulled back to the outer road, and Jory says they've had company since. Finish up with your people, then come and see me. I need more than we agreed.
+**Vale:** Because my haulers still can't get out. Harlan's pulled back to the outer road, and Jory says he's had company since. Finish up with your people, then come and see me. I need more than we agreed.
 
 **If company personnel or repair technicians were lost, replace those last two turns:**
 
@@ -608,7 +701,7 @@ one thing on the table both of them can value, and Vale's first answer is no.
 
 **Castle:** When it sells. To a buyer we don't know, for cargo you won't describe, out past a crew that's already shown it'll kill for it.
 
-**Vale:** You've had every credit I owed you, on time.
+**Vale:** You've had every credit I owed you, on time. Wayline hasn't, so you can guess who I paid first.
 
 **Castle:** We have, and I'd like it to stay that way. Our payroll doesn't wait on your buyer.
 
@@ -642,11 +735,15 @@ one thing on the table both of them can value, and Vale's first answer is no.
 
 **Castle:** They'll have cover all the way up. We hand over each position before we move on. Who's flying her?
 
-**Vale:** Teo's asked to go with her. A few of the fitters too. They're Basin, Castle, and I'm not selling them with a hull. Ask them yourself. If they say yes, they're on your books.
+**Vale:** Your own people. Nobody from Basin goes with her. Not Teo, not anyone.
 
-**Castle:** Their choice, our payroll. Send the terms and I'll put it to the Captain.
+**Castle:** I wasn't going to ask.
 
-**Vale:** I'll send them. I've known Teo since he could hold a cutter. Get him and that ship out in one piece. I've watched enough of them come down here.
+**Vale:** Good. Teo will walk your crew through her before the drive test. Then he comes home.
+
+**Castle:** We'll put a crew across from Second Wind. Both ships will be running thin until we can hire. Send the terms and I'll put it to the Captain.
+
+**Vale:** I'll send them. Get her out in one piece, Castle. I've watched enough ships come down in this valley.
 
 **Vale:** Morrow's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and use Build Vulcan Turret on ground her builders can reach, then do the same at the narrows. Cover the work and wait for my militia to take over. Keep the company with her for the drive test. If the drives give out, break off and we'll recover her. The deal stands either way.
 
@@ -722,7 +819,7 @@ Cue: `working_passage.militia_hold_1`.
 
 Cue: `working_passage.spool`.
 
-**Vale:** She's in the eastern yard. Teo's spooling her drives. Stay with her, Captain; keep the approach clear.
+**Vale:** She's in the eastern yard. Your crew are spooling her drives, and Teo's talking them through it. Stay with her, Captain; keep the approach clear.
 
 #### Final approach warning
 
@@ -767,16 +864,16 @@ Cue: `working_passage.builders_lost`.
 The departure receipt authorizes the transfer. This is a practical handover
 between people who have worked together and still do not entirely trust each
 other, not a revelation that Vale gave away a wonder-ship. The company has a
-second hull, maintenance to do and new crew to pay. Vale has a road, a shipment
-she can finally move, and fewer of her own people.
+second hull, two thin crews and hiring to do. Vale has a road, a shipment she
+can finally move, and every one of her own people still in the valley.
 
-**Castle:** Registry confirms it, Captain. Morrow's ours. Our engineers are going over to walk her with Teo before we ask anything else of her.
+**Castle:** Registry confirms it, Captain. Morrow's ours. She's flying on a skeleton crew off Second Wind, and Second Wind's not much better off. We'll need to hire before we ask much of either of them.
 
-**Vale:** Have them check the drone-bay filters first. Basin dust gets into everything.
+**Vale:** Have your crew check her drone-bay filters first. Basin dust gets into everything.
 
-**Castle:** Teo and the others have berths and pay on our books. They'll be looked after.
+**Castle:** Any chance of hands from the camp?
 
-**Vale:** They'd better be. He's wanted off Asharu for years. I'd sooner it was on one of ours.
+**Vale:** Try the port at Jangala. Nobody in this valley's leaving it for you.
 
 **If no militia or company personnel were lost:**
 
@@ -805,8 +902,11 @@ The cargo is still Basin's business when the arc ends. It does not need a reveal
 to justify the deal. Do not add a final wink that confirms illegal goods or a
 valuable core or schematic merely to close a mystery this arc has not resolved.
 
-Vale's later optional referral through Mara to Rusk on Agreus follows the actual
-handover. That is another business lead, not a reward owed by the Hegemony or an
+Vale's later optional referral to Rusk on Agreus follows the actual handover.
+It goes through Mara because Mara is still Basin's supplier: with the road open,
+the account is paying again. Whether Vale ever forgives Wayline's dispatch board
+is left open, and the referral is a business courtesy, not a reconciliation.
+It is another business lead, not a reward owed by the Hegemony or an
 obligation for the company to accept the next contract. Its future dialogue
 belongs with that arc's own character and knowledge register.
 

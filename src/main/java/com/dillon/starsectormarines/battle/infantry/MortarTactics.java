@@ -79,7 +79,7 @@ public final class MortarTactics {
         if (worth(unit, squad, faction, structure.mount.weapon, sim) + missionWorth(unit, squad, faction,
                 structure.mount.weapon, sim) < MIN_WORTH) return false;
         if (hostileOnTopOfUs(unit, squad, faction, sim)) return false;
-        if (!mortars.beginSetup(unit, faction, world.cellX(unit), world.cellY(unit), squad.id, spec)) {
+        if (!mortars.beginSetup(unit, faction, world.cellX(unit), world.cellY(unit), squad.id, spec, special)) {
             return false;
         }
         world.setSecondaryActionTimer(unit, spec.deployDuration());

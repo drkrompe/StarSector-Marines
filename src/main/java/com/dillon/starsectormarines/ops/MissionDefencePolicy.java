@@ -1,7 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -75,13 +79,44 @@ public final class MissionDefencePolicy {
             List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO);
 
     /**
+     * Every Nth marine squad of a Conquest is a mortar team, the last of each run of this many. UNTUNED first-pass
+     * mission-design choice: a Conquest force is tens of squads, so six makes a handful of tubes, enough that a
+     * fire mission is a thing that happens without a mortar being most of the force. See {@code phased-assault.md}.
+     */
+    static final int CONQUEST_MARINE_MORTAR_TEAM_EVERY = 6;
+
+    /** Every Nth marine squad of a Conquest carries a forward observer's comms radio. UNTUNED, as above. */
+    static final int CONQUEST_MARINE_OBSERVER_EVERY = 4;
+
+    /** The marine air pool a Conquest declares: bombers and fighters, replaced over time, directed by its commander. UNTUNED. */
+    static final AirPoolAllowance CONQUEST_MARINE_AIR_POOL = AirPoolAllowance.of(
+            new AirPoolStock(3, 3, 40f), new AirPoolStock(2, 2, 45f), true);
+
+    /**
      * The pool of bombers and fighters each side holds, tasked by comms operators. A mission's explicit
-     * {@link Mission#airPool} statement (today the DEBUG dial) wins; no mission type declares one on its own yet, so
-     * every other battle declares none and plays as it did before pools.
+     * {@link Mission#airPool} statement (today the DEBUG dial) wins; otherwise a Conquest gives its marines
+     * {@code CONQUEST_MARINE_AIR_POOL}, which their commander directs; every other mission type declares none and plays as it
+     * did before pools.
      */
     public static AirPoolDeclaration declareAirPool(Mission mission) {
         if (mission.airPool != null) return mission.airPool.declaration();
+        if (mission.type == MissionType.CONQUEST) {
+            return AirPoolDeclaration.NONE.with(Faction.MARINE, CONQUEST_MARINE_AIR_POOL);
+        }
         return AirPoolDeclaration.NONE;
+    }
+
+    /**
+     * The support kit each side issues its squads: a Conquest's marines carry mortar teams and forward observers, which is
+     * what lets the commander's plan and standing fire missions use the field mortar and the air pool declared beside it.
+     * Every other mission type declares none.
+     */
+    public static SquadSupportDeclaration declareSupportKit(Mission mission) {
+        if (mission.type == MissionType.CONQUEST) {
+            return SquadSupportDeclaration.NONE.with(Faction.MARINE,
+                    new SquadSupportKit(CONQUEST_MARINE_MORTAR_TEAM_EVERY, CONQUEST_MARINE_OBSERVER_EVERY));
+        }
+        return SquadSupportDeclaration.NONE;
     }
 
     /**

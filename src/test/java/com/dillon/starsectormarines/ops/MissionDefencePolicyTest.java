@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -10,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The mission, not the market, decides which defences a battle carries. */
 class MissionDefencePolicyTest {
@@ -124,5 +128,22 @@ class MissionDefencePolicyTest {
         MechDropAllowance called = MissionDefencePolicy.declareMechDrops(atOnce).forSide(Faction.MARINE);
         assertEquals(1, called.lances());
         assertEquals(true, called.debugCallTick() >= 0);
+    }
+
+    @Test
+    void conquestGivesItsMarinesMortarTeamsObserversAndAnAiDirectedAirPoolAndNobodyElseAny() {
+        SquadSupportKit kit = MissionDefencePolicy.declareSupportKit(of(MissionType.CONQUEST)).forSide(Faction.MARINE);
+        assertEquals(MissionDefencePolicy.CONQUEST_MARINE_MORTAR_TEAM_EVERY, kit.mortarTeamEvery());
+        assertEquals(MissionDefencePolicy.CONQUEST_MARINE_OBSERVER_EVERY, kit.observerEvery());
+        assertTrue(MissionDefencePolicy.declareSupportKit(of(MissionType.CONQUEST)).forSide(Faction.DEFENDER).isNone());
+        assertTrue(MissionDefencePolicy.declareSupportKit(of(MissionType.SABOTAGE)).isNone());
+        assertTrue(MissionDefencePolicy.declareSupportKit(of(MissionType.ASSAULT)).isNone());
+
+        AirPoolAllowance pool = MissionDefencePolicy.declareAirPool(of(MissionType.CONQUEST)).forSide(Faction.MARINE);
+        assertTrue(pool.aiDirected(), "the commander directs it");
+        assertTrue(pool.stock(AirPoolKind.BOMBER).cap() > 0 && pool.stock(AirPoolKind.BOMBER).regenSeconds() > 0f);
+        assertTrue(pool.stock(AirPoolKind.FIGHTER).cap() > 0);
+        assertTrue(MissionDefencePolicy.declareAirPool(of(MissionType.CONQUEST)).forSide(Faction.DEFENDER).isNone());
+        assertTrue(MissionDefencePolicy.declareAirPool(of(MissionType.SABOTAGE)).isNone());
     }
 }
