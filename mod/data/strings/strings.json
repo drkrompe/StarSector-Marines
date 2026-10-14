@@ -36,8 +36,6 @@
 
     "briefingCommsChannel": "MISSION COMMS",
     "briefingCommsSkip": "Skip briefing",
-    "briefingCommsNext": "Next",
-    "briefingCommsFinish": "Finish briefing",
     "briefingCommsReplay": "Replay briefing",
     "briefingCommsProgress": "{0} / {1}",
     "briefingCommsAvailable": "BRIEFING AVAILABLE",

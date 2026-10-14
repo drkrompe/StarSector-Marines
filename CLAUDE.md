@@ -249,7 +249,11 @@ Do not run builds or leave generated task files there.
   map and was killed; it was honest work. Before killing one, read the staging
   trace under `build/reports/commander/.conquest-staging-*/traces/` — its
   `compound-state` events say whether the battle is moving — or ask the cheap
-  question first: `-PmaxTicks=3000` plays both fixtures in about 100s. Use
+  question first: `-PmaxTicks=3000` plays both fixtures in about 100s.
+  Each fixture row reports fighting-position runs and cells at start and end.
+  The canonical fixtures declare no forts and so have none; the fort-bearing
+  control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
+  (four battery forts and a shield fort; about 50 runs, 5,200 cells). Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
