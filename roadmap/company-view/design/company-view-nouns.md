@@ -730,10 +730,11 @@ all available resources. Current billet counts state ready, wounded and vacant
 separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
 the formation board, not a separate page: it pays the same founding bill as the
-Armory desk and files the new squad under the officer whose command is open,
-or leaves it independent when that is All formations or a command already at its
-cap. Its whole bill reads as one line, each item marked when the stores fall
-short. It works from an empty company.
+Armory desk and raises only into a free command slot: the open officer's, or
+with All formations open, the first officer on the roll with room. When no
+command has a slot the tile is disabled and says why, so the officers' combined
+command caps are the company's force limit for raising. Its bill reads as one line
+of commodity icons and counts, each marked when the stores fall short.
 
 **Consolidation** transfers ready named marines from explicitly marked donor
 squads into true vacancies of separately selected receiving squads. The preview
