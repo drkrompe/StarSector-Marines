@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Basin is a Wayline account; Morrow's transfer carries no crew.
+Updated: 2026-10-14 — Cold Start's outer pickets are hired day hands.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -145,8 +145,11 @@ construction retains the large static hull and its collision, has a fixed workin
 reach and grants neither flight nor a fleet member. Completing a real road gun
 allows the repair task to proceed; the gun fires and takes damage ordinarily.
 
-Two three-person cooperative outer pickets screen Cold Start's south haul and
-quarry approaches, alongside eight inner militia holders and two technicians.
+Two three-person outer pickets screen Cold Start's south haul and quarry
+approaches, alongside eight inner militia holders and two technicians. The pickets
+are hired day hands, not cooperative members: Vale's cheaper replacement for the
+company, whose contract she means to end with this job. Their failure under the
+second assault is what turns Morrow's bay into a defense.
 Four committed six-person raider teams assault through those
 roads. The first actual casualty or a post breach orders surviving pickets to
 withdraw toward distinct inner holds; a broken post never implies that its people
