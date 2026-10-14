@@ -17,10 +17,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[guarded, measuring] Mara says you're the company that found out who was selling Wayline's schedules.",
-      "durationSeconds": 6.45,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.88,
       "selectedTake": null
     },
     {
@@ -35,10 +34,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[even] We were.",
-      "durationSeconds": 0.65,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.04,
       "selectedTake": null
     },
     {
@@ -53,10 +51,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, guarded] Then you'll understand why I'm careful what I say in front of Wayline's people.",
-      "durationSeconds": 6.37,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.56,
       "selectedTake": null
     },
     {
@@ -71,10 +68,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[calm, direct] We're not Wayline's people. We took their contract. Now we'd be taking yours.",
-      "durationSeconds": 6.21,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.2,
       "selectedTake": null
     },
     {
@@ -89,10 +85,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[unimpressed, then practical] We'll see. You've read the survey, so you've seen the valley. Here's the rest. Three cycles back, two fleets fought it out in low orbit over Asharu. A Colossus and a few of her escorts came down here. We were the first crew in. The claim's ours.",
-      "durationSeconds": 19.76,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 16.08,
       "selectedTake": null
     },
     {
@@ -107,10 +102,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious] Three cycles is a long time on one wreck.",
-      "durationSeconds": 3.31,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.12,
       "selectedTake": null
     },
     {
@@ -125,10 +119,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[matter-of-fact, a little proud] It's a Colossus. You don't strip one in a season. That fight dropped hulls from here to the southern flats, so every crew on Asharu had its own pickings and nobody bothered with us. Then word got round we'd found something.",
-      "durationSeconds": 17.98,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.6,
       "selectedTake": null
     },
     {
@@ -143,10 +136,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[sharp] Got round how?",
-      "durationSeconds": 1.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.44,
       "selectedTake": null
     },
     {
@@ -161,10 +153,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[bitter, controlled] When we opened the hold, I put in a fuel order with Wayline. Enough to lift something heavy off-world, and a camp like ours never needs that much. A few weeks later Dace Harlan's crew came in shooting at shift change.",
-      "durationSeconds": 17.5,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.28,
       "selectedTake": null
     },
     {
@@ -179,10 +170,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[quiet, thoughtful] That's about when Wayline's schedules were being sold.",
-      "durationSeconds": 4.35,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.12,
       "selectedTake": null
     },
     {
@@ -197,10 +187,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[tired, angry underneath] You'd know better than I would. Or it was me, talking too loud in a Jangala bar. I can't prove either. We got most of our people out, and now the roaches are stripping our yard and telling anyone who'll listen it was abandoned.",
-      "durationSeconds": 18.31,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.2,
       "selectedTake": null
     },
     {
@@ -215,10 +204,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[gentle, attentive] Most of your people.",
-      "durationSeconds": 1.61,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.84,
       "selectedTake": null
     },
     {
@@ -233,10 +221,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[low, protective] My cousin Jory's crew is still inside the Colossus, sealed in where the squatters haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.",
-      "durationSeconds": 16.53,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 11.36,
       "selectedTake": null
     },
     {
@@ -251,10 +238,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[measured] This is Hegemony space. Is anyone else going to take an interest?",
-      "durationSeconds": 5.24,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.32,
       "selectedTake": null
     },
     {
@@ -269,10 +255,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, wary] Our permit's on file at Jangala. The Hegemony doesn't send a patrol over two salvage crews squabbling in a ditch. It'd come quick enough if somebody gave it a reason. So we settle this ourselves, and quietly.",
-      "durationSeconds": 16.77,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.12,
       "selectedTake": null
     },
     {
@@ -287,10 +272,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm, businesslike] Then tell me where it ends. We're not going into your Colossus, and we're not chasing this outfit across Asharu.",
-      "durationSeconds": 9.03,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.0,
       "selectedTake": null
     },
     {
@@ -305,10 +289,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brisk] Good. I don't want you in her, and Jory's people will keep out of your way. You take the receiving store and the workshop; my militia follow you in and hold them. Then the service cradle.",
-      "durationSeconds": 15.08,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 10.96,
       "selectedTake": null
     },
     {
@@ -323,10 +306,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious] What's on the cradle?",
-      "durationSeconds": 1.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.6,
       "selectedTake": null
     },
     {
@@ -341,10 +323,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, valuing] A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says they've had her panels off for a week.",
-      "durationSeconds": 22.98,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 16.0,
       "selectedTake": null
     },
     {
@@ -359,10 +340,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm, practical] I want to know what they've taken. Two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.",
-      "durationSeconds": 18.39,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 12.16,
       "selectedTake": null
     },
     {
@@ -370,70 +350,68 @@
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.south_haul_contact",
       "text": "South haul checkpoint's taking fire. They're day hands, Captain, but they're my hire. Give them a hand if you can.",
-      "durationSeconds": 9.19,
-      "priority": 18,
+      "durationSeconds": 6.4,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[urgent] South haul checkpoint's taking fire. They're day hands, Captain, but they're my hire. Give them a hand if you can.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartSouthHaulContact",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_south_haul_withdrawing",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.south_haul_withdrawing",
       "text": "South haul checkpoint's running. Can't say I blame them, for what I'm paying. Cover them back to the inner line.",
-      "durationSeconds": 9.03,
-      "priority": 18,
+      "durationSeconds": 6.24,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[resigned, urgent] South haul checkpoint's running. Can't say I blame them, for what I'm paying. Cover them back to the inner line.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
         "cold_start.south_haul_contact"
       ],
       "textKey": "shepherdRadioColdStartSouthHaulWithdrawing",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_south_haul_overrun",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.south_haul_overrun",
       "text": "South haul checkpoint's gone. So much for proper guards. Watch for anyone coming back, and keep that approach covered.",
-      "durationSeconds": 9.52,
-      "priority": 18,
+      "durationSeconds": 7.92,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[bitter] South haul checkpoint's gone. So much for proper guards. Watch for anyone coming back, and keep that approach covered.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
-        "cold_start.south_haul_contact"
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing"
       ],
       "textKey": "shepherdRadioColdStartSouthHaulOverrun",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_south_haul_inner_hold",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.south_haul_inner_hold",
       "text": "The south haul hands have made the inner line. They're staying put, at least. Help them hold it.",
-      "durationSeconds": 7.74,
-      "priority": 18,
+      "durationSeconds": 6.16,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[grudging relief] The south haul hands have made the inner line. They're staying put, at least. Help them hold it.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -442,78 +420,75 @@
         "cold_start.south_haul_overrun"
       ],
       "textKey": "shepherdRadioColdStartSouthHaulInnerHold",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_quarry_contact",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.quarry_contact",
       "text": "Quarry checkpoint has contact. There's only three of them out there, Captain. Support them if you can.",
-      "durationSeconds": 8.23,
-      "priority": 18,
+      "durationSeconds": 5.44,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[urgent] Quarry checkpoint has contact. There's only three of them out there, Captain. Support them if you can.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartQuarryContact",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_quarry_withdrawing",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.quarry_withdrawing",
       "text": "Quarry checkpoint's falling back. Keep the crossing covered for them.",
-      "durationSeconds": 5.56,
-      "priority": 18,
+      "durationSeconds": 3.84,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[urgent] Quarry checkpoint's falling back. Keep the crossing covered for them.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
         "cold_start.quarry_contact"
       ],
       "textKey": "shepherdRadioColdStartQuarryWithdrawing",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_quarry_overrun",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.quarry_overrun",
       "text": "The quarry checkpoint's gone. Keep the inner line covered. There may still be people coming in.",
-      "durationSeconds": 7.66,
-      "priority": 18,
+      "durationSeconds": 5.92,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[grim] The quarry checkpoint's gone. Keep the inner line covered. There may still be people coming in.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
-        "cold_start.quarry_contact"
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing"
       ],
       "textKey": "shepherdRadioColdStartQuarryOverrun",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_quarry_inner_hold",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.quarry_inner_hold",
       "text": "The quarry hands are in, on the inner line with my militia. Keep that ground covered.",
-      "durationSeconds": 6.85,
-      "priority": 18,
+      "durationSeconds": 5.2,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[relieved] The quarry hands are in, on the inner line with my militia. Keep that ground covered.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -522,62 +497,58 @@
         "cold_start.quarry_overrun"
       ],
       "textKey": "shepherdRadioColdStartQuarryInnerHold",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_inner_line_fortified",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.inner_line_fortified",
       "text": "The new gun's covering the inner line. Keep the fitters working, Captain. We've bought them some room.",
-      "durationSeconds": 8.23,
-      "priority": 18,
+      "durationSeconds": 5.68,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[relieved] The new gun's covering the inner line. Keep the fitters working, Captain. We've bought them some room.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartInnerLineFortified",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_south_entry_denied",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.south_entry_denied",
       "text": "That party on the south haul road has broken off at your screen. Keep watching the entry.",
-      "durationSeconds": 7.79,
-      "priority": 18,
+      "durationSeconds": 5.2,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "That party on the south haul road has broken off at your screen. Keep watching the entry.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartSouthEntryDenied",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_quarry_entry_denied",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.quarry_entry_denied",
       "text": "They've broken off at your quarry-road screen. Don't leave the entry open.",
-      "durationSeconds": 5.87,
-      "priority": 18,
+      "durationSeconds": 4.4,
+      "priority": 12,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "They've broken off at your quarry-road screen. Don't leave the entry open.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartQuarryEntryDenied",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_bend_build",
@@ -601,12 +572,12 @@
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.narrows",
       "text": "There's a gun at the pump bend now. Keep that position covered while you move through the narrows. The haulers will need this road behind you.",
-      "durationSeconds": 11.25,
+      "durationSeconds": 7.76,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "There's a gun at the pump bend now. Keep that position covered while you move through the narrows. The haulers will need this road behind you.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -615,8 +586,7 @@
         "working_passage.road_team_0"
       ],
       "textKey": "shepherdRadioPassageNarrows",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_narrows_build",
@@ -642,12 +612,12 @@
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.climb_out",
       "text": "The position's ready. Keep the narrows covered and clear the eastern yard for her drive test. Give her room to leave.",
-      "durationSeconds": 9.44,
+      "durationSeconds": 6.8,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[focused] The position's ready. Keep the narrows covered and clear the eastern yard for her drive test. Give her room to leave.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -658,20 +628,19 @@
         "working_passage.road_team_2"
       ],
       "textKey": "shepherdPassageClimbOut",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_spool",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.spool",
       "text": "She's in the eastern yard. Your crew are spooling her drives, and Teo's talking them through it. Stay with her, Captain; keep the approach clear.",
-      "durationSeconds": 11.69,
+      "durationSeconds": 8.32,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[tense, hopeful] She's in the eastern yard. Your crew are spooling her drives, and Teo's talking them through it. Stay with her, Captain; keep the approach clear.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -679,8 +648,7 @@
         "working_passage.militia_hold_1"
       ],
       "textKey": "shepherdRadioPassageSpool",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_departure",
@@ -705,12 +673,12 @@
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.complete",
       "text": "She's clear of the basin. Registry's yours, Captain. We hauled her in to cut her up. Look at her now.",
-      "durationSeconds": 8.15,
+      "durationSeconds": 7.04,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[quiet wonder] She's clear of the basin. Registry's yours, Captain. We hauled her in to cut her up. Look at her now.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -732,7 +700,6 @@
         "working_passage.militia_hold_0",
         "working_passage.militia_hold_1"
       ],
-      "durationSource": "estimated reading duration; unrecorded",
       "selectedTake": null
     },
     {
@@ -740,12 +707,12 @@
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.failed",
       "text": "Abort the departure. Pull back, Captain. I'll get Morrow recovered. The deal stands; we'll have to try the road again.",
-      "durationSeconds": 9.52,
+      "durationSeconds": 7.6,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[disappointed, steady] Abort the departure. Pull back, Captain. I'll get Morrow recovered. The deal stands; we'll have to try the road again.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -768,20 +735,19 @@
         "working_passage.militia_hold_1"
       ],
       "textKey": "shepherdRadioPassageFailed",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_company_lost",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.company_lost",
       "text": "There's not enough of your company left to cover her. Break off. I'll get her recovered. The deal stands.",
-      "durationSeconds": 8.47,
+      "durationSeconds": 5.92,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[urgent] There's not enough of your company left to cover her. Break off. I'll get her recovered. The deal stands.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -804,20 +770,19 @@
         "working_passage.militia_hold_1"
       ],
       "textKey": "shepherdRadioPassageCompanyLost",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_builders_lost",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.builders_lost",
       "text": "Morrow's out of builders. We can't finish the road with this wing. Break off; we'll recover her and fit another.",
-      "durationSeconds": 9.03,
+      "durationSeconds": 7.2,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[frustrated] Morrow's out of builders. We can't finish the road with this wing. Break off; we'll recover her and fit another.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -840,80 +805,75 @@
         "working_passage.militia_hold_1"
       ],
       "textKey": "shepherdRadioPassageBuildersLost",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_road_team_0",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.road_team_0",
       "text": "Watch the south haul approach while the builders work at the bend, Captain.",
-      "durationSeconds": 6.25,
+      "durationSeconds": 3.92,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "Watch the south haul approach while the builders work at the bend, Captain.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioPassageRoadTeam0",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_road_team_1",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.road_team_1",
       "text": "Keep someone on the quarry road while you clear the narrows. That's where the new crew came down.",
-      "durationSeconds": 7.82,
+      "durationSeconds": 5.2,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[watchful] Keep someone on the quarry road while you clear the narrows. That's where the new crew came down.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioPassageRoadTeam1",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_road_team_2",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.road_team_2",
       "text": "Don't leave the pump road open behind you, Captain. We still need that position.",
-      "durationSeconds": 6.63,
+      "durationSeconds": 4.72,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "Don't leave the pump road open behind you, Captain. We still need that position.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioPassageRoadTeam2",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_road_team_3",
       "missionId": "story_shepherd_working_passage",
       "event": "working_passage.road_team_3",
       "text": "Hold the last approach. Morrow needs that yard clear until she's away.",
-      "durationSeconds": 5.65,
+      "durationSeconds": 4.24,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[urgent] Hold the last approach. Morrow needs that yard clear until she's away.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioPassageRoadTeam3",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_passage_negotiation_01",
@@ -927,10 +887,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[tired, frustrated] My haulers are loaded and going nowhere. The roaches have dug in on the outer road, and two nights ago another crew's boat came down at the quarry.",
-      "durationSeconds": 11.85,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.8,
       "selectedTake": null
     },
     {
@@ -945,10 +904,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[measured] So they're waiting for your shipment to move.",
-      "durationSeconds": 3.63,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.72,
       "selectedTake": null
     },
     {
@@ -963,10 +921,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[grim] They're waiting for it to move without you beside it. I need the road opened to the eastern yard, with positions along it my militia can hold after you've gone.",
-      "durationSeconds": 12.9,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 9.12,
       "selectedTake": null
     },
     {
@@ -981,10 +938,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious] Positions built by what?",
-      "durationSeconds": 1.94,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.08,
       "selectedTake": null
     },
     {
@@ -999,10 +955,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical] By Morrow. Teo and the fitters have her lift working. She'll hover. She can crawl the road behind you and put her builders down wherever you've cleared.",
-      "durationSeconds": 12.26,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.64,
       "selectedTake": null
     },
     {
@@ -1017,10 +972,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[businesslike] That's a bigger job than the yard. What does it pay?",
-      "durationSeconds": 4.19,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.2,
       "selectedTake": null
     },
     {
@@ -1035,10 +989,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[careful] A share when the shipment sells.",
-      "durationSeconds": 2.58,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.72,
       "selectedTake": null
     },
     {
@@ -1053,10 +1006,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[skeptical, pointed] When it sells. To a buyer we don't know, for cargo you won't describe, out past a crew that's already shown it'll kill for it.",
-      "durationSeconds": 10.16,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.32,
       "selectedTake": null
     },
     {
@@ -1071,10 +1023,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[stung, proud] You've had every credit I owed you, on time. Wayline hasn't, so you can guess who I paid first.",
-      "durationSeconds": 7.66,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.88,
       "selectedTake": null
     },
     {
@@ -1089,10 +1040,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[acknowledging, firm] We have, and I'd like it to stay that way. Our payroll doesn't wait on your buyer.",
-      "durationSeconds": 6.61,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.04,
       "selectedTake": null
     },
     {
@@ -1107,10 +1057,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[impatient] Then what do you want?",
-      "durationSeconds": 1.77,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.68,
       "selectedTake": null
     },
     {
@@ -1125,10 +1074,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[simple, steady] Morrow.",
-      "durationSeconds": 0.56,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.04,
       "selectedTake": null
     },
     {
@@ -1143,10 +1091,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[flat refusal] No.",
-      "durationSeconds": 0.24,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 0.8,
       "selectedTake": null
     },
     {
@@ -1161,10 +1108,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[heated, protective] She's the best thing in this yard that isn't in the Colossus. Her bay was meant to carry this camp through the season, and now she flies, she's worth three times that.",
-      "durationSeconds": 13.47,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 9.36,
       "selectedTake": null
     },
     {
@@ -1179,10 +1125,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[calm] Who are you going to sell her to?",
-      "durationSeconds": 2.66,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.92,
       "selectedTake": null
     },
     {
@@ -1197,10 +1142,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curt] That's my business.",
-      "durationSeconds": 1.53,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.6,
       "selectedTake": null
     },
     {
@@ -1215,10 +1159,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[quiet, deliberate] Whoever buys a flying Shepherd has to register her at a Hegemony port. Somebody asks where she came from. Then somebody asks what else came down in this valley.",
-      "durationSeconds": 12.9,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 9.76,
       "selectedTake": null
     },
     {
@@ -1233,10 +1176,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[cold, wary] Is that a threat?",
-      "durationSeconds": 1.37,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.52,
       "selectedTake": null
     },
     {
@@ -1251,10 +1193,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[even, reassuring] It's a reason. We've no interest in telling anyone anything. A mercenary company coming out of a wreck field with a recovered hull is nobody's news. It's how we got our first ship.",
-      "durationSeconds": 14.52,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 10.56,
       "selectedTake": null
     },
     {
@@ -1269,10 +1210,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[bargaining] Take her for the job, then. Bring her back when the road's done, and I'll pay you out of the shipment on top.",
-      "durationSeconds": 8.79,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.68,
       "selectedTake": null
     },
     {
@@ -1287,10 +1227,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry] That's the same promise with a ship attached.",
-      "durationSeconds": 3.63,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.12,
       "selectedTake": null
     },
     {
@@ -1305,10 +1244,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[hard, conceding] Then hear mine. You get the hull and nothing else. Every spare we've already pulled off her stays here. The guns she builds stay here. Not a credit for the road, and not a bolt out of the Colossus.",
-      "durationSeconds": 15.89,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 12.56,
       "selectedTake": null
     },
     {
@@ -1323,10 +1261,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[immediate] Agreed.",
-      "durationSeconds": 0.56,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.12,
       "selectedTake": null
     },
     {
@@ -1341,10 +1278,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm] And she's not yours until the road's handed to my militia and she's clear of this basin. You don't lift while my people are still walking into position.",
-      "durationSeconds": 12.26,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.24,
       "selectedTake": null
     },
     {
@@ -1359,10 +1295,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[steady] They'll have cover all the way up. We hand over each position before we move on. Who's flying her?",
-      "durationSeconds": 7.9,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.08,
       "selectedTake": null
     },
     {
@@ -1377,10 +1312,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[sharp, protective] Your own people. Nobody from Basin goes with her. Not Teo, not anyone.",
-      "durationSeconds": 5.65,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.52,
       "selectedTake": null
     },
     {
@@ -1395,10 +1329,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[light, honest] I wasn't going to ask.",
-      "durationSeconds": 1.77,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.84,
       "selectedTake": null
     },
     {
@@ -1413,10 +1346,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[softening slightly] Good. Teo will walk your crew through her before the drive test. Then he comes home.",
-      "durationSeconds": 6.77,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.68,
       "selectedTake": null
     },
     {
@@ -1431,10 +1363,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical] We'll put a crew across from Second Wind. Both ships will be running thin until we can hire. Send the terms and I'll put it to the Captain.",
-      "durationSeconds": 11.21,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 7.28,
       "selectedTake": null
     },
     {
@@ -1449,10 +1380,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[quiet, weary] I'll send them. Get her out in one piece, Castle. I've watched enough ships come down in this valley.",
-      "durationSeconds": 8.15,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.32,
       "selectedTake": null
     },
     {
@@ -1467,10 +1397,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[focused, practical] Morrow's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and use Build Vulcan Turret on ground her builders can reach, then do the same at the narrows. Cover the work and wait for my militia to take over. Keep the company with her for the drive test. If the drives give out, break off and we'll recover her. The deal stands either way.",
-      "durationSeconds": 29.84,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 20.32,
       "selectedTake": null
     },
     {
@@ -1478,12 +1407,12 @@
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.company_lost",
       "text": "Your company can't cover the work any longer. Break off. We'll pick up from whatever's finished.",
-      "durationSeconds": 7.74,
+      "durationSeconds": 5.28,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[urgent] Your company can't cover the work any longer. Break off. We'll pick up from whatever's finished.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -1512,20 +1441,19 @@
         "cold_start.quarry_entry_denied"
       ],
       "textKey": "shepherdRadioColdStartCompanyLost",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_builders_lost",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.builders_lost",
       "text": "No builders left to finish the gun. Break off, Captain. The delivery and the power work will keep.",
-      "durationSeconds": 7.9,
+      "durationSeconds": 6.4,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[frustrated] No builders left to finish the gun. Break off, Captain. The delivery and the power work will keep.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -1554,8 +1482,7 @@
         "cold_start.quarry_entry_denied"
       ],
       "textKey": "shepherdRadioColdStartBuildersLost",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_repair_terms_01",
@@ -1569,10 +1496,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brisk, businesslike] Wayline's finally dropped the distribution rig on the receiving apron. My fitters take it to the workshop, bring the pump station back and put shore power into the yard. You keep them breathing while they do it. Then you're done.",
-      "durationSeconds": 18.47,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 11.36,
       "selectedTake": null
     },
     {
@@ -1587,10 +1513,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[neutral] And the roads?",
-      "durationSeconds": 1.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.2,
       "selectedTake": null
     },
     {
@@ -1605,10 +1530,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[confident] Checkpoints on the south haul and the quarry road, manned by day hands from the camps down the valley. My own militia hold the inner line.",
-      "durationSeconds": 11.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 7.84,
       "selectedTake": null
     },
     {
@@ -1623,10 +1547,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[flat, skeptical] Day hands.",
-      "durationSeconds": 0.81,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.28,
       "selectedTake": null
     },
     {
@@ -1641,10 +1564,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[a little defensive] Armed, paid, and a third of what you cost.",
-      "durationSeconds": 3.39,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.68,
       "selectedTake": null
     },
     {
@@ -1659,10 +1581,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[measured, pointed] Harlan's crew took this yard off your own people. They'll know what a checkpoint is worth.",
-      "durationSeconds": 7.26,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.36,
       "selectedTake": null
     },
     {
@@ -1677,10 +1598,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dismissive] Harlan's past the quarry. Jory's watched for three days and they haven't come near.",
-      "durationSeconds": 6.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.36,
       "selectedTake": null
     },
     {
@@ -1695,10 +1615,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious, probing] Your techs said Harlan's crew were trying to wake Morrow's bay. Did anyone ask why?",
-      "durationSeconds": 6.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.68,
       "selectedTake": null
     },
     {
@@ -1713,10 +1632,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[reluctant, firm] Teo thinks her builders could put guns up round the yard. Maybe they could. That bay's the most saleable thing I own outside the Colossus, and every hour those drones work is wear on it. I'm not burning it on guns I don't need.",
-      "durationSeconds": 18.31,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.6,
       "selectedTake": null
     },
     {
@@ -1731,10 +1649,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[cool, letting it go] Your yard. Captain, we cover the rig and the pump, and when the lights come on we lift.",
-      "durationSeconds": 7.02,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.76,
       "selectedTake": null
     },
     {
@@ -1749,10 +1666,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, a touch of conscience] Keep fire off my fitters. And if those checkpoints call for help, they're on my payroll. Cover them back to the inner line.",
-      "durationSeconds": 9.92,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 7.04,
       "selectedTake": null
     },
     {
@@ -1760,16 +1676,15 @@
       "missionId": "story_shepherd_cold_start",
       "event": "briefing",
       "text": "Captain, last job on Asharu. Get the rig to the workshop, then cover Vale's fitters at the pump. When the lights come on, we lift.",
-      "durationSeconds": 10.48,
+      "durationSeconds": 7.84,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[composed, businesslike] Captain, last job on Asharu. Get the rig to the workshop, then cover Vale's fitters at the pump. When the lights come on, we lift.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "supersedes": [],
-      "durationSource": "estimated reading duration; unrecorded",
       "selectedTake": null
     },
     {
@@ -1777,30 +1692,29 @@
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.convoy_arrived",
       "text": "The rig's on the apron, Captain. Stay with it along the workshop road. I paid for every bolt of it.",
-      "durationSeconds": 7.98,
+      "durationSeconds": 6.16,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[protective] The rig's on the apron, Captain. Stay with it along the workshop road. I paid for every bolt of it.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartConvoyArrived",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_workshop",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.workshop",
       "text": "Rig's at the workshop. Now clear the pump station for my fitters. They need to reconnect shore power.",
-      "durationSeconds": 8.15,
+      "durationSeconds": 5.6,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brisk] Rig's at the workshop. Now clear the pump station for my fitters. They need to reconnect shore power.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -1808,20 +1722,19 @@
         "cold_start.convoy_arrived"
       ],
       "textKey": "shepherdRadioColdStartWorkshop",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_pump_started",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.pump_started",
       "text": "They're on the pump connection. Keep that ground covered until they're done.",
-      "durationSeconds": 6.13,
+      "durationSeconds": 4.08,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[focused] They're on the pump connection. Keep that ground covered until they're done.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -1830,20 +1743,19 @@
         "cold_start.workshop"
       ],
       "textKey": "shepherdRadioColdStartPumpStarted",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_power_restored",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.power_restored",
       "text": "Shore power's on, and Teo says Morrow's bay is answering. Damn the buyer. Select Build Vulcan Turret and put a road gun on clear ground within reach of her bay.",
-      "durationSeconds": 12.9,
+      "durationSeconds": 10.08,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[decisive, a little reckless] Shore power's on, and Teo says Morrow's bay is answering. Damn the buyer. Select Build Vulcan Turret and put a road gun on clear ground within reach of her bay.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -1852,7 +1764,6 @@
         "cold_start.workshop",
         "cold_start.pump_started"
       ],
-      "durationSource": "estimated reading duration; unrecorded",
       "selectedTake": null
     },
     {
@@ -1860,12 +1771,12 @@
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.turret_ready",
       "text": "Captain, that's a road gun up, built by a wreck on a cradle. It'll hold longer than a checkpoint. Keep the approaches clear while Vale's fitters finish.",
-      "durationSeconds": 12.26,
+      "durationSeconds": 8.78,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[pleased, a little pointed] Captain, that's a road gun up, built by a wreck on a cradle. It'll hold longer than a checkpoint. Keep the approaches clear while Vale's fitters finish.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "supersedes": [
@@ -1873,9 +1784,9 @@
         "cold_start.convoy_arrived",
         "cold_start.workshop",
         "cold_start.pump_started",
-        "cold_start.power_restored"
+        "cold_start.power_restored",
+        "cold_start.inner_line_fortified"
       ],
-      "durationSource": "estimated reading duration; unrecorded",
       "selectedTake": null
     },
     {
@@ -1883,12 +1794,12 @@
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.complete",
       "text": "Workshop's running, and Morrow's bay is drawing steady. That's the job done, Captain. I'll settle your fee.",
-      "durationSeconds": 8.63,
+      "durationSeconds": 7.36,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[tired, satisfied] Workshop's running, and Morrow's bay is drawing steady. That's the job done, Captain. I'll settle your fee.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -1917,20 +1828,19 @@
         "cold_start.quarry_entry_denied"
       ],
       "textKey": "shepherdRadioColdStartComplete",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_crew_lost",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.crew_lost",
       "text": "We've lost the repair crew. Pull back, Captain. What they finished stays finished. I'll have to find other hands.",
-      "durationSeconds": 9.11,
+      "durationSeconds": 7.28,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[shaken, controlled] We've lost the repair crew. Pull back, Captain. What they finished stays finished. I'll have to find other hands.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -1959,20 +1869,19 @@
         "cold_start.quarry_entry_denied"
       ],
       "textKey": "shepherdRadioColdStartCrewLost",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_carrier_lost",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.carrier_lost",
       "text": "The rig's gone. We can't do this without it. Pull the company back, Captain.",
-      "durationSeconds": 6.13,
+      "durationSeconds": 5.6,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[defeated] The rig's gone. We can't do this without it. Pull the company back, Captain.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -2001,76 +1910,72 @@
         "cold_start.quarry_entry_denied"
       ],
       "textKey": "shepherdRadioColdStartCarrierLost",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_cold_start_approach",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.approach",
       "text": "That's not a probe. Harlan's coming for the yard. Castle, I know you were about to lift. Stay. Keep them off my fitters, and watch any drones that are out. They won't stand up to gunfire.",
-      "durationSeconds": 15.08,
+      "durationSeconds": 11.44,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[alarmed, pleading] That's not a probe. Harlan's coming for the yard. Castle, I know you were about to lift. Stay. Keep them off my fitters, and watch any drones that are out. They won't stand up to gunfire.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioColdStartApproach",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_arrival",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.arrival",
       "text": "You're down, Captain. Receiving store first, then the workshop. My militia are behind you. Leave the Colossus to us.",
-      "durationSeconds": 9.35,
+      "durationSeconds": 6.96,
       "priority": 10,
       "expiresSeconds": 25,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brisk] You're down, Captain. Receiving store first, then the workshop. My militia are behind you. Leave the Colossus to us.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioSalvageArrival",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_workshop",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.workshop",
       "text": "Receiving store's secure. Workshop next, Captain. Watch the gaps between those salvage stacks.",
-      "durationSeconds": 7.58,
+      "durationSeconds": 5.76,
       "priority": 10,
       "expiresSeconds": 25,
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[focused] Receiving store's secure. Workshop next, Captain. Watch the gaps between those salvage stacks.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "supersedes": [
         "shepherd.salvage.arrival"
       ],
       "textKey": "shepherdRadioSalvageWorkshop",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_cradle",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.cradle",
       "text": "Workshop's ours. The cradle's just past it. Clear the ground on Morrow's south side for my techs, and keep it clear.",
-      "durationSeconds": 9.35,
+      "durationSeconds": 7.28,
       "priority": 15,
       "expiresSeconds": 30,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[focused] Workshop's ours. The cradle's just past it. Clear the ground on Morrow's south side for my techs, and keep it clear.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -2078,56 +1983,53 @@
         "shepherd.salvage.workshop"
       ],
       "textKey": "shepherdRadioSalvageCradle",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_hull",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.morrow_sighted",
       "text": "There's the Shepherd. Morrow, by her hull plate. Panels open all down her flank; somebody's been busy. Let's see what's left in her.",
-      "durationSeconds": 10.65,
+      "durationSeconds": 8.96,
       "priority": 10,
       "expiresSeconds": 30,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[appraising] There's the Shepherd. Morrow, by her hull plate. Panels open all down her flank; somebody's been busy. Let's see what's left in her.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [],
       "textKey": "shepherdRadioSalvageHull",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_road",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.road_warning",
       "text": "Captain, keep an eye on the south haul road. It's their way back in. Don't pull cover off the techs to chase them.",
-      "durationSeconds": 9.19,
+      "durationSeconds": 6.32,
       "priority": 12,
       "expiresSeconds": 40,
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[cautionary] Captain, keep an eye on the south haul road. It's their way back in. Don't pull cover off the techs to chase them.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "supersedes": [],
       "textKey": "shepherdRadioSalvageRoad",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_inspection",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.inspection",
       "text": "South side's clear. My techs are crossing now. Stay close enough to cover them while they work.",
-      "durationSeconds": 7.66,
+      "durationSeconds": 5.76,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[watchful] South side's clear. My techs are crossing now. Stay close enough to cover them while they work.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -2136,40 +2038,38 @@
         "shepherd.salvage.cradle"
       ],
       "textKey": "shepherdRadioSalvageInspection",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_contested",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.inspection_contested",
       "text": "Hostiles at the cradle. The techs have stopped work. Clear them some room, Captain.",
-      "durationSeconds": 6.69,
+      "durationSeconds": 4.64,
       "priority": 20,
       "expiresSeconds": 20,
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[urgent, controlled] Hostiles at the cradle. The techs have stopped work. Clear them some room, Captain.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "supersedes": [
         "shepherd.salvage.inspection"
       ],
       "textKey": "shepherdRadioSalvageContested",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_secured",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.secured",
       "text": "They're done. Her bay's still in her, and the squatters had cable run into it. They weren't cutting her up, Captain. They were trying to wake her. Your fee's released.",
-      "durationSeconds": 13.47,
+      "durationSeconds": 10.24,
       "priority": 100,
       "expiresSeconds": 30,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[surprised, thoughtful] They're done. Her bay's still in her, and the squatters had cable run into it. They weren't cutting her up, Captain. They were trying to wake her. Your fee's released.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -2184,20 +2084,19 @@
         "shepherd.salvage.failed"
       ],
       "textKey": "shepherdSalvageSecured",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "basin_salvage_failed",
       "missionId": "story_shepherd_salvage",
       "event": "shepherd.salvage.failed",
       "text": "We've lost the inspection party, Captain. Pull back. Nothing more gets done here without another crew.",
-      "durationSeconds": 8.23,
+      "durationSeconds": 5.84,
       "priority": 100,
       "expiresSeconds": 30,
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[grim, controlled] We've lost the inspection party, Captain. Pull back. Nothing more gets done here without another crew.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
@@ -2212,8 +2111,7 @@
         "shepherd.salvage.secured"
       ],
       "textKey": "shepherdRadioSalvageFailed",
-      "selectedTake": null,
-      "durationSource": "estimated reading duration; unrecorded"
+      "selectedTake": null
     },
     {
       "id": "marines_mara_relief_briefing",
@@ -4338,10 +4236,9 @@
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[low, unhurried] Castle. Something for when the company's ready, and not before. One of our accounts on Asharu has a problem.",
-      "durationSeconds": 8.71,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 7.84,
       "selectedTake": null
     },
     {
@@ -4356,10 +4253,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[mildly surprised] Wayline has accounts on Asharu now?",
-      "durationSeconds": 2.82,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.48,
       "selectedTake": null
     },
     {
@@ -4374,10 +4270,9 @@
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, candid] A few. We haul supplies, fuel and heavy machinery out to the salvage crews there, a little under what the other outfits on Jangala charge. It's how you win customers back after a year like ours.",
-      "durationSeconds": 15.65,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 12.96,
       "selectedTake": null
     },
     {
@@ -4392,10 +4287,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[interested] And this one?",
-      "durationSeconds": 1.05,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.28,
       "selectedTake": null
     },
     {
@@ -4410,10 +4304,9 @@
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[knowing] Basin Reclamation. A salvage crew working a wreck field in the northern canyons. Tamsin Vale runs it. She came to us because we were cheapest, and she counts every credit like it's her last.",
-      "durationSeconds": 15.32,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.04,
       "selectedTake": null
     },
     {
@@ -4428,10 +4321,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[businesslike] What's gone wrong?",
-      "durationSeconds": 1.45,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.36,
       "selectedTake": null
     },
     {
@@ -4446,10 +4338,9 @@
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[matter-of-fact] Another salvage crew walked in with guns and took her yard. Her account's gone quiet, and there's a load of heavy machinery she's already paid for sitting in our shed with nowhere to deliver it.",
-      "durationSeconds": 15.65,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 11.44,
       "selectedTake": null
     },
     {
@@ -4464,10 +4355,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[wry] So this is Wayline's problem as much as hers.",
-      "durationSeconds": 3.63,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.44,
       "selectedTake": null
     },
     {
@@ -4482,10 +4372,9 @@
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[frank, unapologetic] At our rates, I can't afford to lose a paying customer. She'd like her yard back. You'd like to be paid. I don't see anyone losing.",
-      "durationSeconds": 10.56,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.16,
       "selectedTake": null
     },
     {
@@ -4500,10 +4389,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[probing] Is she a friend of yours?",
-      "durationSeconds": 2.02,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.84,
       "selectedTake": null
     },
     {
@@ -4518,10 +4406,9 @@
       "speaker": "MARA VENN / WAYLINE",
       "portrait": "graphics/portraits/mara-venn.png",
       "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, faintly amused] She's a customer. Not a happy one. She'll tell you why herself, if she decides she likes you. The survey's attached. I told her you were good and quiet.",
-      "durationSeconds": 12.26,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 10.72,
       "selectedTake": null
     },
     {
@@ -4536,10 +4423,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[over engine noise, pointed] Vale, while we're on the way down. What did you find in that hold?",
-      "durationSeconds": 5.32,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.16,
       "selectedTake": null
     },
     {
@@ -4554,10 +4440,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[flat] Salvage. Mine.",
-      "durationSeconds": 1.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.08,
       "selectedTake": null
     },
     {
@@ -4572,10 +4457,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[insistent] My people are about to be shot at over it. I'd like to know what for.",
-      "durationSeconds": 5.56,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.24,
       "selectedTake": null
     },
     {
@@ -4590,10 +4474,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[hard, final] You're being shot at over my yard, my stores and my workshop, and you're paid for every bit of it. Ask Mara whether I settle. The last time that hold went on anybody's paperwork, I got this. I won't do it twice with people Wayline sent me.",
-      "durationSeconds": 19.27,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 14.56,
       "selectedTake": null
     },
     {
@@ -4608,10 +4491,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, tired] The rig's still at the workshop, but the pump connection isn't finished. I've found another repair party. Cover them while they get shore power in, then we try Morrow's bay for that road gun. Same contract. I've found more day hands for the checkpoints, for whatever that's worth; help them back to the inner line if they have to come in.",
-      "durationSeconds": 27.26,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 17.52,
       "selectedTake": null
     },
     {
@@ -4626,10 +4508,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, tired] The rig's at the workshop and shore power's holding, so we pick up from there. Another repair party's ready. Get that road gun out of Morrow's bay and keep the fitters covered. Same contract. I've found more day hands for the checkpoints, for whatever that's worth; help them back to the inner line if they have to come in.",
-      "durationSeconds": 26.05,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 16.96,
       "selectedTake": null
     },
     {
@@ -4644,10 +4525,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[steady, determined] We still have a deal, Castle. Teo needs time on her drives before we try again. I'll see to it, and I'll send fresh holders. Clear the pump bend and the narrows, cover the building, then hand the positions over. Stay with her through the drive test. When the road's ours and she's clear of the basin, she's yours.",
-      "durationSeconds": 25.24,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 17.76,
       "selectedTake": null
     },
     {
@@ -4662,10 +4542,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious] Payment's received. Why would a salvage crew want a wrecked drone tender awake?",
-      "durationSeconds": 6.37,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.2,
       "selectedTake": null
     },
     {
@@ -4680,10 +4559,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dismissive, possessive] Same reason anyone wants builders on a yard they mean to keep, I'd guess. Doesn't matter now. The bay's still in her, and she's still mine.",
-      "durationSeconds": 11.21,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.16,
       "selectedTake": null
     },
     {
@@ -4698,10 +4576,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[cautious] They won't have gone far.",
-      "durationSeconds": 2.02,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.16,
       "selectedTake": null
     },
     {
@@ -4716,10 +4593,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical] Past the quarry, Jory says, and still going. I've got my yard back and no power to work it. The heavy machinery to fix that is still in Wayline's shed, and they stripped the pump station. Mara can deliver now there's a yard to deliver to. One more contract: cover my fitters while we get the lights on.",
-      "durationSeconds": 24.35,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 17.68,
       "selectedTake": null
     },
     {
@@ -4734,10 +4610,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[catching it] One more?",
-      "durationSeconds": 0.73,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.04,
       "selectedTake": null
     },
     {
@@ -4752,10 +4627,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[blunt, not unkind] After that I've got guards coming for the roads. Nothing personal, Castle. You're good, and you're not cheap.",
-      "durationSeconds": 8.79,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.56,
       "selectedTake": null
     },
     {
@@ -4770,10 +4644,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[professional] We'll get the company ready. Keep your fitters together until we're there to cover them.",
-      "durationSeconds": 7.1,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.4,
       "selectedTake": null
     },
     {
@@ -4788,10 +4661,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[sober, considerate] You lost people at that cradle. We'll put ours in order before we take another crew out there.",
-      "durationSeconds": 7.58,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.2,
       "selectedTake": null
     },
     {
@@ -4806,10 +4678,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brief] Do. The rig will be on the receiving apron. Come to me when you're ready.",
-      "durationSeconds": 5.89,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.4,
       "selectedTake": null
     },
     {
@@ -4824,10 +4695,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[impressed] Captain, did you see how fast those builders put that gun up? Off a wreck we found in pieces.",
-      "durationSeconds": 7.5,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.16,
       "selectedTake": null
     },
     {
@@ -4842,10 +4712,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[wry, guarded] I saw. Teo had her bay talking before the lights were steady. A Shepherd with a working bay is worth three of her in pieces, so don't look at her like that, Castle. Your fee's sent.",
-      "durationSeconds": 14.6,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 11.84,
       "selectedTake": null
     },
     {
@@ -4860,10 +4729,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[neutral, not gloating] And your checkpoints?",
-      "durationSeconds": 1.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.42,
       "selectedTake": null
     },
     {
@@ -4878,10 +4746,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[rueful] Paid off. Most of them have gone home, and I can't say I blame them. Harlan's back on the outer road, and Jory says he's had company since. Finish up with your people, then come and see me. Seems I'm not done with you after all.",
-      "durationSeconds": 18.39,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.76,
       "selectedTake": null
     },
     {
@@ -4896,10 +4763,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[sober] We'll need time before we take on anything else. We've people to account for.",
-      "durationSeconds": 6.21,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.72,
       "selectedTake": null
     },
     {
@@ -4914,10 +4780,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[quiet, tired] So do I. Take it. The outer road's still shut, and I won't talk about that over the radio. Come and see me when you can.",
-      "durationSeconds": 9.68,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 8.32,
       "selectedTake": null
     },
     {
@@ -4932,10 +4797,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[satisfied, practical] Registry confirms it, Captain. Morrow's ours. She's flying on a skeleton crew off Second Wind, and Second Wind's not much better off. We'll need to hire before we ask much of either of them.",
-      "durationSeconds": 15.32,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 10.96,
       "selectedTake": null
     },
     {
@@ -4950,10 +4814,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, a little fond] Have your crew check her drone-bay filters first. Basin dust gets into everything.",
-      "durationSeconds": 6.61,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.28,
       "selectedTake": null
     },
     {
@@ -4968,10 +4831,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[hopeful] Any chance of hands from the camp?",
-      "durationSeconds": 2.74,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 2.32,
       "selectedTake": null
     },
     {
@@ -4986,10 +4848,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, final] Try the port at Jangala. Nobody in this valley's leaving it for you.",
-      "durationSeconds": 5.48,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.48,
       "selectedTake": null
     },
     {
@@ -5004,10 +4865,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[warm, relieved] Jory's crew can walk out of the Colossus tonight. Safe passage, Castle.",
-      "durationSeconds": 5.73,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.2,
       "selectedTake": null
     },
     {
@@ -5022,10 +4882,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[gentle] I know what it cost your people to get her out. I'll leave you to them. Safe passage, Castle.",
-      "durationSeconds": 7.5,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.0,
       "selectedTake": null
     },
     {
@@ -5040,10 +4899,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[heavy, quiet] I'd better go. There are families waiting on a call from me, and some of them are mine. Look after her, Castle.",
-      "durationSeconds": 8.95,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.96,
       "selectedTake": null
     }
   ]
