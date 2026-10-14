@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -10,7 +11,9 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Issues the mission's declared support kit to the marine squads a named roster has just been applied to. A named company
@@ -57,5 +60,42 @@ public final class SupportKitIssue {
             mission.marineLoadout = mission.cycleLoadouts[Math.min(Math.max(mission.currentCycle, 0), mission.cycleLoadouts.length - 1)];
         }
         return issued;
+    }
+
+    /**
+     * Issues the declared kit into a company that starts on the ground, where there is no lift to count squads by: squads
+     * are counted in the order their first seat was committed, and the seats are returned with the kit applied under the
+     * same rules as {@link #issue} (a tube to the first unissued seat, a radio to the one before the last).
+     */
+    public static List<MarineSeatCommitment> issueGround(SquadSupportKit kit, List<MarineSeatCommitment> seats) {
+        if (kit.isNone()) return seats;
+        Map<String, List<Integer>> squads = new LinkedHashMap<>();
+        for (int i = 0; i < seats.size(); i++) {
+            String squad = seats.get(i).campaignSquadId();
+            squads.computeIfAbsent(squad == null ? "#" + i : squad, k -> new ArrayList<>()).add(i);
+        }
+        SpecialEquipmentDef mortar = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
+        SpecialEquipmentDef radio = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID);
+        List<MarineSeatCommitment> issued = new ArrayList<>(seats);
+        int ordinal = 0;
+        for (List<Integer> squad : squads.values()) {
+            if (kit.mortarTeam(ordinal) && squad.size() >= 2) {
+                issueFirstFree(issued, squad, mortar);
+            }
+            if (kit.observer(ordinal) && squad.size() >= 3) {
+                issueFirstFree(issued, squad.subList(squad.size() - 2, squad.size() - 1), radio);
+            }
+            ordinal++;
+        }
+        return issued;
+    }
+
+    private static void issueFirstFree(List<MarineSeatCommitment> seats, List<Integer> squad, SpecialEquipmentDef special) {
+        for (int i : squad) {
+            MarineLoadout loadout = seats.get(i).toLoadout();
+            if (loadout.specialEquipmentId != null) continue;
+            seats.set(i, MarineSeatCommitment.capture(loadout.withSpecial(special.id(), special.startingAmmo())));
+            return;
+        }
     }
 }
