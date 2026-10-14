@@ -174,6 +174,14 @@ public final class MarineLoadout {
                 integralSystem, armorClass);
     }
 
+    /** This loadout with its special-equipment slot filled, everything else left as it was. */
+    public MarineLoadout withSpecial(String specialId, int ammo) {
+        return new MarineLoadout(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialId, ammo, campaignSoldierId, armorFamily, armorCapacity,
+                armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad,
+                integralSystem, armorClass);
+    }
+
     public WeaponDef primaryDef() {
         return primaryWeaponId != null ? WeaponRegistry.require(primaryWeaponId) : null;
     }

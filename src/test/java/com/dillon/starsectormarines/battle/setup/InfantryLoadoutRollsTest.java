@@ -129,4 +129,14 @@ public class InfantryLoadoutRollsTest {
         assertEquals(SpecialEquipmentRegistry.FIELD_MORTAR_ID, pair[0].specialDef().id());
         assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, pair[1].specialDef().id(), "no radio takes the launcher's seat");
     }
+
+    @Test
+    public void fillingTheSpecialSlotKeepsEverythingElseOfTheLoadout() {
+        MarineLoadout plain = InfantryLoadoutRolls.playerSquad(6, new Random(5))[1];
+        MarineLoadout issued = plain.withSpecial(SpecialEquipmentRegistry.COMMS_RADIO_ID, 1);
+        assertEquals(SpecialEquipmentRegistry.COMMS_RADIO_ID, issued.specialDef().id());
+        assertEquals(plain.primaryWeaponId, issued.primaryWeaponId);
+        assertEquals(plain.equipmentGrade, issued.equipmentGrade);
+        assertEquals(plain.soldierProfile, issued.soldierProfile);
+    }
 }
