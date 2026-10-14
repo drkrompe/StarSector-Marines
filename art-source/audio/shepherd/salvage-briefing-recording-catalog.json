@@ -3,7 +3,7 @@
   "voiceId": "cZH6erlGkOyAQheipyno",
   "modelId": "eleven_v4",
   "voiceSettings": {},
-  "status": "Current authored briefing (2026-10-14 script pass); all turns unrecorded",
+  "status": "Current authored briefing (2026-10-14 script pass); every turn recorded, transcript-checked and promoted",
   "lines": [
     {
       "id": "basin_salvage_schedules_01",
@@ -17,10 +17,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[guarded, measuring] Mara says you're the company that found out who was selling Wayline's schedules.",
-      "durationSeconds": 6.45,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.88,
       "selectedTake": null
     },
     {
@@ -35,10 +34,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[even] We were.",
-      "durationSeconds": 0.65,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.04,
       "selectedTake": null
     },
     {
@@ -53,10 +51,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, guarded] Then you'll understand why I'm careful what I say in front of Wayline's people.",
-      "durationSeconds": 6.37,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.56,
       "selectedTake": null
     },
     {
@@ -71,10 +68,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[calm, direct] We're not Wayline's people. We took their contract. Now we'd be taking yours.",
-      "durationSeconds": 6.21,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.2,
       "selectedTake": null
     },
     {
@@ -89,10 +85,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[unimpressed, then practical] We'll see. You've read the survey, so you've seen the valley. Here's the rest. Three cycles back, two fleets fought it out in low orbit over Asharu. A Colossus and a few of her escorts came down here. We were the first crew in. The claim's ours.",
-      "durationSeconds": 19.76,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 16.08,
       "selectedTake": null
     },
     {
@@ -107,10 +102,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious] Three cycles is a long time on one wreck.",
-      "durationSeconds": 3.31,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.12,
       "selectedTake": null
     },
     {
@@ -125,10 +119,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[matter-of-fact, a little proud] It's a Colossus. You don't strip one in a season. That fight dropped hulls from here to the southern flats, so every crew on Asharu had its own pickings and nobody bothered with us. Then word got round we'd found something.",
-      "durationSeconds": 17.98,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.6,
       "selectedTake": null
     },
     {
@@ -143,10 +136,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[sharp] Got round how?",
-      "durationSeconds": 1.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.44,
       "selectedTake": null
     },
     {
@@ -161,10 +153,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[bitter, controlled] When we opened the hold, I put in a fuel order with Wayline. Enough to lift something heavy off-world, and a camp like ours never needs that much. A few weeks later Dace Harlan's crew came in shooting at shift change.",
-      "durationSeconds": 17.5,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.28,
       "selectedTake": null
     },
     {
@@ -179,10 +170,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[quiet, thoughtful] That's about when Wayline's schedules were being sold.",
-      "durationSeconds": 4.35,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.12,
       "selectedTake": null
     },
     {
@@ -197,10 +187,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[tired, angry underneath] You'd know better than I would. Or it was me, talking too loud in a Jangala bar. I can't prove either. We got most of our people out, and now the roaches are stripping our yard and telling anyone who'll listen it was abandoned.",
-      "durationSeconds": 18.31,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.2,
       "selectedTake": null
     },
     {
@@ -215,10 +204,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[gentle, attentive] Most of your people.",
-      "durationSeconds": 1.61,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.84,
       "selectedTake": null
     },
     {
@@ -233,10 +221,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[low, protective] My cousin Jory's crew is still inside the Colossus, sealed in where the squatters haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.",
-      "durationSeconds": 16.53,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 11.36,
       "selectedTake": null
     },
     {
@@ -251,10 +238,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[measured] This is Hegemony space. Is anyone else going to take an interest?",
-      "durationSeconds": 5.24,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 4.32,
       "selectedTake": null
     },
     {
@@ -269,10 +255,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dry, wary] Our permit's on file at Jangala. The Hegemony doesn't send a patrol over two salvage crews squabbling in a ditch. It'd come quick enough if somebody gave it a reason. So we settle this ourselves, and quietly.",
-      "durationSeconds": 16.77,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.12,
       "selectedTake": null
     },
     {
@@ -287,10 +272,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm, businesslike] Then tell me where it ends. We're not going into your Colossus, and we're not chasing this outfit across Asharu.",
-      "durationSeconds": 9.03,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 6.0,
       "selectedTake": null
     },
     {
@@ -305,10 +289,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brisk] Good. I don't want you in her, and Jory's people will keep out of your way. You take the receiving store and the workshop; my militia follow you in and hold them. Then the service cradle.",
-      "durationSeconds": 15.08,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 10.96,
       "selectedTake": null
     },
     {
@@ -323,10 +306,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious] What's on the cradle?",
-      "durationSeconds": 1.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.6,
       "selectedTake": null
     },
     {
@@ -341,10 +323,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, valuing] A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says they've had her panels off for a week.",
-      "durationSeconds": 22.98,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 16.0,
       "selectedTake": null
     },
     {
@@ -359,10 +340,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm, practical] I want to know what they've taken. Two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.",
-      "durationSeconds": 18.39,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 12.16,
       "selectedTake": null
     }
   ],
