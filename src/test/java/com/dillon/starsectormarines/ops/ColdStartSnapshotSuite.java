@@ -84,14 +84,19 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                 .append("; omitted controls remain unverified in this run.\n")
                 .append("picket-support is a diagnostic normal player Defend Area order, followed by a Move order to the inner hold.\n");
         if (selected("airborne-control")) airborneControl(context, frames, report);
-        var fixtures = List.of(
+        var fixtures = new ArrayList<>(List.of(
                 new Fixture("paired-aero-14101", 14101, false, false, true, false, false, false, false),
                 new Fixture("mixed-lift-14102", 14102, true, false, true, false, false, false, false),
                 new Fixture("absent-company", 14101, false, true, false, false, false, false, false),
                 new Fixture("no-build", 14101, false, false, false, false, false, false, false),
                 new Fixture("withdraw-after-power", 14101, false, false, false, true, false, false, false),
                 new Fixture("no-company-boats", 14101, false, false, true, false, false, false, true),
-                new Fixture("picket-support", 14101, false, false, true, false, false, false, false));
+                new Fixture("picket-support", 14101, false, false, true, false, false, false, false)));
+        // Balance sampling: -Dbattle.coldStart.seeds=15101,15102 adds an ordinary paired-Aeroshuttle fixture per seed,
+        // selected as "sweep".
+        for (String seed : System.getProperty("battle.coldStart.seeds", "").split(","))
+            if (!seed.isBlank()) fixtures.add(new Fixture("sweep-" + seed.trim(), Long.parseLong(seed.trim()),
+                    false, false, true, false, false, false, false));
         ColdStartProgress.Report withdrawal = null;
         for (var fixture : fixtures) {
             if (!selected(fixture.id) && !(fixture.retreat && selected("retry-powered"))) continue;
@@ -189,6 +194,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
             if (mortarTeamEvery > 0) sim.setSquadSupport(sim.squadSupport().with(Faction.MARINE,
                     new SquadSupportKit(mortarTeamEvery, 0)));
             if (!fixture.absent) deployment.applyToAuthoredPlayerLift(sim);
+            HoundSupportTally hound = Boolean.getBoolean("battle.coldStart.hound") ? HoundSupportTally.install(sim) : null;
             var sequence = sim.getColdStart();
             long initialCarrier = sequence.repairCarrierId();
             float carrierStartX = initialCarrier == 0 ? Float.NaN : sim.convoy().body(initialCarrier).x;
@@ -295,9 +301,11 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                     requested = true;
                     report.append("  explicit player construction request tick=").append(sim.getSimTickIndex()).append('\n');
                 }
+                if (hound != null) hound.request(sim);
                 try {
                     sim.advance(BattleSimulation.TICK_DT);
                     mortarTally.observe(sim);
+                    if (hound != null) hound.observe(sim);
                 } catch (RuntimeException failure) {
                     report.append("  playback exception tick=").append(sim.getSimTickIndex()).append(" phase=")
                             .append(sequence.progress().phase()).append(" target=").append(sequence.targetX()).append(',')
@@ -454,6 +462,7 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                         sim.getEntityWorld().getObject(unit, sim.getBattleComponents().IDENTITY,
                                 BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID))) alive++;
             }
+            if (hound != null) report.append("  ").append(hound.describe()).append('\n');
             report.append("  mortarTeamEvery=").append(mortarTeamEvery).append(' ').append(mortarTally.describe(sim)).append('\n');
             report.append("  final=").append(phase).append(" ticks=").append(sim.getSimTickIndex())
                     .append(" complete=").append(sim.isComplete()).append(" landed=").append(landed.size())
