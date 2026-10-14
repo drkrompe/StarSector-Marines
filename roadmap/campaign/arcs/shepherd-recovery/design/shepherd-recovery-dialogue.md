@@ -4,7 +4,7 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — Cold Start's pickets are hired day hands; the company is on its last job when the second assault comes.
+Updated: 2026-10-14 — Wayline is undercutting its rivals to win Asharu back; Vale buys from it because it is cheapest.
 
 ## How to read this script
 
@@ -87,8 +87,9 @@ the hold, her money or her people make her short.
   are the best scrap in the yard outside the Colossus, and Vale had a buyer
   interested in the bay before the attack.
 - **PUBLIC, first meeting:** Basin buys its supplies, fuel and heavy machinery
-  through Wayline, as most crews on Asharu without their own lift do. Mara is her
-  supplier, not her friend.
+  through Wayline because Wayline is the cheapest hauler working Asharu. Mara is
+  her supplier, not her friend. Buying cheap is a habit with Vale, and the day
+  hands later in the arc are the same habit costing her more.
 - **TO BE REVEALED, first meeting:** where the rumour may have come from. When the
   hold was opened, Vale put in a Wayline fuel order big enough to lift something
   heavy off-world, which a salvage camp never needs. Weeks later the rivals came.
@@ -220,14 +221,22 @@ different jobs. Losing a post does not mean everyone there died.
 
 ### Mara Venn — Wayline broker, Basin's supplier
 
-Mara brokers for the Wayline freight cooperative out of Jangala. Basin is one of
-Wayline's accounts: supplies, fuel and heavy machinery delivered into the valley,
-the ordinary consumables every outfit has to source locally. Vale and Mara are
-supplier and customer, and neither would call the other a friend.
+Mara brokers for the Wayline freight cooperative out of Jangala. Wayline came
+close to bankruptcy on Jangala during last year's raids and is recovering, but it is
+one logistics outfit among several in Corvus and has lost ground it needs back.
+To win it, Wayline hauls supplies, fuel and heavy machinery a little under its
+rivals' rates, and that is how it has picked up contracts with the salvage crews
+that move from wreck to wreck across Asharu. Basin is one of those accounts:
+the ordinary consumables every outfit has to source locally, delivered into the
+valley. Vale and Mara are supplier and customer, and neither would call the
+other a friend.
 
 - **PUBLIC, referral:** Basin's yard is occupied, its account has gone quiet, and
   heavy machinery Vale has already paid for is sitting in Wayline's shed with
   nowhere to go. Mara wants a paying customer back, and says so plainly.
+- **PUBLIC, referral:** Wayline is running on thin margins to rebuild, so one
+  Asharu account going quiet matters to it more than Mara lets on. She does not
+  plead; she mentions the margins once and moves on.
 - **HIDDEN:** Mara knows Vale's large fuel order crossed Wayline's dispatch board
   while Sable Wake was buying its schedules. She does not know that is how the
   rumour spread, and she does not raise it. Sending a company she trusts is good
@@ -296,17 +305,21 @@ it does not start a clock: Mara says outright that the work waits for the compan
 
 **Mara:** Castle. Something for when the company's ready, and not before. One of our accounts on Asharu has a problem.
 
-**Castle:** What kind of account?
+**Castle:** Wayline has accounts on Asharu now?
 
-**Mara:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. They buy their supplies, fuel and heavy machinery off us, same as half the crews on Asharu. Tamsin Vale runs it.
+**Mara:** A few. We haul supplies, fuel and heavy machinery out to the salvage crews there, a little under what the other outfits on Jangala charge. It's how you win customers back after a year like ours.
 
-**Castle:** And the problem?
+**Castle:** And this one?
+
+**Mara:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. Tamsin Vale runs it. She came to us because we were cheapest, and she counts every credit like it's her last.
+
+**Castle:** What's gone wrong?
 
 **Mara:** Another salvage crew walked in with guns and took her yard. Her account's gone quiet, and there's a load of heavy machinery she's already paid for sitting in our shed with nowhere to deliver it.
 
 **Castle:** So this is Wayline's problem as much as hers.
 
-**Mara:** I'd like a paying customer back. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
+**Mara:** At our rates, I can't afford to lose a paying customer. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
 
 **Castle:** Is she a friend of yours?
 
