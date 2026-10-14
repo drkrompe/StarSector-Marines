@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.deployable;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Phase;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Tube;
 import com.dillon.starsectormarines.battle.fort.Fort;
@@ -81,7 +82,16 @@ public final class FieldMortarScene implements BehaviorScene {
     /** Cells the rush starts from, along the flank. */
     private static final int RUSH_DISTANCE = 75;
     private static final String RIFLE = "weapon.field-rifle";
-    private static final List<String> ALL_LOOPS = List.of("mortar-team", "rifle-control", "rushed");
+    private static final List<String> ALL_LOOPS = List.of("mortar-team", "rifle-control", "rushed",
+            "section-march", "section-expiry", "section-engaged", "section-control");
+    /** Cells about the fort's core the marching squad's fire mission covers: its wall nests and works. */
+    private static final int MISSION_RADIUS = 30;
+    /** A marching squad: twelve marines, one of them the gunner. */
+    private static final int MARCH_SIZE = 12;
+    /** Cells past the standoff the marching squad starts, so it meets the fort's works at the edge of the tube's band. */
+    private static final int MARCH_LEAD = 30;
+    /** A short plain window for the expiry and engaged loops, so the window is seen to end inside the run. */
+    private static final float SHORT_WINDOW = 10f;
 
     private final List<String> loops;
     private final int frameFrom;
@@ -115,7 +125,9 @@ public final class FieldMortarScene implements BehaviorScene {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : loops) reports.add(playOne(loop, window(frames)));
+        for (String loop : loops) {
+            reports.add(loop.startsWith("section-") ? playSection(loop, window(frames)) : playOne(loop, window(frames)));
+        }
         return reports;
     }
 
@@ -200,6 +212,213 @@ public final class FieldMortarScene implements BehaviorScene {
                         loop, tick, trace.caption()))
                 .run(TICKS);
         return report(loop, tube, rushed, trace, sim);
+    }
+
+    /**
+     * The section loops: a twelve-marine squad marching on the fort's main gate from beyond the tube's band, its first
+     * member carrying the tube and the squad a fire mission on the fort's works, which is what opens a section.
+     * {@code section-march} is the production timing; {@code section-expiry} a ten-second window that engagement may not
+     * extend, to see the crew pack up and the squad reform; {@code section-engaged} the same window that engagement may
+     * extend, to a cap; {@code section-control} sections switched off on this simulation alone, in which a marching
+     * gunner never halts to set up.
+     */
+    private SceneReport playSection(String loop, FrameSink frames) {
+        float window = MortarSections.WINDOW_SECONDS;
+        float extension = MortarSections.EXTENSION_SECONDS;
+        float cap = MortarSections.CAP_SECONDS;
+        boolean on = !loop.equals("section-control");
+        if (loop.equals("section-expiry")) {
+            window = SHORT_WINDOW;
+            extension = 0f;
+        } else if (loop.equals("section-engaged")) {
+            window = SHORT_WINDOW;
+            cap = 40f;
+        }
+        FortGround terrain = stamp();
+        FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
+        int[] mouth = terrain.cell(gate.mouthX(), gate.mouthY());
+        int[] outStep = terrain.cell(gate.mouthX() + gate.outX(), gate.mouthY() + gate.outY());
+        int outX = outStep[0] - mouth[0];
+        int outY = outStep[1] - mouth[1];
+        int[] start = clamp(mouth[0] + outX * (STANDOFF + MARCH_LEAD), mouth[1] + outY * (STANDOFF + MARCH_LEAD));
+        lastSection = new int[] {start[0], start[1], mouth[0], mouth[1]};
+        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
+                .missionCompletion(false);
+        // Every loop carries the fire mission a commander would give it: the fort's works.
+        int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
+        int[] coreCell = terrain.cell(core[0], core[1]);
+        FireMission mission = new FireMission(coreCell[0], coreCell[1], MISSION_RADIUS);
+        builder.squad("section").faction(Faction.MARINE).size(MARCH_SIZE).at(start[0], start[1]).primary(RIFLE)
+                .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1)
+                .assigned(id -> ObjectiveAssignment.attackMove(id, mouth[0], mouth[1]).withFireMission(mission)).done();
+        int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
+        builder.squad("garrison").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(GARRISON)
+                .at(garrisonAt[0], garrisonAt[1]).primary("weapon.smg").stationary().done();
+        builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, HEIGHT - 5);
+        builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setEnabledForEvidence(on);
+        sim.fieldMortars().sections().setTimingForEvidence(window, extension, cap, MortarSections.COOLDOWN_SECONDS);
+        sim.random().setSeed(20261017L);
+        Fort fort = sim.forts().forts().get(0);
+        SectionTrace trace = new SectionTrace(fort, world, mouth);
+        SceneRun.of(world).observe(trace)
+                .frames(frames, loop, frameEvery, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
+                        loop, tick, trace.caption()))
+                .run(TICKS);
+        return sectionReport(loop, on, window, extension, cap, trace, sim);
+    }
+
+    private SceneReport sectionReport(String loop, boolean on, float window, float extension, float cap,
+                                      SectionTrace t, BattleSimulation sim) {
+        List<Verdict> verdicts = new ArrayList<>();
+        MortarSections sections = sim.fieldMortars().sections();
+        if (!on) {
+            verdicts.add(Verdict.of("no-section-was-ever-opened", sections.opened() == 0,
+                    sections.opened() + " sections opened; tubes set down " + sim.fieldMortars().setUps()));
+        } else {
+            verdicts.add(Verdict.of("the-march-halted-for-the-tube", t.openTick >= 0,
+                    "section opened at tick " + t.openTick + " with the squad " + round(t.distanceAtOpen)
+                            + " cells from the gate"));
+            verdicts.add(Verdict.of("a-crew-of-four-set-the-tube-down", t.crewSize == MortarSections.CREW_SIZE
+                    && t.tubeStandingTick >= 0, "crew of " + t.crewSize + ", tube standing at tick " + t.tubeStandingTick));
+            verdicts.add(Verdict.of("the-rest-stayed-on-the-leash",
+                    t.openTick >= 0 && t.maxLeashDistance <= MortarSections.LEASH_CELLS + 2.5f,
+                    "furthest leashed marine " + round(t.maxLeashDistance) + " cells from the tube (leash "
+                            + MortarSections.LEASH_CELLS + ")"));
+            verdicts.add(Verdict.of("it-fired", t.roundsFired > 0, t.roundsFired + " rounds fired, first at tick "
+                    + t.firstRoundTick));
+            verdicts.add(Verdict.of("the-section-ended-and-the-squad-moved-on", t.endTick >= 0 && t.squadAdvancedAfter,
+                    "ended at tick " + t.endTick + " (" + t.endReason + "); squad " + round(t.distanceAtEnd)
+                            + " cells from the gate then, " + round(t.distanceAtFinish) + " at the finish"));
+            if (loop.equals("section-expiry")) {
+                verdicts.add(Verdict.of("the-window-ran-out", "window expired".equals(t.endReason),
+                        "ended because: " + t.endReason + ", held " + round(t.openSeconds) + "s of a " + window + "s window"));
+            }
+            if (loop.equals("section-engaged")) {
+                verdicts.add(Verdict.of("engagement-held-the-window-open",
+                        t.openSeconds > window + 1f && t.openSeconds <= cap + MortarSections.OPENING_GRACE_SECONDS,
+                        "held " + round(t.openSeconds) + "s against a " + window + "s window and a " + cap + "s cap"));
+            }
+        }
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("windowSeconds", window);
+        metrics.put("extensionSeconds", extension);
+        metrics.put("capSeconds", cap);
+        metrics.put("sectionsOpened", sections.opened());
+        metrics.put("sectionsExpired", sections.expired());
+        metrics.put("sectionsAbandoned", sections.abandoned());
+        metrics.put("sectionsUnderFire", sections.underFire());
+        metrics.put("sectionOpenTick", t.openTick);
+        metrics.put("sectionEndTick", t.endTick);
+        metrics.put("sectionHeldSeconds", round(t.openSeconds));
+        metrics.put("tubeSetDowns", sim.fieldMortars().setUps());
+        metrics.put("tubeStandingTick", t.tubeStandingTick);
+        metrics.put("roundsFired", t.roundsFired);
+        metrics.put("nestsKilled", t.nestsKilled);
+        metrics.put("nestsTotal", t.nestTotal);
+        metrics.put("squadDistanceToGateAtOpen", round(t.distanceAtOpen));
+        metrics.put("squadDistanceToGateAtEnd", round(t.distanceAtEnd));
+        metrics.put("squadDistanceToGateAtFinish", round(t.distanceAtFinish));
+        metrics.put("furthestLeashedMarine", round(t.maxLeashDistance));
+        metrics.put("marinesLost", MARCH_SIZE - t.squadAlive);
+        return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    /** Watches one marching squad and its section. */
+    private static final class SectionTrace implements TickObserver {
+        private final Fort fort;
+        private final long[] squad;
+        private final int[] gate;
+        int nestTotal;
+        int openTick = -1;
+        int endTick = -1;
+        int tubeStandingTick = -1;
+        int firstRoundTick = -1;
+        int roundsFired;
+        int nestsKilled;
+        int crewSize;
+        int squadAlive;
+        float distanceAtOpen;
+        float distanceAtEnd;
+        float distanceAtFinish;
+        float maxLeashDistance;
+        float openSeconds;
+        String endReason = "";
+        boolean squadAdvancedAfter;
+        private MortarSections.Section section;
+        private String caption = "";
+
+        SectionTrace(Fort fort, SceneWorld world, int[] gate) {
+            this.fort = fort;
+            this.squad = world.members("section");
+            this.gate = gate;
+            this.nestTotal = fort.nestIds().size();
+        }
+
+        String caption() {
+            return caption;
+        }
+
+        private float distanceToGate(BattleSimulation sim) {
+            double sx = 0;
+            double sy = 0;
+            int n = 0;
+            for (long id : squad) {
+                if (!sim.world().isAlive(id)) continue;
+                sx += sim.world().x(id);
+                sy += sim.world().y(id);
+                n++;
+            }
+            if (n == 0) return Float.MAX_VALUE;
+            return (float) Math.hypot(sx / n - gate[0], sy / n - gate[1]);
+        }
+
+        @Override public void observe(BattleSimulation sim, int tick) {
+            int alive = 0;
+            for (long id : squad) if (sim.world().isAlive(id)) alive++;
+            squadAlive = alive;
+            int killed = 0;
+            for (long nest : fort.nestIds()) if (!sim.world().isAlive(nest)) killed++;
+            nestsKilled = killed;
+            float here = distanceToGate(sim);
+            distanceAtFinish = here;
+            MortarSections sections = sim.fieldMortars().sections();
+            if (section == null) {
+                for (MortarSections.Section s : sections.sections()) {
+                    section = s;
+                    openTick = tick;
+                    crewSize = s.crewSize();
+                    distanceAtOpen = here;
+                }
+            }
+            if (section != null && endTick < 0) {
+                if (sections.sectionOf(section.squadId) == section) {
+                    for (long id : squad) {
+                        if (!sim.world().isAlive(id) || section.isCrew(id)) continue;
+                        maxLeashDistance = Math.max(maxLeashDistance, (float) Math.hypot(
+                                sim.world().x(id) - section.anchorX(), sim.world().y(id) - section.anchorY()));
+                    }
+                    openSeconds = (tick - openTick) * BattleSimulation.TICK_DT;
+                } else {
+                    endTick = tick;
+                    endReason = section.endReason();
+                    distanceAtEnd = here;
+                }
+            }
+            if (endTick >= 0 && distanceToGate(sim) < distanceAtEnd - 4f) squadAdvancedAfter = true;
+            Tube tube = section == null ? null : sim.fieldMortars().tubeOfCarrier(squad[0]);
+            if (tube != null) {
+                if (tube.phase() == Phase.SERVING && tubeStandingTick < 0) tubeStandingTick = tick;
+                roundsFired = Math.max(roundsFired, tube.roundsFired());
+                if (firstRoundTick < 0 && roundsFired > 0) firstRoundTick = tick;
+            }
+            caption = String.format(Locale.ROOT, "section %s / tube %s / rounds %d / nests down %d of %d / squad %d "
+                            + "alive %s cells out", section == null ? "not yet" : (endTick >= 0 ? "ended" : "open"),
+                    tube == null ? "none" : tube.phase().name().toLowerCase(Locale.ROOT), roundsFired, nestsKilled,
+                    nestTotal, squadAlive, round(here));
+        }
     }
 
     private static int[] clamp(int x, int y) {

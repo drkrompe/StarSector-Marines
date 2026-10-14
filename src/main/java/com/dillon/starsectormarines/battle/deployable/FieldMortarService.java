@@ -162,11 +162,16 @@ public final class FieldMortarService {
     private final ThreadLocal<LongBucket> scratch = ThreadLocal.withInitial(LongBucket::new);
     /** The fire mission each squad's order carries now, read off the orders in the serial pass. */
     private final Map<Integer, FireMission> missions = new ConcurrentHashMap<>();
+    /** The sections working tubes now: the squad-level behaviour that halts a crew and leashes the rest of its squad. */
+    private final MortarSections sections = new MortarSections();
     private int lost;
     private int recrewed;
     private int destroyed;
     private int setUps;
     private int packs;
+
+    /** The mortar sections: crews halted to work a tube with the rest of their squad leashed to it. */
+    public MortarSections sections() { return sections; }
 
     /** Tubes set down so far, for evidence. */
     public int setUps() { return setUps; }
@@ -240,6 +245,11 @@ public final class FieldMortarService {
      */
     public void tick(float dt, BattleControl sim) {
         refreshMissions(sim);
+        tickTubes(dt, sim);
+        sections.tick(dt, this, sim);
+    }
+
+    private void tickTubes(float dt, BattleControl sim) {
         if (byCarrier.isEmpty()) return;
         for (Tube tube : new ArrayList<>(byCarrier.values())) {
             long carrier = sim.resolveUnit(tube.carrierId);

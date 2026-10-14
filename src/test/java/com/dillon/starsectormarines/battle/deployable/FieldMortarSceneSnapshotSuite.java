@@ -5,8 +5,9 @@ import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import java.util.List;
 
 /**
- * The field mortar's frames, from the same run that produced its verdicts: the {@code mortar-team} loop and the
- * {@code rushed} loop at 1920x1080 and 100% scale, whole map plus a close view on the section — the set-up, the
+ * The field mortar's frames, from the same run that produced its verdicts: the {@code mortar-team} loop, the
+ * {@code rushed} loop and the {@code section-march} loop (a twelve-marine squad halting a four-person crew while the rest
+ * is leashed, then packing up and moving on) at 1920x1080 and 100% scale, whole map plus a close view on the section — the set-up, the
  * tube firing across the standoff, the shell in flight and the impacts on the nest — with every close frame written
  * as a PNG still.
  */
@@ -16,7 +17,7 @@ public final class FieldMortarSceneSnapshotSuite extends BehaviorSceneSnapshotSu
     private static final int HEIGHT = 1080;
 
     public FieldMortarSceneSnapshotSuite() {
-        super(new FieldMortarScene(List.of("mortar-team", "rushed"), 60, 1500, 15), WIDTH, HEIGHT);
+        super(new FieldMortarScene(List.of("mortar-team", "rushed", "section-march"), 60, 1500, 15), WIDTH, HEIGHT);
     }
 
     @Override protected boolean showImpactEffects() { return true; }

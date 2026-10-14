@@ -368,11 +368,12 @@ copy are supporting details. Each named catalog item opens its own spec sheet;
 counts over mixed items and role totals do not invent a catalog subject. No fleet
 inventory strip or repeated zero-cost message belongs on routine fitting; the action
 lives on the card. Each routine-browser loadout card carries its own **Issue**
-button: pressing it selects that loadout and performs the whole squad issue
+button, inline in the card's provenance row: pressing it selects that loadout and performs the whole squad issue
 (paired with the other picker's current choice) through the same transaction,
 eligibility and cargo rules. Selecting a card only previews; there is no separate
 bottom-corner fit control. A card the transaction would refuse shows its reason
-on the card and disables Issue; the shared status line and the per-billet
+as a line on the card and disables Issue; the card matching the squad's current issue reads
+"Issued" and is disabled; the shared status line speaks only when something is refused; the shared status line and the per-billet
 "Keep current kit / will change" preview follow the selected card. The first-refit
 technology lesson uses the same card without an Issue action. Tier describes
 expected capability while rarity describes acquisition scarcity and presentation.
