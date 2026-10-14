@@ -207,11 +207,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
-    private static final List<String> OVERVIEW_COMPONENTS = List.of(
-            "data/ui/components/company/company-resource-stock.mlx",
-            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/armory/fleet-armory-overview.mlx",
-            "data/ui/components/armory/armory-company-list.mlx");
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
@@ -327,9 +322,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderShipTransfer(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1, null,
                                 DISPLACED, BROKE)),
-                new SnapshotArtifact("fleet-armory-overview-wide.png",
-                        renderFleetArmoryOverview(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -2368,32 +2360,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderFleetArmoryOverview(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
-        Reactor reactor = new Reactor();
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY * 2);
-        Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
-        postBattle.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
-        FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
-                reactor, roster, () -> { }, () -> 100d);
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), OVERVIEW_COMPONENTS);
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory-overview", props(viewModel))) {
-            instance.requireElement("company-overview-summary")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            return renderRelative(renderer, document, width, height, 1f);
-        }
-    }
-
     private static BufferedImage renderEquipmentDesigner(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -3080,17 +3046,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return renderer.renderRelative(document, width, height, uiScale,
                 MarineOpsUiViewport.REFERENCE_WIDTH,
                 MarineOpsUiViewport.REFERENCE_HEIGHT);
-    }
-
-    private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
-        Map<String, Object> props = new LinkedHashMap<>();
-        props.put("fleetSummary", viewModel.fleetSummary());
-        props.put("templateCollectionSummary", viewModel.templateCollectionSummary());
-        props.put("accessStatusSummary", viewModel.accessStatusSummary());
-        props.put("accessNextSummary", viewModel.accessNextSummary());
-        props.put("companyCards", viewModel.companyCards());
-        putArmoryPageNavigation(props);
-        return props;
     }
 
     private static Map<String, Object> props(BarracksViewModel viewModel,
