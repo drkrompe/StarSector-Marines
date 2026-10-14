@@ -83,11 +83,11 @@ class CampaignLessonsTest {
             var roster = afterCounterattack();
             roster.campaignLessons().reviewInvestments();
             assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster));
-            var lesson = CampaignLessons.formations(roster, null, false, () -> {});
+            var lesson = CampaignLessons.formations(roster, null, false);
             assertNotNull(lesson.later(), "A company that cannot pay the founding bill needs a way out");
             lesson.later().run();
             assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
-            assertNull(CampaignLessons.formations(roster, null, false, () -> {}));
+            assertNull(CampaignLessons.formations(roster, null, false));
             roster = restore(roster);
             assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster), "Setting aside persists");
             assertEquals(1, roster.squads().stream().filter(sq -> !sq.reserve()).count(), "Guidance creates no squad");
@@ -105,7 +105,7 @@ class CampaignLessonsTest {
             roster.applySoldierOutcome(Map.of(wounded.id(), MarineSoldierStatus.WIA), 10f, 7f);
             assertEquals(0, roster.vacancies(second), "Wounded keep their billets");
 
-            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null), false, () -> {});
+            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null), false);
             assertEquals(LessonCopy.text("lessonFormationWounded"), lesson.copy());
             assertFalse(lesson.targets().contains("barracks-reinforce"), "Fill Vacancies is disabled with no vacancy");
         }
@@ -118,7 +118,7 @@ class CampaignLessonsTest {
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 10);
             assertTrue(roster.vacancies(second) > 0);
 
-            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null), false, () -> {});
+            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null), false);
             assertEquals(LessonCopy.text("lessonFormationRecover"), lesson.copy());
             assertTrue(lesson.targets().contains("barracks-reinforce"));
         }

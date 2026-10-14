@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -68,6 +69,10 @@ class CorvusCombatEvidenceTest {
         int boatCount = Integer.getInteger("battle.corvus.boats", 2);
         if (boatCount < 1 || boatCount > 4) throw new IllegalArgumentException("Use one to four company boats");
         if (boatCount != 2) output = output.resolve("boats-" + boatCount);
+        int mortarTeamEvery = Integer.getInteger("battle.mortarTeamEvery", 0);
+        if (mortarTeamEvery > 0) output = output.resolve("mortar-every-" + mortarTeamEvery);
+        long seedOffset = Long.getLong("battle.corvus.seedOffset", 0L);
+        if (seedOffset != 0) output = output.resolve("seed-offset-" + seedOffset);
         String selectedChapter = System.getProperty("battle.corvus.chapter", "");
         if (!selectedChapter.isEmpty()) CorvusChapter.valueOf(selectedChapter);
         Files.createDirectories(output);
@@ -102,7 +107,7 @@ class CorvusCombatEvidenceTest {
             var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
             var boats = IntStream.range(0, boatCount).mapToObj(i -> FittedBoat.standard(ShuttleType.AEROSHUTTLE)).toList();
             var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
-            var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface));
+            var fixture = chapter.fixture(mission.battleSeed + seedOffset, manifest, chapter.profile(chapter.surface));
             var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
             assertEquals(1, powers.size());
             var resources = new FiniteCommandPowerResources(30);
@@ -122,6 +127,8 @@ class CorvusCombatEvidenceTest {
                         });
                 var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,
                         resources.availableSupplies(), mission.fieldPresencePolicy);
+                if (mortarTeamEvery > 0) sim.setSquadSupport(sim.squadSupport().with(Faction.MARINE,
+                        new SquadSupportKit(mortarTeamEvery, 0)));
                 overlay.applyTo(sim, resources);
                 Files.writeString(dir.resolve("fixture.json"), BattleFixtureJson.toJson(new BattleLaunchFixture(fixture, overlay)).toString(2));
                 sim.setCommandTraceEnabled(true, fixture.kind());
@@ -168,6 +175,7 @@ class CorvusCombatEvidenceTest {
                 var frameTicks = new JSONArray().put(0);
                 var samples = new JSONArray();
                 writeFrame(renderer, sim, chapter, dir);
+                var mortarTally = new MortarTally();
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     var service = sim.getCommandPowerService();
                     var support = service.getPower(MechSupport.ID);
@@ -182,6 +190,7 @@ class CorvusCombatEvidenceTest {
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
                     sim.advance(BattleSimulation.TICK_DT);
+                    mortarTally.observe(sim);
                     if (damageReview != null) damageReview.tick();
                     playbackSeconds[0] += BattleSimulation.TICK_DT / replaySpeed(sim);
                     narration.advance(BattleSimulation.TICK_DT / replaySpeed(sim),
@@ -348,8 +357,9 @@ class CorvusCombatEvidenceTest {
                 for (var seat : deployment.commitments()) kits.put(new JSONObject().put("soldier", seat.campaignSoldierId())
                         .put("weapon", seat.primaryWeaponId()).put("grade", seat.equipmentGrade().name())
                         .put("armorCapacity", seat.armorCapacity()).put("armorRating", seat.armorRating()));
-                var report = new JSONObject().put("chapter", chapter.title).put("seed",mission.battleSeed)
+                var report = new JSONObject().put("chapter", chapter.title).put("seed",mission.battleSeed + seedOffset)
                         .put("companyBoats",boatCount).put("captainBonuses",false)
+                        .put("mortarTeamEvery",mortarTeamEvery).put("mortar",mortarTally.describe(sim))
                         .put("weapons",SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)
                         .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
                         .put("result", sim.isComplete() ? String.valueOf(sim.getWinner()) : "TIMEOUT")
@@ -498,7 +508,8 @@ class CorvusCombatEvidenceTest {
         var rows = new JSONArray();
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long id = sim.liveUnitAt(i);
-            if (sim.identity().faction(id) != Faction.MARINE) continue;
+            // A standing field-mortar tube is a marine body without movement or a path to report.
+            if (sim.identity().faction(id) != Faction.MARINE || !sim.world().hasMovement(id)) continue;
             var squad = sim.squadOf(id);
             var row = new JSONObject().put("id", id).put("name",sim.identity().name(id))
                     .put("type",sim.identity().type(id).name()).put("x",sim.world().x(id)).put("y",sim.world().y(id))

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.SupportKitIssue;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
@@ -296,7 +297,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Realizes launch-frozen personnel once, before the first simulation tick. */
     public void deployCompanyOnGround(List<MarineSeatCommitment> seats) {
         if (groundMarineArrival == null) throw new IllegalStateException("No ground arrival authored");
-        airSystem.deployCompanyOnGround(groundMarineArrival, seats);
+        airSystem.deployCompanyOnGround(groundMarineArrival,
+                SupportKitIssue.issueGround(squadSupport().forSide(Faction.MARINE), seats));
     }
     private OfficerCommandProfile operationOfficer;
     public String officerAttemptId() { return officerAttemptId; }
