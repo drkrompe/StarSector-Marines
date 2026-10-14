@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 
@@ -22,6 +23,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 public final class TurretBehavior implements UnitBehavior {
 
     public static final TurretBehavior INSTANCE = new TurretBehavior();
+
+    /** Seconds a crew-served tube holds fire after refusing a round that would land on its own side. */
+    private static final float FRIENDLY_HOLD_SECONDS = 1.0f;
 
     private TurretBehavior() {}
 
@@ -60,6 +64,10 @@ public final class TurretBehavior implements UnitBehavior {
         StructureDef structure = turretState.structure(id);
         TurretMountDef mount = structure.mount;
         var weapon = mount.weapon;
+        FieldMortarService.Tube tube = sim.fieldMortars().tubeOfEntity(id);
+        // A crew-served tube that is being lifted or is out of rounds does not aim; the
+        // recoil clock above has already aged.
+        if (tube != null && !tube.mayFire()) return;
         TurretAim.State s = new TurretAim.State();
         s.originCellX = sim.world().cellX(id);
         s.originCellY = sim.world().cellY(id);
@@ -76,8 +84,31 @@ public final class TurretBehavior implements UnitBehavior {
         s.attackCooldown = sim.combat().attackCooldown(id);
         s.target = sim.targetOf(u);
         s.indirectFire = weapon.indirectFire;
+        if (tube != null) {
+            // A tube fires for the squad that serves it: what that squad believes, and
+            // nothing it has not been shown. A lone gunner works it at a slower cycle.
+            s.squadId = tube.squadId;
+            s.attackCooldown *= sim.fieldMortars().cooldownScale(tube, sim);
+        }
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
+
+        if (tube != null) {
+            if (s.target != 0L) tube.noteTarget();
+            if (s.fireThisTick) {
+                if (sim.fieldMortars().friendlyUnderRound(tube, s.target, sim)) {
+                    // The crew will not call a round onto their own; look again shortly.
+                    s.fireThisTick = false;
+                    s.cooldownTimer = FRIENDLY_HOLD_SECONDS;
+                    s.target = 0L;
+                } else {
+                    // A round is spotted when a squadmate has the target in sight; otherwise
+                    // it goes out on remembered ground at the weapon's blind-fire penalty.
+                    s.lastFireHadLos = sim.fieldMortars().spotted(tube, s.target, sim);
+                    tube.spendRound();
+                }
+            }
+        }
 
         turretState.setFacingDegrees(id, s.facingDegrees);
         sim.world().setCooldownTimer(id, s.cooldownTimer);

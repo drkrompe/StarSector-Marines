@@ -111,7 +111,16 @@ public enum SpecialAiPolicy {
      * shooting at them; this one is the moment for a marine who can, and whose
      * whole problem is hitting with it.
      */
-    HOLDING_A_FIRING_POSITION("holding-a-firing-position");
+    HOLDING_A_FIRING_POSITION("holding-a-firing-position"),
+    /**
+     * A halted section with a known target beyond what its rifles reach and
+     * nobody on top of it: the carrier sets a crew-served tube down, serves it,
+     * and lifts it again when the work is done or the section is threatened.
+     * Names the moment, not the weapon: the tube's reach, dead zone and rate come
+     * from the referenced structure's mount, and what it fires at comes from the
+     * section's own belief, never from a target the policy chooses.
+     */
+    CREW_SERVED_FIRE_SUPPORT("crew-served-fire-support");
 
     public final String key;
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
@@ -119,7 +120,8 @@ public record SpecialEquipmentDef(
             case UTILITY_DEPLOYABLE -> {
                 requireNoWeapon(weaponId, id);
                 requirePolicy(id, aiPolicy, SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT,
-                        SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN);
+                        SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN,
+                        SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT);
                 // One activation, two shapes of placed thing. The emplacement
                 // policy leaves an actor behind; the cover policy leaves a
                 // property of a boundary behind. They share the carried item's
@@ -129,7 +131,8 @@ public record SpecialEquipmentDef(
                 if (aiPolicy == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) {
                     deployableCover = parseDeployableCover(activationJson, id);
                 } else {
-                    deployable = parseDeployable(activationJson, id);
+                    deployable = parseDeployable(activationJson, id,
+                            aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT);
                 }
                 if (resourceMode != SpecialResourceMode.AMMUNITION) {
                     throw new JSONException("Deployable equipment '" + id
@@ -217,6 +220,23 @@ public record SpecialEquipmentDef(
                 || activation == SpecialActivation.DIRECT_PRECISION;
     }
 
+    /** True when the item is a tube the carrier sets down, serves and lifts again. */
+    public boolean isCrewServed() {
+        return aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT;
+    }
+
+    /**
+     * The gun a placed emplacement carries, or null when this item places no gun.
+     * The item itself names no weapon (it is utility equipment); this reads the
+     * mount of the structure it sets down, so a capability read off catalog data
+     * finds the tube's reach and warhead without a second place stating them.
+     */
+    public WeaponDef deployedWeaponDef() {
+        if (deployableEmplacementSpec == null) return null;
+        return TurretCatalogRegistry.requireStructure(
+                deployableEmplacementSpec.structureId()).mount.weapon;
+    }
+
     public float aimDuration() {
         if (deployableEmplacementSpec != null) return deployableEmplacementSpec.deployDuration();
         if (deployableCoverSpec != null) return deployableCoverSpec.deployDuration();
@@ -270,12 +290,15 @@ public record SpecialEquipmentDef(
                 positive(activation, "penetration", id));
     }
 
-    private static DeployableEmplacementSpec parseDeployable(JSONObject activation, String id)
+    private static DeployableEmplacementSpec parseDeployable(JSONObject activation, String id,
+                                                             boolean crewServed)
             throws JSONException {
         return new DeployableEmplacementSpec(
                 requireText(activation, "structureId", id),
                 positive(activation, "deployDuration", id),
-                positive(activation, "lifetimeSeconds", id));
+                positive(activation, "lifetimeSeconds", id),
+                crewServed ? positive(activation, "packDuration", id) : 0f,
+                crewServed ? positive(activation, "redeployCooldown", id) : 0f);
     }
 
     /**
