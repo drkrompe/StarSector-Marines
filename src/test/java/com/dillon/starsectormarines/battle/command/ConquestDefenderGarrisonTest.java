@@ -113,6 +113,50 @@ class ConquestDefenderGarrisonTest {
         assertTrue(reserve >= GarrisonDirector.RESERVE_FLOOR, "the floor still stands");
     }
 
+    @Test
+    void aTrackRallyToAPressedTrenchGoesToTheAreaStagingCellAndIsReservedAgainstIt() {
+        Assumptions.assumeTrue(!"false".equals(System.getProperty("battle.garrison.unifiedRally"))
+                        && !"false".equals(System.getProperty("battle.garrison.flow")),
+                "run without -Dbattle.garrison.unifiedRally=false or -Dbattle.garrison.flow=false");
+        BattleSimulation sim = openSimWithTrench();
+        List<Squad> patrols = patrols(sim, 10);
+        addDefender(sim, "reporter", 15, 33, UnitRole.PATROL);
+        for (int i = 0; i < 4; i++) {
+            sim.spawn(new EntitySpec("marine" + i, Faction.MARINE, UnitType.MARINE,
+                    13 + i, 26).moveSpeed(0f).health(10_000f));
+        }
+        sim.advance(BattleSimulation.TICK_DT);
+
+        ConquestDefenderCommand command = command(sim);
+        tick(command, sim);
+
+        List<Squad> rallied = new ArrayList<>();
+        for (Squad patrol : patrols) {
+            if (patrol.assignedObjective != null && patrol.assignedObjective.kind() == AssignmentKind.DEFEND_TRACK) {
+                rallied.add(patrol);
+            }
+        }
+        ConquestTrackLayout tracks = new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, W, H);
+        int deepest = Math.round(tracks.forwardCoordinate(15, 26));
+        int bandForward = deepest / ConquestDefenderCommand.COARSE_BAND_CELLS * ConquestDefenderCommand.COARSE_BAND_CELLS
+                + ConquestDefenderCommand.COARSE_BAND_CELLS + ConquestDefenderCommand.RALLY_REAR_OFFSET_CELLS;
+        int bandX = tracks.cellX(tracks.lateralCenterCell(0), bandForward);
+        assertTrue(!rallied.isEmpty(), "the response still rallies the track");
+        assertTrue(rallied.size() <= patrols.size() - GarrisonDirector.RESERVE_FLOOR, "the bounded response and the floor stand");
+        for (Squad squad : rallied) {
+            ObjectiveAssignment order = squad.assignedObjective;
+            ConquestFrontSnapshot.AssignmentReason reason = command.frontSnapshot().directiveFor(squad.id).reason();
+            assertTrue(reason == ConquestFrontSnapshot.AssignmentReason.DEFENDER_TRACK_RESPONSE
+                            || reason == ConquestFrontSnapshot.AssignmentReason.DEFENDER_ADJACENT_TRACK_RESPONSE,
+                    "still the track response (home track, then one neighbour), under its own reason: " + reason);
+            assertTrue(Math.abs(order.targetCellX() - bandX) > 4, "the destination is the area's staging cell, not the band point");
+            assertTrue(order.targetCellY() >= 26 + GarrisonFlow.STANDOFF_CELLS - 4,
+                    "the staging cell stands off behind the pressure on the defender's side");
+        }
+        long free = patrols.stream().filter(p -> p.assignedObjective == null).count();
+        assertTrue(free >= GarrisonDirector.RESERVE_FLOOR, "a free patrol is left in reserve");
+    }
+
     private static List<Squad> patrols(BattleSimulation sim, int count) {
         List<Squad> patrols = new ArrayList<>();
         for (int i = 0; i < count; i++) {

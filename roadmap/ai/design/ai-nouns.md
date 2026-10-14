@@ -2106,8 +2106,9 @@ static (a born garrison on every belt nest, the control) or off.
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
 staged behind it (at a fort's works for a fort's belt) and still in the pool, and
-manning takes staged patrols first, then patrols the track rally has just sent,
-then the roving pool above its reserve floor. A manned run with an enemy
+the track rally and this staging are one reservation per area: a rally toward
+an area with something to man goes to its staging cell, and manning takes the
+area's own reserved patrols first, then the roving pool above its reserve floor. A manned run with an enemy
 believed inside it, or a garrison too small to hold it, falls back to the works
 of the fort it belongs to if the side still holds them, else returns to the pool;
 a breached run is not re-manned for a while.

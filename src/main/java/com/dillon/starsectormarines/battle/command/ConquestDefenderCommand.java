@@ -132,6 +132,17 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      */
     private static final boolean GARRISON_FROM_RALLY =
             Boolean.parseBoolean(System.getProperty("battle.garrison.fromRally", "true"));
+    /**
+     * Whether the track rally and the flow are one per-area reservation (see {@link AreaReservations}): a threatened track
+     * rallies to the staging cell of the pressure area it maps onto when that area offers something to man, rallied squads
+     * count against the area's demand, manning draws on the area's own reserved squads first, and an area with nothing to
+     * man is not staged for at all (the old rally answers it). {@code -Dbattle.garrison.unifiedRally=false} restores the
+     * separate rally and flow exactly, for a same-build control.
+     */
+    private static final boolean UNIFIED_RALLY =
+            Boolean.parseBoolean(System.getProperty("battle.garrison.unifiedRally", "true"));
+    /** A rallied squad whose current track post lies within this many cells (Chebyshev) of its area's new staging cell keeps it. */
+    private static final int RALLY_KEEP_CELLS = 8;
     /** Plans between attempts to stage for an area once no patrol could be found for it. */
     private static final int STAGE_RETRY_PLANS = 8;
     /** Most patrols newly sent to wait in one plan, across all areas. UNTUNED. */
@@ -155,6 +166,41 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private int flowGeneration;
     /** The last plan's flow line, appended to its published summaries. */
     private String flowNote = "";
+    /** This plan's per-area reservations; empty unless the rally and flow are unified. */
+    private AreaReservations reservations = new AreaReservations(0);
+    /** This plan's pressure areas, found before the track rally chooses its destinations; {@code null} unless unified. */
+    private AreaPlan areaPlan;
+    /** For each track, the area its rally maps onto this plan, or -1. */
+    private int[] rallyAreaOfTrack = new int[0];
+    /** Track rallies redirected to an area's staging cell this plan. */
+    private int rallyRedirects;
+
+    /**
+     * The pressure areas of a plan and what each offers: whether it has anything to man (a garrisonable under believed
+     * pressure), the fort works that would shelter it, and the cell squads wait on for it. {@code stage} is {@code null}
+     * for an area not worth answering and, when only worthwhile areas are staged, for one with nothing to man.
+     */
+    private static final class AreaPlan {
+        final List<GarrisonFlow.Area> areas;
+        final boolean[] workful;
+        final int[] warmFort;
+        final DefenceStructureFact[] site;
+        final int[][] stage;
+
+        AreaPlan(List<GarrisonFlow.Area> areas) {
+            this.areas = areas;
+            int n = areas.size();
+            workful = new boolean[n];
+            warmFort = new int[n];
+            Arrays.fill(warmFort, -1);
+            site = new DefenceStructureFact[n];
+            stage = new int[n][];
+        }
+
+        int size() {
+            return areas.size();
+        }
+    }
 
     /**
      * A waiting patrol's order, the centre of the area it was posted for (the post can stand well behind it, at a fort's
@@ -250,7 +296,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
     }
 
-    private record Rally(int x, int y) { }
+    /** A rally destination; {@code area} marks one taken from a pressure area's staging cell rather than the track's band. */
+    private record Rally(int x, int y, boolean area) {
+        Rally(int x, int y) {
+            this(x, y, false);
+        }
+    }
     private record CandidateChoice(PlanningSquad squad, Rally rally) { }
 
     private static final int[][] RALLY_ALTERNATIVES = {
@@ -316,6 +367,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         boolean flowOn = FLOW && influence != null;
         flowNote = "";
         planCount++;
+        boolean unified = flowOn && UNIFIED_RALLY;
+        areaPlan = null;
+        reservations = new AreaReservations(0);
+        rallyAreaOfTrack = new int[trackLayout.trackCount()];
+        Arrays.fill(rallyAreaOfTrack, -1);
+        rallyRedirects = 0;
         Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
         for (CommandSquadState state : frame.squads()) {
@@ -378,6 +435,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     frame.topology(), frame.perspective());
         }
 
+        if (unified) {
+            planAreas(influence, reactive ? places : null, frame.topology(), frame.perspective(), threats, rallies, held, allSquads);
+        }
+
         int mobileReserve = mobileReserveFor(candidates.size());
         int responseBudget = candidates.size() - mobileReserve;
         Set<Integer> selected = new HashSet<>();
@@ -426,6 +487,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             directives.put(squad.id, directive(squad, home, home,
                     AssignmentReason.DEFENDER_RESERVE_HOLD));
         }
+
+        reconcileOrderlessDirectives(allSquads, directives);
 
         Phase phase = activeThreats.isEmpty() ? Phase.LANE_ADVANCE : Phase.FRONT_ADJUST;
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, influence,
@@ -566,6 +629,61 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 && trackLayout.trackForCell(x, y) == track ? new Rally(x, y) : null;
     }
 
+    /**
+     * An area's staging cell moves with its pressure-weighted centre, which a few cells of contact movement shifts every
+     * plan, where the band rally it replaces moves only a band at a time. A squad already marching to a post within
+     * {@link #RALLY_KEEP_CELLS} of the new cell keeps that post, so the area's drift does not reset its route.
+     */
+    private Rally stickyRally(PlanningSquad squad, Rally coarse) {
+        if (coarse == null || !coarse.area()) return coarse;
+        ObjectiveAssignment current = squad.assignedObjective;
+        if (current != null && current.kind() == AssignmentKind.DEFEND_TRACK
+                && Math.max(Math.abs(current.targetCellX() - coarse.x()), Math.abs(current.targetCellY() - coarse.y()))
+                <= RALLY_KEEP_CELLS) {
+            return new Rally(current.targetCellX(), current.targetCellY(), true);
+        }
+        return coarse;
+    }
+
+    /**
+     * The unification step: finds this plan's pressure areas before the track rally chooses, seeds the reservation table
+     * with the squads already committed to them (those manning, those waiting), and maps each threatened track onto the
+     * area its rally answers. A threatened track whose area offers something to man rallies to that area's staging cell
+     * (or the fort's works) instead of the band point, so the squads it brings are already where manning will want them;
+     * one whose area offers nothing keeps the band point, which is the old rally exactly.
+     */
+    private void planAreas(CommanderInfluenceSnapshot influence, GarrisonableRegistry places, CommandTopology topology,
+                           Faction perspective, Threat[] threats, Map<Integer, Rally> rallies,
+                           List<GarrisonDirector.Garrison> held, Map<Integer, PlanningSquad> allSquads) {
+        dropDeadStagers(allSquads);
+        AreaPlan plan = buildAreaPlan(influence, places, topology, perspective, true);
+        areaPlan = plan;
+        reservations = new AreaReservations(plan.size());
+        if (places != null) {
+            for (GarrisonDirector.Garrison garrison : held) {
+                int a = GarrisonFlow.matchingArea(plan.areas, places.centreX(garrison.garrisonable()),
+                        places.centreY(garrison.garrisonable()));
+                reservations.commit(garrison.squadId(), a, AreaReservations.Kind.MANNED);
+            }
+        }
+        for (Map.Entry<Integer, StagePost> entry : stagers.entrySet()) {
+            StagePost post = entry.getValue();
+            reservations.commit(entry.getKey(), GarrisonFlow.matchingArea(plan.areas, post.areaX, post.areaY),
+                    AreaReservations.Kind.STAGED);
+        }
+        for (Threat threat : threats) {
+            if (!threat.active()) continue;
+            int a = GarrisonFlow.areaOfTrack(plan.areas, trackLayout::trackForCell, threat.track);
+            rallyAreaOfTrack[threat.track] = a;
+            if (a < 0 || !plan.workful[a] || plan.stage[a] == null) continue;
+            int track = threat.track;
+            int[] cell = GarrisonFlow.snap(plan.stage[a][0], plan.stage[a][1], STAGE_SNAP_RADIUS, (x, y) ->
+                    topology.inBounds(x, y) && topology.isWalkable(x, y) && trackLayout.trackForCell(x, y) == track);
+            // A staging cell off the track (a fort's works on its neighbour) leaves the old band point in force.
+            if (cell != null) rallies.put(track, new Rally(cell[0], cell[1], true));
+        }
+    }
+
     private CandidateChoice chooseCandidate(List<PlanningSquad> candidates,
                                             Set<Integer> selected,
                                             int effectiveTrack, Rally coarseRally,
@@ -577,7 +695,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             int home = homeTrack(squad);
             int trackDistance = Math.abs(home - effectiveTrack);
             if (trackDistance > 1) continue;
-            Rally rally = reachableRally(squad, coarseRally, effectiveTrack, topology);
+            Rally rally = reachableRally(squad, stickyRally(squad, coarseRally), effectiveTrack, topology);
             if (rally == null) continue;
             long dx = Math.round(squad.centroidX) - rally.x;
             long dy = Math.round(squad.centroidY) - rally.y;
@@ -611,6 +729,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 effectiveTrack, reason, AssignmentKind.DEFEND_TRACK, -1,
                 rally.x, rally.y));
         selected.add(squad.id);
+        if (areaPlan != null) {
+            int area = rallyAreaOfTrack[effectiveTrack];
+            reservations.commit(squad.id, area, AreaReservations.Kind.RALLIED);
+            if (rally.area()) rallyRedirects++;
+        }
     }
 
     /** Resolves the coarse command point to a cell this squad can actually reach. */
@@ -626,7 +749,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     desired.y + offset[1], track, topology);
             if (candidate != null && ((startX == candidate.x && startY == candidate.y)
                     || topology.reachable(startX, startY, candidate.x, candidate.y))) {
-                return candidate;
+                return desired.area() ? new Rally(candidate.x, candidate.y, true) : candidate;
             }
         }
         return null;
@@ -877,13 +1000,87 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     }
 
     /**
-     * The anticipation tier (see {@link GarrisonFlow}): gathers believed pressure into areas, works out how many squads
-     * each wants and has local, and posts free patrols of the pool at a staging cell on the defender's side of the
-     * heaviest unmet areas, so that manning and structure work find somebody near. A fort's works are the staging
-     * cell for an area that holds one of the fort's pressed places. Patrols stay in the pool and keep their rule of
-     * being the first candidates for local assignment; they are given back after their area has been quiet for
-     * {@link #STAGE_COOL_PLANS} plans. Runs after the track response and structure work have chosen, so it only ever
-     * spends what they left, and never empties the roving reserve.
+     * A directive that says a squad is staging, manning or standing on a place must carry that squad's order. One that
+     * does not (the squad lost its order after the directive was written in the same plan) would publish a reason with no
+     * assignment cell and propose a release under the wrong name, so it is rewritten as the reserve hold it has become.
+     */
+    private void reconcileOrderlessDirectives(Map<Integer, PlanningSquad> allSquads, Map<Integer, SquadDirective> directives) {
+        for (Map.Entry<Integer, SquadDirective> entry : directives.entrySet()) {
+            AssignmentReason reason = entry.getValue().reason();
+            if (reason != AssignmentReason.DEFENDER_GARRISONABLE_STAGE
+                    && reason != AssignmentReason.DEFENDER_GARRISONABLE_MAN
+                    && reason != AssignmentReason.DEFENDER_GARRISONABLE_STAND) {
+                continue;
+            }
+            PlanningSquad squad = allSquads.get(entry.getKey());
+            if (squad == null || squad.assignedObjective != null) continue;
+            int home = homeTrack(squad);
+            entry.setValue(directive(squad, home, home, AssignmentReason.DEFENDER_RESERVE_HOLD));
+        }
+    }
+
+    /** Forgets waiting patrols whose squad is gone. */
+    private void dropDeadStagers(Map<Integer, PlanningSquad> allSquads) {
+        stagers.keySet().removeIf(id -> {
+            PlanningSquad squad = allSquads.get(id);
+            return squad == null || squad.aliveMembers <= 0;
+        });
+    }
+
+    /**
+     * Finds the plan's pressure areas and what each offers: whether it has a garrisonable under believed pressure to man,
+     * the held fort's works that would shelter it, and the cell its squads wait on. With {@code workfulOnly} an area that
+     * offers nothing to man gets no staging cell, so nothing is staged for it and the track rally answers it alone.
+     */
+    private AreaPlan buildAreaPlan(CommanderInfluenceSnapshot influence, GarrisonableRegistry places,
+                                   CommandTopology topology, Faction perspective, boolean workfulOnly) {
+        AreaPlan plan = new AreaPlan(pressureAreas(influence));
+        int n = plan.size();
+        if (places != null) {
+            for (int place : garrisons.warmPlaces()) {
+                int a = GarrisonFlow.matchingArea(plan.areas, places.centreX(place), places.centreY(place));
+                if (a < 0) continue;
+                plan.workful[a] = true;
+                int fort = places.fortId(place);
+                if (fort >= 0 && (plan.warmFort[a] < 0 || fort < plan.warmFort[a])) plan.warmFort[a] = fort;
+            }
+        }
+        Map<Integer, DefenceStructureFact> works = null;
+        int workless = 0;
+        for (int i = 0; i < n; i++) {
+            GarrisonFlow.Area area = plan.areas.get(i);
+            if (area.weight() < GarrisonFlow.AREA_START_WEIGHT) continue;
+            if (workfulOnly && !plan.workful[i]) {
+                workless++;
+                continue;
+            }
+            if (plan.warmFort[i] >= 0) {
+                if (works == null) works = heldWorks(perspective);
+                plan.site[i] = works.get(plan.warmFort[i]);
+            }
+            if (plan.site[i] != null) {
+                plan.stage[i] = new int[]{plan.site[i].cellX(), plan.site[i].cellY()};
+                continue;
+            }
+            plan.stage[i] = stageCell(influence, topology, area, 0);
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null && workless > 0) profile.recordCount(TickInnerProfile.Bucket.FLOW_WORKLESS_AREA, workless);
+        return plan;
+    }
+
+    /**
+     * The anticipation tier (see {@link GarrisonFlow}): works out how many squads each pressure area wants and has
+     * reserved, and posts free patrols of the pool at a staging cell on the defender's side of the heaviest unmet areas,
+     * so that manning and structure work find somebody near. A fort's works are the staging cell for an area that holds
+     * one of the fort's pressed places. Patrols stay in the pool and keep their rule of being the first candidates for
+     * local assignment; they are given back after their area has been quiet for {@link #STAGE_COOL_PLANS} plans. Runs
+     * after the track response and structure work have chosen, so it only ever spends what they left, and never empties
+     * the roving reserve.
+     *
+     * <p>Unified with the rally (see {@link AreaReservations}) it counts the squads the rally already brought to an area
+     * against that area's demand, and stages only for areas with something to man; otherwise it is the earlier,
+     * independent flow.
      */
     private void flowToPressure(CommanderInfluenceSnapshot influence, GarrisonableRegistry places,
                                 CommandTopology topology, Faction perspective,
@@ -894,11 +1091,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                                 Map<Integer, SquadDirective> directives) {
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile != null ? System.nanoTime() : 0L;
-        stagers.keySet().removeIf(id -> {
-            PlanningSquad squad = allSquads.get(id);
-            return squad == null || squad.aliveMembers <= 0;
-        });
-        List<GarrisonFlow.Area> areas = pressureAreas(influence);
+        dropDeadStagers(allSquads);
+        boolean unified = areaPlan != null;
+        AreaPlan plan = unified ? areaPlan : buildAreaPlan(influence, places, topology, perspective, false);
+        List<GarrisonFlow.Area> areas = plan.areas;
         int n = areas.size();
         if (n == 0 && stagers.isEmpty()) {
             if (profile != null) profile.record(TickInnerProfile.Bucket.FLOW_EVAL, System.nanoTime() - started);
@@ -909,9 +1105,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         int[] manned = new int[n];
         int[] unmanned = new int[n];
         int[] waiting = new int[n];
-        int[] warmFort = new int[n];
-        Arrays.fill(warmFort, -1);
-        if (places != null) {
+        if (unified) {
+            for (int i = 0; i < n; i++) {
+                manned[i] = reservations.count(i, AreaReservations.Kind.MANNED);
+                waiting[i] = reservations.count(i, AreaReservations.Kind.STAGED);
+            }
+        } else if (places != null) {
             for (GarrisonDirector.Garrison garrison : held) {
                 int a = GarrisonFlow.matchingArea(areas, places.centreX(garrison.garrisonable()),
                         places.centreY(garrison.garrisonable()));
@@ -921,16 +1120,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 int a = GarrisonFlow.matchingArea(areas, places.centreX(man.garrisonable()), places.centreY(man.garrisonable()));
                 if (a >= 0) manned[a]++;
             }
+        }
+        if (places != null) {
             for (int place : garrisons.hotPlaces()) {
                 if (garrisons.isManned(place)) continue;
                 int a = GarrisonFlow.matchingArea(areas, places.centreX(place), places.centreY(place));
                 if (a >= 0) unmanned[a]++;
-            }
-            for (int place : garrisons.warmPlaces()) {
-                int fort = places.fortId(place);
-                if (fort < 0) continue;
-                int a = GarrisonFlow.matchingArea(areas, places.centreX(place), places.centreY(place));
-                if (a >= 0 && (warmFort[a] < 0 || fort < warmFort[a])) warmFort[a] = fort;
             }
         }
         int released = 0;
@@ -939,35 +1134,21 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             int a = GarrisonFlow.matchingArea(areas, post.areaX, post.areaY);
             if (a >= 0) {
                 post.quietPlans = 0;
-                waiting[a]++;
+                if (!unified) waiting[a]++;
                 continue;
             }
             if (++post.quietPlans < STAGE_COOL_PLANS) continue;
             PlanningSquad squad = allSquads.get(id);
             stagers.remove(id);
             staged.remove(id);
+            reservations.release(id);
             if (stageStands(squad, post)) squad.assignedObjective = null;
             if (!squad.localContact) candidates.add(squad);
             released++;
         }
 
-        // Where each worthwhile area would have its squads wait.
-        Map<Integer, DefenceStructureFact> works = null;
-        DefenceStructureFact[] site = new DefenceStructureFact[n];
-        int[][] stage = new int[n][];
-        for (int i = 0; i < n; i++) {
-            GarrisonFlow.Area area = areas.get(i);
-            if (area.weight() < GarrisonFlow.AREA_START_WEIGHT) continue;
-            if (warmFort[i] >= 0) {
-                if (works == null) works = heldWorks(perspective);
-                site[i] = works.get(warmFort[i]);
-            }
-            if (site[i] != null) {
-                stage[i] = new int[]{site[i].cellX(), site[i].cellY()};
-                continue;
-            }
-            stage[i] = stageCell(influence, topology, area, 0);
-        }
+        DefenceStructureFact[] site = plan.site;
+        int[][] stage = plan.stage;
 
         // Free squads already near an area are local to it: nothing needs to be moved for them.
         int[] nearby = new int[n];
@@ -996,7 +1177,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (int i = 0; i < n; i++) {
             if (stage[i] == null) continue;
             demand[i] = GarrisonFlow.demand(areas.get(i).weight(), unmanned[i]);
-            local[i] = manned[i] + waiting[i] + nearby[i];
+            local[i] = unified ? reservations.reserved(i) + nearby[i] : manned[i] + waiting[i] + nearby[i];
             totalDemand += demand[i];
             totalLocal += Math.min(demand[i], local[i]);
             if (stageRetryAt.getOrDefault(retryKey(areas.get(i)), 0) <= planCount) {
@@ -1042,6 +1223,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_STAGE));
                 selected.add(squad.id);
                 stagers.put(squad.id, new StagePost(post, areas.get(i).centreX(), areas.get(i).centreY()));
+                if (unified) reservations.commit(squad.id, i, AreaReservations.Kind.STAGED);
                 waiting[i]++;
                 local[i]++;
                 posted = true;
@@ -1062,16 +1244,27 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             profile.recordCount(TickInnerProfile.Bucket.FLOW_ETA_EVAL, etaEvals);
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_STAGE, newly);
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_STAGE_EVAL, tried);
+            if (unified) {
+                profile.recordCount(TickInnerProfile.Bucket.FLOW_RESERVED, reservations.totalReserved());
+                profile.recordCount(TickInnerProfile.Bucket.FLOW_RALLY_AREA, rallyRedirects);
+            }
             profile.record(TickInnerProfile.Bucket.FLOW_EVAL, System.nanoTime() - started);
         }
         StringBuilder note = new StringBuilder("flow areas=").append(n).append(" staged=").append(stagers.size())
                 .append(" new=").append(newly).append(" released=").append(released);
+        if (unified) note.append(" rallyToArea=").append(rallyRedirects);
         for (int i = 0; i < n; i++) {
             GarrisonFlow.Area area = areas.get(i);
             note.append(" [").append(area.centreX()).append(',').append(area.centreY())
                     .append(" w").append(Math.round(area.weight()))
-                    .append(" d").append(demand[i]).append(" l").append(local[i])
-                    .append(site[i] != null ? " works" : "").append(']');
+                    .append(" d").append(demand[i]).append(" l").append(local[i]);
+            if (unified) {
+                note.append(" m").append(reservations.count(i, AreaReservations.Kind.MANNED))
+                        .append(" s").append(reservations.count(i, AreaReservations.Kind.STAGED))
+                        .append(" r").append(reservations.count(i, AreaReservations.Kind.RALLIED));
+                if (!plan.workful[i]) note.append(" bare");
+            }
+            note.append(site[i] != null ? " works" : "").append(']');
         }
         flowNote = note.toString();
     }
@@ -1175,6 +1368,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             int startY = squad.anchorCellY;
             return topology.inBounds(startX, startY) && topology.isWalkable(startX, startY)
                     && (startX == x && startY == y || topology.reachable(startX, startY, x, y));
+        }, areaPlan == null ? null : (squadId, place) -> {
+            // The squads reserved to the place's own area are drawn on before any other.
+            int own = reservations.areaOf(squadId);
+            return own >= 0 && own == GarrisonFlow.matchingArea(areaPlan.areas, places.centreX(place), places.centreY(place));
         });
         for (GarrisonDirector.Man man : sent) {
             PlanningSquad squad = allSquads.get(man.squadId());
@@ -1184,6 +1381,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_MAN));
             selected.add(squad.id);
             stagers.remove(squad.id);
+            if (areaPlan != null) {
+                int a = GarrisonFlow.matchingArea(areaPlan.areas, places.centreX(man.garrisonable()),
+                        places.centreY(man.garrisonable()));
+                // Manned now, whatever it was reserved as before: the table counts a squad once.
+                reservations.commit(squad.id, a >= 0 ? a : reservations.areaOf(squad.id), AreaReservations.Kind.MANNED);
+            }
         }
         return sent;
     }

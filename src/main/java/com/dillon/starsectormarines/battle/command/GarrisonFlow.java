@@ -240,6 +240,27 @@ final class GarrisonFlow {
         return Math.max(1, (int) (poolSize * MAX_STAGED_SHARE));
     }
 
+    /** Which command track a cell lies on, or a negative number off every track. */
+    @FunctionalInterface
+    interface TrackOf {
+        int of(int x, int y);
+    }
+
+    /**
+     * The area a threatened track's rally maps onto: the most pressed area (the list is ordered heaviest first) worth
+     * answering whose centre lies on that track, or -1. A threatened track and a forward band are the commander's
+     * coarse view of pressure; this ties the same pressure's finer area to it, so the rally and the flow reserve
+     * squads against one area rather than two competing views.
+     */
+    static int areaOfTrack(List<Area> areas, TrackOf trackOf, int track) {
+        for (int i = 0; i < areas.size(); i++) {
+            Area area = areas.get(i);
+            if (area.weight() < AREA_STOP_WEIGHT) continue;
+            if (trackOf.of(area.centreX(), area.centreY()) == track) return i;
+        }
+        return -1;
+    }
+
     /** Index of the area whose centre is nearest {@code (x, y)} and within {@link #MATCH_RADIUS_CELLS} (Chebyshev), or -1. */
     static int matchingArea(List<Area> areas, int x, int y) {
         int best = -1;
