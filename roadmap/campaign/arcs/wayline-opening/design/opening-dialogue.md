@@ -1,6 +1,6 @@
 # Second Wind to Wayline: opening dialogue
 
-Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine's voice and her place on the company net remain open.
+Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine's place on the company net remains open.
 
 Written: 2026-10-14
 
@@ -592,7 +592,7 @@ player has met Nessa.
    > you than nothing, and I expect you'd rather us than nothing too. One job at a
    > time, Commander.
 
-**Briefing, Sabine** (text with her portrait, after Mara's four turns)
+**Briefing, Sabine** (recorded in her voice, after Mara's four turns)
 > One boat, so we go down in trips. First team takes the apron and holds it until
 > the rest are on the ground. Nobody walks to that gate alone.
 
@@ -714,4 +714,9 @@ schedule is a term the player needs, so it follows her briefing as a plain
 ## Still open
 
 - Sabine on the company net is its own story under the battle-radio model.
-- Sabine's lines are text with her portrait until she has a voice.
+
+Sabine has a voice (`art-source/audio/sabine/README.md`): calm and low, without
+the Eastern European accent the brief asked for, which the recording model does
+not keep. Her Relief briefing turn is recorded. Her muster lines and the
+assignment line stay written, because the exchanges they sit in are written
+correspondence with no recordings for anyone.
