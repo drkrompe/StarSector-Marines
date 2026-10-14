@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -48,10 +49,11 @@ public final class FortSystem {
                 tickShield(dt, sim, fort);
                 continue;
             }
+            tickAirDefence(dt, sim, fort);
             FortressBattery battery = fort.battery();
             if (battery == null) continue;
             for (Fort.Place place : fort.places()) {
-                if (!place.resolved()) resolve(sim, place);
+                if (!place.resolved()) resolve(sim, fort, place);
                 if (!place.wrecked() && !sim.world().isAlive(place.coreId())) {
                     place.markWrecked();
                     openRoof(sim, fort, place);
@@ -80,12 +82,13 @@ public final class FortSystem {
         long generator = fort.emitterId();
         if (generator == 0L) return;
         for (Fort.Place place : fort.places()) {
-            if (!place.resolved()) resolve(sim, place);
+            if (!place.resolved()) resolve(sim, fort, place);
             if (!place.wrecked() && !sim.world().isAlive(place.coreId())) {
                 place.markWrecked();
                 openRoof(sim, fort, place);
             }
         }
+        tickAirDefence(dt, sim, fort);
         Fort.Place emitter = fort.place(FortAspect.EMITTER);
         if (emitter.wrecked()) return;
         ShieldDomeService domes = sim.shieldDomes();
@@ -101,6 +104,40 @@ public final class FortSystem {
         domes.transfer(generator, holder);
         fort.noteDomeHolder(holder);
         domes.setPowered(generator, fort.domePowered(holder));
+    }
+
+    /**
+     * The anti-air yard: held by presence inside its sandbagged ground, wrecked with its console, and its mounts follow
+     * whoever holds it, so a taken yard fires for its new holder and nothing else about the fort changes hands.
+     */
+    private static void tickAirDefence(float dt, BattleSimulation sim, Fort fort) {
+        Fort.Place place = fort.place(FortAspect.AIR_DEFENCE);
+        if (place == null) return;
+        if (!place.resolved()) resolve(sim, fort, place);
+        if (!place.wrecked() && !sim.world().isAlive(place.coreId())) {
+            place.markWrecked();
+            return;
+        }
+        if (place.wrecked()) return;
+        Presence there = scan(sim, place.control().holder(), place);
+        place.control().tick(dt, there.holderPresent(), there.hostile());
+        Faction holder = place.control().holder();
+        sim.followStructureHolder(place.coreId(), holder);
+        for (long mount : fort.airMountIds()) sim.followStructureHolder(mount, holder);
+    }
+
+    /** The yard's ground is a plain rectangle of the fort's frame, not a room recovered from the map. */
+    private static void resolveYard(BattleSimulation sim, Fort fort, Fort.Place place) {
+        FortFrame frame = fort.frame();
+        if (frame == null) {
+            place.resolve(new boolean[0], 0, 0, -1, -1, sim.world().x(place.coreId()), sim.world().y(place.coreId()));
+            return;
+        }
+        int[] f = frame.plan().floor(FortAspect.AIR_DEFENCE);
+        int[] b = frame.bounds(f[0], f[1], f[2], f[3]);
+        boolean[] mask = new boolean[(b[2] - b[0] + 1) * (b[3] - b[1] + 1)];
+        Arrays.fill(mask, true);
+        place.resolve(mask, b[0], b[1], b[2], b[3], sim.world().x(place.coreId()), sim.world().y(place.coreId()));
     }
 
     private static Faction currentHolder(BattleSimulation sim, long generator) {
@@ -140,7 +177,11 @@ public final class FortSystem {
      * map stamped the room's purpose on every floor cell, so the room is recovered from the map itself rather than
      * carried beside it. A core on no room leaves an empty place, which nobody can hold.
      */
-    private static void resolve(BattleSimulation sim, Fort.Place place) {
+    private static void resolve(BattleSimulation sim, Fort fort, Fort.Place place) {
+        if (place.aspect() == FortAspect.AIR_DEFENCE) {
+            resolveYard(sim, fort, place);
+            return;
+        }
         CellTopology topology = sim.getTopology();
         int startX = (int) Math.floor(sim.world().x(place.coreId()));
         int startY = (int) Math.floor(sim.world().y(place.coreId()));
@@ -179,6 +220,7 @@ public final class FortSystem {
 
     /** A wrecked building loses its roof, once, so the floor shows through whatever the wreck art leaves open. */
     private static void openRoof(BattleSimulation sim, Fort fort, Fort.Place place) {
+        if (place.aspect() == FortAspect.AIR_DEFENCE) return;
         if (place.roofOpened() || place.structureId() == null) return;
         place.markRoofOpened();
         int[] b = place.floorBounds(fort.frame());

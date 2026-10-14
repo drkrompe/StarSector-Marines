@@ -22,15 +22,17 @@ public final class SquadMusterCanvas implements CanvasProducer {
     private static final Color WOUNDED = new Color(0xA2, 0xB2, 0xBE);
     private static final Color MEDICAL = new Color(0xF3, 0xBC, 0x66);
     private static final Color VACANT = new Color(0x65, 0x7E, 0x91);
+    private static final Color MEDIC = new Color(0x73, 0xF2, 0x8C);
     private static final Color CAPTION = new Color(0x8C, 0xAC, 0xBC);
     private static final Color PANEL = new Color(0x0C, 0x1B, 0x27);
     private static final Color RULE = new Color(0x24, 0x42, 0x54);
 
     public record Palette(Color ready, Color wounded, Color medical, Color vacant,
-                          Color caption, Color panel, Color rule) { }
+                          Color caption, Color panel, Color rule, Color medic) { }
     public static final Palette SHIPBOARD = new Palette(new Color(0xBF, 0xCA, 0xAF),
             new Color(0x98, 0x9E, 0x91), new Color(0xE3, 0xBB, 0x71), new Color(0x68, 0x72, 0x64),
-            new Color(0xA5, 0xB0, 0xA0), new Color(0x16, 0x20, 0x1A), new Color(0x39, 0x46, 0x37));
+            new Color(0xA5, 0xB0, 0xA0), new Color(0x16, 0x20, 0x1A), new Color(0x39, 0x46, 0x37),
+            new Color(0x8F, 0xD6, 0x8F));
     private final Palette palette;
 
     private final Supplier<SquadMuster> muster;
@@ -38,7 +40,7 @@ public final class SquadMusterCanvas implements CanvasProducer {
     private final SvgAsset vacancy;
 
     public SquadMusterCanvas(Supplier<SquadMuster> muster) {
-        this(muster, new Palette(READY, WOUNDED, MEDICAL, VACANT, CAPTION, PANEL, RULE));
+        this(muster, new Palette(READY, WOUNDED, MEDICAL, VACANT, CAPTION, PANEL, RULE, MEDIC));
     }
 
     public SquadMusterCanvas(Supplier<SquadMuster> muster, Palette palette) {
@@ -108,6 +110,15 @@ public final class SquadMusterCanvas implements CanvasProducer {
             context.fillRect(badgeX - 1f, badgeY - 1f, 7f, 7f, palette.panel());
             context.fillRect(badgeX + 2f, badgeY, 1.8f, 5f, palette.medical());
             context.fillRect(badgeX, badgeY + 1.6f, 5.8f, 1.8f, palette.medical());
+        }
+        if (billet.medic()) {
+            // A filled plate with the cross cut out, top right: the squad medic,
+            // never to be read as the bare amber cross of a wound.
+            float plateX = slot.right() - 9f;
+            float plateY = slot.y() + 2f;
+            context.fillRect(plateX, plateY, 7f, 7f, palette.medic());
+            context.fillRect(plateX + 2.6f, plateY + 1f, 1.8f, 5f, palette.panel());
+            context.fillRect(plateX + 1f, plateY + 2.6f, 5f, 1.8f, palette.panel());
         }
         if (billet.leader()) {
             float chevronX = slot.x() + 4f;

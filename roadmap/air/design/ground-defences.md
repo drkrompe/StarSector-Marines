@@ -86,6 +86,8 @@ drain aircraft through the air-threat field). They do not threaten a capital, ke
 ordinary ground-to-ship weak. Nothing new is required beyond the profile signal deciding
 how many there are.
 
+A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): a guided battery and flak that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
+
 ## What this does to a battle
 
 The fun is a combined-arms loop that the battle does not have yet:

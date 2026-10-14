@@ -508,7 +508,7 @@ public final class AirbaseLot {
      * <p>Run over the whole reservation rather than only inside the fence,
      * because the verge is paved walkable too: a wall cell turned into
      * sidewalk while its building id and kind hint stay behind is the same
-     * orphan roof, just outside the wire.
+     * orphan roof, just outside the fence.
      *
      * <p>A host that hands over occupied ground is normally the thing at fault
      * — a mission objective ought to be refused a site rather than buried under

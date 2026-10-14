@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import java.util.function.IntPredicate;
+import java.util.function.IntUnaryOperator;
+
 /**
  * What a squad's designated medic can do at one rank of the officer's Field
  * Medicine training ({@code squad-medic.md}).
@@ -35,6 +38,30 @@ public record SquadMedicine(int supplies, float supplyRecoverySeconds, float coo
             2.5f, 1f, 1.5f, InfantryCohesion.COHESION_RADIUS, 8f, 0.7f, 0.5f, 2f);
     private static final SquadMedicine RANK_TWO = new SquadMedicine(4, 60f, 8f, 5f,
             3f, 1.5f, 1.5f, InfantryCohesion.COHESION_RADIUS, 8f, 0.7f, 0.5f, 2f);
+
+    /** The fire team a medic is drawn from first: the middle one, Bravo. */
+    public static final int MEDIC_FIRE_TEAM = 1;
+
+    /**
+     * Which billet carries the squad's medic: the first eligible marine of the
+     * middle fire team in roster order, else the first eligible marine at all.
+     * The battle (live, not the leader) and the company card (ready, not the
+     * NCO) both ask this, so the marine marked on the card is the one who treats.
+     *
+     * @param count    billets to consider, in roster order
+     * @param eligible whether the billet at an index may carry the medic
+     * @param fireTeam the fire team of the billet at an index
+     * @return the chosen index, or -1 when nobody is eligible
+     */
+    public static int medicBillet(int count, IntPredicate eligible, IntUnaryOperator fireTeam) {
+        int fallback = -1;
+        for (int i = 0; i < count; i++) {
+            if (!eligible.test(i)) continue;
+            if (fireTeam.applyAsInt(i) == MEDIC_FIRE_TEAM) return i;
+            if (fallback < 0) fallback = i;
+        }
+        return fallback;
+    }
 
     /** The medicine an officer of {@code rank} gives each squad, or null below rank one. */
     public static SquadMedicine forRank(int rank) {

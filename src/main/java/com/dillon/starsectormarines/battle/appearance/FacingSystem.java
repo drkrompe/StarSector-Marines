@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
+import java.util.function.LongUnaryOperator;
+
 /**
  * Authors the {@code SPRITE} component's facing/pose frame for every live
  * sheet-drawn unit ({@link BattleComponents#liveSprites}) — the presentation
@@ -102,10 +104,20 @@ public final class FacingSystem {
     private final EntityWorld world;
     private final BattleComponents components;
     private final UnitRosterService roster;
+    /** The patient a medic is treating this tick, or zero; none by default. */
+    private LongUnaryOperator treatmentPatient = unit -> 0L;
     public FacingSystem(EntityWorld world, BattleComponents components, UnitRosterService roster) {
         this.world = world;
         this.components = components;
         this.roster = roster;
+    }
+
+    /**
+     * Where to read who is treating whom. A treating medic faces the patient,
+     * lowers the weapon and, while standing, kneels with the treatment kit.
+     */
+    public void setTreatmentPatients(LongUnaryOperator treatmentPatient) {
+        this.treatmentPatient = treatmentPatient != null ? treatmentPatient : unit -> 0L;
     }
 
     /** Authors {@code SPRITE_INDEX}/{@code SPRITE_FLIP_V}/{@code SPRITE_SHEET} for every row in {@link BattleComponents#liveSprites}. */
@@ -207,6 +219,9 @@ public final class FacingSystem {
 
                 UnitType type = (UnitType) types[r];
                 boolean inAim = hasSecondary && actionTimer[r] > 0f;
+                long patient = hasCombat && type.combatant
+                        ? treatmentPatient.applyAsLong(t.entityAt(r)) : 0L;
+                boolean treating = patient != 0L && !inAim && roster.isAliveById(patient);
                 SmokeThrowCommit throwCommit = inAim ? (SmokeThrowCommit) smokeCommit[r] : null;
                 // A throw keeps facing its accepted point, including after control is handed back.
                 float manualDx = (throwCommit != null ? throwCommit.aim().x() : aimX) - posX[r];
@@ -218,7 +233,7 @@ public final class FacingSystem {
                         && type == UnitType.MARINE;
                 float manualFacing = manualAim
                         ? AirBody.facingToward(manualDx, manualDy) : Float.NaN;
-                boolean up = !sprintRow && (manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
+                boolean up = !sprintRow && !treating && (manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
                         hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f));
 
                 // The grid cell this row occupies — floored locally because target
@@ -243,7 +258,8 @@ public final class FacingSystem {
                     dy = octantComponent(manualDy, manualDx);
                     haveDelta = true;
                 } else if (hasCombat && type.combatant) {
-                    long tid = inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
+                    long tid = treating ? patient
+                            : inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
                             ? secondaryAimTarget[r]
                             : (reflexTargetId[r] != 0L ? reflexTargetId[r] : targetId[r]);
                     if (tid != 0L && roster.isAliveById(tid)) {
@@ -318,7 +334,7 @@ public final class FacingSystem {
                             secondaryFired, gaitPhase, haveTargetDelta, targetDx,
                             targetDy, haveTravelDelta, travelDx, travelDy, layeredFacing,
                             locomotionPhase, weaponPhase, headLook, weaponPose,
-                            layeredFlags, manualFacing, sprintRow);
+                            layeredFlags, manualFacing, sprintRow, treating);
                 }
                 if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
                     authorLayeredMechRow(r, hasMovement && haveTravelDelta, gaitPhase,
@@ -441,14 +457,14 @@ public final class FacingSystem {
             boolean haveTargetDelta, int targetDx, int targetDy,
             boolean haveTravelDelta, int travelDx, int travelDy,
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
-            int[] pose, int[] flags, float manualFacing, boolean sprinting) {
+            int[] pose, int[] flags, float manualFacing, boolean sprinting, boolean treating) {
 
         int previousFlags = flags[row];
         boolean manualAim = Float.isFinite(manualFacing);
         // Nonzero applied velocity — true iff the mover translated this tick,
         // so held units (aim freeze, dwell with a retained path) idle cleanly.
         boolean moving = hasMovement && haveTravelDelta;
-        boolean primaryUp = !sprinting && hasCombat && LiveAppearance.weaponUp(false, type.combatant,
+        boolean primaryUp = !sprinting && !treating && hasCombat && LiveAppearance.weaponUp(false, type.combatant,
                 cooldownTimer[row], attackCooldown[row]);
 
         // While walking, shoulders follow travel unless the weapon is actively
@@ -533,6 +549,12 @@ public final class FacingSystem {
                     authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
                 }
             }
+        } else if (treating && !moving) {
+            // Kneeling over the patient. A medic following a moving patient
+            // walks normally and only the battlefield mark says they are treating.
+            authoredPose = LayeredAppearance.POSE_SATCHEL_PLANT;
+            authoredPhase = LayeredAppearance.TREATING_PHASE;
+            authoredFlags |= LayeredAppearance.FLAG_TREATING;
         } else if (primaryUp) {
             float elapsed = Math.max(0f, attackCooldown[row] - cooldownTimer[row]);
             if (elapsed <= LayeredAppearance.PRIMARY_FLASH_SECONDS) {

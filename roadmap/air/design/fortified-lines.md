@@ -53,7 +53,7 @@ exposes the flank of the next. Without that relationship more forts is only more
 - **Fair knowledge.** An attacker learns a line the way it learns a fort: by seeing its works.
   A weak point is found, not shown.
 - **Ground and air together.** Strongpoints carry the anti-air that makes a sky full of
-  fighters and boats costly (`forts.md`, AA aspect), so a line shapes where landings and air
+  fighters and boats costly (`forts.md`, optional anti-air aspect), so a line shapes where landings and air
   sorties can go as well as where infantry can walk. Breaking a strongpoint opens air as
   well as ground.
 - **The phased assault is the attacker's answer.** Foothold, muster and planned assault
@@ -181,6 +181,6 @@ mortar pits stand behind the main line, separate from the fort batteries, which 
 
 ## Prerequisites
 
-Redoubt and citadel (`forts.md` slice 4), the AA aspect, ships against forts as measured
-evidence, and an evidence ground for a line in the style of the trial ground
-(`conquest-trial-ground.md`) before any campaign map carries one.
+Redoubt and citadel (`forts.md` slice 4) and an evidence ground for a line in the style of the
+trial ground (`conquest-trial-ground.md`) before any campaign map carries one. The AA aspect
+and ships-against-forts evidence are built (`forts.md`, scenes `fort-air-defence` and `ship-vs-fort`).

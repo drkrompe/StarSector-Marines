@@ -106,7 +106,7 @@ final class BriefingViewModel {
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                late ? "Hale" : "Mira Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
+                late ? "Hale" : "Sabine Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"

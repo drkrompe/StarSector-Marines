@@ -19,7 +19,7 @@ import java.util.List;
  * gun line that wants a field of fire, but a single field projector that should be reached only by a long way round.
  *
  * <ul>
- *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line, wire and nests standing off
+ *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line, fence line and nests standing off
  *       the works across a glacis, as for every fort;</li>
  *   <li>the <b>main works</b>: an octagon, its four corners cut deep, with a round tower on each diagonal face instead of
  *       a pointed bastion at each corner, and <em>three</em> gates (a main gate and two posterns), each with a gatehouse
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public final class ShieldFort {
 
-    /** Local width and height of the footprint, belt and wire included. */
+    /** Local width and height of the footprint, belt and fence included. */
     public static final int WIDTH = 80, HEIGHT = 80;
 
     /** Where the main works' own frame begins in the footprint, and its size. */
@@ -81,6 +81,9 @@ public final class ShieldFort {
 
     /** The shield generator's three-by-three footprint is centred here. */
     public static final int[] GENERATOR = {OX + CENTRE, OY + CENTRE};
+
+    /** The optional anti-air yard: open ground south-east of the keep, between the east and south gates' lanes. */
+    public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 36, OY + 33, 0, -1);
 
     private static final int[] POWER_FLOOR = {OX + 13, OY + 4, 11, 5};
     private static final int[] CONTROL_FLOOR = {OX + 28, OY + 7, 7, 5};
@@ -242,6 +245,7 @@ public final class ShieldFort {
         return switch (aspect) {
             case POWER -> POWER_FLOOR.clone();
             case CONTROL_ROOM -> CONTROL_FLOOR.clone();
+            case AIR_DEFENCE -> AIR_DEFENCE.floor();
             default -> throw new IllegalArgumentException("a shield fort has no building for " + aspect);
         };
     }
@@ -254,6 +258,7 @@ public final class ShieldFort {
 
     /** The middle of the three-by-three core of {@code aspect}, in the local frame. */
     public static int[] coreCentre(FortAspect aspect) {
+        if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.consoleCentre();
         int[] floor = floor(aspect);
         return new int[]{floor[0] + floor[2] / 2, floor[1] + floor[3] / 2};
     }
@@ -283,11 +288,13 @@ public final class ShieldFort {
             return switch (aspect) {
                 case POWER -> TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID;
                 case CONTROL_ROOM -> TurretCatalogRegistry.FORT_CONTROL_ROOM_STRUCTURE_ID;
+                case AIR_DEFENCE -> TurretCatalogRegistry.FORT_AIR_CONTROL_STRUCTURE_ID;
                 default -> throw new IllegalArgumentException("a shield fort has no core for " + aspect);
             };
         }
         @Override public String centrepieceStructureId() { return ShieldGenerator.STRUCTURE_ID; }
         @Override public int[] centrepiece() { return GENERATOR; }
         @Override public FortAspect centrepieceAspect() { return FortAspect.EMITTER; }
+        @Override public AirDefenceYard airDefence() { return AIR_DEFENCE; }
     };
 }

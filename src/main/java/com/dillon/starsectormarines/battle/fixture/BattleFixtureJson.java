@@ -571,6 +571,7 @@ public final class BattleFixtureJson {
                         officerProfile.put("rank", p.rank().name()); officerProfile.put("xp", p.xp());
                         officerProfile.put("status", p.status().name()); officerProfile.put("naturalLeader", p.naturalLeader());
                         officerProfile.put("cover", p.cover()); officerProfile.put("recovery", p.recovery()); officerProfile.put("salvage", p.salvage()); officerProfile.put("medicine", p.medicine());
+                        if (p.founding()) officerProfile.put("founding", true);
                         group.put("profile", officerProfile);
                     }
                     squad.put("commandGroup", group);
@@ -607,7 +608,8 @@ public final class BattleFixtureJson {
         return p == null ? null : new OfficerCommandProfile(group.getString("officerId"),
                 group.getString("label"), Rank.valueOf(p.getString("rank")), p.getInt("xp"),
                 Status.valueOf(p.getString("status")), p.getBoolean("naturalLeader"),
-                p.getInt("cover"), p.getInt("recovery"), p.getInt("salvage"), p.optInt("medicine", 0));
+                p.getInt("cover"), p.getInt("recovery"), p.getInt("salvage"), p.optInt("medicine", 0),
+                p.optBoolean("founding", false));
     }
 
     private static List<MarineSeatCommitment> marineSeatsFromJson(
@@ -929,6 +931,13 @@ public final class BattleFixtureJson {
             }
             encoded.put("declaredForts", forts);
         }
+        if (!profile.declaredDefences().airDefended().isEmpty()) {
+            JSONObject air = new JSONObject();
+            for (Map.Entry<FortKind, Integer> fort : profile.declaredDefences().airDefended().entrySet()) {
+                air.put(fort.getKey().name(), fort.getValue());
+            }
+            encoded.put("declaredFortAirDefence", air);
+        }
         if (profile.declaredDefences().siting() != FortSitingPolicy.LEFTOVER_GROUND) {
             encoded.put("declaredFortSiting", profile.declaredDefences().siting().name());
         }
@@ -996,7 +1005,8 @@ public final class BattleFixtureJson {
                 new GroundDefences(encoded.has("declaredBatteries") ? encoded.getInt("declaredBatteries") : 0,
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
-                        declaredForts(encoded)).withSiting(declaredSiting(encoded)),
+                        declaredForts(encoded, "declaredForts")).withSiting(declaredSiting(encoded))
+                        .withAirDefences(declaredForts(encoded, "declaredFortAirDefence")),
                 declaredMechDrops(encoded), declaredAirPool(encoded), declaredSupportKit(encoded),
                 encoded.has("declaredAssault")
                         ? enumValue(AssaultStyle.class, encoded.getString("declaredAssault"), "assault style")
@@ -1110,9 +1120,9 @@ public final class BattleFixtureJson {
     }
 
     /** The forts a fixture declares by kind; a fixture that predates forts, or states none, declares none. */
-    private static Map<FortKind, Integer> declaredForts(JSONObject encoded) throws Exception {
+    private static Map<FortKind, Integer> declaredForts(JSONObject encoded, String key) throws Exception {
         Map<FortKind, Integer> forts = new EnumMap<>(FortKind.class);
-        JSONObject declared = encoded.optJSONObject("declaredForts");
+        JSONObject declared = encoded.optJSONObject(key);
         if (declared == null) return forts;
         for (Iterator<?> kinds = declared.keys(); kinds.hasNext();) {
             String name = (String) kinds.next();

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
+import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -18,7 +19,9 @@ import java.util.function.LongPredicate;
  * estimate does not include, which is exactly how a strike gets surprised by one.
  *
  * <p>Every turret reaches the air by the area model (the air system's anti-air bubble); a dedicated anti-air mount
- * also fires real rounds or guided missiles, so it counts for more. UNTUNED: the figures are first-pass and were not
+ * also fires real rounds or guided missiles, so it counts for more. A fort's anti-air yard is counted by its mounts' real
+ * reach instead of the bubble (a guided battery covers far more than fourteen cells), and a yard whose console is
+ * wrecked covers nothing. UNTUNED: the figures are first-pass and were not
  * set to hit a target.
  */
 public final class AaRisk {
@@ -57,6 +60,7 @@ public final class AaRisk {
         for (int i = 0; i < scratch.size; i++) {
             long e = scratch.ids[i];
             if (!world.isAlive(e) || !side.hostileTo(sim.identity().faction(e))) continue;
+            if (sim.forts().airMountFort(e) != null) continue; // a fort's anti-air is counted by its real reach below
             if (!sim.identity().type(e).isTurret() || !known.test(e)) continue;
             guns++;
             if (sim.turretState().isTurret(e)) {
@@ -64,6 +68,20 @@ public final class AaRisk {
                 if (structure != null && structure.targetRole == TurretRole.AA) aa++;
             }
         }
-        return new Assessment(guns, aa, Math.min(2f, guns * LOSS_PER_GUN + aa * LOSS_PER_AA_MOUNT));
+        for (Fort fort : sim.forts().forts()) {
+            if (fort.airMountIds().isEmpty() || fort.airDefenceWrecked()) continue;
+            for (long mount : fort.airMountIds()) {
+                if (!world.isAlive(mount) || !side.hostileTo(sim.identity().faction(mount)) || !known.test(mount)) continue;
+                StructureDef structure = sim.turretState().structure(mount);
+                if (structure == null) continue;
+                float dx = world.x(mount) - x;
+                float dy = world.y(mount) - y;
+                float reach = structure.mount.weapon.range;
+                if (dx * dx + dy * dy > reach * reach) continue;
+                guns++;
+                aa++;
+            }
+        }
+        return new Assessment(guns, aa,Math.min(2f, guns * LOSS_PER_GUN + aa * LOSS_PER_AA_MOUNT));
     }
 }

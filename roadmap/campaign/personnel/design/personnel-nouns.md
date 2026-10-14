@@ -43,8 +43,9 @@ vacancy filling remains reserves-first and consumes generic Marines one billet a
 time. Existing saves keep their roster; free complement bootstrap is fixture and
 legacy tooling, not a campaign transition.
 
-A newly established company appoints Lieutenant Mira Hale as its founding field
-commander. Castle's first-command induction persists with the roster and requires
+A newly established company appoints Lieutenant Sabine Hale as its founding field
+commander. She is wounded rather than killed when a lost battle would kill an
+ordinary officer; no other officer has that protection. Castle's first-command induction persists with the roster and requires
 one actual specialty choice and a manned home-command assignment before ordinary
 mission deployment. It creates no enlisted personnel and spends only the ordinary
 appointment training point. Companies saved before induction remain exempt; later

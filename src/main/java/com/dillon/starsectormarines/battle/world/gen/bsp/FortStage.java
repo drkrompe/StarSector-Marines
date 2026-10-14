@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortReservations;
+import com.dillon.starsectormarines.battle.world.gen.fortress.AirDefenceYard;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BeltStandCells;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
@@ -132,13 +133,24 @@ public final class FortStage implements GenStage {
      * cells, and {@code 0} for a fort with no dome.
      */
     public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target,
-                         float domeRadius) {}
+                         float domeRadius, boolean airDefence) {
+        /** A fort placed with no anti-air yard. */
+        public Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target,
+                      float domeRadius) {
+            this(placement, fortId, plan, target, domeRadius, false);
+        }
+    }
 
     /**
      * A fort stood at a stated centre rather than sited: an authored map (a trial ground) says where its fort is and
      * which way the main gate faces ({@code facingX/Y}, a point the gate turns toward). The ground there must be open.
      */
-    public record Pin(FortKind kind, int centreX, int centreY, int facingX, int facingY) {}
+    public record Pin(FortKind kind, int centreX, int centreY, int facingX, int facingY, boolean airDefence) {
+        /** A pinned fort with no anti-air yard. */
+        public Pin(FortKind kind, int centreX, int centreY, int facingX, int facingY) {
+            this(kind, centreX, centreY, facingX, facingY, false);
+        }
+    }
 
     private final List<Placed> placed = new ArrayList<>();
     private final List<Pin> pins;
@@ -199,13 +211,15 @@ public final class FortStage implements GenStage {
             List<FortSiting.Point> targets = anchors == null ? null : targetsFor(plan, anchors, budget, reserved);
             for (int n = 0; n < budget; n++) {
                 FortSiting.Point target = targets == null ? null : targets.get(n);
+                // The first forts of a kind, as many as the declaration asks, carry the anti-air yard.
+                boolean air = n < profile.declaredDefences().airDefendedCount(plan.kind());
                 Placed made = null;
                 if (target != null) {
-                    made = placeNear(plan, layout, ground, sitedFor(plan, sites, anchors, target, garrison), ctx, anchors, target, keep);
+                    made = placeNear(plan, layout, ground, sitedFor(plan, sites, anchors, target, garrison), ctx, anchors, target, keep, air);
                 }
                 // The declared count stands where ground allows: a fort whose intended ground is taken falls back to
                 // the leftover order rather than vanishing.
-                if (made == null) made = placeNear(plan, layout, ground, sites, ctx, anchors, null, keep);
+                if (made == null) made = placeNear(plan, layout, ground, sites, ctx, anchors, null, keep, air);
                 if (made == null) {
                     // A declaration that cannot be met is a finding about the map, not something to drop quietly.
                     LOG.warn("FortStage: the mission declared " + budget + " " + plan.kind() + " and only " + n
@@ -237,9 +251,9 @@ public final class FortStage implements GenStage {
             }
             int fortId = placed.size();
             float dome = domeRadius(plan, at, null);
-            stamp(ctx, plan, at, fortId, ground, dome);
+            stamp(ctx, plan, at, fortId, ground, dome, pin.airDefence());
             ground.exclude(plan, at);
-            placed.add(new Placed(at, fortId, plan, null, dome));
+            placed.add(new Placed(at, fortId, plan, null, dome, pin.airDefence()));
         }
         finish(ctx);
         ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
@@ -252,7 +266,8 @@ public final class FortStage implements GenStage {
      * fits. {@code target} is the ground a siting intended, kept for evidence; {@code null} for leftover ground.
      */
     private Placed placeNear(FortPlan plan, CompoundLayout layout, Ground ground, List<Site> order, GenContext ctx,
-                             FortSiting.Anchors anchors, FortSiting.Point target, TacticalNode keep) {
+                             FortSiting.Anchors anchors, FortSiting.Point target, TacticalNode keep,
+                             boolean air) {
         FortSiting.Point facing = anchors == null ? null : anchors.landing();
         for (Site site : order) {
             if (tooClose(site)) continue;
@@ -260,9 +275,9 @@ public final class FortStage implements GenStage {
             if (at == null) continue;
             int fortId = placed.size();
             float dome = domeRadius(plan, at, anchors != null ? keep : null);
-            stamp(ctx, plan, at, fortId, ground, dome);
+            stamp(ctx, plan, at, fortId, ground, dome, air);
             ground.exclude(plan, at);
-            Placed made = new Placed(at, fortId, plan, target, dome);
+            Placed made = new Placed(at, fortId, plan, target, dome, air);
             placed.add(made);
             return made;
         }
@@ -604,7 +619,12 @@ public final class FortStage implements GenStage {
     // ----------------------------------------------------------------------------------------- stamp
 
     static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
-        stamp(ctx, plan, at, fortId, null, domeRadius(plan, at, null));
+        stamp(ctx, plan, at, fortId, null, domeRadius(plan, at, null), false);
+    }
+
+    /** As the four-argument form, with the anti-air yard when {@code air}. */
+    static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, boolean air) {
+        stamp(ctx, plan, at, fortId, null, domeRadius(plan, at, null), air);
     }
 
     /**
@@ -613,7 +633,7 @@ public final class FortStage implements GenStage {
      * {@code ground} means open country everywhere, which is what a bare test field is.
      */
     private static void stamp(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground,
-                              float domeRadius) {
+                              float domeRadius, boolean air) {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         int w = plan.width();
@@ -668,6 +688,7 @@ public final class FortStage implements GenStage {
         for (int[] local : plan.nests()) {
             emitNest(ctx, at.cell(local[0], local[1]), fortId, at, nestNumber++);
         }
+        if (air) stampAirDefence(ctx, plan, at, fortId);
 
         stampWall(ctx, plan, at);
 
@@ -705,6 +726,7 @@ public final class FortStage implements GenStage {
         }
         paveGates(ctx, plan, at);
         dressInterior(ctx, plan, at, lane);
+        if (air) dressAirDefence(ctx, plan, at);
         stampBelt(ctx, plan, at, fortId, ground);
     }
 
@@ -716,7 +738,7 @@ public final class FortStage implements GenStage {
     }
 
     /**
-     * The outer belt: trench, sandbag line, wire and nests, drawn only on cells the ground gives up. A cell the city
+     * The outer belt: trench, sandbag line, fence line and nests, drawn only on cells the ground gives up. A cell the city
      * holds is skipped, so the belt follows the land rather than overriding it.
      */
     private static void stampBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground) {
@@ -755,9 +777,10 @@ public final class FortStage implements GenStage {
                     draw.earth(c.x(), c.y());
                     draw.sandbag(c.x(), c.y(), c.dx(), c.dy(), c.cornerDx(), c.cornerDy());
                 }
-                case WIRE -> {
-                    draw.concertina(c.x(), c.y(), c.dx() != 0);
-                    // A single strand is a hairline at game scale: lay a second row beside it on bare glacis.
+                case FENCE -> {
+                    draw.fence(c.x(), c.y(), c.dx() != 0);
+                    // One fence is a hairline at game scale and a lighter obstacle than the belt was authored against:
+                    // lay a second row beside it on bare glacis, so the line is as thick as the wire it replaced.
                     for (int side = 1; side >= -1; side -= 2) {
                         int lx = c.x() - c.dy() * side;
                         int ly = c.y() + c.dx() * side;
@@ -765,7 +788,7 @@ public final class FortStage implements GenStage {
                         if (taken.contains(FortDressing.key(beside[0], beside[1]))) continue;
                         if (ctx.grid.inBounds(beside[0], beside[1])
                                 && ctx.topology.getGroundKind(beside[0], beside[1]) == GroundKind.COURTYARD) continue;
-                        if (draw.concertina(lx, ly, c.dx() != 0)) break;
+                        if (draw.fence(lx, ly, c.dx() != 0)) break;
                     }
                 }
                 case NEST -> {
@@ -864,11 +887,11 @@ public final class FortStage implements GenStage {
 
         // The power plant's fenced yard, with its plant standing in it.
         for (int x = ox + 20; x <= ox + 28; x++) {
-            if (x < ox + 23 || x > ox + 25) d.wire(x, oy + 24, true);
-            d.wire(x, oy + 32, true);
+            if (x < ox + 23 || x > ox + 25) d.fence(x, oy + 24, true);
+            d.fence(x, oy + 32, true);
         }
         for (int y = oy + 25; y <= oy + 31; y++) {
-            if (y < oy + 27 || y > oy + 29) d.wire(ox + 28, y, false);
+            if (y < oy + 27 || y > oy + 29) d.fence(ox + 28, y, false);
         }
         d.prop(ox + 22, oy + 26, "industrial-turbine-set", lane);
         d.prop(ox + 22, oy + 29, "industrial-reactor-housing", lane);
@@ -915,7 +938,7 @@ public final class FortStage implements GenStage {
         // The power plant's fenced yard, with its plant standing in it.
         int[] plant = ShieldFort.floor(FortAspect.POWER);
         for (int x = plant[0] - 2; x <= plant[0] + plant[2] + 1; x++) {
-            if (x < plant[0] + 4 || x > plant[0] + 6) d.wire(x, oy + 15, true);
+            if (x < plant[0] + 4 || x > plant[0] + 6) d.fence(x, oy + 15, true);
         }
         d.prop(ox + 20, oy + 10, "industrial-turbine-set", lane);
         d.prop(ox + 23, oy + 11, "industrial-reactor-housing", lane);
@@ -934,6 +957,32 @@ public final class FortStage implements GenStage {
         d.prop(ox + 14, oy + 33, "parked-armored-apc", lane);
         d.prop(ox + 30, oy + 33, "industrial-drum-cluster", lane);
         d.prop(ox + 31, oy + 35, "industrial-cable-reel", lane);
+    }
+
+    /**
+     * The optional anti-air yard: the plotting console, the guided battery and the flak positions, every one tagged to
+     * the fort's {@link FortAspect#AIR_DEFENCE} so the simulation assembles the aspect from what was stamped.
+     */
+    private static void stampAirDefence(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
+        AirDefenceYard yard = plan.airDefence();
+        if (yard == null) throw new IllegalStateException("a " + plan.kind() + " has no anti-air yard");
+        FortTag tag = new FortTag(fortId, FortAspect.AIR_DEFENCE, at.x(), at.y(), at.pose().quarterTurns());
+        emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
+        emitStructure(ctx, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID,
+                at.cell(yard.batteryCentre()[0], yard.batteryCentre()[1]), tag);
+        for (int[] flak : yard.flakCells()) {
+            emitStructure(ctx, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, at.cell(flak[0], flak[1]), tag);
+        }
+    }
+
+    /** The yard's gravel floor and its ring of sandbags, broken at one gate. */
+    private static void dressAirDefence(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
+        AirDefenceYard yard = plan.airDefence();
+        FortDressing d = new FortDressing(ctx, at);
+        int[] floor = yard.floor();
+        for (int x = floor[0]; x < floor[0] + floor[2]; x++) for (int y = floor[1]; y < floor[1] + floor[3]; y++) d.gravel(x, y);
+        int gapAt = yard.gapDy() != 0 ? yard.centreX() : yard.centreY();
+        d.ring(floor[0], floor[1], floor[2], floor[3], 1, yard.gapDx(), yard.gapDy(), gapAt, 3);
     }
 
     private static void emitStructure(GenContext ctx, String structureId, int[] centre, FortTag tag) {

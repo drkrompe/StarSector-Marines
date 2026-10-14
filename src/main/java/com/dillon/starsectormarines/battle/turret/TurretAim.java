@@ -190,7 +190,7 @@ public final class TurretAim {
      */
     public static boolean airLosVisible(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                         float originRadius, float endpointRadius) {
-        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, true, null);
+        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, true, null, null);
     }
 
     /**
@@ -201,13 +201,29 @@ public final class TurretAim {
      */
     public static boolean airFireLineClear(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                            float originRadius, float endpointRadius) {
-        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, false, null);
+        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, false, null, null);
     }
 
     /** A fixed summit mount clears its own continuous supporting hill, then uses ordinary air LOS. */
     public static boolean summitAirFireLineClear(NavigationGrid grid, CellTopology topology,
                                                 int x0, int y0, int x1, int y1, float endpointRadius) {
-        return airLineClear(grid, x0, y0, x1, y1, 0f, endpointRadius, false, topology);
+        return airLineClear(grid, x0, y0, x1, y1, 0f, endpointRadius, false, topology, null);
+    }
+
+    /** A set of cells, by world coordinate. */
+    @FunctionalInterface
+    public interface CellMask {
+        boolean has(int x, int y);
+    }
+
+    /**
+     * As {@link #summitAirFireLineClear}, for a mount standing in a fort's own yard: the fort's works (its wall, its
+     * buildings, its berms) are not an obstruction to its own anti-air, which is sited to fire over them. Anything
+     * outside {@code own} still blocks as ordinary structure.
+     */
+    public static boolean fortAirFireLineClear(NavigationGrid grid, CellTopology topology,
+                                               int x0, int y0, int x1, int y1, float endpointRadius, CellMask own) {
+        return airLineClear(grid, x0, y0, x1, y1, 0f, endpointRadius, false, topology, own);
     }
 
     public static boolean terrainMassAt(NavigationGrid grid, CellTopology topology, int x, int y) {
@@ -220,7 +236,7 @@ public final class TurretAim {
 
     private static boolean airLineClear(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                         float originRadius, float endpointRadius,
-                                        boolean smokeBlocks, CellTopology launchTerrain) {
+                                        boolean smokeBlocks, CellTopology launchTerrain, CellMask own) {
         float ro2 = originRadius > 0f ? originRadius * originRadius : -1f;
         float re2 = endpointRadius > 0f ? endpointRadius * endpointRadius : -1f;
         int dx = Math.abs(x1 - x0);
@@ -236,7 +252,7 @@ public final class TurretAim {
             if (originMass && !terrainMassAt(grid, launchTerrain, x, y)) originMass = false;
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
             if (!endpoint && smokeBlocks && grid.hasTransientOpacity(x, y)) return false;
-            if (!endpoint && !originMass && grid.blocksStructuralLineOfSight(x, y)) {
+            if (!endpoint && !originMass && grid.blocksStructuralLineOfSight(x, y) && (own == null || !own.has(x, y))) {
                 float distSqOrigin = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
                 float distSqEnd    = (float) ((x - x1) * (x - x1) + (y - y1) * (y - y1));
                 boolean nearOrigin = ro2 >= 0f && distSqOrigin <= ro2;

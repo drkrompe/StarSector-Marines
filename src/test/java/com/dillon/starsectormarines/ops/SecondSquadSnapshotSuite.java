@@ -87,8 +87,8 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             if (!replay[0]) throw new AssertionError("Reminder replay failed");
         }
         var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-        var mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
-        roster.add(mira); roster.assignCaptainToSquad(mira.id(), first.id());
+        var sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        roster.add(sabine); roster.assignCaptainToSquad(sabine.id(), first.id());
         roster.dismissManagementGuide();
         var reactor = new Reactor();
         var vm = new BarracksViewModel(reactor, roster, () -> 0d, new EquipmentIssueResources() {
@@ -114,8 +114,8 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             click(doc, markup, "formation:" + second.id() + ":mark");
             bindings.update(doc, markup, vm, hints);
             frames.add(frame(renderer, doc, "03-select-squads.png"));
-            click(doc, markup, "command:" + mira.id() + ":assign");
-            if (!mira.id().equals(second.homeCaptainId()) || model.selected().size() != 1) throw new AssertionError("Direct assignment lost selection or failed");
+            click(doc, markup, "command:" + sabine.id() + ":assign");
+            if (!sabine.id().equals(second.homeCaptainId()) || model.selected().size() != 1) throw new AssertionError("Direct assignment lost selection or failed");
             bindings.update(doc, markup, vm, hints);
             frames.add(frame(renderer, doc, "04-assigned-portraits.png"));
             roster.assignCaptainToSquads(null, Set.of(second.id()));
@@ -124,18 +124,18 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             click(doc, markup, "barracks-select-all");
             bindings.update(doc, markup, vm, hints);
             frames.add(frame(renderer, doc, "06-capacity-blocked.png"));
-            click(doc, markup, "command:" + mira.id() + ":assign");
+            click(doc, markup, "command:" + sabine.id() + ":assign");
             if (second.homeCaptainId() != null) throw new AssertionError("Over-capacity assignment changed roster");
             // The first-command spotlight must teach the same direct button.
-            roster.beginOfficerInduction(mira); roster.officerInduction().introduce(mira);
-            mira.train(OfficerSpecialty.TACTICAL_COVER);
+            roster.beginOfficerInduction(sabine); roster.officerInduction().introduce(sabine);
+            sabine.train(OfficerSpecialty.TACTICAL_COVER);
             roster.assignCaptainToSquads(null, model.selected());
             model.resumeGuide(); model.toggle(first.id()); markup.flush(); doc.advance(0f);
             var guide = BarracksGuideCallout.bind(doc, markup, model, noop);
             guide.update();
             frames.add(frame(renderer, doc, "07-first-command-guide.png"));
             click(doc, markup, model.guideTargetId()); guide.update();
-            if (!mira.id().equals(first.homeCaptainId())) throw new AssertionError("Guided direct assignment failed");
+            if (!sabine.id().equals(first.homeCaptainId())) throw new AssertionError("Guided direct assignment failed");
         }
         return frames;
     }

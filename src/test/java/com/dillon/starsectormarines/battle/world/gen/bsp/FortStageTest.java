@@ -20,6 +20,9 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
@@ -97,6 +100,35 @@ class FortStageTest {
             int toMain = Math.abs(mouth[0] - picket.anchorX) + Math.abs(mouth[1] - picket.anchorY);
             assertTrue(toMain <= nearestOther, "the picket stands by the main gate, turn " + turn);
             assertFalse(ctx.doodads.isEmpty(), "the trenches and sandbags themselves still stand");
+        }
+    }
+
+    @Test
+    void theBeltFenceIsStoodAsBreakableIndustrialFenceNotWire() {
+        CompoundLayout.Placement at = BatteryFort.layout().at(60, 40, 0);
+        GenContext ctx = field(declared(1));
+        FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
+
+        int fenceCells = 0, stood = 0;
+        for (FortBelt.Cell cell : BatteryFort.PLAN.belt()) {
+            if (cell.role() != FortBelt.Role.FENCE) continue;
+            fenceCells++;
+            int[] w = at.cell(cell.x(), cell.y());
+            for (Doodad d : ctx.doodads) {
+                if (d.cellX != w[0] || d.cellY != w[1]) continue;
+                assertTrue(d.definitionId().startsWith("doodad.industrial-fence-straight-"), d.definitionId());
+                assertFalse(ctx.grid.isWalkable(w[0], w[1]), "a fence cell is closed to movement until it is broken");
+                stood++;
+            }
+        }
+        assertTrue(stood > 0 && stood <= fenceCells, "the belt stands a fence line on open ground");
+        assertTrue(ctx.doodads.stream().noneMatch(d -> d.definitionId().startsWith("doodad.fort-wire")), "no wire is stamped");
+        CoverPropDamage damage = new CoverPropDamage(ctx.grid, ctx.doodads);
+        for (int i = 0; i < ctx.doodads.size(); i++) {
+            Doodad d = ctx.doodads.get(i);
+            if (d.definitionId().startsWith("doodad.industrial-fence-")) {
+                assertFalse(damage.register(i, d, TileRegistry.installed()), "a closed fence is breached through wall health");
+            }
         }
     }
 

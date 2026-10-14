@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.air.EnemyConcentration;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService.Outcome;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
+import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -76,6 +78,8 @@ public final class AirStrikeDirector {
 
     private final Faction side;
     private final Set<Long> seenGuns = new HashSet<>();
+    private final Set<Integer> seenForts = new HashSet<>();
+    private FortService fortLookup;
     private final List<Struck> struck = new ArrayList<>();
     private boolean debugDone;
     private int nextCoverTick;
@@ -91,7 +95,14 @@ public final class AirStrikeDirector {
 
     /** Whether the side has sighted {@code gun}. */
     public boolean knows(long gun) {
-        return seenGuns.contains(gun);
+        if (seenGuns.contains(gun)) return true;
+        // A fort the side has looked at is disclosed whole: its anti-air yard is part of what it saw.
+        Fort fort = fortOf(gun);
+        return fort != null && seenForts.contains(fort.id());
+    }
+
+    private Fort fortOf(long gun) {
+        return fortLookup == null ? null : fortLookup.airMountFort(gun);
     }
 
     /** One look at the field: update sightings and, if worthwhile ground is in reach of an operator, call a strike. */
@@ -134,10 +145,20 @@ public final class AirStrikeDirector {
         AirPoolKind kind = AirTasking.kindAt(sim, service, side, x, y);
         if (kind == null) return Outcome.NO_AIRFRAME;
         updateSightings(sim);
-        if (!ignoreRisk && risk(sim, x, y, kind) > RISK_CEILING) return Outcome.TOO_DEFENDED;
+        if (!ignoreRisk && risk(sim, x, y, kind) > RISK_CEILING) {
+            refusals++;
+            return Outcome.TOO_DEFENDED;
+        }
         Outcome outcome = service.request(sim, side, kind, x, y, true, operators);
         if (outcome == Outcome.CALLING) struck.add(new Struck(x, y, sim.getSimTickIndex()));
         return outcome;
+    }
+
+    private int refusals;
+
+    /** How many commander requests this side's officer has refused as too heavily defended, for evidence. */
+    public int refusals() {
+        return refusals;
     }
 
     /**
@@ -220,7 +241,8 @@ public final class AirStrikeDirector {
 
     /** The share of an airframe a pass over the point is believed to cost, from the guns this side has sighted. */
     public float risk(BattleSimulation sim, float x, float y) {
-        return AaRisk.at(sim, side, x, y, seenGuns::contains).expectedLossShare();
+        fortLookup = sim.forts();
+        return AaRisk.at(sim, side, x, y, this::knows).expectedLossShare();
     }
 
     /** As above for an airframe of {@code kind}: a fighter's low run takes more of the same fire ({@link AirPoolKind#aaExposure}). */
@@ -293,6 +315,8 @@ public final class AirStrikeDirector {
 
     /** Adds every hostile emplacement a sampled unit of this side has a clear line to. */
     private void updateSightings(BattleSimulation sim) {
+        fortLookup = sim.forts();
+        sightForts(sim);
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
         long[] ours = roster.factionDenseArray(side);
@@ -313,6 +337,37 @@ public final class AirStrikeDirector {
                             world.cellX(gun), world.cellY(gun), SIGHT_CELLS)) {
                         seenGuns.add(gun);
                         break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Notes every hostile fort with an anti-air yard that a sampled unit of this side has a clear line to a cell of its
+     * works. Seeing the works is seeing the fort, as for a commander ({@code forts.md}), and discloses its yard.
+     */
+    private void sightForts(BattleSimulation sim) {
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        long[] ours = roster.factionDenseArray(side);
+        int ourCount = roster.factionLiveCount(side);
+        if (ourCount <= 0) return;
+        int stride = Math.max(1, ourCount / SIGHT_SAMPLE);
+        for (Fort fort : sim.forts().forts()) {
+            if (seenForts.contains(fort.id()) || fort.airMountIds().isEmpty()) continue;
+            long mount = fort.airMountIds().get(0);
+            if (!world.isAlive(mount) || !side.hostileTo(sim.identity().faction(mount))) continue;
+            int[] cells = fort.exteriorCells();
+            seen:
+            for (int i = 0; i + 1 < cells.length; i += 2) {
+                for (int j = 0; j < ourCount; j += stride) {
+                    long watcher = ours[j];
+                    if (Math.hypot(cells[i] - world.x(watcher), cells[i + 1] - world.y(watcher)) > SIGHT_CELLS) continue;
+                    if (CommsOperators.lineClear(sim.getGrid(), world.cellX(watcher), world.cellY(watcher),
+                            cells[i], cells[i + 1], SIGHT_CELLS)) {
+                        seenForts.add(fort.id());
+                        break seen;
                     }
                 }
             }

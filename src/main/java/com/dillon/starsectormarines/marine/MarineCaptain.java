@@ -29,6 +29,7 @@ public class MarineCaptain implements Serializable {
     private Status status;
     /** When status == INJURED, the in-game day (Sector clock) the captain returns to ACTIVE. */
     private float injuredUntilDay;
+    private boolean founding;
     private final List<Trait> traits = new ArrayList<>();
     /** Free-form log of notable deeds — flavor text for the bridge view. */
     private final List<String> commendations = new ArrayList<>();
@@ -74,6 +75,10 @@ public class MarineCaptain implements Serializable {
     public Status status() { return status; }
     public void setStatus(Status status) { this.status = status; }
     public float injuredUntilDay() { return injuredUntilDay; }
+
+    /** The company's founding field commander: wounded by a lost battle, never killed by one. */
+    public boolean founding() { return founding; }
+    void markFounding() { founding = true; }
     public void setInjuredUntilDay(float day) { this.injuredUntilDay = day; }
 
     public List<Trait> traits() { return traits; }

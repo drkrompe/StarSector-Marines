@@ -57,13 +57,23 @@ public final class ConquestTrialGround {
      * @param keepGarrison squad slots in the keep
      */
     public static Ground generate(long seed, Placement placement, int offset, int objectiveGarrison, int keepGarrison) {
+        return generate(seed, placement, offset, objectiveGarrison, keepGarrison, false);
+    }
+
+    /**
+     * As above, the fort optionally carrying its anti-air yard.
+     *
+     * @param airDefence whether the fort is stamped with the optional anti-air aspect
+     */
+    public static Ground generate(long seed, Placement placement, int offset, int objectiveGarrison, int keepGarrison,
+                                  boolean airDefence) {
         GenContext c = new GenContext(new NavigationGrid(WIDTH, HEIGHT), new CellTopology(WIDTH, HEIGHT),
                 new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
         c.put(BspKeys.AXIS, TraversalAxis.SOUTH_TO_NORTH);
         int fortX = placement == Placement.ON_PATH ? LANE_X : LANE_X + offset;
         FortStage forts = FortStage.pinned(List.of(
-                new FortStage.Pin(FortKind.BATTERY_FORT, fortX, FORT_Y, LANE_X, LANDING_Y)));
+                new FortStage.Pin(FortKind.BATTERY_FORT, fortX, FORT_Y, LANE_X, LANDING_Y, airDefence)));
         new GenRecipe("Conquest trial ground", List.of(
                 ConquestTrialGround::open,
                 ConquestTrialGround::buildings,
