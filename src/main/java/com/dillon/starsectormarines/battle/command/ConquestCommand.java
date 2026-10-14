@@ -407,22 +407,18 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int GARRISON_MARGIN = 2;
 
     /**
-     * {@code -Dbattle.command.standingFireMissions=false} stops the commander giving a squad that carries a served tube a
-     * standing fire mission on the nearest disclosed hostile works within the tube's reach; the tube then fires on its
-     * section's own belief only. On by default, and independent of the muster: a mortar section on the lanes is a fire
-     * support asset whether or not a company is mustering.
+     * Standing fire missions are standing behaviour: the commander gives a squad that carries a served tube a standing fire
+     * mission on the nearest disclosed hostile works within the tube's reach, whether or not a company is mustering (a mortar
+     * section on the lanes is a fire support asset in its own right). This field is the one control: a scene that judges a
+     * plan's <em>own</em> fire missions leaves the squads' standing ones out, which would clear the works first. It belongs to
+     * this commander and so to its simulation alone.
      */
-    public static final String STANDING_FIRE_PROPERTY = "battle.command.standingFireMissions";
-    static boolean STANDING_FIRE_ENABLED = Boolean.parseBoolean(System.getProperty(STANDING_FIRE_PROPERTY, "true"));
+    private boolean standingFireMissions = true;
 
-    /** Whether tube squads are given standing fire missions. */
-    public static boolean standingFireMissionsEnabled() {
-        return STANDING_FIRE_ENABLED;
-    }
-
-    /** Sets the standing-fire switch; the caller restores it. For scenes and evidence controls only. */
-    public static void setStandingFireMissionsEnabled(boolean enabled) {
-        STANDING_FIRE_ENABLED = enabled;
+    /** Evidence control: this commander gives no standing fire missions. Set before the first pulse. */
+    public ConquestCommand withoutStandingFireMissionsForEvidence() {
+        this.standingFireMissions = false;
+        return this;
     }
 
     /** Nearest a standing mission's ground may be to the tube section: inside this the tube's dead zone and the nests' return fire. UNTUNED. */
@@ -1014,7 +1010,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (phase == Phase.LANE_ADVANCE || phase == Phase.FRONT_ADJUST) {
             structureNotes = assignDefenceStructureTasks(frame, squads, committed, allSquads, directives);
         }
-        if (STANDING_FIRE_ENABLED) structureNotes = withStandingFireMissions(frame, allSquads, structureNotes);
+        if (standingFireMissions) structureNotes = withStandingFireMissions(frame, allSquads, structureNotes);
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
                 remainingCompounds, keep, directives, allSquads).withGroups(groups.groups())
                 .withCompanies(companyPicture);
