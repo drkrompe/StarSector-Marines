@@ -88,9 +88,10 @@ public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction hold
      * The structure kinds a command can be sent to take, wreck or hold. {@code FIRE_CONTROL} is where a battery's
      * guns are held (the bunker, for a fort); {@code SHIELD_GENERATOR} is where the dome is held (the generator's
      * capture ring, or a shield fort's control room); {@code FORT_POWER} is a fort's power plant, which feeds a dome
-     * or a battery's traverse; {@code FORT_MAGAZINE} is a battery fort's store, which feeds sustained fire.
+     * or a battery's traverse; {@code FORT_MAGAZINE} is a battery fort's store, which feeds sustained fire. {@code FORT_AIR_DEFENCE} is the optional anti-air yard,
+     * whose holder the fort's dedicated anti-air mounts obey
      */
-    public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR, FORT_POWER, FORT_MAGAZINE }
+    public enum Kind { FIRE_CONTROL, SHIELD_GENERATOR, FORT_POWER, FORT_MAGAZINE, FORT_AIR_DEFENCE }
 
     /** What a fort is for, which decides how much each of its aspects matters. */
     public enum Family { BARE, BATTERY_FORT, SHIELD_FORT }

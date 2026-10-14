@@ -86,6 +86,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             SweepAssignedSectorGoal.INSTANCE,
             EscortAssignedCiviliansGoal.INSTANCE,
             GarrisonAmbush.INSTANCE,
+            HoldPlaceGoal.INSTANCE,
             FrontageDefense.INSTANCE,
             GuardPost.INSTANCE,
             GarrisonCompound.INSTANCE,

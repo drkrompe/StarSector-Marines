@@ -261,7 +261,8 @@ Do not run builds or leave generated task files there.
   `maxTicks`; `-PmaxTicks` overrides all. `-Pfixture` takes a JSON array setting
   `seed`, `placement`, `offset`, `shuttleType`, `shuttles`, `seats`, `cycles`,
   `elites`, `militia`, `patrolSize`, `objectiveGarrison`, `keepGarrison` and
-  `risk`. Use it for a commander question; the city map is unfinished.
+  `risk`, and optional `airDefence` (true stamps the fort's anti-air yard). Use it for a commander
+  question; the city map is unfinished.
   Each fixture row reports fighting-position runs and cells at start and end.
   The canonical fixtures declare no forts and so have none; the fort-bearing
   control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
@@ -662,6 +663,13 @@ Do not run builds or leave generated task files there.
   `build/reports/performance/squad-firing-positions/summary.json`.
   `-Dbattle.squadFiringEvidence.outputDir=<path>` redirects it. This measures
   selected-cell validity, spread and reachability, not autonomous combat outcomes.
+- `gradlew.bat garrisonEvidence` → stands up every story mission at tick zero
+  (the debug mission catalog plus the three Agreus maps) and inventories what
+  each map offers a squad to hold: per tactical node, windows / entrances /
+  distinct stand cells at building and compound scope and fighting-position
+  runs, plus the windows and runs no node covers. Writes
+  `build/reports/garrison/summary.md`. Map evidence, not battle evidence; opt-in
+  and excluded from `test`. See `garrisonables.md`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
@@ -1180,7 +1188,8 @@ The discovered suite ids and default output directories are:
 | `shield-dome` | An Onslaught shelling defenders under a planetary shield dome, 1920x1080 with a close view: the rounds absorbed as flux with a pool gauge filling, the overload and the gap in which they land, the recovery, against a no-dome control and a loop with the generator destroyed. Verdicts are the scene's | `build/snapshots/shield-dome/` |
 | `assault-muster` | One battery fort and a company in the planned assault: the `plan` loop only, 1920x1080 at 100% scale, whole map and a close view of the fort's west face as an animation plus a PNG still per frame, across positioning a base of fire, suppression and entry. The verdicts and per-loop readings (control-trickle (a mission that chooses the trickle), plan, plan with a lance) are `sceneEvidence`'s; forts are not weakened for it | `build/snapshots/assault-muster/` |
 | `fighting-position` | A twelve-marine squad and a twelve-cell trench, five loops at 1920x1080, 100% scale, with the fighting-position layer (position cells green, claimed cells white, dug-in marines magenta): fighting positions on and off with marines rooted at 1000 health over six enemy placements, a controlled isolation of the composure benefit rather than a battle outcome; a squad filling an empty trench; a free-moving, ordinary-health squad taking and holding a trench under live DMR fire; and overflow onto a shared run (disjoint claims, overflow in ordinary cover). One still per loop | `build/snapshots/fighting-position/` |
-| `squad-medic` | Eight armored marines with a Field Medicine officer marching under an attack move, four of them hurt, then firing on a target past the objective that fires back. Three loops at 1920x1080, 100% scale: planted, keep-moving, and a no-medic control, with the medic and patient labelled as diagnostics. Verdicts and readings are `sceneEvidence`'s; stills at the opening treatments and the arrival | `build/snapshots/squad-medic/` |
+| `squad-medic` | Eight armored marines with a Field Medicine officer marching under an attack move, four of them hurt, then firing on a target past the objective that fires back. Three loops at 1920x1080, 100% scale: planted, keep-moving, and a no-medic control, through the production unit and marker renderers — the medic's cross badge, the link and progress ring to the patient, and the kneel over an open kit — with diagnostic MEDIC/PATIENT labels on top. Verdicts and readings are `sceneEvidence`'s; stills at the opening treatments and the arrival | `build/snapshots/squad-medic/` |
+| `barracks-medic` | The Barracks command board at 1920x1080, 100% scale, with the selected officer trained in Field Medicine: each of their squad cards marks its medic billet with a green plate, beside the amber wound mark and the NCO chevron | `build/snapshots/barracks-medic/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

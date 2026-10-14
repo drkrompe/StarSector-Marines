@@ -137,6 +137,12 @@ public final class DefenceStructureTactics {
      */
     public static List<Task> plan(Faction perspective, List<DefenceStructureFact> structures,
                                   List<Candidate> candidates, CommandTopology topology) {
+        return plan(perspective, structures, candidates, topology, false);
+    }
+
+    /** As above, with whether the side is shut out of the sky by anti-air it knows ({@link FortTactics#choose}). */
+    public static List<Task> plan(Faction perspective, List<DefenceStructureFact> structures,
+                                  List<Candidate> candidates, CommandTopology topology, boolean skyWanted) {
         List<Task> tasks = new ArrayList<>();
         if (structures.isEmpty() || candidates.isEmpty()) return tasks;
         List<Wanted> wanted = new ArrayList<>();
@@ -152,7 +158,7 @@ public final class DefenceStructureTactics {
         // A fort is one defence with several aspects: which of them is work, and in what order, is a choice made for
         // the effect wanted rather than one task per structure.
         for (List<DefenceStructureFact> fort : forts.values()) {
-            for (FortTactics.Pick pick : FortTactics.choose(perspective, fort, candidates)) {
+            for (FortTactics.Pick pick : FortTactics.choose(perspective, fort, candidates, skyWanted)) {
                 wanted.add(new Wanted(pick.role(), pick.structure(), pick.rank(), pick.squads(), pick.wreck(),
                         "fort " + pick.structure().fortId() + " " + pick.structure().family().name().toLowerCase(Locale.ROOT)
                                 + ": " + pick.reason()));
@@ -190,9 +196,15 @@ public final class DefenceStructureTactics {
      */
     public static List<Task> planMassed(Faction perspective, List<DefenceStructureFact> fort,
                                         List<Candidate> candidates, CommandTopology topology) {
+        return planMassed(perspective, fort, candidates, topology, false);
+    }
+
+    /** As above, with whether the side is shut out of the sky by anti-air it knows ({@link FortTactics#choose}). */
+    public static List<Task> planMassed(Faction perspective, List<DefenceStructureFact> fort,
+                                        List<Candidate> candidates, CommandTopology topology, boolean skyWanted) {
         List<Task> tasks = new ArrayList<>();
         if (fort.isEmpty() || candidates.isEmpty()) return tasks;
-        List<FortTactics.Pick> picks = new ArrayList<>(FortTactics.choose(perspective, fort, candidates));
+        List<FortTactics.Pick> picks = new ArrayList<>(FortTactics.choose(perspective, fort, candidates, skyWanted));
         picks.removeIf(pick -> pick.role() == Role.DEFEND);
         if (picks.isEmpty()) return tasks;
         picks.sort(Comparator.<FortTactics.Pick>comparingInt(p -> p.role().ordinal()).thenComparingInt(FortTactics.Pick::rank));

@@ -48,6 +48,19 @@ public final class SquadMedicSceneSnapshotSuite extends BehaviorSceneSnapshotSui
         return marks.build();
     }
 
+    /**
+     * A close view of the opening treatments, at the full frame size: at
+     * whole-map scale a kneeling medic is a few pixels, and the kneel, the kit,
+     * the medic's cross and the treatment ring are the things to read.
+     */
+    @Override
+    protected float[] closeView(String loopId) {
+        return new float[] {9.5f, 16.5f, 9f};
+    }
+
+    @Override
+    protected float closeViewScale() { return 1f; }
+
     @Override
     protected int[] stillFrames(String loopId) {
         return new int[] {2, 6, 12, 64};

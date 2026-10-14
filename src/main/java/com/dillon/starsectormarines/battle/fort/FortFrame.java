@@ -26,6 +26,14 @@ public final class FortFrame {
         this.quarterTurns = quarterTurns;
     }
 
+    /** Whether the world cell is part of the fort's main works (wall and buildings included), belt and glacis not. */
+    public boolean isWorks(int worldX, int worldY) {
+        if (!placement.contains(worldX, worldY)) return false;
+        int[] local = placement.pose().unmap(worldX - placement.x(), worldY - placement.y(),
+                placement.layout().footprint().width(), placement.layout().footprint().height());
+        return plan.isWorks(local[0], local[1]);
+    }
+
     /** The authored plan this frame places. */
     public FortPlan plan() {
         return plan;

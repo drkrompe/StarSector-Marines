@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.infantry.HoldPlaceGoal;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
@@ -179,8 +180,11 @@ public final class OrderCatalog {
                 SecureCompoundGoal.INSTANCE, EnumSet.of(Arm.INFANTRY), CAPTURED,
                 LEASE_TICKS));
         // A held node with no issuer is a garrison's: born garrisons hold
-        // nodes and nobody else writes HOLD_NODE without provenance.
-        row(AssignmentKind.HOLD_NODE, Shape.NODE, CommandAuthority.GARRISON, null);
+        // nodes and nobody else writes HOLD_NODE without provenance. The
+        // player's version is a click on a held building; like a defence it
+        // stands until superseded, since holding a place is never finished.
+        row(AssignmentKind.HOLD_NODE, Shape.NODE, CommandAuthority.GARRISON, new PlayerOrder(
+                HoldPlaceGoal.INSTANCE, EnumSet.of(Arm.INFANTRY), PERSISTENT, -1));
         row(AssignmentKind.RUSH_OBJECTIVE, Shape.OBJECTIVE_AT_CELL, null, null);
         row(AssignmentKind.WITHDRAW, Shape.CELL, null, null);
         row(AssignmentKind.SUPPORT, Shape.NONE, null, null);

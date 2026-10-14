@@ -289,6 +289,36 @@ public final class ShuttleMission {
     public static final float ABORT_HP_SHARE = 0.5f;
 
     /**
+     * The cover duty of a combat-air-patrol fighter, or {@code null} for every other sortie. Set at launch by the pool;
+     * its presence is what makes {@link #lzX}/{@link #lzY} the ground the fighter covers rather than a point it attacks,
+     * and what lets the fighter chase aircraft and take gun passes from its station. See {@link CoverDuty}.
+     */
+    public CoverDuty cover;
+
+    /**
+     * How much more of an anti-air post's fire this sortie takes than a bomber's pass: one for the default, higher for a
+     * craft that flies its attack low and holds the line. Set at launch by the pool from the airframe kind.
+     */
+    public float aaExposure = 1f;
+
+    /**
+     * Who is dealing the hit being resolved, set around an aimed hit by the shooter that knows what it is and read when
+     * that hit destroys the craft, so the loss ledger can say a fighter shot it down rather than naming every aimed hit
+     * "ground fire". Null outside the instant of a hit.
+     */
+    public String killedByLabel;
+
+    /** Where this sortie's guns are aimed: the ground a cover fighter is strafing while it strafes, otherwise the objective. */
+    public float aimX() {
+        return cover != null && cover.strafing ? cover.strafeX : lzX;
+    }
+
+    /** Companion of {@link #aimX()}. */
+    public float aimY() {
+        return cover != null && cover.strafing ? cover.strafeY : lzY;
+    }
+
+    /**
      * The line this attack run is flying: in from {@code runFrom}, through the
      * target, out to {@code runTo}.
      *
@@ -567,7 +597,7 @@ public final class ShuttleMission {
                  TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL,
                  LANDING_ROLL, TAXI_IN -> false;
             case SHIP_DEPARTURE, SHIP_RETURN, INCOMING, PAD_DESCENT, ATTACK_RUN, REPOSITION,
-                 ORBIT, LANDED, DEPARTING, RETURNING -> true;
+                 ORBIT, INTERCEPT, LANDED, DEPARTING, RETURNING -> true;
         };
     }
 

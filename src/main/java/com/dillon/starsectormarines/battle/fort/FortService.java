@@ -18,6 +18,7 @@ import java.util.Map;
 public final class FortService {
 
     private final Map<Integer, Fort> byId = new HashMap<>();
+    private final Map<Long, Fort> airMountFort = new HashMap<>();
     private final List<Fort> forts = new ArrayList<>();
     private final List<Fort> view = Collections.unmodifiableList(forts);
 
@@ -58,6 +59,18 @@ public final class FortService {
     /** Records where fort {@code fortId} stands, from any of its tagged parts. */
     public void tagFrame(int fortId, FortTag tag) {
         if (tag.placed()) fort(fortId).place(tag.originX(), tag.originY(), tag.quarterTurns());
+    }
+
+    /** Records one of the anti-air mounts standing in the fort's yard. */
+    public void tagAirMount(int fortId, long mountId) {
+        Fort fort = fort(fortId);
+        fort.addAirMount(mountId);
+        airMountFort.put(mountId, fort);
+    }
+
+    /** The fort whose yard mount {@code id} is, or {@code null} for a gun that is no fort's anti-air. */
+    public Fort airMountFort(long id) {
+        return airMountFort.get(id);
     }
 
     /** Records one of the fort's wall nests. */

@@ -282,4 +282,30 @@ class FortTacticsTest {
         assertTrue(tasks.stream().anyMatch(t -> t.structure().kind() == Kind.FIRE_CONTROL && t.squadId() == 2));
         assertTrue(tasks.stream().anyMatch(t -> t.structure() == bare && t.squadId() == 1));
     }
+
+    // ------------------------------------------------------------------------------------------ anti-air yard
+
+    private static DefenceStructureFact yard(Faction holder, Faction original) {
+        return aspect(Kind.FORT_AIR_DEFENCE, Family.BATTERY_FORT, 70, 55, holder, original, false);
+    }
+
+    @Test
+    void aHostileYardIsTakenLastUnlessTheSkyIsShutAndThenFirst() {
+        List<DefenceStructureFact> fort = List.of(bunker(D, D, false), yard(D, D));
+        List<Pick> open = FortTactics.choose(M, fort, List.of(squad(1, 10, 40)), false);
+        Pick yardOpen = open.stream().filter(p -> p.structure().kind() == Kind.FORT_AIR_DEFENCE).findFirst().orElseThrow();
+        assertEquals(Role.TAKE, yardOpen.role());
+        assertEquals(FortTactics.AIR_LAST_RANK, yardOpen.rank(), "an unshut sky leaves the yard to the end");
+        List<Pick> shut = FortTactics.choose(M, fort, List.of(squad(1, 10, 40)), true);
+        Pick yardShut = shut.stream().filter(p -> p.structure().kind() == Kind.FORT_AIR_DEFENCE).findFirst().orElseThrow();
+        assertEquals(-1, yardShut.rank(), "a sky the yard refuses us comes first");
+        assertTrue(yardShut.reason().contains("sky"), yardShut.reason());
+    }
+
+    @Test
+    void aYardWeHoldIsNotWorkAndOneWeLostIsRetaken() {
+        assertTrue(FortTactics.choose(M, List.of(yard(M, D)), List.of(squad(1, 10, 40)), true).isEmpty());
+        List<Pick> retake = FortTactics.choose(D, List.of(yard(M, D)), List.of(squad(1, 10, 40)), false);
+        assertEquals(Role.RETAKE, retake.get(0).role());
+    }
 }

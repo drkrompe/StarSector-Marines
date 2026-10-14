@@ -25,9 +25,13 @@ import java.util.Map;
  *                         {@code forts.md}). A fort is declared separately from a bare {@link #batteries} or
  *                         {@link #shieldGenerator} so scenes and debug can still stand a structure on its own
  * @param siting           where the declared forts stand relative to the battle; see {@link FortSitingPolicy}
+ * @param airDefended     how many of the declared forts of each kind carry the optional anti-air aspect (a sandbagged
+ *                        yard with a plotting console, a guided battery and flak positions; see {@code forts.md}); the
+ *                        first that many forts of the kind placed, never more than the kind's declared count. Absent or
+ *                        zero is none, so a legacy declaration reads as a fort with no anti-air
  */
 public record GroundDefences(int batteries, boolean shieldGenerator, int nests, Map<FortKind, Integer> forts,
-                             FortSitingPolicy siting) {
+                             FortSitingPolicy siting, Map<FortKind, Integer> airDefended) {
 
     public static final GroundDefences NONE = new GroundDefences(0, false, 0);
 
@@ -42,6 +46,19 @@ public record GroundDefences(int batteries, boolean shieldGenerator, int nests, 
         }
         forts = Collections.unmodifiableMap(kept);
         if (siting == null) siting = FortSitingPolicy.LEFTOVER_GROUND;
+        EnumMap<FortKind, Integer> air = new EnumMap<>(FortKind.class);
+        if (airDefended != null) {
+            for (Map.Entry<FortKind, Integer> e : airDefended.entrySet()) {
+                if (e.getKey() != null && e.getValue() != null && e.getValue() > 0) air.put(e.getKey(), e.getValue());
+            }
+        }
+        airDefended = Collections.unmodifiableMap(air);
+    }
+
+    /** A declaration with these forts, this siting and no anti-air. */
+    public GroundDefences(int batteries, boolean shieldGenerator, int nests, Map<FortKind, Integer> forts,
+                          FortSitingPolicy siting) {
+        this(batteries, shieldGenerator, nests, forts, siting, Map.of());
     }
 
     /** A declaration with these forts and the default (leftover-ground) siting. */
@@ -69,12 +86,32 @@ public record GroundDefences(int batteries, boolean shieldGenerator, int nests, 
         EnumMap<FortKind, Integer> next = new EnumMap<>(FortKind.class);
         next.putAll(forts);
         next.put(kind, count);
-        return new GroundDefences(batteries, shieldGenerator, nests, next, siting);
+        return new GroundDefences(batteries, shieldGenerator, nests, next, siting, airDefended);
     }
 
     /** This declaration with its forts sited by {@code policy}; a mission states how its forts are placed. */
     public GroundDefences withSiting(FortSitingPolicy policy) {
-        return new GroundDefences(batteries, shieldGenerator, nests, forts, policy);
+        return new GroundDefences(batteries, shieldGenerator, nests, forts, policy, airDefended);
+    }
+
+    /**
+     * How many forts of {@code kind} carry the anti-air aspect: the first that many placed, at most the declared count.
+     */
+    public int airDefendedCount(FortKind kind) {
+        return Math.min(fortCount(kind), airDefended.getOrDefault(kind, 0));
+    }
+
+    /** This declaration with these forts (by kind, as a count each) carrying the anti-air aspect. */
+    public GroundDefences withAirDefences(Map<FortKind, Integer> air) {
+        return new GroundDefences(batteries, shieldGenerator, nests, forts, siting, air);
+    }
+
+    /** This declaration with the first {@code count} forts of {@code kind} carrying the anti-air aspect (zero removes it). */
+    public GroundDefences withAirDefence(FortKind kind, int count) {
+        EnumMap<FortKind, Integer> next = new EnumMap<>(FortKind.class);
+        next.putAll(airDefended);
+        next.put(kind, count);
+        return new GroundDefences(batteries, shieldGenerator, nests, forts, siting, next);
     }
 
     /** True when the declaration places nothing at all. */
