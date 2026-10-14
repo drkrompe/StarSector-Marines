@@ -4,7 +4,7 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — name the rival crew and ration Vale's insult for them.
+Updated: 2026-10-14 — move the hold question out of the Salvage Rights briefing and onto the drop.
 
 ## How to read this script
 
@@ -142,8 +142,9 @@ captain, who decides whether to deploy.
 - **HIDDEN:** she knows what a second hull costs before it earns anything. Morrow
   has to be crewed out of Second Wind's own complement, leaving both ships on
   skeleton watches until the company can hire. She takes the ship anyway.
-- **TO BE REVEALED, first meeting:** she asks about the hold directly and backs off
-  when Vale refuses. She does not forget she asked.
+- **TO BE REVEALED, Salvage Rights drop:** with the boats already going down, she
+  asks about the hold directly and backs off when Vale refuses. She does not forget
+  she asked.
 - **TO BE REVEALED, first meeting:** the company spent the Corvus work tracing
   who sold Wayline's schedules, so Castle cannot wave away Vale's suspicion of
   Wayline and does not try. She separates the company from its former employer
@@ -253,6 +254,7 @@ trying to wake Morrow's drone bay.
 |---|---|---|
 | Mara's referral | A Wayline customer, an occupied yard, Wayline's own stake in it | Mara's worry about her dispatch board |
 | Salvage Rights briefing | The wreckfall, Basin's claim, the fuel order and Vale's suspicion of Wayline, Jory's crew, occupied yard, Morrow as scrap | Hold contents, buyer, Basin's finances, how the rumour really spread |
+| Salvage Rights drop | Vale will not discuss the hold, and why | Hold contents, permanently |
 | Successful inspection | The rivals were trying to power Morrow's bay, not strip it | Why, or whether it could work |
 | Cold Start briefing | The pickets cannot hold the yard alone; Morrow's bay might help | Whether any builders will answer |
 | Cold Start field | Her builders work; a wreck put up a road gun | Any entitlement to the hull |
@@ -323,15 +325,7 @@ needs it to fight, and stops there. Nobody has mentioned a ship.
 
 **Vale:** My cousin Jory's crew is still inside the Colossus, sealed in where the squatters haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.
 
-**Castle:** Then I'll ask the obvious question. What did you find?
-
-**Vale:** Salvage. Mine.
-
-**Castle:** My people are going to be shot at over it. I'd like to know what for.
-
-**Vale:** You're being shot at over my yard, my stores and my workshop, and there's money in the contract for every bit of it. Ask Mara whether I settle. The last time that hold went on anybody's paperwork, I got this. I won't do it twice with people Wayline sent me.
-
-**Castle:** Fair. This is Hegemony space, though. Is anyone else going to take an interest?
+**Castle:** This is Hegemony space. Is anyone else going to take an interest?
 
 **Vale:** Our permit's on file at Jangala. The Hegemony doesn't send a patrol over two salvage crews squabbling in a ditch. It'd come quick enough if somebody gave it a reason. So we settle this ourselves, and quietly.
 
@@ -343,20 +337,41 @@ needs it to fight, and stops there. Nobody has mentioned a ship.
 
 **Vale:** A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says they've had her panels off for a week.
 
-**Castle:** And you want to know what they've taken.
-
-**Vale:** I want two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.
+**Vale:** I want to know what they've taken. Two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.
 
 ### During — yard entry and protected inspection
 
 Operational speech gets shorter once the company is on the ground. These calls
 do not reveal unseen enemy positions or send the company into the Colossus.
 
+#### Boats on the way down — the hold question
+
+Cue: `shepherd.salvage.descent` (proposed; no such cue exists yet).
+
+The first boat is committed and descending, and nobody is on the ground. The fleet
+takes long enough to put the company down that the briefing's one unasked
+question fits here, and it lands harder with the company already committed: Castle
+asks while her people are in the air, and Vale answers knowing they are.
+
+This is a four-turn exchange, which the story radio does not support today — each
+cue plays one line. It is the conversation the briefing used to end on, moved;
+`shepherd.salvage.arrival` follows it. If marines reach the ground before the
+exchange has finished, the remaining turns are dropped and the arrival orders
+play: an order outranks an argument.
+
+**Castle:** Vale, while we're on the way down. What did you find in that hold?
+
+**Vale:** Salvage. Mine.
+
+**Castle:** My people are about to be shot at over it. I'd like to know what for.
+
+**Vale:** You're being shot at over my yard, my stores and my workshop, and you're paid for every bit of it. Ask Mara whether I settle. The last time that hold went on anybody's paperwork, I got this. I won't do it twice with people Wayline sent me.
+
 #### Company presence at the yard
 
 Cue: `shepherd.salvage.arrival`.
 
-**Vale:** You're in the yard, Captain. Receiving store first, then the workshop. My militia are behind you. Leave the Colossus to us.
+**Vale:** You're down, Captain. Receiving store first, then the workshop. My militia are behind you. Leave the Colossus to us.
 
 #### Company first comes within sighting range of Morrow
 

@@ -344,6 +344,11 @@ the duration targets remain tuning goals until measured playback and live review
 
 ### Remaining acceptance
 
+- **Salvage Rights drop exchange.** The script moves the hold question onto the
+  company's descent: a new `shepherd.salvage.descent` cue when the first boat
+  commits, and a four-turn Castle/Vale exchange that yields to
+  `shepherd.salvage.arrival` if marines land first. Story narration plays one
+  line per cue today, so this needs ordered multi-turn support in story radio.
 - **Drop the crew award.** `ShepherdRecoveryCampaign.settle` still adds Morrow's
   minimum crew to the fleet, `ShepherdRecoveryProgress` validates and records a
   positive `willingCrewTransferred`, and the briefing, mission-select, guide and
