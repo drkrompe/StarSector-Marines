@@ -591,10 +591,6 @@ player has met Nessa.
    > you than nothing, and I expect you'd rather us than nothing too. One job at a
    > time, Commander.
 
-**Briefing, Sabine** (text with her portrait, after Mara)
-> One boat, so we go down in trips. First team takes the apron and holds it until
-> the rest are on the ground. Nobody walks to that gate alone.
-
 **Briefing screen, unvoiced** — the tactical summary
 > Land on the rear unloading apron and reinforce the checkpoint gate. Raiders will
 > come up the freight and warehouse service roads. Wayline supplies its militia
