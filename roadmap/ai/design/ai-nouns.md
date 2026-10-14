@@ -2087,6 +2087,15 @@ Members left without a cell fall through to the ordinary prepared-position
 search and may not settle on a cell another marine holds. A squad with no
 believed threat packs into the position rather than spreading across the circle.
 
+An ordinary ground click on prepared ground is an **occupy** order: the same
+defend-area context, with its claims confined to the run under the click so a
+better-covered trench elsewhere in the circle cannot pull the squad away from
+the one the player pointed at. It is contextual in the way a click inside an
+uncaptured compound is, and that compound still wins — a sandbag apron at an
+objective's door does not turn securing it into holding the apron. An explicit
+defend-area click on a trench remains an ordinary defend area, and Mechs never
+occupy.
+
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than
 walking out to hunt a better firing cell and forfeiting the dig-in. The claims

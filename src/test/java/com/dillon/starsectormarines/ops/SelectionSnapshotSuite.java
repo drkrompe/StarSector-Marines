@@ -18,9 +18,14 @@ import java.nio.file.Files;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.highlight.FightingPositionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -38,7 +43,8 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        return List.of(renderSelection(context, true), renderSelection(context, false));
+        return List.of(renderSelection(context, true), renderSelection(context, false),
+                renderFightingPositions(context));
     }
 
     private SnapshotArtifact renderSelection(SnapshotContext context, boolean group) throws Exception {
@@ -104,6 +110,63 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
                 graphics.dispose();
             }
             return new SnapshotArtifact(group ? "selected-and-hovered.png" : "single-member-focus.png", image);
+        }
+    }
+
+    /**
+     * A selected squad that has been clicked onto a trench and dug in, a second selected-nothing squad
+     * already dug in on a neighbouring trench, and one trench nobody holds: the overlay's three marks.
+     */
+    private SnapshotArtifact renderFightingPositions(SnapshotContext context) throws Exception {
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                new HeadlessBattleSceneRenderer(context.modRoot(), true));
+        SceneWorld world = SceneBuilder.openGround(64, 36)
+                .squad("alpha").size(6).inFile(16, 24, 1, 0).done()
+                .squad("bravo").size(6).inFile(34, 12, 1, 0).done()
+                .squad("enemy").faction(Faction.DEFENDER).size(2).inFile(60, 30, 1, 0).done()
+                .build();
+        boolean previous = DigInSystem.isEnabled();
+        DigInSystem.setEnabledForEvidence(true);
+        try (BattleSimulation sim = world.sim()) {
+            dig(sim, 22, 33, 24);
+            dig(sim, 30, 41, 12);
+            dig(sim, 22, 33, 31);
+            sim.getSquadMoveOrderService().requestMove(world.squadId("alpha"), 27, 24);
+            sim.getSquadMoveOrderService().requestMove(world.squadId("bravo"), 35, 12);
+            for (int i = 0; i < 420; i++) sim.advance(1f / 30f);
+            sim.getFogOfWar().tick(0, sim.getRoster());
+            Selection selection = new Selection();
+            selection.selectSquad(world.squadId("alpha"));
+            HighlightOverlay highlights = new HighlightOverlay();
+            BattleCamera camera = new BattleCamera(64, 36);
+            camera.setViewport(0, 0, 1920, 1080, 1920 / 64f);
+            FightingPositionHighlightPublisher.publish(selection, sim, highlights, camera.visibleCells());
+            BattleSceneHostPass pass = new BattleSceneHostPass() {
+                @Override public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {
+                    return new BattleSceneFrame(new RenderContext(sim, camera, null,
+                            alpha, 0, false, highlights, selection,
+                            BattleRenderHostProfile.EMBEDDED_SCENE),
+                            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.HIGHLIGHTS,
+                                    RenderLayer.UNITS));
+                }
+                @Override public void draw(CanvasHostViewport viewport, float alpha) {
+                    throw new IllegalStateException("Headless evidence only");
+                }
+            };
+            return new SnapshotArtifact("fighting-positions.png", renderer.renderHostPass(pass, 1920, 1080));
+        } finally {
+            DigInSystem.setEnabledForEvidence(previous);
+        }
+    }
+
+    private static void dig(BattleSimulation sim, int x0, int x1, int y) {
+        TileRegistry registry = TileRegistry.installed();
+        for (int x = x0; x <= x1; x++) {
+            int mask = (x < x1 ? 2 : 0) | (x > x0 ? 8 : 0);
+            DoodadDef def = registry.doodad("doodad.fort-trench-" + mask);
+            if (def == null) throw new IllegalStateException("no trench piece for mask " + mask);
+            sim.addDoodad(new Doodad(x, y, def));
         }
     }
 }

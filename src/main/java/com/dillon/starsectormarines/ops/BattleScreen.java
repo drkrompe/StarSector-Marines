@@ -57,6 +57,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.AssaultCommanderOverlayP
 import com.dillon.starsectormarines.battle.ui.highlight.SabotageCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.RaidCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.ExtractionCommanderOverlayPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.FightingPositionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.VehicleMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -655,6 +656,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                             directControlInput.pointerY()));
         }
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+        FightingPositionHighlightPublisher.publish(selection, sim, highlights,
+                camera != null ? camera.visibleCells() : null);
         VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
                 debugMarineFriendlyInfluence, debugMarineHostileInfluence,

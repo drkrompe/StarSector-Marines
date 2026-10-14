@@ -45,6 +45,10 @@ public final class HighlightOverlay {
     /** Where an order was refused, or given up on — a different thing from where one is going. */
     public static final String SRC_VEHICLE_MOVE_REFUSED =
             "vehicle-move-refused";
+    /** Prepared ground, the selection's claimed cells, and dug-in marines; see {@code FightingPositionHighlightPublisher}. */
+    public static final String SRC_FIGHTING_POSITIONS = "fighting-positions";
+    public static final String SRC_FIGHTING_POSITION_CLAIMS = "fighting-position-claims";
+    public static final String SRC_DUG_IN = "dug-in";
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
     public static final String SRC_HEARD_NOISE      = "heard-noise";
@@ -92,6 +96,10 @@ public final class HighlightOverlay {
     /** Refusal reads as a warning rather than a command cue: it is the order not happening. */
     public static final Color COLOR_VEHICLE_MOVE_REFUSED =
             new Color(0xFF, 0x60, 0x50, 0xFF); // refusal red
+    /** Faint on purpose: a wash over every cell of every trench must not shout. */
+    public static final Color COLOR_FIGHTING_POSITION = new Color(0x58, 0xE0, 0x78, 0x58);
+    public static final Color COLOR_FIGHTING_POSITION_CLAIMED = new Color(0x50, 0xE8, 0xFF, 0xC0);
+    public static final Color COLOR_DUG_IN = new Color(0xFF, 0xD0, 0x40, 0xFF);
     public static final Color COLOR_CAPTAIN        = new Color(0xFF, 0xD0, 0x40, 0xFF);  // gold
     public static final Color COLOR_BELIEVED_CONTACT = new Color(0xFF, 0x50, 0xA0, 0xFF); // magenta
     public static final Color COLOR_AUDIO_CONTACT  = new Color(0xFF, 0xA0, 0x38, 0xFF); // amber
