@@ -51,7 +51,7 @@ public final class WaylineArc {
                     + "Our Hound, Wayward, is offline in the maintenance berth just beyond the gate. Secure the berth and keep a squad there while they bring its chaingun online. "
                     + "Use it for the push into dispatch and the defense that follows; direct control is optional. Win the depot and the walker is yours, including recovery and repair if it is knocked out. "
                     + "Clear the warehouse and hold company units inside for eight seconds. Then defend dispatch against two attacks entering along both service roads. Defeat the finite raider force and secure the warehouse to win. We provide one shuttle; "
-                    + "your company needs lift for two sorties. Cr. 9,000 on success, and I'll vouch for your company "
+                    + "your company needs lift for two sorties. You'll be paid on success, and I'll vouch for your company "
                     + "with Independent brokers. Let's give our drivers their road back.";
         };
     }
@@ -80,7 +80,7 @@ public final class WaylineArc {
                         + "Castle has our line-support and scout-screen specs; choose one transfer in Barracks Equipment, with free fitting in your Machine Shop. "
                         + "We can talk about the depot when you're ready. I'd rather keep working with the people who answered this call."
                     : "The depot is ours again. Dispatch can start moving freight. Your payment is cleared, "
-                        + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
+                        + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. One thing I can't account for: they left the strongroom alone and took the dispatch board, every route and every schedule on it. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
         }
         if (outcome.alliesEngaged > 0 && outcome.alliesLost >= outcome.alliesEngaged) {
             report += " None of our militia came home. We'll have to rebuild that watch.";

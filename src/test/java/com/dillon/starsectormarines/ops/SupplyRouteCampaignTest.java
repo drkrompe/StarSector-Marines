@@ -37,7 +37,7 @@ class SupplyRouteCampaignTest {
         var repeat = SupplyRouteCampaign.offers(p).get(0);
         assertEquals("Route Security", repeat.name); assertEquals(MissionSource.RECURRING, repeat.source);
         assertEquals(12000, repeat.payout); assertNotEquals(convoy.id, repeat.id);
-        assertTrue(repeat.flavor.contains("new security job"));
+        assertTrue(repeat.flavor.contains("each security job held"));
     }
     @Test void recoveryBeatBelongsOnlyToSuccessfulStoryWork() {
         var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
