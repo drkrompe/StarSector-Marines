@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-14 — align the old wreck claim, recent attack and bounded cousin report with the dialogue register.
+Updated: 2026-10-14 — Morrow is a wreck from the same fall; her crew are Basin volunteers.
 
 ## Placement and employer
 
@@ -44,13 +44,12 @@ The recent opening of a sealed hold drew rumors and armed rival scavengers.
 The wreckfall is mod-authored local history, not a named vanilla battle or an
 event caused by the player's campaign simulation.
 
-The Shepherd **Morrow** is the cooperative's own working tender, brought to the
-claim separately. During the recent attack, her crew put her down in the service
-cradle with damaged controls, shut down the damaged systems and evacuated through
-the receiving apron. She did not fall with the Colossus three cycles ago. Power
-distribution and drone servicing need repair; surviving hands return with Vale's
-repair party. Original complement and casualties remain unauthored and must not
-be inferred from the inspection or repair parties.
+The Shepherd **Morrow** fell with the Colossus three cycles ago. Basin hauled her
+broken hull onto the yard's service cradle to be cut up for her reactor and drone
+bay. The occupiers had begun running cable into that bay to wake her builders.
+Power distribution and drone servicing need repair. Her original complement is
+unauthored and must not be inferred from the inspection or repair parties; the
+crew who leave with her are Basin volunteers.
 
 Vale's cousin's crew remained hidden inside the Colossus and provides an offscreen
 report at the first briefing. Their presence is authored correspondence, not a
@@ -70,7 +69,7 @@ another secret arm of Sable Wake. There is no additional capital-ship rescue obj
 Basin owns Morrow throughout inspection and repair. The original contract pays
 18,000 credits to secure its yard and protect the inspection, then 22,000 credits
 to protect Basin's repair crew. Basin supplies parts, engineers and equipment to
-repair its own tender; its militia originally cover the outer road. Neither job
+repair its own salvage; its militia originally cover the outer road. Neither job
 creates a player claim on the hull.
 
 Completed Cold Start demonstrates the repaired drone bay's usefulness to the
@@ -171,7 +170,7 @@ ground around an employer asset and handing a secured position to allied holders
 
 Vale begins with the shipment and the crew now occupying her yard. Castle notices
 the missing manifest; Vale leaves the cargo to her own handlers and limits the
-company's role to security. Morrow remains Basin's tender. The offer readout
+company's role to security. Morrow remains Basin's salvage. The offer readout
 states 18,000 credits for the yard inspection and 22,000 for protecting Basin's
 repair crew. Immediate instructions remain receiving store, workshop, then a
 protected hull inspection. No ownership negotiation precedes these jobs.

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -25,6 +26,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 
 /**
@@ -37,11 +39,24 @@ public final class CommanderInfluenceService implements AutoCloseable {
     public static final String ASYNC_PROPERTY = "battle.influence.async";
     public static final int BLOCK_SIZE = 8;
     public static final int UPDATE_INTERVAL_TICKS = 15;
+    /**
+     * Whether a fort's guns report what they are engaging to their side's commander ({@code battle.command.fortReports},
+     * default on). Off is the control in which a fort is seen only through the squads standing in or near it.
+     */
+    public static final boolean FORT_REPORTS = Boolean.parseBoolean(System.getProperty("battle.command.fortReports", "true"));
+
+    /** The guns whose current targets their side's commander learns of: a fort's nests, manned or not. */
+    @FunctionalInterface
+    public interface GunWatch {
+        void forEachGun(LongConsumer sink);
+    }
 
     private final NavigationGrid grid;
     private final UnitRosterService roster;
     private final LongSupplier topologyRevision;
     private final CasualtyMemory casualties;
+    private GunWatch gunWatch = sink -> { };
+    private int captureTick;
     private InfluenceTopology cachedTopology;
     private long cachedTopologyRevision = Long.MIN_VALUE;
     private volatile SnapshotPair snapshots;
@@ -215,6 +230,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
     }
 
     private Capture capture(int simTick) {
+        captureTick = simTick;
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long start = System.nanoTime();
         InfluenceTopology topology = topologyForCurrentRevision(profile);
@@ -296,6 +312,11 @@ public final class CommanderInfluenceService implements AutoCloseable {
                 friendly, hostile, sources.losses(), sources.contacts());
     }
 
+    /** Installs the guns whose targets are reported; the simulation hands over its forts' nests. */
+    public void setGunWatch(GunWatch watch) {
+        this.gunWatch = Objects.requireNonNull(watch, "watch");
+    }
+
     public Metrics metrics() {
         return new Metrics(worker != null, submitted, completed.get(), published,
                 discarded, failed, workerNanos.get(), maxWorkerNanos.get(),
@@ -352,6 +373,24 @@ public final class CommanderInfluenceService implements AutoCloseable {
                     merged.put(candidate.unitId(), candidate);
                 }
             }
+        }
+        if (FORT_REPORTS) {
+            // A gun engaging a body knows where it is, whoever is or is not in the works with it. This is what lets an
+            // unmanned or lightly held fort raise the pressure that brings its garrison.
+            World world = roster.world();
+            gunWatch.forEachGun(gun -> {
+                if (!roster.isLive(gun) || identity.faction(gun) != faction) return;
+                long target = world.targetId(gun);
+                if (target == 0L || !roster.isLive(target)
+                        || !faction.hostileTo(identity.faction(target))
+                        || !identity.type(target).combatant) {
+                    return;
+                }
+                CommanderContact candidate = new CommanderContact(target, world.cellX(target), world.cellY(target),
+                        captureTick, 1f, commandStrength(identity.type(target)), BeliefSource.DIRECT, -1);
+                CommanderContact old = merged.get(target);
+                if (old == null || prefer(candidate, old)) merged.put(target, candidate);
+            });
         }
         List<CommanderContact> contacts = new ArrayList<>(merged.values());
         contacts.sort(Comparator.comparingLong(CommanderContact::unitId));
