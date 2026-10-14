@@ -274,7 +274,9 @@ Do not run builds or leave generated task files there.
   the ground the marines came ashore on is boxed and reads `LZ`, and an arrow
   runs from the beachhead to the keep. Without them a whole-map Conquest frame
   is a picture of a city in which nothing says which grey rectangle is the
-  headquarters. `-PsnapshotAnnotations=false` renders the bare scene. Optional
+  headquarters. `-PsnapshotAnnotations=false` renders the bare scene.
+  `-PsnapshotFocus=x,y,cellsAcross` frames a close view on that cell, with
+  shots and impacts, instead of the whole map. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded
