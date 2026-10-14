@@ -231,39 +231,49 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             assertCommsGeometry(document, instance, false);
             clickControl(document, instance, "mission-deploy", false);
             assertEquals(1, deployments[0], "Inline conversation leaves deployment controls available");
-            clickControl(document, instance, "mission-comms-next", true);
-            comms.update(instance);
+            advanceCommsTurn(comms, document, instance);
             addCommsFrame(renderer, document, frames, "briefing-comms-02-castle.png");
             assertCommsGeometry(document, instance, true);
             for (int turn = 2; turn < 4; turn++) {
-                clickControl(document, instance, "mission-comms-next", true);
-                comms.update(instance);
-                document.layout(1920, 1080);
+                advanceCommsTurn(comms, document, instance);
             }
             addCommsFrame(renderer, document, frames, "briefing-comms-04-negotiation.png");
             assertCommsGeometry(document, instance, true);
             for (int turn = 4; turn < 8; turn++) {
-                clickControl(document, instance, "mission-comms-next", true);
-                comms.update(instance);
-                document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+                advanceCommsTurn(comms, document, instance);
             }
             addCommsFrame(renderer, document, frames, "briefing-comms-08-instructions.png");
             assertEquals("8 / 8", instance.requireElement("mission-comms-status").text());
             assertCommsGeometry(document, instance, false);
-            clickControl(document, instance, "mission-comms-skip", true);
-            comms.update(instance);
-            assertFalse(comms.visible());
+            advanceCommsTurn(comms, document, instance);
+            assertFalse(comms.visible(), "The final turn completes automatically");
             assertNull(instance.requireElement("mission-comms-dialog").parent(), "Hidden dialog leaves the layout tree");
             addCommsFrame(renderer, document, frames, "predeployment-briefing.png");
             clickControl(document, instance, "mission-deploy", true);
-            assertEquals(2, deployments[0], "Skipping leaves planning input available");
+            assertEquals(2, deployments[0], "Automatic completion leaves planning input available");
             clickControl(document, instance, "mission-narration-replay", true);
             comms.advance(0, false);
             comms.update(instance);
             addCommsFrame(renderer, document, frames, "briefing-comms-replay.png");
             assertEquals("vale", comms.current().key());
             assertCommsGeometry(document, instance, false);
+            clickControl(document, instance, "mission-comms-skip", true);
+            comms.update(instance);
+            assertFalse(comms.visible(), "Skip still dismisses a replayed conversation");
         }
+    }
+
+    private static void advanceCommsTurn(BriefingComms comms, UiDocument document, MarkupInstance instance) {
+        var prior = comms.current();
+        assertTrue(comms.visible(), "A turn must be visible before its automatic progression");
+        for (int step = 0; step < 1200 && comms.visible() && comms.current() == prior; step++) {
+            comms.advance(.1f, false);
+            comms.update(instance);
+            document.advance(.1f);
+        }
+        assertTrue(!comms.visible() || comms.current() != prior,
+                "Conversation must advance automatically within two minutes per turn");
+        document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
     }
 
     private static void addCommsFrame(HeadlessUiRenderer renderer, UiDocument document,
@@ -284,6 +294,10 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
     }
 
     private static void assertCommsGeometry(UiDocument document, MarkupInstance instance, boolean castle) {
+        for (String id : List.of("mission-comms-next", "mission-comms-previous")) {
+            assertThrows(IllegalArgumentException.class, () -> instance.requireElement(id),
+                    "Continuous conversation has no manual turn control: " + id);
+        }
         var portrait = instance.requireElement("mission-briefing-speaker-portrait");
         var body = instance.requireElement("mission-comms-text");
         var contact = instance.requireElement("mission-briefing-speaker").box().borderBox();
