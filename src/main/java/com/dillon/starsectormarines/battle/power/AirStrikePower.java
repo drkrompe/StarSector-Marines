@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.power;
 
-import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -44,8 +43,6 @@ public final class AirStrikePower extends CommandPower {
 
     @Override
     public void resolve(int cellX, int cellY, CommandPowerService service, BattleControl battle) {
-        AirPoolKind kind = battle.airPool().defaultKind(Faction.MARINE);
-        if (kind == null) return;
-        battle.requestAirStrike(Faction.MARINE, kind, cellX + 0.5f, cellY + 0.5f, battle.playerSeesCell(cellX, cellY));
+        battle.requestAirStrike(Faction.MARINE, cellX + 0.5f, cellY + 0.5f, battle.playerSeesCell(cellX, cellY));
     }
 }

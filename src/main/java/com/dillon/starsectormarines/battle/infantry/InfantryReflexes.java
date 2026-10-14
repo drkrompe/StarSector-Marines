@@ -134,6 +134,27 @@ public final class InfantryReflexes {
     };
 
     /**
+     * A squad medic walking to a patient or treating one, and a planted patient
+     * holding still for it.
+     *
+     * <p><b>Ranked here</b> for the reason {@link #MORTAR_SECTION} is: below the
+     * hazards already in the air and the marine still closing on the squad, and
+     * above everything that would start something. A medic with hands on a
+     * patient throwing a grenade is the thing this rank prevents; the medic holds
+     * fire for the whole treatment. A broken fire team is let go by the reflex
+     * itself, so the morale law still comes first.
+     *
+     * @see SquadMedicSystem#serve for what the medic and patient each do
+     */
+    public static final Reflex TREATMENT = new Reflex() {
+        @Override public String name() { return "TREATMENT"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return SquadMedicSystem.serve(unit, squad, sim);
+        }
+    };
+
+    /**
      * The general special-equipment shot of opportunity — satchel, frag,
      * deployable, close contact — available only while the assigned step
      * tolerates it. Each of these spends a squad resource or freezes the carrier
@@ -244,6 +265,7 @@ public final class InfantryReflexes {
             KNOWN_GRENADE,
             REJOIN,
             MORTAR_SECTION,
+            TREATMENT,
             OPPORTUNITY_SPECIAL,
             HARDENED_OPPORTUNITY,
             ONSET_SCREEN,

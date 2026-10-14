@@ -68,13 +68,6 @@ public final class MortarTactics {
 
     /** Ticks between scans for a squad to open a section on. */
     static final int SECTION_SCAN_TICKS = 10;
-    /**
-     * Trial switch: a section being outranged sets its tube down without waiting for a halt or a quiet moment, because an
-     * enemy that out-shoots its rifles from a skirmish line never grants either. Off by default. UNTUNED.
-     */
-    static final boolean ANSWER_OUTRANGING = Boolean.parseBoolean(
-            System.getProperty("battle.mortar.answerOutranging", "false"));
-
     private MortarTactics() {}
 
     /**
@@ -84,16 +77,11 @@ public final class MortarTactics {
     public static boolean tryCommitDeploy(long unit, SpecialEquipmentDef special, BattleControl sim) {
         Squad squad = sim.squadOf(unit);
         if (squad == null) return false;
-        StructureDef structure = TurretCatalogRegistry.requireStructure(special.deployableEmplacementSpec().structureId());
-        boolean outranged = ANSWER_OUTRANGING
-                && outranged(unit, squad, sim.identity().faction(unit), structure.mount.weapon, sim);
-        if (!outranged) {
-            // A section told to fire a mission is ordered to set up where it stands: a squadmate still shuffling for a
-            // place in the line does not hold the tube back, which the gunner's own settling does.
-            boolean onMission = sim.fieldMortars().missionOf(squad.id) != null;
-            if (!sim.movement().settled(unit) || (!onMission && !sectionHalted(unit, squad, sim))) return false;
-        }
-        return commit(unit, special, squad, sim, !outranged);
+        // A section told to fire a mission is ordered to set up where it stands: a squadmate still shuffling for a
+        // place in the line does not hold the tube back, which the gunner's own settling does.
+        boolean onMission = sim.fieldMortars().missionOf(squad.id) != null;
+        if (!sim.movement().settled(unit) || (!onMission && !sectionHalted(unit, squad, sim))) return false;
+        return commit(unit, special, squad, sim);
     }
 
     /**
@@ -102,12 +90,12 @@ public final class MortarTactics {
      */
     static boolean tryCommitForSection(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim) {
         if (!sim.movement().settled(unit)) return false;
-        return commit(unit, special, squad, sim, true);
+        return commit(unit, special, squad, sim);
     }
 
-    private static boolean commit(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim, boolean quiet) {
+    private static boolean commit(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim) {
         FieldMortarService mortars = sim.fieldMortars();
-        if (!worthASetUp(unit, special, squad, sim, quiet)) return false;
+        if (!worthASetUp(unit, special, squad, sim)) return false;
         DeployableEmplacementSpec spec = special.deployableEmplacementSpec();
         World world = sim.world();
         Faction faction = sim.identity().faction(unit);
@@ -142,14 +130,9 @@ public final class MortarTactics {
      * the band (believed, or on an assigned mission) and nobody is on top of him.
      */
     static boolean worthASetUp(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim) {
-        return worthASetUp(unit, special, squad, sim, true);
-    }
-
-    /** As above; {@code quiet} false waives the quiet moment, for a section being out-shot (see {@link #ANSWER_OUTRANGING}). */
-    static boolean worthASetUp(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim, boolean quiet) {
         FieldMortarService mortars = sim.fieldMortars();
         if (mortars.tubeOfCarrier(unit) != null) return false;
-        if (quiet && squad.timeSinceUnderFire < QUIET_SECONDS) return false;
+        if (squad.timeSinceUnderFire < QUIET_SECONDS) return false;
         StructureDef structure = TurretCatalogRegistry.requireStructure(special.deployableEmplacementSpec().structureId());
         if (mortars.stashFor(unit, structure) <= 0) return false;
         Faction faction = sim.identity().faction(unit);
@@ -305,30 +288,6 @@ public final class MortarTactics {
         long target = sim.fieldMortars().pickMissionTarget(mission, faction, world.x(unit), world.y(unit),
                 weapon.minRange + DEAD_ZONE_MARGIN_CELLS, weapon.range - RANGE_MARGIN_CELLS, sim);
         return target == 0L ? 0 : HARDENED_WEIGHT;
-    }
-
-    /**
-     * Whether the squad is being out-shot: it believes in hostiles inside the tube's band and none inside its own gunner's
-     * rifle reach, so closing is the only other answer.
-     */
-    static boolean outranged(long unit, Squad squad, Faction faction, WeaponDef tube, BattleView sim) {
-        WeaponDef rifle = sim.combat().primaryWeapon(unit);
-        if (rifle == null) return false;
-        float near = Math.max(tube.minRange + DEAD_ZONE_MARGIN_CELLS, rifle.range);
-        float far = tube.range - RANGE_MARGIN_CELLS;
-        World world = sim.world();
-        boolean inBand = false;
-        for (BelievedContact contact : squad.believedContacts()) {
-            if (contact.confidence() < MIN_CONFIDENCE) continue;
-            long id = sim.resolveUnit(contact.unitId());
-            if (id == 0L || !faction.hostileTo(sim.identity().faction(id))) continue;
-            float dx = world.x(id) - world.x(unit);
-            float dy = world.y(id) - world.y(unit);
-            float d = (float) Math.sqrt(dx * dx + dy * dy);
-            if (d < near) return false;
-            if (d <= far) inBand = true;
-        }
-        return inBand;
     }
 
     private static boolean hostileOnTopOfUs(long unit, Squad squad, Faction faction, BattleView sim) {

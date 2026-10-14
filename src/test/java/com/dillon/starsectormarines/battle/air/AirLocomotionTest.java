@@ -49,7 +49,8 @@ class AirLocomotionTest {
                         ShuttleState.PAD_ASCENT, ShuttleState.INCOMING,
                         ShuttleState.PAD_DESCENT, ShuttleState.DEPARTING,
                         ShuttleState.RETURNING, ShuttleState.ATTACK_RUN,
-                        ShuttleState.REPOSITION, ShuttleState.ORBIT, ShuttleState.CRASHING),
+                        ShuttleState.REPOSITION, ShuttleState.ORBIT, ShuttleState.INTERCEPT,
+                        ShuttleState.CRASHING),
                 airborne);
     }
 

@@ -14,8 +14,8 @@ battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
 player-order layer. Barracks, Mech Lab and Boat Deck are deliberate authoring
 seams. Barracks organizes officer commands and saved squad profiles, and issues
-explicit replenishment orders. Its Equipment workspace retains Fleet Armory
-authoring and formation founding. Mech Lab and Boat Deck refit their persistent machines.
+explicit replenishment orders and raises new formations. Its Equipment workspace
+retains Fleet Armory authoring. Mech Lab and Boat Deck refit their persistent machines.
 Each surface acts through the corresponding campaign authority.
 
 This domain owns the shared language and presentation shape of the company. It
@@ -59,10 +59,11 @@ shared mapping instead of assigning paths independently in each screen.
 - **Squad equipment issue** — the explicit atomic transaction that resolves one
   weapon doctrine and one armor doctrine into the selected squad's exact twelve
   materialized kits.
-- **Squad founding** — one trailing `+` formation card in the Fleet Armory gallery
-  that consumes twelve Marines, 36 supplies, and 24 food before creating a full
-  named line formation. Its live material bill stays inside that
-  future card slot; a partial bill creates neither personnel nor squad identity.
+- **Squad founding** — the Barracks **Raise Squad** tile, trailing the formation
+  board, that consumes twelve Marines, 36 supplies, and 24 food before creating a
+  full named line formation under an officer with a free command slot. Its live
+  bill stays on that tile; a partial bill creates neither personnel nor squad
+  identity. Barracks is the only place a squad is founded.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
 - **Conformance** — whether a squad's current personnel and materialized issue
@@ -129,40 +130,22 @@ comes from the owning feature; money and docking requirements never turn unread
 news into invisible news. Existing saves discover currently available unread
 opportunities once. The retained shell presents these facts without owning rewards.
 
-Barracks is the single troop-management entry point. Its Equipment workspace
-retains the Company -> Squad -> Fire Team editing hierarchy. Barracks opens on officer commands (All formations plus one
+Barracks is the single troop-management entry point and the only place a squad is
+chosen. Barracks opens on officer commands (All formations plus one
 card per named officer), with squad selection for bulk orders. The rail offers
 no acting-NCO card: a squad without an officer still fights under its own NCO
 and its card says so, but assignment only ever moves squads to officers. A squad card's Loadout
-opens that squad's Fleet Armory workspace. Equipment opens the existing Fleet Armory
-inspect/edit path for equipment definitions, exact billet comparison, and issue.
-Its selectable company and squad cards retain readiness, recovery, and reinforcement
-in formation context. A reinforcement control is a secondary card action; selecting
-the rest of an Armory squad card still enters that squad.
+opens that squad's Fleet Armory loadout. Equipment opens the same workspace on the
+company's first line squad, or on First Refit while that offer stands. Fleet Armory
+keeps no squad list of its own: readiness, recovery, reinforcement and home-command
+assignment are all read and ordered on the Barracks formation board.
 
 Squad cards show the twelve current billets grouped into Alpha, Bravo, and Charlie.
 A filled marine cutout means ready, an amber medical mark means wounded, and a
 hollow cutout means vacant; counts and a text legend accompany these shapes.
 Wounded marines retain their billet. Historical killed and missing personnel do
 not occupy the current establishment. Readiness is distinct from stationing and
-from the selected frame used while organizing squads.
-
-The company squad gallery also owns an explicit **Organize squads** mode. In
-that mode, formation cards select squads for one home-officer assignment rather
-than opening equipment inspection. The destination is one active officer or
-**Unassigned**, with its operation-commander or acting-NCO fallback stated. The draft shows
-selected squads and the destination command's resulting count against rank
-capacity before the player applies it. Stationed formations remain visible and
-locked. Canceling or leaving the gallery discards the draft; neither selection
-nor choosing an officer changes campaign organization. Organization mode uses
-compact formation cards that keep selection and home command together at
-enlarged UI scales; equipment and recovery inspection remain with ordinary
-squad browsing.
-
-Officer destinations use the captain's persisted portrait, rank, and name. Their
-command display distinguishes current squads from incoming assignments and shows
-overflow against the rank cap before Apply. Unassigned carries an explicit
-operation-commander or acting-NCO fallback rather than a fictional officer portrait or capacity.
+from squad selection.
 
 The Armory has no separate top-level tab. Barracks owns its Equipment entry,
 and a squad card's Loadout opens that squad directly. Returning preserves the
@@ -448,7 +431,10 @@ legacy three-template intent into a deterministic player-owned weapon definition
 and the starter tactic sheet without rewriting any marine's current kit. The first later successful
 squad issue clears stale per-team assignment ids so only one equipment authority remains.
 
-Equipment template cards are literal permanent collectibles owned by Progression.
+Loadout cards are what the player buys, is paid and recovers: a Weapon Loadout or
+Tactic Sheet learned wholesale with its equipment, so the market item is the same
+thing the Armory browser shows as a card. The equipment templates beneath them are
+literal permanent collectibles owned by Progression.
 They are not a deck, hand, consumable, or squad definition. Definitions remain
 reusable intent; the Machine Shop fits learned equipment freely.
 The browser may give rare known entries stronger borders, color, and provenance copy
@@ -729,8 +715,7 @@ pairings. These are separate explicit orders, not a button that silently spends
 all available resources. Current billet counts state ready, wounded and vacant
 separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
-the formation board, not a separate page: it pays the same founding bill as the
-Armory desk and raises only into a free command slot: the open officer's, or
+the formation board, not a separate page: it pays the full founding bill and raises only into a free command slot: the open officer's, or
 with All formations open, the first officer on the roll with room. When no
 command has a slot the tile is disabled and says why, so the officers' combined
 command caps are the company's force limit for raising. Its bill reads as one line
@@ -813,9 +798,11 @@ background and dedicated female portrait. Existing default Mira portraits upgrad
 without replacing player-customized likenesses.
 
 After commissioning, Castle introduces Mira's portrait and guides an actual
-specialty choice. Armory then guides the ordinary twelve-Marine, 36-supply,
-24-food founding transaction, which includes baseline field kit. Barracks guides
-home-command assignment through the capacity-checked Assign Selected button on the commander card.
+specialty choice. Barracks then guides the ordinary twelve-Marine, 36-supply,
+24-food founding transaction on its Raise Squad tile, which includes baseline field
+kit; with Mira's command open the squad musters straight into it. A squad that
+reached Barracks unassigned is homed through the capacity-checked Assign Selected
+button on the commander card.
 Completion requires a current company ship with owned lift, an actually trained
 officer, and a full ready available squad assigned to that officer, followed by
 acknowledgement. It returns to the retained briefing, or to HQ's existing Mara
@@ -873,7 +860,7 @@ squad cards identify their saved home command. Viewing an officer dossier is a
 separate action from assignment. Personnel and equipment preparation remain in
 the right panel; commander assignment has no separate selector there.
 
-Home-command assignment uses the same atomic capacity checks as Fleet Armory.
+Home-command assignment applies the roster's atomic capacity checks to the whole selection.
 Personnel replacement uses ready reserves first, then the existing one-Marine-per-
 billet cargo transaction, in roster order. It stops when personnel run out; wounded
 marines keep their billets and are never replaced to make a readiness counter green.
@@ -898,11 +885,9 @@ no Barracks surface; giving it one is open progression work
 
 The campaign roster holder establishes only the non-deployable reserve formation
 during game load. A new company has no line squad until the player commits the full
-founding bill in Fleet Armory. Company HQ and Barracks therefore present honest zero
-states, while Fleet Armory renders a dedicated squad-and-plus founding emblem as the
-gallery's only formation slot until the first squad exists and keeps it trailing every
-later squad. Existing
-saves retain their named formations.
+founding bill on the Barracks Raise Squad tile. Company HQ, Barracks and Fleet Armory
+therefore present honest zero states; with no line squad, Equipment has no loadout
+to open and stays in Barracks. Existing saves retain their named formations.
 
 Leisure is authored as battle-owned **ambient task routes**, not screen-owned
 animation. The same deterministic station/walk/activity sampler now drives Mech Lab
@@ -1239,9 +1224,9 @@ route as its campaign event notice. Long lists state hidden counts, and missing
 derived inputs are explained rather than silently collapsed.
 
 The HQ introduces no persisted state and no second company hierarchy. Troop
-management routes into Barracks. Its Equipment entry opens the squad equipment
-gallery; Equip Squad bypasses the gallery for the inspected squad's three fire
-teams, named-marine viewer, two squad doctrine slots, and exact issue action.
+management routes into Barracks. Its Equipment entry and each squad's Loadout open
+one squad's three fire teams, named-marine viewer, two squad doctrine slots, and
+exact issue action.
 Breadcrumbs retain editor navigation, while the Barracks tab returns to the
 personnel workspace. These containers project the canonical roster; none creates
 parallel organization or another inventory economy.
@@ -1455,8 +1440,8 @@ The variant owns conversion state; `ship-interiors-nouns.md` owns its room progr
 
 Company reporting surfaces are read-only explanations. Barracks, Fleet Armory,
 Mech Lab and Boat Deck provide explicit authoring through the roster, armory and
-workshop authorities. Barracks shares home-officer organization with Fleet Armory
-and adds saved profile intent and bulk replenishment.
+workshop authorities. Barracks owns home-officer organization, saved profile
+intent and bulk replenishment.
 Their UIs do not mutate those facts independently. Mission
 command owns battle assignments; `Selection` remains view state. Campaign
 surfaces consume the live roster, while battle and results surfaces consume the
@@ -1557,7 +1542,7 @@ not become their authority or introduce a second clock lifecycle.
 
 `CampaignLessons` derives post-Relief guidance from `FirstRefit`, `MechBay` and
 `CampaignLessonProgress` on `MarineRoster`. HQ, Barracks and briefing present the
-next unfinished handoff; Equipment hosts the actual first issue or founding,
+next unfinished handoff; Equipment hosts the actual first issue and Barracks the founding,
 and Mech Lab reselects Wayward when reopening an unfinished fitting exercise.
 The portrait popover uses `PreparationGuide` and real `UiSpotlight` apertures.
 Return/navigation remains available for resupply; leaving never completes work.

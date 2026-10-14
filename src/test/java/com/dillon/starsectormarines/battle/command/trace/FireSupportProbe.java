@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.AirToAirFire;
+import com.dillon.starsectormarines.battle.airsupport.AirMission;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.MortarSections;
@@ -13,8 +16,12 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * What the marines' fire support did over a replayed Conquest: the tubes' rounds and how many were fired on an assigned
@@ -111,8 +118,39 @@ final class FireSupportProbe {
                 pool.getOrDefault(AirPoolService.EventType.RETURNED, 0), pool.getOrDefault(AirPoolService.EventType.LOST, 0),
                 pool.getOrDefault(AirPoolService.EventType.ABORTED, 0), pool.getOrDefault(AirPoolService.EventType.CALL_DROPPED, 0),
                 pool.getOrDefault(AirPoolService.EventType.REPLACED, 0)));
+        AirPoolService airPool = sim.airPool();
+        for (AirMission job : AirMission.values()) {
+            AirPoolService.MissionTally t = airPool.tally(Faction.MARINE, job);
+            out.append(String.format("- marine air %s sorties: called %d, launched %d, returned %d, aborted %d, lost %d%n",
+                    job, t.called(), t.launched(), t.returned(), t.aborted(), t.lost()));
+        }
+        out.append(String.format("- air-to-air: %d rounds fired, %d hit; airframes lost to fighters %d%n",
+                sim.airToAir().roundsFired(), sim.airToAir().roundsHit(), airToAirLosses(sim)));
         out.append(String.format("- fort nests killed: %d of %d (by mortar %d, by air %d, by the ground %d; attribution is a 90-tick heuristic)%n",
                 seenDead.size(), nests, killedByMortar, killedByAir, killedByGround));
         return out.toString();
+    }
+
+    /** Airframes of either side the loss ledger says a fighter's guns destroyed. */
+    static int airToAirLosses(BattleSimulation sim) {
+        int n = 0;
+        for (AirLoss loss : sim.getAirLosses()) {
+            if (AirToAirFire.KILL_LABEL.equals(loss.cause())) n++;
+        }
+        return n;
+    }
+
+    /** Pool ledger per kind of sortie, for the summary JSON. */
+    static JSONObject poolJson(BattleSimulation sim) throws JSONException {
+        JSONObject out = new JSONObject();
+        for (AirMission job : AirMission.values()) {
+            AirPoolService.MissionTally t = sim.airPool().tally(Faction.MARINE, job);
+            out.put(job.name().toLowerCase(Locale.ROOT), new JSONObject()
+                    .put("called", t.called()).put("launched", t.launched()).put("returned", t.returned())
+                    .put("aborted", t.aborted()).put("lost", t.lost()));
+        }
+        return out.put("airToAirRoundsFired", sim.airToAir().roundsFired())
+                .put("airToAirRoundsHit", sim.airToAir().roundsHit())
+                .put("airToAirKills", airToAirLosses(sim));
     }
 }

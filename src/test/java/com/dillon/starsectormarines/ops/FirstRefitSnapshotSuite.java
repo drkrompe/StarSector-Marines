@@ -110,7 +110,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
     }
     private SnapshotArtifact frame(SnapshotContext context, Reactor reactor, FirstRefitModel model, String file, String clickAfter, String hover) throws Exception {
         var props = new LinkedHashMap<String, Object>();
-        props.put("lesson", model.row()); props.put("backToSquads", (Runnable) () -> { });
+        props.put("lesson", model.row());
         Runnable noop = () -> { };
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP, noop, noop, noop, noop, noop, noop);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(

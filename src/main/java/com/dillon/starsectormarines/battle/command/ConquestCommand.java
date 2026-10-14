@@ -452,6 +452,25 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public Map<AirPoolService.Outcome, Integer> strikeOutcomes() {
         return Map.copyOf(strikeOutcomes);
     }
+
+    /**
+     * Ticks before a company's cover is asked for again. A cover fighter holds its station for
+     * {@code CoverDuty.STATION_SECONDS} after it has flown in, so asking at about the rate it is spent keeps one over the
+     * company for as long as the company is gathering or assaulting without ever stacking two. UNTUNED.
+     */
+    static final int COVER_RENEW_TICKS = 2400;
+    /** The ground companies want cover over, set by the pure plan and asked for in {@link #afterCommit}. */
+    private final List<CoverWish> coverWishes = new ArrayList<>();
+    private final Map<Integer, Integer> coverAskedTick = new TreeMap<>();
+    private final List<String> coverNotes = new ArrayList<>();
+    private final Map<AirPoolService.Outcome, Integer> coverOutcomes = new EnumMap<>(AirPoolService.Outcome.class);
+
+    private record CoverWish(int fortId, float x, float y) {}
+
+    /** How many cover requests the plans made, by what the air said, over the battle so far. */
+    public Map<AirPoolService.Outcome, Integer> coverOutcomes() {
+        return Map.copyOf(coverOutcomes);
+    }
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
@@ -1066,6 +1085,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
                 hostiles, emplacements, frame.topology(), frame.facts().airSupport());
         strikeWishes.addAll(result.strikes());
+        wishCover(frame.tick(), result, allSquads);
         for (Map.Entry<Integer, AssaultMuster.Order> entry : result.orders().entrySet()) {
             PlanningSquad squad = allSquads.get(entry.getKey());
             if (squad == null) continue;
@@ -1082,12 +1102,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 break;
             }
         }
-        if (lanceNote != null || !strikeNotes.isEmpty()) {
+        if (lanceNote != null || !strikeNotes.isEmpty() || !coverNotes.isEmpty()) {
             List<String> notes = new ArrayList<>(result.notes());
             if (lanceNote != null) notes.add(lanceNote);
             notes.addAll(strikeNotes);
+            notes.addAll(coverNotes);
             lanceNote = null;
             strikeNotes.clear();
+            coverNotes.clear();
             return new AssaultMuster.Result(result.orders(), result.companies(), notes, result.strikes());
         }
         return result;
@@ -1101,6 +1123,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
     @Override
     public void afterCommit(CommandEffects effects) {
         askForStrikes(effects);
+        askForCover(effects);
         if (lanceWishFort < 0 || dropZone == null) return;
         int fort = lanceWishFort;
         lanceWishFort = -1;
@@ -1136,6 +1159,50 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     + wish.cellY() + "): " + outcome);
         }
         strikeWishes.clear();
+    }
+
+    /**
+     * Notes where the companies want cover: over the squads of a company that has gathered anyone or has committed, at the
+     * centre of those squads, no more often than {@link #COVER_RENEW_TICKS}. Pure: the plan wishes, {@link #askForCover} acts.
+     */
+    private void wishCover(int tick, AssaultMuster.Result result, Map<Integer, PlanningSquad> allSquads) {
+        for (ConquestFrontSnapshot.CompanyState company : result.companies()) {
+            boolean assaulting = company.stage().equals("ASSAULT");
+            boolean gathering = company.stage().equals("MUSTER") && company.arrivedSquads() > 0;
+            if ((!assaulting && !gathering) || company.squadIds().isEmpty()) continue;
+            Integer last = coverAskedTick.get(company.objectiveId());
+            if (last != null && tick - last < COVER_RENEW_TICKS) continue;
+            double sx = 0;
+            double sy = 0;
+            int n = 0;
+            for (int id : company.squadIds()) {
+                PlanningSquad squad = allSquads.get(id);
+                if (squad == null || squad.aliveMembers <= 0 || squad.anchorCellX < 0 || squad.anchorCellY < 0) continue;
+                sx += squad.anchorCellX;
+                sy += squad.anchorCellY;
+                n++;
+            }
+            if (n == 0) continue;
+            coverWishes.add(new CoverWish(company.objectiveId(), (float) (sx / n) + 0.5f, (float) (sy / n) + 0.5f));
+        }
+    }
+
+    /**
+     * Asks the air for the cover the plan wished for. The air's own judgement applies (a fighter is kept back for
+     * strafes, a patrol is not sent into anti-air it is believed too strong for); a request that is taken, or already
+     * answered by a fighter on station, counts as asked, and one that is refused is asked again next pulse.
+     */
+    private void askForCover(CommandEffects effects) {
+        for (CoverWish wish : coverWishes) {
+            AirPoolService.Outcome outcome = effects.airCover(faction(), wish.x(), wish.y());
+            coverOutcomes.merge(outcome, 1, Integer::sum);
+            if (outcome == AirPoolService.Outcome.CALLING || outcome == AirPoolService.Outcome.ALREADY_COVERED) {
+                coverAskedTick.put(wish.fortId(), effects.tick());
+            }
+            coverNotes.add("company for fort " + wish.fortId() + " asked for cover over (" + (int) wish.x() + ","
+                    + (int) wish.y() + "): " + outcome);
+        }
+        coverWishes.clear();
     }
 
     /** The drop zone: the beachhead compound's cell, else where the first squads were first seen. */

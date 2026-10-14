@@ -1,0 +1,77 @@
+<template props="airClasses,airStatus,airStatusClasses,airRows">
+  <div id="battle-air-overlay" class="battle-air-overlay">
+    <div id="battle-air-plate" class="{airClasses}">
+      <div id="battle-air-header" class="air-header">
+        <div id="battle-air-title" class="label heading air-title">AIR SUPPORT</div>
+        <div id="battle-air-status" class="{airStatusClasses}">{airStatus}</div>
+      </div>
+      <div id="battle-air-kinds" class="air-kinds">
+        <div each="row in airRows" key="{row.id}" id="{row.id}" class="{row.rowClasses}">
+          <div id="{row.nameId}" class="{row.nameClasses}">{row.name}</div>
+          <div id="{row.trackId}" class="{row.trackClasses}">
+            <div id="{row.readyId}" class="air-fill-ready" style="{row.readyStyle}" />
+            <div id="{row.flightId}" class="air-fill-flight" style="{row.flightStyle}" />
+          </div>
+          <div id="{row.countId}" class="{row.countClasses}">{row.count}</div>
+          <div id="{row.regenId}" class="{row.regenClasses}">{row.regen}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .battle-air-overlay {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .air-plate {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    padding: 5px 7px;
+    gap: 4px;
+    border-width: 1px;
+    border-color: #727b79;
+    background-color: #141e19ee;
+    overflow: hidden;
+  }
+
+
+  .air-header { width: 100%; height: 14px; flex-direction: row; }
+  .air-title { width: 0px; flex-grow: 1; height: 14px; color: #a0ada8; }
+  .air-status { width: 150px; height: 14px; text-align: right; font-family: heading; overflow: hidden; white-space: nowrap; }
+  .air-status-ready { color: #78d494; }
+  .air-status-flight { color: #ffd464; }
+  .air-status-depleted { color: #d98a78; }
+
+  .air-kinds { width: 100%; flex-direction: column; gap: 3px; }
+  .air-kind { width: 100%; height: 14px; flex-direction: row; align-items: center; gap: 6px; }
+  .air-void { width: 0px; height: 0px; }
+  .air-caption-row { width: 100%; height: 14px; flex-direction: row; }
+  .air-caption { width: 100%; height: 14px; overflow: hidden; white-space: nowrap; }
+  .air-caption-sorties { color: #ffd464; }
+  .air-caption-losses { color: #d98a78; }
+  .air-kind-name { width: 62px; height: 14px; color: #c5d6cb; }
+  .air-track {
+    width: 0px;
+    flex-grow: 1;
+    height: 8px;
+    flex-direction: row;
+    border-width: 1px;
+    border-color: #445447;
+    background-color: #101713;
+  }
+  .air-fill-ready { height: 100%; background-color: #78d494; }
+  .air-fill-flight { height: 100%; background-color: #ffd464; }
+  .air-kind-count { width: 30px; height: 14px; text-align: right; color: #c5d6cb; }
+  .air-kind-regen { width: 76px; height: 14px; text-align: right; color: #929e95; overflow: hidden; white-space: nowrap; }
+  .air-kind-regen-none { color: #d98a78; }
+
+</style>

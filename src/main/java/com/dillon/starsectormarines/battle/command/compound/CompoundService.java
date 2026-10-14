@@ -120,8 +120,15 @@ public final class CompoundService {
         public int captureCellX = -1;
         public int captureCellY = -1;
 
+        /**
+         * The ground this compound is taken on, fixed with the map. Navigation zones merge when walls fall; this does
+         * not. See {@link ObjectiveArea}.
+         */
+        public final ObjectiveArea area;
+
         Record(TacticalNode node) {
             this.node = node;
+            this.area = ObjectiveArea.of(node);
             // Who would naturally hold this place at battle start, which is
             // what {@link TacticalNode#defaultGuard} has always meant: the
             // beachhead is the attacker's own ground and starts taken, every
@@ -253,7 +260,7 @@ public final class CompoundService {
     public static boolean occupiedBy(Record record, int zoneId,
                                      Faction faction, BattleView sim) {
         if (record == null || faction == null || sim == null || zoneId < 0) return false;
-        TacticalNode node = record.node;
+        ObjectiveArea area = record.area;
         ZoneGraph zones = sim.getZoneGraph();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
@@ -265,7 +272,7 @@ public final class CompoundService {
             if (!faction.friendlyTo(sim.identity().faction(unit))) continue;
             int x = sim.world().cellX(unit);
             int y = sim.world().cellY(unit);
-            if (x < node.left || x > node.right || y < node.top || y > node.bottom) continue;
+            if (!area.contains(x, y)) continue;
             if (zones.zoneIdAt(x, y) == zoneId) return true;
         }
         return false;

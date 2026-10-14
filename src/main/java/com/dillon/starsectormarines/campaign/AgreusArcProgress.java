@@ -10,7 +10,7 @@ public final class AgreusArcProgress implements Serializable {
     public static final String SITE = "north-weir";
     public static final String WARRANT_PREFIX = "agreus_limited_warrant_v1_";
     public static final int WARRANT_PAYMENT = 30000;
-    public static final String SPECTER_CARD = "equipment-template:armor.specter-recovered";
+    public static final String SPECTER_CARD = "loadout-card:sheet:armor:corporate-specter-section";
     private int attempt = 1, techniciansLost, militiaLost, repairLoadsLost;
     private String activeId, activePlanetId, activePlanetName, activeSite;
     private boolean completed;
@@ -18,7 +18,7 @@ public final class AgreusArcProgress implements Serializable {
     private boolean warrantCompleted, recordsRecovered;
     public static final String YARD_PREFIX = "agreus_yard_owners_v1_";
     public static final int YARD_PAYMENT = 36000;
-    public static final String ARBALEST_CARD = "equipment-template:armor.arbalest-recovered";
+    public static final String ARBALEST_CARD = "loadout-card:sheet:armor:salvage-assisted";
     private int yardAttempt, yardTechniciansLost, yardConstablesLost, toolingLost;
     private boolean yardCompleted;
     public boolean yardCompleted() { return yardCompleted; }

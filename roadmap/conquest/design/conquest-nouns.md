@@ -317,6 +317,17 @@ equally present and a two-sided room pauses the timer. It shows permanently
 mid-capture and can neither fall nor be held. The same misreading takes any
 building the moment its wall is breached into the street.
 
+That footprint is the compound's **objective area**, and it is a different
+thing from a navigation zone. A zone says what ground is connected to what, and
+destruction rewrites it: blow a wall out of a building and its room joins the
+street. The objective area is fixed when the map is built and outlives the
+walls. Everything about *taking* a compound asks about it: presence, the clear
+a securing squad performs on arrival, and the hold that follows. A squad that
+reaches a breached compound clears the compound's own ground, entering at its
+capture cell, rather than the outdoors its room has merged with. Read from the
+zone alone, the squad's clear would cover the street and every defender on it,
+which is a different and much larger order than the one it was given.
+
 The resolved capture cell and its live zone identity are the compound's
 authoritative tactical target. Command assignment, reachability, keep
 convergence, action markers, capture progress, and trace evidence all consume
