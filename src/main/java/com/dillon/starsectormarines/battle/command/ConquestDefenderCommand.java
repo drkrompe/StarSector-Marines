@@ -114,9 +114,26 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     static final int CONVOY_DEPLOYMENT_BAND_CELLS = 4;
     private static final int RALLY_SNAP_RADIUS = 12;
 
+    /**
+     * How long a track stays threatened after its last believed contact, in ticks: 15 s. Belief of an enemy lapses
+     * whenever nobody happens to be looking, and a threat that lapsed with it recalled every responder to reserve on the
+     * next pulse and sent it again on the one after, so squads crawled a few cells per order and never arrived.
+     * {@code -Dbattle.command.threatMemoryTicks=0} is the forget-at-once control. UNTUNED.
+     */
+    static final int THREAT_MEMORY_TICKS = Math.max(0, Integer.getInteger("battle.command.threatMemoryTicks", 450));
+    /**
+     * Whether an alarmed fort (see {@link PlaceAlarms}) makes its own track a threat, so the reserve answers a fort
+     * under attack that nobody can see into. {@code -Dbattle.command.alarmThreats=false} is the control.
+     */
+    static final boolean ALARM_THREATS = Boolean.parseBoolean(System.getProperty("battle.command.alarmThreats", "true"));
+
     private final ConquestTrackLayout trackLayout;
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
+    /** Per track, the tick of its last believed contact and the depth and front it reached then; for threat memory. */
+    private int[] threatSeenTick = new int[0];
+    private int[] threatSeenForward = new int[0];
+    private float[] threatSeenFront = new float[0];
     private volatile ConquestFrontSnapshot frontSnapshot;
     private final GarrisonDirector garrisons = new GarrisonDirector();
     /** Alarms on this side's own forts: the pressure kept up while nobody can see the attack ({@link PlaceAlarms}). */
@@ -228,9 +245,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         float knownHostileFront = -1f;
         float friendlyPressure;
         float hostilePressure;
+        /** No contact now, but one recently enough that the threat stands ({@link #THREAT_MEMORY_TICKS}). */
+        boolean remembered;
+        /** A fort of this side on the track is alarmed. */
+        boolean alarmed;
 
         Threat(int track) { this.track = track; }
-        boolean active() { return contacts > 0; }
+        boolean active() { return contacts > 0 || remembered || alarmed; }
     }
 
     /** Mutable working copy; never exposes or mutates a live squad. */
@@ -361,7 +382,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 @Override public float lossesAt(int bx, int by) { return influence.lossesAt(bx, by); }
             }, influence.blockSize(), influence.width(), influence.height());
         }
-        Threat[] threats = buildThreats(influence);
+        Threat[] threats = buildThreats(influence, frame.tick());
         Map<Integer, Rally> rallies = new HashMap<>();
         for (Threat threat : threats) {
             if (threat.active()) rallies.put(threat.track,
@@ -579,10 +600,16 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         frontSnapshot = snapshot.detail();
     }
 
-    private Threat[] buildThreats(CommanderInfluenceSnapshot influence) {
+    private Threat[] buildThreats(CommanderInfluenceSnapshot influence, int tick) {
         Threat[] threats = new Threat[trackLayout.trackCount()];
         for (int i = 0; i < threats.length; i++) threats[i] = new Threat(i);
         if (influence == null) return threats;
+        if (threatSeenTick.length != threats.length) {
+            threatSeenTick = new int[threats.length];
+            Arrays.fill(threatSeenTick, Integer.MIN_VALUE);
+            threatSeenForward = new int[threats.length];
+            threatSeenFront = new float[threats.length];
+        }
 
         for (CommanderContact contact : influence.contacts()) {
             int track = trackLayout.trackForCell(contact.cellX(), contact.cellY());
@@ -594,6 +621,30 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             threat.deepestForward = Math.max(threat.deepestForward, forward);
             threat.knownHostileFront = Math.max(threat.knownHostileFront,
                     trackLayout.assaultProgress(contact.cellX(), contact.cellY()));
+        }
+        for (Threat threat : threats) {
+            int i = threat.track;
+            if (threat.contacts > 0) {
+                threatSeenTick[i] = tick;
+                threatSeenForward[i] = threat.deepestForward;
+                threatSeenFront[i] = threat.knownHostileFront;
+            } else if (threatSeenTick[i] != Integer.MIN_VALUE && tick - threatSeenTick[i] <= THREAT_MEMORY_TICKS) {
+                // Where it was last believed to be: the rally stays put rather than falling back to the track's rear.
+                threat.remembered = true;
+                threat.deepestForward = threatSeenForward[i];
+                threat.knownHostileFront = threatSeenFront[i];
+            }
+        }
+        if (ALARM_THREATS) {
+            for (DefenceStructureFact aspect : structures) {
+                if (!aspect.ofFort() || aspect.originalHolder() != faction() || !alarms.alarmed(aspect.fortId())) continue;
+                int track = trackLayout.trackForCell(aspect.cellX(), aspect.cellY());
+                if (track < 0 || track >= threats.length) continue;
+                Threat threat = threats[track];
+                threat.alarmed = true;
+                threat.deepestForward = Math.max(threat.deepestForward,
+                        Math.round(trackLayout.forwardCoordinate(aspect.cellX(), aspect.cellY())));
+            }
         }
         for (int by = 0; by < influence.height(); by++) {
             for (int bx = 0; bx < influence.width(); bx++) {

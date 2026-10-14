@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlaceAlarmsTest {
@@ -68,6 +69,18 @@ class PlaceAlarmsTest {
         update(alarms, 75, aspect(Faction.MARINE, false), quiet());
         assertEquals(0f, alarms.floorAt(5, 5), "no more squads are fed into it piecemeal");
         assertTrue(alarms.describe().contains("lost"));
+    }
+
+    @Test
+    void aFortStaysAlarmedUntilItsFloorFadesBelowRelease() {
+        PlaceAlarms alarms = new PlaceAlarms();
+        update(alarms, 0, aspect(Faction.DEFENDER, true), quiet());
+        assertTrue(alarms.alarmed(0));
+        // ALARM_PRESSURE halves to the release level after log2(START / RELEASE) half-lives.
+        int lapse = (int) (PlaceAlarms.HALF_LIFE_TICKS
+                * (Math.log(PlaceAlarms.ALARM_PRESSURE / GarrisonDirector.RELEASE_PRESSURE) / Math.log(2))) + 30;
+        update(alarms, lapse, aspect(Faction.DEFENDER, false), quiet());
+        assertFalse(alarms.alarmed(0));
     }
 
     @Test

@@ -130,6 +130,13 @@ final class PlaceAlarms {
         return floor;
     }
 
+    /** Whether the fort's alarm stands: triggered, not a lost cause, and not yet faded below the release level. */
+    boolean alarmed(int fortId) {
+        if (!ENABLED) return false;
+        Alarm alarm = alarms.get(fortId);
+        return alarm != null && level(alarm) >= GarrisonDirector.RELEASE_PRESSURE;
+    }
+
     /** Every block under a live alarm, with its floor, for a caller seeding pressure areas: {@code [bx, by]} pairs. */
     List<int[]> alarmedBlocks() {
         List<int[]> out = new ArrayList<>();

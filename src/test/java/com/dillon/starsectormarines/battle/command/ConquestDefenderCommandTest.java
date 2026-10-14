@@ -268,6 +268,11 @@ class ConquestDefenderCommandTest {
                 / BattleSimulation.TICK_DT) + 20;
         for (int i = 0; i < expiryTicks; i++) sim.advance(BattleSimulation.TICK_DT);
         tick(command, sim);
+        // The belief is gone but the threat is remembered, so the responder keeps marching rather than being recalled.
+        assertEquals(AssignmentKind.DEFEND_TRACK, responder.assignedObjective.kind());
+
+        for (int i = 0; i <= ConquestDefenderCommand.THREAT_MEMORY_TICKS; i++) sim.advance(BattleSimulation.TICK_DT);
+        tick(command, sim);
 
         assertNull(responder.assignedObjective);
         assertEquals(0, command.frontSnapshot().track(0).knownHostileContacts());

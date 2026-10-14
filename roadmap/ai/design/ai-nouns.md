@@ -1048,6 +1048,14 @@ Conquest defender command is the first opposing-faction consumer: defender
 reports raise only a coarse threatened track/band and can mobilize a bounded
 starting patrol reserve. The briefing grants a rally context, not the source
 squad's hostile identity or exact reported position.
+A threatened track is **remembered** for a short while after its last believed
+contact, at the depth that contact reached: belief lapses whenever nobody
+happens to be looking, and a threat that lapsed with it recalled its responders
+on one pulse and re-sent them on the next, so they never arrived. An alarmed
+fort (see place alarms under fighting positions) also makes its own track a
+threat, so the reserve answers an attack that no squad can see into.
+`battle.command.threatMemoryTicks=0` and `battle.command.alarmThreats=false`
+are the controls.
 
 Conquest attacker capture allocation distinguishes lack of a defender belief
 from positive clearance. It preserves legal capture orders already underway
