@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-14 — basin fencing and battle damage; story-radio timing checked against playbacks.
+Updated: 2026-10-14 — Cold Start sampled with and without the Hound and a mortar team; basin fencing, damage and radio timing.
 
 ## Placement and employer
 
@@ -349,9 +349,15 @@ the duration targets remain tuning goals until measured playback and live review
   commits, and a four-turn Castle/Vale exchange that yields to
   `shepherd.salvage.arrival` if marines land first. Story narration plays one
   line per cue today, so this needs ordered multi-turn support in story radio.
-- **Cold Start cannot be won by the autonomous playback.** With fences and
-  without, the expected company reaches power or the gun and is then destroyed
-  (17–24 of 24 lost) or loses the repair crew. Salvage Rights is marginal:
+- **Cold Start is a coin flip for a bare company and a win with support.** Eight
+  playback seeds with no Hound or tube: 4 won, the company averaging about 6 of
+  24 alive. Longbow skirmishers outrange the company's rifles. The player's
+  recovered Hound, called at the first pad as the campaign resolves it for an
+  owned mech bay (`-Dbattle.coldStart.hound=true`), wins all 8 (about 10 alive);
+  one mortar team with the outranged trial switch
+  (`battle.mortar.answerOutranging`, see `phased-assault.md`) wins 7 (about 13);
+  both together win all 8 with about 18 alive. Decide which the mission should
+  expect before tuning the Longbows. Salvage Rights is marginal:
   the inspection crew dies in one or both seeds depending on small layout
   changes. Both are difficulty work, not story-radio faults. Story radio is
   serial and was timed against the playbacks: instruction lines outrank Cold
