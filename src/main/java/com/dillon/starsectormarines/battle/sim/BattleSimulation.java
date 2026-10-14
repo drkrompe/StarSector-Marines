@@ -98,6 +98,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
+import com.dillon.starsectormarines.battle.air.AirToAirFire;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
@@ -606,8 +607,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
+
+    /** Aircraft shooting aircraft: the cover fighters' nose guns. For evidence. */
+    public AirToAirFire airToAir() { return airToAir; }
     public void installWaylineGunship(boolean freight) {
         if (simTickIndex != 0 || waylineGunship != null) throw new IllegalStateException("Install Wayline air at setup");
         waylineGunship = new WaylineGunship(freight, storyBeats);
@@ -2303,6 +2308,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return airPool.request(this, side, kind, x, y, believes);
     }
 
+    @Override
+    public AirPoolService.Outcome requestAirStrike(Faction side, float x, float y, boolean believes) {
+        return airPool.requestAt(this, side, x, y, believes, unit -> true);
+    }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);
@@ -3047,6 +3057,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             airCoverSystem.tick(TICK_DT, this);
             airSystem.tick(TICK_DT);
             groundAntiAir.tick(this);
+            airToAir.tick(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —

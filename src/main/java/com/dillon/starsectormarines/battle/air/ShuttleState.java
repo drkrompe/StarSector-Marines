@@ -141,6 +141,15 @@ public enum ShuttleState {
      * clock the sortie was given.
      */
     ORBIT,
+    /**
+     * Pursuing a hostile aircraft with the nose guns.
+     *
+     * <p>A cover fighter's other attack. It is a phase of its own for the reason {@link #ORBIT} is: nothing in it ends on a
+     * line. The fighter steers at where the prey will be, the guns fire while the prey is inside their window, and the
+     * chase ends when the prey is down or gone, the guns are dry, or the chase has run its seconds, at which point the
+     * fighter goes back to its ring.
+     */
+    INTERCEPT,
     DEPARTING,
     /**
      * Flying home to its own field, and lined up on the strip.
