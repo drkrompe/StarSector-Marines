@@ -97,11 +97,15 @@ public final class BatteryFortScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
+        // These loops test the aspect choice by a lone detachment; the phased assault is the assault-muster scene.
+        boolean musterWas = ConquestCommand.musterEnabled();
+        ConquestCommand.setMusterEnabled(false);
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("guns-fire", "gun-side-hold", "bunker-taken", "bunker-wrecked", "magazine-wrecked",
                 "power-cut", "fort-taken-turns", "squad-takes-bunker", "commander-takes-bunker", "commander-skips-crew")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
+        ConquestCommand.setMusterEnabled(musterWas);
         return reports;
     }
 
