@@ -4,7 +4,7 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — Wayline is undercutting its rivals to win Asharu back; Vale buys from it because it is cheapest.
+Updated: 2026-10-14 — restore five field calls to their recorded wording so existing takes stay valid.
 
 ## How to read this script
 
@@ -19,10 +19,13 @@ at that point, and with what they are willing to say.
 `shepherd-recovery-arc.md` owns arc orientation. The runtime uses localized
 dialogue, automatic speaker changes, portraits, Skip and Replay.
 
-**This revision is ahead of the runtime.** `strings.json` and the recorded field
-audio still carry the previous script. Every line below is text-only until it is
-synced into the strings and a matching recording is approved. No recording has
-been commissioned by this revision.
+The runtime catalog (`wayline_narration.json`) and `strings.json` carry this
+script. Six field calls keep the wording of their existing recordings:
+`working_passage.underway`, `bend_build`, `militia_hold_0`, `narrows_build`,
+`militia_hold_1` and `departure` play recorded takes; every other line is
+text-only until a matching recording is approved. Mara's referral, the Salvage
+Rights drop exchange and the retry briefings are catalogued for recording but
+have no playback trigger yet.
 
 **PUBLIC** means known to Castle and the captain at that point. **HIDDEN** means
 an author-established motive the character need not admit. **TO BE REVEALED**
@@ -798,13 +801,13 @@ advancement gate. Hidden reserve-entry events remain silent.
 
 Cue: `working_passage.underway`.
 
-**Castle:** Captain, Morrow's off the cradle and moving on her own lift. Keep the company ahead of her and clear that pump bend.
+**Castle:** Captain, Morrow is moving under her own power. Keep the company ahead of her and clear that pump bend.
 
 #### Pump bend secured; construction available
 
 Cue: `working_passage.bend_build`.
 
-**Vale:** Pump bend's clear. Bring Morrow up behind the company and build a road gun. Keep her builders covered, Captain.
+**Vale:** Pump bend clear. Bring Morrow up behind the company and build a road gun. Keep her builders covered, Captain.
 
 #### Pump bend approach warning
 
@@ -834,7 +837,7 @@ Cue: `working_passage.road_team_1`.
 
 Cue: `working_passage.narrows_build`.
 
-**Vale:** Narrows are clear. Build the next gun before you move on, Captain. We need the southern approach covered.
+**Vale:** Narrows secured. Build the next gun before moving on, Captain. We need the southern approach covered.
 
 #### Rear pump-road warning
 
@@ -852,7 +855,7 @@ Cue: `working_passage.climb_out`.
 
 Cue: `working_passage.militia_hold_1`.
 
-**Vale:** My second team's holding the narrows, Captain. Keep the company with Morrow for the climb-out.
+**Vale:** My second militia team is holding the narrows, Captain. Keep the company with Morrow for the climb-out.
 
 #### Morrow reaches the eastern yard; protected drive work begins
 
@@ -870,7 +873,7 @@ Cue: `working_passage.road_team_3`.
 
 Cue: `working_passage.departure`.
 
-**Vale:** Drive test's good. She's climbing, Captain. Hold that approach until she's clear of the basin.
+**Vale:** Drive test complete. Morrow is climbing, Captain. Hold that approach until she's clear of the basin.
 
 #### Morrow physically clears the basin
 

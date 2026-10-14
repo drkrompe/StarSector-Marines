@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.text.NumberFormat;
@@ -40,44 +41,31 @@ final class MissionDebriefConversation {
         if (yardOwners(outcome)) return yardLines(outcome);
         if (limitedWarrant(outcome)) return warrantLines(outcome);
         if (waterUnderSeal(outcome)) return weirLines(outcome);
-        if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
-                recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?Strings.get("shepherdDebriefPassageExercise"):Strings.get("shepherdDebriefRegistryTransferred")),
-                recoveryLine("departure-corridor", false, outcome.missionSource.isDebug()
-                        ? Strings.get("shepherdDebriefPassageExerciseTerms")
-                        : Strings.get("shepherdDebriefPassageDroneFilters")),
-                recoveryLine("departure-crew", true, outcome.missionSource.isDebug()
-                        ? Strings.get("shepherdDebriefPassageExerciseCrew")
-                        : Strings.get("shepherdDebriefPassageWillingCrew")),
-                recoveryLine("departure-cost", false, outcome.workingPassage.militiaLost() > 0
-                        ? Strings.get("shepherdDebriefPassageMilitiaLosses")
-                        : outcome.marinesLost > 0 ? Strings.get("shepherdDebriefPassageCompanyLosses")
-                        : Strings.get("shepherdDebriefPassageCrewKnowledge")));
-        if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
-                recoveryLine("first-gun", true, Strings.get("shepherdDebriefColdDroneBay")),
-                recoveryLine("repair-complete", false, outcome.missionSource.isDebug()
-                        ? Strings.get("shepherdDebriefColdExercise")
-                        : Strings.get("shepherdDebriefColdRepairPaid")),
-                recoveryLine("repair-cost", true, outcome.missionSource.isDebug()
-                        ? Strings.get("shepherdDebriefColdExerciseCosts")
-                        : outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
-                            ? Strings.get("shepherdDebriefColdLosses")
-                            : Strings.get("shepherdDebriefColdNextJob")),
-                recoveryLine("departure-pending", false, outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
-                        ? Strings.get("shepherdDebriefColdRoadAfterLosses")
-                        : Strings.get("shepherdDebriefColdRoadNextJob")));
-        if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
-                recoveryLine("registry", true, outcome.missionSource.isDebug()
-                        ? Strings.get("shepherdDebriefSalvageExercise")
-                        : Strings.get("shepherdDebriefSalvageInspectionPaid")),
-                recoveryLine("terms", false, outcome.missionSource.isDebug()
-                        ? Strings.get("shepherdDebriefSalvageExerciseRepairParty")
-                        : Strings.get("shepherdDebriefSalvageRepairFee")),
-                recoveryLine("repair-bill", true, Strings.get("shepherdDebriefSalvageRepairCover")),
-                recoveryLine("repair-terms", false, Strings.get("shepherdDebriefSalvageShorePower")),
-                recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
-                        ? Strings.get("shepherdDebriefSalvageInspectionLosses")
-                        : Strings.get("shepherdDebriefSalvageCompanyReady")),
-                recoveryLine("power", false, Strings.get("shepherdDebriefSalvageRepairPreparation")));
+        if (outcome != null && outcome.victory && outcome.workingPassage != null) {
+            if (outcome.missionSource.isDebug()) return List.of(
+                    recoveryLine("departure-registry", true, Strings.get("shepherdDebriefPassageExercise")),
+                    recoveryLine("departure-corridor", false, Strings.get("shepherdDebriefPassageExerciseTerms")),
+                    recoveryLine("departure-crew", true, Strings.get("shepherdDebriefPassageExerciseCrew")));
+            String farewell = outcome.workingPassage.militiaLost() > 0 ? "militia_losses"
+                    : outcome.marinesLost > 0 ? "company_losses" : "jory";
+            return authored(catalog, "story_shepherd_working_passage", "debrief.passage.",
+                    "registry", "filters", "hands", "jangala", farewell);
+        }
+        if (outcome != null && outcome.victory && outcome.coldStart != null) {
+            if (outcome.missionSource.isDebug()) return List.of(
+                    recoveryLine("repair-complete", false, Strings.get("shepherdDebriefColdExercise")),
+                    recoveryLine("repair-cost", true, Strings.get("shepherdDebriefColdExerciseCosts")));
+            boolean losses = outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0;
+            return authored(catalog, "story_shepherd_cold_start", "debrief.cold.", "builders", "worth",
+                    losses ? "losses" : "checkpoints", losses ? "road_after_losses" : "paid_off");
+        }
+        if (outcome != null && outcome.victory && outcome.salvageRights != null) {
+            if (outcome.missionSource.isDebug()) return List.of(
+                    recoveryLine("registry", true, Strings.get("shepherdDebriefSalvageExercise")),
+                    recoveryLine("terms", false, Strings.get("shepherdDebriefSalvageExerciseRepairParty")));
+            return authored(catalog, "story_shepherd_salvage", "debrief.salvage.", "cables", "still_mine", "far",
+                    "power", "one_more", "guards", outcome.salvageRights.crewLost() > 0 ? "losses" : "ready", "apron");
+        }
         if (firstContract(outcome)) return List.of(
                 firstContractLine("receipt", true, "Payment's in. I checked twice. Our first Wayline contract, Captain. Someone's paid us to do what we said we would."),
                 firstContractLine("names", false, "The drivers asked who'd answered the call. I gave them your company's name. They'll remember it."),
@@ -91,6 +79,13 @@ final class MissionDebriefConversation {
         if (!coldAccount(outcome)) return HoundSalvageDebrief.lines(outcome, catalog);
         return List.of("orders", "consideration", "one_ship", "payroll", "way_out", "debt")
                 .stream().map(beat -> catalog.find("story_corvus_cold_account", "debrief.cold_account." + beat))
+                .filter(Objects::nonNull).toList();
+    }
+
+    /** Shepherd debrief turns are catalog lines, so a recorded take plays where one exists. */
+    private static List<WaylineNarration.Line> authored(WaylineNarration catalog, String missionId, String prefix,
+                                                        String... beats) {
+        return Arrays.stream(beats).map(beat -> catalog.find(missionId, prefix + beat))
                 .filter(Objects::nonNull).toList();
     }
 
