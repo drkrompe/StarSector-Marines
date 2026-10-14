@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a marching squad with an assigned fire mission opens a mortar section (a crew halts and works the tube, the rest of the squad is leashed, a window with an engagement extension and a cap); a crew-served tube is re-crewed by a squadmate when its gunner falls; crew-served fire support: the field mortar tube served by a gunner, now taking an assigned fire mission from a plan or standing order.
+Updated: 2026-10-14 — the player's right-drag line order: a frontage band cut per fire team, facing the threat or away from the approach, with a skirmish line where there is no prepared ground.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2195,6 +2195,23 @@ not. Like a defense area, it stands until superseded or withdrawn. The order
 resolves after the trench and before plain ground, and the cursor announces it
 with the same occupy verb. Where footprints overlap, the smaller place is the
 one pointed at.
+
+A right-drag across the ground is a **line** order: the player draws the
+frontage rather than a place. It is the same defend-area context, with the
+circle replaced by a band three cells either side of the drawn line, so claims
+come only from prepared ground the line actually crosses. The line has a
+**front**: the side toward the squad's believed threat, or, with none, the side
+away from where the squad came from. Cover is judged against the threat, or
+against the front when there is none. The line is cut into one stretch per fire
+team, and each team takes the run nearest its own stretch and stays whole on it
+while the run has room, so a line drawn across two trenches seats teams in each
+rather than splitting one team between them. The cut counts the squad's fire
+teams, not only those on the ground; when the set of teams changes (a lift lands,
+a team is lost) the whole line is cut again, so a team that arrived first does
+not keep the share meant for the rest. Marines left over take ordinary cover in
+the band, a cell behind the line; with no prepared ground at all the squad forms
+a skirmish line along it. Several selected squads share one drawn line end to
+end. Mechs given a line move to its end.
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

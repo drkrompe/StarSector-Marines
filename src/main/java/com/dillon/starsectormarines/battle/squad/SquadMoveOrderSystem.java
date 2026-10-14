@@ -105,13 +105,20 @@ public final class SquadMoveOrderSystem {
             // a mount is an attack move onto a cell that can drive away, and a
             // compound click is refused for a lance in any case.
             Squad squad = validPlayerSquad(request.squadId,
-                    request.kind == PendingOrder.Kind.DEFEND_AREA
+                    request.kind != PendingOrder.Kind.MOVE
                             ? AssignmentKind.DEFEND_AREA
                             : AssignmentKind.ATTACK_MOVE,
                     sim);
             if (squad == null || withdrawing(squad, sim)) continue;
             int[] origin = origin(squad, sim);
             if (origin == null) continue;
+
+            // A drawn line is the most specific thing the player can say: it names the
+            // ground and the facing both, so nothing under either end reinterprets it.
+            if (request.kind == PendingOrder.Kind.LINE) {
+                activateLine(request, squad, origin, sim);
+                continue;
+            }
 
             // A friendly vehicle with room under the click is not a patch of
             // ground to walk to — it is a ride. Resolved before the compound
@@ -294,6 +301,31 @@ public final class SquadMoveOrderSystem {
         issue(squad, ObjectiveAssignment.defendArea(
                 squad.id, center[0], center[1], radius),
                 occupyRunId >= 0 ? "occupy position" : "defend area", sim);
+    }
+
+    /**
+     * Holds a drawn line: a defense area whose circle encloses the line's band, carrying the
+     * line so the squad spreads along it. The front is settled here, from the squad's own
+     * picture: toward the threat it believes in, else away from where it stands. A lance takes
+     * the plain area at the line's middle, since mechs take no posts.
+     */
+    private void activateLine(PendingOrder request, Squad squad, int[] origin, BattleSimulation sim) {
+        SquadContactPicture picture = squad.contactPicture;
+        boolean threat = picture != null && picture.hasContacts()
+                && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
+        // The squad's centroid, as the drag preview used, so the facing given is the facing shown.
+        FrontageLine line = FrontageLine.facing(request.cellX, request.cellY, request.endX, request.endY,
+                squad.centroidX, squad.centroidY,
+                threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1);
+        int[] circle = line.enclosingCircle();
+        int[] center = ReachableCellResolver.nearest(sim.getGrid(), origin[0], origin[1], circle[0], circle[1]);
+        if (center == null) return;
+        boolean mech = squad.isMechSquad();
+        ActiveDefendAreaOrder order = new ActiveDefendAreaOrder(request.cellX, request.cellY,
+                center[0], center[1], circle[2], OccupyPositionDecision.NONE, mech ? null : line);
+        service.activate(squad.id, order);
+        issue(squad, ObjectiveAssignment.defendArea(squad.id, center[0], center[1], circle[2]),
+                mech ? "defend area" : "hold line", sim);
     }
 
     /**

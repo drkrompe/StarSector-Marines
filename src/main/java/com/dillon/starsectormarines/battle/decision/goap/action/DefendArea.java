@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 
@@ -41,6 +42,12 @@ public final class DefendArea implements Action {
     private static final float QUIET_DENSITY_DIVISOR = 1.77f;
     /** Quiet members stay well inside the edge so a flank is not the first thing outside the circle. */
     private static final float QUIET_MAX_RADIUS_SHARE = 0.7f;
+    /** A member of a drawn line without a prepared position stands this far behind it. */
+    private static final float LINE_REARWARD_OFFSET = 1f;
+    /** How far ahead of the line the point cover is judged against stands, when no threat is believed. */
+    private static final float LINE_FRONT_PROBE = 10f;
+    /** Small, so a member settles into cover near his own share rather than crowding a neighbour's. */
+    private static final int LINE_COVER_SEARCH_RADIUS = 2;
     private static final double GOLDEN_ANGLE = Math.PI * (3d - Math.sqrt(5d));
 
     private final int centerX;
@@ -190,6 +197,8 @@ public final class DefendArea implements Action {
                                    Squad squad, BattleView sim) {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
+        FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
+        if (line != null) return linePosition(member, line, threatX, threatY, squad, sim);
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float axisX = threatX - centerX;
@@ -207,6 +216,37 @@ public final class DefendArea implements Action {
                 threatX, threatY, desiredX, desiredY,
                 PREPARED_POSITION_SEARCH_RADIUS);
         if (covered != null && inside(covered[0], covered[1])
+                && !claimedByOther(covered[0], covered[1], member, sim)) {
+            return covered;
+        }
+        return nearestWalkableInside(desiredX, desiredY, sim);
+    }
+
+    /**
+     * Where a member holds a drawn line when no prepared position was his: his own share of the
+     * line, a cell behind it, settling into the best cover there against the believed threat or,
+     * with none, against the line's front. Shares are spaced evenly along the whole line, so a
+     * squad on open ground stands as a skirmish line across the ground the player drew.
+     *
+     * @param threatX the believed threat's cell, or -1 to cover against the front
+     */
+    private int[] linePosition(long member, FrontageLine line, int threatX, int threatY,
+                               Squad squad, BattleView sim) {
+        int ordinal = memberOrdinal(member, squad, sim);
+        int count = Math.max(1, squad.autonomousMemberCount(sim));
+        float[] share = line.pointAt((ordinal + 0.5f) / count, -LINE_REARWARD_OFFSET);
+        int desiredX = Math.round(share[0]);
+        int desiredY = Math.round(share[1]);
+        int fromX = threatX;
+        int fromY = threatY;
+        if (fromX < 0 || fromY < 0) {
+            float[] front = line.pointAt((ordinal + 0.5f) / count, LINE_FRONT_PROBE);
+            fromX = Math.round(front[0]);
+            fromY = Math.round(front[1]);
+        }
+        int[] covered = sim.getTacticalScoring().bestCoverCell(
+                fromX, fromY, desiredX, desiredY, LINE_COVER_SEARCH_RADIUS);
+        if (covered != null && line.covers(covered[0], covered[1])
                 && !claimedByOther(covered[0], covered[1], member, sim)) {
             return covered;
         }
@@ -233,6 +273,8 @@ public final class DefendArea implements Action {
     private int[] quietPosition(long member, Squad squad, BattleView sim) {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
+        FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
+        if (line != null) return linePosition(member, line, -1, -1, squad, sim);
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float[] offset = quietOffset(ordinal, count, radius);
