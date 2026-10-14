@@ -15,23 +15,25 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EquipmentTemplateCatalogTest {
 
     @Test
-    void recoveredPowerSuitsReserveStoryAcquisitionAndPreserveMilitaryUpgrade() {
+    void recoveredPowerSuitsAreOrdinaryAdvancedEarlyVersionsOfTheMilitaryPatterns() {
         MarineArmory armory = new MarineArmory();
         for (String id : List.of("armor.specter-recovered", "armor.arbalest-recovered")) {
             EquipmentTemplateCard card = EquipmentTemplateCatalog.armor(id);
-            assertEquals("post-shepherd-power-suits", EquipmentTemplateCatalog.installed().storySource(card.id()));
+            assertNull(EquipmentTemplateCatalog.installed().storySource(card.id()));
             assertEquals(EquipmentAccessTier.ADVANCED, card.accessTier());
             assertEquals(EquipmentTemplateCost.ZERO, card.issueCost());
             assertFalse(armory.ownsEquipmentTemplate(card.id()));
             assertTrue(FactionEquipmentCatalog.installed().entries().stream()
                     .flatMap(pool -> pool.offers().stream())
-                    .noneMatch(offer -> offer.templateId().equals(card.id())));
+                    .anyMatch(offer -> offer.templateId().equals(card.id())),
+                    "an early power suit has to be reachable through an ordinary channel");
             assertTrue(armory.acquireEquipmentTemplate(card.id()));
             assertFalse(armory.acquireEquipmentTemplate(card.id()));
             assertTrue(armory.ownsArmorTemplate(id));

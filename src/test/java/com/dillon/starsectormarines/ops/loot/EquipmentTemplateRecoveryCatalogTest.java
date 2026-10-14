@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.loot;
 
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
+import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -70,8 +71,10 @@ class EquipmentTemplateRecoveryCatalogTest {
 
         assertTrue(candidates(hegemony, Set.of(), 4).isEmpty());
         assertEquals(1, candidates(hegemony, Set.of(), 5).size());
-        assertTrue(candidates(tritachyon, Set.of(), 14).isEmpty());
-        assertEquals(1, candidates(tritachyon, Set.of(), 15).size());
+        assertTrue(candidates(tritachyon, Set.of(), 4).isEmpty());
+        assertEquals(1, candidates(tritachyon, Set.of(), 5).size());
+        assertTrue(LoadoutCard.parse(candidates(tritachyon, Set.of(), 14).get(0).itemId)
+                .accessTier() != EquipmentAccessTier.PRESTIGE);
     }
 
     private static List<LootCandidate> candidates(LootRollRequest request,
