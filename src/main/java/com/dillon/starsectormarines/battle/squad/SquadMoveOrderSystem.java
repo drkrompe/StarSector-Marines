@@ -144,6 +144,17 @@ public final class SquadMoveOrderSystem {
                 continue;
             }
 
+            // Prepared ground outside an uncaptured compound: occupy it. Inside one,
+            // securing the compound wins, since sandbag aprons stand at its doors.
+            if (request.kind != PendingOrder.Kind.DEFEND_AREA && !squad.isMechSquad()) {
+                int run = OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
+                        DigInSystem.isEnabled(), request.cellX, request.cellY);
+                if (run >= 0) {
+                    activateDefendArea(request, squad, origin, sim, run);
+                    continue;
+                }
+            }
+
             if (request.kind == PendingOrder.Kind.DEFEND_AREA) {
                 activateDefendArea(request, squad, origin, sim);
                 continue;
@@ -253,15 +264,21 @@ public final class SquadMoveOrderSystem {
 
     private void activateDefendArea(PendingOrder request, Squad squad,
                                     int[] origin, BattleSimulation sim) {
+        activateDefendArea(request, squad, origin, sim, OccupyPositionDecision.NONE);
+    }
+
+    private void activateDefendArea(PendingOrder request, Squad squad,
+                                    int[] origin, BattleSimulation sim, int occupyRunId) {
         int[] center = ReachableCellResolver.nearest(sim.getGrid(),
                 origin[0], origin[1], request.cellX, request.cellY);
         if (center == null) return;
         int radius = SquadMoveOrderService.DEFEND_AREA_RADIUS_CELLS;
         ActiveDefendAreaOrder order = new ActiveDefendAreaOrder(
-                request.cellX, request.cellY, center[0], center[1], radius);
+                request.cellX, request.cellY, center[0], center[1], radius, occupyRunId);
         service.activate(squad.id, order);
         issue(squad, ObjectiveAssignment.defendArea(
-                squad.id, center[0], center[1], radius), "defend area", sim);
+                squad.id, center[0], center[1], radius),
+                occupyRunId >= 0 ? "occupy position" : "defend area", sim);
     }
 
     /**
@@ -330,6 +347,11 @@ public final class SquadMoveOrderSystem {
                     "secure compound", sim);
         }
         return null;
+    }
+
+    /** Whether the cell lies inside a compound the marines do not yet hold, where a click secures it. */
+    public static boolean insideUncapturedCompound(int cellX, int cellY, BattleSimulation sim) {
+        return uncapturedCompoundAt(cellX, cellY, sim) != null;
     }
 
     private static Record uncapturedCompoundAt(int cellX, int cellY,

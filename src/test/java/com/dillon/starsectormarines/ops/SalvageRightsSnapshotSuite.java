@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
+import com.fs.starfarer.api.SoundAPI;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import org.json.JSONObject;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -208,15 +209,14 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         props.put("employerRows", List.of(
                 BriefingViewModel.info("basin-militia", "Vale's militia", "Follow the company into the receiving store and workshop", ""),
                 BriefingViewModel.info("basin-technicians", "Inspection party", "Two technicians / Morrow's southern service access", "")));
-        var comms = new BriefingComms(new NarrationPlayer(line -> {
-            throw new AssertionError("Prepared unvoiced exchange must not request sound playback");
-        }));
+        var audio = new BriefingReviewAudio();
+        var comms = new BriefingComms(new NarrationPlayer(audio::play));
         var recordings = WaylineNarration.parse(new JSONObject(Files.readString(
                 context.modRoot().resolve(WaylineNarration.PATH)))).briefing("story_shepherd_salvage");
         comms.enter(mission, recordings);
         comms.advance(0, false);
         comms.put(props);
-        BriefingViewModel.putNarration(props, comms.contact(), false);
+        BriefingViewModel.putNarration(props, comms.contact(), comms.busy());
         props.put("replayNarrationAction", (Runnable) comms::replay);
         var deployments = new int[1];
         props.put("deployDisabled", false);
@@ -227,25 +227,25 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             var document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
             instance.styles().forEach(document::addStyleSheet);
             comms.update(instance);
-            addCommsFrame(renderer, document, frames, "briefing-comms-01-vale.png");
-            assertCommsGeometry(document, instance, false);
-            clickControl(document, instance, "mission-deploy", false);
-            assertEquals(1, deployments[0], "Inline conversation leaves deployment controls available");
-            advanceCommsTurn(comms, document, instance);
-            addCommsFrame(renderer, document, frames, "briefing-comms-02-castle.png");
-            assertCommsGeometry(document, instance, true);
-            for (int turn = 2; turn < 4; turn++) {
-                advanceCommsTurn(comms, document, instance);
+            BriefingViewModel.updateNarration(instance, comms.busy());
+            String[] filenames = {"briefing-comms-01-vale.png", "briefing-comms-02-castle.png",
+                    "briefing-comms-03-vale.png", "briefing-comms-04-negotiation.png",
+                    "briefing-comms-05-vale.png", "briefing-comms-06-castle.png",
+                    "briefing-comms-07-vale.png", "briefing-comms-08-instructions.png"};
+            for (int turn = 0; turn < recordings.size(); turn++) {
+                assertSame(recordings.get(turn), comms.current().recording());
+                assertTrue(comms.busy(), "Each voiced turn owns an audio handle");
+                addCommsFrame(renderer, document, frames, filenames[turn]);
+                assertCommsGeometry(document, instance, turn == 1 || turn == 3 || turn == 5);
+                assertEquals((turn + 1) + " / 8", instance.requireElement("mission-comms-status").text());
+                if (turn == 0) {
+                    clickControl(document, instance, "mission-deploy", false);
+                    assertEquals(1, deployments[0], "Inline conversation leaves deployment controls available");
+                }
+                advanceCommsTurn(comms, document, instance, audio);
             }
-            addCommsFrame(renderer, document, frames, "briefing-comms-04-negotiation.png");
-            assertCommsGeometry(document, instance, true);
-            for (int turn = 4; turn < 8; turn++) {
-                advanceCommsTurn(comms, document, instance);
-            }
-            addCommsFrame(renderer, document, frames, "briefing-comms-08-instructions.png");
-            assertEquals("8 / 8", instance.requireElement("mission-comms-status").text());
-            assertCommsGeometry(document, instance, false);
-            advanceCommsTurn(comms, document, instance);
+            assertEquals(recordings.stream().map(WaylineNarration.Line::id).toList(), audio.heard);
+            assertEquals(8, audio.stopped, "Every completed turn stops its owned handle");
             assertFalse(comms.visible(), "The final turn completes automatically");
             assertNull(instance.requireElement("mission-comms-dialog").parent(), "Hidden dialog leaves the layout tree");
             addCommsFrame(renderer, document, frames, "predeployment-briefing.png");
@@ -254,26 +254,56 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             clickControl(document, instance, "mission-narration-replay", true);
             comms.advance(0, false);
             comms.update(instance);
+            BriefingViewModel.updateNarration(instance, comms.busy());
             addCommsFrame(renderer, document, frames, "briefing-comms-replay.png");
             assertEquals("vale", comms.current().key());
             assertCommsGeometry(document, instance, false);
             clickControl(document, instance, "mission-comms-skip", true);
             comms.update(instance);
+            BriefingViewModel.updateNarration(instance, comms.busy());
             assertFalse(comms.visible(), "Skip still dismisses a replayed conversation");
         }
     }
 
-    private static void advanceCommsTurn(BriefingComms comms, UiDocument document, MarkupInstance instance) {
+    private static void advanceCommsTurn(BriefingComms comms, UiDocument document, MarkupInstance instance,
+                                         BriefingReviewAudio audio) {
         var prior = comms.current();
         assertTrue(comms.visible(), "A turn must be visible before its automatic progression");
         for (int step = 0; step < 1200 && comms.visible() && comms.current() == prior; step++) {
+            audio.advance(.1f);
             comms.advance(.1f, false);
             comms.update(instance);
+            BriefingViewModel.updateNarration(instance, comms.busy());
             document.advance(.1f);
         }
         assertTrue(!comms.visible() || comms.current() != prior,
                 "Conversation must advance automatically within two minutes per turn");
+        if (comms.visible()) comms.advance(0, false);
+        BriefingViewModel.updateNarration(instance, comms.busy());
         document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+    }
+
+    /** Deterministic owned playback; production NarrationPlayer retains its normal trailing gap. */
+    private static final class BriefingReviewAudio {
+        final List<String> heard = new ArrayList<>();
+        ReviewSound current;
+        int stopped;
+        SoundAPI play(WaylineNarration.Line line) {
+            heard.add(line.id());
+            current = new ReviewSound(line.durationSeconds());
+            return current;
+        }
+        void advance(float dt) { if (current != null) current.remaining -= dt; }
+        private final class ReviewSound implements SoundAPI {
+            float remaining;
+            boolean stoppedHandle;
+            ReviewSound(float seconds) { remaining = seconds; }
+            public void stop() { if (!stoppedHandle) { stoppedHandle = true; stopped++; } }
+            public boolean isPlaying() { return !stoppedHandle && remaining > 0; }
+            public void setVolume(float volume) { }
+            public void setPitch(float pitch) { }
+            public void setLocation(float x, float y) { }
+        }
     }
 
     private static void addCommsFrame(HeadlessUiRenderer renderer, UiDocument document,
