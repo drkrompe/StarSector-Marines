@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
@@ -103,10 +104,13 @@ public class ShotFxTest {
                 assertNull(fx.tracerTail(), "turret has no authored tracer tail: " + structure.id);
             }
 
-            if (TurretCatalogRegistry.LOCUST_STRUCTURE_ID.equals(structure.id)) {
-                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
+            if (weapon.contrailProfile == ContrailProfile.MISSILE_SMOKE) {
+                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(), "missile turret contrail: " + structure.id);
             } else {
                 assertNull(fx.contrail(), "non-missile turret contrail: " + structure.id);
+            }
+            if (TurretCatalogRegistry.LOCUST_STRUCTURE_ID.equals(structure.id)) {
+                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
             }
         }
     }

@@ -94,7 +94,7 @@ class StationedStrengthTest {
         MarineRoster roster = stationedSquad(state);
         ExperienceTier issued = issuedBand(roster);
 
-        assertEquals(ExperienceTier.REGULAR, issued, "fixture: recruits are issued tier-2 armour");
+        assertEquals(ExperienceTier.GREEN, issued, "fixture: recruits are issued the tier-1 Cordon shell");
         assertEquals(SEATS * StationedStrength.seatWorth(issued),
                 StationedStrength.valueFor(state, 0, roster), EPSILON);
     }
