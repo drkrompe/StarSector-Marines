@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.command.compound.ObjectiveArea;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -67,10 +68,15 @@ public final class HoldZone extends AbstractZoneAction {
      */
     private final int[] holdX;
     private final int[] holdY;
+    /** The compound's own ground: what is held, whatever has become of its walls. */
+    private final ObjectiveArea area;
+
+    @Override protected ObjectiveArea area() { return area; }
 
     public HoldZone(int targetZoneId, TacticalNode compoundNode, int[] holdX, int[] holdY) {
         super(targetZoneId);
         this.compoundNode = compoundNode;
+        this.area = ObjectiveArea.of(compoundNode);
         this.holdX = holdX;
         this.holdY = holdY;
     }
@@ -125,7 +131,7 @@ public final class HoldZone extends AbstractZoneAction {
         }
 
         boolean enemiesInZone =
-                !ZoneQueries.zoneClearOfHostiles(targetZoneId, squad.faction, sim);
+                !ZoneQueries.areaClearOfHostiles(targetZoneId, area, squad.faction, sim);
 
         if (enemiesInZone) {
             return engageInZone(member, squad, sim);
@@ -180,7 +186,7 @@ public final class HoldZone extends AbstractZoneAction {
     private ActionStatus engageInZone(long member, Squad squad, BattleControl sim) {
         long target = sim.targetOf(member);
         boolean targetOutOfZone = target != 0L
-                && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId;
+                && !inTarget(sim.world().cellX(target), sim.world().cellY(target), sim);
         if (target == 0L
                 || targetOutOfZone
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
@@ -209,7 +215,7 @@ public final class HoldZone extends AbstractZoneAction {
             }
         }
 
-        if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId) {
+        if (!inTarget(sim.world().cellX(target), sim.world().cellY(target), sim)) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -260,7 +266,7 @@ public final class HoldZone extends AbstractZoneAction {
             long other = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
             float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
             if (d < bestDist) {

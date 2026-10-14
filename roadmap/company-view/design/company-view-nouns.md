@@ -449,7 +449,10 @@ legacy three-template intent into a deterministic player-owned weapon definition
 and the starter tactic sheet without rewriting any marine's current kit. The first later successful
 squad issue clears stale per-team assignment ids so only one equipment authority remains.
 
-Equipment template cards are literal permanent collectibles owned by Progression.
+Loadout cards are what the player buys, is paid and recovers: a Weapon Loadout or
+Tactic Sheet learned wholesale with its equipment, so the market item is the same
+thing the Armory browser shows as a card. The equipment templates beneath them are
+literal permanent collectibles owned by Progression.
 They are not a deck, hand, consumable, or squad definition. Definitions remain
 reusable intent; the Machine Shop fits learned equipment freely.
 The browser may give rare known entries stronger borders, color, and provenance copy

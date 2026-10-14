@@ -2058,6 +2058,10 @@ connectivity, not the place the squad was sent to occupy. If those two geometrie
 have no usable intersection, a single nearest legal capture-zone post preserves
 presence rather than spreading the squad over unrelated ground. Capture
 authority and completion still belong to the objective, not to post selection.
+The clear and the hold are bounded the same way, to the compound's objective
+area (`conquest-nouns.md`): after a breach, the hostiles a securing squad must
+clear, and the ones its holders turn to fight, are those standing on the
+compound's own ground, not every hostile on the open ground the room now joins.
 
 A selected Marine infantry squad may instead receive a persistent **defend
 area** context through a deliberate two-step command. Its clicked center snaps

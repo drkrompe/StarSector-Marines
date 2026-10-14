@@ -7,12 +7,11 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
-import com.dillon.starsectormarines.marine.FactionEquipmentPicker;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCardPicker;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -24,7 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Delivers one faction-authored template card for each completed patron contract. */
+/** Delivers one faction-authored loadout card for each completed patron contract. */
 public final class PatronEquipmentRewardSystem implements CampaignSystem {
 
     interface RewardAccess {
@@ -32,7 +31,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         Set<String> unavailableTemplateIds();
         int victories();
         boolean grant(String templateId);
-        void announce(String patronName, EquipmentTemplateCard template);
+        void announce(String patronName, LoadoutCard card);
     }
 
     private final RewardAccess access;
@@ -95,8 +94,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
                             state.patronEngagementHouseId[cursor - 1]);
                     String patronName = houseRow >= 0
                             ? state.houseDisplayName[houseRow] : null;
-                    access.announce(patronName,
-                            EquipmentTemplateCatalog.require(templateId));
+                    access.announce(patronName, LoadoutCard.parse(templateId));
                 } catch (RuntimeException ignored) {
                     // Presentation must never replay a cargo grant.
                 }
@@ -124,7 +122,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         long seed = rewardSeed(state.patronEngagementId[row],
                 state.patronEngagementSourceContractId[row],
                 state.patronEngagementHouseId[row]);
-        List<String> selected = FactionEquipmentPicker.pick(factionId,
+        List<String> selected = LoadoutCardPicker.pick(factionId,
                 FactionEquipmentSource.PATRON, 1, seed, unavailable,
                 new EquipmentAcquisitionEligibility.Progress(
                         victories, state.playerMrbRep));
@@ -165,7 +163,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
     private static final class StarsectorRewardAccess implements RewardAccess {
         @Override
         public Set<String> unavailableTemplateIds() {
-            return EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+            return LoadoutCardInventory.playerUnavailableCardIds();
         }
 
         @Override
@@ -178,18 +176,18 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         public boolean grant(String templateId) {
             CargoAPI cargo = playerCargo();
             if (cargo == null) return false;
-            cargo.addSpecial(EquipmentTemplateCardItemPlugin.itemData(templateId), 1f);
+            cargo.addSpecial(LoadoutCardItemPlugin.itemData(templateId), 1f);
             return true;
         }
 
         @Override
-        public void announce(String patronName, EquipmentTemplateCard template) {
+        public void announce(String patronName, LoadoutCard card) {
             if (Global.getSector() == null || Global.getSector().getCampaignUI() == null) return;
             String patron = patronName != null && !patronName.isBlank()
-                    ? patronName : Strings.get("equipmentTemplateUnknownPatron");
+                    ? patronName : Strings.get("loadoutCardUnknownPatron");
             Global.getSector().getCampaignUI().getMessageDisplay().addMessage(
-                    MessageFormat.format(Strings.get("equipmentTemplatePatronRewardFmt"),
-                            patron, template.displayName()));
+                    MessageFormat.format(Strings.get("loadoutCardPatronRewardFmt"),
+                            patron, card.displayName()));
         }
 
         private static CargoAPI playerCargo() {
