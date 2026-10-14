@@ -39,7 +39,7 @@ class OpeningOperationStoryTest {
         assertEquals(OpeningOperationKind.RELIEF.missionId, mission.id);
         assertEquals(MissionSource.STORY, mission.source);
         assertEquals(RiskLevel.LOW, mission.risk);
-        assertTrue(mission.flavor.contains("Mara Venn"));
+        assertTrue(mission.flavor.contains("checkpoint"));
         assertTrue(mission.flavor.contains("Wayline"));
         assertEquals(2, mission.requiredDrops);
         assertEquals(1, mission.employerShuttles);
