@@ -4,7 +4,7 @@ Status: IN PROGRESS — mission layer extracted and trial ground playing; first 
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — steps 1–3 built. The first run found reactive manning blind (no squad sees an attack on an empty fort); fixed in production by a token picket and fort-gun reports. Default matrix at 9000 ticks: no run takes the objective; marines lose 33–40 of 54 with the fort on the path, 21–36 offset.
+Updated: 2026-10-14 — steps 1–3 built; reactive manning blindness fixed (token picket, fort-gun reports, threat memory). Home tracks now follow work and stages stand until reached: across 15 fixtures (9 offset, 6 on-path) the objective falls in 11 and marines win 8, against none before. An offset fort is still walked past rather than engaged; next is lane loans.
 
 ## Intent
 

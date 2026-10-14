@@ -303,6 +303,15 @@ A new squad now takes the least-loaded track, its natural one winning a tie, so 
 landing that is already spread keeps its lanes. The count is rebuilt from live
 squads each pulse, and the choice is made once per squad.
 
+**Only a track with work in it is anybody's home.** Work is a compound to take
+(the marines' own beachhead is not one); a map whose compounds are known on no
+track balances over all three. On the trial ground every objective stands in
+one third of the map, and balancing over every strip homed a third of the
+company to the empty ones, where the no-front staging rule walked it up open
+ground for the whole battle. An empty strip is ground the front crosses on its
+way to a lane, not a front of its own, so it also does not hold back the
+abreast bound below.
+
 **The zone cap alone was the wrong lever, and it is the right one on top of
 that.** The zone picker ranks every squad onto the nearest believed-defender
 zone and consults nothing about who is already going there. The cap gives each
@@ -408,7 +417,14 @@ must not become a lone flank walking off ahead of the force that would have to
 support it — is answered by a bound instead. An unscouted track may lead its
 *neighbouring* tracks' friendly lead by the same margin a believed one may lead
 its own, so the line advances abreast and a track that has run out ahead holds
-until the rest come up. The relaxation is confined to staging: a squad already
+until the rest come up. Only neighbours with work count: squads standing in an
+empty strip are crossing to their own, and capping on them held a whole company
+to the pace of its stragglers. A stage the squad has not yet reached stands
+until it arrives, even when the next stage would be too short a step to issue;
+clearing it halted the squad every other pulse, and a line with nothing
+believed ahead crawled a few cells per order. On the trial ground the two
+together took the objective in 11 of 15 fixtures and won 8, against none of
+either before. The relaxation is confined to staging: a squad already
 in contact is not stuck, and an exterior contact the commander has not yet
 placed stays ambient rather than becoming a fabricated forward order. A blind
 advance is published under its own reason, and does not count as the actionable

@@ -405,7 +405,9 @@ preferred track so the assault remains readable, but the track is a coordination
 frame rather than an ownership fence. The preferred track is not where the squad
 happened to land: the whole force lands in one place, so a new squad takes the
 least-loaded track and the front is held by three bodies of squads rather than
-rolled from lane to lane by one. On the way, a squad does not close up on another
+rolled from lane to lane by one. Only a track holding a compound to take is
+anybody's home: a strip with nothing in it is ground crossed on the way, not a
+front, and it neither receives squads nor holds the line's advance back. On the way, a squad does not close up on another
 squad ahead of it on the same approach, so a force sent to one target arrives as a
 procession; both are presentation laws bounded by contact and a maximum wait.
 Winning is not their measure. When its preferred track has no actionable

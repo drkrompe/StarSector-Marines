@@ -16,10 +16,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[brisk, businesslike] Wayline's finally dropped the distribution rig on the receiving apron. My fitters take it to the workshop, bring the pump station back and put shore power into the yard. You keep them breathing while they do it. Then you're done.",
-      "durationSeconds": 18.47,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 11.36,
       "selectedTake": null
     },
     {
@@ -34,10 +33,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[neutral] And the roads?",
-      "durationSeconds": 1.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.2,
       "selectedTake": null
     },
     {
@@ -52,10 +50,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[confident] Checkpoints on the south haul and the quarry road, manned by day hands from the camps down the valley. My own militia hold the inner line.",
-      "durationSeconds": 11.13,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 7.84,
       "selectedTake": null
     },
     {
@@ -70,10 +67,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[flat, skeptical] Day hands.",
-      "durationSeconds": 0.81,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 1.28,
       "selectedTake": null
     },
     {
@@ -88,10 +84,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[a little defensive] Armed, paid, and a third of what you cost.",
-      "durationSeconds": 3.39,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 3.68,
       "selectedTake": null
     },
     {
@@ -106,10 +101,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[measured, pointed] Harlan's crew took this yard off your own people. They'll know what a checkpoint is worth.",
-      "durationSeconds": 7.26,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.36,
       "selectedTake": null
     },
     {
@@ -124,10 +118,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[dismissive] Harlan's past the quarry. Jory's watched for three days and they haven't come near.",
-      "durationSeconds": 6.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.36,
       "selectedTake": null
     },
     {
@@ -142,10 +135,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[curious, probing] Your techs said Harlan's crew were trying to wake Morrow's bay. Did anyone ask why?",
-      "durationSeconds": 6.69,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.68,
       "selectedTake": null
     },
     {
@@ -160,10 +152,9 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[reluctant, firm] Teo thinks her builders could put guns up round the yard. Maybe they could. That bay's the most saleable thing I own outside the Colossus, and every hour those drones work is wear on it. I'm not burning it on guns I don't need.",
-      "durationSeconds": 18.31,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 13.6,
       "selectedTake": null
     },
     {
@@ -178,10 +169,9 @@
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[cool, letting it go] Your yard. Captain, we cover the rig and the pump, and when the lights come on we lift.",
-      "durationSeconds": 7.02,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 5.76,
       "selectedTake": null
     },
     {
@@ -196,14 +186,13 @@
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[practical, a touch of conscience] Keep fire off my fitters. And if those checkpoints call for help, they're on my payroll. Cover them back to the inner line.",
-      "durationSeconds": 9.92,
-      "durationSource": "estimated reading duration; unrecorded",
+      "durationSeconds": 7.04,
       "selectedTake": null
     }
   ],
-  "status": "Current authored briefing (2026-10-14 script pass); all turns unrecorded",
+  "status": "Current authored briefing (2026-10-14 script pass); every turn recorded, transcript-checked and promoted",
   "retiredSourceIds": [
     "basin_cold_cousin_question_01",
     "basin_cold_cousin_safe_01",
