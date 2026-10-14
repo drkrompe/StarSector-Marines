@@ -153,7 +153,7 @@ test {
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
-                'crew-liveliness', 'shader-evidence', 'render-evidence'
+                'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -245,6 +245,26 @@ tasks.register('crewEvidence', Test) {
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform {
         includeTags 'crew-liveliness'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// What every story mission's map offers a squad to hold, at tick zero: windows,
+// entrances and stand cells per held place at building and compound scope, and
+// fighting-position runs, plus the windows and runs no held place covers. It
+// stands up every story battle, so it is evidence rather than a test.
+tasks.register('garrisonEvidence', Test) {
+    group = 'verification'
+    description = 'Inventory the garrisonable places on every story mission map; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'garrison-evidence'
     }
     maxParallelForks = 1
     outputs.upToDateWhen { false }
