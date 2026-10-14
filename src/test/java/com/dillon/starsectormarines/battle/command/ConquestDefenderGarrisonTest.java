@@ -8,14 +8,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
-import com.dillon.starsectormarines.battle.world.model.BeltGarrisonMode;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -35,12 +32,6 @@ class ConquestDefenderGarrisonTest {
     private static final int W = 30;
     private static final int H = 60;
     private static final int TRENCH_Y = 30;
-
-    @BeforeEach
-    void reactiveModeIsTheDefault() {
-        Assumptions.assumeTrue(BeltGarrisonMode.current().reactiveManning(),
-                "run without -Dbattle.fort.beltGarrison overriding the default");
-    }
 
     @Test
     void aQuietTrenchIsNotManned() {
@@ -92,8 +83,6 @@ class ConquestDefenderGarrisonTest {
 
     @Test
     void aPatrolTheResponseJustRalliedMansAPressedTrenchWhenOnlyTheReserveFloorIsFree() {
-        Assumptions.assumeTrue(!"false".equals(System.getProperty("battle.garrison.fromRally")),
-                "run without -Dbattle.garrison.fromRally=false");
         BattleSimulation sim = openSimWithTrench();
         // Four patrols: the response takes three and the reserve is the one the floor protects.
         List<Squad> patrols = patrols(sim, 4);
@@ -115,9 +104,6 @@ class ConquestDefenderGarrisonTest {
 
     @Test
     void aTrackRallyToAPressedTrenchGoesToTheAreaStagingCellAndIsReservedAgainstIt() {
-        Assumptions.assumeTrue(!"false".equals(System.getProperty("battle.garrison.unifiedRally"))
-                        && !"false".equals(System.getProperty("battle.garrison.flow")),
-                "run without -Dbattle.garrison.unifiedRally=false or -Dbattle.garrison.flow=false");
         BattleSimulation sim = openSimWithTrench();
         List<Squad> patrols = patrols(sim, 10);
         addDefender(sim, "reporter", 15, 33, UnitRole.PATROL);
