@@ -1,0 +1,606 @@
+# Second Wind to Wayline: opening dialogue
+
+Status: DRAFT — proposed rewrite of the campaign-start and first-contract dialogue, for review before it replaces strings.
+
+Written: 2026-10-14
+
+Updated: 2026-10-14 — owner calls applied: Venn sisters, the licence the company cannot afford, the founding field commander and her twelve come off the Claim (renamed Sabine Hale), "Commander" throughout.
+
+## How to read this script
+
+This is the chronological dialogue register for a new Second Wind company, from
+the new-game choice to Mara Venn's first payment after **Hold Until Relieved**. It
+covers the prologue, Nessa's yard, Castle's preparation lessons, Sabine's
+induction, Castle's hand-off, Mara's introduction, the Relief briefing and the
+first-payment exchange. Counterattack, Secondhand Wings and the recurring jobs are
+out of scope; Sabine's combat callouts are a proposal at the end.
+
+Each line names the string key (or the code that builds it) that it would replace.
+Mechanics stated in a line are unchanged: costs, stores, berths, rewards and button
+names are the ones the game uses today. Lines that format a value keep their
+`{0}` placeholders; strings passed through `Strings.format` double their
+apostrophes when implemented. Keys still carry the old name `Mira`; renaming keys
+is implementation, not script.
+
+`cerberus-company-start.md` and `first-mission-preparation.md` own the flow these
+lines sit in; `wayline-opening-arc.md` owns the arc; `company-view-nouns.md` owns
+Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** and
+**TO BE REVEALED** mean what they mean in `shepherd-recovery-dialogue.md`.
+
+## Owner calls
+
+1. **Nessa and Mara are sisters.** Castle hears of Wayline through Nessa; the yard
+   visit carries the bridge. Players starting at a fallback port never meet Nessa,
+   so every line that depends on the relationship is Jangala-only.
+2. **The founding field commander came off the Claim, and so did her squad.** She
+   commanded the mine's escort section; twelve of them stayed with her. She is
+   renamed **Sabine Hale** (proposed) so she cannot be confused with Mara in
+   passing, and she speaks at story beats instead of being a portrait.
+3. **The player is "Commander"** in every rewritten or new line, Castle's and
+   Mara's alike. Yard staff already say Commander.
+4. **The company is unlicensed.** It cannot pay the Hegemony mercenary review
+   board's licence. Licensed companies will not work for what Wayline can pay;
+   unlicensed ones are what independents can afford. This is authored backstory,
+   not a game mechanic or prerequisite.
+
+## What was wrong
+
+- **Castle stops being a person once the prologue ends.** The preparation Castle
+  says "These stores cover one reusable shuttle and a fully equipped squad." That
+  is a tooltip read aloud. The instructions stay; the speaker is the woman who
+  kept the departure roster.
+- **Nothing at Jangala knows Wayline exists**, and then a stranger offers the
+  first paid job.
+- **Two Venns, no explanation.**
+- **The field commander arrives from nowhere**, and says nothing.
+- **Mara's briefing is a work order in her voice.**
+
+## Threads and parties
+
+**The Commander** — PUBLIC: ran cable out of the Cerberus the night the lower habs
+went dark; the crew chose them before the drive lit. Not a soldier, not a
+merchant, not licensed.
+
+**Castle** — PUBLIC: ore freighter hand, ran ore with Nessa; kept the departure
+roster's margin; holds a 5,000-credit yard payment nobody may touch. Talks in
+counts and understatement; protective by bookkeeping. HIDDEN: the yard payment
+is the last of her own savings; the "month's pay on my account" chit is the
+same money.
+
+**The Harker crew** — PUBLIC: miners, cargo hands and their families; minimum
+crew plus five. They kept the ship running. Castle will not make them fight.
+
+**Sabine Hale and her twelve** — PUBLIC: Sabine commanded the Claim's escort
+section on the ore runs. When the operator stopped paying for escorts, twelve of
+her people stayed with her rather than take passage out, and they came aboard
+Second Wind with their rifles and nothing else. They have not been paid in four
+months. Sabine gives clear orders, keeps a counted muster and does the counting
+herself. The founding squad's bill is their kit, stores and places on the
+company roll; the people are already aboard. HIDDEN: she blames herself for the
+two of her section who did not make the departure roster. UNDECIDED: the twelve's
+names and voices.
+
+**Nessa Venn** — PUBLIC: yard forewoman on Jangala; towed Castle's dead freighter
+home and threatened to cut her loose at every buoy. Generous in deeds, stingy
+with words. Her yard runs on parts that come up the Wayline road. Mara's older
+sister.
+
+**Mara Venn** — PUBLIC: broker for Wayline, the drivers' freight cooperative;
+Nessa's younger sister. HIDDEN: Relief's 6,000 is most of what is left in the
+cooperative's security fund; if the checkpoint falls, Wayline sells out to a
+bigger hauler. She hires an unlicensed company because it is the only kind she
+can afford, and she knows Castle knows that. TO BE REVEALED: the fund's state, at
+Counterattack.
+
+**Wayline's drivers and the checkpoint watch** — PUBLIC from Mara's introduction:
+drivers who pooled money to keep their own trucks; the watch is paid from the
+same collection as the company's fee.
+
+## 0 — New game
+
+`rules.csv` `smCerberusChoice` tooltip:
+
+> Leave Harker's Claim aboard Second Wind, a Cerberus held together by the people
+> who flew her out. No licence, no patron, five hundred credits. Build a mercenary
+> company from nothing.
+
+`rules.csv` `smCerberusSelected` text:
+
+> The operator's last ore carrier left Harker's Claim with the administrators,
+> the payroll and the good medical stores. Your people left later, in a Cerberus
+> the mine had spent eleven years stripping for parts. Someone painted SECOND WIND
+> over the registry. Somewhere between the locks and the jump point, they started
+> calling you Commander. You have 500 credits, a yard payment Castle will not let
+> anyone touch, twelve unpaid escorts who stayed, and a name on Jangala.
+>
+> This start replaces the Galatia tutorial with the Second Wind prologue and
+> company preparation.
+
+## 1 — Prologue
+
+Eight illustrated pages: a narration paragraph, then Castle. The present-day
+bridge opens it; pages two to four go back to show how the Claim died and how
+Second Wind was raised out of it; page five returns to the bridge. **THE WRITING
+ON THE WALL** and **RAISING HER** are new pages (title, narration and Castle line
+are new strings); the rest replace existing text.
+
+Facts these pages establish: Harker's Claim is a remote asteroid mine, three
+weeks' haul from the nearest port, that dug transplutonic ore (the game's
+`rare_ore`, refined into Transplutonics) and was worth the trip while the good
+seams lasted. Its operator ran it down quietly over years
+while telling the workers output was falling, then posted a date when facility
+support (air, heat, power) would end. The last carrier left eleven days before
+that date with the administrators and the payroll; worker passage was priced in
+credits nobody paid in scrip could raise. The Cerberus by the loading locks was
+the old escort hull, laid up and stripped for eleven years; Sabine's section had
+ridden the carriers since. Tethered at the locks with no shields up and no point
+defence running, she spent those years taking the belt's debris one strike at a
+time: that is where the sealed bunkrooms, the holed mess, the torn mech bay and
+the jammed second boat bay come from. The crew kept a chalk count of the days left on her
+hull, and lit her drive with four days on it.
+
+**SECOND WIND**
+
+`openingCompanyPrologueTheAlarmAboveTheHatchHasFinally`
+> The hatch alarm stopped an hour ago. Castle still looks up at it whenever the
+> drive changes pitch. Someone has wedged a folded shift roster under the
+> navigation console to stop it rattling. Harker's Claim is several jumps behind
+> you, and nobody aboard has said its name since the first.
+
+`openingCompanyPrologueYouCanLetGoOfTheChair` — Castle
+> You can let go of the chair, Commander. She's holding. I sent everyone I could
+> spare to get some sleep. They keep asking me where we're headed, and what
+> happens when we get there. I told them you'd already picked a direction. Don't
+> make a liar of me.
+
+**THE WRITING ON THE WALL** (new page)
+
+New narration
+> Harker's Claim was three weeks' haul from the nearest port, and the
+> transplutonic ore in its seams was worth every day of it. Then the good seams
+> thinned, and slowly the Claim stopped paying. The second shaft was "suspended pending
+> survey." The drill rigs went out on the carriers "for refurbishment" and never
+> came back. The clinic lost its surgeon to a transfer nobody had applied for.
+> Carriers came monthly instead of weekly, and left heavier than they arrived. The
+> notice that finally went up in the canteen was two lines long and ended with a
+> date.
+
+New — Castle
+> I ran the Claim's manifests for nine years. Every month they told us output was
+> down, outbound tonnage went up. Spare rigs, reactor stock, the clinic's
+> scanner, all listed as ore. They weren't failing, Commander. They were
+> packing.
+
+**WHAT WE LEFT BEHIND**
+
+`openingCompanyPrologueTheLastOreCarrierTookTheMine`
+> The date was when facility support would end: air, heat, power. The last ore
+> carrier left eleven days before it, with the administrators and the payroll
+> aboard. Passage for workers was offered, priced in credits nobody paid in scrip
+> could raise. The rest of the Claim kept reporting for shifts until the ration
+> counter stopped taking company scrip.
+
+`openingCompanyPrologueStillHadAMonthSPayOn` — Castle, `{0}` one of the next two
+> Still had a month's pay on my account at the Claim. Kept the chit. Couldn't tell
+> you why. {0}What's left in the ship's account is everybody's. Make it last.
+
+`openingCompanyPrologueTheRealMoneySMostlySpokenFor` (yard payment held)
+> The real money's spoken for. The yard payment's locked away where nobody can
+> borrow against it, and the shuttle parts and the squad's kit are paid.
+
+`openingCompanyPrologueIVePaidForShuttlePartsAnd` (no held payment)
+> Shuttle parts and the squad's kit are paid for. The yard money has to come out
+> of what's left.
+
+**RAISING HER** (new page)
+
+New narration
+> The Cerberus by the loading locks had been the Claim's escort hull until the
+> operator decided ore didn't need escorting. For eleven years she was a parts
+> bin, tethered at the locks with her shields cold and her point defence
+> stripped, and the belt's small rocks found her one at a time. Someone chalked the days left beside her airlock, and someone else kept the
+> count honest. You took drive coil from a hauler that hadn't flown since before
+> the Claim had a name, pressure seals off the doors of habs nobody would need
+> again, and a navigation core out of the administrator's empty office. Sabine's
+> section unbolted the point-defence mounts from the gantries and carried them
+> aboard by hand. You still have the list of everything you couldn't replace. It
+> is longer than the list of what you could.
+
+New — Castle
+> Four days left on the chalk when you lit her drive. I watched the whole loading
+> dock hold its breath. Nobody asked whether she'd fly, Commander. Not once. They
+> asked what to carry next.
+
+**THE DEPARTURE ROSTER**
+
+`openingCompanyPrologueTheDepartureRosterIsInYourHandwriting`
+> The departure roster is in your handwriting. Castle's additions run down the
+> margin in a smaller hand: fuel, seals, filters, one more person who needed a
+> berth, then another. Near the bottom, in block capitals, Sabine Hale has added
+> her escort section: fifteen names, two struck through. Nobody held a vote
+> about the command chair. While you were checking the last pressure patch,
+> someone painted SECOND WIND over the old registry and didn't sign it.
+
+`openingCompanyPrologueYouRememberTheNightTheyShutOff` — Castle
+> Remember the night they cut power to the lower habs? You were down there
+> running cable out of this wreck. That's when people started bringing me their
+> names. Not when we lit the drive. So you can stop looking at me every time
+> somebody says "Commander."
+
+**SOMEWHERE TO DOCK**
+
+`openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic` (Jangala)
+> Corvus has working yards, steady freight and Hegemony patrols crawling across
+> the navigation display. Castle scrolls past the public yard listings to a
+> private address: Nessa Venn, Jangala. The last message in the thread is years
+> old and ends in the middle of an argument. Castle reads it twice before she
+> starts a new one.
+
+`openingCompanyPrologueCastleSearchesThePortListingsForSomewhere` (fallback)
+> Castle works down the port listings for anywhere that will berth a civilian
+> hull and has a yard that can actually do the work. Half of them want a deposit
+> just to reply. A published berth and a working yard are worth more than anyone's
+> promise.
+
+`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (Jangala)
+> Nessa Venn. We ran ore together before she settled into the yards on Jangala.
+> Once spent three days towing my dead freighter home and swore she'd cut me loose
+> at every buoy. Never did. She'll have opinions about this ship. Let me talk
+> first.
+
+`openingCompanyPrologueHasAWorkingYardIDonT` — Castle (fallback)
+> {0} has a working yard. I don't know a soul there. We ask for a berth and a
+> written estimate, and we keep our story short.
+
+`openingCompanyPrologueNoAnswerFromAYardWeCan` — Castle (no port)
+> No yard in reach is answering. I'll keep trying. We didn't come all this way to
+> live on emergency power.
+
+**A WAY TO EARN**
+
+`openingCompanyPrologueACargoHandSleepsBesideTheBridge`
+> A cargo hand sleeps against the bridge hatch with her boots on. The crew take
+> turns in the bunks that still hold pressure. In the cargo hold, Sabine's twelve
+> sleep in shifts beside their stacked rifles, the way they did on the ore runs.
+> Below decks are two wrecked Hermes and compartments you haven't dared put back
+> on the power bus. Castle has been reading surface security notices: depots,
+> convoy stops, freight roads that need guarding and can't afford anyone
+> established.
+
+`openingCompanyPrologueYouSaidWeCouldTakeContractWork` — Castle
+> You said once we were clear we'd take contract work. I've been looking. A proper
+> company carries a Hegemony review-board licence; the fee alone is more than this
+> ship is worth. So we take work from people who can't afford licensed companies
+> either. There are plenty of them. Sabine's people haven't been paid in four
+> months and they still stand watch. One shuttle. One squad on the roll, kitted
+> and fed. Then we see.
+
+**THE FIRST STEP**
+
+`openingCompanyPrologueCastlePutsTheYardEstimateBesideThe`
+> Castle lays the yard estimate on top of the old shift roster. For a moment she
+> holds it flat, her palm over the operator's crest. Then she slides both aside so
+> you can reach the navigation controls.
+
+`openingCompanyPrologueThenWeGetABoatFlyingAnd` — Castle, `{0}` a destination
+part then a payment part
+> {0}Then we get a boat flying and Sabine's people aboard her. After that...
+> well. We might actually be a company, Commander.
+
+`openingCompanyPrologueNessaSentAnEstimateCalledTheJob` (Jangala)
+> Nessa sent an estimate. She called the job "ambitious" twice, which beats
+> "scrap." Five thousand for the conversion, and she's found room in her stores
+> for ours.
+
+`openingCompanyPrologueWeLlGetTheYardAtTo` (fallback)
+> The yard at {0} will do the conversion. Five thousand, if they hold to the
+> estimate.
+
+`openingCompanyPrologueWeLlFindABerthThenBunks` (no port)
+> We find a berth. Then bunks, a workshop, and someone who can tell us which of
+> those shuttles is worth saving.
+
+`openingCompanyPrologueIVeKeptThePaymentSafe` / `…WeLlHaveToWatchThatYard`
+> The payment's safe. / We'll be watching that yard money.
+
+### Ship survey: where the damage came from
+
+Castle's room survey (`openingShipCondition…`) describes damage the player can
+inspect and repair. These lines give it a cause.
+
+`openingShipConditionSheSBeenThroughHardServiceThe`
+> Eleven years of the belt's small rocks. The pitting stays, but this room is
+> safe to use.
+
+`openingShipConditionTheseTwoBunkroomsTookTheSameHit`
+> One strike holed both of these bunkrooms while she was still tied up at the
+> Claim. Racks are crushed and the pressure seals are gone. The yard can reopen
+> both as one job.
+
+`openingShipConditionTheMessTookAHitWeAre`
+> A rock came through the mess years before we ever lit her. We're feeding
+> everyone field rations in the working quarters, and they deserve better. The
+> yard can seal the breach and put the galley and tables right.
+
+`openingShipConditionThereIsRoomForAFullLance`
+> There's room for a full lance, but the belt has been through the pressure skin
+> and all four gantries are wrecked. Nobody goes through that hatch until a
+> recovery crew makes it safe.
+
+`openingShipConditionASecondBoatBelongsHereOnceThe`
+> A second boat belongs here. Debris jammed the pressure door and bent the launch
+> rails; once the yard makes them safe, we earn the space back.
+
+## 2 — Jangala yard
+
+Castle reports the yard visit in the planet's interaction panel.
+
+`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Jangala)
+> Nessa met us at the berth. Took one look at the patch under the collar and asked
+> if I'd done it myself. I said I'd supervised. She remembers what that means.
+> Here's her estimate, Commander. She held to it.
+
+**New, Jangala only, after the estimate** — Castle; the Wayline bridge
+> Her racks are half empty. Most of her parts come up the Wayline road, and
+> raiders have had it shut for a month. Her sister Mara brokers for the drivers
+> and is wearing herself thin keeping them from selling their trucks. I said we'd
+> be looking for work, and that we've no licence. Nessa said Mara can't afford
+> anyone who has one. Then she said, "Talk to her when you've got something that
+> flies. Not before."
+
+`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (fallback)
+> The yard will clear space for bunks and a workshop. I asked them to leave the
+> compartments that still hold pressure alone. Look the estimate over, Commander.
+> We only get to do this once.
+
+`openingCompanyYardCMDIVeKeptThisPaymentAsideSince` — Castle
+> I've kept this payment apart since we left the Claim. It doesn't touch the
+> ship's account. Shuttle parts and the squad's kit are paid as well.
+
+`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (fallback
+completion)
+> The yard's done. Eighteen more berths, a proper command fit and a workshop
+> gantry, for twenty-five units of hold we're going to miss. It's permanent work,
+> Commander. No taking it back.
+
+`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Jangala completion)
+> Nessa's hanging the old pressure seals on her office wall. Says I have a
+> reputation to keep up. She stayed for the pressure test herself and left it off
+> the bill. Don't mention it. She'll deny it.
+
+`openingCompanyYardCMDOurPrepaidPreparationStoresAreInThis` — Castle
+> Our prepaid stores are in this planet's depot, and they only reach the workshop
+> while we're docked here. Open Marine operations and name the converted Cerberus
+> our command ship. I'll walk you through the rest.
+
+## 3 — Castle's preparation
+
+Castle's lesson panel. Instructions are unchanged; the speaker is the same woman
+who kept the roster.
+
+`openingCerberusCompanyStartFirstWeNeedMercenaryCompanyConversionOur`
+> First, the conversion: barracks and a workshop, built into her for good. Five
+> thousand credits. {0}Choose Return, dock at {1} and open Marine operations from
+> the planet menu; I'll have the yard order waiting. It isn't in the standard
+> Refit picker, and Additional Berthing won't do it. Nothing gets designated until
+> the yard has done its work. Our prepaid stores will wait in the planetary depot.
+
+`openingCerberusCompanyStartIHaveKeptThatPaymentSeparateFrom`
+> That payment is kept apart from our spending money. The yard draws it directly,
+> even if the ship's account is empty.
+
+`openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt`
+> The conversion is in. Stay docked at {0}, open Marine operations and name our
+> Cerberus the company's command ship. While we're docked here, the preparation
+> bills draw on our depot stock. Then we repair the first Hermes, settle Sabine's
+> appointment and put her section on the roll.
+
+`openingCerberusCompanyStartOurShipIsHomeNowStayDocked`
+> She's ours now, Commander, properly. Stay docked while we use the prepaid
+> stores: patch the first wrecked Hermes on the Boat Deck, settle Sabine's first
+> specialty in Barracks, then muster her squad in the Armory and put it under her.
+> I'll take you through each order.
+
+`openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd`
+> Commander, pick our home: a ship with quarters and a boat bay. These stores
+> cover one shuttle, which can make the trip as often as we need, and kit for one
+> full squad. Sabine's appointment is settled, first training point and all.\n\n{0}
+
+`openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd`
+> The crew are clearing our quarters and the hangar. When the deck's ready we
+> commission our lift, sit down with Sabine and muster her squad.
+
+`openingCompanyPreparationGuideOurHomeIsReadyComeDownTo`
+> Home's ready. Come down to the Boat Deck and we'll get our first shuttle flying.
+
+`openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes`
+> Second Wind came with two wrecked Hermes. We can reach this one; the other's
+> behind the sealed second bay. Let's patch this one for the first contracts.
+
+`openingCompanyPreparationGuideGoodThatBoatIsOursWithA`
+> Good. That boat's ours: a berth on the deck and a bill that's paid. She can make
+> the trip as many times as the squad needs. Plating and drive can wait for money
+> we haven't earned yet. Now, Sabine.
+
+`openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks`
+> Our lift's aboard. Come to Barracks; Sabine's waiting.
+
+`openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur`
+> We muster the squad once the ship, the lift and the field commander are ready.
+> Those first.
+
+`openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty`
+> Twelve marines, thirty-six supplies and twenty-four food. That's Sabine's
+> section on the company roll: kitted, fed and paid from today. Check the
+> highlighted bill and choose Found Line Squad; then we hand them back to her.
+
+`openingCompanyPreparationGuideTheSquadAndItsFieldKitAre`
+> They're on the roll and kitted. Back to Barracks to give Sabine her standing
+> command. Assigning them costs nothing more.
+
+`openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur`
+> Leaving didn't cost us anything, Commander. The rest of the shuttle parts and
+> squad stores are waiting at {0}. They're held ashore, so I can't draw them from
+> up here. Go back, choose Marine operations in the planet menu, and we'll pick up
+> where we stopped. Don't buy them twice.
+
+`openingCerberusCompanyStartYourCompanyIsReadyCommanderTheFirst`
+> We're a company, Commander. Mara Venn's first contract is waiting in
+> Headquarters. Whatever stores we didn't use stay in the depot for when we're
+> back.
+
+## 4 — Sabine
+
+`openingBarracksCommandMiraHaleFoundingFieldCommanderAFormer` — dossier
+> Sabine Hale / Founding field commander. Commanded the escort section on Harker's
+> Claim's ore runs. When the operator stopped paying for escorts, twelve of her
+> people stayed with her, and all thirteen came aboard Second Wind. She wants clear
+> orders and a counted muster, and she does the counting herself. Her specialty,
+> promotions and service record grow through your decisions.
+
+The induction lines name the officer by `{0}`: a surviving officer can carry the
+lesson if Sabine is gone, so her history lives in the dossier, the prologue and
+her own lines, not in these.
+
+`openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters`
+> First, Commander, a ship with quarters and a boat bay. I've counted the stores
+> for our first lift and a full squad. Bring the whole bill aboard before we
+> start, and we'll see this through together.
+
+`openingOfficerInductionGuideOurPeopleNeedAWayDownAnd`
+> Our people need a way down and a way home. Pick an empty berth and commission
+> its shuttle. One boat can ferry the squad in trips; more boats put them down
+> together. Keep the squad's stores aside for the next step.
+
+`openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou`
+> {0} will lead our first formation, Commander. You set the course; she brings our
+> people through it and home again. Open her portrait on the left. Let's give her
+> a proper start.
+
+`openingOfficerInductionGuideSheHasOneTrainingPointCoverProtects`
+> She has one training point. Cover keeps her troops alive under fire; Recovery
+> Planning gets our wounded back on their feet; Salvage Stewardship brings more
+> home from the field. Read all three, then choose. It's permanent. Her next
+> promotion earns another.
+
+`openingOfficerInductionGuideNowSheNeedsAFormationRaiseA`
+> Now her people need to be ours on paper. Raise a squad in the Armory, then come
+> back here. Twelve marines, thirty-six supplies and twenty-four food buy their
+> field kit and stores. Check the bill, then put their names on the roll.
+
+`openingOfficerInductionGuideGoodSheHasASpecialtyAndPeople`
+> Good. She has a specialty and people to lead. At briefing, put her squad on the
+> mission. Every officer who goes earns their own service record. Bring them home
+> and we'll build on what they learn.
+
+**New — Sabine, on assignment** (shown with the assignment step's completion,
+founding officer only)
+> Twelve present, Commander. Counted. First time anyone's paid them to stand
+> watch since the Claim. Give me somewhere to take them.
+
+## 5 — The first job
+
+`openingBarracksCommandMaraVennAnsweredWaylineNeedsItsCheckpoint` — Castle
+> Mara Venn answered. Wayline wants its freight checkpoint relieved: six thousand
+> if we break the assault. She sounds like she hasn't slept in a week. I've put
+> our name forward. First job, Commander. Choose Ready for the briefing, or follow
+> Mara's directions from HQ. Take Sabine's squad. Let's give Mara a reason to call
+> again.
+
+`WaylineArc` introduction, Relief — Mara
+> Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline: drivers who pooled what they had so they could keep
+> hauling without selling their trucks to someone bigger. Raiders took our depot a
+> month ago. Now they're at the checkpoint, and if that falls there's no road left
+> to haul on. Licensed companies cost more than we have. You cost what we have.
+> I'd rather that than nothing, and I expect you would too.
+
+Mara's introduction is shared by every start port, so it does not mention Nessa;
+the sisters are connected only where the player has met Nessa.
+
+`WaylineArc.briefing` Relief and the recorded `relief` briefing — Mara. The
+recorded briefing carries the same words; changing it needs a new take.
+> For our first job together, I need you at the freight checkpoint{location}. The
+> watch there is paid from the same collection as your fee; I know half of them
+> from the loading shifts. The raiders already have our depot. This is where we
+> stop them taking the road. Land on the rear unloading apron and get to the gate.
+> More of them are coming up the freight and warehouse service roads. Wayline
+> puts in its militia and one shuttle. Eliminate the bandit force, and bring as
+> many of our people home as you can. Six thousand credits on success, agreed in
+> writing. Break the assault and yours is the first company I call about the
+> depot. One job at a time, Commander.
+
+**New — Sabine, after the briefing** (briefing correspondence, text with her
+portrait)
+> One boat, so we go down in trips. First team takes the apron and holds it until
+> the rest are on the ground. Nobody walks to that gate alone.
+
+The Relief field calls keep their recorded wording.
+
+## 6 — First payment
+
+`MissionDebriefConversation` first-contract exchange, after Relief victory.
+
+Castle — receipt
+> Payment's in. I counted it twice. Our first paid contract, Commander. Somebody
+> paid us to do exactly what we said we'd do.
+
+**New** Sabine — muster, no losses
+> All twelve back aboard. Counted twice.
+
+**New** Sabine — muster, with losses
+> I've counted twice. The roll's shorter. I'll give Castle the names.
+
+Mara — names
+> The drivers asked who answered the call. I gave them your company's name.
+> They'll remember it. It's the only good news they've had this month.
+
+Castle — cost, with losses
+> We've got names to take off the roll. I'll see to those before I count what we
+> can afford.
+
+Castle — cost, no losses
+> Crew pay and supplies first. It's good to hold a receipt that isn't for
+> something we had to sell.
+
+Mara — next
+> Get your people in order. When you're ready, come back and we'll talk about the
+> depot. I'd like this to be the start of something. Wayline needs it to be.
+
+## Proposal — Sabine on the company net
+
+Battle radio today has squad call signs and an unnamed **Command** voice that
+issues their orders (`operation_radio.json`). The proposal: when an order goes to
+a squad whose home officer is the founding field commander, Sabine voices it
+instead of Command, and she gets a short set of her own coordination reports
+beside Castle's story calls and the marines' contact reports. Examples:
+
+| Situation | Sabine |
+|---|---|
+| Order: hold | Hold here. Count off when you're set. |
+| Order: advance | Moving. Keep your spacing, keep your mouths shut. |
+| Order: withdraw | Back to the rally point. Nobody gets left. |
+| Order: secure | That compound's ours. Clear it, then sit on it. |
+| Squad landed | Down and counted. Moving off the pad. |
+| First casualty | Man down. Keep firing; I've got him. |
+| Squad below half | We're thin, Commander. I can hold, I can't push. |
+| Regrouped | Section back together. Ready for orders. |
+
+This needs its own story: an officer actor in the radio catalog, a rule for
+which squad's orders she speaks, recordings in a chosen voice, and a check that
+Command still speaks for every other squad. It is not part of the text rewrite.
+
+## Implementation notes
+
+- Structural additions: two new prologue pages (eight in all, which changes the
+  page count, the page arrays and the `company-prologue` snapshot frames), the
+  Jangala-only Wayline paragraph in Nessa's yard visit, Sabine's assignment line,
+  her Relief briefing line and her two debrief muster lines. Every other line
+  replaces existing text in place.
+- Renaming Mira to Sabine changes the officer's minted name, portrait file and
+  string keys outright. The game has not launched, so no save carries the old
+  name and nothing needs to keep accepting it.
+- Prologue and lesson lines are text with Castle's portrait; none is recorded
+  today. The Relief briefing is recorded in Mara's voice and needs a new take if
+  its words change.
+- Fallback ports never see Nessa, Corvus copy or the yard's Wayline paragraph, as
+  `cerberus-company-start.md` requires.
