@@ -60,7 +60,13 @@ Contract previews and briefings project the same authored turns. Stable speaker
 colors identify names; dialogue bodies remain white and readable independently
 of audio. Recorded turns may change speakers, with portrait, name and role
 following the current recording. Authored negotiation prose explains its situation;
-commercial choices and their effects remain contract-owned commands.
+commercial choices and their effects remain contract-owned commands. Pre-mission
+comms show one turn at a time in the briefing's conversation column, swapping
+the contact portrait and identity with each speaker. Skipping or replaying a conversation changes only presentation;
+it never accepts a contract, spends resources or launches the mission.
+Localized subtitles and stable recording IDs belong to the authored turn, so
+translation and catalog ordering cannot silently select a different recording.
+Prepared but unrecorded turns remain readable and advance at the player's pace.
 
 `contracts-nouns.md` owns commercial terms and terminal outcomes;
 `living-world-nouns.md` owns political and Chronicle truth; `themes.md` owns

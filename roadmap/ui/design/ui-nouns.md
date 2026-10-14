@@ -390,16 +390,21 @@ Unattributed prose remains readable without inventing a speaker. Optional missio
 dialogue is immutable; legacy plain flavor remains supported, and a surface never
 requires audio to reveal the contract's meaning.
 
-Recorded chapter briefings begin on entry and expose Replay Briefing and Stop
-Voice in the command rail. A compact contact panel above the dossier shows the
-current recorded speaker's existing portrait, name and role, distinct from the
-force's selected officers. Ordered recordings may change speakers between turns;
-the contact panel follows each turn rather than retaining the opening speaker.
-Its speaking indicator follows replay, stop and natural completion. The first
-recording's identity returns while idle. Missions without a recording reserve no
-contact-panel or voice-control space. Terrain refreshes and viewport changes
-preserve the current turn and do not restart playback. Authored correspondence
-and procedural comms-officer reports remain distinct narrative sources.
+Chapter comms play directly in the briefing's left column. A permanent contact
+header swaps the portrait, colored name and role with the current speaker;
+white dialogue below it shows one turn at a time. Next advances a turn; Skip
+collapses the dialogue without accepting terms or deploying. Replay Briefing in
+the command rail starts it again. Planning controls remain available while the
+player listens or reads; leaving the page stops playback. The size chevrons,
+risk skulls and reward value share the top heading bar, leaving the conversation
+column for the people and their terms.
+Recorded turns advance after playback; unrecorded or unavailable audio waits for
+Next. The current turn survives terrain refreshes and viewport changes, and
+returning from squad assignment does not restart a skipped or completed
+conversation. Company preparation tutorials temporarily take input and playback
+priority. Missions without authored dialogue or narration reserve no comms space.
+Authored correspondence and procedural comms-officer reports remain distinct
+narrative sources.
 Preparation runs asynchronously from campaign-free captured construction inputs.
 The briefing pins its seed, shows a pending survey while generation runs, and
 requires a ready scenario before deployment. Relevant input changes supersede the

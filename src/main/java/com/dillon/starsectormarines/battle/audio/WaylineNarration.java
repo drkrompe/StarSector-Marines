@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.audio;
 
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -41,6 +42,9 @@ public final class WaylineNarration {
                        float durationSeconds, int priority, float expiresSeconds,
                        List<String> supersedes, String speaker, String portrait,
                        boolean voiced, boolean terminal, boolean interrupts) {
+        /** Resolve at presentation time so catalog loading does not freeze a translation. */
+        public String text() { return Strings.resolve(text); }
+
         public Line(String id, String missionId, String event, String text,
                     float durationSeconds, int priority, float expiresSeconds, List<String> supersedes,
                     String speaker, String portrait, boolean voiced, boolean terminal) {
@@ -97,7 +101,8 @@ public final class WaylineNarration {
             JSONArray prior = entry.optJSONArray("supersedes");
             if (prior != null) for (int j = 0; j < prior.length(); j++) supersedes.add(prior.getString(j));
             result.add(new Line(entry.getString("id"), entry.getString("missionId"),
-                    entry.getString("event"), entry.getString("text"),
+                    entry.getString("event"), entry.optString("textKey", "").isBlank()
+                            ? entry.getString("text") : "@" + entry.getString("textKey"),
                     (float) entry.getDouble("durationSeconds"), entry.optInt("priority", 10),
                     (float) entry.optDouble("expiresSeconds", 15), supersedes,
                     entry.optString("speaker", "MARA VENN / WAYLINE"),

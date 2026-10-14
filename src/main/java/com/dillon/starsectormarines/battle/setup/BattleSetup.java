@@ -341,6 +341,7 @@ public final class BattleSetup {
         for (ParkedAircraft aircraft : parkedAircraft) sim.addParkedAircraft(aircraft);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         for (Doodad d : parkedVehicles) sim.addDoodad(d);
+        sim.applyInitialDamage(map.initialDamage);
         LongList structures = spawnDefensePostTurrets(sim, defensePosts);
         // The mesh is constructed with the simulation, before turret mounts
         // are made transparent for projectile interception. Consume those

@@ -4,3 +4,4 @@ com.dillon.starsectormarines.tools.roomauthoring.RoomAuthoringPageProvider
 com.dillon.starsectormarines.tools.roadauthoring.RoadAuthoringPageProvider
 com.dillon.starsectormarines.tools.terrainauthoring.TerrainAuthoringPageProvider
 com.dillon.starsectormarines.tools.forestauthoring.ForestAuthoringPageProvider
+com.dillon.starsectormarines.tools.damageauthoring.DamageAuthoringPageProvider

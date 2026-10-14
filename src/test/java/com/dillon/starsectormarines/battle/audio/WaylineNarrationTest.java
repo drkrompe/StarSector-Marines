@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.audio;
 
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -24,6 +26,32 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
+    @Test void salvageBargainRetainsEightStableTurnsAndResolvesTranslationsAtPresentation() throws Exception {
+        var catalog = catalog();
+        var turns = catalog.briefing("story_shepherd_salvage");
+        assertEquals(List.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
+                "basin_salvage_briefing_03", "basin_salvage_briefing_04",
+                "basin_salvage_briefing_05", "basin_salvage_briefing_06",
+                "basin_salvage_briefing_07", "basin_salvage_briefing_08"),
+                turns.stream().map(WaylineNarration.Line::id).toList());
+        try (var translation = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
+            for (int index = 0; index < turns.size(); index++) {
+                var turn = turns.get(index);
+                assertEquals("briefing.0" + (index + 1), turn.event());
+                assertEquals(Strings.get("shepherdSalvageBriefTurn" + (index + 1)), turn.text());
+                assertTrue(turn.text().startsWith("Translated "));
+                assertFalse(turn.voiced());
+                assertEquals(index == 1 || index == 3 || index == 5
+                        ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", turn.portrait());
+            }
+            assertEquals("Literal survives", new WaylineNarration.Line("literal", "chapter", "briefing",
+                    "Literal survives", 2, 1, 10, List.of()).text());
+        }
+        try (var original = new HeadlessStrings(Path.of("mod"))) {
+            assertFalse(turns.get(0).text().startsWith("Translated "), "Catalog must not freeze translation");
+        }
+    }
+
     @Test void briefingTurnsRetainAuthoredOrderAndExcludeOtherEventsAndMissions() {
         var first = new WaylineNarration.Line("first", "chapter", "briefing", "First", 2, 1, 10, List.of());
         var second = new WaylineNarration.Line("second", "chapter", "briefing.castle", "Second", 2, 1, 10,
