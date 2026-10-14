@@ -49,10 +49,6 @@ public final class DefenceStructureTactics {
     /** Radius of the area-defence circle placed on a fort's belt. UNTUNED first-pass figure. */
     public static final int FORT_BELT_POST_RADIUS_CELLS = 8;
 
-    /** {@code -Dbattle.command.fortBeltPost=false} holds a fort's aspect at its doorstep only, for a control run. */
-    private static final boolean BELT_POST_ENABLED = Boolean.parseBoolean(
-            System.getProperty("battle.command.fortBeltPost", "true"));
-
     private DefenceStructureTactics() {}
 
     /** Whether a cell can be reached by the squad a post is being chosen for. */
@@ -317,7 +313,7 @@ public final class DefenceStructureTactics {
      */
     private static ObjectiveAssignment defendAssignment(Candidate squad, int[] doorstep, DefenceStructureFact structure,
                                                         CommandTopology topology) {
-        if (structure.ofFort() && BELT_POST_ENABLED) {
+        if (structure.ofFort()) {
             // The stretch nearest the work being pressed, not the squad: a squad already on the belt would otherwise be
             // posted where it stands, however far round the fort the work is.
             int[] post = beltPost(structure.beltCells(), structure.cellX(), structure.cellY(),
@@ -374,6 +370,22 @@ public final class DefenceStructureTactics {
             if (best != null) return best;
         }
         return null;
+    }
+
+    /**
+     * Whether a squad's order is standing to at a work of this side's that is pressed now: work the structure planner
+     * will keep it on, so nothing else should take it first.
+     */
+    public static boolean holdsPressedPost(ObjectiveAssignment assignment, Faction perspective,
+                                           List<DefenceStructureFact> structures) {
+        if (assignment == null || assignment.kind() != AssignmentKind.DEFEND_AREA) return false;
+        for (DefenceStructureFact structure : structures) {
+            if (structure.threatened() && perspective.friendlyTo(structure.holder())
+                    && nearForKind(AssignmentKind.DEFEND_AREA, assignment.targetCellX(), assignment.targetCellY(), structure)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** As {@link #near}, except that an area defence of a fort aspect may stand anywhere on the fort's belt. */

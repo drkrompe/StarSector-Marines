@@ -31,8 +31,6 @@ import java.util.TreeSet;
  */
 final class PlaceAlarms {
 
-    /** Whether alarms are kept ({@code battle.command.placeAlarms}, default on). Off is the belief-only control. */
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty("battle.command.placeAlarms", "true"));
     /** The floor a fresh alarm puts under its place's pressure: enough to man it. */
     static final float ALARM_PRESSURE = GarrisonDirector.START_PRESSURE;
     /** Ticks for the floor to halve: 60 s. Below the release level after a little over three. UNTUNED. */
@@ -70,7 +68,6 @@ final class PlaceAlarms {
     void update(int now, Faction side, List<DefenceStructureFact> structures, Reading reading, int blockSize,
                 int blocksWide, int blocksHigh) {
         tick = now;
-        if (!ENABLED) return;
         Map<Integer, List<DefenceStructureFact>> forts = new TreeMap<>();
         for (DefenceStructureFact fact : structures) {
             if (!fact.ofFort() || fact.originalHolder() != side) continue;
@@ -114,7 +111,6 @@ final class PlaceAlarms {
 
     /** The pressure floor an alarm puts on this block now; {@code 0} where no live alarm covers it. */
     float floorAt(int blockX, int blockY) {
-        if (!ENABLED) return 0f;
         float floor = 0f;
         long key = key(blockX, blockY);
         for (Alarm alarm : alarms.values()) {
@@ -132,7 +128,6 @@ final class PlaceAlarms {
 
     /** Whether the fort's alarm stands: triggered, not a lost cause, and not yet faded below the release level. */
     boolean alarmed(int fortId) {
-        if (!ENABLED) return false;
         Alarm alarm = alarms.get(fortId);
         return alarm != null && level(alarm) >= GarrisonDirector.RELEASE_PRESSURE;
     }
@@ -140,7 +135,6 @@ final class PlaceAlarms {
     /** Every block under a live alarm, with its floor, for a caller seeding pressure areas: {@code [bx, by]} pairs. */
     List<int[]> alarmedBlocks() {
         List<int[]> out = new ArrayList<>();
-        if (!ENABLED) return out;
         for (Alarm alarm : alarms.values()) {
             if (level(alarm) < GarrisonDirector.RELEASE_PRESSURE) continue;
             for (long block : alarm.blocks) out.add(new int[]{(int) (block >>> 32), (int) block});

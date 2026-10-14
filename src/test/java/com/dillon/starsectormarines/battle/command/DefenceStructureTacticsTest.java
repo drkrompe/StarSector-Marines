@@ -226,6 +226,14 @@ class DefenceStructureTacticsTest {
     }
 
     @Test
+    void anAreaDefenceAtAPressedWorkIsAPostHeldButNotOnceTheWorkIsQuiet() {
+        ObjectiveAssignment post = ObjectiveAssignment.defendArea(1, 38, 38, 4);
+        assertTrue(DefenceStructureTactics.holdsPressedPost(post, Faction.DEFENDER, List.of(bunker(true, new int[0]))));
+        assertFalse(DefenceStructureTactics.holdsPressedPost(post, Faction.DEFENDER, List.of(bunker(false, new int[0]))));
+        assertFalse(DefenceStructureTactics.holdsPressedPost(post, Faction.MARINE, List.of(bunker(true, new int[0]))));
+    }
+
+    @Test
     void aBeltWithNothingReachableOrNothingStandingIsNoPost() {
         assertNull(DefenceStructureTactics.beltPost(trench(10, 30, 20), 5, 5, (x, y) -> false));
         assertNull(DefenceStructureTactics.beltPost(new int[0], 5, 5, (x, y) -> true));
