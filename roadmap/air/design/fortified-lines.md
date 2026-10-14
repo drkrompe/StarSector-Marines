@@ -4,6 +4,8 @@ Status: DRAFT
 
 Written: 2026-10-14
 
+Updated: 2026-10-14 — owner: a line replaces the city where it runs; 1918-in-space feel; proposed answers for depth, fallback, sharing and performance.
+
 Read `forts.md` first: what a fort is, its aspects, defence in depth and siting. This doc is
 about what happens when there are many of them.
 
@@ -58,16 +60,66 @@ exposes the flank of the next. Without that relationship more forts is only more
   (`phased-assault.md`) scale up: a company picks a weak point or a strongpoint, and the plan
   for a strongpoint is its stamp's plan. Nothing parallel is invented for lines.
 
+## The feel: 1918 on a planet
+
+The owner's touchstone is the Western Front in its last year, in a science-fiction setting: a
+front that has been dug, wired and concreted for years, where the defence is a system in
+depth rather than a wall, and where an attack is a set-piece of preparation, assault,
+consolidation and the next line. The proposals below take that literally where it helps.
+
+## Proposed answers (owner leaning, not yet decided)
+
+**The line replaces the city where it runs.** A line is not threaded through streets. Where a
+mission declares one, the city is cleared from its ground: buildings are deleted, not
+ruined into cover, and what is left is a belt of earthworks, wire, craters and concrete with
+the city resuming behind and in front of it. The cleared belt is the line's own ground, laid
+before the city grows into what remains, the same way a declared fort's footprint is
+reserved today. This keeps the line legible (a trench system, not a maze of rooms), and it is
+likely to make the map cheaper, not dearer: open earthworks are far fewer zones and walls
+than the blocks they replace.
+
+**A line is a system in depth, and a broken line falls back.** Three belts, outside in:
+
+1. **Outpost zone.** Thin: listening posts, wire, a few nests, and no-man's-land in front of
+   it, cratered and wired. It warns and delays; it is not held to the last.
+2. **Main line of resistance.** The strongpoints and the picket lines between them, with
+   communication trenches running back. This is where the line is fought for.
+3. **Support line.** Close in front of the protected objective, lighter, holding the reserve.
+
+A stretch of the main line that falls is not the end of the battle. The defender either
+retakes it with its reserve or, if it cannot, withdraws that sector to the support line. For
+the attacker this is the phased assault repeated: foothold in the outpost zone, muster, break
+a sector of the main line, consolidate, and do it again against the support line.
+
+**Strongpoints share reserves and fire, not power.** Power stays local to a fort (`forts.md`),
+because a single plant that drops a whole line's guns would make one fort the whole puzzle.
+What a line shares is what the 1918 defence shared:
+
+- **Fire.** A strongpoint's guns and nests cover the gaps either side, which is already what
+  makes a covered gap.
+- **A counterattack reserve.** Held behind the main line, out of the attacker's sight, and
+  committed by the defending commander to a sector that has been broken into, along the
+  communication trenches. It is the defender's half of the muster: a company formed in the
+  rear and sent to a breach.
+- **Warning.** An outpost that sees an assault forming tells the strongpoints behind it (fort
+  command awareness, extended along the line), so a line is never surprised everywhere.
+
+**Performance is a budget the evidence ground measures first.** Fighting positions are manned
+only where pressed and nests are unmanned, which already keeps an idle line cheap. The open
+costs are line-of-sight across long open belts and the number of nests and wire cells. A line
+evidence ground (in the style of the trial ground) measures tick cost alongside outcomes
+before any campaign map carries one, and the cleared belt is expected to offset some of it.
+
 ## Open questions (for when this becomes stories)
 
-- How a line is laid on a city: along existing roads and districts, or as a cleared belt the
-  city is built around.
-- Whether strongpoints share anything (power, fire control, reserves) or only fire. `forts.md`
-  defaults to local power; a line may be where that default is revisited.
-- How the defending commander reinforces a line under pressure, and whether a broken line
-  falls back to a second one.
-- Map size and performance: a line multiplies fighting positions and nests, and Conquest is
-  already the slow map.
+- How wide the cleared belt is, and whether the city in front of the line (the attacker's
+  approach) is cleared too or left as cover for the approach.
+- What no-man's-land is made of beyond craters and wire: dead ground, flooded shell holes,
+  wrecks.
+- When a defender withdraws a sector rather than counterattacking, and whether a withdrawal
+  can be followed up before the support line is manned.
+- Whether a line has its own artillery behind it (field guns, mortar pits) separate from the
+  fort batteries, which fire at ships.
 
 ## Prerequisites
 
