@@ -327,7 +327,7 @@ connected; no terrain or furnishing may narrow the vehicle road. The terminal
 blocks retain pedestrian service alleys around the checkpoint, while cargo,
 APCs and the heavy tank must pass through its carriageway. Roadside objective buildings have sandbag firing
 aprons with gaps aligned to their actual doors. Two fixed exit gun pits sit
-beyond the shoulders inside open-backed sandbag bays, served by gated wire
+beyond the shoulders inside open-backed sandbag bays, served by gated fence
 yards and support buildings. The rifle positions and yard entrances must stay
 reachable, while concrete abutments frame the open checkpoint passage. Fences
 and sandbags publish their ordinary transparent fixture and cover behavior;

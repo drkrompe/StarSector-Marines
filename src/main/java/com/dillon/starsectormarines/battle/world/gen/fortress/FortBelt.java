@@ -8,7 +8,7 @@ import java.util.function.BiPredicate;
 
 /**
  * The fort's outer belt, authored in the {@link BatteryFort} frame: an irregular ring of trench and sandbag line with
- * wire outside it and nests on it, standing off the main works across open ground. Pure geometry; the stage decides
+ * a fence line outside it and nests on it, standing off the main works across open ground. Pure geometry; the stage decides
  * which of these cells the ground will actually take and how each is drawn.
  *
  * <p>The trace is a hand-authored polygon, not a rectangle: it has salients and re-entrants so that no stretch of the
@@ -27,12 +27,12 @@ public final class FortBelt {
         EARTH,
         /** A nest's own cell; the stage seals it and stands a turret there. */
         NEST,
-        /** A cell of wire, closed to movement. */
-        WIRE
+        /** A cell of fence, closed to movement until a charge, shell or weight opens it; the gaps between runs are the funnels. */
+        FENCE
     }
 
     /**
-     * @param dx,dy the outward direction for a bag or the run direction for wire (1,0 horizontal or 0,1 vertical), else 0
+     * @param dx,dy the outward direction for a bag or the run direction for a fence (1,0 horizontal or 0,1 vertical), else 0
      * @param corner for a bag at a pit corner, the second outward component, else 0
      */
     public record Cell(int x, int y, Role role, int dx, int dy, int cornerDx, int cornerDy) {
@@ -42,7 +42,7 @@ public final class FortBelt {
     }
 
     /**
-     * The approach lane of one gate, in the footprint frame: the belt and wire stay open in front of it.
+     * The approach lane of one gate, in the footprint frame: the belt and fence stay open in front of it.
      *
      * @param dirX,dirY the gate's outward direction, one of the four cardinal steps
      * @param edge      the works' edge the lane leaves from, on the axis of travel: cells strictly beyond it (below it
@@ -67,7 +67,7 @@ public final class FortBelt {
                        List<Lane> lanes, BiPredicate<Integer, Integer> cleared) { }
 
     private static final int PERIOD = 29;
-    private static final int WIRE_DISTANCE = 4;
+    private static final int FENCE_DISTANCE = 4;
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
@@ -148,7 +148,7 @@ public final class FortBelt {
         // Nests on the trace, each in a horseshoe pit open to the works.
         for (int v : spec.nestVertices()) pit(spec, grid, vertices[v][0], vertices[v][1]);
 
-        // Wire: a ring four cells outside the trace, in runs with gaps, never across a gate lane.
+        // Fence: a ring four cells outside the trace, in runs with gaps, never across a gate lane.
         int[][] dist = new int[w][h];
         int[][] source = new int[w][h];
         for (int[] row : dist) Arrays.fill(row, -1);
@@ -161,7 +161,7 @@ public final class FortBelt {
         }
         while (!open.isEmpty()) {
             int[] at = open.poll();
-            if (dist[at[0]][at[1]] >= WIRE_DISTANCE) continue;
+            if (dist[at[0]][at[1]] >= FENCE_DISTANCE) continue;
             for (int[] d : STEPS) {
                 int nx = at[0] + d[0], ny = at[1] + d[1];
                 if (!inside(nx, ny, w, h) || dist[nx][ny] >= 0 || polygonContains(vertices, nx, ny)) continue;
@@ -172,11 +172,11 @@ public final class FortBelt {
         }
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
-                if (dist[x][y] != WIRE_DISTANCE || grid[x][y] != null || inLane(spec, x, y, 4)) continue;
+                if (dist[x][y] != FENCE_DISTANCE || grid[x][y] != null || inLane(spec, x, y, 4)) continue;
                 if (source[x][y] % 17 >= 12) continue;
-                boolean horizontal = dist[Math.min(w - 1, x + 1)][y] == WIRE_DISTANCE
-                        || (x > 0 && dist[x - 1][y] == WIRE_DISTANCE);
-                grid[x][y] = new Cell(x, y, Role.WIRE, horizontal ? 1 : 0, horizontal ? 0 : 1);
+                boolean horizontal = dist[Math.min(w - 1, x + 1)][y] == FENCE_DISTANCE
+                        || (x > 0 && dist[x - 1][y] == FENCE_DISTANCE);
+                grid[x][y] = new Cell(x, y, Role.FENCE, horizontal ? 1 : 0, horizontal ? 0 : 1);
             }
         }
 
@@ -197,7 +197,7 @@ public final class FortBelt {
             case TRENCH -> 4;
             case BAG -> 3;
             case EARTH -> 2;
-            case WIRE -> 1;
+            case FENCE -> 1;
         };
     }
 
@@ -205,7 +205,7 @@ public final class FortBelt {
         return x >= 0 && y >= 0 && x < w && y < h;
     }
 
-    /** Whether the cell lies in the approach lane of a gate: the belt and wire stay open there. */
+    /** Whether the cell lies in the approach lane of a gate: the belt and fence stay open there. */
     private static boolean inLane(Spec spec, int x, int y, int half) {
         for (Lane lane : spec.lanes()) if (lane.contains(x, y, half)) return true;
         return false;

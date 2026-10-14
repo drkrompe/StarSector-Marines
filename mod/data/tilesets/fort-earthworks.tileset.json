@@ -147,18 +147,6 @@
     },
     {
       "col": 8,
-      "description": "Concertina wire running horizontally, edge to edge.",
-      "name": "doodad.fort-wire-h",
-      "row": 1
-    },
-    {
-      "col": 9,
-      "description": "Concertina wire running vertically, edge to edge.",
-      "name": "doodad.fort-wire-v",
-      "row": 1
-    },
-    {
-      "col": 10,
       "description": "Steel anti-tank hedgehog.",
       "name": "doodad.fort-hedgehog",
       "row": 1
@@ -358,22 +346,8 @@
       "row": 1
     },
     {
-      "ballisticHalfHeight": 0.4,
-      "col": 8,
-      "cover": "light",
-      "id": "doodad.fort-wire-h",
-      "row": 1
-    },
-    {
-      "ballisticHalfHeight": 0.4,
-      "col": 9,
-      "cover": "light",
-      "id": "doodad.fort-wire-v",
-      "row": 1
-    },
-    {
       "ballisticHalfHeight": 0.5,
-      "col": 10,
+      "col": 8,
       "cover": "light",
       "id": "doodad.fort-hedgehog",
       "row": 1

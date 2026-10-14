@@ -39,7 +39,7 @@ public interface FortPlan {
 
     FortKind kind();
 
-    /** Local width and height of the footprint, belt and wire included. */
+    /** Local width and height of the footprint, belt and fence included. */
     int width();
 
     int height();

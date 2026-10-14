@@ -17,7 +17,7 @@ import java.util.List;
  * from the outside in (see {@code forts.md}):
  *
  * <ul>
- *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line and wire, with nests, standing
+ *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line and fence line, with nests, standing
  *       off the main works across an open killing ground;</li>
  *   <li>the <b>main works</b>: a chamfered trace two cells thick with a pointed bastion at each corner, a gatehouse and
  *       baffle at each gate;</li>
@@ -35,7 +35,7 @@ public final class BatteryFort {
     /** Strength of every wall cell of the main works, gatehouse towers included. */
     public static final int WALL_HP = 400;
 
-    /** Local width and height of the footprint, belt and wire included. */
+    /** Local width and height of the footprint, belt and fence included. */
     public static final int WIDTH = 82, HEIGHT = 72;
 
     /** Where the main works' own frame begins in the footprint, and its size. */

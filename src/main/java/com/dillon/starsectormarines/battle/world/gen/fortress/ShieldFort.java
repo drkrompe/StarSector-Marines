@@ -19,7 +19,7 @@ import java.util.List;
  * gun line that wants a field of fire, but a single field projector that should be reached only by a long way round.
  *
  * <ul>
- *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line, wire and nests standing off
+ *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line, fence line and nests standing off
  *       the works across a glacis, as for every fort;</li>
  *   <li>the <b>main works</b>: an octagon, its four corners cut deep, with a round tower on each diagonal face instead of
  *       a pointed bastion at each corner, and <em>three</em> gates (a main gate and two posterns), each with a gatehouse
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public final class ShieldFort {
 
-    /** Local width and height of the footprint, belt and wire included. */
+    /** Local width and height of the footprint, belt and fence included. */
     public static final int WIDTH = 80, HEIGHT = 80;
 
     /** Where the main works' own frame begins in the footprint, and its size. */

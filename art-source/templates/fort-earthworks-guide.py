@@ -1,4 +1,4 @@
-"""Geometry only: sixteen connected trench sections, eight thick sandbag pieces, wire and a hedgehog.
+"""Geometry only: sixteen connected trench sections, eight thick sandbag pieces and a hedgehog.
 
 Canvas 1536x1024, 8 columns x 4 rows of 192px full-cell frames; everything is overhead, orthographic and sits on
 transparent ground. Slot order is the contract the runtime reads.
@@ -10,7 +10,8 @@ transparent so that neighbouring sections join seamlessly and the ground shows b
 foxhole: a closed lip with a channel pit.
 Row 2: thick sandbag parapet. Columns 0-3 are straight runs with the bags on the N, E, S, W edge; columns 4-7 are
 corners NE, SE, SW, NW. A run fills the cell edge to edge and is 40% of the cell deep, so adjacent pieces join.
-Row 3: concertina wire running horizontally, the same vertically, and a steel tank-trap hedgehog.
+Row 3: a steel tank-trap hedgehog in the third frame; the first two frames are empty (they held belt wire, which is now
+industrial fence from the doodad catalogue).
 """
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -79,16 +80,6 @@ def bags(sides):
     return cell
 
 
-def wire(horizontal):
-    cell = Image.new('RGBA', (S, S))
-    d = ImageDraw.Draw(cell)
-    for i in range(0, S, 24):
-        box = (i + 2, S // 2 - 30, i + 46, S // 2 + 30) if horizontal else (S // 2 - 30, i + 2, S // 2 + 30, i + 46)
-        d.ellipse(box, outline='#767a78', width=5)
-    d.line((0, S // 2, S, S // 2) if horizontal else (S // 2, 0, S // 2, S), fill='#4b4f4d', width=4)
-    return cell
-
-
 def hedgehog():
     cell = Image.new('RGBA', (S, S))
     d = ImageDraw.Draw(cell)
@@ -103,7 +94,5 @@ for mask in range(16):
     guide.alpha_composite(trench(mask), ((mask % 8) * S, (mask // 8) * S))
 for i, sides in enumerate(('n', 'e', 's', 'w', 'ne', 'es', 'sw', 'wn')):
     guide.alpha_composite(bags(sides), (i * S, 2 * S))
-guide.alpha_composite(wire(True), (0, 3 * S))
-guide.alpha_composite(wire(False), (S, 3 * S))
 guide.alpha_composite(hedgehog(), (2 * S, 3 * S))
 guide.save(ROOT / 'art-source/templates/fort-earthworks-guide.png')
