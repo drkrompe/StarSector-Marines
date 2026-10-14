@@ -782,6 +782,25 @@ class BattleFixtureJsonTest {
         assertEquals(GroundDefences.NONE, legacy.declaredDefences());
     }
 
+    /** The anti-air aspect is declared per kind, survives a replay, and an older fixture reads as declaring none. */
+    @Test
+    void roundTripsDeclaredFortAirDefence() throws Exception {
+        TargetProfile forted = TargetProfile.NEUTRAL.withDeclaredDefences(
+                new GroundDefences(0, false).withForts(FortKind.BATTERY_FORT, 3).withAirDefence(FortKind.BATTERY_FORT, 2));
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                9_122L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false, RiskLevel.LOW, 4, forted, false);
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        TargetProfile decoded = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(2, decoded.declaredDefences().airDefendedCount(FortKind.BATTERY_FORT));
+        assertEquals(0, decoded.declaredDefences().airDefendedCount(FortKind.SHIELD_FORT));
+
+        encoded.getJSONObject("targetProfile").remove("declaredFortAirDefence");
+        TargetProfile legacy = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
+        assertEquals(0, legacy.declaredDefences().airDefendedCount(FortKind.BATTERY_FORT));
+    }
+
     /** Declared forts survive a replay by kind, and a fixture that predates them (or names none) reads as none. */
     @Test
     void roundTripsDeclaredForts() throws Exception {

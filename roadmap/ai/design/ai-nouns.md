@@ -1853,7 +1853,12 @@ A **defense frontage** is the set of **apertures** in a held place's outer
 envelope — the openings through which its interior can be seen into, shot
 through, or entered — each paired with the interior **stance** cell that covers
 it. An aperture is either an **entrance**, which admits bodies, or a **window**,
-which admits only sight and fire. Frontage is derived from live map state
+which admits only sight and fire. A window takes two shapes in the generated
+world: a see-through wall cell, covered from the floor behind it, and the
+**firing recess** that building shells and authored buildings stamp, a floor
+cell in the wall line whose outer edge is closed by a window. The recess is
+walkable, but nobody comes in through it, so it is a window and its defender
+stands in the recess itself. Frontage is derived from live map state
 rather than authored separately: the generators already stamp firing apertures
 into perimeter walls and building shells, and the derivation reads them.
 
@@ -2181,6 +2186,15 @@ uncaptured compound is, and that compound still wins — a sandbag apron at an
 objective's door does not turn securing it into holding the apron. An explicit
 defend-area click on a trench remains an ordinary defend area, and Mechs never
 occupy.
+
+A click inside a **held place** (a building a map publishes as a held position)
+occupies the building instead: the player's version of a garrison's held node.
+The squad holds it the way a garrison does. It stands to at the building's
+apertures while hostiles are believed close and walks its rooms while they are
+not. Like a defense area, it stands until superseded or withdrawn. The order
+resolves after the trench and before plain ground, and the cursor announces it
+with the same occupy verb. Where footprints overlap, the smaller place is the
+one pointed at.
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

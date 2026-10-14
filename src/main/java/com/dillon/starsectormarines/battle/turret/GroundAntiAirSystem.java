@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.air.AirAppearance;
+import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.air.AirLocomotion;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.GuidedMissile;
@@ -51,7 +53,16 @@ public final class GroundAntiAirSystem {
     private void tickMount(BattleSimulation sim, long id, StructureDef structure, long[] aircraft) {
         var state = sim.turretState();
         var weapon = structure.mount.weapon;
-        float dt = BattleSimulation.TICK_DT;
+        // A mount in a fort's anti-air yard obeys the yard: silent while it is wrecked, contested or another side's, slow
+        // without the fort's power.
+        Fort fort = sim.forts().airMountFort(id);
+        float rate = fort == null ? 1f : fort.airDefenceRate(sim.identity().faction(id));
+        if (rate <= 0f) {
+            sim.world().setTargetId(id, 0L);
+            state.setBurstRemaining(id, 0);
+            return;
+        }
+        float dt = BattleSimulation.TICK_DT * rate;
         state.setRecoilTimer(id, state.recoilTimer(id) + dt);
         float cooldown = Math.max(0f, sim.world().cooldownTimer(id) - dt);
         sim.world().setCooldownTimer(id, cooldown);
@@ -68,9 +79,7 @@ public final class GroundAntiAirSystem {
             if (distance > nearest || distance < weapon.minRange * weapon.minRange) continue;
             // A summit mount clears its supporting hill. Beyond it, structural air LOS applies;
             // a roof directly below the aircraft is not an intervening building.
-            if (!TurretAim.summitAirFireLineClear(sim.getGrid(), sim.getTopology(),
-                    sim.world().cellX(id), sim.world().cellY(id),
-                    (int) sim.world().x(candidate), (int) sim.world().y(candidate), 4f)) continue;
+            if (!airLineClear(sim, fort, id, candidate)) continue;
             target = candidate;
             nearest = distance;
         }
@@ -116,6 +125,21 @@ public final class GroundAntiAirSystem {
                 AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(target)), hit,
                 sim.identity().faction(id), FLIGHT_SECONDS, structure, null, null, null,
                 0f, hit, null, id));
+    }
+
+    /**
+     * Whether the mount has a clear line up to the craft. A fort's yard mount fires over its own works; every other
+     * mount, and anything standing outside a fort's works, blocks as ordinary structure.
+     */
+    private static boolean airLineClear(BattleSimulation sim, Fort fort, long mount, long craft) {
+        int fromX = sim.world().cellX(mount), fromY = sim.world().cellY(mount);
+        int toX = (int) sim.world().x(craft), toY = (int) sim.world().y(craft);
+        FortFrame frame = fort == null ? null : fort.frame();
+        if (frame == null) {
+            return TurretAim.summitAirFireLineClear(sim.getGrid(), sim.getTopology(), fromX, fromY, toX, toY, 4f);
+        }
+        return TurretAim.fortAirFireLineClear(sim.getGrid(), sim.getTopology(), fromX, fromY, toX, toY, 4f,
+                frame::isWorks);
     }
 
     private void advanceMissiles(BattleSimulation sim) {

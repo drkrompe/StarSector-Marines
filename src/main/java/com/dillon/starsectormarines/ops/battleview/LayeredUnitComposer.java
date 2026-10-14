@@ -136,12 +136,16 @@ final class LayeredUnitComposer {
                 || pose == LayeredAppearance.POSE_AMR_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
-        SpecialEquipmentDef specialDef = special;
-        EquipmentLayerDef specialLayer = specialDef != null
-                ? specialDef.presentation().carrierLayer() : null;
+        // A treating medic holds the treatment kit in place of whatever
+        // special they carry, for exactly as long as the treatment lasts.
+        boolean treating = (flags & LayeredAppearance.FLAG_TREATING) != 0
+                && assets.specialEquipment(TreatmentKitLayer.ASSET_KEY) != null;
+        SpecialEquipmentDef specialDef = treating ? null : special;
+        EquipmentLayerDef specialLayer = treating ? TreatmentKitLayer.DEF
+                : specialDef != null ? specialDef.presentation().carrierLayer() : null;
         SpecialUsePose usePose = specialDef != null
                 ? specialDef.presentation().usePose() : null;
-        boolean specialUsing = switch (usePose != null ? usePose : SpecialUsePose.THROW) {
+        boolean specialUsing = treating || switch (usePose != null ? usePose : SpecialUsePose.THROW) {
             case SHOULDER_LAUNCHER -> rocket;
             case BRACED_RIFLE -> amr;
             case THROW -> pose == LayeredAppearance.POSE_SMOKE_THROW;
@@ -209,14 +213,17 @@ final class LayeredUnitComposer {
                     actorX, actorY, pxPerSw, facingDeg)
                 : null;
 
-        LayeredSpriteCache specialSprite = drawSpecialLayer
-                ? assets.specialEquipment(specialDef.id()) : null;
+        LayeredSpriteCache specialSprite = !drawSpecialLayer ? null
+                : treating ? assets.specialEquipment(TreatmentKitLayer.ASSET_KEY)
+                : assets.specialEquipment(specialDef.id());
         EquipmentLayerComposer.Placement specialPlacement = specialSprite != null
                 ? equipmentPlacement(specialLayer, specialUsing, specialFiring, weaponPhase,
                         assets, authoredPose, actorX, actorY, pxPerSw, facingDeg)
                 : null;
         LayerTransform specialTransform = layer(authoredPose, "special");
-        if (specialPlacement != null && specialTransform != null
+        // The kit is set down on the ground before the medic at its own size; the
+        // clip's hand transform is authored for satchel art and would shrink it.
+        if (!treating && specialPlacement != null && specialTransform != null
                 && specialLayer.attachment() == EquipmentLayerDef.Attachment.ACTOR) {
             specialPlacement = authoredEquipmentPlacement(specialSprite, specialTransform,
                     actorX, actorY, pxPerSw, facingDeg, specialPlacement);
@@ -229,7 +236,7 @@ final class LayeredUnitComposer {
 
         // A hand-held part exists only while the item is in use; the pack it is corded
         // to is the carried layer above and stays on the actor in every other pose.
-        HandsetLayer handsetDef = specialUsing && specialPlacement != null
+        HandsetLayer handsetDef = specialUsing && !treating && specialPlacement != null
                 ? specialDef.presentation().handsetLayer() : null;
         LayerTransform handsetTransform = handsetDef != null ? layer(authoredPose, "handset") : null;
         LayeredSpriteCache handsetSprite = handsetTransform != null && handsetTransform.visible()

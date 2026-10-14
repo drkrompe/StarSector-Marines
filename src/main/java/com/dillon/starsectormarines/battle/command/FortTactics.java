@@ -42,6 +42,8 @@ public final class FortTactics {
     public static final int COSTLY_EXTRA_CELLS = 24;
     /** Squads that must be on offer before a side tries to hold a shield fort's plant and control room together. */
     public static final int HOLD_BOTH_SQUADS = 2;
+    /** Rank of the anti-air yard when the side is not shut out of the sky: after every other aspect. */
+    static final int AIR_LAST_RANK = 9;
 
     private FortTactics() {}
 
@@ -62,6 +64,17 @@ public final class FortTactics {
      * @param candidates the squads on offer, whose number says how much can be held at once
      */
     public static List<Pick> choose(Faction perspective, List<DefenceStructureFact> fort, List<Candidate> candidates) {
+        return choose(perspective, fort, candidates, false);
+    }
+
+    /**
+     * As {@link #choose(Faction, List, List)}, knowing whether the side wants the sky: it has aircraft to call and the
+     * anti-air it has sighted over the fort refuses them (see {@link AirSupportFacts#blocked()}). A side that wants the
+     * sky takes a hostile fort's anti-air yard before anything else, because that is what opens it; otherwise the yard
+     * is work after the rest, since it still shoots down the side's boats and sorties.
+     */
+    public static List<Pick> choose(Faction perspective, List<DefenceStructureFact> fort, List<Candidate> candidates,
+                                    boolean skyWanted) {
         List<Pick> picks = new ArrayList<>();
         if (fort.isEmpty()) return picks;
         Family family = fort.get(0).family();
@@ -69,6 +82,7 @@ public final class FortTactics {
         DefenceStructureFact room = find(fort, Kind.SHIELD_GENERATOR);
         DefenceStructureFact plant = find(fort, Kind.FORT_POWER);
         DefenceStructureFact magazine = find(fort, Kind.FORT_MAGAZINE);
+        DefenceStructureFact air = find(fort, Kind.FORT_AIR_DEFENCE);
         // Most critical first: the order in which losing or winning an aspect changes what the fort does.
         List<DefenceStructureFact> byCriticality = new ArrayList<>();
         if (family == Family.SHIELD_FORT) {
@@ -79,6 +93,7 @@ public final class FortTactics {
             add(byCriticality, plant);
             add(byCriticality, magazine);
         }
+        add(byCriticality, air);
 
         // Standing to: aspects of ours that are being pressed, the most critical first. A single axis of assault draws a
         // second squad onto it; several draw one each.
@@ -99,7 +114,17 @@ public final class FortTactics {
         } else {
             chooseBattery(perspective, bunker, plant, magazine, candidates, picks);
         }
+        chooseAir(perspective, air, skyWanted, picks);
         return picks;
+    }
+
+    /** A hostile anti-air yard is work: first when it keeps the side's own air out, last otherwise. */
+    private static void chooseAir(Faction perspective, DefenceStructureFact air, boolean skyWanted, List<Pick> picks) {
+        if (air == null || !perspective.hostileTo(air.holder())) return;
+        boolean ours = perspective.friendlyTo(air.originalHolder());
+        picks.add(new Pick(air, ours ? Role.RETAKE : Role.TAKE, skyWanted ? -1 : AIR_LAST_RANK, 1, false,
+                skyWanted ? "open the sky: the anti-air over this fort is refusing our air strikes, take its yard"
+                        : "take the anti-air yard: its mounts shoot down our boats and sorties"));
     }
 
     private static void chooseBattery(Faction perspective, DefenceStructureFact bunker, DefenceStructureFact plant,
@@ -200,6 +225,7 @@ public final class FortTactics {
             case FORT_POWER -> "power plant";
             case FORT_MAGAZINE -> "magazine";
             case SHIELD_GENERATOR -> "control room";
+            case FORT_AIR_DEFENCE -> "anti-air yard";
         };
     }
 }

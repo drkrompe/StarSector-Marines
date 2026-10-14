@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 
+import java.util.Arrays;
+
 /**
  * A squad's designated medic, from an officer trained in Field Medicine
  * ({@code squad-medic.md}).
@@ -30,13 +32,30 @@ public final class SquadMedicSystem {
 
     private boolean keepMoving = Boolean.getBoolean(KEEP_MOVING_PROPERTY);
 
+    /** Medic-to-patient pairs treating this tick, for presentation to read by unit. */
+    private long[] treatingMedics = new long[8];
+    private long[] treatingPatients = new long[8];
+    private int treatingCount;
+
     /** Per-simulation movement mode, so two scenes in one JVM can compare the two. */
     public void setKeepMoving(boolean keepMoving) { this.keepMoving = keepMoving; }
     public boolean keepMoving() { return keepMoving; }
 
+    /**
+     * The patient {@code unit} is treating as of the last serial pass, or zero.
+     * For presentation, which runs after the dispatch and reads by unit.
+     */
+    public long treatingPatientOf(long unit) {
+        for (int i = 0; i < treatingCount; i++) {
+            if (treatingMedics[i] == unit) return treatingPatients[i];
+        }
+        return 0L;
+    }
+
     /** Serial pass: one step of every medic-bearing squad. */
     public void tick(float dt, BattleSimulation sim) {
         long controlled = sim.directControl().activeUnitId();
+        treatingCount = 0;
         for (Squad squad : sim.getSquads()) {
             if (squad.aliveMembers <= 0) continue;
             if (squad.medic == null) {
@@ -45,7 +64,20 @@ public final class SquadMedicSystem {
                 squad.medic = new SquadMedic(medicine, keepMoving);
             }
             step(squad.medic, new SimWard(squad, sim, controlled), dt);
+            if (squad.medic.phase == SquadMedic.Phase.TREATING) {
+                publishTreating(squad.medic.medicId, squad.medic.patientId);
+            }
         }
+    }
+
+    private void publishTreating(long medic, long patient) {
+        if (treatingCount == treatingMedics.length) {
+            treatingMedics = Arrays.copyOf(treatingMedics, treatingCount * 2);
+            treatingPatients = Arrays.copyOf(treatingPatients, treatingCount * 2);
+        }
+        treatingMedics[treatingCount] = medic;
+        treatingPatients[treatingCount] = patient;
+        treatingCount++;
     }
 
     /** The Field Medicine rank of the officer commanding {@code squad}, or zero. */
@@ -93,18 +125,10 @@ public final class SquadMedicSystem {
      * seat order. Fixed until that marine dies.
      */
     static long designate(Ward ward) {
-        long best = 0L;
-        int bestKey = Integer.MAX_VALUE;
-        for (int i = 0, n = ward.memberCount(); i < n; i++) {
-            long member = ward.memberAt(i);
-            if (!ward.alive(member) || member == ward.leader()) continue;
-            int key = ward.fireTeamIndex(member) == 1 ? 0 : 1;
-            if (key < bestKey) {
-                bestKey = key;
-                best = member;
-            }
-        }
-        return best;
+        int index = SquadMedicine.medicBillet(ward.memberCount(),
+                i -> ward.alive(ward.memberAt(i)) && ward.memberAt(i) != ward.leader(),
+                i -> ward.fireTeamIndex(ward.memberAt(i)));
+        return index < 0 ? 0L : ward.memberAt(index);
     }
 
     private static void choose(SquadMedic medic, Ward ward) {

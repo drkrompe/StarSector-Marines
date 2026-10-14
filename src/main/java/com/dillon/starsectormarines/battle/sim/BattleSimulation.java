@@ -98,6 +98,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
+import com.dillon.starsectormarines.battle.air.AirToAirFire;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
@@ -606,8 +607,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
+
+    /** Aircraft shooting aircraft: the cover fighters' nose guns. For evidence. */
+    public AirToAirFire airToAir() { return airToAir; }
     public void installWaylineGunship(boolean freight) {
         if (simTickIndex != 0 || waylineGunship != null) throw new IllegalStateException("Install Wayline air at setup");
         waylineGunship = new WaylineGunship(freight, storyBeats);
@@ -685,6 +690,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
                 addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
+                addBatteryFortAspect(out, battery, FortAspect.AIR_DEFENCE, DefenceStructureFact.Kind.FORT_AIR_DEFENCE, seenX, seenY);
                 continue;
             }
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FIRE_CONTROL,
@@ -763,6 +769,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             out.add(new DefenceStructureFact(DefenceStructureFact.Kind.SHIELD_GENERATOR,
                     (int) Math.floor(room.x()), (int) Math.floor(room.y()),
                     room.control().holder(), dome.originalHolder(), room.control().contested(),
+                    FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
+                    fort.exteriorCells(), fortBeltCells(seenX, seenY), fort.frame()));
+        }
+        Fort.Place yard = fort.place(FortAspect.AIR_DEFENCE);
+        if (yard != null && !yard.wrecked() && rosterService.isAliveById(yard.coreId())) {
+            out.add(new DefenceStructureFact(DefenceStructureFact.Kind.FORT_AIR_DEFENCE,
+                    (int) Math.floor(yard.x()), (int) Math.floor(yard.y()),
+                    yard.control().holder(), yard.originalHolder(), yard.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
                     fort.exteriorCells(), fortBeltCells(seenX, seenY), fort.frame()));
         }
@@ -1143,6 +1157,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 civilianEvacuation.markDead(event.unitId()));
         deathDispatcher.subscribe(this::recordCommandTraceCasualty);
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
+        facingSystem.setTreatmentPatients(squadMedics::treatingPatientOf);
         this.systemFxSystem = new SystemFxSystem(rosterService);
         this.mechLocomotionSystem = new MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
@@ -1965,12 +1980,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } else if (structure.isFortAspectCore()) {
             forts.tagAspect(tag.fortId(), structure.fortAspect, id, holder, structure.id);
             restrainFortCore(id);
+        } else if (tag.aspect() == FortAspect.AIR_DEFENCE) {
+            forts.tagAirMount(tag.fortId(), id);
+            // Anti-air does not threaten a person, and a yard is better taken than shot to pieces: restrained like a core.
+            restrainFortCore(id);
         } else {
             forts.tagNest(tag.fortId(), id);
         }
     }
 
-    /** A fort core is not an opportunity target: no squad fires on it unless told to wreck it ({@link FortRestraint}). */
+    /** A fort core (or a yard mount) is not an opportunity target: no squad fires on it unless told to wreck it ({@link FortRestraint}). */
     private void restrainFortCore(long id) {
         unitIndex.restraint().restrain(id);
         unitIndex.withdrawFromHostileScans(id);
@@ -2301,6 +2320,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public AirPoolService.Outcome requestAirStrike(Faction side, AirPoolKind kind, float x, float y, boolean believes) {
         return airPool.request(this, side, kind, x, y, believes);
+    }
+
+    @Override
+    public AirPoolService.Outcome requestAirStrike(Faction side, float x, float y, boolean believes) {
+        return airPool.requestAt(this, side, x, y, believes, unit -> true);
     }
 
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
@@ -3047,6 +3071,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             airCoverSystem.tick(TICK_DT, this);
             airSystem.tick(TICK_DT);
             groundAntiAir.tick(this);
+            airToAir.tick(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —

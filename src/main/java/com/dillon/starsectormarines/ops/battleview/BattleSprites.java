@@ -752,6 +752,9 @@ public class BattleSprites {
                 }
             }
         }
+        // Not a special, but drawn the way one is: a medic's kit while treating.
+        LayeredSpriteCache treatmentKit = loadLayeredSprite(TreatmentKitLayer.SPRITE);
+        if (treatmentKit != null) specialEquipmentLayers.put(TreatmentKitLayer.ASSET_KEY, treatmentKit);
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
                 || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {

@@ -62,6 +62,13 @@ public final class SquadMedic {
     public float healthRestored() { return healthRestored; }
     public float armorRestored() { return armorRestored; }
 
+    /** How far through the current treatment, 0 to 1; 0 when not treating. */
+    public float treatmentProgress() {
+        if (phase != Phase.TREATING) return 0f;
+        float channel = medicine.channelSeconds();
+        return Math.max(0f, Math.min(1f, (channel - phaseTimer) / channel));
+    }
+
     /** Whether {@code unit} is the medic with hands on a patient this tick. */
     public boolean isTreating(long unit) {
         return phase == Phase.TREATING && unit == medicId;

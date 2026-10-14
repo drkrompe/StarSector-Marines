@@ -91,6 +91,7 @@ public enum AirLocomotion {
             case ATTACK_RUN:
             case REPOSITION:
             case ORBIT:
+            case INTERCEPT:
             case DEPARTING:
                 return FREE_FLIGHT;
             default:
