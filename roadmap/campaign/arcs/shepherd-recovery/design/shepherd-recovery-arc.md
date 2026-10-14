@@ -4,7 +4,7 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — Morrow is a wreck from the same fall; the company crews her itself.
+Updated: 2026-10-14 — Basin is a Wayline account; the company crews Morrow itself.
 
 ## Premise, place and cast
 
@@ -14,7 +14,9 @@ Colossus and accompanying wrecks after unnamed low-orbit fighting brought them
 down three cycles ago, and built its camp around the claim over time. Recently
 opening a sealed hold attracted rumors and rivals. Yardmaster Tamsin Vale wants
 access to that shipment; its contents, buyer, legality and value remain undecided.
-Her cousin's crew remained hidden inside the Colossus and supplies an offscreen
+Basin buys supplies, fuel and heavy machinery through Wayline; Mara's referral is
+a supplier recovering a customer, and Vale suspects her own large fuel order leaked
+through Wayline's dispatch. Her cousin's crew remained hidden inside the Colossus and supplies an offscreen
 report for the first briefing. This adds correspondence, not a rescue mission,
 live intelligence actor or cargo reward.
 
