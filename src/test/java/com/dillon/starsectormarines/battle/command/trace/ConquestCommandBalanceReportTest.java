@@ -74,7 +74,8 @@ class ConquestCommandBalanceReportTest {
                 + "0123456789abcdef0123456789abcdef";
         ConquestCommandBalanceTest.ReportRow row =
                 new ConquestCommandBalanceTest.ReportRow(
-                        "fixture", sha, fixture, 204, 17, analysis);
+                        "fixture", sha, fixture, 204, 17, analysis,
+                        new FightingPositionCount(3, 50, 2, 31));
 
         String json = ConquestCommandBalanceTest.summaryJson(
                 List.of(row), 600, false, 2);
@@ -90,6 +91,9 @@ class ConquestCommandBalanceReportTest {
         assertTrue(json.contains("\"transportSeatCapacity\":112"));
         assertTrue(json.contains("\"marineCommitments\":204"));
         assertTrue(json.contains("\"marineSquads\":17"));
+        assertTrue(json.contains("\"fightingPositions\":{\"startRuns\":3,\"startCells\":50,"
+                + "\"endRuns\":2,\"endCells\":31}"));
+        assertTrue(markdown.contains("|3/2|50/31|"));
         assertTrue(json.contains("\"commandInactivity\":{"
                 + "\"lifecycleSquadPulses\":1"));
         assertTrue(json.contains("\"genuineIdleSquadTicks\":300"));
