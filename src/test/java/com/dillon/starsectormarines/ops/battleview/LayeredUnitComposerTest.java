@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LayeredUnitComposerTest {
@@ -192,6 +193,30 @@ class LayeredUnitComposerTest {
                     ? List.of("foot", "foot", "special", "body", "left", "right", "head")
                     : List.of("foot", "foot", "body", "left", "right", "special", "head"), layers);
         }
+    }
+
+    @Test
+    void aTreatingMedicHoldsTheKitInPlaceOfTheirOwnSpecial() {
+        LayeredUnitAssets assets = assets(false);
+        assets.registerSpecialEquipment("special", sprite("special"));
+        assets.registerSpecialEquipment(TreatmentKitLayer.ASSET_KEY, sprite("kit"));
+        EquipmentLayerDef.State state = new EquipmentLayerDef.State(0f, 0f, 0f,
+                EquipmentLayerDef.Occlusion.OVER_BODY);
+        EquipmentLayerDef carrier = new EquipmentLayerDef("special", 1f, 1f, .5f, .5f,
+                state, state, 0f, EquipmentLayerDef.Occlusion.OVER_BODY, false, true);
+        SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
+                null, null, SpecialUsePose.PLANT, carrier, null, null, null, null, null);
+        SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
+                null, null, null, null, null, 0, null, presentation,
+                null, null, null, null, null);
+        List<String> layers = new ArrayList<>();
+        LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
+                        layers.add(sprite.sourcePath),
+                assets, assets.head, null, true, special, EquipmentGrade.SERVICE,
+                0f, 0f, 150f, 0f, 0f, 0f, LayeredAppearance.TREATING_PHASE,
+                LayeredAppearance.POSE_SATCHEL_PLANT, LayeredAppearance.FLAG_TREATING, 1f);
+        assertTrue(layers.contains("kit"), "the kit is drawn while treating: " + layers);
+        assertFalse(layers.contains("special"), "the medic's own special is not planted: " + layers);
     }
 
     @Test

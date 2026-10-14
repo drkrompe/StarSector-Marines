@@ -1780,6 +1780,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
+        return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command", "profiles",
+                "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish",
+                "guide-equipment"), true);
+    }
+
+    /** The command board in {@code states}; {@code full} adds results, induction and the click-through flow. */
+    static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context, List<String> states,
+                                                        boolean full) throws Exception {
         DiskRegistries.installMapGeneration(context.modRoot().getParent());
         CompanyManagementGuide.install(new JSONObject(Files.readString(context.modRoot().resolve(CompanyManagementGuide.PATH))));
         HeadlessSvgAssets.install(context.modRoot());
@@ -1787,10 +1795,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                 context.modRoot(), context.starsectorCore());
         List<SnapshotArtifact> images = new ArrayList<>();
-        images.add(new SnapshotArtifact("results-prepare-company.png",
-                renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
-                        ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
-        for (String state : List.of("dossier", "dossier-trained", "command", "profiles", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
+        if (full) {
+            images.add(new SnapshotArtifact("results-prepare-company.png",
+                    renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
+                            ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
+        }
+        for (String state : states) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
             int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
@@ -1815,6 +1825,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
                     snapshotEquipmentResources(), snapshotSquadFoundingResources(), () -> 0,
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+            if (state.equals("medic")) {
+                // Field Medicine marks each of the officer's squads' medic billet.
+                captain.train(OfficerSpecialty.FIELD_MEDICINE);
+                viewModel.command().selectCommand(captain.id());
+                ((Runnable) viewModel.command().props().get("closeDossier")).run();
+            }
             if (state.equals("command") || state.equals("profiles")) {
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
@@ -1892,8 +1908,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 hints.clear();
             }
         }
-        images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
-        images.addAll(renderBarracksFlow(context, renderer));
+        if (full) {
+            images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
+            images.addAll(renderBarracksFlow(context, renderer));
+        }
         return images;
     }
 

@@ -308,6 +308,8 @@ public class BattleRenderer {
                     }
                 }),
                 new UnitRenderService(sprites),
+                // Over the bodies, like the health bars: who the medic is and what they are doing.
+                new MedicMarkerRenderSystem(),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
                 new ShieldDomeRenderSystem(),
