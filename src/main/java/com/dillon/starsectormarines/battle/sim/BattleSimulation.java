@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
@@ -345,6 +346,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SatchelChargeService satchelCharges;
     /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
     private final PointDefenseService pointDefense;
+    private final FieldMortarService fieldMortars = new FieldMortarService();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
     /** Owner of carrier-placed cover screens: placement queue, live screens, and their remaining lifetime. Holds no entities — a screen is a property of a cell boundary, published through {@link MapEditor}. */
@@ -1289,6 +1291,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     @Override public PointDefenseService pointDefense() { return pointDefense; }
+    @Override public FieldMortarService fieldMortars() { return fieldMortars; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
     @Override public DeployedCoverService deployedCover() { return deployedCover; }
@@ -2856,6 +2859,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // ahead of shots.tickProjectiles below, so a round marked intercepted
         // this tick is dropped on the same beat it would have detonated.
         pointDefense.tick(TICK_DT, this);
+        // Crew-served tubes: set-up and pack clocks, minting, retiring, and the loss of a tube with its gunner.
+        fieldMortars.tick(TICK_DT, this);
         // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
         shieldDomes.tick(TICK_DT, rosterService);
         // Cover screens build, age, and retire here. Nothing downstream of

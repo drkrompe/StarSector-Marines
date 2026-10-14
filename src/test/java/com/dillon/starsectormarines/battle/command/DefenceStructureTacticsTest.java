@@ -271,4 +271,17 @@ class DefenceStructureTacticsTest {
         assertFalse(DefenceStructureTactics.isTask(ObjectiveAssignment.attackMove(1, 12, 40), List.of(bunker)),
                 "an attack move keeps the doorstep reach");
     }
+
+    @Test
+    void aFallBackPostIsAnAreaDefenceAtTheWorksDoorstepAndCountsAsStructureWork() {
+        DefenceStructureFact works = structure(Kind.FIRE_CONTROL, 40, 40, Faction.DEFENDER, Faction.DEFENDER, false);
+
+        ObjectiveAssignment post = DefenceStructureTactics.doorstepPost(5, works, 10, 40, openTopology());
+
+        assertEquals(AssignmentKind.DEFEND_AREA, post.kind());
+        assertTrue(Math.max(Math.abs(post.targetCellX() - 40), Math.abs(post.targetCellY() - 40)) <= 6,
+                "within the work's reach");
+        assertTrue(post.targetCellX() < 40, "on the squad's side of the work");
+        assertTrue(DefenceStructureTactics.isTask(post, List.of(works)));
+    }
 }

@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -423,8 +424,10 @@ public final class SceneBuilder {
         private MarineLoadout[] uniformKit() {
             MarineLoadout[] kit = new MarineLoadout[size];
             for (int i = 0; i < size; i++) {
+                boolean carries = i < specialSeats;
                 kit[i] = new MarineLoadout(UnitRole.COMBATANT, null, primaryWeaponId,
-                        i < specialSeats ? specialEquipmentId : null, 0);
+                        carries ? specialEquipmentId : null,
+                        carries ? SpecialEquipmentRegistry.require(specialEquipmentId).startingAmmo() : 0);
             }
             return kit;
         }

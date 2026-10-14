@@ -117,7 +117,16 @@ public enum SpecialAiPolicy {
      * radio and the side's air pool answers. The moment is the designation, not any shot; the carrier spends nothing
      * of their own but their attention, and a carrier who is dead or under fire calls no one.
      */
-    FORWARD_OBSERVER("forward-observer");
+    FORWARD_OBSERVER("forward-observer"),
+    /**
+     * A halted section with a known target beyond what its rifles reach and
+     * nobody on top of it: the carrier sets a crew-served tube down, serves it,
+     * and lifts it again when the work is done or the section is threatened.
+     * Names the moment, not the weapon: the tube's reach, dead zone and rate come
+     * from the referenced structure's mount, and what it fires at comes from the
+     * section's own belief, never from a target the policy chooses.
+     */
+    CREW_SERVED_FIRE_SUPPORT("crew-served-fire-support");
 
     public final String key;
 
