@@ -128,9 +128,6 @@ class BarracksCommandModelTest {
         var model = vm.command();
         var props = new LinkedHashMap<String, Object>();
         props.put("command", model.props()); props.put("contextLabel", "PERSONNEL COMMAND");
-        props.put("squadRows", vm.squadRows()); props.put("musterRows", vm.musterRows());
-        props.put("recordCells", vm.recordCells()); props.put("selectedSquadName", vm.selectedSquadName());
-        props.put("selectedSquadSummary", vm.selectedSquadSummary()); props.put("quartersStatus", vm.quartersStatus());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                 () -> {}, () -> {}, model::showOverview, () -> {}, () -> {}, () -> {});
         var previous = SvgAsset.setSource(path -> Files.readString(Path.of("mod").resolve(path)));
@@ -198,11 +195,6 @@ class BarracksCommandModelTest {
                 model.navigation(id -> loadout[0] = id, () -> { }, false);
                 click(document, instance, "formation:" + squad.id() + ":loadout");
                 assertEquals(squad.id(), loadout[0], "Loadout opens that squad's equipment workspace");
-                assertFalse(model.inspecting());
-                model.inspect(squad.id()); instance.flush(); document.advance(0f);
-                assertTrue(model.inspecting());
-                click(document, instance, "barracks-back-command");
-                assertFalse(model.inspecting());
                 assertEquals(1, model.selected().size());
                 var officer = new MarineCaptain("Vale", null, Rank.LIEUTENANT, 0f);
                 roster.add(officer); model.refresh(); instance.flush(); document.advance(0f);

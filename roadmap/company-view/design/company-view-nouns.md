@@ -86,8 +86,8 @@ shared mapping instead of assigning paths independently in each screen.
   hardpoints, and uses vacant gantries to fabricate persistent chassis, but mutates
   them only through the cargo-backed campaign workshop authority.
 - **Barracks** — the officer-command and squad-profile administration surface.
-  Its individual squad drill-down presents quarters, muster and service record.
-  Its bulk orders use roster and cargo authorities; it never simulates recovery
+  It has no per-squad drill-down; a squad card's Loadout opens that squad's
+  Armory equipment workspace. Its bulk orders use roster and cargo authorities; it never simulates recovery
   or owns a second inventory.
 - **Boat Deck** — the shipboard room over the company's ship's boats, standing
   in the hull's own hangars. It presents the deck and refits one boat at a time,
@@ -131,8 +131,8 @@ opportunities once. The retained shell presents these facts without owning rewar
 
 Barracks is the single troop-management entry point. Its Equipment workspace
 retains the Company -> Squad -> Fire Team editing hierarchy. Barracks opens on officer commands and an independent
-acting-NCO group, with squad selection for bulk orders. Inspecting one squad
-visits its assigned quarters and muster. Equipment opens the existing Fleet Armory
+acting-NCO group, with squad selection for bulk orders. A squad card's Loadout
+opens that squad's Fleet Armory workspace. Equipment opens the existing Fleet Armory
 inspect/edit path for equipment definitions, exact billet comparison, and issue.
 Its selectable company and squad cards retain readiness, recovery, and reinforcement
 in formation context. A reinforcement control is a secondary card action; selecting
@@ -163,8 +163,8 @@ overflow against the rank cap before Apply. Unassigned carries an explicit
 operation-commander or acting-NCO fallback rather than a fictional officer portrait or capacity.
 
 The Armory has no separate top-level tab. Barracks owns its Equipment entry,
-and Equip Squad opens the selected squad directly. Returning preserves the
-Barracks selection and drill-down. Equipment news marks both the Barracks tab
+and a squad card's Loadout opens that squad directly. Returning preserves the
+Barracks selection. Equipment news marks both the Barracks tab
 and its Equipment entry; entering Barracks alone does not acknowledge the lesson.
 The existing editor and inventory transactions remain authoritative.
 
@@ -885,23 +885,11 @@ technology remain blocked. Current template ownership and exact issued equipment
 remain authoritative. This introduces no finite rifle or suit stock or automatic
 purchasing; personnel and founding costs remain separate.
 
-The individual drill-down retains the physical quarters, twelve-billet muster,
-and formation **service record**. Each occupied muster card pairs the marine's
-name, fire-team position and readiness with actual issued armor, held-weapon,
-specialty and integral-system resource images. Hover or keyboard focus exposes
-catalog specifications; a medical return clock stays visible for wounded
-personnel. Vacancies show a hollow marine instead of equipment, and recovering
-marines retain their kit and billet. No card implies that an assigned profile
-has already been issued.
-
-The formation service record reports operations, confirmed kills, rounds on target,
-casualties, and friendly-fire damage. That last measure is reported rather than
-netted into damage dealt, because a squad being dangerous to stand near is part of who it is.
-The record is read-only evidence: `progression-nouns.md` forbids a career from
-becoming a combat input, so nothing shown here changes how the squad fights.
-A formation with no operations says so rather than rendering a row of zeroes, and
-zero states are spelled out in words because the heading face carries no
-placeholder dash glyph.
+Barracks has no individual squad drill-down. Ready, wounded and vacant counts
+stay on each formation card, and per-billet kit is read in the squad's Armory
+workspace. Squad and marine careers are still recorded but the squad career has
+no Barracks surface; giving it one is open progression work
+(`progression-nouns.md`).
 
 The campaign roster holder establishes only the non-deployable reserve formation
 during game load. A new company has no line squad until the player commits the full
@@ -911,29 +899,12 @@ gallery's only formation slot until the first squad exists and keeps it trailing
 later squad. Existing
 saves retain their named formations.
 
-The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
-tiles, registered building doodads, camera scale, and the layered marine compositor
-with live combat and the Mech Lab. The authored deck contains twelve two-cell berths,
-lockers, lounge and planning furnishings, shipboard terminals, and a three-lane practice
-range behind an internal blast wall. Ready marines aboard ship appear in their actual
-issued armor, weapons, and special equipment. WIA marines retain their named muster
-billet and recovery clock but are not fabricated as healthy room actors. Stationed
-squads leave their shipboard quarters empty, and vacancies remain explicit. None of
-those projections advances campaign time or mutates roster state.
-
-Room actors are real entities in that bounded simulation, not separately painted
-portraits placed over a tile screenshot. Live Starsector rendering and deterministic
-headless evidence collect the same `GROUND + DOODADS` and `UNITS + SHOTS`
-command passes; only the final graphics drain changes.
-This keeps the snapshot useful as scene-composition proof without giving tooling a
-second barracks layout or appearance implementation.
-
-Leisure is authored as battle-owned **ambient task routes**, not Barracks canvas
+Leisure is authored as battle-owned **ambient task routes**, not screen-owned
 animation. The same deterministic station/walk/activity sampler now drives Mech Lab
 technicians and is available to mission setup for civilians, workers, engineers, or
-guards. Live Barracks presentation advances its bounded simulation on the ordinary
+guards. The live company deck advances its bounded simulation on the ordinary
 fixed battle clock; deterministic evidence replays that same clock to an authored
-time. Barracks has no mission winner, so its bounded clock remains live until its host
+time. The deck has no mission winner, so its bounded clock remains live until its host
 closes. A live route chooses destinations but never writes actor positions: marines
 claim lounge, locker, and firing-lane task points exclusively, travel through ordinary
 battle pathfinding and separation, and perform the activity only after arrival. A

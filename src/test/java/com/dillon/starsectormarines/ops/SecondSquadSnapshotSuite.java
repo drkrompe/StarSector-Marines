@@ -99,9 +99,6 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
         var model = vm.command();
         var properties = new LinkedHashMap<String, Object>();
         properties.put("command", model.props()); properties.put("contextLabel", "PERSONNEL COMMAND");
-        properties.put("squadRows", vm.squadRows()); properties.put("musterRows", vm.musterRows());
-        properties.put("recordCells", vm.recordCells()); properties.put("selectedSquadName", vm.selectedSquadName());
-        properties.put("selectedSquadSummary", vm.selectedSquadSummary()); properties.put("quartersStatus", vm.quartersStatus());
         Runnable noop = () -> {};
         MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP, noop, noop, noop, noop, noop, noop);
         loader = loader(context, "data/ui/components/company/company-resource-stock.mlx",
