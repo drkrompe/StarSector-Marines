@@ -269,7 +269,15 @@ Do not run builds or leave generated task files there.
   `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow.
   `-Dbattle.fort.picketSize=0` seats no picket at a fort's main gate (default 4)
   and `-Dbattle.command.fortReports=false` stops fort guns reporting their
-  targets to their commander; both are the blind-fort controls. The fort report carries a
+  targets to their commander; both are the blind-fort controls.
+  `-Dbattle.command.placeAlarms=false` drops the alarm that keeps a fort's
+  pressure up after its eyes are gone. `-Dbattle.command.threatMemoryTicks=0`
+  makes a defender forget a threatened track the pulse its last contact lapses,
+  and `-Dbattle.command.alarmThreats=false` stops an alarmed fort threatening
+  its own track (the two responder-recall controls).
+  `-Dbattle.command.standTo=true` enables the off-by-default experiment that
+  sends a quiet belt garrison to the doorstep of the work its alarmed fort is
+  losing. The fort report carries a
   `pressure flow:` line and a fighting-position use block per faction. Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add

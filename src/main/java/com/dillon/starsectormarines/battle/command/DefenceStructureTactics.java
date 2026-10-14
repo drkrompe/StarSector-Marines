@@ -63,20 +63,20 @@ public final class DefenceStructureTactics {
 
     /**
      * Where a squad standing to at a held fort's aspect should hold ground: the cell of the fort's belt (its
-     * prepared ground, packed {@code x, y} pairs) nearest the squad that it can reach, or {@code null} when the fort
+     * prepared ground, packed {@code x, y} pairs) nearest {@code (fromX, fromY)} that the squad can reach, or {@code null} when the fort
      * has no such ground and the squad should hold the doorstep as before. This chooses a place to hold, not a
      * threat: it reads no hostile position, and the claims inside the circle then prefer the cells covered toward
      * whatever the squad itself comes to believe. Ties go to the lower row, then the lower column, so the answer is
      * deterministic.
      */
-    static int[] beltPost(int[] beltCells, int squadX, int squadY, Reach reach) {
+    static int[] beltPost(int[] beltCells, int fromX, int fromY, Reach reach) {
         int[] best = null;
         long bestGap = Long.MAX_VALUE;
         for (int i = 0; i + 1 < beltCells.length; i += 2) {
             int x = beltCells[i];
             int y = beltCells[i + 1];
-            long gx = x - squadX;
-            long gy = y - squadY;
+            long gx = x - fromX;
+            long gy = y - fromY;
             long gap = gx * gx + gy * gy;
             boolean better = gap < bestGap
                     || (gap == bestGap && best != null && (y < best[1] || (y == best[1] && x < best[0])));
@@ -318,7 +318,9 @@ public final class DefenceStructureTactics {
     private static ObjectiveAssignment defendAssignment(Candidate squad, int[] doorstep, DefenceStructureFact structure,
                                                         CommandTopology topology) {
         if (structure.ofFort() && BELT_POST_ENABLED) {
-            int[] post = beltPost(structure.beltCells(), squad.anchorCellX(), squad.anchorCellY(),
+            // The stretch nearest the work being pressed, not the squad: a squad already on the belt would otherwise be
+            // posted where it stands, however far round the fort the work is.
+            int[] post = beltPost(structure.beltCells(), structure.cellX(), structure.cellY(),
                     (x, y) -> topology.isWalkable(x, y)
                             && topology.reachable(squad.anchorCellX(), squad.anchorCellY(), x, y));
             if (post != null) {

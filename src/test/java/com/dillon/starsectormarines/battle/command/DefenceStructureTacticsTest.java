@@ -239,12 +239,12 @@ class DefenceStructureTacticsTest {
         assertEquals(1, tasks.size());
         ObjectiveAssignment area = tasks.get(0).assignment();
         assertEquals(AssignmentKind.DEFEND_AREA, area.kind(), "the same kind of order a commander already gives");
-        assertEquals(20, area.targetCellX(), "the belt cell nearest the squad");
+        assertEquals(30, area.targetCellX(), "the belt cell nearest the work being pressed, not the squad");
         assertEquals(20, area.targetCellY());
         assertEquals(DefenceStructureTactics.FORT_BELT_POST_RADIUS_CELLS, area.targetRadiusCells());
         // Held on the next pulse unchanged, rather than re-chosen toward the doorstep.
         List<Task> again = DefenceStructureTactics.plan(Faction.DEFENDER, List.of(bunker(true, trench(10, 30, 20))),
-                List.of(new Candidate(1, 20, 21, area)), topology);
+                List.of(new Candidate(1, 30, 21, area)), topology);
         assertEquals(area, again.get(0).assignment());
     }
 
