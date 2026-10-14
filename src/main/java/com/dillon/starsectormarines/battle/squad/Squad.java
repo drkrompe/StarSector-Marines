@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.drone.DroneAnchor;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
+import com.dillon.starsectormarines.battle.infantry.SquadMedic;
 
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.RetainedFlankWaypoint;
@@ -309,6 +310,13 @@ public final class Squad {
      * cleared — a wiped squad keeps its name.
      */
     public CommandGroupIdentity commandGroupIdentity;
+
+    /**
+     * The squad's designated medic, from an officer trained in Field Medicine,
+     * or null. Created and written by {@code SquadMedicSystem}'s serial pass;
+     * the unit dispatch only reads it.
+     */
+    public SquadMedic medic;
     public String campaignSquadId;
 
     /**
