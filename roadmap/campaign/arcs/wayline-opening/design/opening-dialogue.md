@@ -660,26 +660,43 @@ Mara — next
 
 ## Proposal — Sabine on the company net
 
-Battle radio today has squad call signs and an unnamed **Command** voice that
-issues their orders (`operation_radio.json`). The proposal: when an order goes to
-a squad whose home officer is the founding field commander, Sabine voices it
-instead of Command, and she gets a short set of her own coordination reports
-beside Castle's story calls and the marines' contact reports. Examples:
+Sabine joins the existing net as one more voice in its rotation, not as a
+parallel system. What sets her apart is her authority, not her mechanics. The
+net already has two levels, and she fills the gap between them:
 
-| Situation | Sabine |
+| Voice | Where | Speaks for |
+|---|---|---|
+| Castle | CIC, aboard ship | The company. Coordinates from above, assigns work, relays what the ship can see. |
+| **Sabine** | **On the ground** | **The company on the ground.** Runs control across squads: who moves, who covers, where they gather. |
+| Squad callsigns (Kestrel, Hammer, Viper, Jackal, Ox, Rivet) | On the ground | One squad. Report their own situation and acknowledge. |
+
+So her lines are the ones a ground commander says: she directs one squad in
+relation to another, reports the company's state up to Castle, and answers
+Castle for the whole landing. She never reports a single squad's contact the way
+a callsign does, and she never speaks for the ship.
+
+She takes part in the same exchanges under the same rules: sampled from
+accepted assignments, sharing the voice budget, rotating with the callsign cast.
+Exchanges that are about more than one squad, or about the company as a whole,
+are hers to take; single-squad exchanges stay with the callsigns. She is not
+bound to any squad's roster name. She speaks only in battles she is actually
+deployed in; when she is wounded or left aboard, the net runs exactly as it does
+today. Examples:
+
+| Exchange | Lines |
 |---|---|
-| Order: hold | Hold here. Count off when you're set. |
-| Order: advance | Moving. Keep your spacing, keep your mouths shut. |
-| Order: withdraw | Back to the rally point. Nobody gets left. |
-| Order: secure | That compound's ours. Clear it, then sit on it. |
-| Squad landed | Down and counted. Moving off the pad. |
-| First casualty | Man down. Keep firing; I've got him. |
-| Squad below half | We're thin, Commander. I can hold, I can't push. |
-| Regrouped | Section back together. Ready for orders. |
+| Castle assigns, Sabine directs | **Castle:** Sabine, CIC. The east compound's yours. **Sabine:** Copy, Castle. Hammer, take the gate. Viper, cover them from the wall. |
+| Landing complete | **Sabine:** Castle, Sabine. Everyone's down and counted. Moving off the pad. |
+| Consolidate after capture | **Sabine:** Compound's ours. Kestrel, sit on it. Everyone else, on me. |
+| Withdrawal | **Sabine:** Castle, we're pulling back to the pad. Ox, you're last out. Nobody gets left. |
+| Company thinning | **Sabine:** Castle, we're thin down here. I can hold. I can't push. |
+| Squads rejoined | **Castle:** Sabine, how's the line? **Sabine:** Back together. Ready when you are. |
 
-This needs its own story: an officer actor in the radio catalog, a rule for
-which squad's orders she speaks, recordings in a chosen voice, and a check that
-Command still speaks for every other squad. It is not part of the text rewrite.
+This needs its own story under the battle-radio model: a fixed ground-commander
+actor in the radio catalog, the rule for which exchanges she takes, recordings in
+a chosen voice, and a check that the net is unchanged when she is not deployed.
+It is not part of the text rewrite. Until then her story lines stay text with her
+portrait.
 
 ## Implementation notes
 
