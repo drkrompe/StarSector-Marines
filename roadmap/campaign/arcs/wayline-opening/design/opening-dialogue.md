@@ -42,6 +42,14 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
    board's licence. Licensed companies will not work for what Wayline can pay;
    unlicensed ones are what independents can afford. This is authored backstory,
    not a game mechanic or prerequisite.
+5. **Sabine cannot be killed.** She carries too much of the long story and the
+   company's radio voice to be a replaceable officer. The one loss path today, a
+   wiped-out defeat that kills her squad's officer six times in ten, wounds her
+   instead (out of action for 45 days, the existing wipe injury). No other
+   officer gains this protection.
+6. **No contract figures in dialogue.** Lines never name a negotiated fee. They
+   say "credits", "the fee" or "paid", and the amount lives only in the offer's
+   own terms, so a balance pass never has to rewrite or re-record a line.
 
 ## What was wrong
 
@@ -86,15 +94,50 @@ with words. Her yard runs on parts that come up the Wayline road. Mara's older
 sister.
 
 **Mara Venn** — PUBLIC: broker for Wayline, the drivers' freight cooperative;
-Nessa's younger sister. HIDDEN: Relief's 6,000 is most of what is left in the
+Nessa's younger sister. HIDDEN: Relief's fee is most of what is left in the
 cooperative's security fund; if the checkpoint falls, Wayline sells out to a
 bigger hauler. She hires an unlicensed company because it is the only kind she
 can afford, and she knows Castle knows that. TO BE REVEALED: the fund's state, at
 Counterattack.
 
 **Wayline's drivers and the checkpoint watch** — PUBLIC from Mara's introduction:
-drivers who pooled money to keep their own trucks; the watch is paid from the
-same collection as the company's fee.
+Wayline used to run freighters between worlds. It lost cargoes to interception,
+sold its hulls to cover them, and is down to drivers hauling on one planet's
+roads. They pool what is left so nobody has to sell their truck as well. The
+watch is paid from the same collection as the company's fee. Later arcs, where
+Wayline hauls to Asharu again, are Wayline flying again: the recovery the
+company buys it.
+
+### Why Wayline (proposal)
+
+The opening needs a reason the raiders are on Wayline's road rather than someone
+else's, and Corvus Account already supplies the deep one: Sable Wake is buying
+Wayline's schedules. This proposal makes that the cause of everything the
+opening shows, and lets the player feel it long before anyone names it.
+
+- **PUBLIC — the soft target.** Wayline is the cheapest, worst-protected freight
+  outfit in reach: no licensed security, no ships left to run with, a watch made
+  of drivers. Anyone would say that is why. It is true, and it is not the whole
+  answer.
+- **HIDDEN — they always know.** The interceptions that cost Wayline its hulls
+  happened on its own sailings. The depot fell on the night the gate crew was
+  short. Raiders arrive where Wayline will be, when it will be there. Somebody is
+  selling the schedules, and they were selling them before the ships were sold.
+- **TO BE REVEALED — Dust Ledger.** The raid on Sable Wake's dispatch archive
+  turns up Wayline's schedules among the papers. Who sold them stays open for the
+  owner: a driver, a dispatcher, or a bigger hauler that wants Wayline's routes
+  cheap. A bigger hauler would tie this to Mara's hidden fear that Wayline sells
+  out.
+
+Seeds between Relief and Dust Ledger, one line each, none of them explained:
+
+| Chapter | Seed |
+|---|---|
+| Relief | Mara: the depot raiders "knew which night the gate crew was short." |
+| Counterattack | Castle, on the depot's recovered office: their dispatch board was the one thing the raiders bothered to take. |
+| Open the Junction | Sabine: they were waiting at the junction before our boats were down. Somebody told them we were coming. |
+| Thunder Run | Castle, debrief: every ambush on the corridor sat on the loads that were worth something, and skipped the rest. |
+| Dust Ledger | Mara reads Wayline's own schedules out of a pirate archive. |
 
 ## 0 — New game
 
@@ -343,7 +386,7 @@ Castle reports the yard visit in the planet's interaction panel.
 **New, Jangala only, after the estimate** — Castle; the Wayline bridge
 > Her racks are half empty. Most of her parts come up the Wayline road, and
 > raiders have had it shut for a month. Her sister Mara brokers for the drivers
-> and is wearing herself thin keeping them from selling their trucks. I said we'd
+> and is wearing herself thin keeping them from selling the trucks too. I said we'd
 > be looking for work, and that we've no licence. Nessa said Mara can't afford
 > anyone who has one. Then she said, "Talk to her when you've got something that
 > flies. Not before."
@@ -458,9 +501,8 @@ who kept the roster.
 > orders and a counted muster, and she does the counting herself. Her specialty,
 > promotions and service record grow through your decisions.
 
-The induction lines name the officer by `{0}`: a surviving officer can carry the
-lesson if Sabine is gone, so her history lives in the dossier, the prologue and
-her own lines, not in these.
+Sabine always survives to finish her own induction, so these lines can speak
+about her directly.
 
 `openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters`
 > First, Commander, a ship with quarters and a boat bay. I've counted the stores
@@ -473,9 +515,10 @@ her own lines, not in these.
 > together. Keep the squad's stores aside for the next step.
 
 `openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou`
-> {0} will lead our first formation, Commander. You set the course; she brings our
-> people through it and home again. Open her portrait on the left. Let's give her
-> a proper start.
+> Sabine leads our first formation, Commander. She's been bringing those twelve
+> home since the ore runs; now she does it for us. You set the course, she brings
+> our people through it. Open her portrait on the left. Let's give her a proper
+> start.
 
 `openingOfficerInductionGuideSheHasOneTrainingPointCoverProtects`
 > She has one training point. Cover keeps her troops alive under fire; Recovery
@@ -501,17 +544,19 @@ founding officer only)
 ## 5 — The first job
 
 `openingBarracksCommandMaraVennAnsweredWaylineNeedsItsCheckpoint` — Castle
-> Mara Venn answered. Wayline wants its freight checkpoint relieved: six thousand
-> if we break the assault. She sounds like she hasn't slept in a week. I've put
+> Mara Venn answered. Wayline wants its freight checkpoint relieved, and they'll
+> pay if we break the assault. She sounds like she hasn't slept in a week. I've put
 > our name forward. First job, Commander. Choose Ready for the briefing, or follow
 > Mara's directions from HQ. Take Sabine's squad. Let's give Mara a reason to call
 > again.
 
 `WaylineArc` introduction, Relief — Mara
-> Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline: drivers who pooled what they had so they could keep
-> hauling without selling their trucks to someone bigger. Raiders took our depot a
-> month ago. Now they're at the checkpoint, and if that falls there's no road left
-> to haul on. Licensed companies cost more than we have. You cost what we have.
+> Mara Venn. Castle sent your particulars, and I've read them twice. I broker for
+> Wayline. A year ago we ran freighters between worlds. We lost three cargoes in a
+> season and sold the hulls to cover them, so now we're drivers on one planet's
+> roads, pooling what's left so nobody has to sell their truck as well. Raiders
+> took our depot a month ago. They knew which night the gate crew was short. Now
+> they're at the checkpoint, and if that falls there's no road left to haul on. Licensed companies cost more than we have. You cost what we have.
 > I'd rather that than nothing, and I expect you would too.
 
 Mara's introduction is shared by every start port, so it does not mention Nessa;
@@ -525,7 +570,7 @@ recorded briefing carries the same words; changing it needs a new take.
 > stop them taking the road. Land on the rear unloading apron and get to the gate.
 > More of them are coming up the freight and warehouse service roads. Wayline
 > puts in its militia and one shuttle. Eliminate the bandit force, and bring as
-> many of our people home as you can. Six thousand credits on success, agreed in
+> many of our people home as you can. You'll be paid on success, agreed in
 > writing. Break the assault and yours is the first company I call about the
 > depot. One job at a time, Commander.
 
@@ -599,6 +644,10 @@ Command still speaks for every other squad. It is not part of the text rewrite.
 - Renaming Mira to Sabine changes the officer's minted name, portrait file and
   string keys outright. The game has not launched, so no save carries the old
   name and nothing needs to keep accepting it.
+- Sabine's protection changes the standing model in the same commit as the code:
+  `personnel-nouns.md` ("grants no immunity from loss") and `company-view-nouns.md`
+  ("a surviving officer can carry the unfinished lesson") are rewritten, and the
+  induction's fallback to another officer is removed.
 - Prologue and lesson lines are text with Castle's portrait; none is recorded
   today. The Relief briefing is recorded in Mara's voice and needs a new take if
   its words change.
