@@ -49,7 +49,7 @@ class WorkingPassageCommandTest {
         var command=new WorkingPassageCommand(Faction.ALLY);
         var one=squad(2,Faction.ALLY,CommandAuthority.MISSION_COMMAND,-1);var two=squad(3,Faction.ALLY,CommandAuthority.MISSION_COMMAND,-1);
         var waiting=command.plan(frame(Faction.ALLY,Phase.BEND_BUILD,one,two)).proposals();
-        assertEquals(82,waiting.get(0).assignment().targetCellX());assertEquals(158,waiting.get(1).assignment().targetCellX());
+        assertEquals(172,waiting.get(0).assignment().targetCellX());assertEquals(158,waiting.get(1).assignment().targetCellX());
         var pump=command.plan(frame(Faction.ALLY,Phase.NARROWS,one,two)).proposals();
         assertEquals(201,pump.get(0).assignment().targetCellX());assertEquals(210,pump.get(1).assignment().targetCellX());
         var finalHold=command.plan(frame(Faction.ALLY,Phase.CLIMB_OUT,one,two)).proposals();

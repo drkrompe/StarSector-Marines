@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-14 — Morrow transfers without crew; the company crews her itself.
+Updated: 2026-10-14 — basin fencing and battle damage; story-radio timing checked against playbacks.
 
 ## Placement and employer
 
@@ -349,6 +349,14 @@ the duration targets remain tuning goals until measured playback and live review
   commits, and a four-turn Castle/Vale exchange that yields to
   `shepherd.salvage.arrival` if marines land first. Story narration plays one
   line per cue today, so this needs ordered multi-turn support in story radio.
+- **Cold Start cannot be won by the autonomous playback.** With fences and
+  without, the expected company reaches power or the gun and is then destroyed
+  (17–24 of 24 lost) or loses the repair crew. Salvage Rights is marginal:
+  the inspection crew dies in one or both seeds depending on small layout
+  changes. Both are difficulty work, not story-radio faults. Story radio is
+  serial and was timed against the playbacks: instruction lines outrank Cold
+  Start's checkpoint reports, so the build instruction is not held behind a
+  falling picket.
 - **Drop the crew award.** `ShepherdRecoveryCampaign.settle` still adds Morrow's
   minimum crew to the fleet, `ShepherdRecoveryProgress` validates and records a
   positive `willingCrewTransferred`, and the briefing, mission-select, guide and

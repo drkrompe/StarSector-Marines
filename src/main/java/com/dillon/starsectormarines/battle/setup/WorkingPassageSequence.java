@@ -35,6 +35,9 @@ public final class WorkingPassageSequence implements Objective {
     private final Set<Integer> handedOff=new HashSet<>();
     private final Set<Long> turretIds=new HashSet<>();
     private final boolean[] responseReached=new boolean[4];
+    /** A road team that hangs back counts as answered after this long, so it cannot hold a stop open forever. */
+    private static final int RESPONSE_TIMEOUT_TICKS=90*30;
+    private final int[] releasedAtTick=new int[4];
     private int released;
     private float phaseSeconds;
     private boolean departureRequested;
@@ -128,6 +131,7 @@ public final class WorkingPassageSequence implements Objective {
         }
     }
     private void release(BattleSimulation sim){
+        releasedAtTick[released]=sim.getSimTickIndex();
         int batch=released++,from=switch(batch){case 0->0;case 1->4;case 2->10;default->14;},size=batch==0||batch==2?4:6;
         int squad=sim.mintSquad(Faction.DEFENDER,UnitType.MILITIA);
         for(int i=from;i<from+size;i++)sim.spawn(reserve.get(i).squad(squad));
@@ -143,7 +147,8 @@ public final class WorkingPassageSequence implements Objective {
                 if(sim.handoffSquadCommand(id,ROAD,CommandAuthority.MISSION_COMMAND,WorkingPassageCommand.issuer(Faction.DEFENDER),null,"Pressure the company route"))handedOff.add(id);
             }
             int tx=i==0||i==2?BEND_X:i==1?NARROWS_X:LIFT_X,ty=i==0||i==2?BEND_Y:i==1?NARROWS_Y:LIFT_Y;
-            if(sim.squadMemberCount(id)==0||Math.hypot(squad.centroidX-tx,squad.centroidY-ty)<34)responseReached[i]=true;
+            if(sim.squadMemberCount(id)==0||Math.hypot(squad.centroidX-tx,squad.centroidY-ty)<34
+                    ||sim.getSimTickIndex()-releasedAtTick[i]>=RESPONSE_TIMEOUT_TICKS)responseReached[i]=true;
         }
     }
     private void emit(BattleSimulation sim,String beat){log.emitOnce(sim.getSimTickIndex(),"working_passage."+beat,StoryBeatLog.Audience.PLAYER);}

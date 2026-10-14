@@ -25,6 +25,8 @@ public final class SalvageRightsSequence implements Objective {
     public record Report(boolean inspected,int crewLost){}
     public Report report(BattleSimulation sim){return new Report(isComplete(),2-sim.squadMemberCount(engineers));}
     private static final String ROAD="salvage-south-road";
+    private static final int ROAD_WARNING_DELAY_TICKS=20*30;
+    private int releasedAtTick;
     private final SalvageRightsProgress progress=new SalvageRightsProgress();
     private final PointOfInterest receiving,workshop;
     private final int engineers;
@@ -93,8 +95,11 @@ public final class SalvageRightsSequence implements Objective {
                 roadSquads.add(squad);
             }
             log.emitOnce(sim.getSimTickIndex(),"shepherd.salvage.reserve_entered",StoryBeatLog.Audience.OBSERVER_ONLY);
-            emit(sim,"road_warning");
+            releasedAtTick=sim.getSimTickIndex();
         }
+        // Castle's warning follows Vale's cradle call and first sight of Morrow instead of
+        // queueing behind them on the same tick; the scrappers are still on the road.
+        if(released && !progress.terminal() && sim.getSimTickIndex()-releasedAtTick>=ROAD_WARNING_DELAY_TICKS)emit(sim,"road_warning");
         for(int squadId:roadSquads){
             var squad=sim.getSquad(squadId);
             if(!handedOff.contains(squadId) && sim.squadMemberCount(squadId)>0
