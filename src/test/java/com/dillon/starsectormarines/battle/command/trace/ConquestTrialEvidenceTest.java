@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
-import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
@@ -134,15 +133,13 @@ class ConquestTrialEvidenceTest {
 
     private record Outcome(String id, String row, String detail, JSONObject json, String trace) {}
 
-    /** Plays one fixture with its commander switches set, and puts the process-wide switches back as it found them. */
+    /** Plays one fixture. Standing fire missions are standing behaviour, so the retired {@code standingFireMissions} field is refused rather than ignored. */
     private static Outcome play(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
-        boolean standing = ConquestCommand.standingFireMissionsEnabled();
-        try {
-            if (f.has("standingFireMissions")) ConquestCommand.setStandingFireMissionsEnabled(f.getBoolean("standingFireMissions"));
-            return playWithSwitches(f, maxTicks, visualRoot);
-        } finally {
-            ConquestCommand.setStandingFireMissionsEnabled(standing);
+        if (f.has("standingFireMissions")) {
+            throw new IllegalArgumentException("fixture '" + f.optString("id", "?") + "': standingFireMissions is retired; "
+                    + "standing fire missions are standing behaviour and no longer a fixture field");
         }
+        return playFixture(f, maxTicks, visualRoot);
     }
 
     /** The mission's declarations the fixture states; the neutral profile declares none. */
@@ -210,7 +207,7 @@ class ConquestTrialEvidenceTest {
         return counts;
     }
 
-    private static Outcome playWithSwitches(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
+    private static Outcome playFixture(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
         String id = f.getString("id");
         long seed = f.optLong("seed", 41L);
         Placement placement = Placement.valueOf(f.optString("placement", Placement.ON_PATH.name()));
@@ -288,7 +285,7 @@ class ConquestTrialEvidenceTest {
                     + "; objective " + ground.objective().kind + " at (" + ground.objective().anchorX + ","
                     + ground.objective().anchorY + "), keep at (" + ground.keep().anchorX + "," + ground.keep().anchorY + ")\n"
                     + "- mission assault style: " + profileOf(f).declaredAssault() + "; "
-                    + "standing fire missions " + ConquestCommand.standingFireMissionsEnabled() + "; declared kit/mechs/air: "
+                    + "declared kit/mechs/air: "
                     + f.optString("supportKit", "-") + " / " + f.optInt("mechDrops", 0) + " / "
                     + f.optString("airPool", "-") + "\n"
                     + String.format(Locale.ROOT, "- fort wall cells opened: %d (of which %d at the start)%n",

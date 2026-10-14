@@ -165,8 +165,8 @@ public final class MortarTactics {
      * with a marine under direct control is never leashed: a section is the squad's own habit, not an order.
      */
     public static void openSections(BattleControl sim) {
-        if (!MortarSections.isEnabled() || sim.getSimTickIndex() % SECTION_SCAN_TICKS != 0) return;
         MortarSections sections = sim.fieldMortars().sections();
+        if (!sections.isEnabled() || sim.getSimTickIndex() % SECTION_SCAN_TICKS != 0) return;
         World world = sim.world();
         for (Squad squad : sim.getSquads()) {
             if (squad.aliveMembers <= 0 || !sections.mayOpen(squad.id)) continue;
@@ -188,18 +188,13 @@ public final class MortarTactics {
     }
 
     /**
-     * Whether what is in the gunner's band meets the {@link MortarSections.Trigger section trigger} in force, on top of
-     * {@link #worthASetUp}: any worthwhile belief, only an assigned fire mission's target, or that or a believed hardened
-     * target (a nest, a hub, a machine), which is what a tube outranging a nest is for.
+     * Whether the squad has an assigned fire mission with a target in the gunner's band, on top of {@link #worthASetUp}.
+     * A section opens for nothing else: a belief alone halts a march for mostly soft targets (see {@link MortarSections}).
      */
     private static boolean triggered(long unit, SpecialEquipmentDef special, Squad squad, BattleControl sim) {
-        MortarSections.Trigger trigger = MortarSections.trigger();
-        if (trigger == MortarSections.Trigger.ANY) return true;
         StructureDef structure = TurretCatalogRegistry.requireStructure(special.deployableEmplacementSpec().structureId());
         Faction faction = sim.identity().faction(unit);
-        if (missionWorth(unit, squad, faction, structure.mount.weapon, sim) > 0) return true;
-        return trigger == MortarSections.Trigger.HARDENED
-                && worth(unit, squad, faction, structure.mount.weapon, sim, true) >= HARDENED_WEIGHT;
+        return missionWorth(unit, squad, faction, structure.mount.weapon, sim) > 0;
     }
 
     /** The living squadmate who carries a crew-served tube not yet set down, or 0. */
@@ -246,7 +241,7 @@ public final class MortarTactics {
      * Returns whether the marine spent the tick. A marine whose fire team has broken is not held: the morale law comes first.
      */
     public static boolean serveSection(long unit, Squad squad, BattleControl sim) {
-        if (squad == null || !MortarSections.isEnabled()) return false;
+        if (squad == null || !sim.fieldMortars().sections().isEnabled()) return false;
         MortarSections.Section section = sim.fieldMortars().sections().sectionOf(squad.id);
         if (section == null || squad.isRejoining(unit)) return false;
         if (squad.fireTeamBroken(sim.squad().fireTeamIndex(unit))) return false;
