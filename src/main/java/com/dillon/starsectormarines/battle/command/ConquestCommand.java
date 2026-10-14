@@ -407,21 +407,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int GARRISON_MARGIN = 2;
 
     /**
-     * {@code -Dbattle.command.muster=false} turns the phased assault off, restoring the trickle control: the attacker detaches one or two squads at a time to a
-     * disclosed fort, the trickle a fort is built to beat. On by default (with the per-stamp plans, {@link #PLANS_PROPERTY}): land, muster, then assault
-     * ({@code phased-assault.md}). Read once; a scene or test sets the field for a control run.
-     */
-    public static final String MUSTER_PROPERTY = "battle.command.muster";
-    static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "true"));
-
-    /**
-     * {@code -Dbattle.command.musterPlans=false} sends a committed company at the aspect as the first muster did, without
-     * the stamp's assault plan (base of fire, entry, objective, hold). Only read with the muster on.
-     */
-    public static final String PLANS_PROPERTY = "battle.command.musterPlans";
-    static boolean PLANS_ENABLED = Boolean.parseBoolean(System.getProperty(PLANS_PROPERTY, "true"));
-
-    /**
      * {@code -Dbattle.command.standingFireMissions=false} stops the commander giving a squad that carries a served tube a
      * standing fire mission on the nearest disclosed hostile works within the tube's reach; the tube then fires on its
      * section's own belief only. On by default, and independent of the muster: a mortar section on the lanes is a fire
@@ -447,27 +432,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** Radius of a standing mission around the works cell it names. UNTUNED. */
     static final int STANDING_MISSION_RADIUS = 4;
 
-    /** Whether committed companies execute the stamp's assault plan. */
-    public static boolean musterPlansEnabled() {
-        return PLANS_ENABLED;
-    }
-
-    /** Sets the plans switch; the caller restores it. For scenes and evidence controls only. */
-    public static void setMusterPlansEnabled(boolean enabled) {
-        PLANS_ENABLED = enabled;
-    }
-
-    /** Whether the muster is on. For scenes and evidence controls that must hold it fixed. */
-    public static boolean musterEnabled() {
-        return MUSTER_ENABLED;
-    }
-
-    /** Sets the muster switch; the caller restores it. For scenes and evidence controls only. */
-    public static void setMusterEnabled(boolean enabled) {
-        MUSTER_ENABLED = enabled;
-    }
-
     private final TraversalAxis axis;
+    /** How this battle's commander takes defended works: the mission's declaration, {@link AssaultStyle#MUSTER} unless it chose otherwise. */
+    private AssaultStyle assaultStyle = AssaultStyle.MUSTER;
     /** Assault companies and the foothold element; see {@link AssaultMuster}. */
     private final AssaultMuster muster = new AssaultMuster();
     /** The cell the force came ashore at, remembered once known. Own-force knowledge. */
@@ -744,6 +711,19 @@ public final class ConquestCommand implements ConquestFrontCommand,
         this.frontSnapshot = ConquestFrontSnapshot.empty(Faction.MARINE, axis);
     }
 
+    /**
+     * Sets how this battle's commander takes defended works, as its mission declared it ({@code TargetProfile.declaredAssault}).
+     * Set before the first pulse; the choice belongs to this commander and so to its simulation alone.
+     */
+    public ConquestCommand withAssaultStyle(AssaultStyle style) {
+        this.assaultStyle = style == null ? AssaultStyle.MUSTER : style;
+        return this;
+    }
+
+    public AssaultStyle assaultStyle() {
+        return assaultStyle;
+    }
+
     public ConquestFrontSnapshot frontSnapshot() {
         return frontSnapshot;
     }
@@ -830,10 +810,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
         // Muster and assault run before the lane passes and take their squads out of the pool they draw from, so a
-        // company is never also a capture detachment or a lane probe. With the switch off nothing here runs.
+        // company is never also a capture detachment or a lane probe. A mission that chose the trickle runs none of this.
         List<String> musterNotes = List.of();
         List<ConquestFrontSnapshot.CompanyState> companyPicture = List.of();
-        if (MUSTER_ENABLED) {
+        if (assaultStyle == AssaultStyle.MUSTER) {
             AssaultMuster.Result mustered = planMuster(frame, phase, squads, allSquads, directives);
             musterNotes = mustered.notes();
             companyPicture = mustered.companies();
@@ -1087,7 +1067,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.underFireRecently || squad.moraleBroken || squad.primaryEngageableMembers > 0,
                     squad.originalAssignment, squad.machine ? -1 : stripFor(squad), squad.capabilities));
         }
-        muster.plans(PLANS_ENABLED);
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
                 hostiles, emplacements, frame.topology(), frame.facts().airSupport());
         strikeWishes.addAll(result.strikes());
@@ -1306,7 +1285,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                                      Map<Integer, SquadDirective> directives) {
         List<String> notes = new ArrayList<>();
         List<DefenceStructureFact> structures = frame.facts().structures();
-        if (MUSTER_ENABLED) {
+        if (assaultStyle == AssaultStyle.MUSTER) {
             // A fort that still has a hostile aspect is the company's work; a squad or two detached to it one at a time is
             // the trickle the muster exists to end.
             List<DefenceStructureFact> all = structures;
