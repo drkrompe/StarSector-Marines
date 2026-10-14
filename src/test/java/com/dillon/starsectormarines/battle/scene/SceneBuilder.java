@@ -275,6 +275,8 @@ public final class SceneBuilder {
         private int specialAmmo;
         private boolean stationary;
         private float health = -1f;
+        private float armorCapacity;
+        private float armorRating;
         private IntFunction<ObjectiveAssignment> assignment;
         private MechVariant mechVariant;
         private MechRole mechRole;
@@ -395,6 +397,16 @@ public final class SceneBuilder {
             return this;
         }
 
+        /** Issues every member armor of this capacity and rating, as a worn pattern would. */
+        public SquadSpec armor(float capacity, float rating) {
+            if (!(capacity > 0f) || !(rating > 0f)) {
+                throw new IllegalArgumentException("Armor needs positive capacity and rating");
+            }
+            this.armorCapacity = capacity;
+            this.armorRating = rating;
+            return this;
+        }
+
         /** Immobile: a fixed emplacement, or a body that must stay where it was put. */
         public SquadSpec stationary() {
             this.stationary = true;
@@ -463,6 +475,7 @@ public final class SceneBuilder {
                 spec.squad(squadId);
                 if (stationary) spec.moveSpeed(0f);
                 if (health > 0f) spec.health(health);
+                if (armorCapacity > 0f) spec.armor(armorCapacity, armorRating);
                 spawned[i] = sim.spawn(spec);
                 if (mechVariant != null) {
                     sim.world().attachMechLoadout(spawned[i],

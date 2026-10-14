@@ -11,8 +11,8 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import java.util.List;
 import java.util.Set;
@@ -151,12 +151,12 @@ public final class AgreusArcCampaign {
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
         if (AgreusArcProgress.yardOwners(o.missionId)) {
             if (o.yardOwners == null || MarineRosterScript.getInstance() == null) return -1;
-            var unavailable = EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+            var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
             return settleYard(p,o,Global.getSector().getPlayerFleet().getCargo(),unavailable);
         }
         if (AgreusArcProgress.limitedWarrant(o.missionId)) {
             if (o.limitedWarrant == null || MarineRosterScript.getInstance() == null) return -1;
-            var unavailable = EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+            var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
             return settleWarrant(p, o, Global.getSector().getPlayerFleet().getCargo(), unavailable);
         }
         if (o.waterUnderSeal == null) return -1;
@@ -170,7 +170,7 @@ public final class AgreusArcCampaign {
                 || o.missionSource != MissionSource.STORY || !AgreusArcProgress.limitedWarrant(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
         // Validate catalog and cargo before consuming the attempt; ownership is never learned here.
-        var card = EquipmentTemplateCardItemPlugin.itemData(AgreusArcProgress.SPECTER_CARD);
+        var card = LoadoutCardItemPlugin.itemData(AgreusArcProgress.SPECTER_CARD);
         var r = o.limitedWarrant;
         int payment = p.settleWarrant(o.missionId, "agreus", o.victory, o.payoutEarned,
                 r.recordsRecovered(), r.kitRecovered(), r.kitReturned(), r.companyReturned(),
@@ -182,7 +182,7 @@ public final class AgreusArcCampaign {
         if (p == null || o == null || cargo == null || unavailable == null || o.yardOwners == null
                 || o.missionSource != MissionSource.STORY || !AgreusArcProgress.yardOwners(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
-        var card = EquipmentTemplateCardItemPlugin.itemData(AgreusArcProgress.ARBALEST_CARD);
+        var card = LoadoutCardItemPlugin.itemData(AgreusArcProgress.ARBALEST_CARD);
         var result = o.yardOwners;
         int payment = p.settleYard(o.missionId,"agreus",o.victory,o.payoutEarned,result.dispatchHeld(),result.toolingHeld(),
                 result.entranceHeld(),result.inspected(),result.companyPresent(),result.toolingLost(),result.techniciansLost(),result.constablesLost());
