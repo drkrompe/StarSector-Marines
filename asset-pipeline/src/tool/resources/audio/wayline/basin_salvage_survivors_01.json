@@ -1,0 +1,11 @@
+{
+  "requestId": "MFCCADM16IeAGBeBnOA1",
+  "characterCost": "16",
+  "inputSha256": "cdbb043c04fc8b94810ef5ac89a5c3967b48562cb5adb8c09fcb24c094da51dc",
+  "audioSha256": "0ac682a6bffa8840addf69afb4ec1e046cd2b16dcb05802f7b141a5bcb9262a2",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "durationSeconds": 1.84,
+  "outputFormat": "mp3_44100_128",
+  "take": 1
+}
