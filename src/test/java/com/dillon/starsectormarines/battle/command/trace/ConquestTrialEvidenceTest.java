@@ -53,7 +53,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * -Pmission=conquest-trial}), excluded from {@code test}. Outcomes are findings, never assertions: the only thing this
  * fails on is a trial that could not be built or did not play.
  *
- * <p>The default matrix crosses the fort's two placements with three seeds at one composition. {@code -Pfixture} takes
+ * <p>The default matrix crosses the fort's two placements with three seeds at the combined-arms force (sixteen six-seat
+ * Aeroshuttles, the Conquest squad kit, two lances and a three-bomber, two-fighter pool), with the fort on the lane
+ * played to 18,000 ticks, plus one rifles-only control per placement: four twelve-seat Valkyries and nothing else,
+ * the force the trial ground used to default to. Three rifle squads cannot take an entrenched keep, so the control
+ * is kept for what it shows that a bigger force hides: a squad that freezes or wanders is visible when there is
+ * nobody else to take the ground. A fixture may state {@code maxTicks}; {@code -PmaxTicks} overrides every fixture.
+ * {@code -Pfixture} takes
  * a JSON array of objects; every field but {@code id} is optional: {@code seed}, {@code placement}
  * ({@code ON_PATH}/{@code OFFSET}), {@code offset}, {@code shuttleType}, {@code shuttles}, {@code seats},
  * {@code cycles}, {@code elites}, {@code militia}, {@code patrolSize}, {@code objectiveGarrison}, {@code keepGarrison}
@@ -85,7 +91,7 @@ class ConquestTrialEvidenceTest {
                 .append("Production Conquest mission layer and commanders on a synthetic ")
                 .append(ConquestTrialGround.WIDTH).append('x').append(ConquestTrialGround.HEIGHT)
                 .append(" map: one landing, one battery fort, one objective, the keep. ")
-                .append(maxTicks).append(" ticks at most. Outcomes are findings, not assertions.\n\n")
+                .append(maxTicks).append(" ticks at most unless a fixture states its own. Outcomes are findings, not assertions.\n\n")
                 .append("| fixture | fort | seed | marines | defenders | winner | ticks | objective taken | keep taken "
                         + "| marines at fort | marine losses | defender losses | position runs (start/end) |\n")
                 .append("|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
@@ -93,7 +99,8 @@ class ConquestTrialEvidenceTest {
         StringBuilder detail = new StringBuilder();
         for (int i = 0; i < fixtures.length(); i++) {
             JSONObject fixture = fixtures.getJSONObject(i);
-            Outcome o = play(fixture, maxTicks, output);
+            int ticks = Integer.getInteger(PREFIX + ".maxTicks") != null ? maxTicks : fixture.optInt("maxTicks", maxTicks);
+            Outcome o = play(fixture, ticks, output);
             md.append(o.row()).append('\n');
             detail.append("\n## ").append(o.id()).append("\n\n").append(o.detail());
             summaries.put(o.json());
@@ -110,10 +117,17 @@ class ConquestTrialEvidenceTest {
         if (!custom.isEmpty()) return new JSONArray(Files.readString(Path.of(custom)));
         JSONArray out = new JSONArray();
         for (Placement placement : Placement.values()) {
+            String name = placement.name().toLowerCase(Locale.ROOT).replace('_', '-');
+            int ticks = placement == Placement.ON_PATH ? 18_000 : 9_000;
             for (int seed : new int[]{41, 42, 43}) {
-                out.put(new JSONObject().put("id", placement.name().toLowerCase(Locale.ROOT).replace('_', '-') + "-" + seed)
-                        .put("seed", seed).put("placement", placement.name()));
+                out.put(new JSONObject().put("id", name + "-" + seed).put("seed", seed).put("placement", placement.name())
+                        .put("shuttleType", ShuttleType.AEROSHUTTLE.name()).put("shuttles", 16).put("seats", 6)
+                        .put("supportKit", "conquest").put("mechDrops", 2)
+                        .put("airPool", new JSONObject().put("bombers", 3).put("fighters", 2).put("regen", true))
+                        .put("maxTicks", ticks));
             }
+            out.put(new JSONObject().put("id", name + "-41-rifles").put("seed", 41).put("placement", placement.name())
+                    .put("maxTicks", 9_000));
         }
         return out;
     }
