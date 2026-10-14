@@ -33,12 +33,13 @@ class ShipPreparationPreflightTest {
                 id -> roster.setCompanyShip(id, "New Home", 200), means);
         model.preparation(roster, resources);
         assertFalse(model.preparationBlocked());
-        assertTrue(model.preparationBill().contains("76 / 76 / 0"));
+        assertTrue(model.preparationBill().contains("Cost 76"));
+        assertFalse(model.preparationBill().contains("Short by"));
         supplies[0] = 75;
         model.commit();
         assertNull(roster.companyShipId());
         assertEquals(100_000, means.credits());
-        assertTrue(model.preparationBill().contains("76 / 75 / 1"));
+        assertTrue(model.preparationBill().contains("Cost 76 · Short by 1"));
         supplies[0] = 76;
         model.commit();
         assertEquals("new", roster.companyShipId());
