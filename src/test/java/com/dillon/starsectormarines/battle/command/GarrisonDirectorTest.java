@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -319,6 +320,106 @@ class GarrisonDirectorTest {
         Man second = director.assign(patrols(6), always()).stream().findFirst().orElseThrow();
         for (int pulse = 0; pulse < GarrisonDirector.PENDING_PULSES; pulse++) evaluate(List.of());
         assertNull(director.pendingCell(second.squadId()));
+    }
+
+    @Test
+    void aPatrolBeyondTheArrivalBoundIsNotSentAndTheRefusalIsCounted() {
+        pressure(1, 5f);
+        evaluate(List.of(), 1);
+        // 120 cells off: well over the bound
+        List<Free> far = List.of(new Free(200, registry.centreX(1) - 120, 12), new Free(201, registry.centreX(1) - 125, 12));
+        assertTrue(director.assign(far, always()).isEmpty());
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_ETA_REFUSED));
+    }
+
+    @Test
+    void theArrivalEstimateIsOctileOverMarchingSpeedAndMonotone() {
+        int straight = GarrisonDirector.etaTicks(0, 0, 40, 0);
+        int diagonal = GarrisonDirector.etaTicks(0, 0, 40, 40);
+        assertTrue(straight > 0 && diagonal > straight);
+        assertTrue(GarrisonDirector.etaTicks(0, 0, 40, 0) <= GarrisonDirector.MAX_ETA_TICKS);
+        assertTrue(GarrisonDirector.etaTicks(0, 0, 100, 0) > GarrisonDirector.MAX_ETA_TICKS);
+    }
+
+    @Test
+    void aStagedPatrolIsSentWithoutSpendingTheRovingReserve() {
+        pressure(1, 5f);
+        evaluate(List.of(), 1);
+        List<Free> pool = List.of(new Free(300, registry.centreX(1) - 5, 12, true), new Free(301, 10, 12));
+
+        List<Man> sent = director.assign(pool, always());
+
+        assertEquals(List.of(new Man(300, 1)), sent, "the staged patrol goes; the lone roving patrol stays as the reserve");
+    }
+
+    @Test
+    void aSquadStillClosingIsHeldThroughALullThatWouldReleaseAnArrivedOne() {
+        pressure(1, 0f);
+        List<Garrison> held = List.of(new Garrison(7, 1, true, false, 8), new Garrison(8, 1, true, true, 8));
+        List<Integer> released = List.of();
+        for (int pulse = 0; pulse < GarrisonDirector.DWELL_PULSES; pulse++) released = evaluate(held);
+        assertEquals(List.of(8), released, "the arrived squad goes after the dwell; the one still marching stays");
+        for (int pulse = GarrisonDirector.DWELL_PULSES; pulse < GarrisonDirector.EN_ROUTE_DWELL_PULSES; pulse++) {
+            released = evaluate(List.of(held.get(0)));
+        }
+        assertEquals(List.of(7), released, "and it is given back once the longer en-route dwell has passed");
+    }
+
+    @Test
+    void aSquadThatNeverArrivesIsGivenBackEvenUnderPressure() {
+        pressure(1, 5f);
+        List<Garrison> held = List.of(new Garrison(7, 1, true, false, 8));
+        List<Integer> released = List.of();
+        for (int pulse = 0; pulse <= GarrisonDirector.MAX_EN_ROUTE_PULSES; pulse++) released = evaluate(held, 1);
+        assertEquals(List.of(7), released);
+    }
+
+    @Test
+    void aSquadMarchingInIsNeverReleasedWhileInAFight() {
+        pressure(1, 0f);
+        List<Garrison> held = List.of(new Garrison(7, 1, false, false, 8));
+        for (int pulse = 0; pulse < GarrisonDirector.EN_ROUTE_DWELL_PULSES + 2; pulse++) {
+            assertTrue(evaluate(held).isEmpty());
+        }
+    }
+
+    @Test
+    void anEnemyBelievedInsideTheRunMakesAnArrivedSquadFallBackAndLocksThePlace() {
+        pressure(1, 9f);
+        List<Garrison> held = List.of(new Garrison(7, 1, false, true, 8));
+        evaluate(held, 1);
+
+        assertEquals(List.of(7), director.fallingBack(), "a fight does not stop a fall back");
+        assertTrue(director.lockedOut(registry.centreX(1), registry.centreY(1)));
+        assertTrue(director.assign(patrols(6), always()).isEmpty(), "and nobody is sent into the breached run");
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_FALL_BACK));
+    }
+
+    @Test
+    void aGarrisonBelowUsefulStrengthFallsBackWithoutALockout() {
+        pressure(1, 9f);
+        List<Garrison> held = List.of(new Garrison(7, 1, true, true, GarrisonDirector.MIN_USEFUL_MEMBERS - 1));
+        evaluate(held);
+
+        assertEquals(List.of(7), director.fallingBack());
+        assertTrue(!director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
+    @Test
+    void aBreachLockoutLapses() {
+        pressure(1, 9f);
+        evaluate(List.of(new Garrison(7, 1, false, true, 8)), 1);
+        for (int pulse = 0; pulse < GarrisonDirector.BREACH_LOCKOUT_PULSES; pulse++) evaluate(List.of());
+        assertTrue(!director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
+    @Test
+    void warmPlacesAreThoseAboveTheFlowPressureEvenWhenBelowTheStart() {
+        pressure(0, GarrisonDirector.FLOW_PRESSURE);
+        pressure(1, GarrisonDirector.START_PRESSURE);
+        evaluate(List.of(), 0, 1, 2);
+
+        assertEquals(List.of(0, 1), Arrays.stream(director.warmPlaces()).boxed().sorted().toList());
     }
 
     private int lastConsidered() {

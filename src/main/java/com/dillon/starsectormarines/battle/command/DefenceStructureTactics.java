@@ -329,6 +329,17 @@ public final class DefenceStructureTactics {
                 Math.max(2, structure.reachCells()));
     }
 
+    /**
+     * A squad's withdrawal to a held work: an area defence at its doorstep, the same circle standing to uses when the
+     * fort has no belt ground. {@code null} when the squad cannot reach any cell within the work's reach.
+     */
+    static ObjectiveAssignment doorstepPost(int squadId, DefenceStructureFact structure, int squadX, int squadY,
+                                            CommandTopology topology) {
+        int[] doorstep = approachCell(new Candidate(squadId, squadX, squadY, null), structure, topology);
+        if (doorstep == null) return null;
+        return ObjectiveAssignment.defendArea(squadId, doorstep[0], doorstep[1], Math.max(2, structure.reachCells()));
+    }
+
     private static AssignmentKind kindFor(Role role) {
         return role == Role.DEFEND ? AssignmentKind.DEFEND_AREA : AssignmentKind.ATTACK_MOVE;
     }
