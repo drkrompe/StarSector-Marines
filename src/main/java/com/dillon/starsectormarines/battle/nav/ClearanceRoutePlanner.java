@@ -37,6 +37,13 @@ public final class ClearanceRoutePlanner {
     /** Caps endpoint enumeration independently of the expansion budget. */
     public static final float MAX_ENDPOINT_DISTANCE = 8f;
     private static final float ATTACHMENT_DISTANCE = 1f;
+    /**
+     * {@code -Dbattle.pathfinding.shareExhaustedFlood=false} restores one full
+     * flood per endpoint candidate after the first candidate proves unreachable.
+     */
+    static final String SHARE_EXHAUSTED_FLOOD_PROPERTY = "battle.pathfinding.shareExhaustedFlood";
+    private static final boolean SHARE_EXHAUSTED_FLOOD =
+            Boolean.parseBoolean(System.getProperty(SHARE_EXHAUSTED_FLOOD_PROPERTY, "true"));
 
     public enum Status {
         PENDING, FOUND, INVALID_START, NO_START_ATTACHMENT, NO_LEGAL_DESTINATION,
@@ -100,6 +107,7 @@ public final class ClearanceRoutePlanner {
         private List<Integer> attachments;
         private int goalIndex;
         private boolean prepared;
+        private boolean exhausted;
         private Result latest;
 
         private Search(NavigationGrid grid, int width, int height,
@@ -140,6 +148,25 @@ public final class ClearanceRoutePlanner {
             int expandedAtStart = w.expanded;
             while (goalIndex < goals.size()) {
                 int goal = goals.get(goalIndex);
+                if (exhausted && SHARE_EXHAUSTED_FLOOD) {
+                    // The first candidate's search emptied its frontier, so every
+                    // node reachable from the start is already costed and parented.
+                    // A later candidate is reachable exactly when it is among them;
+                    // re-flooding the same component per candidate paid for the
+                    // whole reachable map once for each of up to a dozen endpoints.
+                    int slot = w.slots.get(goal);
+                    if (slot < 0) {
+                        // A long straight sweep can join what lattice steps cannot.
+                        if (w.link(start.x(), start.y(), w.x(goal), w.y(goal))) {
+                            Point endpoint = new Point(w.x(goal), w.y(goal));
+                            return finish(Status.FOUND, endpoint,
+                                    start.equals(endpoint) ? List.of(start) : List.of(start, endpoint));
+                        }
+                        goalIndex++;
+                        continue;
+                    }
+                    return finish(Status.FOUND, new Point(w.x(goal), w.y(goal)), routeTo(w, slot));
+                }
                 if (!prepared) {
                     Point endpoint = new Point(w.x(goal), w.y(goal));
                     // Preserve candidate order: a direct proof never bypasses
@@ -163,13 +190,7 @@ public final class ClearanceRoutePlanner {
                     int slot = w.heap[0];
                     int node = w.ids[slot];
                     if (node == goal) {
-                        List<Point> route = new ArrayList<>();
-                        for (int cursor = slot; cursor >= 0; cursor = w.parents[cursor]) {
-                            route.add(new Point(w.x(w.ids[cursor]), w.y(w.ids[cursor])));
-                        }
-                        Collections.reverse(route);
-                        if (!route.get(0).equals(start)) route.add(0, start);
-                        return finish(Status.FOUND, new Point(w.x(goal), w.y(goal)), route);
+                        return finish(Status.FOUND, new Point(w.x(goal), w.y(goal)), routeTo(w, slot));
                     }
                     if (w.expanded == maxExpandedNodes) return finish(Status.SEARCH_LIMIT, null, List.of());
                     if (w.expanded - expandedAtStart == maxExpandedThisStep) {
@@ -191,10 +212,21 @@ public final class ClearanceRoutePlanner {
                         }
                     }
                 }
+                exhausted = true;
                 goalIndex++;
                 prepared = false;
             }
             return finish(Status.UNREACHABLE, null, List.of());
+        }
+
+        private List<Point> routeTo(Workspace w, int slot) {
+            List<Point> route = new ArrayList<>();
+            for (int cursor = slot; cursor >= 0; cursor = w.parents[cursor]) {
+                route.add(new Point(w.x(w.ids[cursor]), w.y(w.ids[cursor])));
+            }
+            Collections.reverse(route);
+            if (!route.get(0).equals(start)) route.add(0, start);
+            return route;
         }
 
         /** Cancels pending work; completed queries keep their original terminal result. */

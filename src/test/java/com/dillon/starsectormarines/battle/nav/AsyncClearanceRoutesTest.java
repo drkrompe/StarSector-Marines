@@ -6,6 +6,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,6 +66,23 @@ class AsyncClearanceRoutesTest {
                     new AsyncClearanceRoutes.Request(2f, 5f, 9, 4, .6f), grid);
             assertEquals(PathRequestStatus.READY, drifted.status());
             assertSame(first.proof(), drifted.proof(), "owner must validate a live attachment before installing");
+        }
+    }
+
+    @Test
+    void refusedIntentIsNotResearchedUntilItsBackoffElapses() {
+        NavigationGrid grid = floor();
+        for (int y = 0; y < 8; y++) grid.blockSharedEdge(5, y, Direction.E);
+        try (var routes = new AsyncClearanceRoutes(false)) {
+            routes.beginTick(10);
+            var first = routes.pollOrSubmit(1, new AsyncClearanceRoutes.Request(2f, 4f, 9, 4, .6f), grid);
+            assertEquals(PathRequestStatus.FAILED, first.status());
+            routes.beginTick(11);
+            var drifted = routes.pollOrSubmit(1, new AsyncClearanceRoutes.Request(2f, 5f, 9, 4, .6f), grid);
+            assertSame(first.proof(), drifted.proof(), "a drifting body must not reopen a fresh refusal");
+            routes.beginTick(10 + AsyncClearanceRoutes.FAILURE_RETRY_TICKS);
+            var later = routes.pollOrSubmit(1, new AsyncClearanceRoutes.Request(2f, 5f, 9, 4, .6f), grid);
+            assertNotSame(first.proof(), later.proof(), "after the backoff the refusal is reconsidered");
         }
     }
 

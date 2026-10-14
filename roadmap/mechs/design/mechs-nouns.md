@@ -327,6 +327,14 @@ terrain, so an old route or crowd pressure cannot carry the chassis through a
 newly closed obstacle. A blocked route stops and is reconsidered; it is not a
 completed order.
 
+A refused proof is cheap to repeat and expensive to compute: an unreachable
+goal makes the search cost the whole component the chassis can reach. One
+search therefore shares that single flood across its endpoint candidates, and a
+refused intent stands for a backoff window rather than reopening each time the
+body drifts half a cell. Both are controls (`battle.pathfinding.shareExhaustedFlood`,
+`battle.pathfinding.clearanceFailureBackoff`); the serial scheduler runs proofs
+inside the tick, so an unbounded repeat there stalls the whole simulation.
+
 Tactical selection ranks candidates using the existing perceived contact and
 mission boundary, checks local room for the chassis, then requests a route for
 the chosen candidate. Refused candidates are remembered within bounded tactical
