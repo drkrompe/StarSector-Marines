@@ -59,7 +59,7 @@ class BarracksCommandModelTest {
         assertEquals(currentArmor, roster.soldierById(squad.memberIds().get(0)).armorId());
     }
 
-    @Test void raisingASquadFilesItUnderTheOpenCommandUntilThatCommandIsFull() {
+    @Test void raisingASquadFillsOnlyFreeCommandSlots() {
         var roster = new MarineRoster();
         var lieutenant = new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f);
         roster.add(lieutenant);
@@ -76,21 +76,25 @@ class BarracksCommandModelTest {
         for (int i = 0; i < lieutenant.rank().squadCommandCap(); i++) model.raiseSquad();
         assertEquals(lieutenant.rank().squadCommandCap(), roster.squads().stream()
                 .filter(s -> lieutenant.id().equals(s.homeCaptainId())).count());
+        int squads = roster.squads().size();
         model.raiseSquad();
-        var overflow = roster.squads().get(roster.squads().size() - 1);
-        assertNull(overflow.homeCaptainId(), "A full command does not exceed its cap; the squad stands independent");
-        assertEquals(MarineSquad.CAPACITY, roster.readyCount(overflow));
-        assertEquals(lieutenant.rank().squadCommandCap() + 1, bills[0], "Each raise pays one founding bill");
+        assertEquals(squads, roster.squads().size(), "A full command raises nothing");
+        assertEquals(lieutenant.rank().squadCommandCap(), bills[0], "A refused raise pays no bill");
+        assertTrue(raiseTile(model).get("founderDisabled") instanceof Boolean b && b);
+
+        var captain = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f);
+        roster.add(captain);
+        model.selectCommand("all");
+        model.raiseSquad();
+        assertEquals(captain.id(), roster.squads().get(roster.squads().size() - 1).homeCaptainId(),
+                "All formations raises into the first officer with a free slot");
     }
 
     @Test void raiseTileIsTheLastTileAndUnaffordableStoresDisableIt() {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
-        @SuppressWarnings("unchecked")
-        var tiles = (List<Map<String, Object>>) value(model, "squads");
-        assertEquals(model.cards().size() + 1, tiles.size());
-        var tile = tiles.get(tiles.size() - 1);
+        var tile = raiseTile(model);
         assertEquals("barracks-raise-squad", tile.get("founderId"));
         assertEquals(true, tile.get("founderDisabled"));
         int before = roster.squads().size();
@@ -128,9 +132,6 @@ class BarracksCommandModelTest {
         var model = vm.command();
         var props = new LinkedHashMap<String, Object>();
         props.put("command", model.props()); props.put("contextLabel", "PERSONNEL COMMAND");
-        props.put("squadRows", vm.squadRows()); props.put("musterRows", vm.musterRows());
-        props.put("recordCells", vm.recordCells()); props.put("selectedSquadName", vm.selectedSquadName());
-        props.put("selectedSquadSummary", vm.selectedSquadSummary()); props.put("quartersStatus", vm.quartersStatus());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                 () -> {}, () -> {}, model::showOverview, () -> {}, () -> {}, () -> {});
         var previous = SvgAsset.setSource(path -> Files.readString(Path.of("mod").resolve(path)));
@@ -192,17 +193,13 @@ class BarracksCommandModelTest {
                 assertEquals(1, roster.armory().squadProfiles().size());
                 click(document, instance, "barracks-assign-profile");
                 assertEquals(roster.armory().squadProfiles().get(0).id(), squad.squadProfileId());
-                click(document, instance, "command:independent:assign");
-                assertNull(squad.homeCaptainId());
+                assertTrue(((List<?>) value(model, "commands")).stream()
+                        .noneMatch(row -> "command:independent".equals(((Map<?, ?>) row).get("id"))),
+                        "The rail offers officers only; there is no acting-NCO command card");
                 String[] loadout = {null};
                 model.navigation(id -> loadout[0] = id, () -> { }, false);
                 click(document, instance, "formation:" + squad.id() + ":loadout");
                 assertEquals(squad.id(), loadout[0], "Loadout opens that squad's equipment workspace");
-                assertFalse(model.inspecting());
-                model.inspect(squad.id()); instance.flush(); document.advance(0f);
-                assertTrue(model.inspecting());
-                click(document, instance, "barracks-back-command");
-                assertFalse(model.inspecting());
                 assertEquals(1, model.selected().size());
                 var officer = new MarineCaptain("Vale", null, Rank.LIEUTENANT, 0f);
                 roster.add(officer); model.refresh(); instance.flush(); document.advance(0f);
@@ -227,6 +224,12 @@ class BarracksCommandModelTest {
         } finally { SvgAsset.setSource(previous); CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> raiseTile(BarracksCommandModel model) {
+        var tiles = (List<Map<String, Object>>) value(model, "squads");
+        assertEquals(model.cards().size() + 1, tiles.size(), "The raise tile trails the last page");
+        return tiles.get(tiles.size() - 1);
+    }
     private static Object value(BarracksCommandModel model, String key) { return ((Signal<?>) model.props().get(key)).get(); }
     private static void action(BarracksCommandModel model, String key) { ((Runnable) model.props().get(key)).run(); }
     private static void click(UiDocument document, MarkupInstance instance, String id) {

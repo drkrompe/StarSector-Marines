@@ -319,6 +319,12 @@ class FleetArmoryViewModelTest {
                     .filter(tile -> tile.id().endsWith(weapon)).findFirst().orElseThrow();
             assertEquals(model.currentSquadEquipmentPreview().canApply(),
                     !instance.requireElement(chosen.id() + ":issue").disabled());
+            // The Issue button lives inside its card; a click on it issues rather than merely selects.
+            UiElement issueButton = instance.requireElement(chosen.id() + ":issue");
+            document.pointerDown(centerX(issueButton), centerY(issueButton));
+            document.pointerUp(centerX(issueButton), centerY(issueButton));
+            instance.flush();
+            assertEquals(weapon, roster.squads().get(0).weaponDoctrineId());
             model.showArmorPickerAction().run(); instance.flush();
             assertTrue(instance.requireElement("show-armor-picker").hasClass("selected"));
             assertTrue(instance.requireElement("weapon-doctrine-slot").hasClass("picker-hidden"));

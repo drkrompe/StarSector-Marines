@@ -1947,21 +1947,16 @@ public final class FleetArmoryViewModel {
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
-                case "wrapId" -> id + ":wrap";
-                case "wrapStyle" -> "height: " + (188 + 48 * ((distributionSpans.size() + 1) / 2)
-                        + (issue != null ? 34 : 0)) + "px;";
                 case "issueId" -> id + ":issue";
-                case "issueRowId" -> id + ":issue-row";
                 case "issueReasonId" -> id + ":issue-reason";
                 case "issue" -> issue;
                 case "issueDisabled" -> issueDisabled || issued;
                 case "issueLabel" -> Strings.get(issued ? "loadoutIssuedState" : "loadoutIssueAction");
-                case "issueButtonClasses" -> issued ? "doctrine-issue-button issued console-action"
+                case "issueButtonClasses" -> issue == null ? "doctrine-issue-button-hidden"
+                        : issued ? "doctrine-issue-button issued console-action"
                         : "doctrine-issue-button console-action";
                 case "issueReason" -> issueReason;
-                case "issueRowClasses" -> issue != null
-                        ? "doctrine-issue-row" : "doctrine-issue-row-hidden";
-                case "issueReasonClasses" -> issueReason.isEmpty()
+                case "issueReasonClasses" -> issueReason.isEmpty() || issue == null
                         ? "doctrine-issue-reason-empty"
                         : "doctrine-issue-reason label danger-surface tone-danger";
                 case "headerId" -> headerId;
@@ -1983,7 +1978,8 @@ public final class FleetArmoryViewModel {
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
                 case "weaponClasses" -> "weapon-tech-card " + classes;
-                case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)) + "px;";
+                case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)
+                        + (issue != null && !issueReason.isEmpty() ? 22 : 0)) + "px;";
                 case "distributionStyle" -> "height: " + (48 * ((distributionSpans.size() + 1) / 2)) + "px;";
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;

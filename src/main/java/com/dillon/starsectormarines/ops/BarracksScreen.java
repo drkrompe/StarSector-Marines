@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
 import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -26,12 +25,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Shipboard command administration with an individual quarters drill-down.
- *
- * <p>A camera on the company ship's berthing, not a room beside her. The
- * marines in the panel are the roster's own, mustered into the compartment the
- * deck generator gave them, and they are still there - a little further round
- * their watch - when the player comes back from another page.
+ * Shipboard command administration: officer commands, the formation board and
+ * personnel orders over the roster's persistent squads. A squad's equipment is
+ * edited in the Armory workspace its card's Loadout opens.
  */
 public final class BarracksScreen implements Screen {
 
@@ -112,12 +108,7 @@ public final class BarracksScreen implements Screen {
             built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard());
-            candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), () -> {
-                if (viewModel.command().inspecting()) viewModel.command().showOverview();
-                else close();
-            });
-            built.canvases().set(candidate.requireElement("barracks-canvas"),
-                    new BarracksCanvas(context.companyDeck(), viewModel::sceneMarines));
+            candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), this::close);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built), true);
             for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
                 candidateSheets.bindLive(candidate.requireElement(id), viewModel.command()::recruitSheet);
@@ -144,7 +135,6 @@ public final class BarracksScreen implements Screen {
         built.onCancel(() -> {
             if (campaignGuide.visible()) return;
             if (viewModel.command().guideVisible()) viewModel.command().dismissGuide();
-            else if (viewModel.command().inspecting()) viewModel.command().showOverview();
             else close();
         });
         markupInstance = candidate;
@@ -160,18 +150,8 @@ public final class BarracksScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("command", viewModel.command().props());
-        props.put("squadRows", viewModel.squadRows());
-        props.put("musterRows", viewModel.musterRows());
-        props.put("recordCells", viewModel.recordCells());
-        props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
-        props.put("quartersStatus", viewModel.quartersStatus());
-        // Computed rather than fixed: selecting a formation moves the camera to
-        // that squad's own berthing, and a heading that stayed put would name a
-        // different compartment from the one on screen.
-        props.put("contextLabel", reactor.computed(() -> viewModel.command().inspecting()
-                ? ShipBreadcrumb.of(context.companyDeck().ship(), context.companyDeck().quartersFor(viewModel.sceneMarines()))
-                : Strings.format("openingBarracksPersonnelCommand", ShipBreadcrumb.of(context.companyDeck().ship(), null))));
+        props.put("contextLabel", Strings.format("openingBarracksPersonnelCommand",
+                ShipBreadcrumb.of(context.companyDeck().ship(), null)));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 context::roomAboard,
                 this::close,
@@ -188,9 +168,7 @@ public final class BarracksScreen implements Screen {
                 "barracks-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "barracks-room-bar", "barracks-body", "barracks-equipment",
-                "barracks-formation-list", "barracks-stage", "barracks-canvas",
-                "barracks-muster-list")) {
+                "barracks-room-bar", "barracks-equipment", "barracks-formation-list")) {
             component.requireElement(id);
         }
     }

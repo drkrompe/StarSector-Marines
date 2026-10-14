@@ -83,7 +83,6 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
@@ -1661,17 +1660,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(document::addStyleSheet);
             var guide = BarracksGuideCallout.bind(document, markup, model.command(), model.command()::showOverview);
-            document.canvases().set(markup.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     List.of(CompanyNotices.Notice.FIRST_REFIT));
             frames.add(new SnapshotArtifact("01-barracks-equipment-new.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             clickBarracksFlow(document, markup, "barracks-equipment");
             if (!routes.equals(List.of(ScreenId.FLEET_ARMORY))) throw new AssertionError("Equipment entry did not route");
             model.command().toggle(squad.id());
-            model.command().inspect(squad.id());
             markup.flush();
             frames.add(new SnapshotArtifact("02-barracks-equip-squad.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            clickBarracksFlow(document, markup, "barracks-edit-equipment");
+            clickBarracksFlow(document, markup, "formation:" + squad.id() + ":loadout");
             if (!squad.id().equals(navigation.takeRequestedArmorySquadId())) throw new AssertionError("Wrong squad requested");
             var editor = new FleetArmoryViewModel(reactor, roster, () -> {}, () -> 100d, snapshotEquipmentResources());
             editor.selectSquad(squad.id());
@@ -1731,7 +1728,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 clickBarracksFlow(editorDocument, editorMarkup, "page-nav-return");
                 if (routes.get(routes.size() - 1) != ScreenId.BARRACKS) throw new AssertionError("Editor return missed Barracks");
             }
-            if (!model.command().inspecting() || !model.command().selected().contains(squad.id()))
+            if (!model.command().selected().contains(squad.id()))
                 throw new AssertionError("Equipment return lost squad context");
             frames.add(new SnapshotArtifact("04-return-to-selected-squad.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             // The existing lesson owns this receipt when displayed; visiting the editor did not clear it.
@@ -1755,7 +1752,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         images.add(new SnapshotArtifact("results-prepare-company.png",
                 renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
                         ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
-        for (String state : List.of("dossier", "dossier-trained", "command", "profiles", "quarters", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
+        for (String state : List.of("dossier", "dossier-trained", "command", "profiles", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
             int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
@@ -1817,18 +1814,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
             }
             if (state.equals("profiles")) ((Runnable) viewModel.command().props().get("newProfile")).run();
-            if (state.equals("quarters")) viewModel.command().inspect(squads.get(0).id());
-            CompanyDeck ship = state.equals("quarters") ? companyShip(List::of,
-                    () -> MarineOpsContext.companyMarines(roster).stream().limit(36).toList()) : null;
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", viewModel.command().props());
             properties.put("contextLabel", "FLAGSHIP / PERSONNEL COMMAND");
-            properties.put("squadRows", viewModel.squadRows());
-            properties.put("musterRows", viewModel.musterRows());
-            properties.put("recordCells", viewModel.recordCells());
-            properties.put("selectedSquadName", viewModel.selectedSquadName());
-            properties.put("selectedSquadSummary", viewModel.selectedSquadSummary());
-            properties.put("quartersStatus", viewModel.quartersStatus());
             MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -1838,8 +1826,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 for (var style : instance.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());
                 var guide = BarracksGuideCallout.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
-                if (ship != null) document.canvases().set(instance.requireElement("barracks-canvas"),
-                        new BarracksCanvas(ship, viewModel::sceneMarines));
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 BarracksCardBindings bindings = new BarracksCardBindings();
                 bindings.update(document, instance, viewModel, hints);
@@ -1893,12 +1879,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", command.props());
             properties.put("contextLabel", "FLAGSHIP / FIRST COMMAND");
-            properties.put("squadRows", model.squadRows());
-            properties.put("musterRows", model.musterRows());
-            properties.put("recordCells", model.recordCells());
-            properties.put("selectedSquadName", model.selectedSquadName());
-            properties.put("selectedSquadSummary", model.selectedSquadSummary());
-            properties.put("quartersStatus", model.quartersStatus());
             MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     () -> { }, () -> { }, command::showOverview, () -> { }, () -> { }, () -> { });
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -2041,9 +2021,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 company, company::recruits, company::reinforce);
         CompanyDeck ship = companyShip(List::of, () -> MarineOpsContext.companyMarines(company.roster));
         Map<String, Object> properties = props(model, ship);
-        properties.put("contextLabel", reactor.computed(() -> model.command().inspecting()
-                ? ShipBreadcrumb.of(ship.ship(), ship.quartersFor(model.sceneMarines()))
-                : ShipBreadcrumb.of(ship.ship(), null) + " / PERSONNEL COMMAND"));
+        properties.put("contextLabel", ShipBreadcrumb.of(ship.ship(), null) + " / PERSONNEL COMMAND");
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
         loader.reload();
         List<SnapshotArtifact> frames = new ArrayList<>();
@@ -2052,7 +2030,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
             var guide = BarracksGuideCallout.bind(document, instance, model.command(), model.command()::showOverview);
-            document.canvases().set(instance.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             BarracksCardBindings cardBindings = new BarracksCardBindings();
             cardBindings.update(document, instance, model, hints);
@@ -2082,13 +2059,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
-            model.command().inspect(company.squads.get(0).id()); instance.flush(); document.advance(0f); cardBindings.update(document, instance, model, hints);
-            frames.add(new SnapshotArtifact("muster-vacancies.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:11:vacancy"));
-            frames.add(new SnapshotArtifact("muster-vacancy-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            document.deactivateInput();
-            hints.update();
-            click.accept("barracks-back-command");
             click.accept("barracks-organization");
             click.accept("barracks-new-profile");
             frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
@@ -2117,43 +2087,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Equipment issue did not pay its separate combined bill");
             }
             frames.add(new SnapshotArtifact("flow-06-equipped.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            model.command().inspect(company.squads.get(0).id()); instance.flush(); document.advance(0f); cardBindings.update(document, instance, model, hints);
-            if (!model.command().inspecting()) throw new IllegalStateException("Squad drill-down did not open");
-            frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            for (var marine : model.musterRows().get()) {
-                Rect card = instance.requireElement(marine.id()).box().borderBox();
-                Rect tray = instance.requireElement("barracks-muster-list").box().contentBox();
-                if (card.x() < tray.x() || card.y() < tray.y() || card.right() > tray.right() || card.bottom() > tray.bottom()) {
-                    throw new IllegalStateException("Muster card requires scrolling at 1920x1080: " + marine.id());
-                }
-                for (var item : marine.items()) {
-                    Rect slot = instance.requireElement(item.id()).box().borderBox();
-                    if (slot.x() < card.x() || slot.y() < card.y() || slot.right() > card.right() || slot.bottom() > card.bottom()) {
-                        throw new IllegalStateException("Muster equipment clips its card: " + item.id());
-                    }
-                }
-            }
-            document.deactivateInput();
-            UiElement focusSlot = instance.requireElement("barracks-billet:0:armor");
-            document.requestFocus(focusSlot, true);
-            hints.update();
-            if (hints.openTarget() != focusSlot) throw new IllegalStateException("Muster equipment keyboard hint missing");
-            document.deactivateInput();
-            hints.update();
-            for (String slot : List.of("armor", "primary", "system")) {
-                openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0:" + slot));
-                frames.add(new SnapshotArtifact("muster-" + slot + "-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-                document.deactivateInput();
-                hints.update();
-            }
-            click.accept("barracks-back-command");
-            if (model.command().inspecting() || model.command().selected().size() != 2) {
-                throw new IllegalStateException("Return lost the command selection");
-            }
-            model.command().inspect(company.squads.get(2).id()); instance.flush(); document.advance(0f); cardBindings.update(document, instance, model, hints);
-            frames.add(new SnapshotArtifact("muster-recovery.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0"));
-            frames.add(new SnapshotArtifact("muster-recovery-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             hints.clear();
         }
         return frames;
@@ -2205,8 +2138,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("barracks-canvas"),
-                    new BarracksCanvas(ship, viewModel::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             new BarracksCardBindings().update(document, instance, viewModel, hints);
             return renderRelative(renderer, document, width, height, 1f);
@@ -3203,15 +3134,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static Map<String, Object> props(BarracksViewModel viewModel,
                                              CompanyDeck ship) {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(),
-                ship.quartersFor(viewModel.sceneMarines())));
+        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(), null));
         props.put("command", viewModel.command().props());
-        props.put("squadRows", viewModel.squadRows());
-        props.put("musterRows", viewModel.musterRows());
-        props.put("recordCells", viewModel.recordCells());
-        props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
-        props.put("quartersStatus", viewModel.quartersStatus());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

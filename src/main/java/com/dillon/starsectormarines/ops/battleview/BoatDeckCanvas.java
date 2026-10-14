@@ -29,8 +29,7 @@ import java.util.function.Supplier;
  * the boats on screen are the aircraft the ship actually keeps in her berths,
  * turned round by her own hands. What this adds is the one thing a render
  * cannot say — which berth the player has selected — so the marks are drawn
- * over the floor and the boats are drawn over the marks, the way
- * {@link BarracksCanvas} marks a squad.
+ * over the floor and the boats are drawn over the marks.
  *
  * <p><b>The campaign deck and the generated bay are counted separately and may
  * disagree.</b> The berth count comes off the hull's room program and the
