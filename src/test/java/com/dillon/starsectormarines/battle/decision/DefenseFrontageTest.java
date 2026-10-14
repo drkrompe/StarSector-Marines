@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage.Aperture;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage.Facing;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage.Kind;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -125,6 +127,24 @@ class DefenseFrontageTest {
                     "aperture at " + aperture.x() + "," + aperture.y()
                             + " does not actually separate two zones");
         }
+    }
+
+    @Test
+    void aFiringRecessIsAWindowMannedFromTheRecess() {
+        BattleSimulation sim = compoundSim();
+        // The way building shells stamp a window: the wall cell becomes floor
+        // and a window barrier closes its outer edge.
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkableFloor(RIGHT, 12);
+        grid.placeEdgeBarrier(RIGHT, 12, Direction.E, SharedEdgeBarrier.Kind.WINDOW);
+        sim.getZoneGraph().rebuild();
+
+        Aperture recess = require(DefenseFrontage.forCompound(node(), sim), RIGHT, 12);
+        assertEquals(Kind.WINDOW, recess.kind(), "nobody comes in through a window recess");
+        assertEquals(Facing.EAST, recess.facing());
+        assertEquals(RIGHT, recess.stanceX(), "the defender stands in the recess");
+        assertEquals(12, recess.stanceY());
+        assertEquals(RIGHT + 1, recess.outsideX());
     }
 
     @Test
