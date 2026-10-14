@@ -30,8 +30,8 @@ Design: `conquest-command.md`
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
-| `phased-assault.md` (design) slice 1 | IN PROGRESS | Foothold and muster: hold the beachhead, form assault companies at the drop zone, commit at critical mass. |
-| `phased-assault.md` (design) slice 2 | IN PROGRESS | Call surface, allowance and delivery are built (`mech-drop` scene); open: the muster's commander-side caller, and a Conquest matrix comparison once it calls. |
+| `phased-assault.md` (design) slice 1 | BUILT, TO TUNE | Foothold, muster and assault are in (`battle.command.muster`); the believed-need figures are untuned and the fixtures with forts show mixed captures, so the numbers and the south regression are open until slice 3 gives companies a plan. |
+| `phased-assault.md` (design) slice 2 | BUILT | Call surface, allowance and delivery are built (`mech-drop` scene); the muster calls it for a short company (`ConquestCommand.afterCommit`); a Conquest comparison with a lance in play is open. |
 | `phased-assault.md` (design) slice 3 | PLANNED | Per-stamp fort assault plans and a plan executor for a company. |
 
 ## Sabotage

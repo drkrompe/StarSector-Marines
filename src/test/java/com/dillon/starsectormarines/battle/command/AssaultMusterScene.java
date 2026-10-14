@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -90,9 +94,9 @@ public final class AssaultMusterScene implements BehaviorScene {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("control-trickle", "muster")) {
+        for (String loop : List.of("control-trickle", "muster", "muster-with-lance")) {
             boolean restore = ConquestCommand.musterEnabled();
-            ConquestCommand.setMusterEnabled(loop.equals("muster"));
+            ConquestCommand.setMusterEnabled(!loop.equals("control-trickle"));
             try {
                 reports.add(report(loop, playOne(loop, frames)));
             } finally {
@@ -137,12 +141,17 @@ public final class AssaultMusterScene implements BehaviorScene {
                 .missionCompletion(false);
         FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
         List<String> keys = new ArrayList<>();
-        for (int i = 0; i < SQUADS; i++) {
+        boolean lance = loop.equals("muster-with-lance");
+        // The lance loop has a short force (five squads of six), so the company is short of what the fort is believed
+        // to take and the commander asks for a lance.
+        int squads = lance ? 5 : SQUADS;
+        int squadSize = lance ? 6 : SQUAD_SIZE;
+        for (int i = 0; i < squads; i++) {
             int standoff = i == 0 ? FIRST_STANDOFF : FIRST_STANDOFF + 40 + SPACING * i;
             int[] at = clamp(terrain.cell(gate.mouthX() + gate.outX() * standoff, gate.mouthY() + gate.outY() * standoff));
             String key = "marines-" + i;
             keys.add(key);
-            builder.squad(key).faction(Faction.MARINE).size(SQUAD_SIZE).at(at[0], at[1]).primary(RIFLE).done();
+            builder.squad(key).faction(Faction.MARINE).size(squadSize).at(at[0], at[1]).primary(RIFLE).done();
         }
         int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
         int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
@@ -153,6 +162,11 @@ public final class AssaultMusterScene implements BehaviorScene {
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261016L);
+        if (lance) {
+            sim.setMechDrops(new MechDropService(MechDropDeclaration.NONE.with(Faction.MARINE,
+                    new MechDropAllowance(1, List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND,
+                            MechVariant.SIROCCO)))));
+        }
         Fort fort = sim.forts().forts().get(0);
         sim.setAutonomousCommander(Faction.MARINE,
                 new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT)),
@@ -171,7 +185,7 @@ public final class AssaultMusterScene implements BehaviorScene {
 
     private SceneReport report(String loop, Run run) {
         Trace t = run.trace();
-        boolean muster = loop.equals("muster");
+        boolean muster = !loop.equals("control-trickle");
         List<Verdict> verdicts = new ArrayList<>();
         if (muster) {
             verdicts.add(Verdict.of("a-company-mustered-first", t.firstMusterTick >= 0 && t.firstAssaultTick > t.firstMusterTick,
@@ -184,7 +198,15 @@ public final class AssaultMusterScene implements BehaviorScene {
                             + " squads committed"));
             verdicts.add(Verdict.of("no-lone-squad-was-detached-to-the-fort", t.soloStructureOrders == 0,
                     t.soloStructureOrders + " DEFENCE_STRUCTURE_* directives"));
-        } else {
+        }
+        if (loop.equals("muster-with-lance")) {
+            verdicts.add(Verdict.of("a-short-company-calls-a-lance", run.sim().mechDrops().drops().size() == 1
+                    && run.sim().mechDrops().drops().get(0).issuer().equals("conquest-attacker"),
+                    run.sim().mechDrops().drops().size() + " call(s) in the ledger"));
+            verdicts.add(Verdict.of("the-landed-lance-joins-the-company", t.lanceInCompanyTick >= 0,
+                    "a machine squad first in a company at tick " + t.lanceInCompanyTick));
+        }
+        if (!muster) {
             verdicts.add(Verdict.of("no-company-forms", t.firstMusterTick < 0 && t.firstAssaultTick < 0,
                     "company stages published: muster " + t.firstMusterTick + ", assault " + t.firstAssaultTick));
             verdicts.add(Verdict.of("squads-are-detached-one-or-two-at-a-time", t.soloStructureOrders > 0,
@@ -208,6 +230,8 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("bunkerFlipTick", t.flipTick);
         metrics.put("bunkerHeldByMarinesAtEnd", run.fort().battery().owner() == Faction.MARINE ? 1 : 0);
         metrics.put("footholdTicks", t.footholdTicks);
+        metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
+        metrics.put("lanceCalls", run.sim().mechDrops().drops().size());
         metrics.put("fortX", (int) run.fort().battery().x());
         metrics.put("fortY", (int) run.fort().battery().y());
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
@@ -234,6 +258,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         int soloStructureOrders;
         int flipTick = -1;
         int footholdTicks;
+        int lanceInCompanyTick = -1;
         private String caption = "";
 
         Trace(Fort fort, List<String> keys, SceneWorld world) {
@@ -291,6 +316,12 @@ public final class AssaultMusterScene implements BehaviorScene {
                 boolean foothold = false;
                 for (ConquestFrontSnapshot.CompanyState company : front.companies()) {
                     if (company.stage().equals("FOOTHOLD")) foothold = true;
+                    if (lanceInCompanyTick < 0 && company.objectiveId() >= 0) {
+                        for (int squadId : company.squadIds()) {
+                            long lead = sim.squadMemberAt(squadId, 0);
+                            if (lead != 0L && sim.world().hasMechLoadout(lead)) lanceInCompanyTick = tick;
+                        }
+                    }
                     if (company.stage().equals("MUSTER") && firstMusterTick < 0) firstMusterTick = tick;
                     if (company.stage().equals("ASSAULT")) {
                         if (firstAssaultTick < 0) firstAssaultTick = tick;

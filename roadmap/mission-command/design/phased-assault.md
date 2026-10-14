@@ -1,12 +1,12 @@
 # Phased assault
 
 Status: ACTIVE — direction for how a large attacking force lands, masses and
-assaults a defended position. Slice 2 (the mech drop) is built; the rest is not. Slices are on the
+assaults a defended position. Slices 1 (foothold and muster) and 2 (the mech drop) are built; slice 3 is not. Slices are on the
 mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — slice 2 (commander-called mech drop) built; its call surface is recorded under "Mech lances arrive without the player".
+Updated: 2026-10-13 — slice 1 (foothold and muster) built and its as-built notes recorded under "Foothold, muster and assault: as built"; slice 2 (commander-called mech drop) built, its call surface under "Mech lances arrive without the player".
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -100,12 +100,85 @@ briefing dial states the allowance, and its "at once" value calls the first lanc
 ten seconds in, claimed by the marine commander, so the delivery can be watched
 without a muster that asks for it. The `mech-drop` scene is the acceptance.
 
+## Foothold, muster and assault: as built
+
+Slice 1 lives in `AssaultMuster` (pure planning over frozen inputs, symmetric)
+with `ConquestCommand` as its adapter. `battle.command.muster=false` restores
+the old behaviour (one or two squads detached to a disclosed fort at a time) as
+the control. Phases are published per objective in `ConquestFrontSnapshot`
+(`CompanyState`: stage `FOOTHOLD`, `MUSTER` or `ASSAULT`, squads, strength
+against the strength believed needed, rally and objective cells, commit
+deadline, reason), and in the command trace as the assignment reasons
+`MUSTER_FOOTHOLD`, `MUSTER_GATHER`, `ASSAULT_COMMIT`, `ASSAULT_COMPANY_RALLY`
+plus company notes in the plan summary. The battle-wide `Phase` is unchanged:
+a company's stage is per objective and must not churn every squad's stability.
+
+- **Objective.** A disclosed fort with an aspect still hostile-held is a muster
+  objective; its aspects stop being solo structure tasks. Nothing else is yet.
+  The believed strength it takes is a fort baseline plus a share per hostile
+  contact the side's own belief places within 40 cells of it, grown by a quarter
+  for each company already broken against it. Every figure is marked UNTUNED in
+  code; none was set to hit a target.
+- **Foothold.** While any company exists one squad near the drop zone (the
+  beachhead compound's cell, else where the first squads were first seen) holds
+  it with an ordinary rally order, sticky, never part of a company. Probes and
+  lane work by every other squad go on as before.
+- **Muster.** Free squads (not engaged, not capture-committed, not crew, not a
+  garrison, not in a named-officer group) are recruited nearest-first to the
+  rally point, up to 60 per cent of the free squads, until their weighted
+  strength (a mech counts three marines) reaches the believed need. The rally
+  is the drop zone when the objective is near, else a staging cell 90 cells
+  short of the objective (outside a fort's belt of nests and their reach), slid
+  to reachable ground and pulled back toward the drop zone while a believed
+  hostile is near it. Squads in contact are never recruited, and "contact" is
+  engagement (under fire, broken, a member able to engage), not belief in a
+  distant hostile: every squad shares the sighting of a fort's garrison, and
+  treating that as contact kept the whole force out of any company. The
+  company commits when the strength at the rally reaches the need; when every
+  squad it can get has arrived and it is still short it waits a 900-tick grace;
+  and in any case at a timeout (4500 ticks, extended per recruit by its walk).
+- **Assault.** Every company squad is ordered at the one aspect `FortTactics`
+  ranks first (`DefenceStructureTactics.planMassed`): infantry to the doorstep,
+  a machine squad to a standoff ring outside the structure's reach as base of
+  fire, demolition squads authorised to wreck where the pick is a wreck.
+  `AssaultCoordinationSystem` fix and flank apply as for any attack move. A
+  squad more than 24 cells ahead of the company's rearward median holds (for at
+  most 300 ticks per genuine regroup, stragglers beyond 48 cells are not waited
+  for, nothing is held in contact or inside 32 cells of the objective): the
+  command group's bounded rally, measured toward the objective. A company left
+  under a quarter of what it committed is broken, counted, and the next muster
+  believes the fort takes more.
+- **Lances.** A company short of its believed need asks for one lance
+  (`ConquestCommand.afterCommit`, through `CommandEffects`, because a strategy
+  never holds the live battle); the muster waits up to 1800 ticks for it
+  rather than cutting its grace short. The landed lance is an ordinary machine
+  squad claimed by `conquest-attacker` and is recruited like any free squad.
+
+**What the evidence says.** The `assault-muster` scene (one battery fort, a
+stationary garrison, eight squads of ten spread along the approach) shows the
+phases and the safe staging: the control puts three squads into the fort's
+reach at once and loses 70 of 80, the muster stages outside the nests, commits
+three squads on the believed baseline and also loses 70 of 80. The fort
+stands in both. A baseline of 24 weighted marines is too little for this fort,
+and that is the finding, not something to tune away: a fort is meant to be
+hard, and the number is meant to come from play. On the Conquest fixtures that
+declare forts (36,000 ticks) no fort fell either way; with the muster on,
+`reinforced-south` took 12 captures and held 10 against 19 and 15 for the
+control (companies drew squads off the lanes and three were broken), and
+`full-strength-west` took 13 and held 5 against 12 and 1. The checked-in
+matrix, which has no forts, is byte-identical with the switch on or off.
+
+Not built here: per-stamp assault plans (slice 3), recruiting whole
+named-officer groups into a company, a company's reaction to being
+counter-attacked at its rally, a defender-side use of the same machinery,
+retreat of a company that is failing but not yet broken.
+
 ## Slices
 
-1. **Foothold and muster** — attacker phases, a rally point at the defended drop
+1. **Foothold and muster** (built) — attacker phases, a rally point at the defended drop
    zone, assault companies formed from squads, a readiness judgement with a
    timeout, and commit; the beachhead is held.
-2. **Commander-called mech drop** — the attacker can call a lance to the drop
+2. **Commander-called mech drop** (built) — the attacker can call a lance to the drop
    zone from its mission allowance; the lance joins a company.
 3. **Fort assault plans** — per-stamp plan data for the battery and shield forts
    and a plan executor driving a company through base of fire, entry, objective
