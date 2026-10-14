@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -438,7 +439,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     /** Nearest a standing mission's ground may be to the tube section: inside this the tube's dead zone and the nests' return fire. UNTUNED. */
-    static final int STANDING_MISSION_MIN_CELLS = 24;
+    static final int STANDING_MISSION_MIN_CELLS = 30;
     /** Farthest a standing mission's ground may be: inside the field mortar's reach with a margin. UNTUNED. */
     static final int STANDING_MISSION_MAX_CELLS = 46;
     /** Radius of a standing mission around the works cell it names. UNTUNED. */
@@ -479,6 +480,13 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** Strikes the plan asked for in the last pulse, asked of the air in {@link #afterCommit}, and what the air said. */
     private final List<AssaultMuster.StrikeRequest> strikeWishes = new ArrayList<>();
     private final List<String> strikeNotes = new ArrayList<>();
+    /** What the air has said to every strike the plans asked for, for evidence. */
+    private final Map<AirPoolService.Outcome, Integer> strikeOutcomes = new EnumMap<>(AirPoolService.Outcome.class);
+
+    /** How many strikes the plans asked for, by what the air said, over the battle so far. */
+    public Map<AirPoolService.Outcome, Integer> strikeOutcomes() {
+        return Map.copyOf(strikeOutcomes);
+    }
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
@@ -1131,6 +1139,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             FortAssault.StrikeWish wish = request.wish();
             AirPoolService.Outcome outcome = effects.airStrike(faction(), wish.cellX() + 0.5f, wish.cellY() + 0.5f,
                     wish.operatorSquads());
+            strikeOutcomes.merge(outcome, 1, Integer::sum);
             muster.strikeAnswered(request.fortId(), wish.nest(), outcome == AirPoolService.Outcome.CALLING, effects.tick());
             strikeNotes.add("company for fort " + request.fortId() + " asked for a strike on the nest at (" + wish.cellX() + ","
                     + wish.cellY() + "): " + outcome);
@@ -1220,13 +1229,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
             if (ground == null) ground = hostileWorksGround(frame);
             int[] best = null;
             double bestGap = Double.MAX_VALUE;
+            boolean inReach = false;
             for (int[] cell : ground) {
                 double gap = Math.hypot(cell[0] - squad.anchorCellX, cell[1] - squad.anchorCellY);
-                if (gap < STANDING_MISSION_MIN_CELLS || gap > STANDING_MISSION_MAX_CELLS || gap >= bestGap) continue;
+                if (gap < STANDING_MISSION_MIN_CELLS) { inReach = true; break; }
+                if (gap > STANDING_MISSION_MAX_CELLS || gap >= bestGap) continue;
                 bestGap = gap;
                 best = cell;
             }
-            if (best == null) continue;
+            // Within a nest's reach (plus margin) of any works, a tube would be set down under its guns: leave it to the section.
+            if (inReach || best == null) continue;
             squad.assignedObjective = squad.assignedObjective.withFireMission(
                     new ObjectiveAssignment.FireMission(best[0], best[1], STANDING_MISSION_RADIUS));
             if (out == null) out = new ArrayList<>(notes);

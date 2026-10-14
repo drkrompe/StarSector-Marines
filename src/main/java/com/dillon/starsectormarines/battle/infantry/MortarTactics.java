@@ -67,7 +67,10 @@ public final class MortarTactics {
         if (mortars.tubeOfCarrier(unit) != null) return false;
         Squad squad = sim.squadOf(unit);
         if (squad == null || squad.timeSinceUnderFire < QUIET_SECONDS) return false;
-        if (!sim.movement().settled(unit) || !sectionHalted(unit, squad, sim)) return false;
+        // A section told to fire a mission is ordered to set up where it stands: a squadmate still shuffling for a place
+        // in the line does not hold the tube back, which the gunner's own settling does.
+        boolean onMission = mortars.missionOf(squad.id) != null;
+        if (!sim.movement().settled(unit) || (!onMission && !sectionHalted(unit, squad, sim))) return false;
         DeployableEmplacementSpec spec = special.deployableEmplacementSpec();
         StructureDef structure = TurretCatalogRegistry.requireStructure(spec.structureId());
         if (mortars.stashFor(unit, structure) <= 0) return false;
@@ -128,6 +131,7 @@ public final class MortarTactics {
         FireMission mission = sim.fieldMortars().missionOf(squad.id);
         if (mission == null) return 0;
         World world = sim.world();
+        if (sim.fieldMortars().underHostileGuns(faction, world.x(unit), world.y(unit), sim)) return 0;
         long target = sim.fieldMortars().pickMissionTarget(mission, faction, world.x(unit), world.y(unit),
                 weapon.minRange + DEAD_ZONE_MARGIN_CELLS, weapon.range - RANGE_MARGIN_CELLS, sim);
         return target == 0L ? 0 : HARDENED_WEIGHT;

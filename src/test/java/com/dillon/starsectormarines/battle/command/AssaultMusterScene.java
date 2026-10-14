@@ -1,5 +1,15 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
+import com.dillon.starsectormarines.battle.airsupport.AirStrikeCapability;
+import com.dillon.starsectormarines.battle.airsupport.AirStrikeDirector;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
@@ -34,15 +44,20 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -87,9 +102,15 @@ public final class AssaultMusterScene implements BehaviorScene {
     private static final String MARINE_RIFLE = "weapon.field-rifle";
 
     private static final List<String> ALL_LOOPS = List.of("control-trickle", "muster-slice1", "plan", "plan-with-lance",
-            "breach-cannon", "breach-charges");
+            "breach-cannon", "breach-charges", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
     private static final String CHARGE_KIT = "special.satchel-charge";
     private static final String ROCKET_KIT = "special.rocket-launcher";
+    private static final String RADIO_KIT = "special.comms-radio";
+    /** A nest dead within this many ticks of a tube aiming at it, or a sortie over it, is credited to that. */
+    private static final int ATTRIBUTION_WINDOW_TICKS = 90;
+    private static final float AIR_ATTRIBUTION_CELLS = 12f;
+    /** Bombers the air loops declare: three in stock, replaced every forty seconds, directed only by the plan. */
+    private static final AirPoolStock BOMBERS = new AirPoolStock(3, 3, 40f);
 
     private final List<String> loops;
     private final int frameFrom;
@@ -98,7 +119,13 @@ public final class AssaultMusterScene implements BehaviorScene {
 
     /** Every loop, frames (when a sink wants them) every 90 ticks across the run. */
     public AssaultMusterScene() {
-        this(ALL_LOOPS, 0, TICKS, 90);
+        this(selectedLoops(), 0, TICKS, 90);
+    }
+
+    /** {@code -Dbattle.scene.assaultMuster.loops=a,b} plays only those loops, for a developer chasing one. */
+    private static List<String> selectedLoops() {
+        String chosen = System.getProperty("battle.scene.assaultMuster.loops");
+        return chosen == null || chosen.isBlank() ? ALL_LOOPS : List.of(chosen.split(","));
     }
 
     /** Only the named loops, recording frames in a window of the run: a recording holds every frame in memory. */
@@ -124,13 +151,17 @@ public final class AssaultMusterScene implements BehaviorScene {
         for (String loop : loops) {
             boolean restore = ConquestCommand.musterEnabled();
             boolean restorePlans = ConquestCommand.musterPlansEnabled();
-            ConquestCommand.setMusterPlansEnabled(loop.startsWith("plan") || loop.startsWith("breach"));
+            boolean restoreStanding = ConquestCommand.standingFireMissionsEnabled();
+            ConquestCommand.setMusterPlansEnabled(loop.startsWith("plan") || loop.startsWith("breach") || loop.equals("combined-arms"));
             ConquestCommand.setMusterEnabled(!loop.equals("control-trickle"));
+            // The loops that judge the plan's own fire missions leave the squads' standing ones out, which would clear the works first.
+            ConquestCommand.setStandingFireMissionsEnabled(!(loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")));
             try {
                 reports.add(report(loop, playOne(loop, window(frames))));
             } finally {
                 ConquestCommand.setMusterEnabled(restore);
                 ConquestCommand.setMusterPlansEnabled(restorePlans);
+                ConquestCommand.setStandingFireMissionsEnabled(restoreStanding);
             }
         }
         return reports;
@@ -200,6 +231,7 @@ public final class AssaultMusterScene implements BehaviorScene {
             // Rockets answer the nests; the charges are carried by other squads, so a close breach is the plan the company can staff.
             if (loop.equals("breach-charges") && i % 3 == 1) spec.special(CHARGE_KIT, 4);
             if (loop.equals("breach-charges") && i % 3 == 2) spec.special(ROCKET_KIT, 4, 3);
+            issueFireSupport(loop, i, spec);
             spec.done();
         }
         if (loop.equals("breach-cannon")) {
@@ -223,16 +255,53 @@ public final class AssaultMusterScene implements BehaviorScene {
                     new MechDropAllowance(1, List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND,
                             MechVariant.SIROCCO)))));
         }
+        if (hasAir(loop)) {
+            sim.setAirPool(new AirPoolService(AirPoolDeclaration.NONE.with(Faction.MARINE,
+                    AirPoolAllowance.of(BOMBERS, null, /*aiDirected*/ false))));
+        }
         Fort fort = sim.forts().forts().get(0);
-        sim.setAutonomousCommander(Faction.MARINE,
-                new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT)),
-                ConquestCommandDisclosure.INSTANCE);
+        ConquestCommand command = new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT));
+        sim.setAutonomousCommander(Faction.MARINE, command, ConquestCommandDisclosure.INSTANCE);
         Trace trace = new Trace(fort, keys, world);
+        trace.command = command;
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, frameEvery, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
                         loop, tick, trace.caption()))
                 .run(TICKS);
         return new Run(trace, sim, fort);
+    }
+
+    /**
+     * The fire-support loops differ from the plan loop only in the kit the same twelve squads carry: field mortars (two tubes to
+     * a section), forward-observer radios (one to a squad) with a bomber pool declared for the side, or both; the combined-arms loop
+     * adds the charges and the rockets that cut the wall and answer the nests as well.
+     */
+    private static void issueFireSupport(String loop, int i, SceneBuilder.SquadSpec spec) {
+        switch (loop) {
+            case "plan-mortar" -> {
+                if (i % 3 == 1) spec.special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 2);
+            }
+            case "plan-air" -> {
+                spec.special(RADIO_KIT, 1);
+            }
+            case "plan-mortar-air" -> {
+                if (i % 4 == 1) spec.special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 2);
+                if (i % 4 == 2) spec.special(RADIO_KIT, 1);
+            }
+            case "combined-arms" -> {
+                switch (i % 4) {
+                    case 0 -> spec.special(CHARGE_KIT, 4);
+                    case 1 -> spec.special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 2);
+                    case 2 -> spec.special(RADIO_KIT, 1);
+                    default -> spec.special(CHARGE_KIT, 4);
+                }
+            }
+            default -> { }
+        }
+    }
+
+    private static boolean hasAir(String loop) {
+        return loop.equals("plan-air") || loop.equals("plan-mortar-air") || loop.equals("combined-arms");
     }
 
     private static int[] clamp(int[] cell) {
@@ -270,6 +339,30 @@ public final class AssaultMusterScene implements BehaviorScene {
             verdicts.add(Verdict.of("the-wall-came-down", t.wallFirstOpenTick >= 0,
                     "wall cells " + t.wallStart + " at start, " + t.wallStanding + " standing at end; first opened at tick "
                             + t.wallFirstOpenTick + ", cut through at " + t.wallCutTick));
+        }
+        // The combined-arms loop reports the tubes as readings only: its mission nest may be dead before the section arrives.
+        if (loop.equals("plan-mortar") || loop.equals("plan-mortar-air")) {
+            verdicts.add(Verdict.of("the-tubes-were-set-down", t.tubeRounds.size() > 0,
+                    t.tubeRounds.size() + " tubes were served, " + t.mortarRounds() + " rounds fired in all"));
+            verdicts.add(Verdict.of("the-tubes-fired-on-the-assigned-mission", t.mortarMissionRounds() > 0,
+                    t.mortarMissionRounds() + " of " + t.mortarRounds() + " rounds fired at a body on the mission"));
+            verdicts.add(Verdict.of("the-tubes-stood-out-of-the-nests-reach", t.closestTubeToNest >= 24f,
+                    "closest served tube to a live nest: " + Math.round(t.closestTubeToNest) + " cells (a nest reaches 24)"));
+        }
+        if (loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")) {
+            // Two tubes in a company of five do not staff a base of fire alone; the reading is that they counted for something.
+            verdicts.add(Verdict.of("the-tubes-counted-toward-the-base-of-fire", !t.planShortfall.contains("base_of_fire needs ")
+                            || !t.planShortfall.matches("(?s).*base_of_fire needs [^;]*: (\\d+) of \\1 short.*"),
+                    "shortfall at suppression: " + (t.planShortfall.isEmpty() ? "none" : t.planShortfall)));
+        }
+        if (hasAir(loop)) {
+            int asked = t.command == null ? 0 : t.command.strikeOutcomes().values().stream().mapToInt(Integer::intValue).sum();
+            int launched = t.poolEvents(AirPoolService.EventType.LAUNCHED);
+            verdicts.add(Verdict.of("the-air-was-asked-or-the-ceiling-held",
+                    asked > 0 || t.nestRiskMin > AirStrikeDirector.RISK_CEILING,
+                    asked + " strikes asked for " + (t.command == null ? "" : t.command.strikeOutcomes()) + ", " + launched
+                            + " launched; believed risk over the nests at its lowest " + Math.round(t.nestRiskMin * 100) / 100f
+                            + " against a ceiling of " + AirStrikeDirector.RISK_CEILING));
         }
         if (loop.equals("plan-with-lance")) {
             verdicts.add(Verdict.of("a-short-company-calls-a-lance", run.sim().mechDrops().drops().size() == 1
@@ -326,6 +419,23 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("wallCutThroughTick", t.wallCutTick);
         metrics.put("shellsAndChargesAtWalls", t.roundsAtWalls);
         metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
+        metrics.put("nestsKilledByMortar", t.killedByMortar);
+        metrics.put("nestsKilledByAir", t.killedByAir);
+        metrics.put("nestsKilledByGround", t.killedByGround);
+        metrics.put("tubesServed", t.tubeRounds.size());
+        metrics.put("mortarRounds", t.mortarRounds());
+        metrics.put("mortarRoundsOnMission", t.mortarMissionRounds());
+        metrics.put("closestServedTubeToALiveNest", t.closestTubeToNest == Float.MAX_VALUE ? -1 : Math.round(t.closestTubeToNest));
+        metrics.put("strikesAsked", t.command == null ? 0 : t.command.strikeOutcomes().values().stream().mapToInt(Integer::intValue).sum());
+        for (AirPoolService.Outcome outcome : AirPoolService.Outcome.values()) {
+            metrics.put("strikes" + outcome.name(), t.command == null ? 0 : t.command.strikeOutcomes().getOrDefault(outcome, 0));
+        }
+        metrics.put("airframesLaunched", t.poolEvents(AirPoolService.EventType.LAUNCHED));
+        metrics.put("airframesLost", t.poolEvents(AirPoolService.EventType.LOST));
+        metrics.put("airframesDrivenOff", t.poolEvents(AirPoolService.EventType.ABORTED));
+        metrics.put("callsDropped", t.poolEvents(AirPoolService.EventType.CALL_DROPPED));
+        metrics.put("nestRiskMaxBelieved", Math.round(t.nestRiskMax * 100) / 100f);
+        metrics.put("nestRiskMinBelieved", t.nestRiskMin == Float.MAX_VALUE ? -1 : Math.round(t.nestRiskMin * 100) / 100f);
         metrics.put("lanceCalls", run.sim().mechDrops().drops().size());
         metrics.put("fortX", (int) run.fort().battery().x());
         metrics.put("fortY", (int) run.fort().battery().y());
@@ -370,6 +480,37 @@ public final class AssaultMusterScene implements BehaviorScene {
         String planVariant = "";
         String planShortfall = "";
         String breachSquadKit = "";
+        ConquestCommand command;
+        /** Nest id to the last tick a served tube had it as its mission target, and a pool sortie was over it. */
+        final Map<Long, Integer> lastMortarAim = new HashMap<>();
+        final Map<Long, Integer> lastAirNear = new HashMap<>();
+        final Set<Long> nestsSeenDead = new HashSet<>();
+        int killedByMortar;
+        int killedByAir;
+        int killedByGround;
+        /** Rounds fired and fired on a mission, by gunner. */
+        final Map<Long, int[]> tubeRounds = new HashMap<>();
+        float closestTubeToNest = Float.MAX_VALUE;
+        float nestRiskMax;
+        float nestRiskMin = Float.MAX_VALUE;
+        private final Map<AirPoolService.EventType, Integer> poolTally = new EnumMap<>(AirPoolService.EventType.class);
+        private int poolSeen;
+
+        int poolEvents(AirPoolService.EventType type) {
+            return poolTally.getOrDefault(type, 0);
+        }
+
+        int mortarRounds() {
+            int n = 0;
+            for (int[] r : tubeRounds.values()) n += r[0];
+            return n;
+        }
+
+        int mortarMissionRounds() {
+            int n = 0;
+            for (int[] r : tubeRounds.values()) n += r[1];
+            return n;
+        }
 
         Trace(Fort fort, List<String> keys, SceneWorld world) {
             this.fort = fort;
@@ -383,7 +524,48 @@ public final class AssaultMusterScene implements BehaviorScene {
             return caption;
         }
 
+        /** The fire support readings: which tubes are up and on what, where the bombers are, who killed which nest. */
+        private void observeFireSupport(BattleSimulation sim, int tick) {
+            World w = sim.world();
+            for (FieldMortarService.Tube tube : sim.fieldMortars().tubes()) {
+                // Only the tubes set down once the plan has been committed are the plan's: an earlier tube was a squad's own.
+                boolean planned = tubeRounds.containsKey(tube.carrierId) || (firstAssaultTick >= 0 && tick >= firstAssaultTick);
+                if (!planned) continue;
+                tubeRounds.put(tube.carrierId, new int[] {tube.roundsFired(), tube.missionRoundsFired()});
+                if (tube.missionTarget() != 0L) lastMortarAim.put(tube.missionTarget(), tick);
+                if (tube.phase() != FieldMortarService.Phase.SERVING) continue;
+                for (long nest : fort.nestIds()) {
+                    if (!w.isAlive(nest)) continue;
+                    closestTubeToNest = Math.min(closestTubeToNest, (float) Math.hypot(tube.cellX() + 0.5f - w.x(nest), tube.cellY() + 0.5f - w.y(nest)));
+                }
+            }
+            for (long craft : sim.getAirEntityIds()) {
+                ShuttleMission mission = w.mission(craft);
+                if (mission == null || !mission.poolSortie) continue;
+                for (long nest : fort.nestIds()) {
+                    if (Math.hypot(w.x(craft) - w.x(nest), w.y(craft) - w.y(nest)) <= AIR_ATTRIBUTION_CELLS) lastAirNear.put(nest, tick);
+                }
+            }
+            for (long nest : fort.nestIds()) {
+                if (w.isAlive(nest) || !nestsSeenDead.add(nest)) continue;
+                if (tick - lastMortarAim.getOrDefault(nest, -100000) <= ATTRIBUTION_WINDOW_TICKS) killedByMortar++;
+                else if (tick - lastAirNear.getOrDefault(nest, -100000) <= ATTRIBUTION_WINDOW_TICKS) killedByAir++;
+                else killedByGround++;
+            }
+            List<AirPoolService.Event> events = sim.airPool().events();
+            while (poolSeen < events.size()) poolTally.merge(events.get(poolSeen++).type(), 1, Integer::sum);
+            if (tick % 150 == 0 && sim.airPool().hasPool(Faction.MARINE)) {
+                for (long nest : fort.nestIds()) {
+                    if (!w.isAlive(nest)) continue;
+                    float risk = AirStrikeCapability.aaRisk(sim, Faction.MARINE, w.x(nest), w.y(nest));
+                    nestRiskMax = Math.max(nestRiskMax, risk);
+                    if (risk > 0f) nestRiskMin = Math.min(nestRiskMin, risk);
+                }
+            }
+        }
+
         @Override public void observe(BattleSimulation sim, int tick) {
+            observeFireSupport(sim, tick);
             long core = fort.place(FortAspect.FIRE_CONTROL).coreId();
             float bx = sim.world().x(core);
             float by = sim.world().y(core);

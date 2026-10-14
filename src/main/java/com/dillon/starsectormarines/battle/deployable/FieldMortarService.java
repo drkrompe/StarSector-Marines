@@ -72,6 +72,8 @@ public final class FieldMortarService {
     public static final float SPOTTER_REACH_CELLS = 34f;
 
     /** Lowest belief confidence that counts as the side knowing where somebody is. */
+    /** A mission's tube stands this far from any hostile structure: a nest reaches 24 cells, with a margin. */
+    static final float MISSION_STANDOFF_CELLS = 26f;
     public static final float MISSION_MIN_CONFIDENCE = 0.3f;
     /** Ticks between a tube's looks for a fresh target on its mission. */
     public static final int MISSION_RELOOK_TICKS = 20;
@@ -338,7 +340,7 @@ public final class FieldMortarService {
         }
         long held = tube.missionTarget;
         if (held != 0L && held == current && sim.resolveUnit(held) != 0L && onMission(mission, held, sim)) return held;
-        if (tick - tube.missionLookTick < MISSION_RELOOK_TICKS) return 0L;
+        if ((long) tick - tube.missionLookTick < MISSION_RELOOK_TICKS) return 0L;
         tube.missionLookTick = tick;
         float range = tube.structure.mount.weapon.range;
         float minRange = tube.structure.mount.weapon.minRange;
@@ -355,8 +357,10 @@ public final class FieldMortarService {
 
     /**
      * The best body standing on {@code mission} that a tube at {@code (originX, originY)} can reach and that the
-     * {@code faction} knows of: a structure before a man, then the nearest to the mission's centre, then the lowest id so
-     * the answer repeats. Fair: a body no squad of the side holds a belief in is never chosen, whatever the order says.
+     * {@code faction} may fire on: a structure before a man, then the nearest to the mission's centre, then the lowest id so
+     * the answer repeats. Fair: a man no squad of the side holds a belief in is never chosen, whatever the order says. A
+     * structure on the mission's ground is fired on without a sighting, because a mission names ground the side already
+     * knows (a disclosed fort's works, which it is told of with the fort) and a structure does not move away from it.
      */
     public long pickMissionTarget(FireMission mission, Faction faction, float originX, float originY,
                                   float minRange, float maxRange, BattleView sim) {
@@ -374,9 +378,11 @@ public final class FieldMortarService {
             float fromTube = (float) Math.hypot(sim.world().x(id) - originX, sim.world().y(id) - originY);
             if (fromTube < minRange + 0.5f || fromTube > maxRange) continue;
             if (!onMission(mission, id, sim)) continue;
-            if (known == null) known = sideKnows(faction, sim);
-            if (!known.contains(id)) continue;
             boolean structure = sim.identity().type(id).isTurret();
+            if (!structure) {
+                if (known == null) known = sideKnows(faction, sim);
+                if (!known.contains(id)) continue;
+            }
             float gap = (float) Math.hypot(sim.world().x(id) - cx, sim.world().y(id) - cy);
             boolean better = best == 0L || (structure && !bestStructure) || (structure == bestStructure
                     && (gap < bestGap || (gap == bestGap && id < best)));
@@ -387,6 +393,22 @@ public final class FieldMortarService {
             }
         }
         return best;
+    }
+
+    /**
+     * Whether a hostile structure stands within {@link #MISSION_STANDOFF_CELLS} of {@code (x, y)}: a tube set down on a
+     * mission there would be inside a gun's reach, which is what a standoff weapon is for avoiding. Works are disclosed with
+     * their fort, so the structures are the side's own knowledge.
+     */
+    public boolean underHostileGuns(Faction faction, float x, float y, BattleView sim) {
+        LongBucket bucket = scratch.get();
+        sim.getUnitIndex().gather(x, y, MISSION_STANDOFF_CELLS, bucket);
+        for (int i = 0, n = bucket.size; i < n; i++) {
+            long id = bucket.ids[i];
+            if (!sim.world().isAlive(id) || !faction.hostileTo(sim.identity().faction(id))) continue;
+            if (sim.identity().type(id).isTurret()) return true;
+        }
+        return false;
     }
 
     /** Every body any squad of {@code faction} holds a belief in: the side's picture, not one squad's. */
