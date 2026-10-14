@@ -59,6 +59,14 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
         return AirPoolService.Outcome.NO_AIRFRAME;
     }
 
+    /**
+     * As above, with the airframe chosen by what stands on the point ({@code AirTasking}): a fighter for soft ground,
+     * a bomber for works and armour. The player's one air-strike power asks this way, so it cannot disagree with the AI.
+     */
+    default AirPoolService.Outcome requestAirStrike(Faction side, float x, float y, boolean believes) {
+        return AirPoolService.Outcome.NO_AIRFRAME;
+    }
+
     /** Authored ownership for player support deliveries; absent on generic battlefields. */
     default SquadCommandClaim playerSupportCommandClaim() { return null; }
 

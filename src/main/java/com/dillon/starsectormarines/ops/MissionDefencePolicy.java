@@ -88,9 +88,9 @@ public final class MissionDefencePolicy {
     /** Every Nth marine squad of a Conquest carries a forward observer's comms radio. UNTUNED, as above. */
     static final int CONQUEST_MARINE_OBSERVER_EVERY = 4;
 
-    /** The marine air pool a Conquest declares: bombers and fighters, replaced over time, directed by its commander. UNTUNED. */
+    /** The marine air pool a Conquest declares: bombers and fighters, replaced over time, directed by its commander. A fighter is the cheaper airframe and is replaced faster (25 s) than a bomber (40 s). UNTUNED. */
     static final AirPoolAllowance CONQUEST_MARINE_AIR_POOL = AirPoolAllowance.of(
-            new AirPoolStock(3, 3, 40f), new AirPoolStock(2, 2, 45f), true);
+            new AirPoolStock(3, 3, 40f), new AirPoolStock(2, 2, 25f), true);
 
     /**
      * The pool of bombers and fighters each side holds, tasked by comms operators. A mission's explicit

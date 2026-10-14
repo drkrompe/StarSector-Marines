@@ -681,7 +681,7 @@ public class AirSystem {
                 posts++;
             }
             if (posts == 0) continue;
-            float hp = world.hp(id) - posts * AA_DPS_PER_POST * dt;
+            float hp = world.hp(id) - posts * mission.aaExposure * AA_DPS_PER_POST * dt;
             world.setHp(id, hp);
             if (hp <= 0f) shootDown(id, body, mission, posts + " AA post(s)");
         }
@@ -768,7 +768,7 @@ public class AirSystem {
     public void destroyAircraft(long id) {
         ShuttleMission mission = world.mission(id);
         if (mission == null || mission.destroyed || mission.state == ShuttleState.GONE) return;
-        shootDown(id, world.kinematics(id), mission, "ground fire");
+        shootDown(id, world.kinematics(id), mission, mission.killedByLabel != null ? mission.killedByLabel : "ground fire");
     }
 
     /**
@@ -1059,7 +1059,9 @@ public class AirSystem {
                     if (reachedOrPassed(body, mission.runFromX, mission.runFromY,
                             mission.runToX, mission.runToY)) {
                         mission.passesLeft--;
-                        if (mission.passesLeft > 0) {
+                        if (mission.cover != null) {
+                            returnToStation(mission, body);
+                        } else if (mission.passesLeft > 0) {
                             beginReposition(id, mission, body);
                         } else {
                             beginEgress(mission, body);
@@ -1083,6 +1085,10 @@ public class AirSystem {
                     break;
 
                 case ORBIT: {
+                    if (mission.cover != null) {
+                        tickStation(id, mission, body, flight, dt);
+                        break;
+                    }
                     // Round the ring at the ring's pace. The clock runs only here, so the visit
                     // is the time the guns actually had the ground and not the glide in.
                     float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
@@ -1096,6 +1102,10 @@ public class AirSystem {
                     if (mission.orbitSecondsLeft <= 0f) beginEgress(mission, body);
                     break;
                 }
+
+                case INTERCEPT:
+                    tickIntercept(id, mission, body, flight, dt);
+                    break;
 
                 case RETURNING: {
                     // An approach, and it is flown. The path from where the
@@ -1215,6 +1225,19 @@ public class AirSystem {
                     break;
 
                 case INCOMING:
+                    if (mission.cover != null) {
+                        float[] join = GunshipOrbit.carrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
+                                mission.orbitRadius, mission.orbitClockwise);
+                        AirSteeringSystem.steer(body, join[0], join[1], SteeringMode.CRUISE, flight, dt);
+                        world.setAltitudeT(id, 1f);
+                        world.setFlightPhase(id, world.flightPhase(id)
+                                + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                        if (GunshipOrbit.onTheRing(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
+                                mission.orbitRadius)) {
+                            mission.state = ShuttleState.ORBIT;
+                        }
+                        break;
+                    }
                     if (mission.gunship) {
                         if (mission.gunshipIngress != null && mission.gunshipIngress.steer(body, flight, dt)) {
                             world.setAltitudeT(id, 1f);
@@ -1613,14 +1636,101 @@ public class AirSystem {
     }
 
     /**
+     * A cover fighter on its ring: round the ground it covers at its own pace, counting its station down, and taking the
+     * work tasking has given it. Prey comes before ground, and neither is taken while the fighter is still resting from
+     * the last: a fighter that went straight from one pass into the next would never be seen holding a station.
+     */
+    private void tickStation(long id, ShuttleMission mission, AirBody body, AirHandling flight, float dt) {
+        CoverDuty duty = mission.cover;
+        float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
+                mission.orbitRadius, mission.orbitClockwise);
+        AirSteeringSystem.steer(body, ahead[0], ahead[1], SteeringMode.CRUISE, flight, dt);
+        world.setAltitudeT(id, 1f);
+        world.setFlightPhase(id, world.flightPhase(id) + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+        duty.stationSecondsLeft -= dt;
+        duty.restSecondsLeft = Math.max(0f, duty.restSecondsLeft - dt);
+        boolean spent = !duty.hasAirRounds() && duty.groundPassesLeft <= 0;
+        if (duty.stationSecondsLeft <= 0f || spent || mission.aborted) {
+            beginEgress(mission, body);
+            return;
+        }
+        if (duty.preyId != 0L) {
+            if (hostileAirborne(duty.preyId, world.airFaction(id)) && duty.hasAirRounds() && duty.readyForWork()) {
+                duty.interceptSecondsLeft = CoverDuty.INTERCEPT_SECONDS;
+                duty.chases++;
+                mission.state = ShuttleState.INTERCEPT;
+                return;
+            }
+            if (!hostileAirborne(duty.preyId, world.airFaction(id))) duty.preyId = 0L;
+        }
+        if (duty.strafeRequested && duty.readyForWork() && duty.groundPassesLeft > 0) {
+            duty.strafeRequested = false;
+            duty.strafing = true;
+            duty.groundPassesLeft--;
+            duty.groundPassesFlown++;
+            mission.passesLeft = 1;
+            mission.fireCooldown = 0f;
+            beginAttackRun(id, mission, body);
+        }
+    }
+
+    /**
+     * A cover fighter pursuing a hostile aircraft. It steers at where the prey will be and the guns, which belong to
+     * {@link AirToAirFire}, fire while the prey stands in their window. The chase is bounded: it ends when the prey is
+     * down or gone, the magazine is dry, or the chase has run its seconds, and the fighter goes back to its ring.
+     */
+    private void tickIntercept(long id, ShuttleMission mission, AirBody body, AirHandling flight, float dt) {
+        CoverDuty duty = mission.cover;
+        if (duty == null) {
+            mission.state = ShuttleState.DEPARTING;
+            return;
+        }
+        duty.stationSecondsLeft -= dt;
+        duty.interceptSecondsLeft -= dt;
+        boolean chasing = duty.preyId != 0L && hostileAirborne(duty.preyId, world.airFaction(id))
+                && duty.hasAirRounds() && duty.interceptSecondsLeft > 0f && !mission.aborted;
+        if (!chasing) {
+            duty.preyId = 0L;
+            returnToStation(mission, body);
+            if (duty.stationSecondsLeft <= 0f || mission.aborted) beginEgress(mission, body);
+            return;
+        }
+        AirBody prey = world.kinematics(duty.preyId);
+        float[] lead = AirToAirGun.leadPoint(body.x, body.y, body.speed(), prey.x, prey.y, prey.vx, prey.vy);
+        AirSteeringSystem.steer(body, lead[0], lead[1], SteeringMode.CRUISE, flight, dt);
+        world.setAltitudeT(id, 1f);
+        world.setFlightPhase(id, world.flightPhase(id) + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+    }
+
+    /** Puts a cover fighter back on its ring after work, resting before it takes the next job. */
+    private void returnToStation(ShuttleMission mission, AirBody body) {
+        CoverDuty duty = mission.cover;
+        duty.strafing = false;
+        duty.restSecondsLeft = CoverDuty.REST_SECONDS;
+        mission.orbitClockwise = GunshipOrbit.clockwiseFrom(body.x, body.y, body.facingDegrees,
+                mission.orbitCentreX, mission.orbitCentreY, mission.orbitRadius);
+        mission.state = ShuttleState.ORBIT;
+    }
+
+    /** Whether {@code id} is an aircraft in the air, in the battle, and hostile to {@code mine}. */
+    private boolean hostileAirborne(long id, Faction mine) {
+        ShuttleMission other = world.mission(id);
+        if (other == null || other.destroyed || mine == null) return false;
+        AirTargetService craft = roster.airTargets();
+        return craft.isPresent(id) && craft.isAirborne(id) && mine.hostileTo(world.airFaction(id));
+    }
+
+    /**
      * A pool sortie that has taken too much on the way in breaks off: it drops what it carries unreleased and turns for
      * home, so the pool gets the airframe back rather than losing it, and the target is not bombed. Only while it is
      * still working toward its objective; a craft already leaving has nothing to abort.
      */
     private void driveOffIfBadlyHit(long id, ShuttleMission mission, AirBody body, Airframe frame) {
         ShuttleState state = mission.state;
-        if (state != ShuttleState.INCOMING && state != ShuttleState.ATTACK_RUN
-                && state != ShuttleState.REPOSITION) return;
+        boolean working = state == ShuttleState.INCOMING || state == ShuttleState.ATTACK_RUN
+                || state == ShuttleState.REPOSITION
+                || (mission.cover != null && (state == ShuttleState.ORBIT || state == ShuttleState.INTERCEPT));
+        if (!working) return;
         if (mission.destroyed || world.hp(id) > frame.maxHp() * ShuttleMission.ABORT_HP_SHARE) return;
         mission.aborted = true;
         mission.roundsLeftThisPass = 0;
@@ -2038,7 +2148,7 @@ public class AirSystem {
     private boolean rollsInFromTheApproach(long id, ShuttleMission mission, AirBody body) {
         AirOrdnance load = ordnanceOf(id, mission);
         if (load == null) return false;
-        return body.distanceTo(mission.lzX, mission.lzY) <= load.firingRangeCells + RUN_IN_MARGIN_CELLS + 3f;
+        return body.distanceTo(mission.aimX(), mission.aimY()) <= load.firingRangeCells + RUN_IN_MARGIN_CELLS + 3f;
     }
 
     /**
@@ -2054,8 +2164,8 @@ public class AirSystem {
      * rather than waited for.
      */
     private boolean linedUpToRunIn(long id, ShuttleMission mission, AirBody body) {
-        float dx = mission.lzX - body.x;
-        float dy = mission.lzY - body.y;
+        float dx = mission.aimX() - body.x;
+        float dy = mission.aimY() - body.y;
         float dist = (float) Math.hypot(dx, dy);
         AirOrdnance load = ordnanceOf(id, mission);
         float standoff = load == null
@@ -2111,16 +2221,16 @@ public class AirSystem {
             // First pass runs in along whatever bearing the craft arrived on,
             // so the aircraft does not fly past its target to attack it.
             bearing = (float) Math.toDegrees(Math.atan2(
-                    mission.lzY - body.y, mission.lzX - body.x));
+                    mission.aimY() - body.y, mission.aimX() - body.x));
         }
         mission.lastRunBearingDeg = bearing;
         double rad = Math.toRadians(bearing);
         float dirX = (float) Math.cos(rad);
         float dirY = (float) Math.sin(rad);
-        mission.runFromX = mission.lzX - dirX * RUN_LEAD_CELLS;
-        mission.runFromY = mission.lzY - dirY * RUN_LEAD_CELLS;
-        mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
-        mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        mission.runFromX = mission.aimX() - dirX * RUN_LEAD_CELLS;
+        mission.runFromY = mission.aimY() - dirY * RUN_LEAD_CELLS;
+        mission.runToX = mission.aimX() + dirX * RUN_OVERSHOOT_CELLS;
+        mission.runToY = mission.aimY() + dirY * RUN_OVERSHOOT_CELLS;
         loadForThePass(mission, ordnanceOf(id, mission));
         // A strike arrives on station, which is over the objective — so on the
         // first pass the craft is already well inside its own run-in and has
@@ -2162,8 +2272,8 @@ public class AirSystem {
      * by construction and the far end is straight ahead of it.
      */
     private static void commitToTheLine(ShuttleMission mission, AirBody body) {
-        float dx = mission.lzX - body.x;
-        float dy = mission.lzY - body.y;
+        float dx = mission.aimX() - body.x;
+        float dy = mission.aimY() - body.y;
         float length = (float) Math.hypot(dx, dy);
         if (length < 1e-3f) return;   // On top of it; the laid line is as good as any.
         float dirX = dx / length;
@@ -2171,8 +2281,8 @@ public class AirSystem {
         mission.lastRunBearingDeg = (float) Math.toDegrees(Math.atan2(dirY, dirX));
         mission.runFromX = body.x;
         mission.runFromY = body.y;
-        mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
-        mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        mission.runToX = mission.aimX() + dirX * RUN_OVERSHOOT_CELLS;
+        mission.runToY = mission.aimY() + dirY * RUN_OVERSHOOT_CELLS;
     }
 
     /** What this pass has to give: a bomber's stick, or nothing to count for a gun. */
@@ -2203,10 +2313,10 @@ public class AirSystem {
         double rad = Math.toRadians(mission.lastRunBearingDeg);
         float dirX = (float) Math.cos(rad);
         float dirY = (float) Math.sin(rad);
-        mission.runFromX = mission.lzX - dirX * RUN_LEAD_CELLS;
-        mission.runFromY = mission.lzY - dirY * RUN_LEAD_CELLS;
-        mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
-        mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        mission.runFromX = mission.aimX() - dirX * RUN_LEAD_CELLS;
+        mission.runFromY = mission.aimY() - dirY * RUN_LEAD_CELLS;
+        mission.runToX = mission.aimX() + dirX * RUN_OVERSHOOT_CELLS;
+        mission.runToY = mission.aimY() + dirY * RUN_OVERSHOOT_CELLS;
         loadForThePass(mission, ordnanceOf(id, mission));
         mission.state = ShuttleState.REPOSITION;
     }
@@ -2254,8 +2364,8 @@ public class AirSystem {
         if (load == null || detonations == null) return;
         if (mission.aborted) return;
         if (!load.firesContinuously() && mission.roundsLeftThisPass <= 0) return;
-        if (body.distanceTo(mission.lzX, mission.lzY) > load.firingRangeCells) return;
-        if (!pointedAt(body, mission.lzX, mission.lzY)) return;
+        if (body.distanceTo(mission.aimX(), mission.aimY()) > load.firingRangeCells) return;
+        if (!pointedAt(body, mission.aimX(), mission.aimY())) return;
         mission.fireCooldown -= dt;
         if (mission.fireCooldown > 0f) return;
         mission.fireCooldown = load.fireInterval();
