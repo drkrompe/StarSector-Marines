@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * a JSON array of objects; every field but {@code id} is optional: {@code seed}, {@code placement}
  * ({@code ON_PATH}/{@code OFFSET}), {@code offset}, {@code shuttleType}, {@code shuttles}, {@code seats},
  * {@code cycles}, {@code elites}, {@code militia}, {@code patrolSize}, {@code objectiveGarrison}, {@code keepGarrison}
- * and {@code risk}.
+ * and {@code risk}. {@code -PsnapshotEveryTicks=N} renders review frames and a {@code visuals/<fixture>/review.gif}.
  */
 @Tag("conquest-trial-evidence")
 class ConquestTrialEvidenceTest {
@@ -75,7 +75,7 @@ class ConquestTrialEvidenceTest {
         StringBuilder detail = new StringBuilder();
         for (int i = 0; i < fixtures.length(); i++) {
             JSONObject fixture = fixtures.getJSONObject(i);
-            Outcome o = play(fixture, maxTicks);
+            Outcome o = play(fixture, maxTicks, output);
             md.append(o.row()).append('\n');
             detail.append("\n## ").append(o.id()).append("\n\n").append(o.detail());
             summaries.put(o.json());
@@ -102,7 +102,7 @@ class ConquestTrialEvidenceTest {
 
     private record Outcome(String id, String row, String detail, JSONObject json, String trace) {}
 
-    private static Outcome play(JSONObject f, int maxTicks) throws Exception {
+    private static Outcome play(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
         String id = f.getString("id");
         long seed = f.optLong("seed", 41L);
         Placement placement = Placement.valueOf(f.optString("placement", Placement.ON_PATH.name()));
@@ -125,7 +125,8 @@ class ConquestTrialEvidenceTest {
                 new Random(seed), manifest, arrival, arrival.sizedConfigFor(manifest), false,
                 OperationTier.ESTABLISHED, risk, TargetProfile.NEUTRAL, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                 GroundRosterRegistry.resolve(""), roster);
-        try (BattleSimulation sim = build.sim()) {
+        try (BattleSimulation sim = build.sim();
+             CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(visualRoot, id, sim)) {
             FortOutcomes forts = new FortOutcomes();
             FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
             FightingPositionIndex startPositions = sim.fightingPositions();
@@ -141,6 +142,7 @@ class ConquestTrialEvidenceTest {
             CompoundService compounds = sim.getCompoundService();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
+                capture.afterAdvance();
                 int tick = sim.getSimTickIndex();
                 forts.sample(sim);
                 positionUse.sample(sim);
