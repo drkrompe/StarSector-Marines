@@ -274,6 +274,21 @@ public final class ShuttleMission {
     public boolean strikeSortie;
 
     /**
+     * Whether this sortie was tasked from a side's air pool by a comms operator, and so belongs to that pool: it comes
+     * back to it when it returns or is driven off, and is lost to it when it is shot down.
+     */
+    public boolean poolSortie;
+
+    /**
+     * Whether a pool sortie has been driven off: damaged past {@link #ABORT_HP_SHARE} of its hull on the way in, it
+     * jettisons what it carries and turns for home without making its pass. UNTUNED.
+     */
+    public boolean aborted;
+
+    /** Share of an airframe's hull below which a pool sortie breaks off its attack. UNTUNED. */
+    public static final float ABORT_HP_SHARE = 0.5f;
+
+    /**
      * The line this attack run is flying: in from {@code runFrom}, through the
      * target, out to {@code runTo}.
      *

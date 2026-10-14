@@ -111,7 +111,13 @@ public enum SpecialAiPolicy {
      * shooting at them; this one is the moment for a marine who can, and whose
      * whole problem is hitting with it.
      */
-    HOLDING_A_FIRING_POSITION("holding-a-firing-position");
+    HOLDING_A_FIRING_POSITION("holding-a-firing-position"),
+    /**
+     * A hostile the carrier can see, or has fair reason to believe in, that is worth an aircraft: the carrier works a
+     * radio and the side's air pool answers. The moment is the designation, not any shot; the carrier spends nothing
+     * of their own but their attention, and a carrier who is dead or under fire calls no one.
+     */
+    FORWARD_OBSERVER("forward-observer");
 
     public final String key;
 

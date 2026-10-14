@@ -95,6 +95,11 @@
       "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
     },
     {
+      "kind": "special",
+      "equipmentId": "special.comms-radio",
+      "reason": "Forward-observer set issued by roster to elite squads; player acquisition (tier, cost) awaits an owner decision."
+    },
+    {
       "kind": "primary",
       "equipmentId": "weapon.drone-pulse",
       "reason": "Integrated drone armament is not compatible with human infantry issue."

@@ -28,7 +28,21 @@ public record SpecialEquipmentDef(
         SatchelChargeSpec satchelChargeSpec,
         CloseContactSpec closeContactSpec,
         DeployableEmplacementSpec deployableEmplacementSpec,
-        DeployableCoverSpec deployableCoverSpec) implements Serializable {
+        DeployableCoverSpec deployableCoverSpec,
+        CommsKitSpec commsKitSpec) implements Serializable {
+
+    /** An item with no comms kit: every activation except {@link SpecialActivation#UTILITY_COMMS}. */
+    public SpecialEquipmentDef(String id, String displayName, String catalogSubtitle, String catalogDescription,
+                               String catalogFactionLogo, SpecialActivation activation, String weaponId,
+                               SpecialResourceMode resourceMode, int startingAmmo, SpecialAiPolicy aiPolicy,
+                               SpecialEquipmentPresentationDef presentation, SmokeGrenadeSpec smokeGrenadeSpec,
+                               SatchelChargeSpec satchelChargeSpec, CloseContactSpec closeContactSpec,
+                               DeployableEmplacementSpec deployableEmplacementSpec,
+                               DeployableCoverSpec deployableCoverSpec) {
+        this(id, displayName, catalogSubtitle, catalogDescription, catalogFactionLogo, activation, weaponId,
+                resourceMode, startingAmmo, aiPolicy, presentation, smokeGrenadeSpec, satchelChargeSpec,
+                closeContactSpec, deployableEmplacementSpec, deployableCoverSpec, null);
+    }
     public String displayName() { return Strings.resolve(displayName); }
 
     public String catalogSubtitle() { return Strings.resolve(catalogSubtitle); }
@@ -71,6 +85,7 @@ public record SpecialEquipmentDef(
         CloseContactSpec closeContact = null;
         DeployableEmplacementSpec deployable = null;
         DeployableCoverSpec deployableCover = null;
+        CommsKitSpec commsKit = null;
         switch (activation) {
             case DIRECT_EXPLOSIVE, DIRECT_PRECISION -> {
                 if (weaponId == null) {
@@ -162,6 +177,19 @@ public record SpecialEquipmentDef(
                             + "' has no thrown or deployed field payload");
                 }
             }
+            case UTILITY_COMMS -> {
+                requireNoWeapon(weaponId, id);
+                requirePolicy(aiPolicy, SpecialAiPolicy.FORWARD_OBSERVER, id);
+                commsKit = parseCommsKit(activationJson, resource, id);
+                if (resourceMode != SpecialResourceMode.COOLDOWN) {
+                    throw new JSONException("Comms equipment '" + id
+                            + "' must use the cooldown resource mode");
+                }
+                if (presentation.carrierLayer() == null) {
+                    throw new JSONException("Comms equipment '" + id
+                            + "' requires a carrier presentation recipe");
+                }
+            }
         }
 
         return new SpecialEquipmentDef(
@@ -180,7 +208,8 @@ public record SpecialEquipmentDef(
                 satchel,
                 closeContact,
                 deployable,
-                deployableCover);
+                deployableCover,
+                commsKit);
     }
 
     /** True when this item acts only from honest physical contact. */
@@ -223,6 +252,7 @@ public record SpecialEquipmentDef(
         if (smokeGrenadeSpec != null) return smokeGrenadeSpec.throwDuration();
         if (satchelChargeSpec != null) return satchelChargeSpec.plantDuration();
         if (closeContactSpec != null) return closeContactSpec.channelSeconds();
+        if (commsKitSpec != null) return commsKitSpec.callSeconds();
         return weaponDef().aimDuration;
     }
 
@@ -303,6 +333,16 @@ public record SpecialEquipmentDef(
         return new DeployableCoverSpec(kind.name(),
                 positive(activation, "deployDuration", id),
                 positive(activation, "lifetimeSeconds", id));
+    }
+
+    private static CommsKitSpec parseCommsKit(JSONObject activation, JSONObject resource, String id)
+            throws JSONException {
+        return new CommsKitSpec(
+                positive(activation, "spotRangeCells", id),
+                positive(activation, "radioRangeCells", id),
+                positive(activation, "callSeconds", id),
+                positive(resource, "cooldownSeconds", id),
+                positive(activation, "suppressionPressure", id));
     }
 
     private static CloseContactSpec parseCloseContact(JSONObject activation, JSONObject resource,
