@@ -152,7 +152,11 @@ public final class HeadlessArmoryPreviewRenderer {
                 new PreviewCase("satchel-charge", "Breachhand · Blackforge patchwork rig",
                         new FireTeamBillet("Breacher", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
                                 EquipmentGrade.SURPLUS, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
-                                MarineArmorPattern.OUTLAW)));
+                                MarineArmorPattern.OUTLAW)),
+                new PreviewCase("comms-radio", "Tallyman forward-observer set · Bastion line armor",
+                        new FireTeamBillet("Observer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                                EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID),
+                                MarineArmorPattern.CHARCOAL)));
     }
 
     public record PreviewCase(String slug, String label, FireTeamBillet billet) {}
