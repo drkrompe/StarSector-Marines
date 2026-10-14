@@ -74,6 +74,9 @@ public final class BatteryFort {
             new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 25, OY + 2, 3, 2, 1),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + 22, OY, 3, 2, 1));
 
+    /** The optional anti-air yard: the open ground between the platform's pit and the bunker, off every lane. */
+    public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 23, OY + 13, 0, 1);
+
     /** Floors (x, y, width, height) of the three buildings, in the footprint frame. */
     private static final int[] BUNKER_FLOOR = {OX + 9, OY + 7, 7, 5};
     private static final int[] MAGAZINE_FLOOR = {OX + 36, OY + 5, 8, 6};
@@ -160,12 +163,14 @@ public final class BatteryFort {
                 case FIRE_CONTROL -> TurretCatalogRegistry.FORT_FIRE_CONTROL_STRUCTURE_ID;
                 case MAGAZINE -> TurretCatalogRegistry.FORT_MAGAZINE_STRUCTURE_ID;
                 case POWER -> TurretCatalogRegistry.FORT_POWER_STRUCTURE_ID;
+                case AIR_DEFENCE -> TurretCatalogRegistry.FORT_AIR_CONTROL_STRUCTURE_ID;
                 default -> throw new IllegalArgumentException("a battery fort has no " + aspect);
             };
         }
         @Override public String centrepieceStructureId() { return TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID; }
         @Override public int[] centrepiece() { return PLATFORM; }
         @Override public FortAspect centrepieceAspect() { return null; }
+        @Override public AirDefenceYard airDefence() { return AIR_DEFENCE; }
     };
 
     private static final List<FortAspect> ASPECTS = List.of(FortAspect.FIRE_CONTROL, FortAspect.MAGAZINE, FortAspect.POWER);
@@ -235,6 +240,7 @@ public final class BatteryFort {
             case FIRE_CONTROL -> BUNKER_FLOOR.clone();
             case MAGAZINE -> MAGAZINE_FLOOR.clone();
             case POWER -> POWER_FLOOR.clone();
+            case AIR_DEFENCE -> AIR_DEFENCE.floor();
             default -> throw new IllegalArgumentException("a battery fort has no " + aspect);
         };
     }
@@ -248,6 +254,7 @@ public final class BatteryFort {
 
     /** The middle of the three-by-three core of {@code aspect}, in the local frame. */
     public static int[] coreCentre(FortAspect aspect) {
+        if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.consoleCentre();
         int[] floor = floor(aspect);
         return new int[]{floor[0] + floor[2] / 2, floor[1] + floor[3] / 2};
     }

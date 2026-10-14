@@ -818,6 +818,7 @@ final class AssaultMuster {
                 }
             }
             if (company.execution != null) {
+                company.execution.skyWanted(air.blocked());
                 Map<Integer, Order> planned = company.execution.run(tick, perspective, objective, company.members, byId,
                         topology, notes);
                 if (planned == null) {
@@ -842,7 +843,7 @@ final class AssaultMuster {
                     body.demolition(), body.machine()));
         }
         List<DefenceStructureTactics.Task> tasks = DefenceStructureTactics.planMassed(
-                perspective, objective.aspects(), candidates, topology);
+                perspective, objective.aspects(), candidates, topology, air.blocked());
         if (tasks.isEmpty()) {
             notes.add("company for fort " + company.fortId + " dissolved: no aspect of it can be reached");
             companies.remove(company.fortId);

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,7 @@ public final class Fort {
     private FortKind kind;
     private final Map<FortAspect, Place> places = new EnumMap<>(FortAspect.class);
     private final List<Long> nests = new ArrayList<>();
+    private final List<Long> airMounts = new ArrayList<>();
     private FortressBattery battery;
     private FortFrame frame;
     private int[] exteriorCells;
@@ -218,6 +220,33 @@ public final class Fort {
 
     void addPlace(Place place) {
         places.put(place.aspect, place);
+    }
+
+    /** The entity ids of the anti-air mounts of this fort's yard (empty without the aspect). */
+    public List<Long> airMountIds() {
+        return Collections.unmodifiableList(airMounts);
+    }
+
+    void addAirMount(long id) {
+        airMounts.add(id);
+    }
+
+    /** Whether the anti-air aspect is wrecked: its mounts are silent for good. */
+    public boolean airDefenceWrecked() {
+        Place p = places.get(FortAspect.AIR_DEFENCE);
+        return p != null && p.wrecked;
+    }
+
+    /**
+     * How fast {@code owner}'s anti-air mounts in this fort lock, traverse and cycle: zero while the yard is wrecked,
+     * contested or held by another side, a quarter without the fort's power, full otherwise. A fort with no anti-air
+     * aspect imposes nothing (1).
+     */
+    public float airDefenceRate(Faction owner) {
+        Place p = places.get(FortAspect.AIR_DEFENCE);
+        if (p == null) return 1f;
+        if (p.wrecked || p.control.contested() || !owner.friendlyTo(p.control.holder())) return 0f;
+        return powered(owner) ? 1f : UNPOWERED_RATE;
     }
 
     /** The entity ids of the wall nests tagged to this fort, for evidence; a command never reads these. */

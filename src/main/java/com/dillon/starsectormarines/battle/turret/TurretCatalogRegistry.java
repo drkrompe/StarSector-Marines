@@ -37,6 +37,8 @@ public final class TurretCatalogRegistry {
     public static final String FORT_MAGAZINE_STRUCTURE_ID = "structure.fort-magazine";
     public static final String FORT_POWER_STRUCTURE_ID = "structure.fort-power";
     public static final String FORT_CONTROL_ROOM_STRUCTURE_ID = "structure.fort-control-room";
+    /** The plotting console of a fort's optional anti-air yard. */
+    public static final String FORT_AIR_CONTROL_STRUCTURE_ID = "structure.fort-air-control";
     public static final String ANTI_AIR_STRUCTURE_ID = "structure.turret-anti-air-flak";
     public static final String RIDGE_AA_STRUCTURE_ID = "structure.ridge-aa";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";

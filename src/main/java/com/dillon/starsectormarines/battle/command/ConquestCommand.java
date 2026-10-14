@@ -1358,7 +1358,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.originalAssignment, squad.demolition));
         }
         for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
-                frame.perspective(), structures, candidates, frame.topology())) {
+                frame.perspective(), structures, candidates, frame.topology(), frame.facts().airSupport().blocked())) {
             PlanningSquad squad = allSquads.get(task.squadId());
             squad.assignedObjective = task.assignment();
             int preferred = stripFor(squad);
