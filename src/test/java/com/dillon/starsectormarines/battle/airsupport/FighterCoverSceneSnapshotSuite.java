@@ -25,6 +25,9 @@ public final class FighterCoverSceneSnapshotSuite extends BehaviorSceneSnapshotS
         return null;
     }
 
+    /** Close recordings are full 1920x1080 as well: every preview shown is at that size. */
+    @Override protected float closeViewScale() { return 1f; }
+
     /** Moments of a run in progress. */
     @Override protected int[] stillFrames(String loopId) {
         return new int[]{20, 40};
