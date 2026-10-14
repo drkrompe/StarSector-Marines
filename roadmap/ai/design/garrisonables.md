@@ -166,6 +166,15 @@ held place covers. Three things it shows shape the work ahead:
   those maps are the precondition for everything in this doc.
 - Fighting-position runs are almost absent outside forts.
 
+A story map closes the second gap by publishing its buildings as **held
+places**: each building it already records becomes a held position on its own
+footprint, entered at its interior anchor. A held place is not an objective — it
+has no capture record, marker or supply gate — and it asks for no garrison, so
+publishing one changes nothing until somebody is sent to it. That is
+deliberate: a building is manned in answer to threat or by order, by the same
+law as a trench. Relief and Counterattack publish theirs; the other story maps
+follow the same helper, `HeldPlaces`.
+
 ## Open questions
 
 - How a garrisonable is valued against an objective: a trench in front of the
