@@ -21,6 +21,8 @@ import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -141,8 +143,35 @@ class FieldMortarTest {
     }
 
     @Test
-    void aTubeWhoseGunnerDiesIsLostWithHim() {
+    void aTubeWhoseGunnerDiesIsTakenUpByASquadmateWhoKeepsItsRoundsAndPhase() {
         SceneWorld world = section(30);
+        BattleSimulation sim = world.sim();
+        long gunner = world.members("team")[0];
+        Tube tube = awaitTube(sim, gunner, 120);
+        advanceSeconds(sim, mortarItem().deployableEmplacementSpec().deployDuration() + 0.5f);
+        long entity = sim.resolveUnit(tube.entityId());
+        assertTrue(entity != 0L);
+        int rounds = tube.rounds();
+
+        sim.applyExternalDamage(gunner, 10_000f, Float.MAX_VALUE);
+        advanceSeconds(sim, 1f);
+        assertNull(sim.fieldMortars().tubeOfCarrier(gunner));
+        long taker = sim.resolveUnit(tube.carrierId());
+        assertTrue(taker != 0L && taker != gunner, "a living squadmate is now the gunner");
+        assertTrue(Arrays.stream(world.members("team")).anyMatch(m -> m == tube.carrierId()));
+        assertEquals(tube, sim.fieldMortars().tubeOfCarrier(tube.carrierId()));
+        assertEquals(1, sim.fieldMortars().recrewed());
+        assertEquals(0, sim.fieldMortars().lostWithGunner(), "nothing was lost");
+        assertTrue(sim.resolveUnit(tube.entityId()) != 0L, "the emplacement stands on");
+        assertTrue(tube.rounds() <= rounds, "with the rounds it had left");
+
+        assertEquals(Phase.SERVING, tube.phase(), "still serving");
+        assertTrue(sim.world().secondaryActionTimer(taker) > 0f, "and the new gunner is held at it as the first was");
+    }
+
+    @Test
+    void aTubeWhoseGunnerDiesWithNoSquadmateToTakeItIsLostWithHim() {
+        SceneWorld world = loneSection(30);
         BattleSimulation sim = world.sim();
         long gunner = world.members("team")[0];
         Tube tube = awaitTube(sim, gunner, 120);
@@ -238,6 +267,16 @@ class FieldMortarTest {
     private static SceneWorld section(int distance) {
         return SceneBuilder.openGround(MAP, ROW).missionCompletion(false)
                 .squad("team").faction(Faction.MARINE).size(3).at(12, ROW / 2).primary(RIFLE)
+                .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1).stationary().done()
+                .squad("enemy").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(3)
+                .at(12 + distance, ROW / 2).primary(RIFLE).stationary().done()
+                .build();
+    }
+
+    /** The same section with only the gunner in it. */
+    private static SceneWorld loneSection(int distance) {
+        return SceneBuilder.openGround(MAP, ROW).missionCompletion(false)
+                .squad("team").faction(Faction.MARINE).size(1).at(12, ROW / 2).primary(RIFLE)
                 .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1).stationary().done()
                 .squad("enemy").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(3)
                 .at(12 + distance, ROW / 2).primary(RIFLE).stationary().done()
