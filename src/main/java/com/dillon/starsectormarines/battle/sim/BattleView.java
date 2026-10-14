@@ -369,6 +369,14 @@ public interface BattleView {
     /** Who holds which fighting-position cell under a defend-area order; decided in the serial phase, read-only during unit dispatch. */
     FightingPositionClaims fightingPositionClaims();
 
+    /**
+     * The fighting-position run the squad's standing player order asked it to occupy, or -1 when
+     * it holds no occupy order (an ordinary defend area, any other order, or none).
+     */
+    default int occupyRunOf(int squadId) {
+        return -1;
+    }
+
     /** Whether the marine is dug in: settled on a fighting-position cell for the full dig-in delay. False for non-infantry and the dead. */
     boolean isDugIn(long id);
 
