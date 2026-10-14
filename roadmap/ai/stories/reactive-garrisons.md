@@ -1,10 +1,10 @@
 # Reactive garrisons
 
-Status: IN PROGRESS — slices 1 and 2 built; arrival time and fall back next
+Status: IN PROGRESS — slices 1–3 built (fort-belt staging, arrival gate, fall back); general pressure-driven flow next
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — belts are reactive (`GarrisonableRegistry`, `GarrisonDirector`); on the fort control the patrol pool is back, but patrols arrive 400–3000 ticks after being sent and four of nine were released en route, so few dig in.
+Updated: 2026-10-13 — arrival gate (1200 ticks), en-route hold, fort-works staging and fall back built; order→arrival 699→83 ticks and start distance 143→45 cells, but only one squad stages per fort, so most manning is refused for lack of a local squad (340 refusals to 5 sends). No fall back occurred live.
 
 ## Intent
 
@@ -47,6 +47,14 @@ releases them when the pressure passes.
   reserve so the nearest free squad is near the belt.
 - Run ids renumber when the index rebuilds; the commander re-resolves a manned
   run by its centre cell and counts a vanished run as lost.
+
+## Next
+
+- Generalize flow from one waiting patrol per fort to pressure-proportional
+  staging behind any pressured cluster of garrisonables, so a second squad is
+  local when a place needs one and garrisonables outside forts are served.
+- Observe a fall back in a live run.
+- Tune the arrival bound, dwells and breach lockout once flow carries enough.
 
 ## Constraints
 

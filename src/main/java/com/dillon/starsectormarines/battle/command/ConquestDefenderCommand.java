@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -119,7 +120,25 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
     private volatile ConquestFrontSnapshot frontSnapshot;
     private final GarrisonDirector garrisons = new GarrisonDirector();
+    /** {@code -Dbattle.fort.stagedReserve=false} keeps every patrol where its own track leaves it, for a control run. */
+    private static final boolean STAGED_RESERVE = Boolean.parseBoolean(
+            System.getProperty("battle.fort.stagedReserve", "true"));
+    /** Plans between attempts to find a patrol for a fort that has none waiting and none could be found. */
+    private static final int STAGE_RETRY_PLANS = 8;
+    /** Most patrols newly sent to wait at a fort's works in one plan. UNTUNED. */
+    private static final int MAX_STAGE_PER_PLAN = 2;
+    /** Consecutive plans (2.5 s each) a fort must show no believed pressure before its waiting patrols are given back. UNTUNED. */
+    private static final int STAGE_COOL_PLANS = 20;
+    /** Patrols tried (nearest first) for one fort's waiting post before giving up until the retry. */
+    private static final int STAGE_CANDIDATES_TRIED = 3;
+    /** The mobile-pool patrol waiting at each held fort's works: squad id to its post. Never a born garrison; it is sent like any free patrol. */
+    private final Map<Integer, StagePost> stagers = new HashMap<>();
+    private final Map<Integer, Integer> stageRetryAt = new HashMap<>();
+    private final Map<Integer, Integer> stageCool = new HashMap<>();
+    private int planCount;
     private int[] contactScratch = new int[128];
+
+    private record StagePost(int fortId, ObjectiveAssignment order) { }
 
     private static final class Threat {
         final int track;
@@ -260,6 +279,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         List<GarrisonDirector.Garrison> held = new ArrayList<>();
         Map<Integer, PlanningSquad> heldSquads = new TreeMap<>();
         List<PlanningSquad> candidates = new ArrayList<>();
+        Map<Integer, PlanningSquad> staged = new TreeMap<>();
+        Set<Integer> heldForts = reactive && STAGED_RESERVE ? heldForts(frame.perspective()) : Set.of();
+        planCount++;
         Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
         for (CommandSquadState state : frame.squads()) {
@@ -281,6 +303,16 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     heldSquads.put(squad.id, squad);
                     continue;
                 }
+            }
+            StagePost post = reactive && STAGED_RESERVE && !hasHigherAuthority(squad) ? stagers.get(squad.id) : null;
+            if (post != null) {
+                if (stageStands(squad, post, heldForts)) {
+                    directives.put(squad.id, directive(squad, home, home, squad.localContact
+                            ? AssignmentReason.DEFENDER_LOCAL_CONTACT : AssignmentReason.DEFENDER_GARRISONABLE_STAGE));
+                    if (!squad.localContact) staged.put(squad.id, squad);
+                    continue;
+                }
+                stagers.remove(squad.id);
             }
             if (squad.localContact) {
                 clearMissionRally(squad);
@@ -307,7 +339,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
         Set<Integer> justReleased = new HashSet<>();
         if (reactive) {
-            standOrRelease(places, influence, held, heldSquads, candidates, directives, justReleased);
+            standOrRelease(places, influence, held, heldSquads, candidates, directives, justReleased,
+                    frame.topology(), frame.perspective());
         }
 
         int mobileReserve = mobileReserveFor(candidates.size());
@@ -342,7 +375,14 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
         List<String> structureNotes = assignDefenceStructureTasks(frame, candidates, selected, directives);
         if (reactive) {
-            manGarrisonables(places, frame.topology(), candidates, allSquads, selected, justReleased, directives);
+            if (STAGED_RESERVE) {
+                flowToPressure(places, frame.topology(), frame.perspective(), held, candidates, selected, directives);
+            }
+            manGarrisonables(places, frame.topology(), candidates, staged, allSquads, selected, justReleased, directives);
+            stagers.keySet().removeIf(id -> {
+                PlanningSquad squad = allSquads.get(id);
+                return squad == null || squad.aliveMembers <= 0;
+            });
         }
 
         for (PlanningSquad squad : candidates) {
@@ -668,7 +708,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             cellY = cell[1];
         }
         int place = places.idAt(cellX, cellY);
-        if (place >= 0) return new GarrisonDirector.Garrison(squad.id, place, !squad.localContact);
+        if (place >= 0) {
+            int reach = places.radius(place);
+            boolean arrived = Math.abs(squad.centroidX - places.centreX(place)) <= reach
+                    && Math.abs(squad.centroidY - places.centreY(place)) <= reach;
+            return new GarrisonDirector.Garrison(squad.id, place, !squad.localContact, arrived, squad.aliveMembers);
+        }
         garrisons.forget(squad.id);
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GARRISON_LOST, 1);
@@ -683,7 +728,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private void standOrRelease(GarrisonableRegistry places, CommanderInfluenceSnapshot influence,
                                 List<GarrisonDirector.Garrison> held, Map<Integer, PlanningSquad> heldSquads,
                                 List<PlanningSquad> candidates, Map<Integer, SquadDirective> directives,
-                                Set<Integer> justReleased) {
+                                Set<Integer> justReleased, CommandTopology topology, Faction perspective) {
         int count = 0;
         for (CommanderContact contact : influence.contacts()) {
             if (contact.confidence() * contact.strength() < GarrisonDirector.MIN_CONTACT_WEIGHT) continue;
@@ -695,9 +740,20 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             count++;
         }
         Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, influence::hostileAt, contactScratch, count, held));
+        Set<Integer> fallingBack = new HashSet<>(garrisons.fallingBack());
         for (GarrisonDirector.Garrison garrison : held) {
             PlanningSquad squad = heldSquads.get(garrison.squadId());
             int home = homeTrack(squad);
+            if (fallingBack.contains(squad.id)) {
+                ObjectiveAssignment post = fallBackPost(squad, garrison.garrisonable(), places, topology, perspective);
+                if (post != null) {
+                    squad.assignedObjective = post;
+                    garrisons.forget(squad.id);
+                    directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK));
+                    continue;
+                }
+                releasing.add(squad.id);
+            }
             if (releasing.contains(squad.id)) {
                 squad.assignedObjective = null;
                 garrisons.forget(squad.id);
@@ -714,13 +770,145 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
     }
 
+    /** Fort ids this side holds at least one work of, from the structures it knows of. */
+    private Set<Integer> heldForts(Faction perspective) {
+        Set<Integer> forts = new HashSet<>();
+        for (DefenceStructureFact structure : structures) {
+            if (structure.ofFort() && perspective.friendlyTo(structure.holder())) forts.add(structure.fortId());
+        }
+        return forts;
+    }
+
+    /** Whether a patrol still waits as ordered: carrying its post's area defence, with the fort still held. */
+    private static boolean stageStands(PlanningSquad squad, StagePost post, Set<Integer> heldForts) {
+        ObjectiveAssignment order = squad.assignedObjective;
+        return heldForts.contains(post.fortId()) && order != null && order.kind() == AssignmentKind.DEFEND_AREA
+                && order.targetCellX() == post.order().targetCellX() && order.targetCellY() == post.order().targetCellY();
+    }
+
+    /**
+     * Posts one mobile-pool patrol at the works of each held fort that has none waiting and no belt manned, so the
+     * nearest free squad when pressure arrives is near the belt rather than across the map. The patrol stays in the
+     * pool: it is an ordinary candidate sent like any other, only standing at the doorstep (the area defence standing to
+     * uses) while it waits. Tried at most every few plans per fort, nearest patrols first.
+     */
+    private void flowToPressure(GarrisonableRegistry places, CommandTopology topology, Faction perspective,
+                                List<GarrisonDirector.Garrison> held, List<PlanningSquad> candidates,
+                                Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+        Set<Integer> wanted = new TreeSet<>();
+        for (int place : garrisons.warmPlaces()) {
+            int fort = places.fortId(place);
+            if (fort >= 0) wanted.add(fort);
+        }
+        for (GarrisonDirector.Garrison garrison : held) {
+            int fort = places.fortId(garrison.garrisonable());
+            if (fort >= 0) wanted.add(fort);
+        }
+        // Waiting patrols go back to the pool only once their fort has stayed quiet for a good while.
+        for (Integer fort : new ArrayList<>(stageCool.keySet())) {
+            if (!stagers.values().stream().anyMatch(post -> post.fortId() == fort)) stageCool.remove(fort);
+        }
+        for (StagePost post : stagers.values()) {
+            if (wanted.contains(post.fortId())) stageCool.put(post.fortId(), 0);
+            else stageCool.merge(post.fortId(), 1, Integer::sum);
+        }
+        for (Iterator<Map.Entry<Integer, StagePost>> it = stagers.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Integer, StagePost> entry = it.next();
+            if (stageCool.getOrDefault(entry.getValue().fortId(), 0) < STAGE_COOL_PLANS) continue;
+            it.remove();
+        }
+        stageReserve(places, topology, perspective, held, wanted, candidates, selected, directives);
+    }
+
+    private void stageReserve(GarrisonableRegistry places, CommandTopology topology, Faction perspective,
+                              List<GarrisonDirector.Garrison> held, Set<Integer> wanted, List<PlanningSquad> candidates,
+                              Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+        Map<Integer, DefenceStructureFact> works = new TreeMap<>();
+        for (DefenceStructureFact structure : structures) {
+            if (!structure.ofFort() || !perspective.friendlyTo(structure.holder())) continue;
+            works.merge(structure.fortId(), structure, (a, b) ->
+                    b.cellY() < a.cellY() || (b.cellY() == a.cellY() && b.cellX() < a.cellX()) ? b : a);
+        }
+        if (works.isEmpty()) return;
+        works.keySet().retainAll(wanted);
+        for (StagePost post : stagers.values()) works.remove(post.fortId());
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        int newly = 0;
+        for (Map.Entry<Integer, DefenceStructureFact> entry : works.entrySet()) {
+            if (newly >= MAX_STAGE_PER_PLAN) break;
+            int fort = entry.getKey();
+            if (stageRetryAt.getOrDefault(fort, 0) > planCount) continue;
+            DefenceStructureFact site = entry.getValue();
+            List<PlanningSquad> pool = new ArrayList<>();
+            for (PlanningSquad squad : candidates) {
+                if (!selected.contains(squad.id) && !squad.crew && !squad.machine) pool.add(squad);
+            }
+            // A patrol is never taken below the roving reserve the response itself keeps.
+            if (pool.size() <= GarrisonDirector.RESERVE_FLOOR + 1) {
+                stageRetryAt.put(fort, planCount + STAGE_RETRY_PLANS);
+                continue;
+            }
+            pool.sort(Comparator.<PlanningSquad>comparingLong(squad -> {
+                long dx = squad.anchorCellX - site.cellX();
+                long dy = squad.anchorCellY - site.cellY();
+                return dx * dx + dy * dy;
+            }).thenComparingInt(squad -> squad.id));
+            boolean posted = false;
+            int tried = 0;
+            for (PlanningSquad squad : pool) {
+                if (tried++ >= STAGE_CANDIDATES_TRIED) break;
+                if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GARRISON_STAGE_EVAL, 1);
+                ObjectiveAssignment order = DefenceStructureTactics.doorstepPost(squad.id, site,
+                        squad.anchorCellX, squad.anchorCellY, topology);
+                if (order == null) continue;
+                squad.assignedObjective = order;
+                int home = homeTrack(squad);
+                directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_STAGE));
+                selected.add(squad.id);
+                stagers.put(squad.id, new StagePost(fort, order));
+                if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GARRISON_STAGE, 1);
+                posted = true;
+                newly++;
+                break;
+            }
+            if (!posted) stageRetryAt.put(fort, planCount + STAGE_RETRY_PLANS);
+        }
+    }
+
+    /**
+     * Where a garrison whose ground is lost withdraws to: an area defence at the doorstep of the nearest standing work
+     * of the same fort this side holds, or {@code null} when the place belongs to no fort or no work of it stands, in
+     * which case the squad is released to the pool instead. Squad-tier movement under the commander's authority; the
+     * order is the ordinary area defence.
+     */
+    private ObjectiveAssignment fallBackPost(PlanningSquad squad, int place, GarrisonableRegistry places,
+                                             CommandTopology topology, Faction perspective) {
+        int fort = places.fortId(place);
+        if (fort < 0) return null;
+        DefenceStructureFact works = null;
+        long best = Long.MAX_VALUE;
+        for (DefenceStructureFact structure : structures) {
+            if (structure.fortId() != fort || !perspective.friendlyTo(structure.holder())) continue;
+            long dx = structure.cellX() - places.centreX(place);
+            long dy = structure.cellY() - places.centreY(place);
+            long gap = dx * dx + dy * dy;
+            if (gap < best) {
+                best = gap;
+                works = structure;
+            }
+        }
+        if (works == null) return null;
+        return DefenceStructureTactics.doorstepPost(squad.id, works, squad.anchorCellX, squad.anchorCellY, topology);
+    }
+
     /**
      * Sends free patrols from what the track response and structure work left over to the garrisonables under
      * pressure, nearest first, pickets before massing, never emptying the reserve. Reach follows the response's own
      * rule: the squad's home track within one of the place's, and a walkable route to it.
      */
     private void manGarrisonables(GarrisonableRegistry places, CommandTopology topology,
-                                  List<PlanningSquad> candidates, Map<Integer, PlanningSquad> allSquads,
+                                  List<PlanningSquad> candidates, Map<Integer, PlanningSquad> staged,
+                                  Map<Integer, PlanningSquad> allSquads,
                                   Set<Integer> selected, Set<Integer> justReleased,
                                   Map<Integer, SquadDirective> directives) {
         List<GarrisonDirector.Free> free = new ArrayList<>();
@@ -728,12 +916,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             if (selected.contains(squad.id) || squad.crew || squad.machine || justReleased.contains(squad.id)) continue;
             free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY));
         }
+        for (PlanningSquad squad : staged.values()) {
+            free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true));
+        }
         List<GarrisonDirector.Man> sent = garrisons.assign(free, (squadId, place) -> {
             PlanningSquad squad = allSquads.get(squadId);
             int x = places.centreX(place);
             int y = places.centreY(place);
             int track = trackLayout.trackForCell(x, y);
-            if (track >= 0 && Math.abs(homeTrack(squad) - track) > 1) return false;
+            if (!staged.containsKey(squadId) && track >= 0 && Math.abs(homeTrack(squad) - track) > 1) return false;
             int startX = squad.anchorCellX;
             int startY = squad.anchorCellY;
             return topology.inBounds(startX, startY) && topology.isWalkable(startX, startY)
@@ -746,6 +937,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             int home = homeTrack(squad);
             directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_MAN));
             selected.add(squad.id);
+            stagers.remove(squad.id);
         }
     }
 

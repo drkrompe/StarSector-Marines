@@ -211,6 +211,17 @@ public final class TickInnerProfile {
         GARRISON_MAN,
         GARRISON_RELEASE,
         GARRISON_LOST,
+        /** Count-only: arrival estimates computed for a (free squad, hot place) pair, and hot places left unmanned because no free squad could arrive in time. */
+        GARRISON_ETA_EVAL,
+        GARRISON_ETA_REFUSED,
+        /** Count-only: releases deferred because the squad was still closing on its place, and falls back ordered. */
+        GARRISON_HOLD_EN_ROUTE,
+        GARRISON_FALL_BACK,
+        /** Count-only: believed-contact cells read to see whether an enemy stands inside a manned run. */
+        GARRISON_BREACH_READ,
+        /** Count-only: patrols posted at a fort's works to wait there, and candidate patrols priced for it. */
+        GARRISON_STAGE,
+        GARRISON_STAGE_EVAL,
         /** Registry rebuilds (one per fighting-position index change): wall time and count. */
         GARRISON_REGISTRY_BUILD,
         COMMANDER_PLAN,

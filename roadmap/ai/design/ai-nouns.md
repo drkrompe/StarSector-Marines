@@ -2103,6 +2103,14 @@ the released squad returns to the patrol pool. Belief only: the pressure is the
 defender's own picture. `battle.fort.beltGarrison` selects reactive (default),
 static (a born garrison on every belt nest, the control) or off.
 
+A belt squad is sent only if it can arrive in time, and one still closing is not
+recalled by a lull. While a fort's belts are pressed the commander stages a free
+patrol at the fort's works so a local squad exists to send; staged patrols stay
+in the pool and return to roving after a long quiet. A manned run with an enemy
+believed inside it, or a garrison too small to hold it, falls back to the works
+of the fort it belongs to if the side still holds them, else returns to the pool;
+a breached run is not re-manned for a while.
+
 **What it pays is composure, never protection.** Cover already reduces damage
 and stops rounds, and the cells of a position already carry it; a dug-in damage
 bonus would count the same ground twice. A hit or near-miss on a dug-in marine
