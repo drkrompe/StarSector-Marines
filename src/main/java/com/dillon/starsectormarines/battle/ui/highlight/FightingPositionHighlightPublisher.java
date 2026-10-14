@@ -16,11 +16,11 @@ import java.util.List;
  * Shows the player where fighting positions are while they are choosing where to send infantry.
  *
  * <p>While a friendly infantry squad is selected (which includes aiming a defend-area order,
- * since aiming needs a selection) three sources are published: every position cell as a faint
- * ground wash, the cells the selected squads' marines currently hold claims on, and the cell
- * under each dug-in friendly marine. They are published in that order so a claimed cell's outline
- * stays visible on top of the dug-in marker where a marine holds the cell they were given. With nothing selected, no infantry squad selected, or
- * {@link DigInSystem#isEnabled()} off, the sources are cleared.
+ * since aiming needs a selection) two sources are published: every position cell as a faint
+ * ground wash, and the cells the selected squads' marines currently hold claims on. Dug-in marines
+ * are marked on the marine itself by {@code DugInMarkerRenderSystem}, not by a cell outline here.
+ * With nothing selected, no infantry squad selected, or {@link DigInSystem#isEnabled()} off, the
+ * sources are cleared.
  *
  * <p>Observation only: everything is read from the position index, the claim registry and the
  * dig-in clock, and nothing is written back. Cells outside {@code visible} are not published,
@@ -59,21 +59,6 @@ public final class FightingPositionHighlightPublisher {
         }
         overlay.put(HighlightOverlay.SRC_FIGHTING_POSITIONS, positions);
 
-        List<CellHighlight> dugIn = new ArrayList<>();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE || squad.isMechSquad() || squad.isDroneSquad()) continue;
-            for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
-                long member = sim.squadMemberAt(squad.id, i);
-                if (sim.resolveUnit(member) == 0L || !sim.isDugIn(member)) continue;
-                int x = sim.world().cellX(member);
-                int y = sim.world().cellY(member);
-                if (visible == null || visible.contains(x, y)) {
-                    dugIn.add(new CellHighlight(x, y, HighlightOverlay.COLOR_DUG_IN));
-                }
-            }
-        }
-        overlay.put(HighlightOverlay.SRC_DUG_IN, dugIn);
-
         FightingPositionClaims claims = sim.fightingPositionClaims();
         List<CellHighlight> claimed = new ArrayList<>();
         for (int squadId : selection.getSelectedSquadIds()) {
@@ -91,7 +76,6 @@ public final class FightingPositionHighlightPublisher {
     private static void clear(HighlightOverlay overlay) {
         overlay.clear(HighlightOverlay.SRC_FIGHTING_POSITIONS);
         overlay.clear(HighlightOverlay.SRC_FIGHTING_POSITION_CLAIMS);
-        overlay.clear(HighlightOverlay.SRC_DUG_IN);
     }
 
     /** Whether any selected squad is a live friendly infantry squad. */
