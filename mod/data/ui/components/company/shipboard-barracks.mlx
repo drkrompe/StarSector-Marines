@@ -1,4 +1,4 @@
-<template props="command,contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="command,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="barracks-surface" class="barracks-surface">
   <div id="barracks-root" class="barracks-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
@@ -17,7 +17,7 @@
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
       <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">{command.missionLabel}</button>
     </div>
-    <div id="barracks-command-board" class="{command.overviewClasses}">
+    <div id="barracks-command-board" class="command-board">
       <div id="barracks-command-rail" class="command-rail panel console-section">
         <div id="barracks-section-heading" class="label heading section-heading">{i18n.openingUiShipboardBarracksOfficerCommands}</div>
         <div id="barracks-rail-note" class="label muted wrap rail-note">{i18n.openingUiShipboardBarracksNamedOfficersCoordinateTheirSquadsIndependentSquads}</div>
@@ -122,7 +122,10 @@
               </div>
               <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
               <div id="{squad.founderCostsId}" class="raise-squad-costs">
-                <company-resource-cost each="cost in squad.founderCosts" key="{cost.id}" row="{cost}" />
+                <div each="cost in squad.founderCosts" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
+                  <img id="{cost.iconId}" class="raise-cost-icon" src="{cost.icon}" />
+                  <div id="{cost.labelId}" class="label raise-cost-count">{cost.label}</div>
+                </div>
               </div>
             </button>
           </div>
@@ -215,53 +218,6 @@
         </div>
       </div>
     </div>
-    <div id="barracks-body" class="{command.detailClasses}">
-      <div id="barracks-stage" class="panel barracks-stage console-section">
-        <div id="barracks-detail-tools" class="detail-tools">
-          <button id="barracks-back-command" class="back-command console-action" onclick="{command.back}">{i18n.openingUiShipboardBarracksBackToCommand}</button>
-          <button id="barracks-edit-equipment" class="back-command console-action" onclick="{command.editEquipment}">{i18n.openingUiShipboardBarracksEquipSquad}</button>
-        </div>
-        <div id="barracks-selected-heading" class="selected-heading console-header">
-          <div id="barracks-selected-copy" class="selected-copy">
-            <div id="barracks-selected-name" class="label selected-name tone-accent">{selectedSquadName}</div>
-            <div id="barracks-selected-summary" class="label tone-muted">{selectedSquadSummary}</div>
-          </div>
-          <div id="barracks-quarters-status" class="label heading tone-edge quarters-status">{quartersStatus}</div>
-        </div>
-
-        <div id="barracks-record" class="record-strip console-readout">
-          <div id="barracks-record-heading" class="label heading tone-edge record-heading">{i18n.openingUiShipboardBarracksServiceRecord}</div>
-          <div id="barracks-record-cells" class="record-cells">
-            <div each="cell in recordCells" key="{cell.id}" id="{cell.id}" class="record-cell">
-              <div id="{cell.labelId}" class="label tone-muted record-label">{cell.label}</div>
-              <div id="{cell.valueId}" class="label tone-accent record-value">{cell.value}</div>
-            </div>
-          </div>
-        </div>
-
-        <canvas id="barracks-canvas" class="barracks-canvas" width="1280" height="650" />
-
-        <div id="barracks-muster" class="muster-panel console-well">
-          <div id="barracks-muster-heading" class="label heading tone-edge section-heading">{i18n.openingUiShipboardBarracksShipboardMuster}</div>
-          <div id="barracks-muster-list" class="muster-list">
-            <div each="marine in musterRows" key="{marine.id}" id="{marine.id}" class="{marine.classes}" tabindex="0">
-              <div id="{marine.headerId}" class="muster-header">
-                <div id="{marine.nameId}" class="label muster-name">{marine.name}</div>
-                <div id="{marine.positionId}" class="label tone-muted muster-position">{marine.position}</div>
-              </div>
-              <div id="{marine.kitId}" class="muster-kit">
-                <div id="{marine.slotsId}" class="muster-slots">
-                  <div each="item in marine.items" key="{item.id}" id="{item.id}" class="muster-item" tabindex="0">
-                    <img id="{item.imageId}" class="muster-icon" src="{item.icon}" />
-                  </div>
-                </div>
-                <div id="{marine.detailId}" class="label muster-detail">{marine.detail}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <div id="barracks-feedback" class="label command-feedback">{command.feedback}</div>
   </div>
   <div id="guide-spotlight" class="guide-spotlight"></div>
@@ -299,47 +255,7 @@
   .issue-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
   #barracks-room-title { width: 326px; height: auto; white-space: normal; }
   #barracks-room-copy { width: 480px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
-  .barracks-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .squad-rail { flex-direction: column; width: 290px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
-  .rail-copy { height: 22px; }
-  .squad-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .barracks-squad-row { flex-direction: column; width: 100%; height: 110px; padding: 9px; gap: 5px; border-width: 2px; text-align: left; background-color: #20282d; border-color: #526065; }
-  .barracks-squad-row.selected { background-color: #183b50; border-color: #ffd464; }
-  .barracks-squad-row.stationed { opacity: 0.68; }
-  .squad-name { height: 20px; }
-  .squad-status, .squad-detail, .squad-record { height: 17px; }
-  .barracks-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 9px; overflow: hidden; border-width: 2px; }
-  .selected-heading { flex-direction: row; height: 68px; padding: 8px 10px; gap: 8px; border-width: 2px; }
-  .selected-copy { flex-direction: column; width: 440px; flex-grow: 0; gap: 2px; }
-  .selected-name { height: 25px; font-family: title; }
-  .quarters-status { width: 0px; padding-top: 5px; text-align: left; flex-grow: 1; height: auto; white-space: normal; }
-  .barracks-canvas { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
-  .record-strip { flex-direction: row; height: 68px; padding: 6px 9px; gap: 14px; border-width: 2px; align-items: center; }
-  .record-heading { width: 120px; padding-top: 0px; white-space: normal; }
-  .record-cells { height: 48px; flex-direction: row; width: 0px; flex-grow: 1; gap: 14px; overflow: hidden; }
-  .record-cell { flex-direction: column; width: 148px; flex-grow: 0; gap: 6px; height: 48px; }
-  .record-label { height: 15px; }
-  .record-value { height: 21px; font-family: heading; }
-  .muster-panel { flex-direction: column; height: 184px; padding: 9px; gap: 8px; border-width: 2px; }
-  .muster-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
-  .muster-row { flex-direction: column; width: 286px; height: 58px; padding: 7px; gap: 4px; border-width: 1px; border-color: #626c5a; background-color: #202722; }
-  .muster-row.wounded { border-color: #bb9955; background-color: #302a20; }
-  .muster-row.vacant { border-color: #525951; background-color: #191e1a; }
-  .muster-row:hover, .muster-row:focus { border-color: #c3b584; }
-  .muster-header { flex-direction: row; height: 18px; gap: 5px; align-items: center; }
-  .muster-name { width: 0px; flex-grow: 1; height: 18px; }
-  .muster-position { width: 62px; height: 18px; text-align: right; }
-  .muster-kit { flex-direction: row; height: 36px; gap: 6px; align-items: center; }
-  .muster-slots { flex-direction: row; width: 170px; height: 36px; gap: 6px; }
-  .muster-item { width: 36px; height: 36px; background-color: #151b17; border-width: 1px; border-color: #424e40; align-items: center; }
-  .muster-item:hover, .muster-item:focus { border-color: #c9b477; background-color: #33382a; }
-  .muster-icon { width: 34px; height: 34px; pointer-events: none; }
-  .muster-detail { width: 0px; flex-grow: 1; height: 18px; text-align: right; color: #adbca2; }
-  .muster-row.wounded .muster-detail { color: #e0be77; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
-  .squad-detail, .squad-record { height: auto; white-space: normal; }
-  #barracks-selected-summary { height: auto; white-space: normal; }
-  .record-label, .record-value { height: auto; white-space: normal; }
   .command-board { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .command-rail { flex-direction: column; width: 294px; padding: 8px; gap: 6px; border-width: 1px; }
   .muted { color: #a5b0a9; } .warm { color: #dfc588; } .wrap { white-space: normal; }
@@ -395,7 +311,11 @@
   .raise-squad-plus { width: 22px; height: 22px; text-align: center; }
   .raise-squad-title { width: 0px; flex-grow: 1; height: 22px; }
   .raise-squad-copy { width: 100%; height: 36px; }
-  .raise-squad-costs { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
+  .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 30px; padding: 2px 4px; gap: 6px; border-width: 1px; border-color: #46554b; background-color: #121719; overflow: hidden; }
+  .raise-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 24px; gap: 4px; }
+  .raise-cost-icon { width: 22px; height: 22px; pointer-events: none; }
+  .raise-cost-count { width: 34px; height: 18px; color: #dfc588; }
+  .raise-cost.short .raise-cost-count { color: #eea296; }
   .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
   .card-kit { width: 0px; flex-grow: 1; height: 18px; font-family: body; }
   .loadout-button { width: 80px; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
@@ -449,8 +369,6 @@
   .issue-summary { height: 20px; } .issue-cost { height: auto; } .issue-reason { height: auto; }
   .editor-copy { height: 65px; }
   .profile-name-input { width: 100%; height: 28px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
-  .detail-tools { flex-direction: row; height: 28px; }
-  .back-command { width: 210px; height: 28px; padding: 0px 4px; font-family: heading; text-align: center; }
   .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
   .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
   .officer-header { flex-direction: row; align-items: start; height: 112px; gap: 16px; }

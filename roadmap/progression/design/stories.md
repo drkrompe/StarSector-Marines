@@ -22,3 +22,4 @@ rather than settled.
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |
 | `s10-trait-mechanics.md` | Planned | Follows S8 so traits are readable before new mechanics or acquisition. |
+| `squad-medic.md` | Planned | Field Medicine officer specialty designates one medic per home squad: a channelled health and armor treatment from finite, slowly recovering supplies, with a short-leash AI. Amends the durability no-regeneration rule (broken armor can be re-plated, with an armor-restored fact). Medic holds fire while treating; planted vs keep-moving is a balance-pass switch. Open: player-chosen billet, movement default, presentation. |

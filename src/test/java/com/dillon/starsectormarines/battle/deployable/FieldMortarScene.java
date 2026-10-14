@@ -83,7 +83,7 @@ public final class FieldMortarScene implements BehaviorScene {
     private static final int RUSH_DISTANCE = 75;
     private static final String RIFLE = "weapon.field-rifle";
     private static final List<String> ALL_LOOPS = List.of("mortar-team", "rifle-control", "rushed",
-            "section-march", "section-expiry", "section-engaged", "section-belief", "section-control");
+            "section-march", "section-expiry", "section-engaged", "section-control");
     /** Cells about the fort's core the marching squad's fire mission covers: its wall nests and works. */
     private static final int MISSION_RADIUS = 30;
     /** A marching squad: twelve marines, one of them the gunner. */
@@ -216,21 +216,17 @@ public final class FieldMortarScene implements BehaviorScene {
 
     /**
      * The section loops: a twelve-marine squad marching on the fort's main gate from beyond the tube's band, its first
-     * member carrying the tube. {@code section-march} is the production dials; {@code section-expiry} a ten-second window
-     * that engagement may not extend, to see the crew pack up and the squad reform; {@code section-engaged} the same
-     * window that engagement may extend, to a cap; {@code section-belief} the broad trigger (any worthwhile belief, no
-     * assigned mission); {@code section-control} the old behaviour (sections off), in which a marching gunner never halts
-     * to set up. Every loop but {@code section-belief} carries a fire mission on the fort's works, which is what
-     * opens a section by default.
+     * member carrying the tube and the squad a fire mission on the fort's works, which is what opens a section.
+     * {@code section-march} is the production timing; {@code section-expiry} a ten-second window that engagement may not
+     * extend, to see the crew pack up and the squad reform; {@code section-engaged} the same window that engagement may
+     * extend, to a cap; {@code section-control} sections switched off on this simulation alone, in which a marching
+     * gunner never halts to set up.
      */
     private SceneReport playSection(String loop, FrameSink frames) {
-        float window = MortarSections.DEFAULT_WINDOW_SECONDS;
-        float extension = MortarSections.DEFAULT_EXTENSION_SECONDS;
-        float cap = MortarSections.DEFAULT_CAP_SECONDS;
+        float window = MortarSections.WINDOW_SECONDS;
+        float extension = MortarSections.EXTENSION_SECONDS;
+        float cap = MortarSections.CAP_SECONDS;
         boolean on = !loop.equals("section-control");
-        boolean belief = loop.equals("section-belief");
-        MortarSections.Trigger previousTrigger = MortarSections.trigger();
-        MortarSections.setTriggerForEvidence(belief ? MortarSections.Trigger.ANY : MortarSections.DEFAULT_TRIGGER);
         if (loop.equals("section-expiry")) {
             window = SHORT_WINDOW;
             extension = 0f;
@@ -238,46 +234,40 @@ public final class FieldMortarScene implements BehaviorScene {
             window = SHORT_WINDOW;
             cap = 40f;
         }
-        MortarSections.setForEvidence(on, window, extension, cap, MortarSections.DEFAULT_COOLDOWN_SECONDS);
-        try {
-            FortGround terrain = stamp();
-            FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
-            int[] mouth = terrain.cell(gate.mouthX(), gate.mouthY());
-            int[] outStep = terrain.cell(gate.mouthX() + gate.outX(), gate.mouthY() + gate.outY());
-            int outX = outStep[0] - mouth[0];
-            int outY = outStep[1] - mouth[1];
-            int[] start = clamp(mouth[0] + outX * (STANDOFF + MARCH_LEAD), mouth[1] + outY * (STANDOFF + MARCH_LEAD));
-            lastSection = new int[] {start[0], start[1], mouth[0], mouth[1]};
-            SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
-                    .missionCompletion(false);
-            // Every loop but the belief one carries the fire mission a commander would give it: the fort's works.
-            int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
-            int[] coreCell = terrain.cell(core[0], core[1]);
-            FireMission mission = belief ? null : new FireMission(coreCell[0], coreCell[1], MISSION_RADIUS);
-            builder.squad("section").faction(Faction.MARINE).size(MARCH_SIZE).at(start[0], start[1]).primary(RIFLE)
-                    .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1)
-                    .assigned(id -> ObjectiveAssignment.attackMove(id, mouth[0], mouth[1]).withFireMission(mission)).done();
-            int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
-            builder.squad("garrison").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(GARRISON)
-                    .at(garrisonAt[0], garrisonAt[1]).primary("weapon.smg").stationary().done();
-            builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, HEIGHT - 5);
-            builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
-            SceneWorld world = builder.build();
-            BattleSimulation sim = world.sim();
-            sim.random().setSeed(20261017L);
-            Fort fort = sim.forts().forts().get(0);
-            SectionTrace trace = new SectionTrace(fort, world, mouth);
-            SceneRun.of(world).observe(trace)
-                    .frames(frames, loop, frameEvery, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
-                            loop, tick, trace.caption()))
-                    .run(TICKS);
-            return sectionReport(loop, on, window, extension, cap, trace, sim);
-        } finally {
-            MortarSections.setTriggerForEvidence(previousTrigger);
-            MortarSections.setForEvidence(true, MortarSections.DEFAULT_WINDOW_SECONDS,
-                    MortarSections.DEFAULT_EXTENSION_SECONDS, MortarSections.DEFAULT_CAP_SECONDS,
-                    MortarSections.DEFAULT_COOLDOWN_SECONDS);
-        }
+        FortGround terrain = stamp();
+        FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
+        int[] mouth = terrain.cell(gate.mouthX(), gate.mouthY());
+        int[] outStep = terrain.cell(gate.mouthX() + gate.outX(), gate.mouthY() + gate.outY());
+        int outX = outStep[0] - mouth[0];
+        int outY = outStep[1] - mouth[1];
+        int[] start = clamp(mouth[0] + outX * (STANDOFF + MARCH_LEAD), mouth[1] + outY * (STANDOFF + MARCH_LEAD));
+        lastSection = new int[] {start[0], start[1], mouth[0], mouth[1]};
+        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
+                .missionCompletion(false);
+        // Every loop carries the fire mission a commander would give it: the fort's works.
+        int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
+        int[] coreCell = terrain.cell(core[0], core[1]);
+        FireMission mission = new FireMission(coreCell[0], coreCell[1], MISSION_RADIUS);
+        builder.squad("section").faction(Faction.MARINE).size(MARCH_SIZE).at(start[0], start[1]).primary(RIFLE)
+                .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1)
+                .assigned(id -> ObjectiveAssignment.attackMove(id, mouth[0], mouth[1]).withFireMission(mission)).done();
+        int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
+        builder.squad("garrison").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(GARRISON)
+                .at(garrisonAt[0], garrisonAt[1]).primary("weapon.smg").stationary().done();
+        builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, HEIGHT - 5);
+        builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.fieldMortars().sections().setEnabledForEvidence(on);
+        sim.fieldMortars().sections().setTimingForEvidence(window, extension, cap, MortarSections.COOLDOWN_SECONDS);
+        sim.random().setSeed(20261017L);
+        Fort fort = sim.forts().forts().get(0);
+        SectionTrace trace = new SectionTrace(fort, world, mouth);
+        SceneRun.of(world).observe(trace)
+                .frames(frames, loop, frameEvery, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
+                        loop, tick, trace.caption()))
+                .run(TICKS);
+        return sectionReport(loop, on, window, extension, cap, trace, sim);
     }
 
     private SceneReport sectionReport(String loop, boolean on, float window, float extension, float cap,
