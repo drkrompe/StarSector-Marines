@@ -6,7 +6,7 @@ until the evidence below beats the trickle. Slices are on the mission-command bo
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — air strike is a capability a plan may use (see Air strike as a capability); the field mortar is a standoff anti-structure and suppression capability source (`special.field-mortar`); slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), muster off by default; capability profiles and role assignment are built (plans choose their way in by what the company can staff, breaches are fired at a wall on purpose, see Capabilities and roles).
+Updated: 2026-10-14 — empty-rally defect fixed (no company around nobody, stalled recruits released, foothold only while a company exists); air strike is a capability a plan may use (see Air strike as a capability); the field mortar is a standoff anti-structure and suppression capability source (`special.field-mortar`); slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), muster off by default; capability profiles and role assignment are built (plans choose their way in by what the company can staff, breaches are fired at a wall on purpose, see Capabilities and roles).
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -232,6 +232,14 @@ objective and must not churn every squad's stability.
   left alone for 3000 ticks before a company forms again, at most twice per
   fort; the third timeout commits with what it has, so a muster still never
   waits forever. (Committing three marines to a fort was a gift to its nests.)
+  **A company never stands at a rally with nobody at it.** A company forms only when a squad can actually be recruited
+  (a squad is free before it is recruitable: a lone infantry squad is its lane's whole share), and one whose recruits are
+  all gone with no one to replace them dissolves at once rather than at its timeout. A recruit that has not closed on the
+  rally by 3 cells in 1200 ticks (held in a fight it was not sent to, a path that does not close) is released back to the
+  lanes and not taken again for 3000 ticks, instead of being waited for until the company stands down with nobody
+  there. The walk allowance is 24 ticks a cell, which is what a squad measures (the first guess of 12 timed recruits
+  out before they could arrive). The foothold element holds the drop zone only while a company exists; with none it
+  stays on the lanes.
 - **Assault, without a plan.** A company against an objective whose works are not
   known, or with `battle.command.musterPlans=false`, orders every squad at the
   one aspect `FortTactics` ranks first (`DefenceStructureTactics.planMassed`):
@@ -250,8 +258,11 @@ objective and must not churn every squad's stability.
   rather than cutting its grace short. The landed lance is an ordinary machine
   squad claimed by `conquest-attacker` and is recruited like any free squad.
   Readiness now counts nests, so a company short of the (much larger) need is the
-  normal case in the scene; the Conquest fixtures never showed a lance call, so a
-  Conquest comparison with a lance in play is still open.
+  normal case in the scene. The checked-in-style fort fixtures never showed a lance call
+  because they declare no allowance (`declaredMechDrops` is absent, so a fixture that predates mech drops declares
+  none, deliberately); the wish was computed and the call silently refused. It now says so in the trace
+  ("wanted a mech lance: the mission allows none"), and a fixture that adds the Conquest allowance (two lances of
+  Bulwark, two Hounds and a Sirocco) calls one per company, claimed and recruited as designed.
 
 ## Fort assault plans: as built (slice 3)
 
@@ -327,13 +338,24 @@ holds more compounds, so **the muster does not yet beat the control and stays
 off**. The checked-in matrix, which has no forts, is byte-identical with the
 muster on, off, and before this work.
 
-What is open, in the order it matters: companies still stand at a rally with
-nobody at it (recruits drift or are drafted back), which a stand-down contains and
-does not cure; the lane share was a measured change and not a tuned number; a fort
+**Empty rallies, found and fixed.** The sited fixtures at 36,000 ticks spent 27,150 company-ticks (south) and 9,000 (west)
+with a company at a rally and no squad at it: late in a battle the marine force is a handful of squads, one infantry
+squad per lane is that lane's whole share and cannot be recruited, yet a company formed on "a free squad" anyway and
+stood out its 4500-tick timeout, over and over, and (a second kind) recruits sent 95 to 139 cells to a rally were pinned in
+fights on the way or drifted away from it until the company stood down with "0 at the rally". Measured on main with the capability roles
+merged, muster on, 36,000 ticks, before then after the fix (captures / held, marine losses; empty-rally company-ticks;
+companies formed / committed / broken / stood down): south-sited 22 / 18 (211), 34200, 13 / 3 / 1 / 6 to 21 / 16 (209),
+0, 6 / 1 / 0 / 4; west-sited 10 / 2 (439), 19125, 4 / 1 / 0 / 2 to 10 / 3 (434), 0, 2 / 2 / 2 / 0. With the Conquest
+allowance declared (two lances): south-sited 12 / 5 (202), 27525 to 20 / 17 (175), 150; west-sited 8 / 3 (446),
+3750 to 10 / 6 (424), 0. Empty rallies go to zero; the gain is largest where the empty companies had been holding
+the force off the lanes (south with lances), and the no-lance south is level within noise. The muster still does not
+beat the trickle everywhere, so it stays off.
+
+What is open, in the order it matters: the lane share was a measured change and not a tuned number; a fort
 with live nests is, for infantry alone, a position no plan takes, so the plan's
-value depends on machines the Conquest fixtures never call. Breach is now fired
-at on purpose (see "Capability roles: as built"); whether a breach beats a gate on
-Conquest is unmeasured.
+value depends on machines the fort fixtures only see when they declare an allowance; a company that commits on its
+third timeout can still send a sliver. Breach is now fired at on purpose (see "Capability roles: as built"); whether a
+breach beats a gate on Conquest is unmeasured.
 
 Not built here: recruiting whole named-officer groups into a company, a company's
 reaction to being counter-attacked at its rally, a defender-side use of the same
