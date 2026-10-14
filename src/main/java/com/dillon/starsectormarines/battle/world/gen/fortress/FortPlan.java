@@ -59,6 +59,14 @@ public interface FortPlan {
     /** Gates in order; the first is the main gate, which placement turns to face the map centre. */
     List<Gate> gates();
 
+    /**
+     * The ways in for an attacker, the plan's own assault data: each gate as an approach with the nests that cover it,
+     * and a breach section of wall. Derived from the kind's gates, nests and wall unless the kind overrides it.
+     */
+    default List<AssaultApproach> approaches() {
+        return FortApproaches.derive(this);
+    }
+
     /** The cells of the wall left open as gates. */
     List<int[]> gateCells();
 

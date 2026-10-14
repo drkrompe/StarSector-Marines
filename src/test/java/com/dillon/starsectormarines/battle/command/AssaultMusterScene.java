@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
+import com.dillon.starsectormarines.battle.world.gen.fortress.AssaultApproach.Variant;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
@@ -71,9 +72,9 @@ public final class AssaultMusterScene implements BehaviorScene {
     private static final int WIDTH = 300;
     private static final int HEIGHT = 420;
     private static final int TICKS = 9000;
-    /** The marines' strength per squad. Eight squads of ten is a force of eighty. */
+    /** The marines' strength per squad. Twelve squads of ten is a force of a hundred and twenty, four on each lane. */
     private static final int SQUAD_SIZE = 10;
-    private static final int SQUADS = 8;
+    private static final int SQUADS = 12;
     /** Cells between one squad and the next along the way in, nearest the fort first. */
     private static final int SPACING = 16;
     private static final int FIRST_STANDOFF = 30;
@@ -81,6 +82,28 @@ public final class AssaultMusterScene implements BehaviorScene {
     /** "In reach of the fort" for the readings: well inside the bunker's approaches, outside the walls' nests. */
     private static final int RING = 45;
     private static final String RIFLE = "weapon.smg";
+    /** The marines carry the field rifle (22 cells): the smg (14) cannot reach a nest (24), and the nests are what a base of fire is for. */
+    private static final String MARINE_RIFLE = "weapon.field-rifle";
+
+    private static final List<String> ALL_LOOPS = List.of("control-trickle", "muster-slice1", "plan", "plan-with-lance");
+
+    private final List<String> loops;
+    private final int frameFrom;
+    private final int frameTo;
+    private final int frameEvery;
+
+    /** Every loop, frames (when a sink wants them) every 90 ticks across the run. */
+    public AssaultMusterScene() {
+        this(ALL_LOOPS, 0, TICKS, 90);
+    }
+
+    /** Only the named loops, recording frames in a window of the run: a recording holds every frame in memory. */
+    public AssaultMusterScene(List<String> loops, int frameFrom, int frameTo, int frameEvery) {
+        this.loops = List.copyOf(loops);
+        this.frameFrom = frameFrom;
+        this.frameTo = frameTo;
+        this.frameEvery = frameEvery;
+    }
 
     @Override public String id() { return "assault-muster"; }
 
@@ -94,16 +117,33 @@ public final class AssaultMusterScene implements BehaviorScene {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("control-trickle", "muster", "muster-with-lance")) {
+        for (String loop : loops) {
             boolean restore = ConquestCommand.musterEnabled();
+            boolean restorePlans = ConquestCommand.musterPlansEnabled();
+            ConquestCommand.setMusterPlansEnabled(loop.startsWith("plan"));
             ConquestCommand.setMusterEnabled(!loop.equals("control-trickle"));
             try {
-                reports.add(report(loop, playOne(loop, frames)));
+                reports.add(report(loop, playOne(loop, window(frames))));
             } finally {
                 ConquestCommand.setMusterEnabled(restore);
+                ConquestCommand.setMusterPlansEnabled(restorePlans);
             }
         }
         return reports;
+    }
+
+    /** Passes on only the frames inside the recording window. */
+    private FrameSink window(FrameSink sink) {
+        if (sink == FrameSink.NONE) return sink;
+        return new FrameSink() {
+            @Override public void frame(String loopId, BattleSimulation sim, int tick, String caption) {
+                if (tick >= frameFrom && tick <= frameTo) sink.frame(loopId, sim, tick, caption);
+            }
+
+            @Override public void advanced(String loopId, BattleSimulation sim, int tick) {
+                sink.advanced(loopId, sim, tick);
+            }
+        };
     }
 
     private record Run(Trace trace, BattleSimulation sim, Fort fort) {}
@@ -141,17 +181,17 @@ public final class AssaultMusterScene implements BehaviorScene {
                 .missionCompletion(false);
         FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
         List<String> keys = new ArrayList<>();
-        boolean lance = loop.equals("muster-with-lance");
+        boolean lance = loop.equals("plan-with-lance");
         // The lance loop has a short force (five squads of six), so the company is short of what the fort is believed
         // to take and the commander asks for a lance.
-        int squads = lance ? 5 : SQUADS;
-        int squadSize = lance ? 6 : SQUAD_SIZE;
+        int squads = SQUADS;
+        int squadSize = SQUAD_SIZE;
         for (int i = 0; i < squads; i++) {
             int standoff = i == 0 ? FIRST_STANDOFF : FIRST_STANDOFF + 40 + SPACING * i;
             int[] at = clamp(terrain.cell(gate.mouthX() + gate.outX() * standoff, gate.mouthY() + gate.outY() * standoff));
             String key = "marines-" + i;
             keys.add(key);
-            builder.squad(key).faction(Faction.MARINE).size(squadSize).at(at[0], at[1]).primary(RIFLE).done();
+            builder.squad(key).faction(Faction.MARINE).size(squadSize).at(at[0], at[1]).primary(MARINE_RIFLE).done();
         }
         int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
         int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
@@ -173,7 +213,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                 ConquestCommandDisclosure.INSTANCE);
         Trace trace = new Trace(fort, keys, world);
         SceneRun.of(world).observe(trace)
-                .frames(frames, loop, 90, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
+                .frames(frames, loop, frameEvery, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
                         loop, tick, trace.caption()))
                 .run(TICKS);
         return new Run(trace, sim, fort);
@@ -199,7 +239,14 @@ public final class AssaultMusterScene implements BehaviorScene {
             verdicts.add(Verdict.of("no-lone-squad-was-detached-to-the-fort", t.soloStructureOrders == 0,
                     t.soloStructureOrders + " DEFENCE_STRUCTURE_* directives"));
         }
-        if (loop.equals("muster-with-lance")) {
+        if (loop.startsWith("plan")) {
+            verdicts.add(Verdict.of("the-plan-positioned-a-base-of-fire", t.stepTicks.containsKey("POSITION") && t.stepTicks.containsKey("SUPPRESS"),
+                    "plan steps first seen at " + t.stepTicks));
+            verdicts.add(Verdict.of("the-plan-held-the-assault-until-the-nests-were-dealt-with",
+                    !t.stepTicks.containsKey("ENTRY") || t.stepTicks.get("ENTRY") > t.stepTicks.get("SUPPRESS"),
+                    "SUPPRESS at " + t.stepTicks.get("SUPPRESS") + ", ENTRY at " + t.stepTicks.get("ENTRY")));
+        }
+        if (loop.equals("plan-with-lance")) {
             verdicts.add(Verdict.of("a-short-company-calls-a-lance", run.sim().mechDrops().drops().size() == 1
                     && run.sim().mechDrops().drops().get(0).issuer().equals("conquest-attacker"),
                     run.sim().mechDrops().drops().size() + " call(s) in the ledger"));
@@ -230,6 +277,13 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("bunkerFlipTick", t.flipTick);
         metrics.put("bunkerHeldByMarinesAtEnd", run.fort().battery().owner() == Faction.MARINE ? 1 : 0);
         metrics.put("footholdTicks", t.footholdTicks);
+        metrics.put("nestsKilled", t.nestsKilled);
+        metrics.put("nestsTotal", run.fort().nestIds().size());
+        metrics.put("nestWearEquivalentNests", Math.round(t.nestWear * 10) / 10f);
+        metrics.put("closestMarineToANest", Math.round(t.closestToNest));
+        metrics.put("firstNestKilledTick", t.firstNestKilledTick);
+        metrics.put("gateReachedTick", t.gateReachedTick);
+        for (Map.Entry<String, Integer> step : t.stepTicks.entrySet()) metrics.put("step" + step.getKey() + "Tick", step.getValue());
         metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
         metrics.put("lanceCalls", run.sim().mechDrops().drops().size());
         metrics.put("fortX", (int) run.fort().battery().x());
@@ -259,6 +313,12 @@ public final class AssaultMusterScene implements BehaviorScene {
         int flipTick = -1;
         int footholdTicks;
         int lanceInCompanyTick = -1;
+        int nestsKilled;
+        float nestWear;
+        float closestToNest = Float.MAX_VALUE;
+        int firstNestKilledTick = -1;
+        int gateReachedTick = -1;
+        final Map<String, Integer> stepTicks = new LinkedHashMap<>();
         private String caption = "";
 
         Trace(Fort fort, List<String> keys, SceneWorld world) {
@@ -311,6 +371,35 @@ public final class AssaultMusterScene implements BehaviorScene {
                     sim.defenceStructures().get(0).seenCellX(), sim.defenceStructures().get(0).seenCellY())) {
                 disclosedTick = tick;
             }
+            int killed = 0;
+            for (long nest : fort.nestIds()) if (!sim.world().isAlive(nest)) killed++;
+            nestsKilled = killed;
+            float worn = 0f;
+            float closest = Float.MAX_VALUE;
+            for (long nest : fort.nestIds()) {
+                if (!sim.world().isAlive(nest)) { worn += 1f; continue; }
+                float full = sim.world().maxHp(nest) + (sim.world().hasArmor(nest) ? sim.world().maxArmor(nest) : 0f);
+                float left = sim.world().hp(nest) + (sim.world().hasArmor(nest) ? sim.world().armor(nest) : 0f);
+                if (full > 0) worn += 1f - left / full;
+                for (String key : keys) for (long id : world.members(key)) {
+                    if (sim.world().isAlive(id)) closest = Math.min(closest, (float) Math.hypot(sim.world().x(id) - sim.world().x(nest), sim.world().y(id) - sim.world().y(nest)));
+                }
+            }
+            nestWear = worn;
+            closestToNest = Math.min(closestToNest, closest);
+            if (firstNestKilledTick < 0 && killed > 0) firstNestKilledTick = tick;
+            if (gateReachedTick < 0 && fort.frame() != null) {
+                for (FortAssault.Way way : FortAssault.Works.of(fort.frame()).ways) {
+                    if (way.variant() == Variant.BREACH) continue;
+                    for (String key : keys) {
+                        for (long id : world.members(key)) {
+                            if (sim.world().isAlive(id) && Math.hypot(sim.world().x(id) - way.entryX(), sim.world().y(id) - way.entryY()) <= 6) {
+                                gateReachedTick = tick;
+                            }
+                        }
+                    }
+                }
+            }
             var snapshot = sim.getCommanderSnapshot(Faction.MARINE);
             if (snapshot != null && snapshot.detail() instanceof ConquestFrontSnapshot front) {
                 boolean foothold = false;
@@ -322,6 +411,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                             if (lead != 0L && sim.world().hasMechLoadout(lead)) lanceInCompanyTick = tick;
                         }
                     }
+                    if (company.objectiveId() >= 0 && !company.step().isEmpty()) stepTicks.putIfAbsent(company.step(), tick);
                     if (company.stage().equals("MUSTER") && firstMusterTick < 0) firstMusterTick = tick;
                     if (company.stage().equals("ASSAULT")) {
                         if (firstAssaultTick < 0) firstAssaultTick = tick;

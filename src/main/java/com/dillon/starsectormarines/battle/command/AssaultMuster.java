@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.CompanyState;
 import com.dillon.starsectormarines.battle.command.DefenceStructureFact.Family;
+import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
@@ -62,6 +63,15 @@ final class AssaultMuster {
     static final float FAILURE_GROWTH = 0.25f;
     /** Ticks a muster waits from forming before it commits with what it has. UNTUNED. */
     static final int MUSTER_TIMEOUT_TICKS = 4500;
+    /**
+     * A muster that times out with less than this share of the strength it believes the objective takes stands down
+     * rather than commit: three marines at a fort are a gift to its nests. UNTUNED.
+     */
+    static final float MIN_COMMIT_SHARE = 0.5f;
+    /** Ticks a fort is left to the lanes after a company stood down against it. UNTUNED. */
+    static final int STAND_DOWN_TICKS = 3000;
+    /** Stand-downs per fort before a timed-out muster commits with what it has, so it never waits forever. UNTUNED. */
+    static final int STAND_DOWN_LIMIT = 2;
     /** Ticks allowed per cell of walk for a recruit to reach the rally point. UNTUNED. */
     static final int TICKS_PER_CELL = 12;
     /** Extra ticks a recruit is allowed on top of its walk. UNTUNED. */
@@ -84,7 +94,13 @@ final class AssaultMuster {
     /** How far a staging cell may slide off its line to find walkable, reachable ground. */
     static final int RALLY_SNAP_CELLS = 12;
     /** Largest share of the side's free squads that companies may hold at once. UNTUNED. */
-    static final float COMPANY_SHARE = 0.6f;
+    static final float COMPANY_SHARE = 0.75f;
+    /**
+     * The share of each lane's infantry squads that no company recruits: the lanes keep probing and capturing while a
+     * company musters, which is the work the first muster pulled squads away from. A flat floor per lane was tried first
+     * and shut a small force out of mustering at all, so the floor is a share of what the lane has. UNTUNED.
+     */
+    static final float LANE_KEEP_SHARE = 0.5f;
     /** A company left with less than this fraction of the strength it committed is broken. UNTUNED. */
     static final float BROKEN_FRACTION = 0.25f;
     /** Inside this many cells of the objective the company is in the fight and no longer waits for its stragglers. */
@@ -105,15 +121,27 @@ final class AssaultMuster {
      * @param believedContacts hostile contacts the side's own belief places within {@link #CONTACT_RADIUS_CELLS}
      */
     record Objective(int fortId, Family family, int cellX, int cellY, List<DefenceStructureFact> aspects,
-                     int believedContacts) { }
+                     int believedContacts, FortFrame works) {
+        /** An objective whose works are not known, which is assaulted without a plan. */
+        Objective(int fortId, Family family, int cellX, int cellY, List<DefenceStructureFact> aspects,
+                  int believedContacts) {
+            this(fortId, family, cellX, cellY, aspects, believedContacts, null);
+        }
+    }
 
     /**
      * A squad the commander may put in a company.
      *
      * @param inContact engaged: under fire, broken, or with a member able to engage a contact. Not recruited, and not held back on the approach. A belief in a distant hostile is not contact
+     * @param track     the lane the squad belongs to, or {@code -1} when it has none (a machine squad, a test): each lane keeps a floor of squads a company may not recruit below
      */
     record Body(int squadId, int anchorX, int anchorY, int alive, boolean machine, boolean demolition,
-                boolean inContact, ObjectiveAssignment incumbent) { }
+                boolean inContact, ObjectiveAssignment incumbent, int track) {
+        Body(int squadId, int anchorX, int anchorY, int alive, boolean machine, boolean demolition,
+             boolean inContact, ObjectiveAssignment incumbent) {
+            this(squadId, anchorX, anchorY, alive, machine, demolition, inContact, incumbent, -1);
+        }
+    }
 
     record Order(ObjectiveAssignment assignment, AssignmentReason reason) { }
 
@@ -137,6 +165,8 @@ final class AssaultMuster {
         int fullSince = -1;
         /** Reinforcement (a lance called down) is due by this tick: no grace cut-short and no timeout before it. */
         int expectUntil = -1;
+        /** The stamp's assault plan being executed, once committed against a fort whose works are known. */
+        FortAssault.Execution execution;
 
         int graceFrom(int tick) {
             if (fullSince < 0) fullSince = tick;
@@ -155,11 +185,58 @@ final class AssaultMuster {
     /** Broken attempts per objective: the side's memory that the objective took more than it believed. */
     private final Map<Integer, Integer> failures = new HashMap<>();
     private int footholdSquad = -1;
+    /** Times a company for each fort stood down for want of strength, and until when the fort is left to the lanes. */
+    private final Map<Integer, Integer> standDowns = new HashMap<>();
+    private final Map<Integer, Integer> standDownUntil = new HashMap<>();
+    /** What is believed of each fort's nests, kept for as long as the fort is an objective. */
+    private final Map<Integer, FortAssault.NestBelief> beliefs = new HashMap<>();
+    private final Map<Integer, FortAssault.Works> placed = new HashMap<>();
+    private final Map<Integer, FortFrame> placedFrames = new HashMap<>();
+    /** Whether a committed company executes the stamp's assault plan; off, it goes at the aspect as in slice 1. */
+    private boolean plans = true;
+
+    /** Sets whether committed companies execute the stamp's assault plan. */
+    void plans(boolean enabled) {
+        this.plans = enabled;
+    }
 
     /** Forgets every company and the foothold element; each squad returns to ordinary command next pulse. */
     void dissolveAll() {
         companies.clear();
         footholdSquad = -1;
+    }
+
+    private FortAssault.Works worksOf(Objective objective) {
+        if (objective.works() == null) return null;
+        if (placedFrames.get(objective.fortId()) != objective.works()) {
+            placedFrames.put(objective.fortId(), objective.works());
+            FortAssault.Works works = FortAssault.Works.of(objective.works());
+            placed.put(objective.fortId(), works);
+            beliefs.put(objective.fortId(), new FortAssault.NestBelief(works.nests.size()));
+        }
+        return placed.get(objective.fortId());
+    }
+
+    /**
+     * The extra strength the defence in front of a company is believed to add to a fort's baseline: the nests believed
+     * live (those covering the way in the company would take at full weight), and the gate or wall to be passed.
+     */
+    private float defenceStrength(Objective objective, Company company, Map<Integer, Body> byId, int[] from) {
+        FortAssault.Works works = worksOf(objective);
+        if (works == null) return 0f;
+        boolean demolition = false;
+        boolean machines = false;
+        if (company != null) {
+            for (int id : company.members) {
+                Body body = byId.get(id);
+                if (body == null) continue;
+                demolition |= body.demolition();
+                machines |= body.machine();
+            }
+        }
+        FortAssault.Defence defence = FortAssault.assess(works, beliefs.get(objective.fortId()), from[0], from[1],
+                demolition, machines);
+        return defence == null ? 0f : defence.strength();
     }
 
     /**
@@ -179,12 +256,23 @@ final class AssaultMuster {
 
     /** The strength an objective is believed to take, in marine-equivalents. */
     static int required(Family family, int believedContacts, int failures) {
+        return required(family, believedContacts, failures, 0f);
+    }
+
+    /** As above, plus the strength the defence in front of the company is believed to add before growth for failures. */
+    static int required(Family family, int believedContacts, int failures, float defence) {
         int base = switch (family) {
             case BATTERY_FORT, SHIELD_FORT -> FORT_BASE_STRENGTH;
             case BARE -> FORT_BASE_STRENGTH / 4;
         };
-        float believed = base + PER_CONTACT_STRENGTH * Math.max(0, believedContacts);
+        float believed = base + defence + PER_CONTACT_STRENGTH * Math.max(0, believedContacts);
         return (int) Math.ceil(believed * (1f + FAILURE_GROWTH * Math.max(0, failures)));
+    }
+
+    /** What this objective is believed to take now, counting the nests and gates believed in front of the company. */
+    private int requiredNow(Objective objective, Company company, Map<Integer, Body> byId, int[] from) {
+        return required(objective.family(), objective.believedContacts(), failures.getOrDefault(objective.fortId(), 0),
+                defenceStrength(objective, company, byId, from));
     }
 
     static float weight(int alive, boolean machine) {
@@ -300,10 +388,17 @@ final class AssaultMuster {
                 .thenComparingInt(Objective::fortId));
         Ground ground = (x, y) -> topology.inBounds(x, y) && topology.isWalkable(x, y)
                 && topology.reachable(drop[0], drop[1], x, y);
+        List<int[]> own = new ArrayList<>();
+        for (Body body : byId.values()) own.add(new int[] {body.anchorX(), body.anchorY()});
+        for (Objective objective : ordered) {
+            FortAssault.Works works = worksOf(objective);
+            if (works != null) beliefs.get(objective.fortId()).update(works, hostiles, own);
+        }
 
         for (Objective objective : ordered) {
             Company company = companies.get(objective.fortId());
             if (company == null) {
+                if (tick < standDownUntil.getOrDefault(objective.fortId(), 0)) continue;
                 if (freeBodies(byId).isEmpty()) continue;
                 company = new Company(objective.fortId(), tick);
                 int[] rally = rallyCell(drop[0], drop[1], objective.cellX(), objective.cellY(), ground, hostiles);
@@ -312,8 +407,8 @@ final class AssaultMuster {
                 companies.put(objective.fortId(), company);
                 notes.add("company formed for fort " + objective.fortId() + " "
                         + objective.family().name().toLowerCase(Locale.ROOT) + ": rally at (" + rally[0] + "," + rally[1]
-                        + "), believes it takes " + required(objective.family(), objective.believedContacts(),
-                        failures.getOrDefault(objective.fortId(), 0)) + ", commits by tick " + company.timeoutTick);
+                        + "), believes it takes " + requiredNow(objective, company, byId, rally)
+                        + ", commits by tick " + company.timeoutTick);
             }
             if (company.stage == Stage.MUSTER) {
                 claimedByCompanies += muster(tick, objective, company, byId, drop, hostiles, ground, cap - claimedByCompanies, notes);
@@ -332,7 +427,7 @@ final class AssaultMuster {
                     ObjectiveAssignment.advanceTrack(footholdSquad, drop[0], drop[1]), AssignmentReason.MUSTER_FOOTHOLD));
             picture.add(new CompanyState(-1, "FOOTHOLD", List.of(footholdSquad), 1,
                     Math.round(weight(byId.get(footholdSquad).alive(), byId.get(footholdSquad).machine())), 0,
-                    drop[0], drop[1], drop[0], drop[1], 0, -1, "holds the drop zone while a company musters"));
+                    drop[0], drop[1], drop[0], drop[1], 0, -1, "holds the drop zone while a company musters", ""));
         }
         return new Result(orders, picture, notes);
     }
@@ -369,6 +464,36 @@ final class AssaultMuster {
         return free;
     }
 
+    /**
+     * The free squads a company may take now: on ground shared with the drop zone (a squad that cannot be shown to share
+     * it is left to the lanes), and not one of the {@link #LANE_KEEP_SHARE} of its lane the lane keeps.
+     */
+    private List<Body> recruitable(Map<Integer, Body> byId, Ground ground) {
+        List<Body> out = new ArrayList<>();
+        for (Body body : freeBodies(byId)) {
+            if (!ground.ok(body.anchorX(), body.anchorY())) continue;
+            if (body.track() >= 0 && !body.machine() && laneFree(byId, body.track()) - 1 < Math.ceil(LANE_KEEP_SHARE * laneTotal(byId, body.track()))) continue;
+            out.add(body);
+        }
+        return out;
+    }
+
+    /** Infantry squads on a lane, whoever has them. */
+    private static int laneTotal(Map<Integer, Body> byId, int track) {
+        int n = 0;
+        for (Body body : byId.values()) if (body.track() == track && !body.machine()) n++;
+        return n;
+    }
+
+    /** Infantry squads on a lane that are in no company and are not the foothold, in contact or not. */
+    private int laneFree(Map<Integer, Body> byId, int track) {
+        int n = 0;
+        for (Body body : byId.values()) {
+            if (body.track() == track && !body.machine() && body.squadId() != footholdSquad && !inAnyCompany(body.squadId())) n++;
+        }
+        return n;
+    }
+
     private static float strengthOf(Company company, Map<Integer, Body> byId) {
         float sum = 0f;
         for (int id : company.members) {
@@ -385,8 +510,7 @@ final class AssaultMuster {
     /** Recruits, re-checks the rally point, judges readiness. Returns how many squads were newly recruited. */
     private int muster(int tick, Objective objective, Company company, Map<Integer, Body> byId, int[] drop,
                        List<int[]> hostiles, Ground ground, int roomLeft, List<String> notes) {
-        int required = required(objective.family(), objective.believedContacts(),
-                failures.getOrDefault(objective.fortId(), 0));
+        int required = requiredNow(objective, company, byId, new int[] {company.rallyX, company.rallyY});
         if (!safe(company.rallyX, company.rallyY, hostiles)) {
             int[] rally = rallyCell(drop[0], drop[1], objective.cellX(), objective.cellY(), ground, hostiles);
             company.rallyX = rally[0];
@@ -398,9 +522,7 @@ final class AssaultMuster {
         while (strengthOf(company, byId) < required && recruited < roomLeft) {
             Body pick = null;
             double bestGap = Double.MAX_VALUE;
-            for (Body body : freeBodies(byId)) {
-                // A squad that cannot be shown to share the drop zone's ground is left to the lanes.
-                if (!ground.ok(body.anchorX(), body.anchorY())) continue;
+            for (Body body : recruitable(byId, ground)) {
                 double gap = Math.hypot(body.anchorX() - company.rallyX, body.anchorY() - company.rallyY);
                 if (gap < bestGap || (gap == bestGap && pick != null && body.squadId() < pick.squadId())) {
                     pick = body;
@@ -425,13 +547,25 @@ final class AssaultMuster {
         // Everything this company can get is at the rally and it is still short: wait a grace for anything yet to
         // come, not the whole timeout.
         boolean exhausted = strengthOf(company, byId) < required
-                && (freeBodies(byId).isEmpty() || roomLeft - recruited <= 0);
+                && (recruitable(byId, ground).isEmpty() || roomLeft - recruited <= 0);
         if (exhausted && !company.members.isEmpty() && arrivedSquads == company.members.size() && tick >= company.expectUntil) {
             company.timeoutTick = Math.min(company.timeoutTick, company.graceFrom(tick) + STRAGGLER_GRACE_TICKS);
         } else {
             company.fullSince = -1;
         }
         Readiness readiness = judge(arrivedStrength, required, tick, company.timeoutTick);
+        if (readiness == Readiness.TIMED_OUT && arrivedStrength < MIN_COMMIT_SHARE * required
+                && standDowns.getOrDefault(company.fortId, 0) < STAND_DOWN_LIMIT && tick >= company.expectUntil) {
+            // Too little to be worth the lives: the squads go back to the lanes and the muster tries again later. Bounded, so a
+            // force that never grows still commits with what it has the third time.
+            standDowns.merge(company.fortId, 1, Integer::sum);
+            standDownUntil.put(company.fortId, tick + STAND_DOWN_TICKS);
+            companies.remove(company.fortId);
+            notes.add("company for fort " + company.fortId + " stands down: " + Math.round(arrivedStrength) + " at the rally of "
+                    + required + " believed needed is under " + Math.round(MIN_COMMIT_SHARE * 100) + " per cent; its squads return to the lanes until tick "
+                    + (tick + STAND_DOWN_TICKS));
+            return recruited;
+        }
         if (readiness != Readiness.GATHERING && !company.members.isEmpty()) {
             company.stage = Stage.ASSAULT;
             company.stageTick = tick;
@@ -458,6 +592,40 @@ final class AssaultMuster {
 
     private void assault(int tick, Faction perspective, Objective objective, Company company, Map<Integer, Body> byId,
                          CommandTopology topology, Map<Integer, Order> orders, List<String> notes) {
+        FortAssault.Works works = plans ? worksOf(objective) : null;
+        if (works != null) {
+            if (company.execution == null) {
+                Body lead = null;
+                boolean demolition = false;
+                boolean machines = false;
+                for (int id : company.members) {
+                    Body body = byId.get(id);
+                    if (body == null) continue;
+                    if (lead == null) lead = body;
+                    demolition |= body.demolition();
+                    machines |= body.machine();
+                }
+                FortAssault.NestBelief belief = beliefs.get(objective.fortId());
+                FortAssault.Defence defence = lead == null ? null : FortAssault.assess(works, belief,
+                        lead.anchorX(), lead.anchorY(), demolition, machines);
+                if (defence != null) {
+                    company.execution = new FortAssault.Execution(works, belief, defence.way(), tick);
+                    notes.add("company for fort " + company.fortId + " takes the " + defence.way().variant().name()
+                            .toLowerCase(Locale.ROOT) + ": " + defence.liveCovering() + " nests believed to cover it");
+                }
+            }
+            if (company.execution != null) {
+                Map<Integer, Order> planned = company.execution.run(tick, perspective, objective, company.members, byId,
+                        topology, notes);
+                if (planned == null) {
+                    notes.add("company for fort " + company.fortId + " dissolved: no aspect of it can be reached");
+                    companies.remove(company.fortId);
+                    return;
+                }
+                orders.putAll(planned);
+                return;
+            }
+        }
         List<DefenceStructureTactics.Candidate> candidates = new ArrayList<>();
         for (int id : company.members) {
             Body body = byId.get(id);
@@ -543,8 +711,7 @@ final class AssaultMuster {
             if (body == null) continue;
             if (company.stage == Stage.ASSAULT || arrived(company, body)) arrivedSquads++;
         }
-        int required = required(objective.family(), objective.believedContacts(),
-                failures.getOrDefault(objective.fortId(), 0));
+        int required = requiredNow(objective, company, byId, new int[] {company.rallyX, company.rallyY});
         String reason = company.stage == Stage.MUSTER
                 ? "gathering: " + arrivedSquads + " of " + company.members.size() + " squads at the rally, believes it takes "
                 + required + ", commits by tick " + company.timeoutTick
@@ -552,6 +719,8 @@ final class AssaultMuster {
         return new CompanyState(objective.fortId(), company.stage.name(), new ArrayList<>(company.members), arrivedSquads,
                 Math.round(strengthOf(company, byId)), required, company.rallyX, company.rallyY,
                 objective.cellX(), objective.cellY(), tick - company.stageTick,
-                company.stage == Stage.MUSTER ? company.timeoutTick : -1, reason);
+                company.stage == Stage.MUSTER ? company.timeoutTick : -1,
+                company.execution == null ? reason : reason + " | plan: " + company.execution.describe(),
+                company.execution == null ? "" : company.execution.step().name());
     }
 }

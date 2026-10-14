@@ -148,4 +148,5 @@ com.dillon.starsectormarines.battle.power.MechDropSceneSnapshotSuite
 com.dillon.starsectormarines.ops.RadioPortraitSnapshotSuite
 com.dillon.starsectormarines.tools.damageauthoring.DamageSnapshotSuite
 com.dillon.starsectormarines.ops.AgreusMapsSnapshotSuite
+com.dillon.starsectormarines.battle.command.AssaultMusterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.squad.FightingPositionSceneSnapshotSuite
