@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -43,6 +45,8 @@ import java.util.List;
  */
 public final class MapResult {
 
+    /** Applied once after map props register, before forces spawn; null means an intact base. */
+    public final DamagePlan initialDamage;
     public final NavigationGrid grid;
     public final CellTopology topology;
     public final int marineSpawnX;
@@ -399,6 +403,7 @@ public final class MapResult {
                      VehicleCorridor vehicleCorridor,
                      FrontDepth frontDepth,
                      List<LaneRoute> lanes) {
+        this.initialDamage = null;
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -423,5 +428,36 @@ public final class MapResult {
         this.runways = runways == null ? Collections.emptyList() : List.copyOf(runways);
         this.shelters = shelters == null ? Collections.emptyList() : List.copyOf(shelters);
         this.lanes = lanes == null ? Collections.emptyList() : List.copyOf(lanes);
+    }
+
+    /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
+    public MapResult withInitialDamage(DamagePlan damage) { return new MapResult(this, damage); }
+
+    private MapResult(MapResult base, DamagePlan damage) {
+        if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
+            throw new IllegalArgumentException("Damage extent exceeds map");
+        initialDamage = damage;
+        grid = base.grid;
+        topology = base.topology;
+        marineSpawnX = base.marineSpawnX;
+        marineSpawnY = base.marineSpawnY;
+        defenderSpawnX = base.defenderSpawnX;
+        defenderSpawnY = base.defenderSpawnY;
+        pointsOfInterest = base.pointsOfInterest;
+        doodads = base.doodads;
+        landingPads = base.landingPads;
+        landingAreas = base.landingAreas;
+        gantries = base.gantries;
+        fixtureTasks = base.fixtureTasks;
+        runways = base.runways;
+        shelters = base.shelters;
+        tacticalMap = base.tacticalMap;
+        buildings = base.buildings;
+        defensePosts = base.defensePosts;
+        roadGraph = base.roadGraph;
+        vehicleCorridor = base.vehicleCorridor;
+        biomeMap = base.biomeMap;
+        frontDepth = base.frontDepth;
+        lanes = base.lanes;
     }
 }
