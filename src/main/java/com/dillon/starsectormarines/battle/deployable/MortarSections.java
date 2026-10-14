@@ -28,66 +28,40 @@ import java.util.concurrent.ConcurrentHashMap;
  * the open being shot at.
  *
  * <p><b>Threading.</b> {@link #open}, {@link #tick} and every stage change run in the serial pass; the unit dispatch only
- * reads. Every number is <b>UNTUNED</b>.
+ * reads. Every number is <b>UNTUNED</b>; the timing constants are fixed in code and only evidence overrides them, per simulation.
  */
 public final class MortarSections {
 
-    /** Turns sections off: {@code -Dbattle.mortar.section=false} is the old behaviour (a gunner sets up only when settled). */
-    public static final String PROPERTY = "battle.mortar.section";
-    public static final String WINDOW_PROPERTY = "battle.mortar.setupWindowSeconds";
-    public static final String EXTENSION_PROPERTY = "battle.mortar.engagedExtensionSeconds";
-    public static final String CAP_PROPERTY = "battle.mortar.windowCapSeconds";
-    public static final String COOLDOWN_PROPERTY = "battle.mortar.sectionCooldownSeconds";
-
     /**
-     * Default seconds a section is held before an unengaged crew packs up. Thirty is enough for the four-second set-up and
+     * Seconds a section is held before an unengaged crew packs up. Thirty is enough for the four-second set-up and
      * about six crewed rounds (a four-second cycle) and short enough that the squad is not pinned for a whole march.
      */
-    public static final float DEFAULT_WINDOW_SECONDS = 30f;
+    public static final float WINDOW_SECONDS = 30f;
     /**
-     * Default seconds an engaged crew holds the deadline ahead of itself: two and a half crewed cycles, so a tube between
+     * Seconds an engaged crew holds the deadline ahead of itself: two and a half crewed cycles, so a tube between
      * rounds counts as engaged and one that has fallen silent does not.
      */
-    public static final float DEFAULT_EXTENSION_SECONDS = 10f;
+    public static final float EXTENSION_SECONDS = 10f;
     /**
-     * Default longest a section may hold, from activation: the whole fourteen-round magazine at the crewed cycle is 56
+     * Longest a section may hold, from activation: the whole fourteen-round magazine at the crewed cycle is 56
      * seconds, plus the four-second set-up and three-second pack, with margin. A section that has not emptied its magazine
      * by then has stopped being the reason the squad is standing there.
      */
-    public static final float DEFAULT_CAP_SECONDS = 90f;
-    /** Default seconds after a section ends before the same squad may open another. */
-    public static final float DEFAULT_COOLDOWN_SECONDS = 45f;
+    public static final float CAP_SECONDS = 90f;
     /**
-     * What may open a section, {@code -Dbattle.mortar.sectionTrigger=mission|hardened|any}. A squad whose assigned fire
-     * mission has a target in the tube's band always may; the rest is the dial.
-     * <ul>
-     *   <li>{@link Trigger#MISSION}: nothing else. <b>The default</b>: on the trial ground a section opened for any
-     *       worthwhile belief halted squads for what was mostly soft targets, killed no more nests and lost battles it did not
-     *       lose without it, while a section for an assigned mission fired several times the mission rounds and cost nothing.</li>
-     *   <li>{@link Trigger#HARDENED}: also a believed hardened target in band (a nest, a hub, a machine).</li>
-     *   <li>{@link Trigger#ANY}: also any belief a tube would set down for on a halted section (one hardened target or two
-     *       soft ones).</li>
-     * </ul>
+     * Seconds after a section ends before the same squad may open another: long enough that a squad does not set up every
+     * few seconds along its march, short enough that the next fort on the lane gets its own section.
      */
-    public static final String TRIGGER_PROPERTY = "battle.mortar.sectionTrigger";
-    public static final Trigger DEFAULT_TRIGGER = Trigger.MISSION;
-
-    public enum Trigger {
-        MISSION, HARDENED, ANY;
-
-        static Trigger parse(String raw, Trigger fallback) {
-            if (raw == null) return fallback;
-            for (Trigger t : values()) if (t.name().equalsIgnoreCase(raw.trim())) return t;
-            return fallback;
-        }
-    }
-    public static final String IDLE_PROPERTY = "battle.mortar.sectionIdleSeconds";
+    public static final float COOLDOWN_SECONDS = 45f;
     /**
-     * Default seconds a standing tube may go without a target before its section is closed early. The tube's own idle clock
-     * ({@link FieldMortarService#IDLE_PACK_SECONDS}) lifts it at the same moment, so by default this changes nothing; a
-     * shorter value lets a section that has run out of targets release its squad before the window ends.
+     * Seconds a standing tube may go without a target before its section is closed early. It equals the tube's own idle
+     * clock ({@link FieldMortarService#IDLE_PACK_SECONDS}), so the section releases its squad the moment the tube lifts.
      */
-    public static final float DEFAULT_IDLE_SECONDS = FieldMortarService.IDLE_PACK_SECONDS;
+    public static final float IDLE_SECONDS = FieldMortarService.IDLE_PACK_SECONDS;
+    // What opens a section is not a dial: only an assigned fire mission with a target in the tube's band. Opening for any
+    // worthwhile belief (or any believed hardened target) was measured on the trial ground to halt squads for mostly soft
+    // targets, kill no more nests and lose battles the mission-only section did not, while a section for an assigned
+    // mission fired several times the mission rounds and cost nothing.
 
     /** People who work the tube: the gunner and the loaders around him. */
     public static final int CREW_SIZE = 4;
@@ -106,42 +80,31 @@ public final class MortarSections {
 
     public enum Stage { OPENING, WORKING, CLOSING }
 
-    private static volatile boolean enabled = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-    private static volatile float windowSeconds = seconds(WINDOW_PROPERTY, DEFAULT_WINDOW_SECONDS);
-    private static volatile float extensionSeconds = seconds(EXTENSION_PROPERTY, DEFAULT_EXTENSION_SECONDS);
-    private static volatile float capSeconds = seconds(CAP_PROPERTY, DEFAULT_CAP_SECONDS);
-    private static volatile float cooldownSeconds = seconds(COOLDOWN_PROPERTY, DEFAULT_COOLDOWN_SECONDS);
-    private static volatile float idleSeconds = seconds(IDLE_PROPERTY, DEFAULT_IDLE_SECONDS);
-
-    private static float seconds(String property, float fallback) {
-        String raw = System.getProperty(property);
-        if (raw == null) return fallback;
-        try {
-            return Float.parseFloat(raw.trim());
-        } catch (NumberFormatException ignored) {
-            return fallback;
-        }
-    }
+    // Per-instance timing, so a scene or test sets its own simulation's sections and nothing leaks between replays. The
+    // production values are the constants above; only evidence changes them.
+    private volatile boolean enabled = true;
+    private volatile float windowSeconds = WINDOW_SECONDS;
+    private volatile float extensionSeconds = EXTENSION_SECONDS;
+    private volatile float capSeconds = CAP_SECONDS;
+    private volatile float cooldownSeconds = COOLDOWN_SECONDS;
+    private volatile float idleSeconds = IDLE_SECONDS;
 
     /** Whether sections are in effect. */
-    public static boolean isEnabled() { return enabled; }
-    public static float windowSeconds() { return windowSeconds; }
-    public static float extensionSeconds() { return extensionSeconds; }
-    public static float capSeconds() { return capSeconds; }
-    public static float cooldownSeconds() { return cooldownSeconds; }
-    public static float idleSeconds() { return idleSeconds; }
-    private static volatile Trigger trigger = Trigger.parse(System.getProperty(TRIGGER_PROPERTY), DEFAULT_TRIGGER);
-    /** What may open a section. */
-    public static Trigger trigger() { return trigger; }
-    /** Evidence seam for the trigger dial. */
-    public static void setTriggerForEvidence(Trigger value) { trigger = value; }
+    public boolean isEnabled() { return enabled; }
+    public float windowSeconds() { return windowSeconds; }
+    public float extensionSeconds() { return extensionSeconds; }
+    public float capSeconds() { return capSeconds; }
+    public float cooldownSeconds() { return cooldownSeconds; }
+    public float idleSeconds() { return idleSeconds; }
 
-    /** Evidence seam for the idle-close dial alone. */
-    public static void setIdleForEvidence(float seconds) { idleSeconds = seconds; }
+    /** Evidence seam: this simulation's sections on or off (off is a control in which a gunner sets up only when settled). */
+    public void setEnabledForEvidence(boolean on) { enabled = on; }
 
-    /** Evidence seam: sets every dial for the rest of this JVM. Restore the previous values in a {@code finally}. */
-    public static void setForEvidence(boolean on, float window, float extension, float cap, float cooldown) {
-        enabled = on;
+    /** Evidence seam for the idle-close timing alone. */
+    public void setIdleForEvidence(float seconds) { idleSeconds = seconds; }
+
+    /** Evidence seam: this simulation's window, extension, cap and cooldown. */
+    public void setTimingForEvidence(float window, float extension, float cap, float cooldown) {
         windowSeconds = window;
         extensionSeconds = extension;
         capSeconds = cap;
@@ -162,13 +125,13 @@ public final class MortarSections {
         private volatile String endReason = "";
         private float sinceOpen;
 
-        Section(int squadId, long[] crew, float x, float y) {
+        Section(int squadId, long[] crew, float x, float y, MortarSectionWindow window) {
             this.squadId = squadId;
             this.crew = crew.clone();
             this.gunner = crew[0];
             this.anchorX = x;
             this.anchorY = y;
-            this.window = new MortarSectionWindow(windowSeconds, extensionSeconds, capSeconds);
+            this.window = window;
         }
 
         public long gunner() { return gunner; }
@@ -245,9 +208,11 @@ public final class MortarSections {
      * Serial pass only.
      */
     public Section open(int squadId, long[] crew, float x, float y) {
-        Section section = new Section(squadId, crew, x, y);
+        Section section = new Section(squadId, crew, x, y,
+                new MortarSectionWindow(windowSeconds, extensionSeconds, capSeconds));
         bySquad.put(squadId, section);
-        opened++;        return section;
+        opened++;
+        return section;
     }
 
     /** The serial pass: ages windows, moves sections through their stages and ends them. */
