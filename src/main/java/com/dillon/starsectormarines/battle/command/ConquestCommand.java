@@ -403,12 +403,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int GARRISON_MARGIN = 2;
 
     /**
-     * {@code -Dbattle.command.muster=false} puts the attacker back to detaching one or two squads at a time to a
-     * disclosed fort, the trickle a fort is built to beat. On by default: land, muster, then assault
+     * {@code -Dbattle.command.muster=true} turns on the phased assault; off, the attacker detaches one or two squads at a time to a
+     * disclosed fort, the trickle a fort is built to beat. Off by default until it beats that control on the fort fixtures: land, muster, then assault
      * ({@code phased-assault.md}). Read once; a scene or test sets the field for a control run.
      */
     public static final String MUSTER_PROPERTY = "battle.command.muster";
-    static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "true"));
+    static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "false"));
 
     /** Whether the muster is on. For scenes and evidence controls that must hold it fixed. */
     public static boolean musterEnabled() {
