@@ -65,11 +65,10 @@ final class CampaignLessons {
     }
 
     static PreparationGuide.Lesson formations(MarineRoster roster, MarineOpsContext context,
-                                                boolean equipment, Runnable found) {
+                                                boolean equipment) {
         if (next(roster) != Step.FORMATIONS) return null;
         if (formations(roster) < 2) return later(lesson(3, "lessonFormationTitle", "lessonFormationFound",
-                List.of(equipment ? "found-squad" : "barracks-raise-squad"),
-                equipment ? null : "lessonEquipment", equipment ? null : found), roster);
+                List.of(equipment ? "found-squad" : "barracks-raise-squad"), null, null), roster);
         if (equipment) return later(lesson(3, "lessonFormationTitle", "lessonFormationAssign",
                 List.of("page-nav-barracks"), "lessonBarracks", () -> context.goTo(ScreenId.BARRACKS)), roster);
         boolean full = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()

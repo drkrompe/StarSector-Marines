@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
+import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
@@ -76,7 +77,8 @@ public final class BarracksScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new BarracksViewModel(reactor, roster, CampaignClock::dayFloat,
-                    new CampaignEquipmentIssueResources(), MarinePersonnelLogistics::availableCargoMarines,
+                    new CampaignEquipmentIssueResources(), new CampaignSquadFoundingResources(),
+                    MarinePersonnelLogistics::availableCargoMarines,
                     id -> MarinePersonnelLogistics.reinforceSquad(roster, id));
         } else {
             viewModel.refresh();
@@ -86,7 +88,6 @@ public final class BarracksScreen implements Screen {
                 context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.COMPANY_HQ));
         viewModel.command().returnToBriefing(context.getSelectedMission() != null);
         viewModel.command().navigation(
-                () -> context.openSquadFoundingFrom(ScreenId.BARRACKS),
                 context::openSquadEquipmentFromBarracks,
                 () -> context.goTo(context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.MISSION_SELECT),
                 context.planet != null || context.getSelectedMission() != null);
@@ -153,8 +154,7 @@ public final class BarracksScreen implements Screen {
 
     private PreparationGuide.Lesson campaignLesson() {
         var handoff = CampaignLessons.handoff(roster, context, ScreenId.BARRACKS);
-        return handoff != null ? handoff : CampaignLessons.formations(roster, context, false,
-                () -> context.openSquadFoundingFrom(ScreenId.BARRACKS));
+        return handoff != null ? handoff : CampaignLessons.formations(roster, context, false);
     }
 
     private Map<String, Object> props() {
