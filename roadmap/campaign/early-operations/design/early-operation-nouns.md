@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Basin is a Wayline account; Morrow's transfer carries no crew.
+Updated: 2026-10-14 — Wayline wins Asharu salvage accounts by undercutting rivals.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -23,8 +23,10 @@ Use the arc's own open-work board before changing its plan.
 **A Working Ship** is the post-**A Cold Account** recovery arc on Asharu.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
 Cooperative**, an authored local Independent employer. Basin is a Wayline account:
-it buys supplies, fuel and heavy machinery through Mara, so the referral is a
-supplier recovering a customer, not a favour between friends. Vale suspects her
+recovering Wayline wins back trade by hauling supplies, fuel and heavy machinery
+slightly under rival logistics outfits' rates, and Vale buys through Mara because
+it is cheapest. The referral is a supplier on thin margins recovering a customer,
+not a favour between friends. Vale suspects her
 own outsized fuel order leaked through Wayline's dispatch while its schedules were
 being sold; that remains her unproven suspicion. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
@@ -145,8 +147,11 @@ construction retains the large static hull and its collision, has a fixed workin
 reach and grants neither flight nor a fleet member. Completing a real road gun
 allows the repair task to proceed; the gun fires and takes damage ordinarily.
 
-Two three-person cooperative outer pickets screen Cold Start's south haul and
-quarry approaches, alongside eight inner militia holders and two technicians.
+Two three-person outer pickets screen Cold Start's south haul and quarry
+approaches, alongside eight inner militia holders and two technicians. The pickets
+are hired day hands, not cooperative members: Vale's cheaper replacement for the
+company, whose contract she means to end with this job. Their failure under the
+second assault is what turns Morrow's bay into a defense.
 Four committed six-person raider teams assault through those
 roads. The first actual casualty or a post breach orders surviving pickets to
 withdraw toward distinct inner holds; a broken post never implies that its people
