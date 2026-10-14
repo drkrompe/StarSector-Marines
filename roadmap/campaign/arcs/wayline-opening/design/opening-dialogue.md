@@ -93,8 +93,11 @@ home and threatened to cut her loose at every buoy. Generous in deeds, stingy
 with words. Her yard runs on parts that come up the Wayline road. Mara's older
 sister.
 
-**Mara Venn** — PUBLIC: broker for Wayline, the drivers' freight cooperative;
-Nessa's younger sister. HIDDEN: Relief's fee is most of what is left in the
+**Mara Venn** — PUBLIC: Wayline's broker, and since the spring its acting head;
+Nessa's younger sister. When the cooperative's director, Teodor Prell (proposed
+name), left for a post off-world, nobody senior was left who wanted the job, so
+the youngest person in the office who could read the books got it. She still
+does the brokering because nobody else can. That is the overwork. HIDDEN: Relief's fee is most of what is left in the
 cooperative's security fund; if the checkpoint falls, Wayline sells out to a
 bigger hauler. She hires an unlicensed company because it is the only kind she
 can afford, and she knows Castle knows that. TO BE REVEALED: the fund's state, at
@@ -124,10 +127,15 @@ opening shows, and lets the player feel it long before anyone names it.
   short. Raiders arrive where Wayline will be, when it will be there. Somebody is
   selling the schedules, and they were selling them before the ships were sold.
 - **TO BE REVEALED — Dust Ledger.** The raid on Sable Wake's dispatch archive
-  turns up Wayline's schedules among the papers. Who sold them stays open for the
-  owner: a driver, a dispatcher, or a bigger hauler that wants Wayline's routes
-  cheap. A bigger hauler would tie this to Mara's hidden fear that Wayline sells
-  out.
+  turns up Wayline's schedules among the papers, released under Prell's own
+  dispatch authority, the last of them dated the week he left. Mara learns her
+  predecessor sold the cooperative he built, and she cannot work out why. Nothing
+  in Corvus answers that. Prell's new post, and whoever Sable Wake answers to,
+  is a thread left open for a later arc to pick up.
+- **Prell, as the player meets him.** Only through others, and only well: Mara
+  quotes his rules, the drivers miss him, and his signature is on the depot's
+  old paperwork. Nobody suspects him, which is what makes the reveal land. He
+  never appears in person in this arc.
 
 Seeds between Relief and Dust Ledger, one line each, none of them explained:
 
@@ -137,7 +145,7 @@ Seeds between Relief and Dust Ledger, one line each, none of them explained:
 | Counterattack | Castle, on the depot's recovered office: their dispatch board was the one thing the raiders bothered to take. |
 | Open the Junction | Sabine: they were waiting at the junction before our boats were down. Somebody told them we were coming. |
 | Thunder Run | Castle, debrief: every ambush on the corridor sat on the loads that were worth something, and skipped the rest. |
-| Dust Ledger | Mara reads Wayline's own schedules out of a pirate archive. |
+| Dust Ledger | Mara reads Wayline's own schedules out of a pirate archive, under Prell's authority. |
 
 ## 0 — New game
 
@@ -385,9 +393,9 @@ Castle reports the yard visit in the planet's interaction panel.
 
 **New, Jangala only, after the estimate** — Castle; the Wayline bridge
 > Her racks are half empty. Most of her parts come up the Wayline road, and
-> raiders have had it shut for a month. Her sister Mara brokers for the drivers
-> and is wearing herself thin keeping them from selling the trucks too. I said we'd
-> be looking for work, and that we've no licence. Nessa said Mara can't afford
+> raiders have had it shut for a month. Her sister Mara got handed the drivers'
+> cooperative when its director left, and she's wearing herself thin keeping them
+> from selling the trucks too. I said we'd be looking for work, and that we've no licence. Nessa said Mara can't afford
 > anyone who has one. Then she said, "Talk to her when you've got something that
 > flies. Not before."
 
@@ -552,7 +560,8 @@ founding officer only)
 
 `WaylineArc` introduction, Relief — Mara
 > Mara Venn. Castle sent your particulars, and I've read them twice. I broker for
-> Wayline. A year ago we ran freighters between worlds. We lost three cargoes in a
+> Wayline, and since the spring I run it, because our director took a post
+> off-world and somebody had to. A year ago we ran freighters between worlds. We lost three cargoes in a
 > season and sold the hulls to cover them, so now we're drivers on one planet's
 > roads, pooling what's left so nobody has to sell their truck as well. Raiders
 > took our depot a month ago. They knew which night the gate crew was short. Now
@@ -644,6 +653,10 @@ Command still speaks for every other squad. It is not part of the text rewrite.
 - Renaming Mira to Sabine changes the officer's minted name, portrait file and
   string keys outright. The game has not launched, so no save carries the old
   name and nothing needs to keep accepting it.
+- Mara as Wayline's acting head changes canon that calls her an independent
+  broker (`wayline-opening-arc.md`, `early-operation-nouns.md`, and Vale's view of
+  her in `shepherd-recovery-dialogue.md`). Prell and the Dust Ledger reveal
+  belong in `wayline-corvus-arc.md` and its chapter dialogue.
 - Sabine's protection changes the standing model in the same commit as the code:
   `personnel-nouns.md` ("grants no immunity from loss") and `company-view-nouns.md`
   ("a surviving officer can carry the unfinished lesson") are rewritten, and the
