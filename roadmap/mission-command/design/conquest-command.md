@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — Conquest carries a mission-declared fire support kit and marine air pool, and muster plus plans now leads the trickle on one of three fort fixtures (still off by default; proposal in the muster section); earlier: the muster is off by default (`battle.command.muster=true`): a company counts the nests and gate in front of it, each lane keeps half its squads, a short muster stands down, and a committed company executes the stamp's assault plan (`phased-assault.md`); measured not yet better than the trickle.
+Updated: 2026-10-14 — Conquest carries a mission-declared fire support kit and marine air pool, and muster plus plans now leads the trickle on one of three fort fixtures (muster now on by default: owner decision 2026-10-14); earlier: the muster (`battle.command.muster`, default on; `=false` is the trickle): a company counts the nests and gate in front of it, each lane keeps half its squads, a short muster stands down, and a committed company executes the stamp's assault plan (`phased-assault.md`).
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -201,8 +201,8 @@ ground.
 
 ## Foothold, muster, assault
 
-**Off by default: `battle.command.muster=true` turns it on** (and
-`battle.command.musterPlans=false` drops the per-stamp plan, leaving a company to
+**On by default (owner decision 2026-10-14): `battle.command.muster=false` is the trickle control** 
+(and `battle.command.musterPlans=false` drops the per-stamp plan, leaving a company to
 go at the aspect directly). A disclosed fort is an objective one squad cannot
 take, and the squads that reach one a few at a time are cut down by its nests and
 garrison. So, with the muster on, the attacker treats it per objective in three
