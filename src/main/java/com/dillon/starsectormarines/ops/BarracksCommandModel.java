@@ -52,8 +52,6 @@ public final class BarracksCommandModel {
     private final SquadFoundingWorkshop founding;
     private final IntSupplier cargoMarines;
     private final Function<String, PersonnelDrawResult> reinforce;
-    private final Consumer<String> inspect;
-    private final Runnable changed;
     private final MutableSignal<Integer> revision;
     private final ComputedSignal<List<Map<String, Object>>> cards;
     private final ComputedSignal<List<Map<String, Object>>> tiles;
@@ -64,7 +62,6 @@ public final class BarracksCommandModel {
     private String profileFilter;
     private String profileId;
     private boolean attention;
-    private boolean detail;
     private boolean dossier;
     private boolean editing;
     private boolean organizing;
@@ -75,7 +72,6 @@ public final class BarracksCommandModel {
     private Runnable preparationComplete = () -> { };
     public void onPreparationComplete(Runnable action) { preparationComplete = action; }
     private int guideStep;
-    private String inspectedId;
     private Runnable equipmentWorkspace = () -> { };
     private Runnable missions = () -> { };
     private Consumer<String> editEquipment = id -> { };
@@ -91,7 +87,7 @@ public final class BarracksCommandModel {
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
                                 SquadFoundingResources foundingResources,
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
-                                Consumer<String> inspect, Runnable changed, DoubleSupplier currentDay) {
+                                DoubleSupplier currentDay) {
         this.roster = roster;
         guideOpen = inductionRequired() || !roster.managementGuideDismissed();
         this.resources = resources;
@@ -100,8 +96,6 @@ public final class BarracksCommandModel {
         this.equipment = new BarracksEquipmentIssue(roster, resources);
         this.cargoMarines = cargoMarines;
         this.reinforce = reinforce;
-        this.inspect = inspect;
-        this.changed = changed;
         this.currentDay = currentDay;
         revision = reactor.signal(0);
         props.put("equipmentWorkspace", (Runnable) () -> equipmentWorkspace.run());
@@ -109,7 +103,6 @@ public final class BarracksCommandModel {
         bind(reactor, "equipmentClasses", () -> equipmentUnread()
                 ? "flow-button console-action equipment-new" : "flow-button console-action");
         props.put("missions", (Runnable) () -> missions.run());
-        props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
         bind(reactor, "missionLabel", () -> returnToBriefing ? Strings.get("openingBarracksCommandBriefing") : Strings.get("openingBarracksCommandMissions"));
         bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
@@ -153,8 +146,6 @@ public final class BarracksCommandModel {
         bind(reactor, "recruitDraw", () -> Integer.toString(recruitsRequired()));
         bind(reactor, "profilesEmpty", () -> roster.armory().squadProfiles().isEmpty()
                 ? Strings.get("openingBarracksCommandNoSavedProfilesChooseNewToPair") : "");
-        bind(reactor, "overviewClasses", () -> detail ? "command-board hidden" : "command-board");
-        bind(reactor, "detailClasses", () -> detail ? "barracks-body" : "barracks-body hidden");
         bind(reactor, "ordersClasses", () -> editing || !organizing ? "order-body hidden" : "order-body");
         bind(reactor, "preparationClasses", () -> editing || organizing ? "order-body hidden" : "order-body");
         bind(reactor, "selectionMode", () -> choosingDonors ? Strings.get("openingBarracksCommandMarkDonorSquadsReceivingSquadsRemainMarked") : Strings.get("openingBarracksCommandSelectSquadsAssignOnACommanderCard"));
@@ -199,7 +190,7 @@ public final class BarracksCommandModel {
         props.put("guideNext", (Runnable) () -> {
             if (inductionRequired()) {
                 if (roster.officerInduction().finish(roster)) {
-                    guideOpen = false; changed.run();
+                    guideOpen = false; refresh();
                     if (roster.officerInduction().companyPreparation()) preparationComplete.run();
                 }
                 refresh(); return;
@@ -258,7 +249,6 @@ public final class BarracksCommandModel {
         props.put("clear", (Runnable) this::resetSelection);
         props.put("previous", (Runnable) () -> { page = Math.max(0, pageNumber() - 1); refresh(); });
         props.put("next", (Runnable) () -> { page = Math.min(pages() - 1, pageNumber() + 1); refresh(); });
-        props.put("back", (Runnable) this::showOverview);
         props.put("assignProfile", (Runnable) this::assignProfile);
         props.put("reinforce", (Runnable) this::reinforceSelected);
         props.put("issue", (Runnable) this::issueSelected);
@@ -278,11 +268,9 @@ public final class BarracksCommandModel {
     public List<Map<String, Object>> cards() { return cards.get(); }
     public SquadMuster muster(String id) { return SquadMuster.from(roster, id, (float) currentDay.getAsDouble()); }
     public Set<String> selected() { return Set.copyOf(selected); }
-    public boolean inspecting() { revision.get(); return detail; }
     public void refresh() { revision.update(n -> n + 1); }
     public void leave() { reviewedTransfers = null; editing = false; refresh(); }
-    public void showOverview() { detail = false; dossier = false; refresh(); }
-    public void inspect(String id) { inspectedId = id; inspect.accept(id); detail = true; refresh(); }
+    public void showOverview() { dossier = false; refresh(); }
     public void selectCommand(String id) {
         command = id; dossier = selectedOfficer() != null;
         if (inductionRequired() && selectedOfficer() == inductionOfficer())
@@ -369,7 +357,7 @@ public final class BarracksCommandModel {
                     "train", (Runnable) () -> {
                         if (officer.train(specialty)) {
                             officer.commendations().add(Strings.format("openingBarracksCommandDayTrained", (int) currentDay.getAsDouble(), specialty.label(), officer.career().level(specialty)));
-                            changed.run(); refresh();
+                            refresh();
                         }
                     }));
         }
@@ -539,7 +527,6 @@ public final class BarracksCommandModel {
                 ? Strings.format("openingBarracksCommandRaisedSquadUnder", squad.name(), MarineSquad.CAPACITY, captainName(officer))
                 : Strings.format("openingBarracksCommandRaisedSquadIndependent", squad.name(), MarineSquad.CAPACITY);
         page = pages() - 1;
-        changed.run();
         refresh();
     }
 
@@ -599,14 +586,13 @@ public final class BarracksCommandModel {
     public void assignCommand(String captainId) {
         var result = roster.assignCaptainToSquads(captainId, selected);
         feedback = result.valid() ? Strings.format("openingBarracksCommandSquadsAssignedTo", result.changedSquadCount(), captainName(roster.byId(captainId))) : result.reason();
-        changed.run();
         refresh();
     }
     public void assignProfile() {
         boolean applied = roster.assignSquadProfile(selected, profileId);
         feedback = applied ? Strings.format("openingBarracksCommandSquadsAssignedIssueEquipmentSeparatelyWhenReady", selected.size())
                 : Strings.get("openingBarracksCommandSelectAProfileAndAvailableSquadsStationed");
-        changed.run();
+        refresh();
     }
     private int vacancies() {
         return lineSquads().stream().filter(s -> selected.contains(s.id()) && !s.stationed()).mapToInt(roster::vacancies).sum();
@@ -654,14 +640,14 @@ public final class BarracksCommandModel {
         }
         if (guideVisible() && guideStep == 3 && reserves + cargo > 0) guideStep = 4;
         feedback = Strings.format("openingBarracksCommandFilledBilletsReservesRecruitsEnlistedEquipmentIssue", (reserves + cargo), reserves, cargo);
-        changed.run();
+        refresh();
     }
     public void issueSelected() {
         var result = equipment.apply(selected);
         if (guideVisible() && guideStep == 4 && result.succeeded()) guideStep = 5;
         feedback = result.succeeded() ? Strings.format("openingBarracksCommandIssuedEquipmentToSquadsSkipped", result.issued(), result.skipped())
                 : Strings.get("openingBarracksCommandFittingBlockedCheckStationedSquadsAndRequired");
-        changed.run();
+        refresh();
     }
     private boolean campaignGuidance;
     public void campaignGuidance(boolean active) { if (campaignGuidance != active) { campaignGuidance = active; refresh(); } }
@@ -677,7 +663,7 @@ public final class BarracksCommandModel {
     }
     public void resumeGuide() {
         if (!inductionRequired()) { dossier = false; guideOpen = true; refresh(); return; }
-        dossier = false; detail = false; editing = false; organizing = false;
+        dossier = false; editing = false; organizing = false;
         command = "all"; search = ""; profileFilter = null; attention = false;
         guideOpen = true; resetSelection();
     }
@@ -708,7 +694,6 @@ public final class BarracksCommandModel {
                 : "";
     }
     private String inductionTarget() {
-        if (detail) return "barracks-back-command";
         Step step = inductionStep();
         if (step == Step.SHIP) return "page-nav-hq";
         if (step == Step.LIFT) return "page-nav-boats";
@@ -739,7 +724,6 @@ public final class BarracksCommandModel {
         return switch (inductionTarget()) {
             case "page-nav-hq" -> Strings.get("openingBarracksCommandChooseACompanyShipInHqBefore");
             case "page-nav-boats" -> Strings.get("openingBarracksCommandCommissionOurFirstShuttleOnTheBoat");
-            case "barracks-back-command" -> Strings.get("openingBarracksCommandReturnToTheCommandBoardToContinue");
             case "officer-formations" -> Strings.get("openingBarracksCommandChooseViewFormationsToReturnToThe");
             case "barracks-raise-squad" -> Strings.get("openingBarracksCommandRaiseSquadOpensTheEquipmentWorkspaceFound");
             case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsSoTheUnassignedSquad");
@@ -751,7 +735,6 @@ public final class BarracksCommandModel {
     }
     public String guideTargetId() {
         if (inductionRequired()) return inductionTarget();
-        if (detail) return "barracks-back-command";
         if (lineSquads().isEmpty()) return "barracks-raise-squad";
         if (guideStep == 5) return localMissions ? "barracks-missions" : "page-nav-return";
         if (organizing || editing) return "barracks-preparation";
@@ -767,7 +750,7 @@ public final class BarracksCommandModel {
     /** Each group becomes one opening; its actual controls are the only input targets. */
     public List<List<String>> guideRegions() {
         if (inductionRequired()) return inductionRegions();
-        if (detail || lineSquads().isEmpty() || guideStep == 5 || organizing || editing)
+        if (lineSquads().isEmpty() || guideStep == 5 || organizing || editing)
             return List.of(List.of(guideTargetId()));
         var regions = new ArrayList<List<String>>();
         if (guideStep <= 2 || selected.isEmpty()) {
@@ -798,7 +781,6 @@ public final class BarracksCommandModel {
 
     private String guideHint() {
         if (inductionRequired()) return inductionHint();
-        if (detail) return Strings.get("openingBarracksCommandUseBackToCompanyToResumePreparation");
         if (lineSquads().isEmpty()) return Strings.get("openingBarracksCommandStartWithRaiseSquadComeBackHere");
         if (guideStep == 5) return localMissions ? Strings.get("openingBarracksCommandUseMissionsWhenYouAreReadyFor") : Strings.get("openingBarracksCommandUseReturnWhenYouAreReadyTo");
         if (organizing || editing) return Strings.get("openingBarracksCommandChoosePreparationToReturnToThePersonnel");
@@ -842,7 +824,7 @@ public final class BarracksCommandModel {
         feedback = applied ? Strings.format("openingBarracksCommandTransferredMarinesWithTheirEquipmentFillRemaining", reviewedTransfers.moves().size())
                 : Strings.get("openingBarracksCommandPersonnelChangedOrNoTransferIsReady");
         reviewedTransfers = null;
-        changed.run();
+        refresh();
     }
     private List<Map<String, Object>> transferRows() {
         if (reviewedTransfers == null) return List.of();
@@ -861,7 +843,7 @@ public final class BarracksCommandModel {
         if (profile == null) { feedback = Strings.get("openingBarracksCommandUseANameOfCharactersAndKnown"); refresh(); return; }
         profileId = profile.id(); editing = false;
         feedback = Strings.format("openingBarracksCommandSavedAssignItToSelectedSquadsEquipment", profile.name());
-        changed.run();
+        refresh();
     }
     private static Map<String, Object> row(Object... pairs) {
         Map<String, Object> result = new LinkedHashMap<>();

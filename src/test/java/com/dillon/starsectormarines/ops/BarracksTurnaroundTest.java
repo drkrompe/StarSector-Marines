@@ -34,15 +34,13 @@ class BarracksTurnaroundTest {
         model.equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
         model.navigation(context::openSquadEquipmentFromBarracks, () -> {}, false);
         model.toggle(squad.id());
-        model.inspect(squad.id());
         assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
-        action(model, "editEquipment");
+        ((Runnable) model.cards().get(0).get("loadout")).run();
         assertEquals(squad.id(), context.takeRequestedArmorySquadId());
         assertNull(context.takeRequestedArmorySquadId());
         model.leave();
         context.returnFromFleetArmoryWorkspace();
         assertEquals(List.of(ScreenId.FLEET_ARMORY, ScreenId.BARRACKS), routes);
-        assertTrue(model.inspecting());
         assertTrue(model.selected().contains(squad.id()));
         assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
         action(model, "equipmentWorkspace");
@@ -76,7 +74,6 @@ class BarracksTurnaroundTest {
         model.applyTransfers();
         assertEquals(12, roster.readyCount(recipient));
         assertEquals(0, roster.readyCount(donor));
-        model.inspect(recipient.id());
         model.leave();
         model.showOverview();
         assertTrue(model.selected().contains(recipient.id()), "An equipment visit preserves selection");
