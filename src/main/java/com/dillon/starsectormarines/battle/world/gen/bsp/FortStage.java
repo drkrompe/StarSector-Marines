@@ -777,7 +777,20 @@ public final class FortStage implements GenStage {
                     draw.earth(c.x(), c.y());
                     draw.sandbag(c.x(), c.y(), c.dx(), c.dy(), c.cornerDx(), c.cornerDy());
                 }
-                case FENCE -> draw.fence(c.x(), c.y(), c.dx() != 0);
+                case FENCE -> {
+                    draw.fence(c.x(), c.y(), c.dx() != 0);
+                    // One fence is a hairline at game scale and a lighter obstacle than the belt was authored against:
+                    // lay a second row beside it on bare glacis, so the line is as thick as the wire it replaced.
+                    for (int side = 1; side >= -1; side -= 2) {
+                        int lx = c.x() - c.dy() * side;
+                        int ly = c.y() + c.dx() * side;
+                        int[] beside = at.cell(lx, ly);
+                        if (taken.contains(FortDressing.key(beside[0], beside[1]))) continue;
+                        if (ctx.grid.inBounds(beside[0], beside[1])
+                                && ctx.topology.getGroundKind(beside[0], beside[1]) == GroundKind.COURTYARD) continue;
+                        if (draw.fence(lx, ly, c.dx() != 0)) break;
+                    }
+                }
                 case NEST -> {
                     draw.earth(c.x(), c.y());
                     emitNest(ctx, cell, fortId, at, nestNumber++);

@@ -102,7 +102,7 @@ A fort is never a wall round a pad. It is layered outside in, and a layer that i
    it is given: a cell the city or a neighbour holds is simply not drawn. The belt is cover and obstacle by the existing
    semantics (sandbag and trench cells are walkable heavy cover; the fence line is the ordinary industrial fence, closed to
    movement and opened by the same wall-health and cover-damage machinery as any fence), never decoration. The fence
-   stands four cells outside the trench in runs with gaps and is left open across every gate lane: the gaps are the
+   stands four cells outside the trench, two rows thick, in runs with gaps and is left open across every gate lane: the gaps are the
    funnels that run an attacker into the nests' lanes, a run is slow to cross until a charge, shell, rocket or heavy
    body opens it (no breaching tool is invented for it), and a way through always exists. There is no wire and there
    are no mines (`fortified-lines.md`).
@@ -267,7 +267,7 @@ radar, the plant's turbine fans and glow, the magazine's vent fans and warning l
 banner and takes a wash of the holder's colour. Gatehouse towers carry embrasured caps while their walls stand, the gate
 carries folded leaves, and neither draws over a breach. A new fort kind adds data (a `buildingArt` block per aspect) and a
 layout, not renderer code. Retained sources: `art-source/fort-buildings/`. Art is authored with the door on one edge; a plan whose door is on the other
-edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick.
+edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick and the belt's fence is two rows.
 A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. The shield fort carries the same gatehouse pieces, turned to face each of its three gates.
 
 ## Built: siting (mission-owned)
