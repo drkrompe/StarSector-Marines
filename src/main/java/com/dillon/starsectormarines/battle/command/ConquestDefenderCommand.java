@@ -119,6 +119,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
     private volatile ConquestFrontSnapshot frontSnapshot;
     private final GarrisonDirector garrisons = new GarrisonDirector();
+    /** Alarms on this side's own forts: the pressure kept up while nobody can see the attack ({@link PlaceAlarms}). */
+    private final PlaceAlarms alarms = new PlaceAlarms();
     /**
      * Pressure-proportional flow (see {@link GarrisonFlow}). {@code -Dbattle.garrison.flow=false}, or the older
      * {@code -Dbattle.fort.stagedReserve=false}, keeps every patrol where its own track leaves it: the same-build
@@ -353,6 +355,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     public CommandPlan<ConquestFrontSnapshot> plan(ConquestCommandFrame frame) {
         structures = frame.facts().structures();
         CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence != null) {
+            alarms.update(frame.tick(), faction(), structures, new PlaceAlarms.Reading() {
+                @Override public float hostileAt(int bx, int by) { return influence.hostileAt(bx, by); }
+                @Override public float lossesAt(int bx, int by) { return influence.lossesAt(bx, by); }
+            }, influence.blockSize(), influence.width(), influence.height());
+        }
         Threat[] threats = buildThreats(influence);
         Map<Integer, Rally> rallies = new HashMap<>();
         for (Threat threat : threats) {
@@ -501,14 +509,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 influence != null ? influence.updatedTick() : -1,
                 candidates.size() + stagedOutside(candidates),
                 candidates.size() - selected.size() + stagers.size(),
-                summaries(activeThreats.size(), responseBudget, mobileReserve, structureNotes, flowNote),
+                summaries(activeThreats.size(), responseBudget, mobileReserve, structureNotes, flowNote, alarms.describe()),
                 proposals, detail);
     }
 
     private static List<String> summaries(Object threats, Object budget, Object reserve, List<String> structureNotes,
-                                          String flowNote) {
+                                          String flowNote, String alarmNote) {
         List<String> out = new ArrayList<>();
         if (!flowNote.isEmpty()) out.add(flowNote);
+        if (!alarmNote.isEmpty()) out.add("place alarms: " + alarmNote);
         out.add("active threat tracks=" + threats);
         out.add("response budget=" + budget);
         out.add("held reserve=" + reserve);
@@ -593,7 +602,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 int track = trackLayout.trackForCell(x, y);
                 if (track < 0 || track >= threats.length) continue;
                 threats[track].friendlyPressure += influence.friendlyAt(bx, by);
-                threats[track].hostilePressure += influence.hostileAt(bx, by);
+                threats[track].hostilePressure += placePressure(influence, bx, by);
             }
         }
         return threats;
@@ -902,7 +911,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             contactScratch[2 * count + 1] = contact.cellY();
             count++;
         }
-        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, influence::hostileAt, contactScratch, count, held));
+        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, (bx, by) -> placePressure(influence, bx, by),
+                contactScratch, count, held));
         Set<Integer> fallingBack = new HashSet<>(garrisons.fallingBack());
         for (GarrisonDirector.Garrison garrison : held) {
             PlanningSquad squad = heldSquads.get(garrison.squadId());
@@ -972,6 +982,14 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * The believed pressure areas of this plan: the distinct influence blocks holding a believed contact (the weak ones
      * a works crew or a fading report would add are ignored, as they are for manning), clustered by {@link GarrisonFlow}.
      */
+    /**
+     * The pressure this side reads on a block: what it believes is there, or the floor an alarm on one of its own
+     * places keeps under it, whichever is greater.
+     */
+    private float placePressure(CommanderInfluenceSnapshot influence, int bx, int by) {
+        return Math.max(influence.hostileAt(bx, by), alarms.floorAt(bx, by));
+    }
+
     private List<GarrisonFlow.Area> pressureAreas(CommanderInfluenceSnapshot influence) {
         int bw = influence.width();
         int bh = influence.height();
@@ -994,7 +1012,22 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 flowPressure = Arrays.copyOf(flowPressure, count * 2);
             }
             flowBlocks[count] = block;
-            flowPressure[count] = influence.hostileAt(bx, by);
+            flowPressure[count] = placePressure(influence, bx, by);
+            count++;
+        }
+        // An alarmed fort is a pressure area whether or not anybody can see who is in it.
+        for (int[] alarmed : alarms.alarmedBlocks()) {
+            int bx = Math.min(bw - 1, Math.max(0, alarmed[0]));
+            int by = Math.min(bh - 1, Math.max(0, alarmed[1]));
+            int block = by * bw + bx;
+            if (flowStamp[block] == flowGeneration) continue;
+            flowStamp[block] = flowGeneration;
+            if (count == flowBlocks.length) {
+                flowBlocks = Arrays.copyOf(flowBlocks, count * 2);
+                flowPressure = Arrays.copyOf(flowPressure, count * 2);
+            }
+            flowBlocks[count] = block;
+            flowPressure[count] = placePressure(influence, bx, by);
             count++;
         }
         TickInnerProfile profile = TickInnerProfile.currentIfBound();

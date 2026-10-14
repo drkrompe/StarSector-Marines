@@ -2114,6 +2114,19 @@ defender's own picture. `battle.fort.beltGarrison` selects reactive (default),
 static (a born garrison on every belt nest, the control) or off; only reactive
 seats the picket.
 
+A commander also keeps **place alarms** on its own forts. Belief alone loses an
+attack inside the walls or one that killed the picket, so pressure fades and the
+garrison is released when it is most needed. A **trigger** is an own-force fact
+about the place, of the same class as a side's memory of its own casualties: an
+aspect being taken or lost, a rise in its own losses on the fort's ground, or
+pressure on it at the manning level. A trigger raises the alarm, which keeps a
+pressure floor on the fort's blocks that fades with a long half-life and is
+refreshed by each new trigger: conflict retained on ground the commander holds
+to matter, and nowhere else. A fort whose every aspect is held by the enemy is a
+**lost cause**; its alarm is dropped, so squads are no longer fed into it
+piecemeal, and retaking it is the structure planner's question.
+`battle.command.placeAlarms=false` is the belief-only control.
+
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
 staged behind it (at a fort's works for a fort's belt) and still in the pool, and
