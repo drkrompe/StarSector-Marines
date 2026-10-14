@@ -4,7 +4,7 @@ Status: ACTIVE — shared architecture and mission-specific migrations are track
 
 Written: 2026-08-27
 
-Updated: 2026-09-27 — strategic-resolution evidence and compact navigation
+Updated: 2026-10-14 — phased assault slices 1-3 are built and off by default; see their rows. Earlier: strategic-resolution evidence and compact navigation
 snapshots are folded into the canonical model; open work remains below.
 
 Read `mission-command-nouns.md`, then the relevant mission design before an
@@ -30,9 +30,9 @@ Design: `conquest-command.md`
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
-| `phased-assault.md` (design) slice 1 | BUILT, TO TUNE | Foothold, muster and assault are in (`battle.command.muster`); the believed-need figures are untuned and the fixtures with forts show mixed captures, so the numbers and the south regression are open until slice 3 gives companies a plan. |
+| `phased-assault.md` (design) slice 1 | BUILT, OFF BY DEFAULT | Foothold, muster and assault are in (`battle.command.muster=true`); readiness counts nests and the gate, lanes keep half their squads, a short muster stands down. On the four fort fixtures the control still holds more compounds on three, so it stays off until it wins; open: companies standing at a rally with nobody at it, and a muster with a lance in play on Conquest.
 | `phased-assault.md` (design) slice 2 | BUILT | Call surface, allowance and delivery are built (`mech-drop` scene); the muster calls it for a short company (`ConquestCommand.afterCommit`); a Conquest comparison with a lance in play is open. |
-| `phased-assault.md` (design) slice 3 | PLANNED | Per-stamp fort assault plans and a plan executor for a company. |
+| `phased-assault.md` (design) slice 3 | BUILT, OFF WITH THE MUSTER | `FortPlan.approaches()` and the `FortAssault` executor (base of fire, entry, objective, hold) drive a committed company; the `assault-muster` scene compares control, slice 1 and plan. It takes forts the control never touches; infantry rifles do not kill nests, so its value waits on machines. Breach is exported but nothing shoots a wall on purpose.
 
 ## Sabotage
 
