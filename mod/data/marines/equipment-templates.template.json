@@ -86,13 +86,19 @@
     { "equipmentId": "special.breaching-cutter", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.vibro-blade", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.point-defence-emplacement", "accessTier": "advanced", "issueCost": {} },
-    { "equipmentId": "special.field-revetment", "accessTier": "common", "issueCost": {} }
+    { "equipmentId": "special.field-revetment", "accessTier": "common", "issueCost": {} },
+    { "equipmentId": "special.field-mortar", "accessTier": "advanced", "issueCost": {} }
   ],
   "nonPlayerEquipment": [
     {
       "kind": "special",
       "equipmentId": "special.scrap-rocket",
       "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
+    },
+    {
+      "kind": "special",
+      "equipmentId": "special.comms-radio",
+      "reason": "Forward-observer set issued by roster to elite squads; player acquisition (tier, cost) awaits an owner decision."
     },
     {
       "kind": "primary",

@@ -6,7 +6,7 @@ until the evidence below beats the trickle. Slices are on the mission-command bo
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — capability profiles and role assignment built (plans choose their way in by what the company can staff; breaches are fired at a wall on purpose); slice 3 as before, `battle.command.muster` still defaults off.
+Updated: 2026-10-14 — air strike is a capability a plan may use (see Air strike as a capability); the field mortar is a standoff anti-structure and suppression capability source (`special.field-mortar`); slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), muster off by default; capability profiles and role assignment are built (plans choose their way in by what the company can staff, breaches are fired at a wall on purpose, see Capabilities and roles).
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -129,6 +129,17 @@ in line; a carried launcher fires a round; a marine with a satchel sets it on th
 cell; a cutter cuts it. Every gate the weapon has elsewhere still applies. The
 support mech's cannon carries the wall damage that makes it a reliable distance
 breacher over a number of shells (see `mechs-nouns.md`).
+
+### Mortar teams as a capability source
+
+A nest outranges a rifle squad, so the base of fire needs something that kills nests from beyond their reach.
+The **field mortar** (`special.field-mortar`; see "Crew-served fire support" in `ai-nouns.md`) is that capability
+in infantry form: catalog data gives its deployed weapon a reach beyond a nest's, a minimum range, splash and
+structure/wall damage, so the capability profile reads it as **standoff, indirect anti-structure with
+suppression** from data alone, with no plan-side special case. Today the tube fires on its section's own belief,
+so a spotter inside sight of the nests is part of the plan's base of fire; there is no way yet to *assign* a fire
+mission to a tube (open on `stories.md`). Evidence: scene `field-mortar` (a section with a tube against a fort's
+wall nests, a rifle-squad control at the same distance, and a loop where the deployed team is rushed).
 
 ## Mech lances arrive without the player
 
@@ -371,6 +382,10 @@ range) is not built; the satchel carrier can be caught by his own blast if the
 sapper does not clear it (the friendly-hazard avoidance is relied on, not
 measured); a mech's standoff position can land inside a nest's reach; all
 figures above are first passes.
+
+## Air strike as a capability
+
+A company that brings comms operators and a side with a declared air pool carries an **air strike** capability, read from `AirStrikeCapability` (pool stock plus living operators) rather than from hand-listed assets. A fort plan may spend it on a single nest or a gun it has sighted ahead of the assault; `AirStrikeDirector.strike` applies the same risk ceiling the AI uses, so a heavily defended fort is not softened from the air and the plan falls back to its ground steps. Role matching stays with the capability profile.
 
 ## Slices
 

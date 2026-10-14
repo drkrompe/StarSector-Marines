@@ -457,6 +457,60 @@
       }
     },
     {
+      "id": "special.comms-radio",
+      "catalog": {
+        "displayName": "@gearCatalogSpecialCommsRadioDisplayName",
+        "subtitle": "@gearCatalogSpecialCommsRadioSubtitle",
+        "factionLogo": "graphics/factions/hegemony.png",
+        "description": "@gearCatalogSpecialCommsRadioDescription"
+      },
+      "activation": {
+        "type": "utility-comms",
+        "spotRangeCells": 30.0,
+        "radioRangeCells": 140.0,
+        "callSeconds": 4.0,
+        "suppressionPressure": 2.0
+      },
+      "resource": {
+        "mode": "cooldown",
+        "cooldownSeconds": 30.0
+      },
+      "ai": {
+        "policy": "forward-observer"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-comms-radio.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/battle/fx/comms-radio-pack.png",
+          "widthShoulders": 0.4,
+          "heightShoulders": 0.52,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.26, -0.04],
+            "angleDegrees": -8.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.3],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": false
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "carried",
+          "phase": 0.0
+        }
+      }
+    },
+    {
       "id": "special.point-defence-emplacement",
       "catalog": {
         "displayName": "@gearCatalogSpecialPointDefenceEmplacementDisplayName",
@@ -485,6 +539,61 @@
           "sprite": "graphics/ui/armory/special-point-defence-pod.png",
           "widthShoulders": 0.36,
           "heightShoulders": 0.36,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.26, -0.06],
+            "angleDegrees": -12.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.3],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.56
+        }
+      }
+    },
+    {
+      "id": "special.field-mortar",
+      "catalog": {
+        "displayName": "@gearCatalogSpecialFieldMortarDisplayName",
+        "subtitle": "@gearCatalogSpecialFieldMortarSubtitle",
+        "factionLogo": "graphics/factions/hegemony.png",
+        "description": "@gearCatalogSpecialFieldMortarDescription"
+      },
+      "activation": {
+        "type": "utility-deployable",
+        "structureId": "structure.deployable-field-mortar",
+        "deployDuration": 4.0,
+        "packDuration": 3.0,
+        "redeployCooldown": 20.0,
+        "lifetimeSeconds": 900.0
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 1
+      },
+      "ai": {
+        "policy": "crew-served-fire-support"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-field-mortar.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-field-mortar.png",
+          "widthShoulders": 0.6,
+          "heightShoulders": 0.6,
           "pivot": [0.5, 0.5],
           "carried": {
             "offsetShoulders": [-0.26, -0.06],

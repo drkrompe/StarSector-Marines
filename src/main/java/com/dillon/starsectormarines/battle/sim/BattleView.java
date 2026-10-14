@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
@@ -279,6 +281,9 @@ public interface BattleView {
     /** Live point-defence emplacements placed out of the carried special slot, and their remaining bounds. */
     PointDefenseService pointDefense();
 
+    /** Crew-served tubes (the field mortar) that carriers have set down or are setting down, and their gunners. */
+    FieldMortarService fieldMortars();
+
     /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
     DeployedCoverService deployedCover();
 
@@ -412,6 +417,15 @@ public interface BattleView {
      * {@link MechDropService#NONE} on a battle whose mission declared none.
      */
     default MechDropService mechDrops() { return MechDropService.NONE; }
+
+    /**
+     * Each side's pool of airframes and the ledger that tasks them through comms operators.
+     * {@link AirPoolService#NONE} on a battle whose mission declared none.
+     */
+    default AirPoolService airPool() { return AirPoolService.NONE; }
+
+    /** Whether a comms operator of {@code side} could direct an airframe in stock onto the point right now. */
+    default boolean canDirectAirStrike(Faction side, float x, float y, boolean believes) { return false; }
 
     /** The live air-entity ids (shuttles, and planned fighters) — walk these and read each craft's state by id via {@link #world()}. */
     long[] getAirEntityIds();

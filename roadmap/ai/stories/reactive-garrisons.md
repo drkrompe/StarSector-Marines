@@ -1,10 +1,10 @@
 # Reactive garrisons
 
-Status: IN PROGRESS — slices 1 and 2 built; arrival time and fall back next
+Status: IN PROGRESS — reactive manning, arrival gate, fall back and general flow built; unify rally and flow next
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — belts are reactive (`GarrisonableRegistry`, `GarrisonDirector`); on the fort control the patrol pool is back, but patrols arrive 400–3000 ticks after being sent and four of nine were released en route, so few dig in.
+Updated: 2026-10-13 — general flow (`GarrisonFlow`) replaces fort-only staging; letting manning take just-rallied patrols raised fort-control sends from about 5 to about 25 and dug-in squads from 1 to 11–14. Flow staging alone is marginal because the rally spends about 75% of the pool first. Fall backs now occur live (5–8 per run).
 
 ## Intent
 
@@ -47,6 +47,17 @@ releases them when the pressure passes.
   reserve so the nearest free squad is near the belt.
 - Run ids renumber when the index rebuilds; the commander re-resolves a manned
   run by its centre cell and counts a vanished run as lost.
+
+## Next
+
+- Make the track rally and flow one per-area reservation, so the rally's
+  destination is an area's staging cell or garrisonable and flow is not left
+  with the remainder.
+- Stop staging on maps or areas with nothing to man, where it only costs rally
+  share.
+- One published directive showed the staging reason with no assignment cell;
+  find out why.
+- Tune the weights and dwells once the pool split is settled.
 
 ## Constraints
 

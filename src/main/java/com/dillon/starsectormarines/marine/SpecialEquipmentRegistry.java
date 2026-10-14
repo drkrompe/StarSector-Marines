@@ -25,11 +25,13 @@ public final class SpecialEquipmentRegistry {
     public static final String ANTI_MATERIEL_RIFLE_ID = "special.anti-materiel-rifle";
     public static final String SMOKE_GRENADE_ID = "special.smoke-grenade";
     public static final String SATCHEL_CHARGE_ID = "special.satchel-charge";
+    public static final String COMMS_RADIO_ID = "special.comms-radio";
     public static final String FRAG_GRENADE_ID = "special.frag-grenade";
     public static final String BREACHING_CUTTER_ID = "special.breaching-cutter";
     public static final String VIBRO_BLADE_ID = "special.vibro-blade";
     public static final String POINT_DEFENCE_EMPLACEMENT_ID = "special.point-defence-emplacement";
     public static final String FIELD_REVETMENT_ID = "special.field-revetment";
+    public static final String FIELD_MORTAR_ID = "special.field-mortar";
 
     public static final List<String> BUILTIN_CATALOGS = List.of(
             "data/marines/marine-special-equipment.equipment.json");

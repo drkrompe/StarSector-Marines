@@ -262,6 +262,44 @@
       "audio": { "fireSound": "heavy_mortar_fire" }
     },
     {
+      "id": "weapon.field-mortar",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponFieldMortarDisplayName", "modelName": "@gearCatalogWeaponFieldMortarModelName", "designation": "MTR", "designationTiered": false },
+      "sim": {
+        "_comment": "UNTUNED first pass. Range outreaches a wall nest (24 cells) and a rifle (22); the minimum range is the tube's dead zone, so a team rushed inside it must pack up or fight with the rifles it carries.",
+        "range": 52.0, "minRange": 14.0, "damage": 64.0, "accuracy": 0.62, "cooldown": 4.0, "penetration": 16.0,
+        "hitSpread": 1.7, "roundVelocity": 34.0, "aoeRadius": 1.9, "wallDamage": 40, "wallDamageRadius": 1.6,
+        "flightSec": 1.5, "arcHeight": 5.5, "interceptableProjectile": true, "pointDefenseTarget": true,
+        "indirectFire": true, "noLosAccuracyMult": 0.55, "noiseMagnitude": 1.4
+      },
+      "render": {
+        "projectileSprite": "graphics/missiles/mortar_round.png",
+        "projectileVisualCells": 0.5
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.30, "lifetime": 0.20 },
+          { "kind": "smoke", "radius": [0.28, 0.40], "lifetime": [0.70, 1.00], "count": 2, "jitter": 0.22 }
+        ],
+        "trail": [
+          { "kind": "smoke", "radius": [0.12, 0.18], "lifetime": [0.35, 0.50], "jitter": 0.06 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.95, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "explosion", "radius": 0.62, "lifetime": 0.40 },
+          { "kind": "ring", "radius": 0.44, "lifetime": 0.32 },
+          { "kind": "fire", "radius": 0.66, "lifetime": 0.55 },
+          { "kind": "smoke", "radius": [0.55, 0.90], "lifetime": [1.15, 1.65], "count": [3, 5], "jitter": 0.65 },
+          { "kind": "dust", "radius": 0.80, "lifetime": 0.42 }
+        ],
+        "aftermath": [
+          { "kind": "smoke", "radius": [0.40, 0.75], "lifetime": [0.95, 1.55], "jitter": 0.55, "delay": [0.10, 0.25], "emissionDuration": 1.50, "emissionInterval": [0.30, 0.44] }
+        ]
+      },
+      "audio": { "fireSound": "light_mortar_fire", "impactSound": "marines_explosion" }
+    },
+    {
       "id": "weapon.turret-dual-flak",
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretDualFlakDisplayName", "modelName": "@gearCatalogWeaponTurretDualFlakModelName", "designation": "DFK", "designationTiered": false },

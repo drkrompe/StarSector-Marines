@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
@@ -251,6 +252,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.power.AirStrikePower;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 
@@ -343,6 +347,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SatchelChargeService satchelCharges;
     /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
     private final PointDefenseService pointDefense;
+    private final FieldMortarService fieldMortars = new FieldMortarService();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
     /** Owner of carrier-placed cover screens: placement queue, live screens, and their remaining lifetime. Holds no entities — a screen is a property of a cell boundary, published through {@link MapEditor}. */
@@ -573,6 +578,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private SquadCommandClaim playerSupportCommandClaim;
     private MechDropService mechDrops = MechDropService.NONE;
+    private AirPoolService airPool = AirPoolService.NONE;
 
     public void installWaylineHound(int x, int y) {
         if (simTickIndex != 0 || waylineHound != null) throw new IllegalStateException("Install recovery once at setup");
@@ -1288,6 +1294,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     @Override public PointDefenseService pointDefense() { return pointDefense; }
+    @Override public FieldMortarService fieldMortars() { return fieldMortars; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
     @Override public DeployedCoverService deployedCover() { return deployedCover; }
@@ -1527,7 +1534,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commandPowers.setResources(resources);
     }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
-    public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
+    public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) {
+        commandPowers.setPowers(powers);
+        grantAirStrikeForPlayerPool();
+    }
+
+    /**
+     * A pool the mission gave the marines and left to the player carries the air-strike power with it: the card is the
+     * pool's front door, so it exists exactly when the pool does and nobody has to commit a fleet source for it.
+     */
+    private void grantAirStrikeForPlayerPool() {
+        var allowance = airPool.allowance(Faction.MARINE);
+        if (allowance.isNone() || allowance.aiDirected()) return;
+        if (commandPowers.getPower(AirStrikePower.ID) == null) commandPowers.register(new AirStrikePower());
+    }
 
     /** Installs the mission-owned concurrent player-squad limit before ticking. */
     public void setFieldPresencePolicy(FieldPresencePolicy policy) {
@@ -2240,6 +2260,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public MechDropService mechDrops() { return mechDrops; }
 
+    /** Installs the air pools the mission declared; battle setup owns the call. */
+    public void setAirPool(AirPoolService service) {
+        if (simTickIndex != 0) throw new IllegalStateException("Air pools belong to battle setup");
+        airPool = service != null ? service : AirPoolService.NONE;
+        grantAirStrikeForPlayerPool();
+    }
+
+    @Override public AirPoolService airPool() { return airPool; }
+
+    @Override
+    public boolean canDirectAirStrike(Faction side, float x, float y, boolean believes) {
+        return airPool.canRequest(this, side, x, y, believes);
+    }
+
+    @Override
+    public AirPoolService.Outcome requestAirStrike(Faction side, AirPoolKind kind, float x, float y, boolean believes) {
+        return airPool.request(this, side, kind, x, y, believes);
+    }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);
@@ -2825,6 +2864,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // ahead of shots.tickProjectiles below, so a round marked intercepted
         // this tick is dropped on the same beat it would have detonated.
         pointDefense.tick(TICK_DT, this);
+        // Crew-served tubes: set-up and pack clocks, minting, retiring, and the loss of a tube with its gunner.
+        fieldMortars.tick(TICK_DT, this);
         // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
         shieldDomes.tick(TICK_DT, rosterService);
         // Cover screens build, age, and retire here. Nothing downstream of
@@ -2854,6 +2895,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (coldAccount != null) coldAccount.advance(this);
         if (hostileShip != null) hostileShip.advance(this);
         mechDrops.advance(this);
+        airPool.advance(this);
         fortSystem.tick(TICK_DT, this);
         fortressBatterySystem.tick(TICK_DT, this);
         warships.tick(TICK_DT, this);
