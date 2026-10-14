@@ -26,6 +26,7 @@ feature:
 | `conquest-560-contact.md` | PROPOSED | Three decisions the 560x336 matrix surfaced: the standoff is measured from the wrong side of the beachhead and correcting it alone measures worse, arrival lift does not scale with committed seats, and an open compound's capture zone is the outdoors. |
 | *(lane preference)* | PROPOSED | `STRIP_COUNT = 3` and `stripFor` reading the landing lateral put effectively all of full-strength-west's squads on track 1, so two of the three lanes are advanced by nobody — and the zone cap measured in `conquest-command.md` says a front push cannot be divided usefully until they are. |
 | *(open question)* | UNDECIDED | The beachhead is now a compound the marines hold and can lose, and losing it currently costs nothing but the marker. What it should cost — the shuttle cycle, the rejoin lift, the victory law, or nothing at all — wants deciding before a rule is written for it. |
+| `conquest-trial-ground.md` | IN PROGRESS | A small synthetic Conquest map (one landing zone, one fort on or off the path, one objective) under the production commanders, with the mission layer separated from the city generator. |
 | `progressive-reinforcement.md` | PARKED | Manually verify defender frontline response, safe delivery, and supply degradation across a Conquest push. |
 | `biome-counterattack.md` | PARKED | Manually tune and verify the telegraphed defender counterattack as a territorial swing. |
 
