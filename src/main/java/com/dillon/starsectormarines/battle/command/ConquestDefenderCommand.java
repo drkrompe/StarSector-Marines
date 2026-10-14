@@ -126,6 +126,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * under attack that nobody can see into. {@code -Dbattle.command.alarmThreats=false} is the control.
      */
     static final boolean ALARM_THREATS = Boolean.parseBoolean(System.getProperty("battle.command.alarmThreats", "true"));
+    /**
+     * Whether an arrived belt garrison whose own stretch is quiet stands to at the work its alarmed fort is losing.
+     * Off by default, an experiment: on the trial ground it fired in three fixtures of twelve, kept a fort's aspect
+     * once and lost one earlier once, because the doorstep it chose lay round the outside of the works and the squad
+     * arrived after the work fell. {@code -Dbattle.command.standTo=true} turns it on.
+     */
+    static final boolean STAND_TO = Boolean.parseBoolean(System.getProperty("battle.command.standTo", "false"));
 
     private final ConquestTrackLayout trackLayout;
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
@@ -134,6 +141,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private int[] threatSeenTick = new int[0];
     private int[] threatSeenForward = new int[0];
     private float[] threatSeenFront = new float[0];
+    /** Garrisons standing to at a work of an alarmed fort: squad id to fort id. Held there until the alarm lapses. */
+    private final Map<Integer, Integer> standingTo = new TreeMap<>();
     private volatile ConquestFrontSnapshot frontSnapshot;
     private final GarrisonDirector garrisons = new GarrisonDirector();
     /** Alarms on this side's own forts: the pressure kept up while nobody can see the attack ({@link PlaceAlarms}). */
@@ -409,7 +418,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (CommandSquadState state : frame.squads()) {
             PlanningSquad squad = new PlanningSquad(state);
             allSquads.put(squad.id, squad);
-            if (squad.aliveMembers <= 0) continue;
+            if (squad.aliveMembers <= 0) {
+                standingTo.remove(squad.id);
+                continue;
+            }
             int home = homeTrack(squad);
             if (!isCommandPoolSquad(squad)) {
                 AssignmentReason reason = squad.role == UnitRole.GARRISON
@@ -436,6 +448,17 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     continue;
                 }
                 stagers.remove(squad.id);
+            }
+            Integer standFort = standingTo.get(squad.id);
+            if (standFort != null) {
+                // Not a pool squad while its fort is alarmed, so neither the track response nor the structure planner's
+                // belt post takes it back off the work it was sent to.
+                if (squad.assignedObjective != null && alarms.alarmed(standFort) && !hasHigherAuthority(squad)) {
+                    directives.put(squad.id, directive(squad, home, home, squad.localContact
+                            ? AssignmentReason.DEFENDER_LOCAL_CONTACT : AssignmentReason.DEFENDER_GARRISONABLE_STAND_TO));
+                    continue;
+                }
+                standingTo.remove(squad.id);
             }
             if (squad.localContact) {
                 clearMissionRally(squad);
@@ -986,6 +1009,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 continue;
             }
             int place = garrison.garrisonable();
+            ObjectiveAssignment standTo = garrison.arrived() && !squad.localContact
+                    ? standToPost(squad, place, places, influence, topology, perspective) : null;
+            if (standTo != null) {
+                squad.assignedObjective = standTo;
+                garrisons.forget(squad.id);
+                standingTo.put(squad.id, places.fortId(place));
+                directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_STAND_TO));
+                continue;
+            }
             ObjectiveAssignment order = ObjectiveAssignment.defendRun(squad.id, places.centreX(place),
                     places.centreY(place), places.radius(place), place);
             if (!order.equals(squad.assignedObjective)) squad.assignedObjective = order;
@@ -1414,6 +1446,59 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
         if (works == null) return null;
         return DefenceStructureTactics.doorstepPost(squad.id, works, squad.anchorCellX, squad.anchorCellY, topology);
+    }
+
+    /**
+     * Where a garrison should stand to instead of holding its own stretch: the doorstep of the work its fort is losing,
+     * or {@code null} to stay. It moves only when the fort is alarmed, its own stretch is believed quiet (the floor the
+     * alarm lays over the fort's ground is not read here, or every belt squad would count its own run as pressed), and
+     * a work of the fort is being taken or already lost. The work being taken is the destination; when one is lost the
+     * held work nearest it is, so the squad stands between the loss and what remains. Own-force facts only.
+     */
+    private ObjectiveAssignment standToPost(PlanningSquad squad, int place, GarrisonableRegistry places,
+                                            CommanderInfluenceSnapshot influence, CommandTopology topology,
+                                            Faction perspective) {
+        if (!STAND_TO || influence == null) return null;
+        int fort = places.fortId(place);
+        if (fort < 0 || !alarms.alarmed(fort)) return null;
+        int width = Math.max(1, places.blockWidth());
+        for (int block : places.coveredBlocks(place)) {
+            if (influence.hostileAt(block % width, block / width) >= GarrisonDirector.RELEASE_PRESSURE) return null;
+        }
+        DefenceStructureFact pressed = null;
+        DefenceStructureFact lost = null;
+        for (DefenceStructureFact aspect : structures) {
+            if (aspect.fortId() != fort || aspect.originalHolder() != faction()) continue;
+            if (perspective.friendlyTo(aspect.holder())) {
+                if (aspect.threatened() && (pressed == null || closer(aspect, pressed, places, place))) pressed = aspect;
+            } else if (lost == null || closer(aspect, lost, places, place)) {
+                lost = aspect;
+            }
+        }
+        DefenceStructureFact target = pressed;
+        if (target == null && lost != null) {
+            long best = Long.MAX_VALUE;
+            for (DefenceStructureFact aspect : structures) {
+                if (aspect.fortId() != fort || !perspective.friendlyTo(aspect.holder())) continue;
+                long dx = aspect.cellX() - lost.cellX();
+                long dy = aspect.cellY() - lost.cellY();
+                if (dx * dx + dy * dy < best) {
+                    best = dx * dx + dy * dy;
+                    target = aspect;
+                }
+            }
+        }
+        if (target == null) return null;
+        return DefenceStructureTactics.doorstepPost(squad.id, target, squad.anchorCellX, squad.anchorCellY, topology);
+    }
+
+    /** Whether {@code a} stands nearer the garrisonable's centre than {@code b}. */
+    private static boolean closer(DefenceStructureFact a, DefenceStructureFact b, GarrisonableRegistry places, int place) {
+        long ax = a.cellX() - places.centreX(place);
+        long ay = a.cellY() - places.centreY(place);
+        long bx = b.cellX() - places.centreX(place);
+        long by = b.cellY() - places.centreY(place);
+        return ax * ax + ay * ay < bx * bx + by * by;
     }
 
     private static boolean isTrackResponse(SquadDirective directive) {

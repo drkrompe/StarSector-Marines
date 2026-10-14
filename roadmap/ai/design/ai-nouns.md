@@ -2242,7 +2242,9 @@ and must preserve the same knowledge and ownership laws.
 Ground-defence structures (a fortress battery's fire control, a shield generator) are a bounded Conquest extension
 of the same kind: each Conquest commander is disclosed the structures its side built, holds, or (for the company)
 has seen, and may detach a few squads to take, retake or stand to at them with ordinary attack-move and area-defence
-orders. No hostile identity or unseen structure is disclosed, and the extension is inert on a map with none
+orders. Standing to at a fort's aspect holds the stretch of its belt nearest that aspect, not the stretch nearest the
+squad, so a squad already on the belt is moved to the side being pressed rather than posted where it stands.
+No hostile identity or unseen structure is disclosed, and the extension is inert on a map with none
 (`ground-defences.md`, *Command awareness*). A fort is chosen between aspect by aspect from what was disclosed of it
 (`forts.md`). A company sees a fort by its works (wall, gates, bastions), which stand out from outside, and not only the platform inside them. A sighting of a fort is remembered by the side that made it. A squad the ambient work service holds (a works crew at its bench, or stood down and due back) is not on strength: the dispatcher does not run it, so a commander offers it no structure work. A commander knows whether its own squads can
 wreck a building (their issued kit), never an enemy's; the wreck order is the ordinary attack move carrying a permission to

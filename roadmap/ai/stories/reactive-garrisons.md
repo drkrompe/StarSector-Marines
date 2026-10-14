@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — the "idle" reserve was a responder recalled and re-sent every other pulse as belief of the attack lapsed; threat memory and alarmed-fort threats fix it (trial matrix, same-build control: defender reserve share 68% vs 81%, onsets answered 17/27 vs 12/31, marine losses 201 vs 230 of 324, defender losses level). Next: a belt garrison holds its own stretch while the attack is elsewhere in the fort.
+Updated: 2026-10-14 — the "idle" reserve was a responder recalled and re-sent every other pulse as belief of the attack lapsed; threat memory and alarmed-fort threats fix it (trial matrix, same-build control: defender reserve share 68% vs 81%, onsets answered 17/27 vs 12/31, marine losses 201 vs 230 of 324, defender losses level). Structure stand-to now posts on the belt nearest the pressed aspect; the garrison stand-to experiment ships off (mixed across 12 fixtures). Next: a stand-to target that is reachable in time.
 
 ## Intent
 
@@ -51,13 +51,19 @@ releases them when the pressure passes.
 ## Next
 
 - A belt garrison holds the stretch it was sent to even when the attack has
-  moved round the fort or inside the works; an alarmed fort should redeploy
-  its garrison toward where the fort is actually being lost.
+  moved round the fort or inside the works. `battle.command.standTo=true` sends
+  it to the doorstep of the work being lost, but that doorstep is often round
+  the outside of the works: on offset-41 the squad walked 1,275 ticks and
+  arrived after POWER fell. Across 12 trial fixtures it fired in 3, kept an
+  aspect once, lost one earlier once, and cost defenders 11 more lives. Choose a
+  target the squad can reach before the work falls (route length, or a nearer
+  gate) before turning it on.
+- The track response can take a squad the structure planner has just given a
+  DEFEND task (offset-41 squad 3, ticks 4051 to 4276), because the response
+  chooses first.
 - The track rally alternates between the remembered contact band and the
   alarmed fort's rear when both apply; same direction, but each switch resets
   the route.
-- A structure-defence order left a squad stationary for about 400 ticks
-  before a retake moved it; not yet diagnosed.
 - Single runs swing by several hundred dug-in samples; use the trial ground
   (`conquest-trial-ground.md`) across seeds before tuning any weight or dwell.
 - Some squads still die on marches of a thousand ticks or more.
