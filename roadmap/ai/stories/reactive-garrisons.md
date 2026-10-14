@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — churn diagnosed: 27 of 55 sends were depleted squads released the next pulse; remote breaches a minor cause; area drift, work stealing and re-man ping-pong were not causes. Sends now require useful strength and breaches are local: man/release 42/41→23/21, dug-in marine-samples 1506→2497 (control 2794), rally response kept at 19 ticks, canonical maps unchanged.
+Updated: 2026-10-14 — useful strength is now half a squad's starting strength (never under two), not a fixed three: fort control man/release 23/21→21/16, reactive dug-in marine-samples 2497→3018 (static control 2794), one run.
 
 ## Intent
 
@@ -50,9 +50,6 @@ releases them when the pressure passes.
 
 ## Next
 
-- The useful-strength floor is a fixed three marines against three-to-four-man
-  defender squads, so one casualty forces a fall back; scale it to the squad's
-  starting strength.
 - Single runs swing by several hundred dug-in samples; build a multi-seed fort
   matrix before tuning any weight or dwell.
 - Some squads still die on marches of a thousand ticks or more.

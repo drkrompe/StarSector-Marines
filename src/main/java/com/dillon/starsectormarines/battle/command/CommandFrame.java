@@ -169,7 +169,7 @@ public class CommandFrame {
                     contact.contactInitiative().name(), coolingDownMembers,
                     memberZoneIds, memberCellXs, memberCellYs,
                     squad.commandGroupIdentity, demolition, crew, machine,
-                    CapabilityProfile.of(arms, walkers, memberCount)));
+                    CapabilityProfile.of(arms, walkers, memberCount), squad.originalSize));
             if (detail) publicationNanos += System.nanoTime() - rowStageStarted;
         }
         long sortStarted = detail ? System.nanoTime() : 0L;

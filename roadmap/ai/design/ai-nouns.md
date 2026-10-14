@@ -2116,7 +2116,7 @@ area's own reserved patrols first, then the roving pool above its reserve floor.
 believed inside it, or a garrison too small to hold it, falls back to the works
 of the fort it belongs to if the side still holds them, else returns to the pool;
 a breached run is not re-manned for a while. A squad is sent to man a run only at
-useful strength, and a breach is a believed enemy on the run itself near the
+useful strength (half the strength it started with, never fewer than two), and a breach is a believed enemy on the run itself near the
 squad, not one beside the run or at its far end.
 
 **What it pays is composure, never protection.** Cover already reduces damage
