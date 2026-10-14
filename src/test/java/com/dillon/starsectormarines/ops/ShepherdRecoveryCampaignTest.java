@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
@@ -31,27 +32,24 @@ class ShepherdRecoveryCampaignTest {
 
     @Test void shipBargainBelongsToDepartureAndRetriesKeepTheAgreement() {
         var inspection = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
-        assertEquals(List.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
-                "basin_salvage_scope_01", "basin_salvage_briefing_08"),
-                inspection.dialogue.stream().map(MissionDialogue.Turn::narrationId).toList());
-        assertFalse(inspection.flavor.contains("She's our fee"));
+        assertEquals(ShepherdRecoveryCampaign.BRIEF_TURNS, inspection.dialogue);
+        assertEquals(18000, inspection.payout);
+        assertEquals(MissionDialogue.transcript(inspection.dialogue), inspection.flavor);
         assertTrue(inspection.requirements.contains("Morrow remains cooperative property"));
         var progress = departureProgress();
         var passage = ShepherdRecoveryCampaign.offer(progress, "Asharu");
         assertEquals(ShepherdRecoveryCampaign.PASSAGE_TURNS, passage.dialogue);
-        assertTrue(passage.flavor.contains("Your militia were holding that road"));
-        assertTrue(passage.flavor.contains("And title to Morrow?"));
-        assertTrue(passage.flavor.contains("Only willing hands"));
-        assertFalse(passage.flavor.contains("both guns"));
-        assertFalse(passage.flavor.contains("two guns"));
+        assertEquals(0, passage.payout);
+        assertEquals(MissionDialogue.transcript(passage.dialogue), passage.flavor);
+        assertTrue(passage.requirements.contains("willing working crew"));
         assertTrue(progress.begin(passage.id, "Asharu"));
         assertEquals(0, progress.settleWorkingPassage(passage.id, "Asharu", false, 0,
                 0, false, false, true, null, 0));
         var retry = ShepherdRecoveryCampaign.offer(progress, "Asharu");
         assertEquals(1, retry.dialogue.size());
         assertEquals("@shepherdPassageRetry", retry.dialogue.get(0).text());
-        assertTrue(retry.flavor.contains("Our agreement stands"));
-        assertFalse(retry.flavor.contains("Your militia were holding"));
+        assertEquals(Strings.resolve("@dialogueSpeakerVale") + ": "
+                + Strings.get("shepherdPassageRetry"), retry.flavor);
     }
 
     @Test void introductionRequiresTheCompletedAccountAndItsAcknowledgement() {
@@ -87,6 +85,8 @@ class ShepherdRecoveryCampaignTest {
         progress.begin(id,"Asharu");progress.settle(id,"Asharu",true,18000,0,true);
         var mission=ShepherdRecoveryCampaign.offer(progress,"Asharu");
         assertEquals("Cold Start",mission.name);assertEquals(22000,mission.payout);
+        assertEquals(ShepherdRecoveryCampaign.COLD_TURNS, mission.dialogue);
+        assertTrue(mission.requirements.contains("Morrow remains cooperative property"));
         assertEquals(StoryScene.COLD_START,StoryScene.forMission(mission));
         var boat=FittedBoat.standard(ShuttleType.HERMES);
         for(int people:List.of(8,24,53)) {
@@ -100,6 +100,31 @@ class ShepherdRecoveryCampaignTest {
         assertEquals(2,preset.squads());assertEquals(2,preset.boats());assertEquals(0,preset.mechs());
         assertEquals("03",DebugMissionCatalog.Scenario.COLD_START.sequence());
         assertEquals("Asharu",DebugMissionCatalog.Scenario.COLD_START.location());
+    }
+
+    @Test void coldRetryKeepsCompletedWorkAndUsesCurrentLocalizedRemainingInstructions() throws Exception {
+        for (boolean powered : List.of(false, true)) {
+            var progress = new ShepherdRecoveryProgress();
+            String id = progress.missionId();
+            progress.begin(id, "Asharu");
+            progress.settle(id, "Asharu", true, 18000, 0, true);
+            id = progress.missionId();
+            progress.begin(id, "Asharu");
+            assertEquals(0, progress.settleColdStart(id, "Asharu", false, 0, 1, true, powered, false, false));
+            try (var translated = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
+                var retry = ShepherdRecoveryCampaign.offer(progress, "Asharu");
+                assertEquals(1, retry.dialogue.size());
+                assertEquals("@" + (powered ? "shepherdColdRetryPowered" : "shepherdColdRetryUnpowered"),
+                        retry.dialogue.get(0).text());
+                assertEquals(MissionDialogue.transcript(retry.dialogue), retry.flavor);
+                assertTrue(retry.flavor.contains("Translated "));
+                assertEquals(22000, retry.payout);
+                assertTrue(progress.cargoDelivered());
+                assertEquals(powered, progress.shorePower());
+                assertFalse(progress.repaired());
+                assertFalse(progress.departed());
+            }
+        }
     }
 
     @Test void writtenAgreementRespondsToInspectionLossesWithoutRecordings() throws Exception {

@@ -152,9 +152,11 @@ public final class WaylineNarration {
     }
 
     public Line find(String missionId, String event) { return lines.get(missionId + "/" + event); }
-    /** Briefing turns retain their authored catalog order, including the legacy single recording. */
+    /** Ordered turns supersede a whole-briefing recording in the pre-mission UI only. */
     public List<Line> briefing(String missionId) {
-        return briefings.getOrDefault(missionId, List.of());
+        var turns = briefings.getOrDefault(missionId, List.of());
+        return turns.stream().anyMatch(line -> line.event().startsWith("briefing."))
+                ? turns.stream().filter(line -> !line.event().equals("briefing")).toList() : turns;
     }
     public List<Line> lines() { return List.copyOf(lines.values()); }
 }

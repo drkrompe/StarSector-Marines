@@ -1,7 +1,7 @@
 {
-  "speaker": "Mara Venn",
-  "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-  "voiceName": "Mora - Gritty and Enigmatic",
+  "speaker": "Tamsin Vale / Basin Reclamation",
+  "voiceId": "cZH6erlGkOyAQheipyno",
+  "voiceName": "Tamsin Vale — Basin Reclamation",
   "modelId": "eleven_v4",
   "voiceSettings": {},
   "lines": [
@@ -15,11 +15,10 @@
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm, practical] Pump bend clear. Bring Morrow up behind the company and build a road gun. Keep her builders covered, Captain.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
-        "briefing",
         "working_passage.underway"
       ]
     },
@@ -33,7 +32,7 @@
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[firm, practical] Narrows secured. Build the next gun before moving on, Captain. We need the southern approach covered.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -52,7 +51,7 @@
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[relieved, focused] Drive test complete. Morrow is climbing, Captain. Hold that approach until she's clear of the basin.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -70,7 +69,7 @@
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
       "synthesisText": "[warm, quietly proud] Morrow is clear of the basin. The registry transfer is authorized, Captain. You earned her. She's a working ship again.",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -88,26 +87,10 @@
         "working_passage.road_team_1",
         "working_passage.road_team_2",
         "working_passage.road_team_3",
-        "briefing",
         "working_passage.underway",
         "working_passage.militia_hold_0",
         "working_passage.militia_hold_1"
       ]
-    },
-    {
-      "id": "basin_passage_briefing",
-      "missionId": "story_shepherd_working_passage",
-      "event": "briefing",
-      "text": "Captain, Morrow can hover. Clear the pump bend, then the narrows. Build a gun at each stop before moving on. My militia will hold behind you. Cover her drive test in the eastern yard.",
-      "durationSeconds": 10.72,
-      "priority": 15,
-      "expiresSeconds": 35,
-      "speaker": "TAMSIN VALE / BASIN RECLAMATION",
-      "portrait": "",
-      "voiced": false,
-      "synthesisText": "[businesslike, quietly hopeful] Captain, Morrow can hover. Clear the pump bend, then the narrows. Build a gun at each stop before moving on. My militia will hold behind you. Cover her drive test in the eastern yard.",
-      "voiceId": "cZH6erlGkOyAQheipyno",
-      "supersedes": []
     },
     {
       "id": "basin_cold_start_power_restored",
@@ -119,7 +102,7 @@
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[pleased, practical] Shore power is on. Morrow's builders are answering. Select Build Vulcan Turret and place a road gun on clear ground within reach of her drone bay.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
@@ -133,15 +116,15 @@
       "id": "basin_cold_start_complete",
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.complete",
-      "text": "The drone workshop is running. Today's repair is finished, Captain. Now we need to walk Morrow out of this basin.",
-      "durationSeconds": 7.28,
+      "text": "The workshop's running. That's the repair finished, Captain. Let the fitters close her up. I'll settle your fee.",
+      "durationSeconds": 8.17,
       "priority": 100,
       "expiresSeconds": 35,
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "portrait": "",
       "voiced": false,
       "terminal": true,
-      "synthesisText": "[relieved, quietly proud] The drone workshop is running. Today's repair is finished, Captain. Now we need to walk Morrow out of this basin.",
+      "synthesisText": "The workshop's running. That's the repair finished, Captain. Let the fitters close her up. I'll settle your fee.",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": [
         "cold_start.company_lost",
@@ -154,8 +137,22 @@
         "cold_start.turret_ready",
         "cold_start.crew_lost",
         "cold_start.carrier_lost",
-        "cold_start.approach"
-      ]
+        "cold_start.approach",
+        "cold_start.south_haul_contact",
+        "cold_start.south_haul_withdrawing",
+        "cold_start.south_haul_overrun",
+        "cold_start.south_haul_inner_hold",
+        "cold_start.quarry_contact",
+        "cold_start.quarry_withdrawing",
+        "cold_start.quarry_overrun",
+        "cold_start.quarry_inner_hold",
+        "cold_start.inner_line_fortified",
+        "cold_start.south_entry_denied",
+        "cold_start.quarry_entry_denied"
+      ],
+      "textKey": "shepherdRadioColdStartComplete",
+      "selectedTake": null,
+      "durationSource": "estimated reading duration; unrecorded"
     },
     {
       "id": "basin_passage_militia_hold_0",
@@ -166,7 +163,7 @@
       "priority": 12,
       "expiresSeconds": 25,
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[steady, reassuring] My first militia team is in position at the pump bend, Captain. Bring your company forward when you're ready.",
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "voiceId": "cZH6erlGkOyAQheipyno",
@@ -181,11 +178,16 @@
       "priority": 12,
       "expiresSeconds": 25,
       "portrait": "",
-      "voiced": false,
+      "voiced": true,
       "synthesisText": "[steady, reassuring] My second militia team is holding the narrows, Captain. Keep the company with Morrow for the climb-out.",
       "speaker": "TAMSIN VALE / BASIN RECLAMATION",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "supersedes": []
     }
-  ]
+  ],
+  "retiredSourceIds": [
+    "basin_passage_briefing"
+  ],
+  "status": "Original Vale production batch reconciled to current dialogue; changed lines pending recording",
+  "retiredSourceNote": "Retired source masters and receipts remain under asset-pipeline/src/tool/resources/audio/wayline; only current runtime IDs may be promoted."
 }

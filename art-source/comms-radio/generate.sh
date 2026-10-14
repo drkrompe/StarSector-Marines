@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: generate.sh <asset>   e.g. comms-radio-pack   (pack | icon)
+# Usage: generate.sh <asset>   e.g. comms-radio-pack   (pack | handset | icon)
 # Sends art-source/comms-radio/<asset>.prompt.txt plus the matching guide in
 # art-source/templates/<asset>-guide.png to the Codex CLI built-in image
 # generation and retains the untouched result as raw/<asset>.raw.png.

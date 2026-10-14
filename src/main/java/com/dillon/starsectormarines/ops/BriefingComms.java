@@ -54,8 +54,10 @@ final class BriefingComms {
     static List<Turn> conversation(Mission mission, List<WaylineNarration.Line> recordings) {
         List<MissionDialogue.Turn> authored = MissionDialogue.turns(mission);
         var result = new ArrayList<Turn>();
-        // A legacy whole-briefing recording retains its original text and identity.
-        if (recordings.size() == 1 && !recordings.get(0).event().contains(".")) {
+        // Explicit authored turns are authoritative. Older missions can still derive
+        // speaker turns from flavor; their whole-briefing recording remains the fallback.
+        boolean explicitDialogue = mission != null && mission.dialogue != null && !mission.dialogue.isEmpty();
+        if (!explicitDialogue && recordings.size() == 1 && !recordings.get(0).event().contains(".")) {
             WaylineNarration.Line line = recordings.get(0);
             String key = MissionDialogue.say(line.speaker(), line.text()).speakerKey();
             result.add(new Turn(key, line.speaker(), line.text(), line.portrait(), line));
