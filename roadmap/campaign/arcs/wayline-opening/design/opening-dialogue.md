@@ -133,7 +133,10 @@ support (air, heat, power) would end. The last carrier left eleven days before
 that date with the administrators and the payroll; worker passage was priced in
 credits nobody paid in scrip could raise. The Cerberus by the loading locks was
 the old escort hull, laid up and stripped for eleven years; Sabine's section had
-ridden the carriers since. The crew kept a chalk count of the days left on her
+ridden the carriers since. Tethered at the locks with no shields up and no point
+defence running, she spent those years taking the belt's debris one strike at a
+time: that is where the sealed bunkrooms, the holed mess, the torn mech bay and
+the jammed second boat bay come from. The crew kept a chalk count of the days left on her
 hull, and lit her drive with four days on it.
 
 **SECOND WIND**
@@ -194,7 +197,8 @@ New — Castle
 New narration
 > The Cerberus by the loading locks had been the Claim's escort hull until the
 > operator decided ore didn't need escorting. For eleven years she was a parts
-> bin. Someone chalked the days left beside her airlock, and someone else kept the
+> bin, tethered at the locks with her shields cold and her point defence
+> stripped, and the belt's small rocks found her one at a time. Someone chalked the days left beside her airlock, and someone else kept the
 > count honest. You took drive coil from a hauler that hadn't flown since before
 > the Claim had a name, pressure seals off the doors of habs nobody would need
 > again, and a navigation core out of the administrator's empty office. Sabine's
@@ -298,6 +302,34 @@ part then a payment part
 
 `openingCompanyPrologueIVeKeptThePaymentSafe` / `…WeLlHaveToWatchThatYard`
 > The payment's safe. / We'll be watching that yard money.
+
+### Ship survey: where the damage came from
+
+Castle's room survey (`openingShipCondition…`) describes damage the player can
+inspect and repair. These lines give it a cause.
+
+`openingShipConditionSheSBeenThroughHardServiceThe`
+> Eleven years of the belt's small rocks. The pitting stays, but this room is
+> safe to use.
+
+`openingShipConditionTheseTwoBunkroomsTookTheSameHit`
+> One strike holed both of these bunkrooms while she was still tied up at the
+> Claim. Racks are crushed and the pressure seals are gone. The yard can reopen
+> both as one job.
+
+`openingShipConditionTheMessTookAHitWeAre`
+> A rock came through the mess years before we ever lit her. We're feeding
+> everyone field rations in the working quarters, and they deserve better. The
+> yard can seal the breach and put the galley and tables right.
+
+`openingShipConditionThereIsRoomForAFullLance`
+> There's room for a full lance, but the belt has been through the pressure skin
+> and all four gantries are wrecked. Nobody goes through that hatch until a
+> recovery crew makes it safe.
+
+`openingShipConditionASecondBoatBelongsHereOnceThe`
+> A second boat belongs here. Debris jammed the pressure door and bent the launch
+> rails; once the yard makes them safe, we earn the space back.
 
 ## 2 — Jangala yard
 
