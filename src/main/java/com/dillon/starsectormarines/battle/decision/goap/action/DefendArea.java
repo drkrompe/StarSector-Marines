@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.mech.MechTargeting;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 
@@ -112,6 +113,24 @@ public final class DefendArea implements Action {
 
     private ActionStatus engageInsideArea(long member, long target, Squad squad,
                                           BattleControl sim) {
+        if (holdsClaimedCell(member, sim)) {
+            float held = TacticalScoring.cellDistance(
+                    sim.world().x(member), sim.world().y(member),
+                    sim.world().x(target), sim.world().y(target));
+            if (held <= sim.world().attackRange(member)
+                    && sim.getTacticalScoring().hasClearShot(member, target)) {
+                // A marine on his fighting-position cell who can already shoot stays put:
+                // the position is the point, and a better firing cell elsewhere in the
+                // circle would walk him out of it and restart his dig-in.
+                if (LaneSidestep.isStepping(member, sim)) {
+                    sim.advanceMovement(member);
+                } else {
+                    PatrolMotion.hold(member, sim);
+                }
+                sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
+                return ActionStatus.RUNNING;
+            }
+        }
         int[] firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
                 member, target, centerX, centerY, radius);
         if (firingPosition == null) {
@@ -163,6 +182,8 @@ public final class DefendArea implements Action {
 
     private int[] preparedPosition(long member, int threatX, int threatY,
                                    Squad squad, BattleView sim) {
+        int[] claimed = claimedCell(member, sim);
+        if (claimed != null) return claimed;
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float axisX = threatX - centerX;
@@ -179,11 +200,37 @@ public final class DefendArea implements Action {
         int[] covered = sim.getTacticalScoring().bestCoverCell(
                 threatX, threatY, desiredX, desiredY,
                 PREPARED_POSITION_SEARCH_RADIUS);
-        if (covered != null && inside(covered[0], covered[1])) return covered;
+        if (covered != null && inside(covered[0], covered[1])
+                && !claimedByOther(covered[0], covered[1], member, sim)) {
+            return covered;
+        }
         return nearestWalkableInside(desiredX, desiredY, sim);
     }
 
+    /**
+     * The fighting-position cell this member holds under the squad's claims, or {@code null}
+     * (overflow, no positions in the circle, or the feature off). Claims are settled in the
+     * serial phase before dispatch; this only reads them.
+     */
+    private static int[] claimedCell(long member, BattleView sim) {
+        if (!DigInSystem.isEnabled()) return null;
+        return sim.fightingPositionClaims().cellOf(member);
+    }
+
+    private static boolean holdsClaimedCell(long member, BattleControl sim) {
+        int[] claimed = claimedCell(member, sim);
+        return claimed != null && sim.movement().atCell(member, claimed[0], claimed[1]);
+    }
+
+    /** A member left without a position must not settle on one a squadmate holds. */
+    private static boolean claimedByOther(int x, int y, long member, BattleView sim) {
+        return DigInSystem.isEnabled() && sim.fightingPositionClaims()
+                .isClaimedByOther(x, y, sim.getGrid().getWidth(), member);
+    }
+
     private int[] quietPosition(long member, Squad squad, BattleView sim) {
+        int[] claimed = claimedCell(member, sim);
+        if (claimed != null) return claimed;
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float[] offset = quietOffset(ordinal, count, radius);

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
+import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileLayer;
 
@@ -124,6 +125,9 @@ public final class TilesetDocument {
             if (entry.fogSurface != null) o.put("fogSurface", new JSONArray(entry.fogSurface));
             if (!entry.preferredWallSide.isEmpty()) {
                 o.put("preferredWallSide", entry.preferredWallSide);
+            }
+            if (!entry.fightingPosition.isEmpty()) {
+                o.put("fightingPosition", entry.fightingPosition);
             }
             o.put("included", entry.included);
             if (isStrip()) {
@@ -274,6 +278,8 @@ public final class TilesetDocument {
             if (!wallSide.isEmpty()) {
                 entry.preferredWallSide = WallSide.fromJson(wallSide).name();
             }
+            FightingPositionRole role = FightingPositionRole.fromJson(o.optString("fightingPosition", ""));
+            if (role != FightingPositionRole.NONE) entry.fightingPosition = role.toJson();
             entry.included = o.optBoolean("included", true);
             // Parsed on read so a layer the game would reject cannot reach a
             // document, the same reason preferredWallSide is parsed above.
