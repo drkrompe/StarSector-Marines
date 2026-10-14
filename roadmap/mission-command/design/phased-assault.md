@@ -342,15 +342,14 @@ muster on, off, and before this work.
 with a company at a rally and no squad at it: late in a battle the marine force is a handful of squads, one infantry
 squad per lane is that lane's whole share and cannot be recruited, yet a company formed on "a free squad" anyway and
 stood out its 4500-tick timeout, over and over, and (a second kind) recruits sent 95 to 139 cells to a rally were pinned in
-fights on the way or drifted away from it until the company stood down with "0 at the rally". Control (before),
-then with the fix, muster on, 36,000 ticks (captures / held, marine losses; empty-rally company-ticks; companies formed /
-committed / broken / stood down):
-south-sited 17 / 11 (220), 27150, 6 / 1 / 0 / 3 to 20 / 18 (216), 300, 5 / 0 / 0 / 3;
-west-sited 10 / 4 (423), 9000, 4 / 1 / 1 / 3 to 10 / 3 (434), 0, 2 / 1 / 1 / 1; with two lances declared:
-south-sited 15 / 14 (221) to 18 / 16 (188), west-sited 12 / 5 (405) to 12 / 4 (430), empty-rally 8100 / 0 to 0 / 75.
-South gains the most (defender losses 350 to 463 with fewer marine losses) because the force the empty companies were
-holding off the lanes is working again; west is unchanged within noise. The muster still does not beat the trickle
-everywhere, so it stays off.
+fights on the way or drifted away from it until the company stood down with "0 at the rally". Measured on main with the capability roles
+merged, muster on, 36,000 ticks, before then after the fix (captures / held, marine losses; empty-rally company-ticks;
+companies formed / committed / broken / stood down): south-sited 22 / 18 (211), 34200, 13 / 3 / 1 / 6 to 21 / 16 (209),
+0, 6 / 1 / 0 / 4; west-sited 10 / 2 (439), 19125, 4 / 1 / 0 / 2 to 10 / 3 (434), 0, 2 / 2 / 2 / 0. With the Conquest
+allowance declared (two lances): south-sited 12 / 5 (202), 27525 to 20 / 17 (175), 150; west-sited 8 / 3 (446),
+3750 to 10 / 6 (424), 0. Empty rallies go to zero; the gain is largest where the empty companies had been holding
+the force off the lanes (south with lances), and the no-lance south is level within noise. The muster still does not
+beat the trickle everywhere, so it stays off.
 
 What is open, in the order it matters: the lane share was a measured change and not a tuned number; a fort
 with live nests is, for infantry alone, a position no plan takes, so the plan's
