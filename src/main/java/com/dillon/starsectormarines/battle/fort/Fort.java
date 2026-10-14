@@ -220,6 +220,11 @@ public final class Fort {
         places.put(place.aspect, place);
     }
 
+    /** The entity ids of the wall nests tagged to this fort, for evidence; a command never reads these. */
+    public List<Long> nestIds() {
+        return List.copyOf(nests);
+    }
+
     void addNest(long id) {
         nests.add(id);
     }

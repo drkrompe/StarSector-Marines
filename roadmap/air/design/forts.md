@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 - structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
+Updated: 2026-10-14 - a fort exports its assault approaches (`FortPlan.approaches()`: each gate with the nests that cover it, an entry cell, its approach lane across the belt, and a breach section of wall) and the fort frame rides on the disclosed facts, so a company can be driven through base of fire, entry, objective and hold (`phased-assault.md`); the muster that does it is off by default and has not yet beaten the trickle. Earlier: structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -209,6 +209,19 @@ follow from who holds an aspect and who built it, relative to the side choosing.
 - **Memory of a sighting.** A fort a company has once had in view stays disclosed to its commander when the squad looks
   away. Disclosure by sight alone made the control-room task appear and vanish as the squad walked in and out of view of
   the generator, and a squad whose order flickered between the task and the lane never arrived.
+
+## Built: assault approaches
+
+A kind of fort exports, with its geometry, the ways an attacker can go in (`FortPlan.approaches()`): each
+gate as an approach (the first is the main gate, the rest are posterns) with the nests whose reach covers
+its mouth, an entry cell four cells through it, and the approach lane the belt is left open across; and a
+breach, a wall section far from every gate and as far as possible from every nest. A kind that has
+nothing to add gets them derived from its own gates, nests and wall, so a new stamp is assaultable before
+it authors anything. The fort's frame rides on the facts a side is disclosed, because a fort's wall,
+gates and nests are exactly its exterior cells, which are what disclose it; the interior (doors, floors)
+is not carried. What a company does with them is `phased-assault.md`: a base of fire on the covering nests,
+the gate, the aspect, a hold. A breach is exported and chosen only by a company that can cut one, but no
+weapon in the game aims at a wall, so it is no better than a gate yet.
 
 ## Built: fort restraint
 

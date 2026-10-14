@@ -42,11 +42,12 @@ public record ConquestFrontSnapshot(
      * @param required     the strength the commander believes the objective takes
      * @param ticksInStage ticks since the stage began
      * @param timeoutTick  the tick the muster commits regardless, or {@code -1}
+     * @param step         the step of the stamp's assault plan being executed (POSITION, SUPPRESS, ENTRY, OBJECTIVE, HOLD), or empty
      */
     public record CompanyState(int objectiveId, String stage, List<Integer> squadIds, int arrivedSquads,
                                int strength, int required, int rallyCellX, int rallyCellY,
                                int objectiveCellX, int objectiveCellY, int ticksInStage, int timeoutTick,
-                               String reason) {
+                               String reason, String step) {
         public CompanyState { squadIds = List.copyOf(squadIds); }
     }
 
@@ -150,7 +151,15 @@ public record ConquestFrontSnapshot(
         /** A squad of an assault company committed against its objective. */
         ASSAULT_COMMIT,
         /** A company squad that has run ahead of its company and holds so the company arrives as one body. */
-        ASSAULT_COMPANY_RALLY
+        ASSAULT_COMPANY_RALLY,
+        /** A fire-element squad of an assault plan, placed outside the wall with sight of the nests covering the way in. */
+        ASSAULT_BASE_OF_FIRE,
+        /** An assault-element squad of an assault plan waiting at its assembly cell until the covering nests are dealt with. */
+        ASSAULT_STAGE,
+        /** A squad of an assault plan taking the way in (the gate, or the breach). */
+        ASSAULT_ENTRY,
+        /** An assault-element squad holding the aspect it has taken until the next pick. */
+        ASSAULT_HOLD
     }
 
     public record TrackState(

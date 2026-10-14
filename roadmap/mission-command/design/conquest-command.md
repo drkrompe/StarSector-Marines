@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-13 — the attacker lands, musters and assaults a disclosed fort as one company (`phased-assault.md`); `battle.command.muster=false` is the control.
+Updated: 2026-10-14 — the muster is off by default (`battle.command.muster=true`): a company counts the nests and gate in front of it, each lane keeps half its squads, a short muster stands down, and a committed company executes the stamp's assault plan (`phased-assault.md`); measured not yet better than the trickle.
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -201,37 +201,43 @@ ground.
 
 ## Foothold, muster, assault
 
-**On by default: `battle.command.muster=false` puts the trickle back.** A
-disclosed fort is an objective one squad cannot take, and the squads that reach
-one a few at a time are cut down by its nests and garrison. So the attacker
-treats it per objective in three phases, owned by `phased-assault.md`: the
-landing is held by one squad while the lanes go on probing and discovering;
-free squads are recruited into an **assault company** that gathers at a rally
-point (the drop zone, or a staging cell outside the fort's nests) and is judged
-ready against what the commander believes is in front of it, with a timeout;
-and the company then goes at the fort as one body, the aspect `FortTactics`
-chooses first, with a bounded rally keeping it together on the approach.
-Mech and drone squads may join (a mech counts for more, and stands off as base
-of fire), and a company short of its believed need asks for a lance.
+**Off by default: `battle.command.muster=true` turns it on** (and
+`battle.command.musterPlans=false` drops the per-stamp plan, leaving a company to
+go at the aspect directly). A disclosed fort is an objective one squad cannot
+take, and the squads that reach one a few at a time are cut down by its nests and
+garrison. So, with the muster on, the attacker treats it per objective in three
+phases, owned by `phased-assault.md`: the landing is held by one squad while the
+lanes go on probing and discovering; free squads are recruited into an
+**assault company** that gathers at a rally point (the drop zone, or a staging
+cell outside the fort's nests) and is judged ready against what the commander
+believes is in front of it (the fort's baseline, the believed garrison, and the
+nests and gate it believes cover the way in), with a timeout; and the company then
+goes at the fort as one body by the stamp's assault plan (a base of fire on the
+nests covering the way in, the assault element held until they are dead or a clock
+runs out, the gate, then the aspect `FortTactics` chooses, then a hold). Mech and
+drone squads may join (a mech counts for more, and is the base of fire), and a
+company short of its believed need asks for a lance. A muster that times out under
+half its need stands down and leaves the fort to the lanes for a while, a
+bounded number of times, rather than commit a handful of marines.
 
 Company members are taken out of the pool the capture and lane passes draw
-from, so a company is never also a capture detachment; the two convergence
-phases dissolve every company because there is no other front to hold. The
-battle-wide `Phase` is untouched. The per-objective phase is published as
-`ConquestFrontSnapshot.companies` and as the assignment reasons
-`MUSTER_FOOTHOLD`, `MUSTER_GATHER`, `ASSAULT_COMMIT` and
-`ASSAULT_COMPANY_RALLY`, which the trace analysis does not yet count as
-structure work (its "structure orders" line reads zero while a company is on a
-fort).
+from, so a company is never also a capture detachment; each lane keeps half its
+infantry squads out of any company, so the lanes keep working; the two
+convergence phases dissolve every company because there is no other front to
+hold. The battle-wide `Phase` is untouched. The per-objective phase is published
+as `ConquestFrontSnapshot.companies` and as the assignment reasons
+`MUSTER_FOOTHOLD`, `MUSTER_GATHER`, `ASSAULT_COMMIT`, `ASSAULT_COMPANY_RALLY`,
+`ASSAULT_BASE_OF_FIRE`, `ASSAULT_STAGE`, `ASSAULT_ENTRY` and `ASSAULT_HOLD`, which
+the balance report counts as company orders next to its structure orders.
 
-**Measured, and mixed.** The two fixtures that declare forts, 36,000 ticks, no
-fort fell with the muster on or off. `reinforced-south`: muster 12 captures
-and 10 held, 205 marines lost, control 19 and 15, 220 lost. `full-strength-west`:
-muster 13 and 5, 426 lost, control 12 and 1, 433 lost. The checked-in matrix
-has no forts and is byte-identical either way. The companies cost lane work
-(three were broken on the south, two on the west), and the believed-need
-baseline of 24 weighted marines is too low for these forts; both are open, and
-the numbers wait for play rather than a target.
+**Measured: the muster does not yet beat the trickle.** Four fixtures that declare
+forts, 36,000 ticks, captures / held (control, muster without the plan, muster
+with it): `reinforced-south` sited 23 / 18, 18 / 17, 21 / 15; `full-strength-west`
+sited 9 / 3, 14 / 3, 16 / 2; unsited, control and plan, south 29 / 24 and 24 / 18,
+west 12 / 5 and 10 / 4. The control never touches a fort; the muster has taken two
+aspects of a battery fort, destroyed a platform and wrecked a bunker. The checked-in
+matrix has no forts and is byte-identical either way. See `phased-assault.md` for
+what is open.
 
 ## Marine command
 

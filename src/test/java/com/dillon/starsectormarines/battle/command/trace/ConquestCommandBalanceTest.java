@@ -769,6 +769,17 @@ class ConquestCommandBalanceTest {
                 out.append(' ').append(perspective).append(' ').append(role).append('=').append(count);
             }
         }
+        out.append('\n');
+        // A company's orders are structure work too: the foothold, the gather, the commit and the plan's four steps.
+        out.append("- company orders in the command trace (MARINE):");
+        for (String reason : List.of("MUSTER_FOOTHOLD", "MUSTER_GATHER", "ASSAULT_COMMIT", "ASSAULT_COMPANY_RALLY",
+                "ASSAULT_BASE_OF_FIRE", "ASSAULT_STAGE", "ASSAULT_ENTRY", "ASSAULT_HOLD")) {
+            int count = 0;
+            for (String line : trace.split("\n")) {
+                if (line.contains("\"perspective\":\"MARINE\"") && line.contains("\"" + reason + "\"")) count++;
+            }
+            out.append(' ').append(reason).append('=').append(count);
+        }
         return out.append('\n').toString();
     }
 
