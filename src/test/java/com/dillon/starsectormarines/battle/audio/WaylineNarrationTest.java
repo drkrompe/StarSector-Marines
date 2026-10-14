@@ -46,7 +46,7 @@ class WaylineNarrationTest {
                     assertEquals("briefing.%02d".formatted(index + 1), turn.event());
                     assertEquals(Strings.resolve(script.get(index).text()), turn.text());
                     assertTrue(turn.text().startsWith("Translated "));
-                    assertFalse(turn.voiced(), "Rewritten briefings have no recording yet");
+                    assertTrue(turn.voiced(), "Every briefing turn has an approved take");
                     assertEquals(MissionDialogue.speakerPortrait(script.get(index).speakerKey()), turn.portrait());
                 }
             }
@@ -98,7 +98,7 @@ class WaylineNarrationTest {
                         : "basin_passage_instructions_01", turn.id());
                 assertEquals(Strings.get(index < negotiation ? "shepherdPassageNegotiation" + (index + 1)
                         : "shepherdPassageInstructions"), turn.text());
-                assertFalse(turn.voiced(), "Rewritten terms have no recording yet");
+                assertTrue(turn.voiced(), "Every negotiation turn has an approved take");
                 assertEquals(MissionDialogue.speakerPortrait(script.get(index).speakerKey()), turn.portrait());
             }
         }
@@ -130,11 +130,7 @@ class WaylineNarrationTest {
         for (int i = 0; i < entries.length(); i++) {
             var entry = entries.getJSONObject(i);
             if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
-            boolean recorded = List.of("basin_passage_underway",
-                    "basin_passage_bend_build", "basin_passage_militia_hold_0", "basin_passage_narrows_build",
-                    "basin_passage_militia_hold_1", "basin_passage_departure")
-                    .contains(entry.getString("id"));
-            assertEquals(recorded, entry.getBoolean("voiced"), "Only recorded takes may be voiced");
+            assertTrue(entry.getBoolean("voiced"), "Every Shepherd line has an approved take: " + entry.getString("id"));
             assertTrue(entry.getString("synthesisText").contains(entry.getString("text")));
             String speaker = entry.getString("speaker");
             assertEquals(speaker.startsWith("CASTLE") ? "cuwCdnt9CKAB9XrTA1j0"
@@ -200,7 +196,7 @@ class WaylineNarrationTest {
                 "turret_ready", "complete", "crew_lost", "carrier_lost", "approach")) {
             var line = catalog.find(chapter, "cold_start." + event);
             assertNotNull(line);
-            assertFalse(line.voiced(), "Rewritten Cold Start calls have no recording yet");
+            assertTrue(line.voiced(), "Every Cold Start call has an approved take");
         }
         assertTrue(catalog.find(chapter, "cold_start.power_restored").text().contains("Build Vulcan Turret"));
     }
@@ -250,7 +246,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior), line.id() + " supersedes " + prior);
         }
-        assertEquals(126, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(271, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 
