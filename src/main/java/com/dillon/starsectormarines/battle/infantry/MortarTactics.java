@@ -56,6 +56,13 @@ public final class MortarTactics {
     /** Cells from the gunner within which a squadmate must have settled for the section to count as halted. */
     static final float HALT_REACH_CELLS = 10f;
 
+    /**
+     * Trial switch: a section being outranged sets its tube down without waiting for a halt or a quiet moment, because an
+     * enemy that out-shoots its rifles from a skirmish line never grants either. Off by default. UNTUNED.
+     */
+    static final boolean ANSWER_OUTRANGING = Boolean.parseBoolean(
+            System.getProperty("battle.mortar.answerOutranging", "false"));
+
     private MortarTactics() {}
 
     /**
@@ -66,16 +73,20 @@ public final class MortarTactics {
         FieldMortarService mortars = sim.fieldMortars();
         if (mortars.tubeOfCarrier(unit) != null) return false;
         Squad squad = sim.squadOf(unit);
-        if (squad == null || squad.timeSinceUnderFire < QUIET_SECONDS) return false;
-        // A section told to fire a mission is ordered to set up where it stands: a squadmate still shuffling for a place
-        // in the line does not hold the tube back, which the gunner's own settling does.
-        boolean onMission = mortars.missionOf(squad.id) != null;
-        if (!sim.movement().settled(unit) || (!onMission && !sectionHalted(unit, squad, sim))) return false;
+        if (squad == null) return false;
         DeployableEmplacementSpec spec = special.deployableEmplacementSpec();
         StructureDef structure = TurretCatalogRegistry.requireStructure(spec.structureId());
-        if (mortars.stashFor(unit, structure) <= 0) return false;
         World world = sim.world();
         Faction faction = sim.identity().faction(unit);
+        boolean outranged = ANSWER_OUTRANGING && outranged(unit, squad, faction, structure.mount.weapon, sim);
+        if (!outranged) {
+            if (squad.timeSinceUnderFire < QUIET_SECONDS) return false;
+            // A section told to fire a mission is ordered to set up where it stands: a squadmate still shuffling for a
+            // place in the line does not hold the tube back, which the gunner's own settling does.
+            boolean onMission = mortars.missionOf(squad.id) != null;
+            if (!sim.movement().settled(unit) || (!onMission && !sectionHalted(unit, squad, sim))) return false;
+        }
+        if (mortars.stashFor(unit, structure) <= 0) return false;
         if (worth(unit, squad, faction, structure.mount.weapon, sim) + missionWorth(unit, squad, faction,
                 structure.mount.weapon, sim) < MIN_WORTH) return false;
         if (hostileOnTopOfUs(unit, squad, faction, sim)) return false;
@@ -135,6 +146,30 @@ public final class MortarTactics {
         long target = sim.fieldMortars().pickMissionTarget(mission, faction, world.x(unit), world.y(unit),
                 weapon.minRange + DEAD_ZONE_MARGIN_CELLS, weapon.range - RANGE_MARGIN_CELLS, sim);
         return target == 0L ? 0 : HARDENED_WEIGHT;
+    }
+
+    /**
+     * Whether the squad is being out-shot: it believes in hostiles inside the tube's band and none inside its own gunner's
+     * rifle reach, so closing is the only other answer.
+     */
+    static boolean outranged(long unit, Squad squad, Faction faction, WeaponDef tube, BattleView sim) {
+        WeaponDef rifle = sim.combat().primaryWeapon(unit);
+        if (rifle == null) return false;
+        float near = Math.max(tube.minRange + DEAD_ZONE_MARGIN_CELLS, rifle.range);
+        float far = tube.range - RANGE_MARGIN_CELLS;
+        World world = sim.world();
+        boolean inBand = false;
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (contact.confidence() < MIN_CONFIDENCE) continue;
+            long id = sim.resolveUnit(contact.unitId());
+            if (id == 0L || !faction.hostileTo(sim.identity().faction(id))) continue;
+            float dx = world.x(id) - world.x(unit);
+            float dy = world.y(id) - world.y(unit);
+            float d = (float) Math.sqrt(dx * dx + dy * dy);
+            if (d < near) return false;
+            if (d <= far) inBand = true;
+        }
+        return inBand;
     }
 
     private static boolean hostileOnTopOfUs(long unit, Squad squad, Faction faction, BattleView sim) {
