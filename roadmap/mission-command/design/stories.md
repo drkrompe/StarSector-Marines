@@ -4,7 +4,7 @@ Status: ACTIVE — shared architecture and mission-specific migrations are track
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — air strike offered as a plan capability (FortAssault use open); phased assault slices 1-3 are built with capability-matched roles and wall fire, off by default; the field mortar (`special.field-mortar`) is a built capability source whose assigned fire missions are open. Earlier: strategic-resolution evidence and compact navigation
+Updated: 2026-10-14 — mortar fire missions and air strikes are plan role fillers (see `phased-assault.md`); phased assault slices 1-3 are built with capability-matched roles, wall fire and fire support, off by default because muster plus plans does not yet beat the trickle on the lance fort fixtures. Earlier: strategic-resolution evidence and compact navigation
 snapshots are folded into the canonical model; open work remains below.
 
 Read `mission-command-nouns.md`, then the relevant mission design before an
@@ -33,7 +33,7 @@ Design: `conquest-command.md`
 | `phased-assault.md` (design) slice 1 | BUILT, OFF BY DEFAULT | Foothold, muster and assault are in (`battle.command.muster=true`); readiness counts nests and the gate, lanes keep half their squads, a short muster stands down. On the four fort fixtures the control still holds more compounds on three, so it stays off until it wins; open: companies standing at a rally with nobody at it, and a muster with a lance in play on Conquest.
 | `phased-assault.md` (design) slice 2 | BUILT | Call surface, allowance and delivery are built (`mech-drop` scene); the muster calls it for a short company (`ConquestCommand.afterCommit`); a Conquest comparison with a lance in play is open. |
 | `phased-assault.md` (design) slice 3 | BUILT, OFF WITH THE MUSTER | `FortPlan.approaches()` and the `FortAssault` executor (base of fire, entry, objective, hold) drive a committed company; the `assault-muster` scene compares control, slice 1 and plan. It takes forts the control never touches; infantry rifles do not kill nests, so its value waits on machines. Capability profiles and role assignment pick the way in by what the company can staff and publish a shortfall; breaches are fired at a wall (cannon mech: distance breach, charge sections: close breach), `breach-cannon` and `breach-charges` loops; standoff demolition, tuning and a Conquest comparison are open.
-| `phased-assault.md` (design) mortar team | BUILT; ASSIGNED FIRE OPEN | `special.field-mortar` (crew-served tube, `field-mortar` scene) is a standoff anti-structure capability; the tube fires on its section's belief. Open: assign a fire mission from a plan role; re-crew when the gunner dies; campaign acquisition cost. |
+| `phased-assault.md` (design) mortar team and air strike | BUILT, OFF WITH THE MUSTER | Plans assign a fire mission to a tube squad (base of fire, standoff placement; standing missions for lane sections) and request air strikes through an observer under the pool's risk ceiling; `assault-muster` loops `plan-mortar`, `plan-air`, `plan-mortar-air`, `combined-arms`. Conquest lance fort fixtures: no fort falls and no radio or tube is in the squads, so the fire support is unexercised there. Open: a nest killed early leaves a tube idle until the plan learns it by sight; Conquest squads carrying radios and tubes; re-crew when the gunner dies; campaign acquisition cost. |
 
 ## Sabotage
 
