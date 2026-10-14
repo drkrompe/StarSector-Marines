@@ -126,9 +126,9 @@ public final class FortAirDefenceScene implements BehaviorScene {
 
     // ------------------------------------------------------------------------------------------------ world
 
-    private record Stamped(NavigationGrid grid, CellTopology topology, List<DefensePost> posts, FortStage.Placed placed) {}
+    record Stamped(NavigationGrid grid, CellTopology topology, List<DefensePost> posts, FortStage.Placed placed) {}
 
-    private static Stamped stamp(FortKind kind, boolean air) {
+    static Stamped stamp(FortKind kind, boolean air) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
@@ -209,7 +209,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
         return new Run(trace, sim, fort);
     }
 
-    private static int[] openNear(NavigationGrid grid, int[] want) {
+    static int[] openNear(NavigationGrid grid, int[] want) {
         for (int r = 0; r < 12; r++) {
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
