@@ -182,9 +182,18 @@ number that tells the player their screen worked tells the balance harness
 whether the arc asymmetry moved.
 
 The first model deliberately has no through-armor structure bypass, damage
-types, armor regeneration, localized facings, or ablative segments. Those are
-possible extensions only after a weapon or platform demonstrates a gameplay
-need that the armour-and-structure model cannot express.
+types, passive armor regeneration, localized facings, or ablative segments.
+Those are possible extensions only after a weapon or platform demonstrates a
+gameplay need that the armour-and-structure model cannot express.
+
+**Treatment is the one way armor rises in battle.** A squad medic
+(`progression-nouns.md`, Field Medicine) restores structure and armor capacity
+to a squadmate over a timed treatment, and may bring a broken plate back from
+zero. That is repair done to one marine by another, out of finite supplies — not
+regeneration, not self-repair, and never a mitigation. Rating is unchanged: a
+re-plated suit is the same suit with capacity back. Armor break remains a
+*transition* rather than a once-per-life event, so a re-plated marine whose
+armor is shot away again breaks a second time.
 
 `DurabilityModel` is the shared calculation boundary for prediction and live
 application, and it consumes mitigation in the same call — prediction that
@@ -302,7 +311,7 @@ armor, structure, rating, and penetration presentation.
 - Mitigation resolves between them, and is reported as its own quantity. It is
   always finite (a pool that can be spent), never all-round (the arc stays below
   360 degrees), always expiring, never a capacity, and never restores one — armor
-  reaching zero stays an armor break. It does not touch accuracy: whether a shot
+  reaching zero stays an armor break until a treatment re-plates it. It does not touch accuracy: whether a shot
   lands is upstream and already has a pattern's incoming-accuracy multiplier.
 - **A screen is spent by what it absorbed, and no more.** The pool falls by
   exactly the quantity the shared durability calculation reported as absorbed,
