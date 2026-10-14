@@ -160,6 +160,7 @@ public final class InfantryUnitPrep {
         SpecialEquipmentDef sec = sim.world().specialEquipment(id);
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
@@ -168,6 +169,9 @@ public final class InfantryUnitPrep {
         }
         if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) {
             return DeployableTactics.tryCommitPlacement(unit, sec, sim);
+        }
+        if (sec.aiPolicy() == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT) {
+            return MortarTactics.tryCommitDeploy(unit, sec, sim);
         }
         if (sec.aiPolicy() == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) {
             return DeployableTactics.tryCommitCoverPlacement(unit, sec, sim);
@@ -232,9 +236,15 @@ public final class InfantryUnitPrep {
         SpecialEquipmentDef sec = sim.world().specialEquipment(unit);
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(unit))) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) return false;
+        // The one deployable a halted section may begin even when the step withholds opportunity fire:
+        // it commits only when every member nearby has already stopped, so it diverts no bound.
+        if (sec.aiPolicy() == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT) {
+            return MortarTactics.tryCommitDeploy(unit, sec, sim);
+        }
         if (sec.aiPolicy() == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) return false;
         if (sec.activation() == SpecialActivation.CLOSE_CONTACT) return false;
         return tryHardenedDirectFire(unit, sec, sim);

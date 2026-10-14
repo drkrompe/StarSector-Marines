@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
 import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.power.YardConstruction;
 
@@ -2564,6 +2565,8 @@ public final class BattleSetup {
         sim.setFlybyRoster(defenders.enemyFighterSupport());
         // What the mission let each side's commander call down; a mission that declared none leaves the inert service.
         if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
+        // The pools of airframes the mission gave each side, tasked through comms operators; none leaves the inert service.
+        if (profile != null) sim.setAirPool(new AirPoolService(profile.declaredAirPool()));
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was

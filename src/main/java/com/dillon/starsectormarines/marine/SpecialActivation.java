@@ -22,7 +22,12 @@ public enum SpecialActivation {
      * family; which contacts are legal is decided by the item's
      * {@link SpecialAiPolicy}, never by this activation alone.
      */
-    CLOSE_CONTACT("close-contact");
+    CLOSE_CONTACT("close-contact"),
+    /**
+     * Utility activation whose carrier works a radio rather than a weapon: the item resolves no shot and places
+     * nothing, it lets its carrier direct their side's air pool onto ground (see {@link SpecialAiPolicy#FORWARD_OBSERVER}).
+     */
+    UTILITY_COMMS("utility-comms");
 
     public final String key;
 

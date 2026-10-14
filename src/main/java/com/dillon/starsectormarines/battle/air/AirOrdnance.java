@@ -197,4 +197,17 @@ public final class AirOrdnance {
             new AirOrdnance(5f, 5,
                     OrdnanceFlight.dropped(6f, 0.72f),
                     2.6f, 28f, 3.6f, 80f, 16f, 160);
+
+    /**
+     * The stick a called bomber carries: {@link #BOMBS}' delivery with a heavier, tighter load, so a single pass over a
+     * nest or a platoon in the open does what a called strike is for. The same fall and release geometry, so reach and
+     * firing range stay the one decision they were; only what lands is stronger and more concentrated.
+     *
+     * <p>UNTUNED: six rounds a pass, tighter than the garrison field's bombs, with more per round and enough weight
+     * of wall damage to open a fighting position. Not set to hit a target.
+     */
+    public static final AirOrdnance STRIKE_BOMBS =
+            new AirOrdnance(5f, 6,
+                    OrdnanceFlight.dropped(6f, 0.72f),
+                    1.8f, 20f, 4.0f, 140f, 24f, 220);
 }

@@ -149,6 +149,10 @@ public record ConquestFrontSnapshot(
         DEFENDER_GARRISONABLE_MAN,
         /** A squad continuing to man a garrisonable while its pressure stays above the release level, or until the dwell ends. */
         DEFENDER_GARRISONABLE_STAND,
+        /** A garrison whose ground was breached or which fell below useful strength, withdrawn to its fort's works. */
+        DEFENDER_GARRISONABLE_FALL_BACK,
+        /** A mobile-pool patrol waiting at a held fort's works so the nearest free squad is near its belt. */
+        DEFENDER_GARRISONABLE_STAGE,
         DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
         /** A squad detached to take or wreck a known enemy-held ground-defence structure (fire control, shield generator). */
         DEFENCE_STRUCTURE_TAKE,

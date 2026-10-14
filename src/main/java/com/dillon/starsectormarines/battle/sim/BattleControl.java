@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -47,6 +49,14 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
      */
     default MechDropService.Outcome callMechDrop(Faction side, SquadCommandClaim claim, int hintX, int hintY) {
         return mechDrops().call(this, side, claim.issuer(), claim, hintX, hintY);
+    }
+
+    /**
+     * Has one of {@code side}'s comms operators direct one airframe of {@code kind} from its pool onto the point.
+     * {@link AirPoolService.Outcome#NO_AIRFRAME} where the battle holds no pool.
+     */
+    default AirPoolService.Outcome requestAirStrike(Faction side, AirPoolKind kind, float x, float y, boolean believes) {
+        return AirPoolService.Outcome.NO_AIRFRAME;
     }
 
     /** Authored ownership for player support deliveries; absent on generic battlefields. */

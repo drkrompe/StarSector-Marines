@@ -183,6 +183,12 @@ public final class Mission {
     public final DebugMechDrop mechDrop;
 
     /**
+     * Which side holds a regenerating pool of bombers and fighters, explicitly declared, or null to leave it to the
+     * mission type's policy ({@link MissionDefencePolicy#declareAirPool}). A DEBUG statement today.
+     */
+    public final DebugAirPool airPool;
+
+    /**
      * The route each of those lanes takes, in lane order, or null for lanes
      * that derive their own.
      *
@@ -294,6 +300,7 @@ public final class Mission {
         this.landing          = b.landing;
         this.defences         = b.defences;
         this.mechDrop         = b.mechDrop;
+        this.airPool          = b.airPool;
         this.lanes            = b.lanes;
         // Not List.copyOf: a null entry is a lane that derives its own route,
         // which is exactly what a mission stating one lane's path and leaving
@@ -363,6 +370,7 @@ public final class Mission {
         private LandingKind landing;
         private DebugDefences defences;
         private DebugMechDrop mechDrop;
+        private DebugAirPool airPool;
         private List<LanePath> lanePaths;
         private Long battleSeed;
 
@@ -414,6 +422,7 @@ public final class Mission {
             this.landing = m.landing;
             this.defences = m.defences;
             this.mechDrop = m.mechDrop;
+            this.airPool = m.airPool;
             this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
@@ -571,6 +580,12 @@ public final class Mission {
         /** @param defences stated ground defences of the target world; null reads the market. */
         public Builder defences(DebugDefences defences) {
             this.defences = defences;
+            return this;
+        }
+
+        /** @param airPool stated air pool; null reads the mission type's policy. */
+        public Builder airPool(DebugAirPool airPool) {
+            this.airPool = airPool;
             return this;
         }
 

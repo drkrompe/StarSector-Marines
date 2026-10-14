@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
 /** Immutable, faction-neutral geometry for Conquest's lateral command tracks. */
-public final class ConquestTrackLayout {
+public final class ConquestTrackLayout implements GarrisonFlow.Axis {
 
     public static final int DEFAULT_TRACK_COUNT = 3;
 
