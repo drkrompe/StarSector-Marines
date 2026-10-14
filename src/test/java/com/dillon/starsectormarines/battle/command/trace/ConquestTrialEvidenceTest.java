@@ -2,7 +2,17 @@ package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -47,6 +57,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * ({@code ON_PATH}/{@code OFFSET}), {@code offset}, {@code shuttleType}, {@code shuttles}, {@code seats},
  * {@code cycles}, {@code elites}, {@code militia}, {@code patrolSize}, {@code objectiveGarrison}, {@code keepGarrison}
  * and {@code risk}. {@code -PsnapshotEveryTicks=N} renders review frames and a {@code visuals/<fixture>/review.gif}.
+ *
+ * <p>The phased-assault fields are additive and, when omitted, leave production defaults alone: {@code muster},
+ * {@code supportKit} ({@code {"mortarTeamEvery":6,"observerEvery":4}}, or {@code "conquest"} for those periods; absent
+ * issues none); {@code mechDrops} (lances of the Conquest composition the marine commander may call; absent none);
+ * {@code airPool} ({@code {"bombers":3,"fighters":2,"regen":true}}; absent none). The trial map is authored with no
+ * mission layer above it, so none of the mission's declarations apply unless the fixture states them.
  */
 @Tag("conquest-trial-evidence")
 class ConquestTrialEvidenceTest {
@@ -102,7 +118,84 @@ class ConquestTrialEvidenceTest {
 
     private record Outcome(String id, String row, String detail, JSONObject json, String trace) {}
 
+    /** Plays one fixture with its commander switches set, and puts the process-wide switches back as it found them. */
     private static Outcome play(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
+        boolean muster = ConquestCommand.musterEnabled();
+        boolean plans = ConquestCommand.musterPlansEnabled();
+        boolean standing = ConquestCommand.standingFireMissionsEnabled();
+        try {
+            if (f.has("muster")) ConquestCommand.setMusterEnabled(f.getBoolean("muster"));
+            if (f.has("musterPlans")) ConquestCommand.setMusterPlansEnabled(f.getBoolean("musterPlans"));
+            if (f.has("standingFireMissions")) ConquestCommand.setStandingFireMissionsEnabled(f.getBoolean("standingFireMissions"));
+            return playWithSwitches(f, maxTicks, visualRoot);
+        } finally {
+            ConquestCommand.setMusterEnabled(muster);
+            ConquestCommand.setMusterPlansEnabled(plans);
+            ConquestCommand.setStandingFireMissionsEnabled(standing);
+        }
+    }
+
+    /** The mission's declarations the fixture states; the neutral profile declares none. */
+    private static TargetProfile profileOf(JSONObject f) {
+        TargetProfile profile = TargetProfile.NEUTRAL;
+        Object kit = f.opt("supportKit");
+        if (kit instanceof JSONObject k) {
+            profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
+                    new SquadSupportKit(k.optInt("mortarTeamEvery", 0), k.optInt("observerEvery", 0))));
+        } else if ("conquest".equals(kit)) {
+            profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
+                    new SquadSupportKit(6, 4)));
+        }
+        int lances = f.optInt("mechDrops", 0);
+        if (lances > 0) {
+            profile = profile.withDeclaredMechDrops(MechDropDeclaration.NONE.with(Faction.MARINE, new MechDropAllowance(lances,
+                    List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO))));
+        }
+        JSONObject pool = f.optJSONObject("airPool");
+        if (pool != null) {
+            boolean regen = pool.optBoolean("regen", true);
+            int bombers = pool.optInt("bombers", 0);
+            int fighters = pool.optInt("fighters", 0);
+            profile = profile.withDeclaredAirPool(AirPoolDeclaration.NONE.with(Faction.MARINE, AirPoolAllowance.of(
+                    new AirPoolStock(bombers, bombers, regen ? 40f : 0f),
+                    new AirPoolStock(fighters, fighters, regen ? 45f : 0f), true)));
+        }
+        return profile;
+    }
+
+    /** How many of the fort's own wall cells (gates excluded) are no longer standing. */
+    private static int openedWallCells(BattleSimulation sim, ConquestTrialGround.Ground ground) {
+        FortPlan plan = ground.fort().plan();
+        int open = 0;
+        for (int x = 0; x < plan.width(); x++) {
+            for (int y = 0; y < plan.height(); y++) {
+                if (!plan.isWall(x, y)) continue;
+                int[] cell = ground.fort().placement().cell(x, y);
+                if (sim.getGrid().isWalkable(cell[0], cell[1])) open++;
+            }
+        }
+        return open;
+    }
+
+    /** Company lifecycle events, counted from the notes the muster writes into its plan summaries. */
+    private static int[] companyLife(String trace) {
+        String[] needles = {"company formed for fort", " commits (", " broken at strength", " stands down:", " dissolved:",
+                " released squad ", " asks for a strike"};
+        int[] counts = new int[needles.length];
+        for (String line : trace.split("\n")) {
+            if (!line.contains("\"perspective\":\"MARINE\"")) continue;
+            for (int i = 0; i < needles.length; i++) {
+                int from = 0;
+                while ((from = line.indexOf(needles[i], from)) >= 0) {
+                    counts[i]++;
+                    from += needles[i].length();
+                }
+            }
+        }
+        return counts;
+    }
+
+    private static Outcome playWithSwitches(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
         String id = f.getString("id");
         long seed = f.optLong("seed", 41L);
         Placement placement = Placement.valueOf(f.optString("placement", Placement.ON_PATH.name()));
@@ -123,12 +216,14 @@ class ConquestTrialEvidenceTest {
 
         BattleSetup.MapBuild build = BattleSetup.populateConquest(ground.map(), seed, TraversalAxis.SOUTH_TO_NORTH,
                 new Random(seed), manifest, arrival, arrival.sizedConfigFor(manifest), false,
-                OperationTier.ESTABLISHED, risk, TargetProfile.NEUTRAL, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
+                OperationTier.ESTABLISHED, risk, profileOf(f), FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                 GroundRosterRegistry.resolve(""), roster);
         try (BattleSimulation sim = build.sim();
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(visualRoot, id, sim)) {
             FortOutcomes forts = new FortOutcomes();
             FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
+            FireSupportProbe fireSupport = new FireSupportProbe();
+            int wallOpenAtStart = openedWallCells(sim, ground);
             FightingPositionIndex startPositions = sim.fightingPositions();
             assertTrue(startPositions.runCount() > 0, "the trial fort stands a belt of fighting positions");
             sim.setCommandTraceEnabled(true, "conquest-trial");
@@ -146,6 +241,7 @@ class ConquestTrialEvidenceTest {
                 int tick = sim.getSimTickIndex();
                 forts.sample(sim);
                 positionUse.sample(sim);
+                fireSupport.sample(sim);
                 peakMarines = Math.max(peakMarines, count(sim, Faction.MARINE));
                 if (objectiveTaken < 0 && held(compounds, ground.objective())) objectiveTaken = tick;
                 if (keepTaken < 0 && held(compounds, ground.keep())) keepTaken = tick;
@@ -158,6 +254,8 @@ class ConquestTrialEvidenceTest {
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             String trace = sim.getCommandTraceJsonLines();
+            int wallOpenAtEnd = openedWallCells(sim, ground);
+            int[] life = companyLife(trace);
             int marinesEnd = count(sim, Faction.MARINE);
             int defendersEnd = count(sim, Faction.DEFENDER);
             FightingPositionCount positions = FightingPositionCount.of(startPositions, sim.fightingPositions());
@@ -174,11 +272,25 @@ class ConquestTrialEvidenceTest {
             String detail = "- fort centre (" + fortCentre[0] + "," + fortCentre[1] + "), lane x=" + ConquestTrialGround.LANE_X
                     + "; objective " + ground.objective().kind + " at (" + ground.objective().anchorX + ","
                     + ground.objective().anchorY + "), keep at (" + ground.keep().anchorX + "," + ground.keep().anchorY + ")\n"
-                    + forts.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace) + positionUse.describe();
+                    + "- commander switches: muster " + ConquestCommand.musterEnabled() + ", plans "
+                    + ConquestCommand.musterPlansEnabled() + ", standing fire missions "
+                    + ConquestCommand.standingFireMissionsEnabled() + "; declared kit/mechs/air: "
+                    + f.optString("supportKit", "-") + " / " + f.optInt("mechDrops", 0) + " / "
+                    + f.optString("airPool", "-") + "\n"
+                    + String.format(Locale.ROOT, "- fort wall cells opened: %d (of which %d at the start)%n",
+                            wallOpenAtEnd, wallOpenAtStart)
+                    + String.format(Locale.ROOT, "- companies (marine trace notes): formed %d, committed %d, broken %d, "
+                            + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
+                            life[0], life[1], life[2], life[3], life[4], life[5], life[6])
+                    + forts.describe(sim) + fireSupport.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
+                    + positionUse.describe();
             JSONObject json = new JSONObject().put("fixture", f).put("winner", winner).put("ticks", ticks)
                     .put("objectiveTakenTick", objectiveTaken).put("keepTakenTick", keepTaken)
                     .put("firstMarineAtFortTick", firstAtFort).put("peakMarinesAtFort", peakAtFort)
                     .put("marineSamplesAtFort", marineSamplesAtFort).put("peakMarines", peakMarines)
+                    .put("wallCellsOpened", wallOpenAtEnd - wallOpenAtStart)
+                    .put("companiesFormed", life[0]).put("companiesCommitted", life[1]).put("companiesBroken", life[2])
+                    .put("companiesStoodDown", life[3]).put("strikesAsked", life[6])
                     .put("marinesEnd", marinesEnd).put("defendersStart", defendersAtStart).put("defendersEnd", defendersEnd);
             return new Outcome(id, row, detail, json, trace);
         }
