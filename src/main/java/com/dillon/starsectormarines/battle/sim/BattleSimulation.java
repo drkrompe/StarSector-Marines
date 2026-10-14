@@ -661,7 +661,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                         battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
                         FORT_BUNKER_REACH_CELLS, seenX, seenY,
                         battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
-                        battery.fort().exteriorCells()));
+                        battery.fort().exteriorCells(), battery.fort().frame()));
                 // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
                 addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
@@ -696,7 +696,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 (int) Math.floor(place.x()), (int) Math.floor(place.y()),
                 place.control().holder(), place.originalHolder(), place.control().contested(),
                 FORT_BUNKER_REACH_CELLS, seenX, seenY, battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
-                battery.fort().exteriorCells()));
+                battery.fort().exteriorCells(), battery.fort().frame()));
     }
 
     /** The shield fort whose emitter is generator {@code id}, or {@code null} for a bare generator. */
@@ -721,7 +721,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     (int) Math.floor(room.x()), (int) Math.floor(room.y()),
                     room.control().holder(), dome.originalHolder(), room.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
-                    fort.exteriorCells()));
+                    fort.exteriorCells(), fort.frame()));
         }
         Fort.Place plant = fort.place(FortAspect.POWER);
         if (plant != null && !plant.wrecked() && rosterService.isAliveById(plant.coreId())) {
@@ -729,7 +729,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     (int) Math.floor(plant.x()), (int) Math.floor(plant.y()),
                     plant.control().holder(), dome.originalHolder(), plant.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
-                    fort.exteriorCells()));
+                    fort.exteriorCells(), fort.frame()));
         }
     }
 
