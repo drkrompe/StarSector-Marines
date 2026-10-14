@@ -1706,8 +1706,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     if (box.width() < 90 || box.height() < 120 || box.bottom() > grid.bottom())
                         throw new AssertionError("Billet is clipped: " + i);
                 }
-                if (editorMarkup.requireElement("apply-squad-equipment").box().borderBox().width() > 200)
-                    throw new AssertionError("Fit action must stay compact");
+                var issue = editorMarkup.requireElement(editor.weaponDoctrineTiles().get().get(0).id() + ":issue");
+                if (issue.box().borderBox().width() > 200)
+                    throw new AssertionError("Issue action must stay compact");
                 var members = roster.manningMemberIds(squad);
                 EquipmentTestFixtures.issueLauncher(roster.soldierById(members.get(0)));
                 roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
@@ -3262,9 +3263,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
         props.put("issueCargoClasses", viewModel.issueCargoClasses());
-        props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyLabel", viewModel.applyLabel());
-        props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });

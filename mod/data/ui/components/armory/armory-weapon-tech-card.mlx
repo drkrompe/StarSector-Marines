@@ -1,4 +1,5 @@
 <template props="tile">
+  <div id="{tile.wrapId}" class="doctrine-card-wrap" style="{tile.wrapStyle}">
         <button id="{tile.id}" class="{tile.weaponClasses}" onclick="{tile.select}" style="{tile.cardStyle}">
           <div id="{tile.headerId}" class="doctrine-header">
             <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
@@ -18,8 +19,18 @@
             </div>
           </div>
         </button>
+        <div id="{tile.issueRowId}" class="{tile.issueRowClasses}">
+          <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
+          <button id="{tile.issueId}" class="doctrine-issue-button console-action" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{i18n.loadoutIssueAction}</button>
+        </div>
+  </div>
 </template>
 <style>
+  .doctrine-card-wrap { flex-direction: column; width: 530px; gap: 2px; }
+  .doctrine-issue-row { flex-direction: row; height: 32px; gap: 7px; }
+  .doctrine-issue-row-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-issue-reason { width: 0px; flex-grow: 1; height: 32px; padding: 6px 7px; border-width: 1px; overflow: hidden; }
+  .doctrine-issue-button { width: 96px; height: 32px; padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-tile { flex-direction: column; width: 530px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #191e20; }
   .doctrine-tile.rarity-common { border-color: #607188; }
   .doctrine-tile.rarity-uncommon { border-color: #a5c6bc; background-color: #10202c; }
