@@ -191,6 +191,7 @@ import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
+import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -375,6 +376,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FiringSystem firingSystem;
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
     private final HeavyWeapons heavy;
+    /** Spends a squad's kit on the wall its order names, after the ordinary firing passes. */
+    private final WallBreachSystem wallBreach = new WallBreachSystem();
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link Detonations#queue}. */
     private final Detonations detonations;
     /** Sets off a parked airframe destroyed on its hardstand. Subscribed to the death mailbox. */
@@ -2813,6 +2816,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
                 directControl.intent().secondary(), directControl.selectedWeapon());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
+        // Squads told to open a wall spend what their ordinary firing left on it.
+        wallBreach.tick(this);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
@@ -3327,6 +3332,29 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.telemetry().recordSecondaryUsed(carrier);
         return true;
     }
+
+    /** Pulls a mech mount's trigger on a world point: a wall a company has been ordered to open. */
+    public boolean fireMechMountAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
+        return heavy.fireMountAtPoint(shooter, mount, aim);
+    }
+
+    /** Fires a carried launcher at a world point: a wall a company has been ordered to open. */
+    public boolean fireSecondaryAtPoint(long shooter, float x, float y) {
+        return infantry.fireSecondaryAtPoint(shooter, x, y);
+    }
+
+    /** Records that a carrier spent his special item, for the telemetry the ordinary paths already feed. */
+    public void noteSecondaryUsed(long carrier) {
+        rosterService.telemetry().recordSecondaryUsed(carrier);
+    }
+
+    /** The audio, effect and noise of a completed breaching cut. */
+    public void reportContactBreach(long carrier, float cellCenterX, float cellCenterY) {
+        infantry.reportContactBreach(carrier, cellCenterX, cellCenterY);
+    }
+
+    /** The wall-breach pass, for readings of how many rounds and charges it has spent. */
+    public WallBreachSystem wallBreach() { return wallBreach; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

@@ -12,7 +12,8 @@ final class CommandFrameCopies {
         return new ObjectiveAssignment(source.squadId(), source.kind(),
                 source.targetZoneId(), node(source.targetNode()),
                 source.objectiveId(), source.targetCellX(), source.targetCellY(),
-                source.targetRadiusCells(), source.wreckAuthorised(), source.occupyRunId());
+                source.targetRadiusCells(), source.wreckAuthorised(), source.occupyRunId(),
+                source.breachCellX(), source.breachCellY());
     }
 
     static CommandDirective directive(CommandDirective source) {

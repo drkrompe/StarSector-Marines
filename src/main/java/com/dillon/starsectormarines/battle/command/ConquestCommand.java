@@ -636,6 +636,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final boolean demolition;
         final boolean crew;
         final boolean machine;
+        final CapabilityProfile capabilities;
         ObjectiveAssignment assignedObjective;
 
         PlanningSquad(CommandSquadState state) {
@@ -671,6 +672,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             demolition = state.demolition();
             crew = state.crew();
             machine = state.machine();
+            capabilities = state.capabilities();
             assignedObjective = state.assignment();
         }
     }
@@ -1028,7 +1030,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             bodies.add(new AssaultMuster.Body(squad.id, squad.anchorCellX, squad.anchorCellY, squad.aliveMembers,
                     squad.machine, squad.demolition,
                     squad.underFireRecently || squad.moraleBroken || squad.primaryEngageableMembers > 0,
-                    squad.originalAssignment, squad.machine ? -1 : stripFor(squad)));
+                    squad.originalAssignment, squad.machine ? -1 : stripFor(squad), squad.capabilities));
         }
         muster.plans(PLANS_ENABLED);
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
@@ -1042,7 +1044,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             squads.remove(squad);
         }
         for (ConquestFrontSnapshot.CompanyState company : result.companies()) {
-            if (company.objectiveId() >= 0 && company.stage().equals("MUSTER") && company.strength() < company.required()
+            if (company.objectiveId() >= 0 && company.stage().equals("MUSTER")
+                    && (company.strength() < company.required() || AssaultMuster.machinesWouldHelp(company))
                     && !lancedForts.contains(company.objectiveId())) {
                 lanceWishFort = company.objectiveId();
                 break;
@@ -3128,7 +3131,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 || reason == AssignmentReason.MUSTER_FOOTHOLD || reason == AssignmentReason.MUSTER_GATHER
                 || reason == AssignmentReason.ASSAULT_COMMIT || reason == AssignmentReason.ASSAULT_COMPANY_RALLY
                 || reason == AssignmentReason.ASSAULT_BASE_OF_FIRE || reason == AssignmentReason.ASSAULT_STAGE
-                || reason == AssignmentReason.ASSAULT_ENTRY || reason == AssignmentReason.ASSAULT_HOLD) {
+                || reason == AssignmentReason.ASSAULT_ENTRY || reason == AssignmentReason.ASSAULT_HOLD
+                || reason == AssignmentReason.ASSAULT_BREACH) {
             return CommandStabilityBreak.CONTEXT_INVALIDATED;
         }
         if (old.kind() == AssignmentKind.SECURE_COMPOUND

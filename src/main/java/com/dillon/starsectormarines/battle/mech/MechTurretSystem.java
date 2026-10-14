@@ -82,6 +82,15 @@ public final class MechTurretSystem {
                         withinTraverse = Math.abs(twist) <= LayeredMechAppearance.MAX_TORSO_TWIST_DEGREES;
                         desired = LayeredMechAppearance.torsoFacing(hipFacing[row], targetFacing);
                     }
+                } else if (loadout.breachAim() != null) {
+                    // No body to shoot: the wall the chassis was told to open.
+                    target = 0L;
+                    float dx = loadout.breachAim().x() - posX[row];
+                    float dy = loadout.breachAim().y() - posY[row];
+                    if (dx != 0f || dy != 0f) {
+                        float bearing = LayeredAppearance.wrapDegrees(AirBody.facingToward(dx, dy));
+                        desired = LayeredMechAppearance.torsoFacing(hipFacing[row], bearing);
+                    }
                 } else {
                     target = 0L;
                     MechFacingIntent.Point intent = MechFacingIntent.rememberedContact(

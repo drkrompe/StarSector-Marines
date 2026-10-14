@@ -117,6 +117,47 @@ public class HeavyWeapons {
         advanceMechWeapons(controlledId, aim, continuing);
     }
 
+    /**
+     * Pulls a mount's trigger on a world point, which is how a company opens a wall: nothing is aimed at (a wall is not a
+     * body), the round flies to the point or stops at the first wall in its way, and its detonation does the structural
+     * damage the weapon's data says. The mount's own gates apply as for any trigger: cycle, burst, ammunition, heat, a
+     * barrel that is not through a wall, and a torso turned onto the point. Returns whether a round left.
+     */
+    public boolean fireMountAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
+        if (mount == null || aim == null || !roster.isAliveById(shooter) || !roster.world().hasMechLoadout(shooter)) {
+            return false;
+        }
+        MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
+        if (mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()
+                || !loadout.heat.permits(mount.component.heatPerTrigger(), true)) return false;
+        if (!fireRoundAtPoint(shooter, mount, aim)) return false;
+        loadout.heat.commit(mount.component.heatPerTrigger());
+        mount.commitTrigger(0L, aim);
+        return true;
+    }
+
+    /** One round at a point: a flat-trajectory mount by its ordinary point round, an arcing one by its scatter. */
+    private boolean fireRoundAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
+        WeaponDef weapon = mount.weaponDef();
+        if (weapon.arcHeight <= 0f && !weapon.indirectFire) return firePointRound(shooter, mount, aim);
+        if (!canFireMechMount(shooter, mount) || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
+        World world = roster.world();
+        MechLoadoutComponent loadout = world.mechLoadout(shooter);
+        float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+        MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
+        if (!loadout.isPointAimedAt(aim, world.renderX(shooter), world.renderY(shooter), hipFacing)
+                || !loadout.isPointAimedAt(aim, muzzle.x(), muzzle.y(), hipFacing)) return false;
+        Faction shooterFaction = roster.identity().faction(shooter);
+        float distance = RangeFalloff.dist(world.x(shooter), world.y(shooter), aim.x(), aim.y());
+        float spread = RangeFalloff.spread(weapon.hitSpread, distance, weapon.range);
+        boolean hit = rng.nextFloat() < weapon.accuracy;
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(aim.x(), aim.y(), hit, spread, rng);
+        roster.telemetry().recordRoundFired(shooter);
+        launchArc(shooter, weapon, ep, hit, muzzle.x(), muzzle.y(), shooterFaction, roster.moraleImpact(shooter));
+        return true;
+    }
+
     /** Carrier capability shared by the selector and the fire procedure. Ammunition is readiness, not eligibility. */
     public static boolean supportsPointFire(MechWeaponMount mount) {
         if (mount == null) return false;
@@ -299,7 +340,12 @@ public class HeavyWeapons {
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, rng);
+        launchArc(shooter, weapon, ep, hit, fromX, fromY, shooterFaction, moraleImpact);
+    }
 
+    /** The flight and the delayed detonation of an arcing round whose endpoint has been decided. */
+    private void launchArc(long shooter, WeaponDef weapon, ShotEndpoint.Endpoint ep, boolean hit,
+                           float fromX, float fromY, Faction shooterFaction, float moraleImpact) {
         PendingDetonation onArrival = new PendingDetonation(
                 shooter,
                 ep.x(), ep.y(), weapon.flightSec,
@@ -365,13 +411,17 @@ public class HeavyWeapons {
                 if (mount.burstTimer > 0f) continue;
 
                 if (mount.burstPointAim != null) {
-                    if (u != controlledId || !MechFireGroups.contains(controlledMask, mount)) {
+                    boolean manual = u == controlledId && MechFireGroups.contains(controlledMask, mount);
+                    // A wall the chassis has been told to open: the burst finishes on the point it began on, for as
+                    // long as that is still the point it is aiming at.
+                    boolean breaching = !manual && mount.burstPointAim.equals(m.breachAim());
+                    if (!manual && !breaching) {
                         mount.clearBurst();
                         continue;
                     }
                     // Manual bursts follow the live cursor. A refused release uses its
                     // scheduled slot so blocked barrels cannot retain a stale backlog.
-                    firePointRound(u, mount, aim);
+                    fireRoundAtPoint(u, mount, manual ? aim : mount.burstPointAim);
                     finishBurstRound(mount);
                     continue;
                 }
