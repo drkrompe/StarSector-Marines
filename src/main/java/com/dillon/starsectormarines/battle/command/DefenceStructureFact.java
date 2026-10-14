@@ -22,18 +22,30 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * @param fortId          the fort this aspect belongs to, or {@code -1} for a bare structure. Facts sharing a fort id are
  *                        one defence whose aspects a commander chooses between
  * @param family          what sort of fort the aspect belongs to, which says what losing each aspect costs
+ * @param beltCells       the fort's prepared ground, as packed {@code x, y} pairs: the fighting-position cells within
+ *                        {@link DefenceStructureTactics#FORT_BELT_REACH_CELLS} of the fort, which a side standing to at an
+ *                        aspect it holds may man. Map terrain, not a sighting of anyone. Empty for a bare structure
  * @param seenCells       further cells, as packed {@code x, y} pairs, any one of which in view also discloses the
  *                        structure: for a fort, its works (wall, gates, bastion nests), which a company walking up to
  *                        the fort sees long before it sees a platform standing inside them. Empty for a bare structure
  */
 public record DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
                                    boolean threatened, int reachCells, int seenCellX, int seenCellY,
-                                   int fortId, Family family, int[] seenCells) {
+                                   int fortId, Family family, int[] seenCells, int[] beltCells) {
 
     private static final int[] NO_CELLS = new int[0];
 
     public DefenceStructureFact {
         if (seenCells == null) seenCells = NO_CELLS;
+        if (beltCells == null) beltCells = NO_CELLS;
+    }
+
+    /** An aspect of a fort with its works disclosed by {@code seenCells} and no belt. */
+    public DefenceStructureFact(Kind kind, int cellX, int cellY, Faction holder, Faction originalHolder,
+                                boolean threatened, int reachCells, int seenCellX, int seenCellY,
+                                int fortId, Family family, int[] seenCells) {
+        this(kind, cellX, cellY, holder, originalHolder, threatened, reachCells, seenCellX, seenCellY,
+                fortId, family, seenCells, NO_CELLS);
     }
 
     /** An aspect of a fort disclosed only by sighting {@code seenCellX, seenCellY}. */

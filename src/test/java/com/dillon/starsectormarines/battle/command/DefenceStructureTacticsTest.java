@@ -201,4 +201,74 @@ class DefenceStructureTacticsTest {
         assertEquals(1, stand.size());
         assertEquals(Role.DEFEND, stand.get(0).role());
     }
+
+    private static int[] trench(int fromX, int toX, int y) {
+        int[] cells = new int[(toX - fromX + 1) * 2];
+        for (int x = fromX, i = 0; x <= toX; x++) {
+            cells[i++] = x;
+            cells[i++] = y;
+        }
+        return cells;
+    }
+
+    private static DefenceStructureFact bunker(boolean threatened, int[] belt) {
+        return new DefenceStructureFact(Kind.FIRE_CONTROL, 40, 40, Faction.DEFENDER, Faction.DEFENDER, threatened,
+                4, 40, 40, 0, DefenceStructureFact.Family.BATTERY_FORT, new int[0], belt);
+    }
+
+    @Test
+    void aFortBeltPostIsTheBeltCellNearestTheSquadThatItCanReach() {
+        int[] post = DefenceStructureTactics.beltPost(trench(10, 30, 20), 32, 22, (x, y) -> true);
+        assertEquals(30, post[0], "the end of the trench nearest the squad");
+        assertEquals(20, post[1]);
+        int[] cutOff = DefenceStructureTactics.beltPost(trench(10, 30, 20), 32, 22, (x, y) -> x < 25);
+        assertEquals(24, cutOff[0], "the nearest cell it can actually get to");
+    }
+
+    @Test
+    void aBeltWithNothingReachableOrNothingStandingIsNoPost() {
+        assertNull(DefenceStructureTactics.beltPost(trench(10, 30, 20), 5, 5, (x, y) -> false));
+        assertNull(DefenceStructureTactics.beltPost(new int[0], 5, 5, (x, y) -> true));
+    }
+
+    @Test
+    void aFortAspectStoodToWithAPreparedBeltIsHeldOnTheBeltByAnAreaDefence() {
+        CommandTopology topology = openTopology();
+        List<Task> tasks = DefenceStructureTactics.plan(Faction.DEFENDER, List.of(bunker(true, trench(10, 30, 20))),
+                List.of(squad(1, 20, 60)), topology);
+        assertEquals(1, tasks.size());
+        ObjectiveAssignment area = tasks.get(0).assignment();
+        assertEquals(AssignmentKind.DEFEND_AREA, area.kind(), "the same kind of order a commander already gives");
+        assertEquals(20, area.targetCellX(), "the belt cell nearest the squad");
+        assertEquals(20, area.targetCellY());
+        assertEquals(DefenceStructureTactics.FORT_BELT_POST_RADIUS_CELLS, area.targetRadiusCells());
+        // Held on the next pulse unchanged, rather than re-chosen toward the doorstep.
+        List<Task> again = DefenceStructureTactics.plan(Faction.DEFENDER, List.of(bunker(true, trench(10, 30, 20))),
+                List.of(new Candidate(1, 20, 21, area)), topology);
+        assertEquals(area, again.get(0).assignment());
+    }
+
+    @Test
+    void aFortAspectStoodToWithoutPreparedGroundIsHeldAtTheDoorstepAsBefore() {
+        CommandTopology topology = openTopology();
+        DefenceStructureFact bunker = bunker(true, new int[0]);
+        List<Task> tasks = DefenceStructureTactics.plan(Faction.DEFENDER, List.of(bunker),
+                List.of(squad(1, 20, 20)), topology);
+        assertEquals(1, tasks.size());
+        ObjectiveAssignment area = tasks.get(0).assignment();
+        assertEquals(AssignmentKind.DEFEND_AREA, area.kind());
+        assertTrue(Math.max(Math.abs(area.targetCellX() - 40), Math.abs(area.targetCellY() - 40)) <= 4);
+        assertTrue(DefenceStructureTactics.isTask(area, List.of(bunker)));
+    }
+
+    @Test
+    void anAreaDefenceOnAFortsBeltIsThatFortsTaskButOnlyAForts() {
+        DefenceStructureFact bunker = bunker(true, new int[0]);
+        DefenceStructureFact bare = structure(Kind.FIRE_CONTROL, 40, 40, Faction.DEFENDER, Faction.DEFENDER, true);
+        ObjectiveAssignment belt = ObjectiveAssignment.defendArea(1, 12, 40, DefenceStructureTactics.FORT_BELT_POST_RADIUS_CELLS);
+        assertTrue(DefenceStructureTactics.isTask(belt, List.of(bunker)));
+        assertFalse(DefenceStructureTactics.isTask(belt, List.of(bare)));
+        assertFalse(DefenceStructureTactics.isTask(ObjectiveAssignment.attackMove(1, 12, 40), List.of(bunker)),
+                "an attack move keeps the doorstep reach");
+    }
 }

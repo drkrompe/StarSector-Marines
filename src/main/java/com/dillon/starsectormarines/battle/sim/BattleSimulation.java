@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.battery.FortressBatteryService;
 import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
+import com.dillon.starsectormarines.battle.command.DefenceStructureTactics;
 import com.dillon.starsectormarines.battle.battery.FortressBatterySystem;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
@@ -239,6 +240,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -663,7 +665,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                         battery.owner(), battery.originalOwner(), battery.fireControl().contested(),
                         FORT_BUNKER_REACH_CELLS, seenX, seenY,
                         battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
-                        battery.fort().exteriorCells()));
+                        battery.fort().exteriorCells(), fortBeltCells(seenX, seenY)));
                 // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
                 addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
@@ -698,7 +700,30 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 (int) Math.floor(place.x()), (int) Math.floor(place.y()),
                 place.control().holder(), place.originalHolder(), place.control().contested(),
                 FORT_BUNKER_REACH_CELLS, seenX, seenY, battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
-                battery.fort().exteriorCells()));
+                battery.fort().exteriorCells(), fortBeltCells(seenX, seenY)));
+    }
+
+    /**
+     * The fighting-position cells within {@link DefenceStructureTactics#FORT_BELT_REACH_CELLS} of a fort's centre, as
+     * packed {@code x, y} pairs in the index's run order: the prepared ground a side holding the fort may man. Terrain
+     * as it stands now, so a belt shelled thin offers fewer cells.
+     */
+    private int[] fortBeltCells(int centreX, int centreY) {
+        FightingPositionIndex index = fightingPositions();
+        int reach = DefenceStructureTactics.FORT_BELT_REACH_CELLS;
+        int[] cells = new int[64];
+        int used = 0;
+        for (int run = 0; run < index.runCount(); run++) {
+            for (int i = 0, n = index.runSize(run); i < n; i++) {
+                int x = index.runCellX(run, i);
+                int y = index.runCellY(run, i);
+                if (Math.max(Math.abs(x - centreX), Math.abs(y - centreY)) > reach) continue;
+                if (used + 2 > cells.length) cells = Arrays.copyOf(cells, cells.length * 2);
+                cells[used++] = x;
+                cells[used++] = y;
+            }
+        }
+        return Arrays.copyOf(cells, used);
     }
 
     /** The shield fort whose emitter is generator {@code id}, or {@code null} for a bare generator. */
@@ -723,7 +748,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     (int) Math.floor(room.x()), (int) Math.floor(room.y()),
                     room.control().holder(), dome.originalHolder(), room.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
-                    fort.exteriorCells()));
+                    fort.exteriorCells(), fortBeltCells(seenX, seenY)));
         }
         Fort.Place plant = fort.place(FortAspect.POWER);
         if (plant != null && !plant.wrecked() && rosterService.isAliveById(plant.coreId())) {
@@ -731,7 +756,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     (int) Math.floor(plant.x()), (int) Math.floor(plant.y()),
                     plant.control().holder(), dome.originalHolder(), plant.control().contested(),
                     FORT_BUNKER_REACH_CELLS, seenX, seenY, fort.id(), DefenceStructureFact.Family.SHIELD_FORT,
-                    fort.exteriorCells()));
+                    fort.exteriorCells(), fortBeltCells(seenX, seenY)));
         }
     }
 
