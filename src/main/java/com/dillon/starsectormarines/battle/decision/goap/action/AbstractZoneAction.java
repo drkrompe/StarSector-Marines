@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.command.compound.ObjectiveArea;
 import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -315,9 +316,23 @@ abstract class AbstractZoneAction implements Action {
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
 
-    /** True iff {@code member}'s logical cell lies inside {@link #targetZoneId}. */
+    /**
+     * The ground within {@link #targetZoneId} this action is bounded to, or null for the whole zone. A compound's
+     * clear and hold are bounded to its {@link ObjectiveArea}, which outlives the walls that once made its room a zone
+     * of its own.
+     */
+    protected ObjectiveArea area() { return null; }
+
+    /** True iff the cell lies in {@link #targetZoneId} and inside {@link #area()}. */
+    protected final boolean inTarget(int x, int y, BattleView sim) {
+        if (sim.getZoneGraph().zoneIdAt(x, y) != targetZoneId) return false;
+        ObjectiveArea area = area();
+        return area == null || area.contains(x, y);
+    }
+
+    /** True iff {@code member}'s logical cell lies inside {@link #targetZoneId} (and {@link #area()}). */
     protected final boolean memberInZone(long member, BattleView sim) {
-        return sim.getZoneGraph().zoneIdAt(sim.world().cellX(member), sim.world().cellY(member)) == targetZoneId;
+        return inTarget(sim.world().cellX(member), sim.world().cellY(member), sim);
     }
 
     /**
