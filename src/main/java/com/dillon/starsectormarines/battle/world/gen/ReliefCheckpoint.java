@@ -21,6 +21,9 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.world.gen.damage.DamageCatalog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +63,7 @@ public final class ReliefCheckpoint {
                 ctx.pois, ctx.doodads, new TacticalMap(List.of()), ctx.get(BspKeys.BUILDINGS),
                 List.of(), roads, ctx.landingPads);
         validate(map, relay, main, service);
-        return new Layout(map, relay, GATE, FORWARD_POST, OPENING, main, service);
+        return new Layout(map.withInitialDamage(DamageCatalog.relief()), relay, GATE, FORWARD_POST, OPENING, main, service);
     }
 
     private static void grounds(GenContext c) {
@@ -116,6 +119,14 @@ public final class ReliefCheckpoint {
         BuildingStamp.OFFSET_DEPOT.place(c, 67, 14, 1); // Supplies beside the southern stand.
         shell(c, PointOfInterest.Kind.DEPOT, 77, 20, 83, 26, Frontage.BOTTOM);
         BuildingStamp.T_WORKSHOP.place(c, 96, 39, 1);
+        // This exposed wing was a working repair shop before the bombardment.
+        for (int i = 0; i < c.doodads.size(); i++) {
+            Doodad prop = c.doodads.get(i);
+            if (prop.cellX >= 101 && prop.cellX <= 106 && prop.cellY >= 43 && prop.cellY <= 51
+                    && "doodad.crate".equals(prop.definitionId()))
+                c.doodads.set(i, new Doodad(prop.cellX, prop.cellY,
+                        TileRegistry.installed().doodad("doodad.industrial-machine-tool"), prop.quarterTurns, prop.mirrored));
+        }
         BuildingStamp.OFFSET_DEPOT.place(c, 124, 41, 0);
         BuildingStamp.T_WORKSHOP.place(c, 96, 9, 0);
         BuildingStamp.OFFSET_DEPOT.place(c, 124, 10, 2);
@@ -156,6 +167,7 @@ public final class ReliefCheckpoint {
         yard.prop(91, 24, "parked-utility-truck", 0);
         // Workshop spares and a small receiving court beyond the service-road junction.
         yard.gravel(89, 40, 92, 50);
+        yard.fence(89, 40, 92, 50);
         yard.prop(90, 43, "industrial-cable-reel", 0);
         yard.prop(90, 47, "industrial-drum-cluster", 0);
         yard.gravel(123, 55, 136, 59);
