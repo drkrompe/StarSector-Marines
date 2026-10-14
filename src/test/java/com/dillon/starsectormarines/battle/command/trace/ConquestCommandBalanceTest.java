@@ -763,7 +763,19 @@ class ConquestCommandBalanceTest {
      * many patrols it kept staged, and per area what it wanted and had local. Read from the trace only.
      */
     private static String flowEvidence(String trace) {
-        Pattern area = Pattern.compile("\\[(\\d+),(\\d+) w(\\d+) d(\\d+) l(\\d+)");
+        Pattern area = Pattern.compile("\\[(\\d+),(\\d+) w(\\d+) d(\\d+) l(\\d+)(?: m(\\d+) s(\\d+) r(\\d+))?( bare)?");
+        // Reservations per pulse (manned + staged + rallied over every area) and per area, only on unified plans.
+        long reservedPulseSum = 0;
+        int reservedPulsePeak = 0;
+        long reservedAreaSum = 0;
+        long reservedAreaSamples = 0;
+        int reservedAreaPeak = 0;
+        long ralliedSum = 0;
+        long stagedAreaSum = 0;
+        long mannedSum = 0;
+        long bareAreaSamples = 0;
+        long unifiedPulses = 0;
+        long redirectedSquadPulses = 0;
         int pulses = 0;
         int flowPulses = 0;
         long areaSum = 0;
@@ -806,8 +818,26 @@ class ConquestCommandBalanceTest {
             stagedPeak = Math.max(stagedPeak, staged);
             sent += Integer.parseInt(m.group(3));
             released += Integer.parseInt(m.group(4));
+            Matcher redirect = Pattern.compile("rallyToArea=(\\d+)").matcher(note);
+            if (redirect.find()) redirectedSquadPulses += Integer.parseInt(redirect.group(1));
             Matcher a = area.matcher(note);
+            int reservedThisPulse = 0;
+            boolean unified = false;
             while (a.find()) {
+                if (a.group(6) != null) {
+                    unified = true;
+                    int mm = Integer.parseInt(a.group(6));
+                    int s = Integer.parseInt(a.group(7));
+                    int r = Integer.parseInt(a.group(8));
+                    mannedSum += mm;
+                    stagedAreaSum += s;
+                    ralliedSum += r;
+                    reservedThisPulse += mm + s + r;
+                    reservedAreaSamples++;
+                    reservedAreaSum += mm + s + r;
+                    reservedAreaPeak = Math.max(reservedAreaPeak, mm + s + r);
+                    if (a.group(9) != null) bareAreaSamples++;
+                }
                 int demand = Integer.parseInt(a.group(4));
                 int local = Integer.parseInt(a.group(5));
                 if (demand <= 0) continue;
@@ -817,9 +847,22 @@ class ConquestCommandBalanceTest {
                 localPeak = Math.max(localPeak, local);
                 if (local < demand) unmetSamples++;
             }
+            if (unified) {
+                unifiedPulses++;
+                reservedPulseSum += reservedThisPulse;
+                reservedPulsePeak = Math.max(reservedPulsePeak, reservedThisPulse);
+            }
         }
         if (flowPulses == 0) return "- defender pressure flow: no flow line in the trace (flow off or never pressed)\n";
-        return String.format(Locale.ROOT,
+        String reservations = unifiedPulses == 0 ? "" : String.format(Locale.ROOT,
+                "- defender per-area reservations (unified rally and flow): %d pulses; squads reserved per pulse mean %.2f peak %d;"
+                        + " per area (%d samples, %d without anything to man) mean %.2f peak %d; area-sample means manned %.2f staged %.2f rallied %.2f; rally squad-pulses sent to an area staging cell %d%n",
+                unifiedPulses, reservedPulseSum / (double) unifiedPulses, reservedPulsePeak, reservedAreaSamples, bareAreaSamples,
+                reservedAreaSamples == 0 ? 0.0 : reservedAreaSum / (double) reservedAreaSamples, reservedAreaPeak,
+                reservedAreaSamples == 0 ? 0.0 : mannedSum / (double) reservedAreaSamples,
+                reservedAreaSamples == 0 ? 0.0 : stagedAreaSum / (double) reservedAreaSamples,
+                reservedAreaSamples == 0 ? 0.0 : ralliedSum / (double) reservedAreaSamples, redirectedSquadPulses);
+        return reservations + String.format(Locale.ROOT,
                 "- defender pressure flow: %d of %d pulses with a flow line; areas mean %.2f peak %d; staged patrols mean %.2f peak %d;"
                         + " staging orders %d, staged patrols given back %d; per demanding area (%d samples): demand mean %.2f,"
                         + " local mean %.2f peak %d, below demand in %d (%.0f%%); DEFENDER_GARRISONABLE_STAGE directives %d of %d (%.1f%%)%n",
@@ -832,6 +875,7 @@ class ConquestCommandBalanceTest {
 
     private static String fortOrders(String trace) {
         StringBuilder out = new StringBuilder(flowEvidence(trace));
+        out.append(RallyResponseEvidence.describe(trace));
         out.append("- structure orders in the command trace:");
         for (String perspective : List.of("MARINE", "DEFENDER")) {
             for (String role : List.of("TAKE", "RETAKE", "DEFEND")) {

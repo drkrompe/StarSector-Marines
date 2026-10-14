@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is built for fort-belt fighting positions; o
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — general pressure-driven flow (areas, demand, staging cells) and the order local assignment draws forces in.
+Updated: 2026-10-13 — rally and flow unified into one per-area reservation.
 
 ## Why this exists
 
@@ -116,11 +116,15 @@ fort's works when the area presses that fort's belt. Every area with nobody
 local gets one squad before any gets a second, starting and keeping a post have
 different thresholds, and an area that stays quiet returns its squads.
 
-Local assignment draws staged squads first, then squads the track rally has just
-sent, then the roving pool above its reserve floor. The rally and flow are
-therefore both ways forces become local; the rally currently spends most of the
-pool before flow sees it, and the two are meant to become one per-area
-reservation rather than competitors.
+The track rally and flow are one **per-area reservation**. A threatened track
+maps onto its heaviest area; when that area has something to man, the rally
+goes to its staging cell (a fort's works for a fort's belt), and otherwise to
+its old band point, so a map with nothing to man keeps the plain rally. Each
+squad is reserved to one area at a time — rallied, staged or manning — and
+counted once against its demand. Local assignment draws the area's own
+reserved squads first, then the roving pool above its reserve floor. Areas with
+nothing to man are not staged for. `battle.garrison.unifiedRally=false`
+restores separate rally and flow.
 
 ## How it fits what exists
 

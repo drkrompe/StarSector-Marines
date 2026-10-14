@@ -155,6 +155,8 @@ final class GarrisonDirector {
     private int etaEvals;
     /** Whether the last {@link #nearest} skipped a roving patrol only because taking it would empty the reserve. */
     private boolean barredByFloor;
+    /** The area-reservation preference of the {@link #assign} in progress, or {@code null}. */
+    private Eligibility pulseReserved;
 
     /** The garrisonable cell a squad was ordered to man and has not yet been seen carrying, or {@code null}. */
     int[] pendingCell(int squadId) {
@@ -356,6 +358,16 @@ final class GarrisonDirector {
      * @param free free patrols, in a stable order; none is already manned or ordered
      */
     List<Man> assign(List<Free> free, Eligibility eligible) {
+        return assign(free, eligible, null);
+    }
+
+    /**
+     * As {@link #assign(List, Eligibility)}, but a squad the {@code reserved} test names for a place is tried before any
+     * other, nearest first within each group: manning draws on the squads already reserved to the place's own area
+     * before it reaches for anybody else. {@code null} means no preference.
+     */
+    List<Man> assign(List<Free> free, Eligibility eligible, Eligibility reserved) {
+        this.pulseReserved = reserved;
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile != null ? System.nanoTime() : 0L;
         List<Man> out = new ArrayList<>();
@@ -413,6 +425,7 @@ final class GarrisonDirector {
         }
         pulseRegistry = null;
         pulseField = null;
+        pulseReserved = null;
         return out;
     }
 
@@ -433,17 +446,36 @@ final class GarrisonDirector {
         int n = 0;
         for (int i = 0; i < used.length; i++) if (!used[i]) order[n++] = i;
         Integer[] candidates = Arrays.copyOf(order, n);
-        Arrays.sort(candidates, Comparator
+        Eligibility reserved = pulseReserved;
+        boolean[] ownSquad = null;
+        if (reserved != null) {
+            ownSquad = new boolean[free.size()];
+            for (int i : candidates) ownSquad[i] = reserved.test(free.get(i).squadId(), g);
+        }
+        final boolean[] own = ownSquad;
+        Comparator<Integer> byDistance = Comparator
                 .<Integer>comparingLong(i -> distanceSq(free.get(i), cx, cy))
-                .thenComparingInt(i -> free.get(i).squadId()));
+                .thenComparingInt(i -> free.get(i).squadId());
+        Arrays.sort(candidates, own == null ? byDistance
+                : Comparator.<Integer>comparingInt(i -> own[i] ? 0 : 1).thenComparing(byDistance));
+        boolean ownOutOfReach = false;
         for (int i : candidates) {
             Free squad = free.get(i);
+            boolean isOwn = own != null && own[i];
+            if (isOwn && ownOutOfReach) continue;
             if (!squad.staged() && !mayTakeRoving) {
                 barredByFloor = true;
                 continue;
             }
             etaEvals++;
-            if (etaTicks(squad.x(), squad.y(), cx, cy) > MAX_ETA_TICKS) return -1;
+            if (etaTicks(squad.x(), squad.y(), cx, cy) > MAX_ETA_TICKS) {
+                // Sorted by distance within a group, so everyone after this one in the group is farther still.
+                if (isOwn) {
+                    ownOutOfReach = true;
+                    continue;
+                }
+                return -1;
+            }
             if (eligible.test(squad.squadId(), g)) return i;
         }
         return -1;
