@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — the trial ground showed a reactive belt with defenders held at the keep never raising any pressure; a fort now seats a four-man picket by its main gate and its guns report what they engage. Earlier: useful strength is half a squad's starting strength.
+Updated: 2026-10-14 — place alarms keep a fort's pressure up after its picket dies or the attack goes inside the walls (offset-41: belt squad held to tick 5026 instead of released at 2701; marine losses 21→46 of 54). Next: a belt garrison holds its own stretch while the attack is elsewhere in the fort, and released or reserve squads stand idle on a patrol that does not move.
 
 ## Intent
 
@@ -50,11 +50,17 @@ releases them when the pressure passes.
 
 ## Next
 
-- Single runs swing by several hundred dug-in samples; build a multi-seed fort
-  matrix before tuning any weight or dwell.
+- A belt garrison holds the stretch it was sent to even when the attack has
+  moved round the fort or inside the works; an alarmed fort should redeploy
+  its garrison toward where the fort is actually being lost.
+- Released and reserve squads stand on a routine patrol that does not move
+  (offset-41 squads 4 and 6): a released squad should return to a reserve
+  position, not idle on its last cell.
+- A structure-defence order left a squad stationary for about 400 ticks
+  before a retake moved it; not yet diagnosed.
+- Single runs swing by several hundred dug-in samples; use the trial ground
+  (`conquest-trial-ground.md`) across seeds before tuning any weight or dwell.
 - Some squads still die on marches of a thousand ticks or more.
-- A staging directive without an assignment cell was seen once and not
-  reproduced; it is guarded, not explained.
 
 ## Constraints
 
