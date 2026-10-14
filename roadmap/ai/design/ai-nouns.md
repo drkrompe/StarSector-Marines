@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — crew-served fire support: the field mortar tube served by a gunner, now taking an assigned fire mission from a plan or standing order.
+Updated: 2026-10-14 — a crew-served tube is re-crewed by a squadmate when its gunner falls; crew-served fire support: the field mortar tube served by a gunner, now taking an assigned fire mission from a plan or standing order.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2071,7 +2071,7 @@ squad.
   hardened target, or two soft ones) and nobody it believes in is close enough to be on top of it.
 - **Packs up, relocates, can be lost.** An idle tube, an empty magazine or an enemy inside the danger distance
   packs the tube (carried rounds survive packing). A tube shot out leaves the gunner alive but unarmed for a
-  cooldown; **a dead gunner loses the tube**.
+  cooldown; **a dead gunner is replaced by a nearby squadmate, and only when none can the tube is lost**.
 - **Friendly fire is vetoed** at launch: a round is not fired while a friendly stands under its impact.
 
 **An assigned fire mission** is part of the squad's order (a cell and a radius). The tube fires at the best body
@@ -2079,7 +2079,7 @@ on that ground, a structure without a sighting (its works are disclosed) and a m
 and fires on the section's own belief when nothing there is eligible; a plan's base of fire and the commander's
 standing missions both assign one (`phased-assault.md`).
 
-What it does not do yet: be re-crewed when the gunner dies. Numbers are untuned; the scene `field-mortar` reads them.
+When the gunner falls, the nearest living squadmate within 10 cells who carries no special takes the tube up and keeps its rounds; the tube is lost only when nobody can. Numbers are untuned; the scene `field-mortar` reads them.
 
 ### Fighting positions
 

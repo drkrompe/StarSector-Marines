@@ -113,6 +113,44 @@ class FortAssaultTest {
         assertEquals(3, belief.liveCount(), "a dead nest stays dead");
     }
 
+    @Test
+    void aNestNobodyEverSawAliveIsBelievedDeadOnceASquadHasStoodInClearViewOfItUnansweredLongEnough() {
+        FortAssault.Works works = FortAssault.Works.of(frame(0));
+        FortAssault.NestBelief belief = new FortAssault.NestBelief(works.nests.size());
+        CommandTopology topology = openTopology();
+        int[] nest0 = works.nests.get(0);
+        List<int[]> squad = List.of(new int[] {nest0[0] - 10, nest0[1] - 8});
+        // The garrison stands beside the nest: men are not the nest, and a nest is seen only by an emplacement on it.
+        int tick = 1000;
+        belief.update(works, List.of(), squad, topology, tick);
+        assertEquals(4, belief.liveCount(), "one look is not enough");
+        belief.update(works, List.of(), squad, topology, tick + FortAssault.NEST_UNSEEN_TICKS - 1);
+        assertEquals(4, belief.liveCount(), "nor is a little less than the wait");
+        belief.update(works, List.of(), squad, topology, tick + FortAssault.NEST_UNSEEN_TICKS);
+        assertEquals(3, belief.liveCount(), "in clear view, unanswered, for the wait: the lane squads got there first");
+        assertFalse(belief.live(0));
+    }
+
+    @Test
+    void aNestOutOfViewOrSeenAliveIsNotBelievedDeadBySilence() {
+        FortAssault.Works works = FortAssault.Works.of(frame(0));
+        CommandTopology topology = openTopology();
+        int[] nest0 = works.nests.get(0);
+
+        FortAssault.NestBelief far = new FortAssault.NestBelief(works.nests.size());
+        List<int[]> distant = List.of(new int[] {nest0[0] - 60, nest0[1]});
+        far.update(works, List.of(), distant, topology, 0);
+        far.update(works, List.of(), distant, topology, 10_000);
+        assertEquals(4, far.liveCount(), "a squad too far to see it learns nothing");
+
+        FortAssault.NestBelief answered = new FortAssault.NestBelief(works.nests.size());
+        List<int[]> near = List.of(new int[] {nest0[0] - 10, nest0[1] - 8});
+        List<int[]> emplacement = List.of(new int[] {nest0[0], nest0[1]});
+        answered.update(works, emplacement, near, topology, 0);
+        answered.update(works, emplacement, near, topology, 10_000);
+        assertEquals(4, answered.liveCount(), "a nest with a gun still standing on it is live");
+    }
+
     // ------------------------------------------------------------------------------------- readiness: the defence
 
     @Test

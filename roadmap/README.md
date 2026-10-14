@@ -99,8 +99,8 @@ as payment for additional road reopening after the bay proves useful.
 `shepherd-recovery.md` covers
 Cold Start's company already ashore, cargo escort, shore power and grounded construction, followed
 by Working Passage's full-size low-hover advance, constructed holds and physical
-departure. Accepted departure awards the actual named Morrow and her minimum
-willing crew once. The live campaign pass through all three chapters, save/reload
+departure. Accepted departure awards the actual named Morrow once, without
+crew. The live campaign pass through all three chapters, save/reload
 and later owned construction support remains open. The visits share authored geography.
 Actual fleet handover gates the optional Agreus referral; Cold Start alone
 does not grant it or any power-suit reward.

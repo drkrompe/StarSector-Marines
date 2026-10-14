@@ -52,7 +52,8 @@ diplomacy, industry or orbital assets.
 A Cold Account closes the pirate investigation. Its aftermath gives Castle and
 Mara time to acknowledge the company's actual cost and the military disparity.
 Victory plus acknowledgement of that aftermath opens the optional A Working
-Ship recovery opportunity on Asharu through Mara's introduction to Tamsin Vale.
+Ship recovery opportunity on Asharu through Mara's introduction to Tamsin Vale,
+a Wayline customer whose yard has been taken.
 
 ## Remaining acceptance
 

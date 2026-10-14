@@ -98,4 +98,45 @@ public class InfantryLoadoutRollsTest {
         assertNull(militia[3].specialDef(),
                 "local militia do not gain the elite anti-materiel issue");
     }
+
+    @Test
+    public void aMortarTeamCarriesOneTubeAnObserverSquadOneRadioAndTheRocketStaysWithItsOwner() {
+        MarineLoadout[] both = InfantryLoadoutRolls.playerSquad(6, new Random(7), true, true);
+        assertEquals(SpecialEquipmentRegistry.FIELD_MORTAR_ID, both[0].specialDef().id());
+        assertEquals(SpecialEquipmentRegistry.COMMS_RADIO_ID, both[4].specialDef().id());
+        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, both[5].specialDef().id());
+        for (int i = 1; i < 4; i++) assertNull(both[i].specialDef());
+
+        MarineLoadout[] plain = InfantryLoadoutRolls.playerSquad(6, new Random(7));
+        assertNull(plain[0].specialDef());
+        assertNull(plain[4].specialDef());
+    }
+
+    @Test
+    public void issuingTheKitNeverChangesTheDiceAfterIt() {
+        Random issued = new Random(11);
+        Random plain = new Random(11);
+        InfantryLoadoutRolls.playerSquad(6, issued, true, true);
+        InfantryLoadoutRolls.playerSquad(6, plain);
+        assertEquals(plain.nextLong(), issued.nextLong());
+    }
+
+    @Test
+    public void aSquadTooSmallToWorkATubeOrSpareARadioIsNotIssuedThem() {
+        MarineLoadout[] lone = InfantryLoadoutRolls.playerSquad(1, new Random(3), true, true);
+        assertNull(lone[0].specialDef(), "a lone marine cannot work a tube");
+        MarineLoadout[] pair = InfantryLoadoutRolls.playerSquad(2, new Random(3), true, true);
+        assertEquals(SpecialEquipmentRegistry.FIELD_MORTAR_ID, pair[0].specialDef().id());
+        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, pair[1].specialDef().id(), "no radio takes the launcher's seat");
+    }
+
+    @Test
+    public void fillingTheSpecialSlotKeepsEverythingElseOfTheLoadout() {
+        MarineLoadout plain = InfantryLoadoutRolls.playerSquad(6, new Random(5))[1];
+        MarineLoadout issued = plain.withSpecial(SpecialEquipmentRegistry.COMMS_RADIO_ID, 1);
+        assertEquals(SpecialEquipmentRegistry.COMMS_RADIO_ID, issued.specialDef().id());
+        assertEquals(plain.primaryWeaponId, issued.primaryWeaponId);
+        assertEquals(plain.equipmentGrade, issued.equipmentGrade);
+        assertEquals(plain.soldierProfile, issued.soldierProfile);
+    }
 }

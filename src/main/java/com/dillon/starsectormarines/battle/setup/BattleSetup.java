@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
@@ -2596,6 +2597,7 @@ public final class BattleSetup {
         if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
         // The pools of airframes the mission gave each side, tasked through comms operators; none leaves the inert service.
         if (profile != null) sim.setAirPool(new AirPoolService(profile.declaredAirPool()));
+        if (profile != null) sim.setSquadSupport(profile.declaredSupportKit());
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was
@@ -2619,6 +2621,9 @@ public final class BattleSetup {
         stampLzPads(sim, arrivalSlots.stream()
                 .map(ConquestArrivalSlot::pad)
                 .toList());
+        SquadSupportKit supportKit = profile != null
+                ? profile.declaredSupportKit().forSide(Faction.MARINE) : SquadSupportKit.NONE;
+        int squadOrdinal = 0;
         for (int i = 0; i < arrivalSlots.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
             ConquestArrivalSlot slot = arrivalSlots.get(i);
@@ -2645,8 +2650,10 @@ public final class BattleSetup {
             mission.expectedArrivalStrength = slot.expectedStrength();
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
+                // The mission's support kit (mortar teams, forward observers) is issued by squad ordinal across the force.
                 cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(
-                        a.seatsForCycle(c), rng);
+                        a.seatsForCycle(c), rng, supportKit.mortarTeam(squadOrdinal), supportKit.observer(squadOrdinal));
+                squadOrdinal++;
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];

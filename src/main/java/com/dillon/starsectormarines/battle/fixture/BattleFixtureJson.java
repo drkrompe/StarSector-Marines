@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -935,6 +937,16 @@ public final class BattleFixtureJson {
         if (!profile.declaredAirPool().isNone()) {
             encoded.put("declaredAirPool", airPoolToJson(profile.declaredAirPool()));
         }
+        if (!profile.declaredSupportKit().isNone()) {
+            JSONObject sides = new JSONObject();
+            for (Map.Entry<Faction, SquadSupportKit> side : profile.declaredSupportKit().kits().entrySet()) {
+                JSONObject kit = new JSONObject();
+                kit.put("mortarTeamEvery", side.getValue().mortarTeamEvery());
+                kit.put("observerEvery", side.getValue().observerEvery());
+                sides.put(side.getKey().name(), kit);
+            }
+            encoded.put("declaredSupportKit", sides);
+        }
         return encoded;
     }
 
@@ -981,7 +993,21 @@ public final class BattleFixtureJson {
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
                         declaredForts(encoded)).withSiting(declaredSiting(encoded)),
-                declaredMechDrops(encoded), declaredAirPool(encoded));
+                declaredMechDrops(encoded), declaredAirPool(encoded), declaredSupportKit(encoded));
+    }
+
+    /** The support kits a fixture declares; a fixture that predates kits, or names none, declares none. */
+    private static SquadSupportDeclaration declaredSupportKit(JSONObject encoded) throws Exception {
+        JSONObject sides = encoded.optJSONObject("declaredSupportKit");
+        if (sides == null) return SquadSupportDeclaration.NONE;
+        SquadSupportDeclaration declaration = SquadSupportDeclaration.NONE;
+        for (Iterator<?> names = sides.keys(); names.hasNext();) {
+            String name = (String) names.next();
+            JSONObject kit = sides.getJSONObject(name);
+            declaration = declaration.with(enumValue(Faction.class, name, "faction"),
+                    new SquadSupportKit(kit.optInt("mortarTeamEvery", 0), kit.optInt("observerEvery", 0)));
+        }
+        return declaration;
     }
 
     /** The mech-lance allowances a mission declared, by side name; written only when there is one. */

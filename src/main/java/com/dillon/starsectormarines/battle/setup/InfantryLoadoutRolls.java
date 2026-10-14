@@ -32,14 +32,30 @@ public final class InfantryLoadoutRolls {
      * Marine Drop power so neither path falls back to an untagged line weapon.
      */
     public static MarineLoadout[] playerSquad(int capacity, Random rng) {
+        return playerSquad(capacity, rng, false, false);
+    }
+
+    /**
+     * As {@link #playerSquad(int, Random)}, with the support kit a mission issued this squad: a mortar team has its first
+     * marine carry the field mortar (a lone marine cannot work a tube, so a squad of one is never one), and an observer squad
+     * has the marine second from the end carry a comms radio (needing three seats, so as not to take the launcher's).
+     * Every roll is made as for any squad, so issuing the kit changes what a marine carries and never the dice after it.
+     */
+    public static MarineLoadout[] playerSquad(int capacity, Random rng, boolean mortarTeam, boolean observer) {
         MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
         int rocketSlot = capacity > 1 ? capacity - 1 : -1;
+        int mortarSlot = mortarTeam && capacity >= 2 ? 0 : -1;
+        int radioSlot = observer && capacity >= 3 ? capacity - 2 : -1;
         for (int i = 0; i < roster.length; i++) {
             WeaponDef primary = playerPrimary(rng);
             EquipmentGrade grade = playerEquipmentGrade(rng);
             SoldierProfile profile = playerProfile(rng);
             SpecialEquipmentDef secondary = i == rocketSlot
                     ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)
+                    : i == mortarSlot
+                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID)
+                    : i == radioSlot
+                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID)
                     : null;
             int ammo = secondary != null ? secondary.startingAmmo() : 0;
             roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Morrow is salvage from the same wreckfall, not Basin's tender.
+Updated: 2026-10-14 — Basin is a Wayline account; Morrow's transfer carries no crew.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -22,7 +22,11 @@ Use the arc's own open-work board before changing its plan.
 
 **A Working Ship** is the post-**A Cold Account** recovery arc on Asharu.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
-Cooperative**, an authored local Independent employer. Castle's bargain exchanges
+Cooperative**, an authored local Independent employer. Basin is a Wayline account:
+it buys supplies, fuel and heavy machinery through Mara, so the referral is a
+supplier recovering a customer, not a favour between friends. Vale suspects her
+own outsized fuel order leaked through Wayline's dispatch while its schedules were
+being sold; that remains her unproven suspicion. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
 basin grew into the cooperative's shipbreaking yard around its claim. Three
 cycles ago, the Colossus and accompanying ships came down during unnamed low-orbit
@@ -30,8 +34,8 @@ fighting over Asharu. Basin was first to work this basin and built its camp arou
 the wrecks over time. Recently opening a sealed hold brought rumors and armed
 rival scavengers. Morrow is a Shepherd from the same wreckfall, which Basin hauled
 onto the yard's service cradle to break for parts; her original crew are long gone.
-The occupiers had begun trying to wake her drone bay. Her eventual crew are Basin
-hands who worked her back into a ship and choose to follow her.
+The occupiers had begun trying to wake her drone bay. No Basin people leave with
+her; the company crews her from its own fleet.
 Armed scrappers occupy the yard. Vale says they call it abandoned; she disputes
 that claim. Both crews work the same salvage trade. That outfit's armed occupation
 makes it the opposition, not scavengers or Independents as a whole. The wreckfall
@@ -68,7 +72,7 @@ shipment dispatch or a loan. Castle asks for Morrow as the fee for this new work
 having seen the working bay.
 The agreement covers construction, repair and defensive positions without promising
 a fixed gun count. Basin keeps the built defenses and the road its militia secure.
-Title passes only after actual physical departure, with the working crew's consent.
+Title passes only after actual physical departure; no crew transfers with her.
 This is a new use for ordinary machinery, not a secretly exceptional hull or a
 change to the Shepherd's market price. The Colossus grants no fleet member, extra
 objective or cargo inventory. Readouts distinguish the original cash jobs from
@@ -171,9 +175,10 @@ the recovery claim and completed repairs, record confirmed militia losses, and l
 another mobilization available. Vale recovers and refits the same hull and assigns
 replacement holders; unfinished departure work and field guns do not carry over.
 
-Accepted physical departure transfers one actual fleet Shepherd named **Morrow**,
-plus willing working crew sufficient for that member's actual minimum complement.
-They enter fleet crew, not marine squads. The accepted attempt settles once and
+Accepted physical departure transfers one actual fleet Shepherd named **Morrow**
+and no crew. Basin's people are kin, not hands for hire; the story crews her from
+the company's existing fleet, and the captain fills any shortfall by ordinary
+hiring. The accepted attempt settles once and
 retains the awarded member's permanent identity, including after sale or loss.
 Later construction support requires a currently owned eligible hull; a closed reward
 receipt never summons a replacement. There is no departure cash payment. The claim

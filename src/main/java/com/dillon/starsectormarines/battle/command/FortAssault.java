@@ -65,6 +65,10 @@ final class FortAssault {
     static final int NEST_CONTACT_CELLS = 3;
     /** A squad this close to a nest is in a position to see whether it is still there. */
     static final int NEST_WITNESS_CELLS = 22;
+    /** How close an own squad must have a clear line to a nest never seen alive for the silence to say it is gone. UNTUNED. */
+    static final int NEST_SIGHT_CELLS = 16;
+    /** Ticks of that clear view, with no contact on the nest, before it is believed dead. UNTUNED. */
+    static final int NEST_UNSEEN_TICKS = 90;
     /**
      * How far from a nest an infantry fire element stands, at the farthest, and the depth of the band inside that it may
      * stand in. A rifle reaches 22 cells and the nest's turret stands half a cell off its cell centre, so the band lies well
@@ -192,6 +196,8 @@ final class FortAssault {
         /** The tick before which a nest whose strike was refused is not asked for again, and how many strikes it has been asked. */
         private final Map<Integer, Integer> strikeRefusedUntil = new HashMap<>();
         private final Map<Integer, Integer> strikesAsked = new HashMap<>();
+        /** The tick from which a never-seen nest has been in clear view of an own squad with no contact on it. */
+        private final Map<Integer, Integer> unseenSince = new HashMap<>();
 
         NestBelief(int nests) {
             seenAlive = new boolean[nests];
@@ -217,6 +223,18 @@ final class FortAssault {
          * out of sight is not a gun absent.
          */
         void update(Works works, List<int[]> hostiles, List<int[]> own) {
+            update(works, hostiles, own, null, 0);
+        }
+
+        /**
+         * As above, with the sight a nest never seen alive can be judged by. A nest nobody has ever had a contact on, with an
+         * own squad holding a clear line to it inside {@link FortAssault#NEST_SIGHT_CELLS} for {@link FortAssault#NEST_UNSEEN_TICKS} without
+         * any contact on it, is believed dead: a gun that stood there would have been seen and shot at the squad, so a squad
+         * that stood in view of the ground and was never answered has found it already destroyed (by the lane squads that
+         * got to it before the plan's belief did). The same sight is the evidence either way, never the map's truth.
+         * {@code topology == null} leaves the never-seen nests believed live, as before.
+         */
+        void update(Works works, List<int[]> hostiles, List<int[]> own, CommandTopology topology, int tick) {
             for (int i = 0; i < works.nests.size(); i++) {
                 if (dead[i]) continue;
                 int[] nest = works.nests.get(i);
@@ -229,9 +247,27 @@ final class FortAssault {
                 }
                 if (contact) {
                     seenAlive[i] = true;
+                    unseenSince.remove(i);
                     continue;
                 }
-                if (!seenAlive[i]) continue;
+                if (!seenAlive[i]) {
+                    if (topology == null) continue;
+                    boolean inView = false;
+                    for (int[] mine : own) {
+                        if (Math.hypot(mine[0] - nest[0], mine[1] - nest[1]) <= NEST_SIGHT_CELLS
+                                && Execution.sight(topology, mine[0], mine[1], nest[0], nest[1])) {
+                            inView = true;
+                            break;
+                        }
+                    }
+                    if (!inView) {
+                        unseenSince.remove(i);
+                        continue;
+                    }
+                    int since = unseenSince.computeIfAbsent(i, k -> tick);
+                    if (tick - since >= NEST_UNSEEN_TICKS) dead[i] = true;
+                    continue;
+                }
                 for (int[] mine : own) {
                     if (Math.hypot(mine[0] - nest[0], mine[1] - nest[1]) <= NEST_WITNESS_CELLS) {
                         dead[i] = true;
@@ -1022,7 +1058,7 @@ final class FortAssault {
         }
 
         /** Whether the straight line from a cell to a nest crosses only walkable cells (the nest's own cell is not). */
-        private static boolean sight(CommandTopology topology, int x0, int y0, int x1, int y1) {
+        static boolean sight(CommandTopology topology, int x0, int y0, int x1, int y1) {
             int dx = Math.abs(x1 - x0);
             int dy = Math.abs(y1 - y0);
             int sx = x0 < x1 ? 1 : -1;

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,8 +46,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><b>A crew.</b> A gunner alone works the tube at {@link #SOLO_COOLDOWN_MULT}
  *       times the cycle; a loader within {@link #LOADER_REACH_CELLS} of the tube
  *       gives the authored rate.</li>
- *   <li><b>Loss.</b> If the gunner dies the tube is gone with him (taken off the
- *       field), and if the tube is shot the gunner is released to fight.</li>
+ *   <li><b>Loss and recovery.</b> If the gunner dies, the nearest living squadmate
+ *       within {@link #RECREW_REACH_CELLS} who carries no special takes the tube up
+ *       (see {@link #tick}); when nobody can, the tube is gone with him (taken off the
+ *       field). If the tube is shot the gunner is released to fight.</li>
  * </ul>
  *
  * <p><b>Threading.</b> Carrier executors run inside the parallel unit dispatch
@@ -62,6 +66,8 @@ public final class FieldMortarService {
     public static final float DANGER_CELLS = 11f;
     /** Seconds with nothing to shoot at before the gunner lifts the tube. UNTUNED. */
     public static final float IDLE_PACK_SECONDS = 25f;
+    /** How near a squadmate must stand to the tube to take it up when its gunner falls. UNTUNED. */
+    public static final float RECREW_REACH_CELLS = 10f;
     /** How near a squadmate must stand to load for the gunner. UNTUNED. */
     public static final float LOADER_REACH_CELLS = 5f;
     /** Cycle multiplier for a gunner working the tube with nobody to load it. UNTUNED. */
@@ -82,7 +88,10 @@ public final class FieldMortarService {
 
     /** One carrier's tube. */
     public static final class Tube {
-        public final long carrierId;
+        /** The gunner now serving the tube: the carrier it was set down by, or the squadmate who took it up. */
+        public volatile long carrierId;
+        /** The item the tube was carried as, which a squadmate taking it up is issued, or null when unknown (no re-crew). */
+        final SpecialEquipmentDef item;
         public final Faction faction;
         volatile int cellX;
         volatile int cellY;
@@ -104,8 +113,9 @@ public final class FieldMortarService {
         volatile int missionLookTick = Integer.MIN_VALUE;
 
         Tube(long carrierId, Faction faction, int cellX, int cellY, int squadId,
-             DeployableEmplacementSpec spec, StructureDef structure, int rounds) {
+             DeployableEmplacementSpec spec, StructureDef structure, int rounds, SpecialEquipmentDef item) {
             this.carrierId = carrierId;
+            this.item = item;
             this.faction = faction;
             this.cellX = cellX;
             this.cellY = cellY;
@@ -116,6 +126,7 @@ public final class FieldMortarService {
             this.rounds = rounds;
         }
 
+        public long carrierId() { return carrierId; }
         public int cellX() { return cellX; }
         public int cellY() { return cellY; }
         public Phase phase() { return phase; }
@@ -152,6 +163,7 @@ public final class FieldMortarService {
     /** The fire mission each squad's order carries now, read off the orders in the serial pass. */
     private final Map<Integer, FireMission> missions = new ConcurrentHashMap<>();
     private int lost;
+    private int recrewed;
     private int destroyed;
     private int setUps;
     private int packs;
@@ -162,6 +174,8 @@ public final class FieldMortarService {
     public int packs() { return packs; }
     /** Tubes lost with their gunner, for evidence. */
     public int lostWithGunner() { return lost; }
+    /** Tubes a squadmate took up after their gunner fell, for evidence. */
+    public int recrewed() { return recrewed; }
     /** Tubes shot to pieces while standing, for evidence. */
     public int destroyedStanding() { return destroyed; }
 
@@ -188,6 +202,15 @@ public final class FieldMortarService {
      */
     public boolean beginSetup(long carrier, Faction faction, int cellX, int cellY, int squadId,
                               DeployableEmplacementSpec spec) {
+        return beginSetup(carrier, faction, cellX, cellY, squadId, spec, null);
+    }
+
+    /**
+     * As above, naming the item the gunner carries so that a squadmate may be issued it and take the tube up should the
+     * gunner fall. A tube registered without its item cannot be re-crewed and is lost with its gunner.
+     */
+    public boolean beginSetup(long carrier, Faction faction, int cellX, int cellY, int squadId,
+                              DeployableEmplacementSpec spec, SpecialEquipmentDef item) {
         StructureDef structure = TurretCatalogRegistry.requireStructure(spec.structureId());
         if (structure.mount.ammoCapacity <= 0) {
             throw new IllegalStateException("Crew-served structure '" + structure.id
@@ -195,7 +218,7 @@ public final class FieldMortarService {
         }
         int rounds = stashFor(carrier, structure);
         if (rounds <= 0) return false;
-        Tube tube = new Tube(carrier, faction, cellX, cellY, squadId, spec, structure, rounds);
+        Tube tube = new Tube(carrier, faction, cellX, cellY, squadId, spec, structure, rounds, item);
         return byCarrier.putIfAbsent(carrier, tube) == null;
     }
 
@@ -221,8 +244,11 @@ public final class FieldMortarService {
         for (Tube tube : new ArrayList<>(byCarrier.values())) {
             long carrier = sim.resolveUnit(tube.carrierId);
             long entity = tube.entityId == 0L ? 0L : sim.resolveUnit(tube.entityId);
+            if (carrier == 0L && recrew(tube, sim)) {
+                carrier = sim.resolveUnit(tube.carrierId);
+            }
             if (carrier == 0L) {
-                // No gunner, no tube: nobody else carries the baseplate.
+                // No gunner, and no squadmate near enough to take the baseplate up: the tube is lost.
                 if (entity != 0L) sim.takeOffTheField(entity);
                 if (tube.entityId != 0L) lost++;
                 forget(tube);
@@ -254,6 +280,46 @@ public final class FieldMortarService {
                 }
             }
         }
+    }
+
+    /**
+     * A tube whose gunner has fallen is taken up by the nearest living squadmate within {@link #RECREW_REACH_CELLS} of it
+     * who carries no special of his own: he is issued the item, holds the tube from then on, and the tube keeps its phase and
+     * the rounds it has left. Returns whether somebody took it. Squadmates carrying something else are not asked to drop it,
+     * and a tube registered without its item (or whose squad is gone) cannot be recovered.
+     */
+    private boolean recrew(Tube tube, BattleControl sim) {
+        if (tube.item == null || tube.squadId == Squad.NO_SQUAD) return false;
+        float reachSq = RECREW_REACH_CELLS * RECREW_REACH_CELLS;
+        float tx = tube.cellX + 0.5f;
+        float ty = tube.cellY + 0.5f;
+        long best = 0L;
+        float bestSq = Float.MAX_VALUE;
+        for (int i = 0, n = sim.squadMemberCount(tube.squadId); i < n; i++) {
+            long member = sim.squadMemberAt(tube.squadId, i);
+            if (member == tube.carrierId || !sim.world().isAlive(member)) continue;
+            if (sim.world().hasSecondaryWeapon(member)) continue;
+            float dx = sim.world().x(member) - tx;
+            float dy = sim.world().y(member) - ty;
+            float dSq = dx * dx + dy * dy;
+            if (dSq > reachSq || dSq >= bestSq) continue;
+            best = member;
+            bestSq = dSq;
+        }
+        if (best == 0L) return false;
+        World world = sim.world();
+        world.attachSpecialEquipment(best, tube.item, tube.rounds);
+        world.setSecondaryCooldownTimer(best, 0f);
+        world.setSecondaryActionTimer(best, 1f);
+        world.setSecondaryAimTargetId(best, 0L);
+        world.setSecondaryFired(best, false);
+        stash.remove(tube.carrierId);
+        byCarrier.remove(tube.carrierId, tube);
+        tube.carrierId = best;
+        byCarrier.put(best, tube);
+        stash.put(best, tube.rounds);
+        recrewed++;
+        return true;
     }
 
     private void mint(Tube tube, BattleControl sim) {

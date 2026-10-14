@@ -4,15 +4,20 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-14 — Morrow is a wreck from the same fall; her crew are Basin volunteers.
+Updated: 2026-10-14 — Morrow transfers without crew; the company crews her itself.
 
 ## Placement and employer
 
 Unlock after **A Cold Account** is won and its aftermath has been acknowledged,
 regardless of the earlier freight outcome. This is an optional new
 contract, not an automatic launch or a timed demand while the company is depleted.
-Mara makes the introduction. Wayline remains a trusted former employer; this
-contract belongs to someone with a different business and a different stake.
+Mara makes the introduction because Basin is a Wayline account: it buys its
+supplies, fuel and heavy machinery through her, and its repair machinery is
+waiting undelivered in Wayline's shed. Vale is a customer, not a friend, and
+suspects her outsized fuel order leaked through Wayline's dispatch. Wayline
+remains the company's trusted former employer; this contract is Vale's.
+`shepherd-recovery-dialogue.md` owns the referral message, which the HQ notice
+currently only titles.
 
 **Basin Reclamation Cooperative**, an Independent association of local repair
 shops and industrial operators on **Asharu**, wants its inland recovery corridor
@@ -48,8 +53,8 @@ The Shepherd **Morrow** fell with the Colossus three cycles ago. Basin hauled he
 broken hull onto the yard's service cradle to be cut up for her reactor and drone
 bay. The occupiers had begun running cable into that bay to wake her builders.
 Power distribution and drone servicing need repair. Her original complement is
-unauthored and must not be inferred from the inspection or repair parties; the
-crew who leave with her are Basin volunteers.
+unauthored and must not be inferred from the inspection or repair parties. No
+Basin people leave with her; the company crews her from its own fleet.
 
 Vale's cousin's crew remained hidden inside the Colossus and provides an offscreen
 report at the first briefing. Their presence is authored correspondence, not a
@@ -80,7 +85,7 @@ or a loan. Castle asks for Morrow as the fee for this new work, having seen what
 her bay can do. Basin keeps
 the Colossus and its contents, yard, built defenses and road secured by its militia.
 The agreement covers construction, repairs and defensive positions without
-promising a fixed number of guns. Morrow and her consenting working crew transfer
+promising a fixed number of guns. Morrow alone transfers, with no crew,
 only after actual physical departure; there is no departure cash fee. Casualties
 remain personal and practical concerns, with no new bonus or penalty.
 
@@ -239,7 +244,7 @@ advance by infantry, militia and workshop ship, not a capital gun run.
 The first briefing negotiates additional combat and construction to reopen the
 road. Vale offers payment after shipment dispatch or a loan; Castle asks for Morrow
 as the new fee after seeing her bay work. Basin retains the Colossus and contents,
-yard, built defenses and militia-secured road. Morrow and willing crew transfer only
+yard, built defenses and militia-secured road. Morrow transfers, without crew, only
 after physical departure. The agreement promises construction, repair and defensive
 positions, without a fixed gun count. Returning briefings respect these terms.
 
@@ -266,9 +271,9 @@ The dialogue register owns departure correspondence and replies conditioned on
 confirmed losses. Registry settlement follows physical departure; it cannot be
 promised by an earlier inspection, repair or spool-up timer.
 
-The transfer includes an explicit berth offer to willing working crew sufficient
-for the awarded member's actual minimum complement. They join fleet crew, not marine
-squads; no named engineer award is authored. The fleet receives an actual Shepherd
+The transfer carries no crew. In the story, the company moves a skeleton crew
+across from its own fleet; mechanically the captain fills any shortfall by ordinary
+hiring. No named engineer award is authored. The fleet receives an actual Shepherd
 named Morrow only after confirmed physical departure, with no cash payment. The
 permanent member receipt prevents another award after debrief replay, reload, sale
 or loss. Campaign support still requires a currently owned eligible source.
@@ -339,6 +344,16 @@ the duration targets remain tuning goals until measured playback and live review
 
 ### Remaining acceptance
 
+- **Salvage Rights drop exchange.** The script moves the hold question onto the
+  company's descent: a new `shepherd.salvage.descent` cue when the first boat
+  commits, and a four-turn Castle/Vale exchange that yields to
+  `shepherd.salvage.arrival` if marines land first. Story narration plays one
+  line per cue today, so this needs ordered multi-turn support in story radio.
+- **Drop the crew award.** `ShepherdRecoveryCampaign.settle` still adds Morrow's
+  minimum crew to the fleet, `ShepherdRecoveryProgress` validates and records a
+  positive `willingCrewTransferred`, and the briefing, mission-select, guide and
+  debrief strings still promise willing crew. The model now transfers the hull
+  only; existing saves' recorded receipts stay valid.
 - Live discovery, launch, return to HQ and save/load acceptance across all three
   chapters. Each has a campaign offer, readable narration and a debug fixture;
   Working Passage is debug chapter 04 on Asharu and follows completed Cold Start repairs.
