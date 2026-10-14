@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.deployable;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Phase;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Tube;
 import com.dillon.starsectormarines.battle.fort.Fort;
@@ -82,7 +83,9 @@ public final class FieldMortarScene implements BehaviorScene {
     private static final int RUSH_DISTANCE = 75;
     private static final String RIFLE = "weapon.field-rifle";
     private static final List<String> ALL_LOOPS = List.of("mortar-team", "rifle-control", "rushed",
-            "section-march", "section-expiry", "section-engaged", "section-control");
+            "section-march", "section-expiry", "section-engaged", "section-belief", "section-control");
+    /** Cells about the fort's core the marching squad's fire mission covers: its wall nests and works. */
+    private static final int MISSION_RADIUS = 30;
     /** A marching squad: twelve marines, one of them the gunner. */
     private static final int MARCH_SIZE = 12;
     /** Cells past the standoff the marching squad starts, so it meets the fort's works at the edge of the tube's band. */
@@ -215,14 +218,19 @@ public final class FieldMortarScene implements BehaviorScene {
      * The section loops: a twelve-marine squad marching on the fort's main gate from beyond the tube's band, its first
      * member carrying the tube. {@code section-march} is the production dials; {@code section-expiry} a ten-second window
      * that engagement may not extend, to see the crew pack up and the squad reform; {@code section-engaged} the same
-     * window that engagement may extend, to a cap; {@code section-control} the old behaviour (sections off), in which a
-     * marching gunner never halts to set up.
+     * window that engagement may extend, to a cap; {@code section-belief} the broad trigger (any worthwhile belief, no
+     * assigned mission); {@code section-control} the old behaviour (sections off), in which a marching gunner never halts
+     * to set up. Every loop but {@code section-belief} carries a fire mission on the fort's works, which is what
+     * opens a section by default.
      */
     private SceneReport playSection(String loop, FrameSink frames) {
         float window = MortarSections.DEFAULT_WINDOW_SECONDS;
         float extension = MortarSections.DEFAULT_EXTENSION_SECONDS;
         float cap = MortarSections.DEFAULT_CAP_SECONDS;
         boolean on = !loop.equals("section-control");
+        boolean belief = loop.equals("section-belief");
+        MortarSections.Trigger previousTrigger = MortarSections.trigger();
+        MortarSections.setTriggerForEvidence(belief ? MortarSections.Trigger.ANY : MortarSections.DEFAULT_TRIGGER);
         if (loop.equals("section-expiry")) {
             window = SHORT_WINDOW;
             extension = 0f;
@@ -242,10 +250,13 @@ public final class FieldMortarScene implements BehaviorScene {
             lastSection = new int[] {start[0], start[1], mouth[0], mouth[1]};
             SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
                     .missionCompletion(false);
+            // Every loop but the belief one carries the fire mission a commander would give it: the fort's works.
+            int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
+            int[] coreCell = terrain.cell(core[0], core[1]);
+            FireMission mission = belief ? null : new FireMission(coreCell[0], coreCell[1], MISSION_RADIUS);
             builder.squad("section").faction(Faction.MARINE).size(MARCH_SIZE).at(start[0], start[1]).primary(RIFLE)
                     .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1)
-                    .assigned(id -> ObjectiveAssignment.attackMove(id, mouth[0], mouth[1])).done();
-            int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
+                    .assigned(id -> ObjectiveAssignment.attackMove(id, mouth[0], mouth[1]).withFireMission(mission)).done();
             int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
             builder.squad("garrison").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(GARRISON)
                     .at(garrisonAt[0], garrisonAt[1]).primary("weapon.smg").stationary().done();
@@ -262,6 +273,7 @@ public final class FieldMortarScene implements BehaviorScene {
                     .run(TICKS);
             return sectionReport(loop, on, window, extension, cap, trace, sim);
         } finally {
+            MortarSections.setTriggerForEvidence(previousTrigger);
             MortarSections.setForEvidence(true, MortarSections.DEFAULT_WINDOW_SECONDS,
                     MortarSections.DEFAULT_EXTENSION_SECONDS, MortarSections.DEFAULT_CAP_SECONDS,
                     MortarSections.DEFAULT_COOLDOWN_SECONDS);
