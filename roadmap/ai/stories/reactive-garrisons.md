@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — the "idle" reserve was a responder recalled and re-sent every other pulse as belief of the attack lapsed; threat memory and alarmed-fort threats fix it (trial matrix, same-build control: defender reserve share 68% vs 81%, onsets answered 17/27 vs 12/31, marine losses 201 vs 230 of 324, defender losses level). Structure stand-to now posts on the belt nearest the pressed aspect; the garrison stand-to experiment ships off (mixed across 12 fixtures). Next: a stand-to target that is reachable in time.
+Updated: 2026-10-14 — the "idle" reserve was a responder recalled and re-sent every other pulse as belief of the attack lapsed; threat memory and alarmed-fort threats fix it (trial matrix, same-build control: defender reserve share 68% vs 81%, onsets answered 17/27 vs 12/31, marine losses 201 vs 230 of 324, defender losses level). Structure stand-to posts on the belt nearest the pressed aspect and a squad standing to is not taken for a track rally. Garrison stand-to was tried and deleted (see Next). The story's switches are removed; the measured results here are the record.
 
 ## Intent
 
@@ -51,16 +51,14 @@ releases them when the pressure passes.
 ## Next
 
 - A belt garrison holds the stretch it was sent to even when the attack has
-  moved round the fort or inside the works. `battle.command.standTo=true` sends
-  it to the doorstep of the work being lost, but that doorstep is often round
-  the outside of the works: on offset-41 the squad walked 1,275 ticks and
-  arrived after POWER fell. Across 12 trial fixtures it fired in 3, kept an
-  aspect once, lost one earlier once, and cost defenders 11 more lives. Choose a
-  target the squad can reach before the work falls (route length, or a nearer
-  gate) before turning it on.
-- The track response can take a squad the structure planner has just given a
-  DEFEND task (offset-41 squad 3, ticks 4051 to 4276), because the response
-  chooses first.
+  moved round the fort or inside the works. A garrison stand-to was tried and
+  deleted: sending a quiet garrison to the doorstep of the work being lost
+  fired in 3 of 12 trial fixtures, kept an aspect once, lost one earlier once
+  (offset-41: a 1,275-tick walk round the walls, arriving after POWER fell) and
+  cost defenders 11 more lives; bounded to a 48-cell walk it fired in 1 of 15
+  and changed nothing. The structure planner's own stand-to at a pressed work
+  is what moves squads there now. A real answer probably needs a way through
+  the works (a gate the garrison can use) rather than a different destination.
 - The track rally alternates between the remembered contact band and the
   alarmed fort's rear when both apply; same direction, but each switch resets
   the route.
@@ -76,8 +74,8 @@ releases them when the pressure passes.
 - Keep and other declared holds remain born garrisons.
 - Deterministic; candidate belts found spatially from threatened bands, on the
   command cadence.
-- `battle.fort.beltGarrison`, `battle.garrison.flow`, `battle.garrison.fromRally` and
-  `battle.garrison.unifiedRally` keep same-build controls.
+- No switches. Behaviour was measured against same-build controls while it
+  was built (figures above); the controls were then removed.
 
 ## Acceptance
 
