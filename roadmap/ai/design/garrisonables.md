@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is built for fort-belt fighting positions; o
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — rally and flow unified into one per-area reservation.
+Updated: 2026-10-14 — story-map inventory: windows read correctly; half the story maps publish no held places.
 
 ## Why this exists
 
@@ -148,6 +148,23 @@ garrison. Unifying it under garrisonable posts is a later step, taken only once
 fighting-position runs prove the commander-tier half, because frontage carries
 its own laws — what an aperture may open onto, held layers, the breach that
 dissolves an envelope — that must survive the move intact.
+
+## Beyond Conquest
+
+The tech is meant for story missions as much as for Conquest, and
+`gradlew.bat garrisonEvidence` inventories what each story map offers at tick
+zero: per held place, its windows, entrances and stand cells at building and
+compound scope, and its fighting-position runs, plus the windows and runs no
+held place covers. Three things it shows shape the work ahead:
+
+- Buildings already carry windows in useful numbers; a large barracks or armory
+  offers ten to twenty-five stand cells, a small post two to four, and the
+  smallest guard posts and bunkers none.
+- About half the story maps publish **no held places at all**. Their buildings
+  have windows, but nothing names a place a garrison could hold, so neither the
+  defender commander nor a player's occupy order can use them. Held places on
+  those maps are the precondition for everything in this doc.
+- Fighting-position runs are almost absent outside forts.
 
 ## Open questions
 

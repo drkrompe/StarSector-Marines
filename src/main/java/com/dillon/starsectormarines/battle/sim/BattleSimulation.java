@@ -175,6 +175,7 @@ import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
+import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
@@ -414,6 +415,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
     private final IntegralSystemSystem integralSystemSystem;
+    private final SquadMedicSystem squadMedics = new SquadMedicSystem();
     /** Per-tick aim + drain of every raised mitigation screen. See {@code combat-durability-nouns.md}. */
     private final MitigationSystem mitigationSystem;
     /** Death-event handler for destroyed turrets ({@code UnitType.isTurret()}) — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
@@ -1245,6 +1247,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     public DirectControlSession directControl() { return directControl; }
+
+    /** Squad medics from officers trained in Field Medicine. */
+    public SquadMedicSystem squadMedics() { return squadMedics; }
 
     public NavigationGrid getGrid() { return grid; }
 
@@ -2805,6 +2810,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // whole authored duration instead of losing its first tick to this drain.
         mitigationSystem.tick(TICK_DT, directControl.activeUnitId(), directControl.pointAim());
         integralSystemSystem.tick(TICK_DT, this);
+        // Treatments land on patients here, serially, so the dispatch below only
+        // moves or plants the medic and patient it is updating.
+        squadMedics.tick(TICK_DT, this);
         directControl.tick();
         navigation.beginSharedGoalPathSnapshot();
         try {

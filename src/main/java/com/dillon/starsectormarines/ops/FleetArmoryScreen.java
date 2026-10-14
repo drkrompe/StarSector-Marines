@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
-import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -111,8 +110,7 @@ public final class FleetArmoryScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new FleetArmoryViewModel(reactor, roster, this::showSelectedSquad,
-                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources(),
-                    new CampaignSquadFoundingResources());
+                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources());
         } else {
             viewModel.refresh();
         }
@@ -124,7 +122,6 @@ public final class FleetArmoryScreen implements Screen {
         viewModel.cancelOrganization();
         projectedCampaignHour = campaignHour();
         view = FirstRefit.available(roster) ? View.FIRST_REFIT : View.SQUADS;
-        if (context.takeRequestedSquadFounding()) view = View.SQUADS;
         String requestedSquad = context.takeRequestedArmorySquadId();
         if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
             viewModel.selectSquad(requestedSquad);
@@ -278,12 +275,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
-        props.put("foundingCargoRows", viewModel.foundingCargoRows());
-        props.put("cargoStockRows", viewModel.cargoStockRows());
-        props.put("foundingDisabled", viewModel.foundingDisabled());
-        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
-        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
-        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -388,7 +379,6 @@ public final class FleetArmoryScreen implements Screen {
                 "organization-toolbar", "begin-squad-organization", "cancel-squad-organization",
                 "squad-organization-panel", "organization-selected-count",
                 "organization-target-list", "organization-summary", "apply-squad-organization",
-                "squad-founder-costs", "found-squad", "squad-founder-feedback",
                 "squad-card-list");
         for (String id : required) {
             component.requireElement(id);
@@ -414,7 +404,7 @@ public final class FleetArmoryScreen implements Screen {
         if (founding != null) return founding;
         if (view == View.FIRST_REFIT && firstRefit.guide() != null) return firstRefit.guide();
         if (CampaignLessons.next(roster) == CampaignLessons.Step.REFIT)
-            return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("found-squad"),
+            return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("armory-first-refit"),
                     "lessonEquipment", this::showFirstRefit);
         if (view == View.SQUADS && CampaignLessons.next(roster) == CampaignLessons.Step.FORMATIONS)
             return CampaignLessons.formations(roster, context, true);

@@ -15,7 +15,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Submarkets;
 
 import java.util.Set;
 
-/** Populates ordinary faction markets with rotating, collectible equipment templates. */
+/** Populates ordinary faction markets with rotating, collectible loadout cards. */
 public final class FactionEquipmentMarketStock implements SubmarketUpdateListener {
 
     public static final RepLevel MIN_LICENSE_RELATIONSHIP = RepLevel.FAVORABLE;
@@ -35,11 +35,11 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
                 ? playerFaction.getRelationshipLevel(market.getFactionId()) : null;
         boolean hasLicenseAccess = hasLicenseAccess(relationship);
 
-        Set<String> unavailable = EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+        Set<String> unavailable = LoadoutCardInventory.playerUnavailableCardIds();
         if (unavailable == null) {
             MarineRosterScript script = MarineRosterScript.getInstance();
             unavailable = script != null
-                    ? script.roster().armory().ownedEquipmentTemplateIds() : Set.of();
+                    ? LoadoutCardInventory.knownCardIds(script.roster().armory()) : Set.of();
         }
         replaceStock(submarket, market.getFactionId(), market.getId(), market.getSize(),
                 rotation, hasLicenseAccess, unavailable,
@@ -60,22 +60,23 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
 
     static void replaceStock(SubmarketAPI submarket, String factionId, String marketId,
                              int marketSize, long rotation, boolean hasLicenseAccess,
-                             Set<String> ownedTemplateIds,
+                             Set<String> unavailableCardIds,
                              EquipmentAcquisitionEligibility.Progress progress) {
         CargoAPI cargo = submarket.getCargo();
         if (cargo == null) return;
         for (CargoStackAPI stack : cargo.getStacksCopy()) {
             SpecialItemData special = stack.getSpecialDataIfSpecial();
-            if (special != null && EquipmentTemplateCardItemPlugin.ITEM_ID.equals(special.getId())) {
+            if (special != null && (LoadoutCardItemPlugin.ITEM_ID.equals(special.getId())
+                    || EquipmentTemplateCardItemPlugin.ITEM_ID.equals(special.getId()))) {
                 cargo.removeStack(stack);
             }
         }
 
         FactionEquipmentMarketStockPlanner.StockPlan plan =
                 FactionEquipmentMarketStockPlanner.plan(factionId, marketId, marketSize,
-                        rotation, hasLicenseAccess, ownedTemplateIds, progress);
-        for (String templateId : plan.allTemplateIds()) {
-            cargo.addSpecial(EquipmentTemplateCardItemPlugin.itemData(templateId), 1f);
+                        rotation, hasLicenseAccess, unavailableCardIds, progress);
+        for (String cardId : plan.allCardIds()) {
+            cargo.addSpecial(LoadoutCardItemPlugin.itemData(cardId), 1f);
         }
         cargo.removeEmptyStacks();
     }

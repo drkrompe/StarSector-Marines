@@ -59,6 +59,8 @@ import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolView;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
@@ -233,6 +235,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     BattleSquadOverlay.COMPONENT_PATH,
                     BattleMechOverlay.COMPONENT_PATH,
                     BattlePowerOverlay.COMPONENT_PATH,
+                    BattleAirOverlay.COMPONENT_PATH,
                     BattleRetreatOverlay.COMPONENT_PATH);
 
     @Override
@@ -345,9 +348,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-organization-large-company.png",
                         renderFleetArmoryOrganization(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 24, false, false)),
-                new SnapshotArtifact("fleet-armory-founding-wide.png",
-                        renderEmptyFleetArmoryWorkspace(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -439,6 +439,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
                         renderBattleHudPowerOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-air-idle-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(3, 0, 3, 0, 0f, 2, 0, 2, 0, 0f, List.of(), 0))),
+                new SnapshotArtifact("battle-hud-air-sorties-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(1, 2, 3, 0, 20f, 1, 1, 2, 0, -1f, List.of(
+                                        new AirPoolView.SortieRow(AirPoolKind.BOMBER, AirPoolView.Mission.STRIKE),
+                                        new AirPoolView.SortieRow(AirPoolKind.BOMBER, AirPoolView.Mission.STRIKE),
+                                        new AirPoolView.SortieRow(AirPoolKind.FIGHTER, AirPoolView.Mission.COVER)), 0))),
+                new SnapshotArtifact("battle-hud-air-depleted-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(0, 0, 3, 3, 24.2f, 0, 0, 2, 2, 41f, List.of(), 2))),
+                new SnapshotArtifact("battle-hud-air-losses-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                airView(1, 1, 3, 2, 12f, 2, 0, 2, 0, -1f, List.of(
+                                        new AirPoolView.SortieRow(AirPoolKind.BOMBER, AirPoolView.Mission.STRIKE)), 1))),
+                new SnapshotArtifact("battle-hud-air-no-pool-wide.png",
+                        renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                AirPoolView.NONE)),
                 new SnapshotArtifact("battle-hud-retreat-wide.png",
                         renderBattleRetreatOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
@@ -934,6 +953,43 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return new ConquestFrontSnapshot.SquadDirective(squadId, track, track,
                 ConquestFrontSnapshot.AssignmentReason.TRACK_ADVANCE,
                 kind, targetZone);
+    }
+
+    private static AirPoolView airView(int bAvail, int bOut, int bCap, int bLost, float bNext,
+                                       int fAvail, int fOut, int fCap, int fLost, float fNext,
+                                       List<AirPoolView.SortieRow> sorties, int recentLosses) {
+        return new AirPoolView(List.of(
+                new AirPoolView.KindRow(AirPoolKind.BOMBER, bAvail, bOut, bCap, bLost, bNext),
+                new AirPoolView.KindRow(AirPoolKind.FIGHTER, fAvail, fOut, fCap, fLost, fNext)),
+                sorties, 0, recentLosses);
+    }
+
+    /** Full-screen evidence for the air support plate under the command rail; absent for a battle with no pool. */
+    private static BufferedImage renderBattleAirOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, AirPoolView view) throws Exception {
+        BufferedImage image = renderBattleHudCommandOverlay(context, renderer, width, height);
+        Reactor reactor = new Reactor();
+        BattleAirOverlayModel model = new BattleAirOverlayModel(reactor);
+        BattleAirOverlayModel.Presentation presentation = model.update(view);
+        if (!presentation.visible()) return image;
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleAirOverlay.COMPONENT, model.props())) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(BattleAirOverlay.DOCUMENT_WIDTH),
+                    Math.round(BattleAirOverlay.documentHeight(presentation.kindCount(), presentation.lineCount())));
+            int railBottom = 12 + Math.round(BattleHudOverlay.CONQUEST_COMMAND_HEIGHT);
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay, width - 12 - overlay.getWidth(), railBottom + 8, null);
+            graphics.dispose();
+            return image;
+        }
     }
 
     /** Full-screen evidence for the compact power deck in its armed state. */
@@ -2256,8 +2312,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             throw new IllegalStateException("Organization snapshot needs one stationed squad");
         }
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
-                snapshotSquadFoundingResources());
+                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources());
         viewModel.beginOrganization();
         viewModel.toggleOrganizationSquad(squads.get(0).id());
         viewModel.toggleOrganizationSquad(squads.get(2).id());
@@ -2277,24 +2332,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderEmptyFleetArmoryWorkspace(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
-        Reactor reactor = new Reactor();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, new MarineRoster(), () -> { }, () -> 0d,
-                snapshotEquipmentResources(), snapshotSquadFoundingResources());
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
-        loader.reload();
-        try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory", props(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            return renderRelative(renderer, document, width, height, 1f);
-        }
-    }
 
     private static BufferedImage renderFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
@@ -2358,8 +2395,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             roster.recruitToSquad(roster.reserveSquad().id());
         }
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
-                snapshotSquadFoundingResources());
+                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources());
         if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().stream()
                 .filter(tile -> tile.id().equals("weapon-doctrine:" + SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS))
                 .findFirst().orElseThrow().select().run();
@@ -2578,7 +2614,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                 context.modRoot(), context.starsectorCore());
         return List.of(
-                new SnapshotArtifact("founding.png", renderEmptyFleetArmoryWorkspace(context, renderer, 1920, 1080)),
                 new SnapshotArtifact("boat-fitting.png", renderBoatDeck(context, renderer, 1920, 1080, true)),
                 new SnapshotArtifact("boat-shortage.png", renderBoatDeck(context, renderer, 1920, 1080, false, true)),
                 new SnapshotArtifact("mech-large-stock.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "resource-large")),
@@ -3155,12 +3190,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("organization", viewModel.organization());
-        props.put("foundingCargoRows", viewModel.foundingCargoRows());
-        props.put("cargoStockRows", viewModel.cargoStockRows());
-        props.put("foundingDisabled", viewModel.foundingDisabled());
-        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
-        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
-        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());

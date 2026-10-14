@@ -525,7 +525,7 @@ public class BriefingScreen implements Screen {
         putRetainedActions(props, mission, readiness);
         props.put("preparationClasses", SecondSquadPreparation.relevant(mission, liveRoster()) ? "mission-preparation" : "briefing-assign-hidden");
         props.put("prepareReplay", (Runnable) () -> { narration.stop(); replaySecondSquadGuide = true; });
-        props.put("prepareArmory", (Runnable) () -> ctx.openSquadFoundingFrom(ScreenId.BRIEFING));
+        props.put("prepareArmory", (Runnable) () -> ctx.goTo(ScreenId.BARRACKS));
         props.put("prepareBarracks", (Runnable) () -> ctx.goTo(ScreenId.BARRACKS));
         return BriefingViewModel.withEmptyStyles(props);
     }
