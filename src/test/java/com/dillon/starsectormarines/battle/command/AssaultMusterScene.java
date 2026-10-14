@@ -65,11 +65,11 @@ import java.util.TreeSet;
  * spread out along the way in, nearest the fort first. Each loop changes one thing, the commander's doctrine.
  *
  * <ul>
- *   <li>{@code control-trickle}: {@code battle.command.muster=false}, today's behaviour. The first squad to see the
+ *   <li>{@code control-trickle}: a mission that chooses {@code AssaultStyle.TRICKLE}. The first squad to see the
  *       fort discloses it, and the structure planner detaches one or two squads at a time to the bunker while the
  *       rest are on the lane. This is the control: what a single squad does against this fort is what a fort is built
  *       for.</li>
- *   <li>{@code muster}: the same world with the muster on. The squads that can be spared gather at a rally point,
+ *   <li>{@code plan} and the loops after it: the same world mustering. The squads that can be spared gather at a rally point,
  *       the company's readiness is judged against what the commander believes is in front of it, and it goes in as
  *       one body.</li>
  * </ul>
@@ -101,7 +101,7 @@ public final class AssaultMusterScene implements BehaviorScene {
     /** The marines carry the field rifle (22 cells): the smg (14) cannot reach a nest (24), and the nests are what a base of fire is for. */
     private static final String MARINE_RIFLE = "weapon.field-rifle";
 
-    private static final List<String> ALL_LOOPS = List.of("control-trickle", "muster-slice1", "plan", "plan-with-lance",
+    private static final List<String> ALL_LOOPS = List.of("control-trickle", "plan", "plan-with-lance",
             "breach-cannon", "breach-charges", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
     private static final String CHARGE_KIT = "special.satchel-charge";
     private static final String ROCKET_KIT = "special.rocket-launcher";
@@ -149,18 +149,12 @@ public final class AssaultMusterScene implements BehaviorScene {
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : loops) {
-            boolean restore = ConquestCommand.musterEnabled();
-            boolean restorePlans = ConquestCommand.musterPlansEnabled();
             boolean restoreStanding = ConquestCommand.standingFireMissionsEnabled();
-            ConquestCommand.setMusterPlansEnabled(loop.startsWith("plan") || loop.startsWith("breach") || loop.equals("combined-arms"));
-            ConquestCommand.setMusterEnabled(!loop.equals("control-trickle"));
             // The loops that judge the plan's own fire missions leave the squads' standing ones out, which would clear the works first.
             ConquestCommand.setStandingFireMissionsEnabled(!(loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")));
             try {
                 reports.add(report(loop, playOne(loop, window(frames))));
             } finally {
-                ConquestCommand.setMusterEnabled(restore);
-                ConquestCommand.setMusterPlansEnabled(restorePlans);
                 ConquestCommand.setStandingFireMissionsEnabled(restoreStanding);
             }
         }
@@ -260,7 +254,8 @@ public final class AssaultMusterScene implements BehaviorScene {
                     AirPoolAllowance.of(BOMBERS, null, /*aiDirected*/ false))));
         }
         Fort fort = sim.forts().forts().get(0);
-        ConquestCommand command = new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT));
+        ConquestCommand command = new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT))
+                .withAssaultStyle(loop.equals("control-trickle") ? AssaultStyle.TRICKLE : AssaultStyle.MUSTER);
         sim.setAutonomousCommander(Faction.MARINE, command, ConquestCommandDisclosure.INSTANCE);
         Trace trace = new Trace(fort, keys, world);
         trace.command = command;

@@ -382,6 +382,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     static final int TRACK_LINE_BAND_CELLS = 4;
     /** How far a staging search may slide off the squad's own line of advance. */
     private static final int TRACK_LINE_SNAP_RADIUS = 12;
+    /** Ground kept between a staged squad and a hostile fort's belt it is going round. UNTUNED. */
+    private static final int FORT_CLEARANCE_CELLS = 8;
     /**
      * Lateral half-width of the corridor whose hostiles set a squad's standoff.
      * A track is a wide band — on a 160-cell map each of the three spans more
@@ -403,21 +405,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * exterior across the size gate.
      */
     public static final int GARRISON_MARGIN = 2;
-
-    /**
-     * {@code -Dbattle.command.muster=false} turns the phased assault off, restoring the trickle control: the attacker detaches one or two squads at a time to a
-     * disclosed fort, the trickle a fort is built to beat. On by default (with the per-stamp plans, {@link #PLANS_PROPERTY}): land, muster, then assault
-     * ({@code phased-assault.md}). Read once; a scene or test sets the field for a control run.
-     */
-    public static final String MUSTER_PROPERTY = "battle.command.muster";
-    static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "true"));
-
-    /**
-     * {@code -Dbattle.command.musterPlans=false} sends a committed company at the aspect as the first muster did, without
-     * the stamp's assault plan (base of fire, entry, objective, hold). Only read with the muster on.
-     */
-    public static final String PLANS_PROPERTY = "battle.command.musterPlans";
-    static boolean PLANS_ENABLED = Boolean.parseBoolean(System.getProperty(PLANS_PROPERTY, "true"));
 
     /**
      * {@code -Dbattle.command.standingFireMissions=false} stops the commander giving a squad that carries a served tube a
@@ -445,27 +432,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** Radius of a standing mission around the works cell it names. UNTUNED. */
     static final int STANDING_MISSION_RADIUS = 4;
 
-    /** Whether committed companies execute the stamp's assault plan. */
-    public static boolean musterPlansEnabled() {
-        return PLANS_ENABLED;
-    }
-
-    /** Sets the plans switch; the caller restores it. For scenes and evidence controls only. */
-    public static void setMusterPlansEnabled(boolean enabled) {
-        PLANS_ENABLED = enabled;
-    }
-
-    /** Whether the muster is on. For scenes and evidence controls that must hold it fixed. */
-    public static boolean musterEnabled() {
-        return MUSTER_ENABLED;
-    }
-
-    /** Sets the muster switch; the caller restores it. For scenes and evidence controls only. */
-    public static void setMusterEnabled(boolean enabled) {
-        MUSTER_ENABLED = enabled;
-    }
-
     private final TraversalAxis axis;
+    /** How this battle's commander takes defended works: the mission's declaration, {@link AssaultStyle#MUSTER} unless it chose otherwise. */
+    private AssaultStyle assaultStyle = AssaultStyle.MUSTER;
     /** Assault companies and the foothold element; see {@link AssaultMuster}. */
     private final AssaultMuster muster = new AssaultMuster();
     /** The cell the force came ashore at, remembered once known. Own-force knowledge. */
@@ -580,6 +549,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private final Int2IntOpenHashMap squadStripIdx = new Int2IntOpenHashMap();
     /** Live squads per home track, rebuilt each pulse; see {@link #BALANCED_HOME_TRACKS_PROPERTY}. */
     private final int[] stripLoad = new int[STRIP_COUNT];
+    /** Tracks holding a compound to take, rebuilt each pulse: the only tracks a new squad is homed to. */
+    private final boolean[] stripHasWork = new boolean[STRIP_COUNT];
     {
         squadStripIdx.defaultReturnValue(-1);
     }
@@ -740,6 +711,19 @@ public final class ConquestCommand implements ConquestFrontCommand,
         this.frontSnapshot = ConquestFrontSnapshot.empty(Faction.MARINE, axis);
     }
 
+    /**
+     * Sets how this battle's commander takes defended works, as its mission declared it ({@code TargetProfile.declaredAssault}).
+     * Set before the first pulse; the choice belongs to this commander and so to its simulation alone.
+     */
+    public ConquestCommand withAssaultStyle(AssaultStyle style) {
+        this.assaultStyle = style == null ? AssaultStyle.MUSTER : style;
+        return this;
+    }
+
+    public AssaultStyle assaultStyle() {
+        return assaultStyle;
+    }
+
     public ConquestFrontSnapshot frontSnapshot() {
         return frontSnapshot;
     }
@@ -826,10 +810,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
         // Muster and assault run before the lane passes and take their squads out of the pool they draw from, so a
-        // company is never also a capture detachment or a lane probe. With the switch off nothing here runs.
+        // company is never also a capture detachment or a lane probe. A mission that chose the trickle runs none of this.
         List<String> musterNotes = List.of();
         List<ConquestFrontSnapshot.CompanyState> companyPicture = List.of();
-        if (MUSTER_ENABLED) {
+        if (assaultStyle == AssaultStyle.MUSTER) {
             AssaultMuster.Result mustered = planMuster(frame, phase, squads, allSquads, directives);
             musterNotes = mustered.notes();
             companyPicture = mustered.companies();
@@ -935,6 +919,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
                             planned = planned.withDistantCaptureDeferred();
                         }
                         directives.put(squad.id, planned);
+                        continue;
+                    }
+                    if (stillClosingOnStage(squad, frame)) {
+                        // A stage the squad has not reached yet is not spent because the next one would be too
+                        // short a step: clearing it halted the squad every other pulse, so a line with no enemy
+                        // believed ahead crawled a few cells per order.
+                        directives.put(squad.id, directive(squad, preferredTrack, preferredTrack,
+                                trackFront(squad, preferredTrack, frame).believed()
+                                        ? AssignmentReason.TRACK_LINE_ADVANCE
+                                        : AssignmentReason.TRACK_LINE_SCOUT_ADVANCE));
                         continue;
                     }
                     squad.assignedObjective = null;
@@ -1073,7 +1067,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.underFireRecently || squad.moraleBroken || squad.primaryEngageableMembers > 0,
                     squad.originalAssignment, squad.machine ? -1 : stripFor(squad), squad.capabilities));
         }
-        muster.plans(PLANS_ENABLED);
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
                 hostiles, emplacements, frame.topology(), frame.facts().airSupport());
         strikeWishes.addAll(result.strikes());
@@ -1292,7 +1285,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                                      Map<Integer, SquadDirective> directives) {
         List<String> notes = new ArrayList<>();
         List<DefenceStructureFact> structures = frame.facts().structures();
-        if (MUSTER_ENABLED) {
+        if (assaultStyle == AssaultStyle.MUSTER) {
             // A fort that still has a hostile aspect is the company's work; a squad or two detached to it one at a time is
             // the trickle the muster exists to end.
             List<DefenceStructureFact> all = structures;
@@ -2233,14 +2226,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (squad.commandGroup != null && squad.commandGroup.namedOfficer()) {
             idx = groupTracks.computeIfAbsent(squad.commandGroup.groupId(), key -> idxForGroup(squad));
         } else if (BALANCED_HOME_TRACKS_ENABLED) {
-            idx = leastLoadedTrack(stripLoad, idx);
+            idx = leastLoadedTrack(stripLoad, idx, stripHasWork);
             stripLoad[idx]++;
         }
         squadStripIdx.put(squad.id, idx);
         return idx;
     }
 
-    /** Counts the live squads already homed on each track. */
+    /**
+     * Counts the live squads already homed on each track, and marks the tracks
+     * with work in them: a compound to take, which is map geometry and
+     * objective law either side may read. The marines' own beachhead is not
+     * work. A strip with no compound is ground the front crosses on its way to
+     * one, not a front of its own.
+     */
     private void rebuildStripLoad(ConquestCommandFrame frame) {
         Arrays.fill(stripLoad, 0);
         for (CommandSquadState state : frame.squads()) {
@@ -2248,17 +2247,31 @@ public final class ConquestCommand implements ConquestFrontCommand,
             int track = squadStripIdx.get(state.squadId());
             if (track >= 0 && track < STRIP_COUNT) stripLoad[track]++;
         }
+        Arrays.fill(stripHasWork, false);
+        for (ConquestCommandFacts.Compound fact : frame.facts().compounds()) {
+            if (fact.node().kind == TacticalNode.Kind.BEACHHEAD) continue;
+            int track = trackLayout.trackForCell(fact.captureCellX(), fact.captureCellY());
+            if (track >= 0 && track < STRIP_COUNT) stripHasWork[track] = true;
+        }
     }
 
     /**
-     * The track with the fewest squads homed on it; the squad's natural track
-     * wins a tie, then the nearest to it, so a landing that is already spread
-     * keeps its lanes.
+     * The track with the fewest squads homed on it among those with work in
+     * them; the squad's natural track wins a tie, then the nearest to it, so a
+     * landing that is already spread keeps its lanes. Measured on the trial
+     * ground, whose objectives all stand in one third of the map: balancing
+     * over every strip homed a third of the company to an empty one, where the
+     * no-front staging rule walked it up open ground for the whole battle. A map
+     * with work on no track (or none known) balances over all of them.
      */
-    static int leastLoadedTrack(int[] load, int natural) {
-        int best = natural;
+    static int leastLoadedTrack(int[] load, int natural, boolean[] hasWork) {
+        boolean anyWork = false;
+        for (boolean work : hasWork) anyWork |= work;
+        int best = -1;
         for (int track = 0; track < load.length; track++) {
-            if (load[track] < load[best]
+            if (anyWork && !hasWork[track]) continue;
+            if (best < 0
+                    || load[track] < load[best]
                     || load[track] == load[best]
                     && Math.abs(track - natural) < Math.abs(best - natural)) {
                 best = track;
@@ -2456,6 +2469,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         int lateral = Math.max(trackLayout.lateralStartInclusive(track),
                 Math.min(trackLayout.lateralEndInclusive(track), squadLateral));
+        lateral = towardWork(track, squadForward, lateral);
+        if (!attacking) lateral = clearOfForts(squadForward, desiredForward, squadLateral, lateral, frame);
         // The loss-avoiding slide is built and tested but not wired in. A
         // control run at the commit before it returned TERMINAL on both
         // canonical fixtures and it returned TIMEOUT on both, so it costs the
@@ -2694,11 +2709,109 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * through, and the bound that keeps a blind advance from becoming a lone
      * flank walking off ahead of the force that would have to support it.
      */
+    /**
+     * Whether the squad still holds an advance-track order it has not reached: its stage lies at least
+     * {@link #TRACK_LINE_MIN_ADVANCE_CELLS} ahead of it and it can still get there.
+     */
+    private boolean stillClosingOnStage(PlanningSquad squad, ConquestCommandFrame frame) {
+        ObjectiveAssignment cur = squad.assignedObjective;
+        if (cur == null || cur.kind() != AssignmentKind.ADVANCE_TRACK) return false;
+        int squadForward = Math.round(trackLayout.forwardCoordinate(squad.centroidX, squad.centroidY));
+        int stageForward = Math.round(trackLayout.forwardCoordinate(cur.targetCellX(), cur.targetCellY()));
+        if (stageForward < squadForward + TRACK_LINE_MIN_ADVANCE_CELLS) return false;
+        CommandTopology topology = frame.topology();
+        return topology.inBounds(squad.anchorCellX, squad.anchorCellY)
+                && topology.reachable(squad.anchorCellX, squad.anchorCellY, cur.targetCellX(), cur.targetCellY());
+    }
+
+    /**
+     * The stage's lateral, stepped toward the next compound still to take on
+     * the track ahead of the squad, by at most one stride. A stage taken
+     * straight up from where a squad stands keeps whatever lateral it landed
+     * or drifted at: on the trial ground with the fort off the lane, squads
+     * staged up the edge of their track along the fort's wire and stood there
+     * in contact with its guns, while the compound they were homed for stood
+     * forty cells across the same track and was never approached. Without
+     * such a compound the lateral is kept.
+     */
+    private int towardWork(int track, int squadForward, int lateral) {
+        int workLateral = -1;
+        int workForward = Integer.MAX_VALUE;
+        for (CompoundTarget target : compoundTargets) {
+            if (target.state == CompoundService.CompoundState.MARINE_HELD) continue;
+            if (target.node.kind == TacticalNode.Kind.BEACHHEAD) continue;
+            if (trackLayout.trackForCell(target.captureCellX, target.captureCellY) != track) continue;
+            int forward = Math.round(trackLayout.forwardCoordinate(target.captureCellX, target.captureCellY));
+            if (forward <= squadForward || forward >= workForward) continue;
+            workForward = forward;
+            workLateral = Math.round(trackLayout.lateralCoordinate(target.captureCellX, target.captureCellY));
+        }
+        if (workLateral < 0) return lateral;
+        int step = Math.max(-TRACK_LINE_MAX_STRIDE_CELLS,
+                Math.min(TRACK_LINE_MAX_STRIDE_CELLS, workLateral - lateral));
+        return lateral + step;
+    }
+
+    /**
+     * The stage's lateral, slid clear of every hostile fort the side knows of
+     * whose ground lies across the forward band the squad is staging through,
+     * to whichever side of the fort is nearer the squad. Steering toward work
+     * alone sent squads straight through a fort standing on the lane between
+     * them and their compound, where they died in the works; a fort that is
+     * not the objective is ground to go round. Its ground is its works and its
+     * belt, plus {@link #FORT_CLEARANCE_CELLS}.
+     */
+    private int clearOfForts(int squadForward, int stageForward, int squadLateral, int lateral,
+                             ConquestCommandFrame frame) {
+        Map<Integer, int[]> bounds = new TreeMap<>();
+        for (DefenceStructureFact structure : frame.facts().structures()) {
+            if (!structure.ofFort() || structure.holder() == Faction.MARINE) continue;
+            int[] box = bounds.computeIfAbsent(structure.fortId(), id -> new int[] {
+                    Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE});
+            widen(box, structure.cellX(), structure.cellY());
+            int[] belt = structure.beltCells();
+            for (int i = 0; i + 1 < belt.length; i += 2) widen(box, belt[i], belt[i + 1]);
+            int[] seen = structure.seenCells();
+            for (int i = 0; i + 1 < seen.length; i += 2) widen(box, seen[i], seen[i + 1]);
+        }
+        int low = Math.min(squadForward, stageForward), high = Math.max(squadForward, stageForward);
+        for (int[] box : bounds.values()) {
+            if (box[0] > box[1]) continue;
+            int forwardLow = box[2] - FORT_CLEARANCE_CELLS, forwardHigh = box[3] + FORT_CLEARANCE_CELLS;
+            if (high < forwardLow || low > forwardHigh) continue;
+            int lateralLow = box[0] - FORT_CLEARANCE_CELLS, lateralHigh = box[1] + FORT_CLEARANCE_CELLS;
+            if (lateral < lateralLow || lateral > lateralHigh) continue;
+            int lowSide = lateralLow - 1, highSide = lateralHigh + 1;
+            boolean lowFits = lowSide >= 0;
+            boolean highFits = highSide < trackLayout.lateralExtent();
+            if (lowFits && (!highFits || Math.abs(squadLateral - lowSide) <= Math.abs(squadLateral - highSide))) {
+                lateral = lowSide;
+            } else if (highFits) {
+                lateral = highSide;
+            }
+        }
+        return lateral;
+    }
+
+    /** Grows a {@code {lateralLow, lateralHigh, forwardLow, forwardHigh}} box to hold a cell. */
+    private void widen(int[] box, int cellX, int cellY) {
+        int lateral = Math.round(trackLayout.lateralCoordinate(cellX, cellY));
+        int forward = Math.round(trackLayout.forwardCoordinate(cellX, cellY));
+        box[0] = Math.min(box[0], lateral);
+        box[1] = Math.max(box[1], lateral);
+        box[2] = Math.min(box[2], forward);
+        box[3] = Math.max(box[3], forward);
+    }
+
     private int neighbourLeadForward(int track, ConquestCommandFrame frame) {
         int lead = NO_FRIENDLY_LEAD;
+        boolean anyWork = false;
+        for (boolean work : stripHasWork) anyWork |= work;
         for (int neighbour = track - 1; neighbour <= track + 1; neighbour++) {
             if (neighbour == track) continue;
             if (neighbour < 0 || neighbour >= STRIP_COUNT) continue;
+            // An empty strip is no front to keep in step with: squads standing in it are crossing to their own.
+            if (anyWork && !stripHasWork[neighbour]) continue;
             lead = Math.max(lead,
                     friendlyLeadForward(neighbour, NO_FRIENDLY_LEAD, frame));
         }
