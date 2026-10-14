@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
+import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
@@ -2674,7 +2675,8 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        ConquestCommand marineCommand = new ConquestCommand(tracks, map.lanes);
+        ConquestCommand marineCommand = new ConquestCommand(tracks, map.lanes)
+                .withAssaultStyle(profile == null ? AssaultStyle.MUSTER : profile.declaredAssault());
         sim.setAutonomousCommander(Faction.MARINE, marineCommand,
                 ConquestCommandDisclosure.INSTANCE);
         // A DEBUG-stated call lands claimed by this commander, at the middle of the drop zone it came down on.

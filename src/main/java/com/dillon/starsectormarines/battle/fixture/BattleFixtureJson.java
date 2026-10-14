@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
+import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
@@ -937,6 +938,9 @@ public final class BattleFixtureJson {
         if (!profile.declaredAirPool().isNone()) {
             encoded.put("declaredAirPool", airPoolToJson(profile.declaredAirPool()));
         }
+        if (profile.declaredAssault() != AssaultStyle.MUSTER) {
+            encoded.put("declaredAssault", profile.declaredAssault().name());
+        }
         if (!profile.declaredSupportKit().isNone()) {
             JSONObject sides = new JSONObject();
             for (Map.Entry<Faction, SquadSupportKit> side : profile.declaredSupportKit().kits().entrySet()) {
@@ -993,7 +997,10 @@ public final class BattleFixtureJson {
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
                         declaredForts(encoded)).withSiting(declaredSiting(encoded)),
-                declaredMechDrops(encoded), declaredAirPool(encoded), declaredSupportKit(encoded));
+                declaredMechDrops(encoded), declaredAirPool(encoded), declaredSupportKit(encoded),
+                encoded.has("declaredAssault")
+                        ? enumValue(AssaultStyle.class, encoded.getString("declaredAssault"), "assault style")
+                        : AssaultStyle.MUSTER);
     }
 
     /** The support kits a fixture declares; a fixture that predates kits, or names none, declares none. */

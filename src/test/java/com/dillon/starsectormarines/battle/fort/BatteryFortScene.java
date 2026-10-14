@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
@@ -97,15 +98,12 @@ public final class BatteryFortScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
-        // These loops test the aspect choice by a lone detachment; the phased assault is the assault-muster scene.
-        boolean musterWas = ConquestCommand.musterEnabled();
-        ConquestCommand.setMusterEnabled(false);
+        // These loops test the aspect choice by a lone detachment (their commanders choose the trickle); the phased assault is the assault-muster scene.
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("guns-fire", "gun-side-hold", "bunker-taken", "bunker-wrecked", "magazine-wrecked",
                 "power-cut", "fort-taken-turns", "squad-takes-bunker", "commander-takes-bunker", "commander-skips-crew")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
-        ConquestCommand.setMusterEnabled(musterWas);
         return reports;
     }
 
@@ -202,7 +200,8 @@ public final class BatteryFortScene implements BehaviorScene {
         if (commander) {
             // No scripted order: the company's commander is told only what the company has seen, and must choose.
             sim.setAutonomousCommander(Faction.MARINE,
-                    new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT)),
+                    new ConquestCommand(new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT))
+                            .withAssaultStyle(AssaultStyle.TRICKLE),
                     ConquestCommandDisclosure.INSTANCE);
         } else if (assault) {
             int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
