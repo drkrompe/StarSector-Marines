@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Basin yard claim and post-repair Working Passage ownership negotiation.
+Updated: 2026-10-14 — distinguish the old Colossus claim, recent occupation and bounded cousin correspondence.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -24,13 +24,20 @@ Use the arc's own open-work board before changing its plan.
 Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
 Cooperative**, an authored local Independent employer. Castle's bargain exchanges
 reopening the recovery corridor for the repaired Shepherd **Morrow**. The
-basin is the cooperative's shipbreaking yard, disrupted by wreckage from recent
-fighting overhead. Morrow's crew made an emergency landing in their own cradle
-and evacuated; surviving hands return with the repair party. Armed scrappers
-occupy the evacuated yard. Vale says they call it abandoned; she disputes that
-claim. Both crews work the same salvage trade. That outfit's armed occupation
-makes it the opposition, not scavengers or Independents as a whole. The overhead
-battle and local claims are mod-authored history, not a general salvage-law rule.
+basin grew into the cooperative's shipbreaking yard around its claim. Three
+cycles ago, the Colossus and accompanying ships came down during unnamed low-orbit
+fighting over Asharu. Basin was first to work this basin and built its camp around
+the wrecks over time. Recently opening a sealed hold brought rumors and armed
+rival scavengers. Morrow is Basin's own working tender, brought to the claim
+separately. During the recent attack, her crew put her down in the service cradle
+with damaged controls and evacuated; surviving hands return with the repair party.
+Armed scrappers occupy the yard. Vale says they call it abandoned; she disputes
+that claim. Both crews work the same salvage trade. That outfit's armed occupation
+makes it the opposition, not scavengers or Independents as a whole. The wreckfall
+and local claims are mod-authored history, not a general salvage-law rule.
+Vale's cousin's crew remained hidden inside the Colossus. Their offscreen report
+informs the first briefing; it is bounded correspondence, not a simulated actor,
+rescue objective, casualty counter or live source of hidden enemy positions.
 The cooperative works in Hegemony-dominated Corvus without acting for the
 Hegemony or seeking a fight with it. Vale's local recovery permit is not planetary
 government authority. She wants the salvage moving before official scrutiny,
@@ -43,7 +50,7 @@ inspection timer, faction-relation change or permission for fleet bombardment.
 The broken Colossus against the northern rear canyon wall holds a shipment the
 cooperative found before evacuating, surrounded by ordinary yard stores and hull
 scrap. Vale prioritizes access to that shipment and refuses to share its manifest
-with hired security. Its contents, legality and value remain unauthored: neither
+with hired security. Its contents, buyer, legality and value remain undecided: neither
 contraband nor rare schematics are confirmed, and secrecy is not proof of either.
 The cooperative keeps the Colossus, shipment and yard and owns Morrow throughout
 inspection and repair. The original 18,000-credit fee secures Basin's yard and
@@ -75,7 +82,9 @@ identical. Dialogue expresses those interests through the work ahead, practical
 questions and personal responses; characters need not recite the contract or
 declare their political position. Exact fees, ownership and retry conditions stay
 clear in the accompanying readouts. This adds no casualty penalties, cargo
-rewards or free replacement ship.
+rewards or free replacement ship. `shepherd-recovery-dialogue.md` owns the
+chronological dialogue and character register, including the distinction between
+what a character knows and what has been revealed to the player.
 Completion of the Corvus arc and acknowledgement of its aftermath precede the offer;
 the supply-route outcome does not change eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and

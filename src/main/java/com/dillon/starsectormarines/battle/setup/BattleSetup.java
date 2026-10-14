@@ -2528,8 +2528,34 @@ public final class BattleSetup {
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
                 tier, risk, sprawl, standoff, laneCount, landing, lanePaths,
                 sizedArrivalConfig.dropZoneCount());
-        MapResult map = generated.map();
+        return populateConquest(generated.map(), generated.seed(), axis, rng,
+                committedManifest, requestedArrivalPlan, sizedArrivalConfig,
+                enemyHasHeavyArmor, tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, groundRoster, null);
+    }
 
+    /**
+     * The Conquest mission layer over a finished map: objectives, the marine lift, the defender roster and its
+     * allocation, both commanders and the reinforcement layer. The city path generates and then calls this; an
+     * authored map (a trial ground) calls it directly. Nothing here depends on how the map was made, only on what
+     * it carries: compounds with exactly one COMMAND_POST, landing areas for the lift, and defence posts.
+     *
+     * @param rng            the build's random source, already past any draws the caller made (the city path draws the
+     *                       axis first); every draw here follows in the same order as before the extraction
+     * @param defenderRoster an explicit defender composition, kept whole, or {@code null} for the one derived from
+     *                       tier and risk
+     */
+    public static MapBuild populateConquest(MapResult map, long mapSeed, TraversalAxis axis, Random rng,
+                                            List<ShuttleAssignment> committedManifest,
+                                            ShuttleArrivalPlan requestedArrivalPlan,
+                                            ConquestArrivalConfig sizedArrivalConfig,
+                                            boolean enemyHasHeavyArmor,
+                                            OperationTier tier, RiskLevel risk,
+                                            TargetProfile profile,
+                                            FlybyRoster marineFighterSupport,
+                                            FlybyRoster enemyFighterSupport,
+                                            GroundRosterProfile groundRoster,
+                                            DefenderRoster defenderRoster) {
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
         // What the finished map actually seated may be fewer areas than the
         // estimate the landing claim was seeded on asked for; a derived shape
@@ -2545,7 +2571,10 @@ public final class BattleSetup {
         ShuttleArrivalPlan resolvedArrivalPlan = new ShuttleArrivalPlan(
                 liftedArrivalPlan.policy(), resolvedManifest.firstPlayerShuttle(),
                 liftArrivalConfig);
-        DefenderForcePlan defenders = defenderForcePlan(
+        // An explicit roster is a trial's own composition, kept whole: nothing is priced against the attackers.
+        DefenderForcePlan defenders = defenderRoster != null
+                ? new DefenderForcePlan(defenderRoster, map.defensePosts, enemyFighterSupport)
+                : defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
                 enemyFighterSupport, groundRoster);
@@ -2558,7 +2587,7 @@ public final class BattleSetup {
         // non-conquest path, which stamps the same shapes unmanned via
         // {@code DefensePostStamper.stampNonConquest}.
         MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(),
-                generated.seed());
+                mapSeed);
         BattleSimulation sim = build.sim();
         sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(groundRoster);
@@ -2596,7 +2625,7 @@ public final class BattleSetup {
             float lzCenterX = slot.pad().centerX + 0.5f;
             float lzCenterY = slot.pad().centerY + 0.5f;
             float[] entry = marineArrivalEntry(lzCenterX, lzCenterY, map,
-                    gridW, gridH, axis);
+                    map.grid.getWidth(), map.grid.getHeight(), axis);
             long shuttleId = sim.spawnShuttle(
                     resolvedArrivalPlan.deliveryCraft(a.type),
                     deliveryFrame(resolvedArrivalPlan, a), Faction.MARINE,

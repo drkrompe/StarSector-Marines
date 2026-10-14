@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — ownership negotiation follows completed Cold Start at the first Working Passage briefing; live acceptance remains.
+Updated: 2026-10-14 — align the old wreck claim, recent attack and bounded cousin report with the dialogue register.
 
 ## Placement and employer
 
@@ -36,22 +36,26 @@ It does not make the company a rebel force, grant wider orbital strike authority
 alter diplomacy or start a hidden government-intervention clock. The offer stays
 open while the captain replenishes a depleted company.
 
-The basin was a working **shipbreaking and reclamation yard** before the fighting.
-Sorted hull sections, cutting beds, machinery stores and a rear haul loop made
-it a place where damaged ships became useful parts. Recent fighting overhead
-scattered fresh wreckage across those older work sites. Torn sections and shallow
-impact trails interrupt the organized stock; they are not more recoverable ships.
-The overhead engagement is mod-authored local history, not a named vanilla battle
-or a claim that the player's campaign simulation caused it.
+Three cycles ago, unnamed low-orbit fighting over Asharu brought the Colossus
+and accompanying ships down into the basin. Basin was first to work the wrecks
+and built its shipbreaking camp around the claim over time. Sorted hull sections,
+cutting beds, machinery stores and a rear haul loop mark that established work.
+The recent opening of a sealed hold drew rumors and armed rival scavengers.
+The wreckfall is mod-authored local history, not a named vanilla battle or an
+event caused by the player's campaign simulation.
 
-The Shepherd **Morrow** was the cooperative's working salvage tender. Caught in
-that fighting, its crew brought the damaged ship back down to its own receiving
-cradle. It made a controlled emergency landing, not an intact fall from orbit.
-Its workshop survived, but flight controls, power distribution and drone servicing
-need work. The crew shut down the damaged systems and evacuated through the
-receiving apron. Surviving crew members return with Vale's repair party; recovering
-the ship is not a search for people sealed inside it. The exact original complement
-and casualty count are not yet authored and must not be invented by dialogue.
+The Shepherd **Morrow** is the cooperative's own working tender, brought to the
+claim separately. During the recent attack, her crew put her down in the service
+cradle with damaged controls, shut down the damaged systems and evacuated through
+the receiving apron. She did not fall with the Colossus three cycles ago. Power
+distribution and drone servicing need repair; surviving hands return with Vale's
+repair party. Original complement and casualties remain unauthored and must not
+be inferred from the inspection or repair parties.
+
+Vale's cousin's crew remained hidden inside the Colossus and provides an offscreen
+report at the first briefing. Their presence is authored correspondence, not a
+rescue objective, simulation actor, casualty counter or live view of hidden enemy
+positions. It grants no cargo transfer or separate reward.
 
 Armed **scrappers** moved in after the evacuation and began stripping machinery
 from the yard and route. Vale says they regard her evacuation as abandonment;
@@ -61,7 +65,7 @@ with her crews; the opposition is this armed outfit occupying her claimed yard,
 not all scavengers or the Independent faction. Their presence reads through
 cutting stations, parked collection vehicles and removed components rather than
 another generic military base. They are opportunists exploiting the gap, not
-another secret arm of Sable Wake. There is no capital-ship rescue waiting offscreen.
+another secret arm of Sable Wake. There is no additional capital-ship rescue objective.
 
 Basin owns Morrow throughout inspection and repair. The original contract pays
 18,000 credits to secure its yard and protect the inspection, then 22,000 credits
@@ -84,8 +88,8 @@ remain personal and practical concerns, with no new bonus or penalty.
 A much larger broken **Colossus** rests against the northern rear canyon wall.
 The cooperative found a shipment in its sealed hold before the evacuation. Vale
 withholds the manifest from Castle; her handlers take responsibility for the cargo.
-The contents could be mundane, illegal or unusually valuable, but none of those
-possibilities is confirmed. Do not turn her guardedness into a contraband reveal,
+The contents, buyer, legality and value remain undecided. Vale knows the cargo
+matters to her; neither her private interest nor the rumors confirm a manifest. Do not turn her guardedness into a contraband reveal,
 a technology reward or a promise of a later investigation. Ordinary yard stores
 and hull scrap remain around it. The cooperative retains the freighter and its
 contents; the player provides access and security rather than taking a cargo share.
@@ -129,7 +133,7 @@ haul and eastern quarry roads provide legible enemy approaches from beyond view.
 
 The northern salvage racks face the rear service road, with working aisles
 between torn hull and drive sections. Southern cutting beds feed the receiving
-yard. Fresh wreck fragments lie along diagonal impact trails east of the cradle
+yard. Wreck fragments lie along diagonal impact trails east of the cradle
 and below the machine store, outside the road and suggested construction plots.
 Scraped concrete and failed shore equipment lead into Morrow's cradle; medical
 supplies and an abandoned muster point sit beside the receiving store. These
@@ -186,33 +190,17 @@ Beat order:
    Vale's people hold the secured yard between missions. Persistence records the
    Basin yard claim and inspection milestone, not a player hull claim.
 
-**Castle, hull secured:** “The fitters think they can save her workshop. What do
-they need?”
-
-**Vale:** “Shore power, and room to work. I've put the parts aside.”
-
-**Castle:** “Then we'll keep the yard clear while they get a look.”
-
-**Vale, first sight of the hull:** “Her crew put her down there with half the
-controls dead. Some of them are on the repair team. They know what can be saved.”
-
-**Castle:** “Then we keep the cutters away from her until they get a look.”
-
-These are text-only story hooks; ownership terms belong to Working Passage.
-No new recordings are included. The paid inspection closes this chapter; failed attempts
-retain confirmed inspection casualties and send a replacement party on a new attempt.
+The paid inspection closes this chapter; failed attempts retain confirmed
+inspection casualties and send a replacement party on a new attempt. Ownership
+terms belong to Working Passage. `shepherd-recovery-dialogue.md` owns the
+briefing, hull-sighting exchange, debrief and conditional lines.
 
 ## 2 — Cold Start
 
 **Promise:** restore the tool under pressure. Teach defending a work site and
 covering fragile builders; avoid an idle repair countdown.
 
-**Briefing — Vale:** “Our replacement distribution rig is at the receiving apron.
-Morrow's surviving hands will meet it at their old workshop. Escort it there,
-then reconnect the pump station. We can wake the drone
-bay on shore power. I will not send repair crews into a running firefight. Give
-them room to work, and we can put the first gun on the road before the raiders
-come back in strength.”
+`shepherd-recovery-dialogue.md` owns the briefing and returning correspondence.
 
 Beat order:
 
@@ -237,18 +225,12 @@ Beat order:
    task. Field-completed milestones persist on a retry; unfinished work remains.
    A stopped task resumes only while its living crew and location are safe.
 
-**Castle, repair debrief:** “That bay could keep a position working with a
-handful of rifles. Is she ready to leave?”
-
-**Vale:** “The repairs are done. The road isn't. I've got haulers waiting for it,
-and my militia can't open it on their own.”
-
 The settlement readout pays the agreed 22,000 credits and identifies road reopening
 as additional work to discuss next. Ownership negotiation waits for the first
 Working Passage briefing. After company or technician losses, Castle asks for time
 before the next commitment. Returning briefings respect retained delivery and power
-milestones, including withholding obsolete recorded delivery instructions. Existing
-recordings remain separate from these written exchanges.
+milestones, including withholding obsolete recorded delivery instructions. The dialogue register owns the completed-repair exchange and its loss-sensitive
+variants; playback must never use a recording whose words no longer match.
 
 ## 3 — Working Passage
 
@@ -262,11 +244,7 @@ yard, built defenses and militia-secured road. Morrow and willing crew transfer 
 after physical departure. The agreement promises construction, repair and defensive
 positions, without a fixed gun count. Returning briefings respect these terms.
 
-**Briefing — Vale:** “Morrow can hover, but I will not trust the repaired drives
-to a climb inside this basin. Walk her out past the pumps and through the narrows.
-Clear a position, let her builders harden it, then bring the company forward.
-Our militia will hold what you leave behind. At the eastern yard we have room
-to test the drives and clear her for ascent.”
+`shepherd-recovery-dialogue.md` owns the negotiation, departure instructions and retries.
 
 Beat order:
 
@@ -285,16 +263,9 @@ Beat order:
    named fleet hull is awarded once, and later eligible missions can select it
    as fleet construction support.
 
-**Castle, departure:** “Transfer's through. Morrow's ours.”
-
-**Vale:** “All right. Have someone check the drone bay filters before you put her
-to work. The dust here gets into everything.”
-
-**Castle:** “We'll see to it. The hands who want to come with her have berths.”
-
-Vale's final reply depends on confirmed losses; without them she asks Castle to
-listen to the ship's people before changing things. The contract record carries
-the ownership settlement rather than making her repeat it at parting.
+The dialogue register owns departure correspondence and replies conditioned on
+confirmed losses. Registry settlement follows physical departure; it cannot be
+promised by an earlier inspection, repair or spool-up timer.
 
 The transfer includes an explicit berth offer to willing working crew sufficient
 for the awarded member's actual minimum complement. They join fleet crew, not marine
@@ -375,16 +346,13 @@ the duration targets remain tuning goals until measured playback and live review
   Its detached expected company has 24 service-grade pulse rifles with starting
   Ward armor and no Hound or officer bonuses; it does not change new-company issue.
   Cold Start pays 22,000 credits only on an accepted repair victory.
-- Retained Castle/Vale recordings cover the unchanged Salvage Rights opening and
-  instructions, Cold Start's ground opening, power, completed gun and repair, and
-  Working Passage's underway report, build instructions, confirmed militia holds,
-  departure and transfer. The new inspection scope and post-repair negotiation are
-  text-only; obsolete early-bargain and passage-introduction takes remain in the
-  source archive but are not registered for playback. Existing character voices
-  are retained for the revised script. Check names,
-  delivery and intelligibility against the live mix before release. The construction
-  drones have finite positional machinery cues; live swarm and accelerated-time
-  listening remain acceptance work.
+- Check Castle/Vale dialogue against `shepherd-recovery-dialogue.md`, including
+  reveal order, retained-milestone retries and confirmed-loss variants. Changed
+  words must remain readable and silent until matching recordings are reviewed;
+  obsolete takes remain source assets rather than active playback. Retain chosen
+  character voices. Live names, delivery and mix intelligibility remain acceptance
+  work, as do the finite construction drones' positional machinery cues and
+  accelerated-time listening.
 - Design for a rebuilding company: two squads as the initial test force, allied
   holders and engineers; Hound optional. Use the real launch roster and fitted
   boats. A weakened company can postpone and replenish. Do not assume every

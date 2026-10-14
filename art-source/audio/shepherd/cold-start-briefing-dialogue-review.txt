@@ -1,0 +1,23 @@
+basin_cold_repair_terms_01 / TAMSIN VALE / BASIN RECLAMATION
+The distribution rig's waiting on the apron. Same terms we discussed: my parts, my fitters, your company covering them. We get it to the workshop, then bring the pump station back on line.
+
+basin_cold_cousin_question_01 / CASTLE / COMPANY COMMAND
+And the people inside the Colossus?
+
+basin_cold_cousin_safe_01 / TAMSIN VALE / BASIN RECLAMATION
+Still on the channel. I've told them to keep their heads down until the yard's working. I don't need another crew crossing open ground tonight.
+
+basin_cold_builders_question_01 / CASTLE / COMPANY COMMAND
+The inspection mentions a construction wing. I thought Morrow's drones were for cutting ships apart.
+
+basin_cold_builders_01 / TAMSIN VALE / BASIN RECLAMATION
+They do both, with the right tooling. I've got a road-gun kit laid out. Connect shore power and we'll find out how many builders still answer. The yard lights should come back with it.
+
+basin_cold_company_cover_01 / CASTLE / COMPANY COMMAND
+A gun watching the approach would give our people room to breathe. Captain, we'll cover the builders while Vale's fitters work inside.
+
+basin_cold_build_instruction_01 / TAMSIN VALE / BASIN RECLAMATION
+Select Build Vulcan Turret and put it on clear ground within reach of Morrow's east bay. Keep fire off the drones. They're workshop equipment, not armor.
+
+basin_cold_pickets_01 / TAMSIN VALE / BASIN RECLAMATION
+I've only small pickets on the south haul and quarry roads. If they have to come in, cover them back to the inner line. I'd rather lose ground out there than have nobody left to hold it later.

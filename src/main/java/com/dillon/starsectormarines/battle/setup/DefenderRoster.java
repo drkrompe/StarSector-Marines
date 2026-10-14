@@ -119,6 +119,20 @@ public final class DefenderRoster {
         return new DefenderRoster(total, elites, mechVariants, militia, patrolSizeFor(risk), risk);
     }
 
+    /**
+     * A composition stated outright rather than derived from a mission, for a controlled trial: so many regulars, so
+     * much militia, these mechs, patrols of this size. {@code risk} still rolls individual gear and experience.
+     */
+    public static DefenderRoster explicit(int eliteCount, int militiaCount, List<MechVariant> mechVariants,
+                                          int patrolSquadSize, RiskLevel risk) {
+        if (eliteCount < 0 || militiaCount < 0 || patrolSquadSize < 1) {
+            throw new IllegalArgumentException("defender counts must be non-negative and patrols at least one strong");
+        }
+        List<MechVariant> mechs = mechVariants != null ? mechVariants : List.of();
+        return new DefenderRoster(eliteCount + militiaCount + mechs.size(), eliteCount, mechs, militiaCount,
+                patrolSquadSize, risk);
+    }
+
     /** Smallest defending force worth generating — below this a battle has no shape. */
     private static final int MINIMUM_DEFENDERS = 8;
 
