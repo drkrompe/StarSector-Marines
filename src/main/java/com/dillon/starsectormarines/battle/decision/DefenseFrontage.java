@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.decision;
 
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -240,8 +242,26 @@ public final class DefenseFrontage {
         if (found == null) return null;
         if (kind == Kind.ENTRANCE && !isConstricted(x, y, found, grid)) return null;
 
+        // A building window is a firing recess: a floor cell in the wall line
+        // whose outer edge carries a window barrier. It is walkable, so it reads
+        // as an entrance until the edge is asked, but nobody comes in through it.
+        // The recess is where the defender stands to shoot through it.
+        if (kind == Kind.ENTRANCE && hasWindowEdge(x, y, found, grid)) {
+            return new Aperture(x, y, x, y, x + found.dx, y + found.dy, found, Kind.WINDOW);
+        }
+
         return new Aperture(x, y, x - found.dx, y - found.dy,
                 x + found.dx, y + found.dy, found, kind);
+    }
+
+    /** Whether the edge from {@code (x, y)} toward {@code facing} carries a window barrier. */
+    private static boolean hasWindowEdge(int x, int y, Facing facing, NavigationGrid grid) {
+        for (Direction direction : Direction.CARDINALS) {
+            if (direction.dx != facing.dx || direction.dy != facing.dy) continue;
+            SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+            return barrier != null && barrier.kind() == SharedEdgeBarrier.Kind.WINDOW;
+        }
+        return false;
     }
 
     /** True when at least one cell perpendicular to {@code facing} is solid — the opening is a gap in something rather than open ground. */

@@ -662,6 +662,13 @@ Do not run builds or leave generated task files there.
   `build/reports/performance/squad-firing-positions/summary.json`.
   `-Dbattle.squadFiringEvidence.outputDir=<path>` redirects it. This measures
   selected-cell validity, spread and reachability, not autonomous combat outcomes.
+- `gradlew.bat garrisonEvidence` → stands up every story mission at tick zero
+  (the debug mission catalog plus the three Agreus maps) and inventories what
+  each map offers a squad to hold: per tactical node, windows / entrances /
+  distinct stand cells at building and compound scope and fighting-position
+  runs, plus the windows and runs no node covers. Writes
+  `build/reports/garrison/summary.md`. Map evidence, not battle evidence; opt-in
+  and excluded from `test`. See `garrisonables.md`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
