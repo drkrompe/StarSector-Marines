@@ -600,26 +600,37 @@ player has met Nessa.
 > come up the freight and warehouse service roads. Wayline supplies its militia
 > and one shuttle. Break the assault and bring as many people home as you can.
 
-**In mission, over the trips** — Mara unless marked. Existing events keep their
-keys; two new beats fire on the second and third player landings.
+**In mission, while the boat shuttles** — one ordered exchange that starts at
+launch and plays straight through, a line at a time, while the Hermes goes back
+and forth. It is not keyed to individual landings, so it needs no new mission
+events and cannot fall out of order. Mara unless marked.
+
+1. > Mara here. Your first boat's headed for the rear unloading apron. Our watch is
+   > holding the gate, but not for long on their own.
+2. > Sabine: First team goes down and holds the apron. The rest follow as the boat
+   > turns round. Nobody walks to that gate alone.
+3. > The raiders are coming up the freight and warehouse service roads. That's
+   > where the gate gets hit.
+4. > Our militia are coming in on the only shuttle we've got. Keep them with your
+   > people. They're drivers defending their road.
+5. > They knew which night the depot's gate crew was short. I still don't know
+   > how. This is where we stop them taking the road as well.
+6. > Break the assault and bring as many of our people home as you can, Commander.
+
+The beats tied to what actually happens keep firing on their own events, after or
+between these turns:
 
 | Beat | Line |
 |---|---|
-| `started` | Mara here. Your first boat's headed for the rear unloading apron. Our watch is holding the gate, but not for long on their own. |
-| `player_landed` | Sabine: First team down. We hold the apron until the boat's back. |
-| `player_landed` (Mara, after Sabine) | Your people are on the ground. The raiders are coming up the freight and warehouse service roads. That's where the gate gets hit. |
-| `employer_landed` | That's our militia, on the only shuttle we've got. Keep them with your people. They're drivers defending their road. |
-| new: second landing | They knew which night the depot's gate crew was short. I still don't know how. This is where we stop them taking the road as well. |
-| new: third landing | Sabine: That's all of us. Moving to the gate. |
 | `checkpoint_reached` | You've reached the checkpoint. Hold together, and watch the approaches. We need this gate standing when it's over. |
 | `militia_line_weakened` | The checkpoint watch is taking heavy losses. Get support to the line before it breaks. |
 | `militia_line_lost` | We've lost the checkpoint's own watch. Finish this, Commander. Bring the rest of our people home. |
 
-The depot seed ("they knew which night") moves from the introduction into the
-second landing, where it has room to sit. Every Mara line here needs a recording;
-Sabine's are text until she has a voice (see the proposal below). If a landing
-happens in a different order, a line that has not fired yet still fires once; a
-beat whose moment has passed is dropped rather than played late.
+The old `player_landed` and `employer_landed` lines are folded into the exchange
+and retired. An urgent event line (the militia breaking) interrupts the
+exchange, and the exchange resumes after it rather than being lost. The depot
+seed moves out of the introduction into turn 5, where it has room to sit. Every
+Mara turn needs a recording; Sabine's is text until she has a voice.
 
 ## 6 — First payment
 
@@ -689,9 +700,9 @@ Command still speaks for every other squad. It is not part of the text rewrite.
   her in `shepherd-recovery-dialogue.md`). Prell and the Dust Ledger reveal
   belong in `wayline-corvus-arc.md` and its chapter dialogue.
 - Relief's briefing becomes Mara's introduction as ordered `briefing.*` turns,
-  and the tactical lines move into the mission. `OpeningOperationStoryHooks`
-  needs the count of player landings so the second and third landings can fire
-  their own beats; the briefing screen keeps an unvoiced tactical summary.
+  and the tactical lines move into the mission as one ordered radio exchange
+  started at launch; no new mission events are needed. The briefing screen keeps
+  an unvoiced tactical summary.
   Every changed Mara line needs a new recording.
 - Sabine's protection changes the standing model in the same commit as the code:
   `personnel-nouns.md` ("grants no immunity from loss") and `company-view-nouns.md`
