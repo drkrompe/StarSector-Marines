@@ -215,6 +215,9 @@ Do not run builds or leave generated task files there.
   (every Nth squad) for Corvus and for `createSnapshots -Psnapshot=cold-start`;
   both report tube carriers, set-ups, rounds and which set-up gate held the
   tube back each tick.
+  Cold Start also takes `-Dbattle.coldStart.hound=true` (the recovered Hound
+  through Mech Support at the first pad) and `-Dbattle.coldStart.seeds=a,b,...`
+  (one ordinary fixture per seed, selected as `sweep`).
   Reports retain exact launch fixtures, losses, delivery times, mech output,
   command traces, minute frames and unit/route diagnostics. Corvus also accepts
   `-PsnapshotEveryTicks=15` for denser action replay frames with weapons, impacts
