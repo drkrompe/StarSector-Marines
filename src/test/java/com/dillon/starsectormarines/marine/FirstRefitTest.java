@@ -167,18 +167,18 @@ class FirstRefitTest {
             String squad = roster.squads().get(0).id();
             var other = choice == FirstRefit.Path.STEADY_LINE ? FirstRefit.Path.FORWARD_SCREEN : FirstRefit.Path.STEADY_LINE;
             String weapon = other == FirstRefit.Path.STEADY_LINE ? WeaponRegistry.SQUAD_AUTOMATIC_ID : WeaponRegistry.PULSE_RIFLE_ID;
-            String card = EquipmentTemplateCatalog.primary(weapon, EquipmentGrade.MILSPEC).id();
+            String card = new LoadoutCard(LoadoutCard.Kind.WEAPON, other.weapons).id();
             boolean offered = false;
             for (int month = 0; month < 120; month++) {
                 var market = FactionEquipmentMarketStockPlanner.plan("independent", "technology-test", 6, month,
-                        false, roster.armory().ownedEquipmentTemplateIds(), EquipmentAcquisitionEligibility.Progress.OPENING);
-                offered |= market.marketTemplateIds().contains(card);
+                        false, LoadoutCardInventory.knownCardIds(roster.armory()), EquipmentAcquisitionEligibility.Progress.OPENING);
+                offered |= market.marketCardIds().contains(card);
             }
             assertTrue(offered, "The alternative must reach ordinary markets without a license");
-            assertEquals(EquipmentTemplateLearning.Result.LEARNED, EquipmentTemplateLearning.learn(roster.armory(), card));
+            assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(), card));
             if (other == FirstRefit.Path.FORWARD_SCREEN) {
-                assertEquals(EquipmentTemplateLearning.Result.LEARNED, EquipmentTemplateLearning.learn(roster.armory(),
-                        EquipmentTemplateCatalog.armor(MarineArmorPattern.BLUE_SCOUT.id).id()));
+                assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(),
+                        new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.RECON_ARMOR).id()));
             }
             assertFalse(roster.firstRefit().claim(roster, other));
             assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad, other.weapons, other.armor));

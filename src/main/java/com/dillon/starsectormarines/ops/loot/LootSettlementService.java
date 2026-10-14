@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -61,7 +61,7 @@ public final class LootSettlementService {
             return;
         }
         if (line.stack.kind == LootKind.SPECIAL) {
-            cargo.addSpecial(EquipmentTemplateCardItemPlugin.itemData(
+            cargo.addSpecial(LoadoutCardItemPlugin.itemData(
                     line.stack.itemId), quantity);
             return;
         }
