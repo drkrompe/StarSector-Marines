@@ -20,7 +20,8 @@ public record ConquestFrontSnapshot(
         List<TrackState> tracks,
         List<SquadState> squads,
         List<SquadDirective> directives,
-        List<GroupState> groups) {
+        List<GroupState> groups,
+        List<CompanyState> companies) {
 
     /** Subordinate intent; own living squads only, including acting NCO groups. */
     public record GroupState(CommandGroupIdentity identity, List<Integer> squadIds,
@@ -28,6 +29,25 @@ public record ConquestFrontSnapshot(
                              int targetZoneId, int targetCellX, int targetCellY,
                              String reason, boolean rallying) {
         public GroupState { squadIds = List.copyOf(squadIds); }
+    }
+
+    /**
+     * One assault company's phase for one objective, or the foothold element that holds the landing while a
+     * company musters. Own living squads only; the objective is a place the side knows of, never an enemy identity.
+     *
+     * @param objectiveId  the fort the company is for, or {@code -1} for the foothold element
+     * @param stage        {@code FOOTHOLD}, {@code MUSTER} or {@code ASSAULT}
+     * @param arrivedSquads squads inside the rally radius (muster) or the company's living squads (assault)
+     * @param strength     the company's weighted strength now, in marine-equivalents
+     * @param required     the strength the commander believes the objective takes
+     * @param ticksInStage ticks since the stage began
+     * @param timeoutTick  the tick the muster commits regardless, or {@code -1}
+     */
+    public record CompanyState(int objectiveId, String stage, List<Integer> squadIds, int arrivedSquads,
+                               int strength, int required, int rallyCellX, int rallyCellY,
+                               int objectiveCellX, int objectiveCellY, int ticksInStage, int timeoutTick,
+                               String reason) {
+        public CompanyState { squadIds = List.copyOf(squadIds); }
     }
 
     public ConquestFrontSnapshot(int tick, int influenceTick, Faction perspective,
@@ -39,10 +59,25 @@ public record ConquestFrontSnapshot(
                 keepZoneId, keepState, tracks, squads, directives, List.of());
     }
 
+    public ConquestFrontSnapshot(int tick, int influenceTick, Faction perspective,
+                                TraversalAxis axis, Phase phase, int remainingCompounds,
+                                int keepZoneId, CompoundState keepState,
+                                List<TrackState> tracks, List<SquadState> squads,
+                                List<SquadDirective> directives, List<GroupState> groups) {
+        this(tick, influenceTick, perspective, axis, phase, remainingCompounds,
+                keepZoneId, keepState, tracks, squads, directives, groups, List.of());
+    }
+
     public ConquestFrontSnapshot withGroups(List<GroupState> groups) {
         return new ConquestFrontSnapshot(tick, influenceTick, perspective, axis,
                 phase, remainingCompounds, keepZoneId, keepState, tracks, squads,
-                directives, groups);
+                directives, groups, companies);
+    }
+
+    public ConquestFrontSnapshot withCompanies(List<CompanyState> companies) {
+        return new ConquestFrontSnapshot(tick, influenceTick, perspective, axis,
+                phase, remainingCompounds, keepZoneId, keepState, tracks, squads,
+                directives, groups, companies);
     }
 
     public GroupState groupForSquad(int squadId) {
@@ -103,7 +138,15 @@ public record ConquestFrontSnapshot(
         /** A squad detached to win back a ground-defence structure built for this side and now held by the enemy. */
         DEFENCE_STRUCTURE_RETAKE,
         /** A squad detached to stand to at this side's own ground-defence structure while it is being pressed. */
-        DEFENCE_STRUCTURE_DEFEND
+        DEFENCE_STRUCTURE_DEFEND,
+        /** A squad held at the landing while an assault company musters, so the foothold stays held. */
+        MUSTER_FOOTHOLD,
+        /** A squad gathering at the company rally point for an objective one squad cannot take. */
+        MUSTER_GATHER,
+        /** A squad of an assault company committed against its objective. */
+        ASSAULT_COMMIT,
+        /** A company squad that has run ahead of its company and holds so the company arrives as one body. */
+        ASSAULT_COMPANY_RALLY
     }
 
     public record TrackState(
@@ -311,6 +354,7 @@ public record ConquestFrontSnapshot(
         squads = List.copyOf(squads);
         directives = List.copyOf(directives);
         groups = List.copyOf(groups);
+        companies = List.copyOf(companies);
     }
 
     public ConquestFrontSnapshot(int tick, int influenceTick,
@@ -420,7 +464,7 @@ public record ConquestFrontSnapshot(
         }
         return new ConquestFrontSnapshot(tick, influenceTick, perspective,
                 axis, phase, remainingCompounds, keepZoneId, keepState,
-                tracks, squads, reconciled, effectiveGroups);
+                tracks, squads, reconciled, effectiveGroups, companies);
     }
 
     public static ConquestFrontSnapshot empty(Faction perspective,

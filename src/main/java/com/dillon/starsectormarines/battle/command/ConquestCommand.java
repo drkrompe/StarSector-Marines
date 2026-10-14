@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -21,7 +22,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -399,7 +402,36 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     public static final int GARRISON_MARGIN = 2;
 
+    /**
+     * {@code -Dbattle.command.muster=false} puts the attacker back to detaching one or two squads at a time to a
+     * disclosed fort, the trickle a fort is built to beat. On by default: land, muster, then assault
+     * ({@code phased-assault.md}). Read once; a scene or test sets the field for a control run.
+     */
+    public static final String MUSTER_PROPERTY = "battle.command.muster";
+    static boolean MUSTER_ENABLED = Boolean.parseBoolean(System.getProperty(MUSTER_PROPERTY, "true"));
+
+    /** Whether the muster is on. For scenes and evidence controls that must hold it fixed. */
+    public static boolean musterEnabled() {
+        return MUSTER_ENABLED;
+    }
+
+    /** Sets the muster switch; the caller restores it. For scenes and evidence controls only. */
+    public static void setMusterEnabled(boolean enabled) {
+        MUSTER_ENABLED = enabled;
+    }
+
     private final TraversalAxis axis;
+    /** Assault companies and the foothold element; see {@link AssaultMuster}. */
+    private final AssaultMuster muster = new AssaultMuster();
+    /** The cell the force came ashore at, remembered once known. Own-force knowledge. */
+    private int[] dropZone;
+    /** Ticks a company waits for a lance it has called to come down and join it. UNTUNED. */
+    static final int LANCE_ARRIVAL_ALLOWANCE_TICKS = 1800;
+    /** The fort whose company wants a lance called, set by the pure plan and acted on in {@link #afterCommit}. */
+    private int lanceWishFort = -1;
+    /** Forts a lance has already been called (or found unavailable) for: at most one call per company. */
+    private final Set<Integer> lancedForts = new TreeSet<>();
+    private String lanceNote;
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
@@ -736,6 +768,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 : finalCompoundConvergence
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
+        // Muster and assault run before the lane passes and take their squads out of the pool they draw from, so a
+        // company is never also a capture detachment or a lane probe. With the switch off nothing here runs.
+        List<String> musterNotes = List.of();
+        List<ConquestFrontSnapshot.CompanyState> companyPicture = List.of();
+        if (MUSTER_ENABLED) {
+            AssaultMuster.Result mustered = planMuster(frame, phase, squads, allSquads, directives);
+            musterNotes = mustered.notes();
+            companyPicture = mustered.companies();
+        }
+
         IntOpenHashSet deferredCaptures = new IntOpenHashSet();
         IntOpenHashSet farTrackCaptures = new IntOpenHashSet();
         if (keepConvergence) {
@@ -922,14 +964,172 @@ public final class ConquestCommand implements ConquestFrontCommand,
             structureNotes = assignDefenceStructureTasks(frame, squads, committed, allSquads, directives);
         }
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
-                remainingCompounds, keep, directives, allSquads).withGroups(groups.groups());
+                remainingCompounds, keep, directives, allSquads).withGroups(groups.groups())
+                .withCompanies(companyPicture);
         List<CommandProposal> proposals = buildProposals(
                 frame, allSquads, directives, phase);
+        List<String> traceNotes = new ArrayList<>(musterNotes);
+        traceNotes.addAll(structureNotes);
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 frame.influence() != null ? frame.influence().updatedTick() : -1,
                 squads.size() + holding.size(), 0,
-                summaries(remainingCompounds, structureNotes),
+                summaries(remainingCompounds, traceNotes),
                 proposals, detail);
+    }
+
+    /**
+     * Runs the muster and assault phases (see {@link AssaultMuster}) and applies their orders. A squad a company
+     * claims gets its order and its directive here and is taken out of {@code squads}, the pool the capture and lane
+     * passes draw from. In the two convergence phases there is no other front to hold and every company is dissolved.
+     */
+    private AssaultMuster.Result planMuster(ConquestCommandFrame frame, Phase phase, List<PlanningSquad> squads,
+                                             Map<Integer, PlanningSquad> allSquads,
+                                             Map<Integer, SquadDirective> directives) {
+        AssaultMuster.Result none = new AssaultMuster.Result(Map.of(), List.of(), List.of());
+        if (phase == Phase.KEEP_CONVERGENCE || phase == Phase.FINAL_COMPOUND_CONVERGENCE) {
+            muster.dissolveAll();
+            return none;
+        }
+        rememberDropZone(frame, squads);
+        List<AssaultMuster.Objective> objectives = musterObjectives(frame);
+        if (objectives.isEmpty() || dropZone == null) {
+            muster.dissolveAll();
+            return none;
+        }
+        List<int[]> hostiles = new ArrayList<>();
+        if (frame.influence() != null) {
+            for (CommanderContact contact : frame.influence().contacts()) {
+                hostiles.add(new int[] {contact.cellX(), contact.cellY()});
+            }
+        }
+        List<AssaultMuster.Body> bodies = new ArrayList<>();
+        for (PlanningSquad squad : squads) {
+            if (squad.aliveMembers <= 0 || squad.crew || squad.role == UnitRole.GARRISON || inNamedGroup(squad)
+                    || squad.anchorCellX < 0 || squad.anchorCellY < 0
+                    || (squad.assignedObjective != null
+                    && squad.assignedObjective.kind() == AssignmentKind.SECURE_COMPOUND)) continue;
+            bodies.add(new AssaultMuster.Body(squad.id, squad.anchorCellX, squad.anchorCellY, squad.aliveMembers,
+                    squad.machine, squad.demolition,
+                    squad.underFireRecently || squad.moraleBroken || squad.primaryEngageableMembers > 0,
+                    squad.originalAssignment));
+        }
+        AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
+                hostiles, frame.topology());
+        for (Map.Entry<Integer, AssaultMuster.Order> entry : result.orders().entrySet()) {
+            PlanningSquad squad = allSquads.get(entry.getKey());
+            if (squad == null) continue;
+            squad.assignedObjective = entry.getValue().assignment();
+            int preferred = stripFor(squad);
+            directives.put(squad.id, directive(squad, preferred, preferred, entry.getValue().reason()));
+            squads.remove(squad);
+        }
+        for (ConquestFrontSnapshot.CompanyState company : result.companies()) {
+            if (company.objectiveId() >= 0 && company.stage().equals("MUSTER") && company.strength() < company.required()
+                    && !lancedForts.contains(company.objectiveId())) {
+                lanceWishFort = company.objectiveId();
+                break;
+            }
+        }
+        if (lanceNote != null) {
+            List<String> notes = new ArrayList<>(result.notes());
+            notes.add(lanceNote);
+            lanceNote = null;
+            return new AssaultMuster.Result(result.orders(), result.companies(), notes);
+        }
+        return result;
+    }
+
+    /**
+     * Calls the lance a short company asked for. Serial, after the plan is committed: the plan itself is pure and
+     * only wishes. One call per company; the landed lance is an ordinary machine squad claimed by this command and
+     * joins the company as base of fire the way any free squad does.
+     */
+    @Override
+    public void afterCommit(CommandEffects effects) {
+        if (lanceWishFort < 0 || dropZone == null) return;
+        int fort = lanceWishFort;
+        lanceWishFort = -1;
+        lancedForts.add(fort);
+        if (effects.mechLancesRemaining(Faction.MARINE) <= 0) return;
+        MechDropService.Outcome outcome = effects.callMechLance(Faction.MARINE,
+                SquadCommandClaim.mission(strategyId(), "company muster lance"), dropZone[0], dropZone[1]);
+        lanceNote = "company for fort " + fort + " called a mech lance to the drop zone: " + outcome;
+        if (outcome == MechDropService.Outcome.COMMITTED) {
+            muster.expectReinforcement(fort, effects.tick() + LANCE_ARRIVAL_ALLOWANCE_TICKS);
+        }
+    }
+
+    /** The drop zone: the beachhead compound's cell, else where the first squads were first seen. */
+    private void rememberDropZone(ConquestCommandFrame frame, List<PlanningSquad> squads) {
+        if (dropZone != null) return;
+        for (ConquestCommandFacts.Compound compound : frame.facts().compounds()) {
+            if (compound.node() != null && compound.node().kind == TacticalNode.Kind.BEACHHEAD) {
+                dropZone = new int[] {compound.node().anchorX, compound.node().anchorY};
+                return;
+            }
+        }
+        double sx = 0;
+        double sy = 0;
+        int n = 0;
+        for (PlanningSquad squad : squads) {
+            if (squad.anchorCellX < 0 || squad.anchorCellY < 0) continue;
+            sx += squad.anchorCellX;
+            sy += squad.anchorCellY;
+            n++;
+        }
+        if (n == 0) return;
+        PlanningSquad nearest = null;
+        double best = Double.MAX_VALUE;
+        for (PlanningSquad squad : squads) {
+            if (squad.anchorCellX < 0 || squad.anchorCellY < 0) continue;
+            double gap = Math.hypot(squad.anchorCellX - sx / n, squad.anchorCellY - sy / n);
+            if (gap < best) {
+                best = gap;
+                nearest = squad;
+            }
+        }
+        dropZone = new int[] {nearest.anchorCellX, nearest.anchorCellY};
+    }
+
+    /** Forts this side is disclosed that still hold an aspect hostile to it, with the contacts it believes near each. */
+    private List<AssaultMuster.Objective> musterObjectives(ConquestCommandFrame frame) {
+        Map<Integer, List<DefenceStructureFact>> forts = new TreeMap<>();
+        for (DefenceStructureFact structure : frame.facts().structures()) {
+            if (structure.ofFort()) forts.computeIfAbsent(structure.fortId(), id -> new ArrayList<>()).add(structure);
+        }
+        List<AssaultMuster.Objective> objectives = new ArrayList<>();
+        for (Map.Entry<Integer, List<DefenceStructureFact>> entry : forts.entrySet()) {
+            List<DefenceStructureFact> aspects = entry.getValue();
+            if (aspects.stream().noneMatch(a -> frame.perspective().hostileTo(a.holder()))) continue;
+            int cx = 0;
+            int cy = 0;
+            for (DefenceStructureFact aspect : aspects) {
+                cx += aspect.cellX();
+                cy += aspect.cellY();
+            }
+            cx /= aspects.size();
+            cy /= aspects.size();
+            int contacts = 0;
+            if (frame.influence() != null) {
+                for (CommanderContact contact : frame.influence().contacts()) {
+                    if (Math.hypot(contact.cellX() - cx, contact.cellY() - cy) <= AssaultMuster.CONTACT_RADIUS_CELLS) {
+                        contacts++;
+                    }
+                }
+            }
+            objectives.add(new AssaultMuster.Objective(entry.getKey(), aspects.get(0).family(), cx, cy, aspects, contacts));
+        }
+        return objectives;
+    }
+
+    /** Whether a structure is an aspect of a fort a company is mustering for, which solo detachments leave alone. */
+    private static boolean companyObjective(DefenceStructureFact structure, List<DefenceStructureFact> all,
+                                            Faction perspective) {
+        if (!structure.ofFort()) return false;
+        for (DefenceStructureFact other : all) {
+            if (other.fortId() == structure.fortId() && other.ofFort() && perspective.hostileTo(other.holder())) return true;
+        }
+        return false;
     }
 
     private static List<String> summaries(int remainingCompounds, List<String> structureNotes) {
@@ -950,6 +1150,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                                      Map<Integer, SquadDirective> directives) {
         List<String> notes = new ArrayList<>();
         List<DefenceStructureFact> structures = frame.facts().structures();
+        if (MUSTER_ENABLED) {
+            // A fort that still has a hostile aspect is the company's work; a squad or two detached to it one at a time is
+            // the trickle the muster exists to end.
+            List<DefenceStructureFact> all = structures;
+            structures = all.stream().filter(s -> !companyObjective(s, all, frame.perspective())).toList();
+        }
         if (structures.isEmpty()) return notes;
         List<DefenceStructureTactics.Candidate> candidates = new ArrayList<>();
         for (PlanningSquad squad : squads) {
@@ -2899,7 +3105,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 && !validGroupHold(squad, frame)) {
             return CommandStabilityBreak.TARGET_UNREACHABLE;
         }
-        if (reason == AssignmentReason.GROUP_BOUNDED_RALLY) {
+        if (reason == AssignmentReason.GROUP_BOUNDED_RALLY
+                || reason == AssignmentReason.MUSTER_FOOTHOLD || reason == AssignmentReason.MUSTER_GATHER
+                || reason == AssignmentReason.ASSAULT_COMMIT || reason == AssignmentReason.ASSAULT_COMPANY_RALLY) {
             return CommandStabilityBreak.CONTEXT_INVALIDATED;
         }
         if (old.kind() == AssignmentKind.SECURE_COMPOUND

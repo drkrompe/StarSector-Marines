@@ -4,7 +4,9 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-11 — the force is spread across the three tracks, the zone cap
+Updated: 2026-10-13 — the attacker lands, musters and assaults a disclosed fort as one company (`phased-assault.md`); `battle.command.muster=false` is the control.
+
+Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
 rather than at the door. Marine losses on the west doubled for the same ground.
 
@@ -196,6 +198,40 @@ south and two on the west ever changed hands back; a lane's front returns to
 rung 0 because those particular rung-0 places flip, not because the map does. It
 is a genuine tug-of-war over a couple of outposts rather than a failure to hold
 ground.
+
+## Foothold, muster, assault
+
+**On by default: `battle.command.muster=false` puts the trickle back.** A
+disclosed fort is an objective one squad cannot take, and the squads that reach
+one a few at a time are cut down by its nests and garrison. So the attacker
+treats it per objective in three phases, owned by `phased-assault.md`: the
+landing is held by one squad while the lanes go on probing and discovering;
+free squads are recruited into an **assault company** that gathers at a rally
+point (the drop zone, or a staging cell outside the fort's nests) and is judged
+ready against what the commander believes is in front of it, with a timeout;
+and the company then goes at the fort as one body, the aspect `FortTactics`
+chooses first, with a bounded rally keeping it together on the approach.
+Mech and drone squads may join (a mech counts for more, and stands off as base
+of fire), and a company short of its believed need asks for a lance.
+
+Company members are taken out of the pool the capture and lane passes draw
+from, so a company is never also a capture detachment; the two convergence
+phases dissolve every company because there is no other front to hold. The
+battle-wide `Phase` is untouched. The per-objective phase is published as
+`ConquestFrontSnapshot.companies` and as the assignment reasons
+`MUSTER_FOOTHOLD`, `MUSTER_GATHER`, `ASSAULT_COMMIT` and
+`ASSAULT_COMPANY_RALLY`, which the trace analysis does not yet count as
+structure work (its "structure orders" line reads zero while a company is on a
+fort).
+
+**Measured, and mixed.** The two fixtures that declare forts, 36,000 ticks, no
+fort fell with the muster on or off. `reinforced-south`: muster 12 captures
+and 10 held, 205 marines lost, control 19 and 15, 220 lost. `full-strength-west`:
+muster 13 and 5, 426 lost, control 12 and 1, 433 lost. The checked-in matrix
+has no forts and is byte-identical either way. The companies cost lane work
+(three were broken on the south, two on the west), and the believed-need
+baseline of 24 weighted marines is too low for these forts; both are open, and
+the numbers wait for play rather than a target.
 
 ## Marine command
 

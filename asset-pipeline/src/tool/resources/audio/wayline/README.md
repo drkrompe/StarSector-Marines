@@ -81,3 +81,7 @@ soft saturation harder, and filters the resulting high harmonics again. It
 preserves source recordings; no paid synthesis is
 needed to revise this treatment. Only generated Ogg files receive the filter.
 Encoding AIR_COMMS requires an FFmpeg build with librubberband enabled.
+
+See the [radio voice effects guide](../radio-effects.md) for exact cockpit and
+ordinary radio recipes, Talon Two's approved one-semitone pitch offset,
+character continuity rules, and commands to recreate or audition the effects.

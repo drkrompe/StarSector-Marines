@@ -271,6 +271,7 @@ public final class CommanderService {
         snapshot = prepared.command.reconcile(snapshot);
         snapshots.put(snapshot.perspective(), snapshot);
         prepared.command.publish(snapshot);
+        prepared.command.afterCommit(CommandEffects.over(sim));
     }
 
     static <F extends CommandFrame, D> void runSingle(
@@ -299,6 +300,7 @@ public final class CommanderService {
         CommanderSnapshot<D> snapshot = arbiter.commit(plan, sim, topology);
         snapshot = command.reconcile(snapshot);
         command.publish(snapshot);
+        command.afterCommit(CommandEffects.over(sim));
     }
 
     private record PreparedCommand(AutonomousMissionCommand<?, ?> command,
