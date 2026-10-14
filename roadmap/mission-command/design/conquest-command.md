@@ -426,7 +426,22 @@ until it arrives, even when the next stage would be too short a step to issue;
 clearing it halted the squad every other pulse, and a line with nothing
 believed ahead crawled a few cells per order. On the trial ground the two
 together took the objective in 11 of 15 fixtures and won 8, against none of
-either before. The relaxation is confined to staging: a squad already
+either before.
+
+**A stage steps toward the work on its track and goes round a fort that is
+not the objective.** Taken straight up from where a squad stands, a stage keeps
+whatever lateral the squad landed or drifted at; on the trial ground with the
+fort off the lane, squads staged up the edge of their track along the fort's
+wire and stood in contact with guns they could not reach for the rest of the
+battle, while the compound they were homed for stood forty cells across the
+same track. So a stage now moves at most one stride sideways toward the next
+compound still to take on its track. Steered alone, that sent squads straight
+through a fort standing on the lane between them and their compound, where they
+died in the works (objective taken in none of six such fixtures). A stage that
+would land on a known hostile fort's works or belt, plus a margin, slides to
+whichever side of it is nearer the squad. Both together took the objective in
+all 15 trial fixtures and won 8, without the muster or the keep law changing.
+The relaxation is confined to staging: a squad already
 in contact is not stuck, and an exterior contact the commander has not yet
 placed stays ambient rather than becoming a fabricated forward order. A blind
 advance is published under its own reason, and does not count as the actionable

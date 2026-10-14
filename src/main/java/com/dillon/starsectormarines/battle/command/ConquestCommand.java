@@ -382,6 +382,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     static final int TRACK_LINE_BAND_CELLS = 4;
     /** How far a staging search may slide off the squad's own line of advance. */
     private static final int TRACK_LINE_SNAP_RADIUS = 12;
+    /** Ground kept between a staged squad and a hostile fort's belt it is going round. UNTUNED. */
+    private static final int FORT_CLEARANCE_CELLS = 8;
     /**
      * Lateral half-width of the corridor whose hostiles set a squad's standoff.
      * A track is a wide band — on a 160-cell map each of the three spans more
@@ -2488,6 +2490,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         int lateral = Math.max(trackLayout.lateralStartInclusive(track),
                 Math.min(trackLayout.lateralEndInclusive(track), squadLateral));
+        lateral = towardWork(track, squadForward, lateral);
+        if (!attacking) lateral = clearOfForts(squadForward, desiredForward, squadLateral, lateral, frame);
         // The loss-avoiding slide is built and tested but not wired in. A
         // control run at the commit before it returned TERMINAL on both
         // canonical fixtures and it returned TIMEOUT on both, so it costs the
@@ -2739,6 +2743,85 @@ public final class ConquestCommand implements ConquestFrontCommand,
         CommandTopology topology = frame.topology();
         return topology.inBounds(squad.anchorCellX, squad.anchorCellY)
                 && topology.reachable(squad.anchorCellX, squad.anchorCellY, cur.targetCellX(), cur.targetCellY());
+    }
+
+    /**
+     * The stage's lateral, stepped toward the next compound still to take on
+     * the track ahead of the squad, by at most one stride. A stage taken
+     * straight up from where a squad stands keeps whatever lateral it landed
+     * or drifted at: on the trial ground with the fort off the lane, squads
+     * staged up the edge of their track along the fort's wire and stood there
+     * in contact with its guns, while the compound they were homed for stood
+     * forty cells across the same track and was never approached. Without
+     * such a compound the lateral is kept.
+     */
+    private int towardWork(int track, int squadForward, int lateral) {
+        int workLateral = -1;
+        int workForward = Integer.MAX_VALUE;
+        for (CompoundTarget target : compoundTargets) {
+            if (target.state == CompoundService.CompoundState.MARINE_HELD) continue;
+            if (target.node.kind == TacticalNode.Kind.BEACHHEAD) continue;
+            if (trackLayout.trackForCell(target.captureCellX, target.captureCellY) != track) continue;
+            int forward = Math.round(trackLayout.forwardCoordinate(target.captureCellX, target.captureCellY));
+            if (forward <= squadForward || forward >= workForward) continue;
+            workForward = forward;
+            workLateral = Math.round(trackLayout.lateralCoordinate(target.captureCellX, target.captureCellY));
+        }
+        if (workLateral < 0) return lateral;
+        int step = Math.max(-TRACK_LINE_MAX_STRIDE_CELLS,
+                Math.min(TRACK_LINE_MAX_STRIDE_CELLS, workLateral - lateral));
+        return lateral + step;
+    }
+
+    /**
+     * The stage's lateral, slid clear of every hostile fort the side knows of
+     * whose ground lies across the forward band the squad is staging through,
+     * to whichever side of the fort is nearer the squad. Steering toward work
+     * alone sent squads straight through a fort standing on the lane between
+     * them and their compound, where they died in the works; a fort that is
+     * not the objective is ground to go round. Its ground is its works and its
+     * belt, plus {@link #FORT_CLEARANCE_CELLS}.
+     */
+    private int clearOfForts(int squadForward, int stageForward, int squadLateral, int lateral,
+                             ConquestCommandFrame frame) {
+        Map<Integer, int[]> bounds = new TreeMap<>();
+        for (DefenceStructureFact structure : frame.facts().structures()) {
+            if (!structure.ofFort() || structure.holder() == Faction.MARINE) continue;
+            int[] box = bounds.computeIfAbsent(structure.fortId(), id -> new int[] {
+                    Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE});
+            widen(box, structure.cellX(), structure.cellY());
+            int[] belt = structure.beltCells();
+            for (int i = 0; i + 1 < belt.length; i += 2) widen(box, belt[i], belt[i + 1]);
+            int[] seen = structure.seenCells();
+            for (int i = 0; i + 1 < seen.length; i += 2) widen(box, seen[i], seen[i + 1]);
+        }
+        int low = Math.min(squadForward, stageForward), high = Math.max(squadForward, stageForward);
+        for (int[] box : bounds.values()) {
+            if (box[0] > box[1]) continue;
+            int forwardLow = box[2] - FORT_CLEARANCE_CELLS, forwardHigh = box[3] + FORT_CLEARANCE_CELLS;
+            if (high < forwardLow || low > forwardHigh) continue;
+            int lateralLow = box[0] - FORT_CLEARANCE_CELLS, lateralHigh = box[1] + FORT_CLEARANCE_CELLS;
+            if (lateral < lateralLow || lateral > lateralHigh) continue;
+            int lowSide = lateralLow - 1, highSide = lateralHigh + 1;
+            boolean lowFits = lowSide >= 0;
+            boolean highFits = highSide < trackLayout.lateralExtent();
+            if (lowFits && (!highFits || Math.abs(squadLateral - lowSide) <= Math.abs(squadLateral - highSide))) {
+                lateral = lowSide;
+            } else if (highFits) {
+                lateral = highSide;
+            }
+        }
+        return lateral;
+    }
+
+    /** Grows a {@code {lateralLow, lateralHigh, forwardLow, forwardHigh}} box to hold a cell. */
+    private void widen(int[] box, int cellX, int cellY) {
+        int lateral = Math.round(trackLayout.lateralCoordinate(cellX, cellY));
+        int forward = Math.round(trackLayout.forwardCoordinate(cellX, cellY));
+        box[0] = Math.min(box[0], lateral);
+        box[1] = Math.max(box[1], lateral);
+        box[2] = Math.min(box[2], forward);
+        box[3] = Math.max(box[3], forward);
     }
 
     private int neighbourLeadForward(int track, ConquestCommandFrame frame) {
