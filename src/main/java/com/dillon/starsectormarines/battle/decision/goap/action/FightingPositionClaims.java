@@ -50,7 +50,19 @@ public final class FightingPositionClaims {
     }
 
     /** One squad's ordered circle and the threat it believes in ({@code threatX < 0}: none). */
-    public record Order(int centerX, int centerY, int radius, int threatX, int threatY) {
+    public record Order(int centerX, int centerY, int radius, int threatX, int threatY,
+                        int runId) {
+        /** An order that may use any position run inside the circle. */
+        public Order(int centerX, int centerY, int radius, int threatX, int threatY) {
+            this(centerX, centerY, radius, threatX, threatY, -1);
+        }
+
+        /** Whether the order may take the cell: a position cell inside the circle, on its run if it names one. */
+        boolean admits(FightingPositionIndex index, int x, int y) {
+            int run = index.runIdAt(x, y);
+            return run >= 0 && inside(x, y) && (runId < 0 || runId == run);
+        }
+
         boolean hasThreat() {
             return threatX >= 0 && threatY >= 0;
         }
@@ -127,7 +139,8 @@ public final class FightingPositionClaims {
             boolean threat = picture != null && picture.hasContacts()
                     && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
             orders[s] = new Order(area.centerX(), area.centerY(), area.radius(),
-                    threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1);
+                    threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1,
+                    sim.occupyRunOf(squad.id));
             List<Long> available = new ArrayList<>();
             for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
@@ -196,7 +209,7 @@ public final class FightingPositionClaims {
             if (cell < 0 || claimed.contains(cell)) continue;
             int x = cell % width;
             int y = cell / width;
-            if (!index.isFightingPositionCell(x, y) || !order.inside(x, y) || !probe.walkable(x, y)) continue;
+            if (!order.admits(index, x, y) || !probe.walkable(x, y)) continue;
             if (order.hasThreat() && probe.cover(x, y, order.threatX() - x, order.threatY() - y) <= 0) continue;
             cells[i] = cell;
             claimed.add(cell);
@@ -223,8 +236,7 @@ public final class FightingPositionClaims {
         List<int[]> candidates = new ArrayList<>();
         for (int y = order.centerY() - order.radius(); y <= order.centerY() + order.radius(); y++) {
             for (int x = order.centerX() - order.radius(); x <= order.centerX() + order.radius(); x++) {
-                if (!order.inside(x, y) || !index.isFightingPositionCell(x, y)
-                        || !probe.walkable(x, y)) continue;
+                if (!order.admits(index, x, y) || !probe.walkable(x, y)) continue;
                 int cell = y * width + x;
                 if (claimed.contains(cell)) continue;
                 int cover = order.hasThreat()

@@ -1563,6 +1563,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override
+    public int occupyRunOf(int squadId) {
+        return squadMoveOrders.activeOrder(squadId)
+                instanceof SquadMoveOrderService.ActiveDefendAreaOrder defend
+                ? defend.occupyRunId() : -1;
+    }
+
+    @Override
     public FightingPositionClaims fightingPositionClaims() {
         return fightingPositionClaims;
     }

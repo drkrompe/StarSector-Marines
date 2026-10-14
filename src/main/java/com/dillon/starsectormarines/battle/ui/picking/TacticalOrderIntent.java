@@ -1,7 +1,11 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
+import com.dillon.starsectormarines.battle.squad.OccupyPositionDecision;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.i18n.Strings;
 
 /**
  * What a right-click would do, asked before it happens.
@@ -30,18 +34,27 @@ public enum TacticalOrderIntent {
     /** The selected transport, carrying somebody: everybody out. */
     DISMOUNT("UNLOAD", true),
     /** A transport that cannot take this squad — full, or somebody else's. */
-    MOUNT_BLOCKED("NO ROOM", false);
+    MOUNT_BLOCKED("NO ROOM", false),
+    /** Infantry over a fighting position: man it, rather than walk to it. */
+    OCCUPY("battleOrderOccupyPosition", true, true);
 
     private final String label;
     private final boolean actionable;
+    private final boolean catalogLabel;
 
     TacticalOrderIntent(String label, boolean actionable) {
+        this(label, actionable, false);
+    }
+
+    /** {@code catalogLabel}: {@code label} is a string-catalog key rather than the caption itself. */
+    TacticalOrderIntent(String label, boolean actionable, boolean catalogLabel) {
+        this.catalogLabel = catalogLabel;
         this.label = label;
         this.actionable = actionable;
     }
 
     /** Short caption for the cursor marker. */
-    public String label() { return label; }
+    public String label() { return catalogLabel ? Strings.get(label) : label; }
 
     /** Whether the click would be carried out, as opposed to refused. */
     public boolean actionable() { return actionable; }
@@ -82,6 +95,11 @@ public enum TacticalOrderIntent {
         // click would otherwise look like it had been ignored.
         if (sim.transport().mountableVehicleFor(cellX, cellY, squad.faction, 0) != 0L) {
             return MOUNT_BLOCKED;
+        }
+        if (!squad.isMechSquad() && OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
+                DigInSystem.isEnabled(), cellX, cellY) >= 0
+                && !SquadMoveOrderSystem.insideUncapturedCompound(cellX, cellY, sim)) {
+            return OCCUPY;
         }
         return MOVE;
     }
