@@ -2104,9 +2104,10 @@ defender's own picture. `battle.fort.beltGarrison` selects reactive (default),
 static (a born garrison on every belt nest, the control) or off.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
-recalled by a lull. While a fort's belts are pressed the commander stages a free
-patrol at the fort's works so a local squad exists to send; staged patrols stay
-in the pool and return to roving after a long quiet. A manned run with an enemy
+recalled by a lull. Pressure also draws free patrols toward the pressed area,
+staged behind it (at a fort's works for a fort's belt) and still in the pool, and
+manning takes staged patrols first, then patrols the track rally has just sent,
+then the roving pool above its reserve floor. A manned run with an enemy
 believed inside it, or a garrison too small to hold it, falls back to the works
 of the fort it belongs to if the side still holds them, else returns to the pool;
 a breached run is not re-manned for a while.
