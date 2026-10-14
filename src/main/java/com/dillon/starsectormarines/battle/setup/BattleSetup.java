@@ -2568,6 +2568,7 @@ public final class BattleSetup {
         if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
         // The pools of airframes the mission gave each side, tasked through comms operators; none leaves the inert service.
         if (profile != null) sim.setAirPool(new AirPoolService(profile.declaredAirPool()));
+        if (profile != null) sim.setSquadSupport(profile.declaredSupportKit());
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was

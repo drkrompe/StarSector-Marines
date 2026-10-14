@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
+import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
@@ -2268,6 +2269,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override public AirPoolService airPool() { return airPool; }
+
+    private SquadSupportDeclaration squadSupport = SquadSupportDeclaration.NONE;
+
+    /** Records the support kit the mission declared, for the issue made after a named roster is applied; battle setup owns the call. */
+    public void setSquadSupport(SquadSupportDeclaration declared) {
+        squadSupport = declared != null ? declared : SquadSupportDeclaration.NONE;
+    }
+
+    /** The support kit the mission declared, by side. */
+    public SquadSupportDeclaration squadSupport() { return squadSupport; }
 
     @Override
     public boolean canDirectAirStrike(Faction side, float x, float y, boolean believes) {

@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
+import com.dillon.starsectormarines.battle.setup.SupportKitIssue;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 
@@ -103,6 +105,7 @@ public record BattleLaunchOverlay(
         simulation.setCommandPowers(commandPowers.stream()
                 .map(CommandPowerCommitment::toPower).toList());
         simulation.setCommandPowerResources(resources);
+        SupportKitIssue.issue(simulation, Faction.MARINE);
         simulation.installFieldSalvage();
     }
 }
