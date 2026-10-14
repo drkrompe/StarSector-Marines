@@ -458,7 +458,7 @@ public final class BarracksCommandModel {
                     "formationnameId", "formation:" + squad.id() + ":name",
                     "formationstatusId", "formation:" + squad.id() + ":status",
                     "formationprofileId", "formation:" + squad.id() + ":profile",
-                    "inspectId", "formation:" + squad.id() + ":inspect", "name", squad.name(),
+                    "loadoutId", "formation:" + squad.id() + ":loadout", "name", squad.name(),
                     "profile", profileName(squad),
                     "commanderId", "formation:" + squad.id() + ":commander",
                     "commanderImageId", "formation:" + squad.id() + ":commander-image",
@@ -467,7 +467,7 @@ public final class BarracksCommandModel {
                     "commanderImage", home == null || home.portraitSprite() == null ? "graphics/ui/console/service-plate.svg" : home.portraitSprite(),
                     "classes", "formation" + (selected.contains(squad.id()) ? " selected" : donors.contains(squad.id()) ? " donor" : "") + (squad.stationed() ? " stationed" : ""),
                     "mark", selected.contains(squad.id()) ? "+" : donors.contains(squad.id()) ? "D" : "", "disabled", squad.stationed(),
-                    "toggle", (Runnable) () -> toggle(squad.id()), "inspect", (Runnable) () -> inspect(squad.id()),
+                    "toggle", (Runnable) () -> toggle(squad.id()), "loadout", (Runnable) () -> editEquipment.accept(squad.id()),
                     "selectClasses", "formation-select", "footerClasses", "card-footer"));
             founderFields(rows.get(rows.size() - 1), "formation:" + squad.id(), false);
         }
@@ -483,11 +483,11 @@ public final class BarracksCommandModel {
                 "kit", "", "personnelClasses", "hidden", "kitClasses", "hidden",
                 "formationidentityId", id + ":identity", "formationnameId", id + ":name",
                 "formationstatusId", id + ":status", "formationprofileId", id + ":profile",
-                "inspectId", id + ":inspect", "name", "", "profile", "",
+                "loadoutId", id + ":loadout", "name", "", "profile", "",
                 "commanderId", id + ":commander", "commanderImageId", id + ":commander-image",
                 "commanderNameId", id + ":commander-name", "commanderName", "", "commanderImage", "",
                 "classes", "formation raise-tile", "mark", "", "disabled", true,
-                "toggle", (Runnable) () -> { }, "inspect", (Runnable) () -> { },
+                "toggle", (Runnable) () -> { }, "loadout", (Runnable) () -> { },
                 "selectClasses", "hidden", "footerClasses", "hidden"));
         founderFields(tile, id, true);
         return tile;

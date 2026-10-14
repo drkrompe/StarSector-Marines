@@ -1706,8 +1706,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     if (box.width() < 90 || box.height() < 120 || box.bottom() > grid.bottom())
                         throw new AssertionError("Billet is clipped: " + i);
                 }
-                if (editorMarkup.requireElement("apply-squad-equipment").box().borderBox().width() > 200)
-                    throw new AssertionError("Fit action must stay compact");
+                var issue = editorMarkup.requireElement(editor.weaponDoctrineTiles().get().get(0).id() + ":issue");
+                if (issue.box().borderBox().width() > 200)
+                    throw new AssertionError("Issue action must stay compact");
                 var members = roster.manningMemberIds(squad);
                 EquipmentTestFixtures.issueLauncher(roster.soldierById(members.get(0)));
                 roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
@@ -2081,7 +2082,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
-            click.accept("formation:" + company.squads.get(0).id() + ":inspect");
+            model.command().inspect(company.squads.get(0).id()); instance.flush(); document.advance(0f); cardBindings.update(document, instance, model, hints);
             frames.add(new SnapshotArtifact("muster-vacancies.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:11:vacancy"));
             frames.add(new SnapshotArtifact("muster-vacancy-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
@@ -2116,7 +2117,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Equipment issue did not pay its separate combined bill");
             }
             frames.add(new SnapshotArtifact("flow-06-equipped.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            click.accept("formation:" + company.squads.get(0).id() + ":inspect");
+            model.command().inspect(company.squads.get(0).id()); instance.flush(); document.advance(0f); cardBindings.update(document, instance, model, hints);
             if (!model.command().inspecting()) throw new IllegalStateException("Squad drill-down did not open");
             frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             for (var marine : model.musterRows().get()) {
@@ -2149,7 +2150,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (model.command().inspecting() || model.command().selected().size() != 2) {
                 throw new IllegalStateException("Return lost the command selection");
             }
-            click.accept("formation:" + company.squads.get(2).id() + ":inspect");
+            model.command().inspect(company.squads.get(2).id()); instance.flush(); document.advance(0f); cardBindings.update(document, instance, model, hints);
             frames.add(new SnapshotArtifact("muster-recovery.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0"));
             frames.add(new SnapshotArtifact("muster-recovery-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
@@ -3262,9 +3263,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
         props.put("issueCargoClasses", viewModel.issueCargoClasses());
-        props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyLabel", viewModel.applyLabel());
-        props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
