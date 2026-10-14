@@ -124,10 +124,20 @@ public final class AirStrikeDirector {
         AirPoolKind kind = service.defaultKind(side);
         if (kind == null) return Outcome.NO_AIRFRAME;
         updateSightings(sim);
-        if (!ignoreRisk && risk(sim, x, y) > RISK_CEILING) return Outcome.TOO_DEFENDED;
+        if (!ignoreRisk && risk(sim, x, y) > RISK_CEILING) {
+            refusals++;
+            return Outcome.TOO_DEFENDED;
+        }
         Outcome outcome = service.request(sim, side, kind, x, y, true, operators);
         if (outcome == Outcome.CALLING) struck.add(new Struck(x, y, sim.getSimTickIndex()));
         return outcome;
+    }
+
+    private int refusals;
+
+    /** How many commander requests this side's officer has refused as too heavily defended, for evidence. */
+    public int refusals() {
+        return refusals;
     }
 
     /** One look at the field without placing a strike: brings the side's sightings, and so its anti-air estimate, up to date. */

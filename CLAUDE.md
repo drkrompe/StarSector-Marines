@@ -269,7 +269,8 @@ Do not run builds or leave generated task files there.
   `maxTicks`; `-PmaxTicks` overrides all. `-Pfixture` takes a JSON array setting
   `seed`, `placement`, `offset`, `shuttleType`, `shuttles`, `seats`, `cycles`,
   `elites`, `militia`, `patrolSize`, `objectiveGarrison`, `keepGarrison` and
-  `risk`. Use it for a commander question; the city map is unfinished.
+  `risk`, and optional `airDefence` (true stamps the fort's anti-air yard). Use it for a commander
+  question; the city map is unfinished.
   Each fixture row reports fighting-position runs and cells at start and end.
   The canonical fixtures declare no forts and so have none; the fort-bearing
   control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
