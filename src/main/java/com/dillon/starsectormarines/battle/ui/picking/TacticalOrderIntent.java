@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.OccupyPositionDecision;
@@ -35,7 +36,7 @@ public enum TacticalOrderIntent {
     DISMOUNT("UNLOAD", true),
     /** A transport that cannot take this squad — full, or somebody else's. */
     MOUNT_BLOCKED("NO ROOM", false),
-    /** Infantry over a fighting position: man it, rather than walk to it. */
+    /** Infantry over a fighting position or a held building: man it, rather than walk to it. */
     OCCUPY("battleOrderOccupyPosition", true, true);
 
     private final String label;
@@ -96,8 +97,10 @@ public enum TacticalOrderIntent {
         if (sim.transport().mountableVehicleFor(cellX, cellY, squad.faction, 0) != 0L) {
             return MOUNT_BLOCKED;
         }
-        if (!squad.isMechSquad() && OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
-                DigInSystem.isEnabled(), cellX, cellY) >= 0
+        if (!squad.isMechSquad()
+                && (OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
+                        DigInSystem.isEnabled(), cellX, cellY) >= 0
+                    || HoldPlaceDecision.placeUnderClick(sim.getTacticalMap(), cellX, cellY) != null)
                 && !SquadMoveOrderSystem.insideUncapturedCompound(cellX, cellY, sim)) {
             return OCCUPY;
         }

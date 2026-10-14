@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveHoldPlaceOrder;
 import com.dillon.starsectormarines.battle.command.AssignmentArbiter;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -28,7 +30,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * Resolves a player world click into a leased squad assignment.
  * A ground click is an attack move, a click on a friendly vehicle with room is
  * a ride, an uncaptured Conquest compound is the ordinary secure-compound
- * action until capture completes, and Defend Area is placed where it was asked
+ * action until capture completes, a fighting position or a held building is
+ * occupied, and Defend Area is placed where it was asked
  * for.
  *
  * <p><b>Every one of those goes through the arbiter as a lease.</b> The player
@@ -151,6 +154,18 @@ public final class SquadMoveOrderSystem {
                         DigInSystem.isEnabled(), request.cellX, request.cellY);
                 if (run >= 0) {
                     activateDefendArea(request, squad, origin, sim, run);
+                    continue;
+                }
+                // A held building: garrison it at its windows rather than walk to it.
+                TacticalNode place = HoldPlaceDecision.placeUnderClick(
+                        sim.getTacticalMap(), request.cellX, request.cellY);
+                if (place != null) {
+                    int placeZone = sim.getZoneGraph().zoneIdAt(place.anchorX, place.anchorY);
+                    if (!reachable(origin, placeZone, sim)) continue;
+                    service.activate(squad.id, new ActiveHoldPlaceOrder(
+                            request.cellX, request.cellY, place.anchorX, place.anchorY, place));
+                    issue(squad, ObjectiveAssignment.holdNode(squad.id, place),
+                            "hold place", sim);
                     continue;
                 }
             }
@@ -462,6 +477,7 @@ public final class SquadMoveOrderSystem {
     private static AssignmentKind kindOf(ActiveOrder order) {
         if (order instanceof ActiveDefendAreaOrder) return AssignmentKind.DEFEND_AREA;
         if (order instanceof ActiveCaptureOrder) return AssignmentKind.SECURE_COMPOUND;
+        if (order instanceof ActiveHoldPlaceOrder) return AssignmentKind.HOLD_NODE;
         return AssignmentKind.ATTACK_MOVE;
     }
 
