@@ -169,6 +169,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 0,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-0",
       "row": 0
     },
@@ -176,6 +177,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 1,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-1",
       "row": 0
     },
@@ -183,6 +185,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 2,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-2",
       "row": 0
     },
@@ -190,6 +193,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 3,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-3",
       "row": 0
     },
@@ -197,6 +201,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 4,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-4",
       "row": 0
     },
@@ -204,6 +209,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 5,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-5",
       "row": 0
     },
@@ -211,6 +217,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 6,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-6",
       "row": 0
     },
@@ -218,6 +225,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 7,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-7",
       "row": 0
     },
@@ -225,6 +233,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 8,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-8",
       "row": 0
     },
@@ -232,6 +241,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 9,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-9",
       "row": 0
     },
@@ -239,6 +249,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 10,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-10",
       "row": 0
     },
@@ -246,6 +257,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 11,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-11",
       "row": 0
     },
@@ -253,6 +265,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 12,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-12",
       "row": 0
     },
@@ -260,6 +273,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 13,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-13",
       "row": 0
     },
@@ -267,6 +281,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 14,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-14",
       "row": 0
     },
@@ -274,6 +289,7 @@
       "ballisticHalfHeight": 0.3,
       "col": 15,
       "cover": "heavy",
+      "fightingPosition": "trench",
       "id": "doodad.fort-trench-15",
       "row": 0
     },
@@ -281,6 +297,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 0,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-n",
       "row": 1
     },
@@ -288,6 +305,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 1,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-e",
       "row": 1
     },
@@ -295,6 +313,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 2,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-s",
       "row": 1
     },
@@ -302,6 +321,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 3,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-w",
       "row": 1
     },
@@ -309,6 +329,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 4,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-corner-ne",
       "row": 1
     },
@@ -316,6 +337,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 5,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-corner-se",
       "row": 1
     },
@@ -323,6 +345,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 6,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-corner-sw",
       "row": 1
     },
@@ -330,6 +353,7 @@
       "ballisticHalfHeight": 0.4,
       "col": 7,
       "cover": "heavy",
+      "fightingPosition": "parapet",
       "id": "doodad.fort-sandbag-corner-nw",
       "row": 1
     },

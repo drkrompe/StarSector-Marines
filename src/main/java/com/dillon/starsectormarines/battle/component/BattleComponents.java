@@ -240,6 +240,12 @@ public final class BattleComponents {
     public static final int COMBAT_POINT_FIRE_AIM = 24;
     /** Nullable frozen point aim for primary burst continuation. */
     public static final int COMBAT_BURST_POINT_AIM = 25;
+    /**
+     * {@link #COMBAT} field 26: sim-seconds this infantry marine has stood settled on a fighting-position
+     * cell, clamped at {@code DigInSystem.DIG_IN_SECONDS} (FLOAT). Reaching that value is "dug in"; zero
+     * means not. Written only by {@code DigInSystem}; read it through {@code CombatService.isDugIn}.
+     */
+    public static final int COMBAT_DIG_IN_SECONDS = 26;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -1183,7 +1189,8 @@ public final class BattleComponents {
                 FieldKind.LONG, FieldKind.FLOAT,
                 FieldKind.INT, FieldKind.INT,
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
-                FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT);
+                FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT,
+                FieldKind.FLOAT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.OBJECT);

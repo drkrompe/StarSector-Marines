@@ -95,6 +95,15 @@ class AudioEncodeCacheTest {
         assertTrue(dialogue.contains("loudnorm=I=-20:TP=-2:LRA=7"));
         cache.materialize(source, directory.resolve("dialogue.ogg"), dialogue, this::encode);
         assertEquals(3, encodes.get());
+        String air = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, AudioManifest.Processing.AIR_COMMS).toString();
+        cache.materialize(source, radio, air, (input, output) -> {
+            encodes.incrementAndGet();
+            Files.writeString(output, "air:" + Files.readString(input));
+        });
+        assertEquals(4, encodes.get(), "Cockpit processing must invalidate an ordinary radio encode");
+        assertEquals(AudioEncodeCache.Result.RESTORED, cache.materialize(source, radio, comms, this::encode));
+        assertEquals(AudioEncodeCache.Result.RESTORED, cache.materialize(source, radio, air, this::encode));
+        assertEquals(4, encodes.get(), "Both radio treatments remain independently reusable");
     }
 
     @Test

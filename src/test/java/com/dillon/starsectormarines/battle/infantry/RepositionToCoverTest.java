@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -113,5 +114,21 @@ public class RepositionToCoverTest {
         assertEquals(RepositionToCover.COOLDOWN_SECONDS, sim.world().repositionCooldown(marine), 1e-6f,
                 "successful reposition stamps the cooldown so the marine doesn't churn");
         assertFalse(Paths.isEmpty(sim.world().path(marine)), "successful reposition queues a path to the new cell");
+    }
+
+    @Test
+    public void dugInMarineDoesNotLeaveHisPositionForBetterCover() {
+        BattleSimulation sim = openArena(20, 20);
+        sim.addDoodad(new Doodad(7, 5, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));
+        long marine = marineAt(sim, 5, 5);
+        sim.world().setAttackRange(marine, 10f);
+        long threat = enemyAt(sim, 12, 5);
+        sim.world().setTargetId(marine, threat);
+        sim.world().setRepositionCooldown(marine, 0f);
+        sim.combat().setDigInSeconds(marine, DigInSystem.DIG_IN_SECONDS);
+
+        assertFalse(RepositionToCover.tryReposition(marine, sim),
+                "same ground as shiftsToBetterCoverWhenCooldownReady, but dug in");
+        assertTrue(Paths.isEmpty(sim.world().path(marine)));
     }
 }

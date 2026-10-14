@@ -4,7 +4,7 @@ Status: IN PROGRESS — post-Shepherd referral, first three chapters through The
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — The Yard's Owners adds the recovered support reward; live mixed-squad acceptance and Chapters 4–5 remain.
+Updated: 2026-10-13 — current-map fidelity review precedes further chapters; live mixed-squad acceptance remains.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -516,6 +516,42 @@ flip Agreus's vanilla faction, replace Ko Combine administration, rewrite indust
 output, seize the player's colonies, destroy a vanilla pirate base or grant
 sector-wide diplomatic standing.
 Those would be separate campaign mechanics with their own consequences.
+
+## Map and encounter fidelity pass
+
+The first three playable maps need a place-and-circulation pass before the arc
+expands. Their current shared concrete aprons and isolated small workshop stamps
+understate three different facilities. Use `agreus-maps` for labelled production
+seed overviews and unlabelled interior detail; these are pre-combat observer
+renders, not a fresh balance replay or live campaign evidence.
+
+- **North Weir:** develop an identifiable closed-circuit reclamation plant with
+  pump groups, tanks, connected pipe galleries and service crossings. Keep the
+  cargo lane and tender working space clear. Preserve the repair-to-construction-
+  to-defense payoff; make each switching room govern a visibly different part of
+  the works and give the road gun a legible approach and flank to defend.
+- **Low Quay:** replace the isolated room arrangement with a bonded-storage
+  compound: secure gate, loading lanes, warehouse aisles, archive office and
+  calibration shop connected by service galleries. Give the inbound team and
+  outbound carrier meaningful route geometry, so the rearguard threatens an
+  extraction crossing instead of another open-pavement fight. Express diverted
+  clinic cargo through identifiable consignments and attributable story material;
+  add no rescue or cargo-reward claim without implementing its actual outcome.
+- **Latchkey:** build a connected yard with freight gate, working machine bays,
+  operator access and a distinct housing/heating frontage. Make paired entrances
+  and the finite counterattack create a choice between holding approaches and
+  escorting inspection. Preserve ordinary tooling damage and show the tools'
+  community use before the custody correspondence. Avoid making the three sites
+  another sequence of identical room timers.
+
+Use cover and alternate approaches to create decisions, preserving actual boat,
+carrier, infantry and optional mech clearance. Keep sufficient assembly ground;
+empty operating space is useful when its purpose reads. Pressure vestibules,
+service routes and utility connections should sell the airless setting without
+adding oxygen bookkeeping. Record any changed objective semantics explicitly,
+then rerun the existing physical-work, failure/replacement and mixed-roster
+playbacks. Do not scale enemy pools to the player's selected strength or grant
+military equipment to compensate for a harder map.
 
 ## Implementation order and acceptance
 

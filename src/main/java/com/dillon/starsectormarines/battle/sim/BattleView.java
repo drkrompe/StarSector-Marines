@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
+import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -360,6 +362,15 @@ public interface BattleView {
 
     /** Doodad-provided cover at a cell, omnidirectional. */
     int getDoodadCoverAt(int x, int y);
+
+    /** The battle's fighting positions (prepared-ground runs), rebuilt when a trench or sandbag prop is destroyed; ask again each time rather than caching the result. */
+    FightingPositionIndex fightingPositions();
+
+    /** Who holds which fighting-position cell under a defend-area order; decided in the serial phase, read-only during unit dispatch. */
+    FightingPositionClaims fightingPositionClaims();
+
+    /** Whether the marine is dug in: settled on a fighting-position cell for the full dig-in delay. False for non-infantry and the dead. */
+    boolean isDugIn(long id);
 
     /** Battle-scoped tactical hint map from the map generator (firing-position graph, defense posts). */
     TacticalMap getTacticalMap();
