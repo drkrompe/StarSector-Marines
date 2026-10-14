@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — useful strength is now half a squad's starting strength (never under two), not a fixed three: fort control man/release 23/21→21/16, reactive dug-in marine-samples 2497→3018 (static control 2794), one run.
+Updated: 2026-10-14 — the trial ground showed a reactive belt with defenders held at the keep never raising any pressure; a fort now seats a four-man picket by its main gate and its guns report what they engage. Earlier: useful strength is half a squad's starting strength.
 
 ## Intent
 
@@ -69,7 +69,8 @@ releases them when the pressure passes.
 
 ## Acceptance
 
-- A quiet fort's belt is empty; the patrol pool is not reduced by belts.
+- A quiet fort's belt holds only its token picket; the patrol pool is not
+  otherwise reduced by belts.
 - A fort under attack has its threatened belt stretch manned within a few
   command pulses, dug in, and released after the attack passes.
 - A breached belt garrison falls back to the works rather than dying in place.
