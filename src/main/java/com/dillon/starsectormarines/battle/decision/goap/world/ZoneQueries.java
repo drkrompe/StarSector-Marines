@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.command.compound.ObjectiveArea;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -111,13 +112,24 @@ public final class ZoneQueries {
      * room a marine squad has cleared.
      */
     public static boolean zoneClearOfHostiles(int zoneId, Faction selfFaction, BattleView sim) {
+        return areaClearOfHostiles(zoneId, null, selfFaction, sim);
+    }
+
+    /**
+     * As {@link #zoneClearOfHostiles}, counting only hostiles that also stand inside {@code area}. A null area is the
+     * whole zone. A compound's room merges into the street when its walls fall, and the compound is clear when its own
+     * ground is, not when the street is.
+     */
+    public static boolean areaClearOfHostiles(int zoneId, ObjectiveArea area, Faction selfFaction, BattleView sim) {
         if (sim == null || selfFaction == null) return true;
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(u))) continue;
-            if (graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u)) == zoneId) return false;
+            int x = sim.world().cellX(u), y = sim.world().cellY(u);
+            if (area != null && !area.contains(x, y)) continue;
+            if (graph.zoneIdAt(x, y) == zoneId) return false;
         }
         return true;
     }

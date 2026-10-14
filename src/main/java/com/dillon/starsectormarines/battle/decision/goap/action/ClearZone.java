@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.command.compound.ObjectiveArea;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -42,6 +43,10 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
 
     private final boolean pruneTargetSelection = prunedTargetSelectionEnabled();
     private final ClearZoneDecisions decisions;
+    /** Bound within the zone, or null for the whole zone. */
+    private final ObjectiveArea area;
+    /** Where a member outside {@link #area} goes in, inside it and in the zone; unused without an area. */
+    private final int areaCellX, areaCellY;
 
     /** Same-build control for per-tick target reconsideration and failed searches. */
     public static boolean decisionCadenceEnabled() {
@@ -57,7 +62,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
 
     @Override
     public Goal squadRouteGoal(Squad squad, BattleView sim) {
-        int[] interior = interiorCellOf(targetZoneId, sim, squad);
+        int[] interior = entryCell(sim, squad);
         return interior == null ? null : new Goal(interior[0], interior[1]);
     }
 
@@ -66,8 +71,30 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
     }
 
     ClearZone(int targetZoneId, boolean decisionCadence) {
+        this(targetZoneId, null, -1, -1, decisionCadence);
+    }
+
+    /**
+     * Clears only the part of {@code targetZoneId} inside {@code area}, entering at {@code (cellX, cellY)}, which must
+     * lie in both. A compound's clear: its room may have merged into the street.
+     */
+    public ClearZone(int targetZoneId, ObjectiveArea area, int cellX, int cellY) {
+        this(targetZoneId, area, cellX, cellY, decisionCadenceEnabled());
+    }
+
+    private ClearZone(int targetZoneId, ObjectiveArea area, int cellX, int cellY, boolean decisionCadence) {
         super(targetZoneId);
+        this.area = area;
+        this.areaCellX = cellX;
+        this.areaCellY = cellY;
         decisions = decisionCadence ? new ClearZoneDecisions(64) : null;
+    }
+
+    @Override protected ObjectiveArea area() { return area; }
+
+    private int[] entryCell(BattleView sim, Squad squad) {
+        if (area != null) return new int[]{areaCellX, areaCellY};
+        return interiorCellOf(targetZoneId, sim, squad);
     }
 
     @Override public String name() { return "ClearZone[" + targetZoneId + "]"; }
@@ -85,7 +112,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // Checked from anywhere (global predicate) so an all-outside squad —
         // e.g. the lone in-zone member died — still advances the plan rather
         // than deadlocking behind the zone-entry gate below.
-        if (!hostileWitness && ZoneQueries.zoneClearOfHostiles(targetZoneId, squad.faction, sim)) {
+        if (!hostileWitness && ZoneQueries.areaClearOfHostiles(targetZoneId, area, squad.faction, sim)) {
             return ActionStatus.SUCCESS;
         }
 
@@ -93,7 +120,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // zone consolidates in — firing suppressively while it moves — before
         // it engages. Don't clear the room from the doorway.
         if (!memberInZone(member, sim)) {
-            int[] interior = interiorCellOf(targetZoneId, sim, squad);
+            int[] interior = entryCell(sim, squad);
             if (interior != null) {
                 advanceIntoZone(member, squad, sim, interior[0], interior[1], false);
             }
@@ -160,7 +187,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // Out of range / no LOS — close on the target IFF the target is in
         // the zone we're clearing. Out-of-zone targets we don't pursue —
         // that's Story K's "doesn't push into rooms it's not clearing" rule.
-        if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId) {
+        if (!inTarget(sim.world().cellX(target), sim.world().cellY(target), sim)) {
             return ActionStatus.RUNNING;
         }
         if (sim.movement().mayRepath(member)) {
@@ -210,7 +237,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // have died or been released between unit-update phases.
         return target != 0L && sim.liveUnitIndexOf(target) >= 0 && sim.world().isAlive(target)
                 && squad.faction.hostileTo(sim.identity().faction(target))
-                && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) == targetZoneId;
+                && inTarget(sim.world().cellX(target), sim.world().cellY(target), sim);
     }
 
     private ClearZoneDecisions.Entry retainedDecision(long member, long target, Squad squad, BattleView sim) {
@@ -281,7 +308,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
                     sim.world().x(other), sim.world().y(other));
             if (!(distance < visibleDistance)) continue;
             int otherX = sim.world().cellX(other), otherY = sim.world().cellY(other);
-            if (sim.getZoneGraph().zoneIdAt(otherX, otherY) != targetZoneId) continue;
+            if (!inTarget(otherX, otherY, sim)) continue;
             if (distance < nearestDistance) {
                 nearestDistance = distance;
                 nearest = other;
@@ -305,7 +332,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
             long other = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;
             if (work != null) work.rays++;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
             float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
@@ -342,7 +369,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
             long other = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;
             float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
             if (d < bestDist) {
                 bestDist = d;
