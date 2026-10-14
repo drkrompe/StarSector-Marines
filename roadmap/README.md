@@ -93,7 +93,10 @@ discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 
 After A Cold Account, Basin Reclamation offers Salvage Rights on Asharu: a night
 recovery contract with actual company lift, allied holders, an inspection party
-and a persistent claim on the grounded Shepherd. `shepherd-recovery.md` covers
+and a persistent Basin yard-inspection milestone. Basin retains Morrow during
+inspection and repairs; the first Working Passage briefing negotiates the tender
+as payment for additional road reopening after the bay proves useful.
+`shepherd-recovery.md` covers
 Cold Start's company already ashore, cargo escort, shore power and grounded construction, followed
 by Working Passage's full-size low-hover advance, constructed holds and physical
 departure. Accepted departure awards the actual named Morrow and her minimum

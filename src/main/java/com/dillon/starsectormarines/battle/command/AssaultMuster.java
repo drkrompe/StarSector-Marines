@@ -134,9 +134,17 @@ final class AssaultMuster {
      *
      * @param inContact engaged: under fire, broken, or with a member able to engage a contact. Not recruited, and not held back on the approach. A belief in a distant hostile is not contact
      * @param track     the lane the squad belongs to, or {@code -1} when it has none (a machine squad, a test): each lane keeps a floor of squads a company may not recruit below
+     * @param capabilities what the squad's living members can do to a position, from the kit they carry now
      */
     record Body(int squadId, int anchorX, int anchorY, int alive, boolean machine, boolean demolition,
-                boolean inContact, ObjectiveAssignment incumbent, int track) {
+                boolean inContact, ObjectiveAssignment incumbent, int track, CapabilityProfile capabilities) {
+        /** A body whose kit is not itemised: its capabilities are those assumed for a squad of its make-up. */
+        Body(int squadId, int anchorX, int anchorY, int alive, boolean machine, boolean demolition,
+             boolean inContact, ObjectiveAssignment incumbent, int track) {
+            this(squadId, anchorX, anchorY, alive, machine, demolition, inContact, incumbent, track,
+                    CapabilityProfile.assumed(machine, demolition, alive));
+        }
+
         Body(int squadId, int anchorX, int anchorY, int alive, boolean machine, boolean demolition,
              boolean inContact, ObjectiveAssignment incumbent) {
             this(squadId, anchorX, anchorY, alive, machine, demolition, inContact, incumbent, -1);
@@ -222,21 +230,31 @@ final class AssaultMuster {
      * live (those covering the way in the company would take at full weight), and the gate or wall to be passed.
      */
     private float defenceStrength(Objective objective, Company company, Map<Integer, Body> byId, int[] from) {
-        FortAssault.Works works = worksOf(objective);
-        if (works == null) return 0f;
-        boolean demolition = false;
-        boolean machines = false;
-        if (company != null) {
-            for (int id : company.members) {
-                Body body = byId.get(id);
-                if (body == null) continue;
-                demolition |= body.demolition();
-                machines |= body.machine();
-            }
-        }
-        FortAssault.Defence defence = FortAssault.assess(works, beliefs.get(objective.fortId()), from[0], from[1],
-                demolition, machines);
+        FortAssault.Defence defence = defenceOf(objective, company == null ? Set.of() : company.members, byId, from);
         return defence == null ? 0f : defence.strength();
+    }
+
+    /**
+     * The way in a company of these squads would take, judged by what they can do ({@link CapabilityProfile}), with the
+     * plan's needs matched against them. Null when the objective's works are not known.
+     */
+    private FortAssault.Defence defenceOf(Objective objective, Set<Integer> squads, Map<Integer, Body> byId, int[] from) {
+        FortAssault.Works works = worksOf(objective);
+        if (works == null) return null;
+        Map<Integer, CapabilityProfile> profiles = new TreeMap<>();
+        for (int id : squads) {
+            Body body = byId.get(id);
+            if (body != null) profiles.put(id, body.capabilities());
+        }
+        return FortAssault.assess(works, beliefs.get(objective.fortId()), from[0], from[1], profiles);
+    }
+
+    /** Whether a company that is short of what its plan needs asks for machines: a lance would fill a base of fire or a breach. */
+    static boolean machinesWouldHelp(ConquestFrontSnapshot.CompanyState company) {
+        for (String gap : company.shortfall()) {
+            if (gap.startsWith("base_of_fire") || gap.startsWith("breach")) return true;
+        }
+        return false;
     }
 
     /**
@@ -519,14 +537,25 @@ final class AssaultMuster {
                     + "): a hostile is believed near the old one");
         }
         int recruited = 0;
-        while (strengthOf(company, byId) < required && recruited < roomLeft) {
+        while (recruited < roomLeft) {
+            int[] rallyAt = {company.rallyX, company.rallyY};
+            FortAssault.Defence defence = defenceOf(objective, company.members, byId, rallyAt);
+            required = requiredNow(objective, company, byId, rallyAt);
+            boolean massShort = strengthOf(company, byId) < required;
+            boolean unstaffed = defence != null && !defence.staffed();
+            if (!massShort && !unstaffed) break;
             Body pick = null;
             double bestGap = Double.MAX_VALUE;
-            for (Body body : recruitable(byId, ground)) {
-                double gap = Math.hypot(body.anchorX() - company.rallyX, body.anchorY() - company.rallyY);
-                if (gap < bestGap || (gap == bestGap && pick != null && body.squadId() < pick.squadId())) {
-                    pick = body;
-                    bestGap = gap;
+            // A plan that cannot be staffed wants the squad that fills what it lacks before it wants more of what it has.
+            for (int pass = unstaffed ? 0 : 1; pass < 2 && pick == null; pass++) {
+                for (Body body : recruitable(byId, ground)) {
+                    if (pass == 0 && !fillsAGap(defence, body)) continue;
+                    if (pass == 1 && !massShort) continue;
+                    double gap = Math.hypot(body.anchorX() - company.rallyX, body.anchorY() - company.rallyY);
+                    if (gap < bestGap || (gap == bestGap && pick != null && body.squadId() < pick.squadId())) {
+                        pick = body;
+                        bestGap = gap;
+                    }
                 }
             }
             if (pick == null) break;
@@ -535,6 +564,7 @@ final class AssaultMuster {
             company.timeoutTick = Math.max(company.timeoutTick,
                     tick + (int) (TICKS_PER_CELL * bestGap) + ARRIVAL_SLACK_TICKS);
         }
+        required = requiredNow(objective, company, byId, new int[] {company.rallyX, company.rallyY});
         float arrivedStrength = 0f;
         int arrivedSquads = 0;
         for (int id : company.members) {
@@ -554,6 +584,7 @@ final class AssaultMuster {
             company.fullSince = -1;
         }
         Readiness readiness = judge(arrivedStrength, required, tick, company.timeoutTick);
+        if (readiness == Readiness.READY && !staffedAtRally(objective, company, byId, tick)) readiness = Readiness.GATHERING;
         if (readiness == Readiness.TIMED_OUT && arrivedStrength < MIN_COMMIT_SHARE * required
                 && standDowns.getOrDefault(company.fortId, 0) < STAND_DOWN_LIMIT && tick >= company.expectUntil) {
             // Too little to be worth the lives: the squads go back to the lanes and the muster tries again later. Bounded, so a
@@ -581,6 +612,37 @@ final class AssaultMuster {
         return recruited;
     }
 
+    private static boolean fillsAGap(FortAssault.Defence defence, Body body) {
+        if (defence == null || defence.staffing() == null) return false;
+        for (AssaultRoles.Gap gap : defence.staffing().gaps()) {
+            if (gap.need().rateOf(body.capabilities()) > 0f) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether the squads at the rally can staff the plan, or none that would is still on its way: a mass that is there but
+     * cannot do what the plan needs (no gun that hurts a nest, nothing to cut a wall) waits for the squad that can, for as
+     * long as one is coming (a member not yet at the rally, a lance called down), and no longer. A plan nobody is coming
+     * to staff is gone into as it is, and the shortfall is reported.
+     */
+    private boolean staffedAtRally(Objective objective, Company company, Map<Integer, Body> byId, int tick) {
+        Set<Integer> arrivedSquads = new TreeSet<>();
+        boolean fillerComing = tick < company.expectUntil;
+        for (int id : company.members) {
+            Body body = byId.get(id);
+            if (body == null) continue;
+            if (arrived(company, body)) arrivedSquads.add(id);
+        }
+        FortAssault.Defence defence = defenceOf(objective, arrivedSquads, byId, new int[] {company.rallyX, company.rallyY});
+        if (defence == null || defence.staffed()) return true;
+        for (int id : company.members) {
+            Body body = byId.get(id);
+            if (body != null && !arrivedSquads.contains(id) && fillsAGap(defence, body)) fillerComing = true;
+        }
+        return !fillerComing;
+    }
+
     private void gather(Company company, Map<Integer, Body> byId, Map<Integer, Order> orders) {
         if (!companies.containsKey(company.fortId)) return;
         for (int id : company.members) {
@@ -596,22 +658,21 @@ final class AssaultMuster {
         if (works != null) {
             if (company.execution == null) {
                 Body lead = null;
-                boolean demolition = false;
-                boolean machines = false;
                 for (int id : company.members) {
                     Body body = byId.get(id);
-                    if (body == null) continue;
-                    if (lead == null) lead = body;
-                    demolition |= body.demolition();
-                    machines |= body.machine();
+                    if (body != null) {
+                        lead = body;
+                        break;
+                    }
                 }
                 FortAssault.NestBelief belief = beliefs.get(objective.fortId());
-                FortAssault.Defence defence = lead == null ? null : FortAssault.assess(works, belief,
-                        lead.anchorX(), lead.anchorY(), demolition, machines);
+                FortAssault.Defence defence = lead == null ? null
+                        : defenceOf(objective, company.members, byId, new int[] {lead.anchorX(), lead.anchorY()});
                 if (defence != null) {
-                    company.execution = new FortAssault.Execution(works, belief, defence.way(), tick);
-                    notes.add("company for fort " + company.fortId + " takes the " + defence.way().variant().name()
-                            .toLowerCase(Locale.ROOT) + ": " + defence.liveCovering() + " nests believed to cover it");
+                    company.execution = new FortAssault.Execution(works, belief, defence, tick);
+                    notes.add("company for fort " + company.fortId + " takes the " + defence.variant() + ": "
+                            + defence.liveCovering() + " nests believed to cover it"
+                            + (defence.staffed() ? "" : "; it cannot staff it (" + String.join("; ", defence.staffing().describeGaps()) + ")"));
                 }
             }
             if (company.execution != null) {
@@ -712,6 +773,11 @@ final class AssaultMuster {
             if (company.stage == Stage.ASSAULT || arrived(company, body)) arrivedSquads++;
         }
         int required = requiredNow(objective, company, byId, new int[] {company.rallyX, company.rallyY});
+        FortAssault.Defence defence = company.execution == null
+                ? defenceOf(objective, company.members, byId, new int[] {company.rallyX, company.rallyY}) : null;
+        String variant = company.execution != null ? company.execution.variant() : defence == null ? "" : defence.variant();
+        List<String> shortfall = company.execution != null ? company.execution.shortfall()
+                : defence == null || defence.staffing() == null ? List.of() : defence.staffing().describeGaps();
         String reason = company.stage == Stage.MUSTER
                 ? "gathering: " + arrivedSquads + " of " + company.members.size() + " squads at the rally, believes it takes "
                 + required + ", commits by tick " + company.timeoutTick
@@ -721,6 +787,6 @@ final class AssaultMuster {
                 objective.cellX(), objective.cellY(), tick - company.stageTick,
                 company.stage == Stage.MUSTER ? company.timeoutTick : -1,
                 company.execution == null ? reason : reason + " | plan: " + company.execution.describe(),
-                company.execution == null ? "" : company.execution.step().name());
+                company.execution == null ? "" : company.execution.step().name(), variant, shortfall);
     }
 }

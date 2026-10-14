@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Talon Two aviation identity; Relief assembly apron and Latchkey mixed-squad rewards.
+Updated: 2026-10-13 — Basin yard claim and post-repair Working Passage ownership negotiation.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -45,16 +45,26 @@ cooperative found before evacuating, surrounded by ordinary yard stores and hull
 scrap. Vale prioritizes access to that shipment and refuses to share its manifest
 with hired security. Its contents, legality and value remain unauthored: neither
 contraband nor rare schematics are confirmed, and secrecy is not proof of either.
-The cooperative keeps the Colossus, shipment and yard. Castle introduces Morrow
-into the bargain as contingent salvage in place of a third cash fee. Vale resists
-parting with an owned tender and commits parts and fitters only with continued
-company cover and an open haul road. Neither party can promise the damaged ship's
-condition before inspection. Castle's experience rebuilding Second Wind explains
-her willingness to take that risk. A working gun in Cold Start reveals the
-repaired workshop's practical value to the company; this is a new use for ordinary
-machinery, not a secretly exceptional hull or a change to the Shepherd's market
-price. The Colossus grants no fleet member, extra objective or cargo inventory.
-Contract and settlement readouts make the fees and conditional transfer explicit.
+The cooperative keeps the Colossus, shipment and yard and owns Morrow throughout
+inspection and repair. The original 18,000-credit fee secures Basin's yard and
+protects its inspection; the 22,000-credit fee protects Basin's repair crew.
+Basin supplies parts and engineers to repair its own tender, while its militia
+originally cover the outer road. The protected recovery claim is Basin's yard
+claim and inspection milestone; it confers no player title or early claim on the
+hull.
+
+Cold Start reveals the repaired drone bay's usefulness. Its completed-repair
+debrief establishes the need for additional combat and construction to reopen
+the haul road. At the first Working Passage briefing, Vale offers payment after
+shipment dispatch or a loan. Castle asks for Morrow as the fee for this new work,
+having seen the working bay.
+The agreement covers construction, repair and defensive positions without promising
+a fixed gun count. Basin keeps the built defenses and the road its militia secure.
+Title passes only after actual physical departure, with the working crew's consent.
+This is a new use for ordinary machinery, not a secretly exceptional hull or a
+change to the Shepherd's market price. The Colossus grants no fleet member, extra
+objective or cargo inventory. Readouts distinguish the original cash jobs from
+the subsequent conditional transfer agreement.
 Both parties have a business to sustain. The company sells security, escort and
 repair cover for chapter fees and the ship; Vale supplies technicians, equipment
 and militia to recover the cooperative's larger source of income. Keeping skilled
@@ -86,7 +96,8 @@ its beacon and Locate destination on a central walkable floor cell.
 Those duties use public room geometry and
 the company's own presence, preserving player orders and keeping hidden hostile
 positions outside mission command.
-The fixed 18,000-credit payment and recovery claim settle once per accepted victory.
+The fixed 18,000-credit payment and Basin yard-inspection milestone settle once
+per accepted victory.
 Failed attempts preserve company and technician losses; a retry is a new contract
 attempt with a replacement cooperative inspection party, not resurrected crew.
 The original Morrow crew's complement and casualties are not inferred from that party.
@@ -97,7 +108,8 @@ Lighting changes presentation, not perception or navigation. Cold Start's comple
 shore-power connection brings the yard circuit online immediately; a later attempt
 retains that restored circuit. Working Passage departs by day.
 
-Cold Start follows the protected claim. The selected company begins assembled
+Cold Start follows Basin's protected yard inspection. The selected company begins
+assembled
 on the secured receiving apron, with its actual named personnel, issued equipment
 and squad leadership. There is no second insertion flight. This is the current
 mobilization's selected roster, not a saved copy of the previous battle's positions
@@ -129,7 +141,10 @@ support a forward detachment or deny an exposed entry, while the constructed
 gun helps hold the tighter repair line. Refused road personnel remain distinct
 from casualties. No mandatory deaths or extra reward depend on these posts.
 
-Working Passage follows completed repairs. The same hull travels in a low hover
+Working Passage follows completed repairs and its first briefing's new road-work
+agreement. The concrete tactical gates below remain current mission rules,
+independent of that agreement's general construction terms. The same hull travels
+in a low hover
 with its full 24 by 20-cell body, clearing terrain along its actual movement.
 Living company presence and clear ground release its successive assembly positions.
 The pump bend and narrows each require a surviving constructed turret before the

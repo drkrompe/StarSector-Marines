@@ -45,9 +45,37 @@ public final class SatchelChargeService {
         carrierByReservedTarget.remove(targetId);
         active.add(new ArmedCharge(nextId++, carrierId, targetId, faction, x, y,
                 spec.fuseSeconds(), spec.fuseSeconds(), spec.blastRadius(),
-                spec.damage(), spec.penetration()));
+                spec.damage(), spec.penetration(), 0));
         publishSnapshot();
         return true;
+    }
+
+    /**
+     * Places a charge on a wall cell rather than on a hardened unit: it goes off after its fuse and cuts every wall cell
+     * in its blast, which is how a company with charges opens a wall. Refused when the kit cannot cut a wall or a charge
+     * of this faction is already on the cell.
+     */
+    public synchronized boolean plantAtCell(long carrierId, int cellX, int cellY, Faction faction, SatchelChargeSpec spec) {
+        if (carrierId == 0L || spec.wallBreachDamage() <= 0) return false;
+        float x = cellX + 0.5f;
+        float y = cellY + 0.5f;
+        for (ArmedCharge charge : active) {
+            if (charge.targetId == 0L && Math.abs(charge.x - x) < 0.01f && Math.abs(charge.y - y) < 0.01f) return false;
+        }
+        active.add(new ArmedCharge(nextId++, carrierId, 0L, faction, x, y, spec.fuseSeconds(), spec.fuseSeconds(),
+                spec.blastRadius(), spec.damage(), spec.penetration(), spec.wallBreachDamage()));
+        publishSnapshot();
+        return true;
+    }
+
+    /** Whether a charge is already set on this wall cell. */
+    public synchronized boolean hasChargeAtCell(int cellX, int cellY) {
+        float x = cellX + 0.5f;
+        float y = cellY + 0.5f;
+        for (ArmedCharge charge : active) {
+            if (charge.targetId == 0L && Math.abs(charge.x - x) < 0.01f && Math.abs(charge.y - y) < 0.01f) return true;
+        }
+        return false;
     }
 
     /** Advances attachment positions and resolves expired fuses through the shared blast pipeline. */
@@ -62,7 +90,7 @@ public final class SatchelChargeService {
         }
         for (int i = active.size() - 1; i >= 0; i--) {
             ArmedCharge charge = active.get(i);
-            long liveTarget = sim.resolveUnit(charge.targetId);
+            long liveTarget = charge.targetId == 0L ? 0L : sim.resolveUnit(charge.targetId);
             if (liveTarget != 0L) {
                 charge.x = sim.world().x(liveTarget);
                 charge.y = sim.world().y(liveTarget);
@@ -70,10 +98,18 @@ public final class SatchelChargeService {
             charge.remaining -= dt;
             if (charge.remaining > 0f) continue;
             sim.spawnHeavyImpact(charge.x, charge.y, charge.blastRadius);
-            sim.detonateNow(new PendingDetonation(charge.carrierId,
-                    charge.x, charge.y, 0f, charge.blastRadius,
-                    charge.damage, charge.penetration, 0,
-                    charge.faction, false));
+            if (charge.wallDamage > 0) {
+                sim.detonateNow(new PendingDetonation(charge.carrierId,
+                        charge.x, charge.y, 0f, charge.blastRadius,
+                        charge.damage, charge.penetration, charge.wallDamage,
+                        charge.faction, false, charge.blastRadius, /*spawnDustOnWallBreak*/ true,
+                        /*friendlyFireImmune*/ false));
+            } else {
+                sim.detonateNow(new PendingDetonation(charge.carrierId,
+                        charge.x, charge.y, 0f, charge.blastRadius,
+                        charge.damage, charge.penetration, 0,
+                        charge.faction, false));
+            }
             active.remove(i);
         }
         publishSnapshot();
@@ -138,13 +174,15 @@ public final class SatchelChargeService {
         final float blastRadius;
         final float damage;
         final float penetration;
+        /** Structural damage to every wall cell in the blast, for a charge placed on a wall; zero for one on a unit. */
+        final int wallDamage;
         float x;
         float y;
         float remaining;
 
         ArmedCharge(long id, long carrierId, long targetId, Faction faction,
                     float x, float y, float remaining, float totalFuse,
-                    float blastRadius, float damage, float penetration) {
+                    float blastRadius, float damage, float penetration, int wallDamage) {
             this.id = id;
             this.carrierId = carrierId;
             this.targetId = targetId;
@@ -156,6 +194,7 @@ public final class SatchelChargeService {
             this.blastRadius = blastRadius;
             this.damage = damage;
             this.penetration = penetration;
+            this.wallDamage = wallDamage;
         }
     }
 }

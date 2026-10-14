@@ -43,12 +43,24 @@ public record ConquestFrontSnapshot(
      * @param ticksInStage ticks since the stage began
      * @param timeoutTick  the tick the muster commits regardless, or {@code -1}
      * @param step         the step of the stamp's assault plan being executed (POSITION, SUPPRESS, ENTRY, OBJECTIVE, HOLD), or empty
+     * @param variant      the way in the company would take or is taking (main gate, postern, or breach, with how a breach is cut), or empty
+     * @param shortfall    what the company lacks to staff that way in, as short sentences (a capability and how much is missing);
+     *                     empty when the plan is staffed. A commander may call a lance or wait for a matching squad on this
      */
     public record CompanyState(int objectiveId, String stage, List<Integer> squadIds, int arrivedSquads,
                                int strength, int required, int rallyCellX, int rallyCellY,
                                int objectiveCellX, int objectiveCellY, int ticksInStage, int timeoutTick,
-                               String reason, String step) {
-        public CompanyState { squadIds = List.copyOf(squadIds); }
+                               String reason, String step, String variant, List<String> shortfall) {
+        public CompanyState { squadIds = List.copyOf(squadIds); shortfall = List.copyOf(shortfall); }
+
+        /** A company whose way in and staffing are not yet judged. */
+        public CompanyState(int objectiveId, String stage, List<Integer> squadIds, int arrivedSquads,
+                            int strength, int required, int rallyCellX, int rallyCellY,
+                            int objectiveCellX, int objectiveCellY, int ticksInStage, int timeoutTick,
+                            String reason, String step) {
+            this(objectiveId, stage, squadIds, arrivedSquads, strength, required, rallyCellX, rallyCellY,
+                    objectiveCellX, objectiveCellY, ticksInStage, timeoutTick, reason, step, "", List.of());
+        }
     }
 
     public ConquestFrontSnapshot(int tick, int influenceTick, Faction perspective,
@@ -163,7 +175,9 @@ public record ConquestFrontSnapshot(
         /** A squad of an assault plan taking the way in (the gate, or the breach). */
         ASSAULT_ENTRY,
         /** An assault-element squad holding the aspect it has taken until the next pick. */
-        ASSAULT_HOLD
+        ASSAULT_HOLD,
+        /** A squad of an assault plan in position to open the wall section of a breach, at range or at its foot. */
+        ASSAULT_BREACH
     }
 
     public record TrackState(
