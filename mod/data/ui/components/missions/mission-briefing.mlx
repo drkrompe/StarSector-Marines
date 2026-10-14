@@ -1,4 +1,4 @@
-<template props="commsName,commsNameStyle,commsRole,commsText,commsLeftPortrait,commsRightPortrait,commsProgress,commsNextLabel,commsNextAction,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="commsText,commsProgress,commsNextLabel,commsNextAction,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -7,6 +7,22 @@
         <div id="mission-briefing-title" class="label title tone-edge">{missionTitle}</div>
       </div>
       <div id="mission-briefing-purpose" class="label heading tone-muted">{screenHeader}</div>
+      <div id="mission-threat" class="mission-threat" tabindex="0">
+        <div id="mission-scale-symbols" class="threat-symbols">
+          <img each="pip in scaleIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
+        </div>
+        <div id="mission-scale-name" class="label heading tone-accent">{operationScale}</div>
+        <div id="mission-risk-symbols" class="threat-symbols">
+          <div id="mission-risk-pips" class="threat-symbols">
+            <img each="pip in riskIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
+          </div>
+          <div id="mission-risk-name" class="label heading tone-accent">{operationRisk}</div>
+        </div>
+      </div>
+      <div id="mission-reward" class="mission-reward console-readout">
+        <div id="mission-reward-header" class="label heading tone-accent">{rewardHeader}</div>
+        <div id="mission-reward-value" class="label title tone-good">{rewardValue}</div>
+      </div>
       <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">
         <img id="mission-debug-toggle-arrow" class="debug-toggle-arrow" src="{debugToggleArrow}" />
         <div id="mission-debug-toggle-legend" class="console-key-legend">{debugToggleLabel}</div>
@@ -30,19 +46,10 @@
             <div id="mission-narration-status" class="label briefing-speaker-status">{narrationStatus}</div>
           </div>
         </div>
+        <div id="mission-comms-slot" class="mission-comms-slot">
+          <mission-comms commsText="{commsText}" commsProgress="{commsProgress}" commsNextLabel="{commsNextLabel}" commsNextAction="{commsNextAction}" commsSkipAction="{commsSkipAction}" />
+        </div>
         <div id="mission-overview-copy" class="mission-overview-copy">
-          <div id="mission-threat" class="mission-threat" tabindex="0">
-            <div id="mission-scale-symbols" class="threat-symbols">
-              <img each="pip in scaleIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
-            </div>
-            <div id="mission-scale-name" class="label title tone-accent">{operationScale}</div>
-            <div id="mission-risk-symbols" class="threat-symbols">
-              <div id="mission-risk-pips" class="threat-symbols">
-                <img each="pip in riskIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
-              </div>
-              <div id="mission-risk-name" class="label heading tone-accent">{operationRisk}</div>
-            </div>
-          </div>
           <div id="mission-factions" class="mission-factions">
             <div id="mission-employer-identity" class="faction-identity">
               <img id="mission-employer-crest" class="faction-crest" style="{employerFactionCrestStyle}" src="{employerFactionCrest}" />
@@ -59,11 +66,7 @@
               </div>
             </div>
           </div>
-          <div id="mission-reward" class="mission-reward console-readout">
-            <div id="mission-reward-header" class="label heading tone-accent">{rewardHeader}</div>
-            <div id="mission-reward-value" class="label title tone-good">{rewardValue}</div>
-            <div id="mission-reward-terms" class="label tone-muted">{rewardTerms}</div>
-          </div>
+          <div id="mission-reward-terms" class="label tone-muted">{rewardTerms}</div>
           <div id="mission-flavor" class="label mission-flavor surface-dark" style="{missionFlavorStyle}">{missionFlavor}</div>
           <div id="mission-dialogue-wrap" class="mission-flavor" style="{missionDialogueStyle}">
             <mission-dialogue turns="{missionDialogue}" />
@@ -293,7 +296,7 @@
             </button>
 
           </div>
-    <mission-comms commsName="{commsName}" commsNameStyle="{commsNameStyle}" commsRole="{commsRole}" commsText="{commsText}" commsLeftPortrait="{commsLeftPortrait}" commsRightPortrait="{commsRightPortrait}" commsProgress="{commsProgress}" commsNextLabel="{commsNextLabel}" commsNextAction="{commsNextAction}" commsSkipAction="{commsSkipAction}" />
+
   </div>
 </template>
 
@@ -303,11 +306,11 @@
   .mission-preparation button { width: 220px; height: 30px; font-family: heading; text-align: center; }
   .mission-briefing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-briefing-header { flex-direction: row; align-items: center; height: 62px; padding: 8px 10px; gap: 10px; border-width: 2px; }
-  .mission-briefing-heading { flex-direction: column; height: 48px; flex-grow: 1; gap: 4px; }
+  .mission-briefing-header { flex-direction: row; align-items: center; height: 76px; padding: 8px 10px; gap: 10px; border-width: 2px; }
+  .mission-briefing-heading { flex-direction: column; width: 0px; height: 48px; flex-grow: 1; gap: 4px; }
   #mission-briefing-kicker { height: 17px; }
   #mission-briefing-title { height: 27px; }
-  #mission-briefing-purpose { width: 280px; padding: 14px 4px; text-align: right; }
+  #mission-briefing-purpose { width: 154px; padding: 14px 4px; text-align: right; }
   .mission-briefing-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
   .mission-info-rows, .info-list { flex-direction: column; gap: 4px; }
   .compact-row { height: 30px; padding: 3px; }
@@ -373,14 +376,17 @@
   .source-list .choice-copy, .carrier-list .choice-copy { height: 14px; }
   .source-list .choice-detail, .carrier-list .choice-detail { height: 0px; overflow: hidden; }
   .source-list .choice-row, .carrier-list .choice-row { height: 28px; }
-  .mission-overview { flex-direction: column; width: 330px; padding: 12px; gap: 18px; border-width: 0px; overflow: scroll; }
+  .mission-overview { flex-direction: column; width: 400px; padding: 12px; gap: 14px; border-width: 0px; overflow: scroll; }
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
-  .mission-threat { flex-direction: column; height: 130px; gap: 10px; }
-  .threat-symbols { flex-direction: row; align-items: center; height: 30px; gap: 5px; }
-  #mission-risk-pips { width: 94px; }
-  .threat-symbols .indicator { width: 28px; height: 28px; }
-  #mission-risk-name { height: auto; padding: 0px 8px; }
+  .mission-threat { flex-direction: row; align-items: center; width: 398px; height: 48px; gap: 8px; }
+  .threat-symbols { flex-direction: row; align-items: center; height: 26px; gap: 4px; }
+  #mission-scale-symbols { width: 126px; }
+  #mission-scale-name { width: 86px; height: auto; white-space: normal; }
+  #mission-risk-symbols { width: 170px; }
+  #mission-risk-pips { width: 74px; }
+  .threat-symbols .indicator { width: 22px; height: 22px; }
+  #mission-risk-name { width: 88px; height: auto; white-space: normal; padding: 0px 4px; }
   .indicator.dim { opacity: 0.18; }
   .mission-flavor { white-space: normal; padding: 0px; border-width: 0px; background-color: transparent; }
   .mission-info-rows { gap: 14px; }
@@ -421,7 +427,7 @@
   .source-list .choice-row { width: 280px; height: 30px; }
   .source-list .choice-icon { width: 32px; height: 28px; }
   .mission-support-stack { flex-direction: row; height: 182px; gap: 18px; overflow: scroll; display: grid; }
-  #mission-transport-block, #mission-carrier-block, #mission-employer-block { width: 290px; height: 170px; flex-grow: 0; }
+  #mission-transport-block, #mission-carrier-block, #mission-employer-block { width: 256px; height: 170px; flex-grow: 0; }
   .landing-craft-readout { flex-direction: row; align-items: center; height: 100px; padding: 4px; gap: 7px; background-color: transparent; }
   .landing-craft-copy { flex-direction: column; height: 96px; width: 0px; flex-grow: 1; gap: 2px; }
   #mission-carrier-list { height: 114px; overflow: scroll; }
@@ -438,16 +444,18 @@
   #mission-assign.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   #mission-force-summary { align-items: start; }
   #mission-task-force { width: 100%; }
-  .briefing-speaker { flex-direction: row; align-items: center; height: 82px; padding: 7px; gap: 10px; border-width: 1px; overflow: hidden; }
+  .briefing-speaker { flex-direction: row; align-items: center; height: 144px; padding: 7px; gap: 10px; border-width: 1px; overflow: hidden; }
+  #mission-briefing-speaker-name { font-family: title; }
+  .mission-comms-slot { height: auto; flex-direction: column; }
   .briefing-speaker.speaking { border-color: #73a69d; }
-  .briefing-speaker-portrait { width: 80px; height: 80px; border-width: 1px; pointer-events: none; }
-  .briefing-speaker-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 64px; gap: 6px; }
+  .briefing-speaker-portrait { width: 140px; height: 140px; border-width: 1px; pointer-events: none; }
+  .briefing-speaker-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 112px; gap: 6px; }
   .briefing-speaker-copy .label { height: auto; white-space: normal; }
   .briefing-speaker-status { color: #82928a; }
   .speaking .briefing-speaker-status { color: #9dc7b8; }
   .mission-overview-copy { height: 634px; }
   .mission-overview.narrated .mission-overview-copy { height: 0px; flex-grow: 1; }
-  .mission-reward { flex-direction: column; height: 104px; padding: 10px; gap: 10px; border-width: 2px; }
+  .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
   #mission-reward-header { height: 18px; }
   #mission-reward-value { height: 26px; }
   #mission-reward-terms { height: 34px; white-space: normal; }

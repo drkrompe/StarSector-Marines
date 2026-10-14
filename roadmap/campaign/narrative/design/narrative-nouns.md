@@ -61,8 +61,8 @@ colors identify names; dialogue bodies remain white and readable independently
 of audio. Recorded turns may change speakers, with portrait, name and role
 following the current recording. Authored negotiation prose explains its situation;
 commercial choices and their effects remain contract-owned commands. Pre-mission
-comms show one turn at a time with company and contact portraits on consistent
-opposing sides. Skipping or replaying a conversation changes only presentation;
+comms show one turn at a time in the briefing's conversation column, swapping
+the contact portrait and identity with each speaker. Skipping or replaying a conversation changes only presentation;
 it never accepts a contract, spends resources or launches the mission.
 Localized subtitles and stable recording IDs belong to the authored turn, so
 translation and catalog ordering cannot silently select a different recording.

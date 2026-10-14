@@ -128,11 +128,6 @@ public final class MissionDialogue {
         return colorStyle(identity(speaker));
     }
 
-    /** Company and contact occupy consistent sides, regardless of translated names. */
-    public static boolean speakerOnRight(String speaker) {
-        return !identity(speaker).equals("castle");
-    }
-
     public static String speakerPortrait(String speaker) {
         return switch (identity(speaker)) {
             case "castle" -> "graphics/portraits/castle.png";
@@ -143,6 +138,18 @@ public final class MissionDialogue {
     }
 
     public static String speakerRole(String speaker) {
+        int slash = speaker == null ? -1 : speaker.indexOf('/');
+        if (slash >= 0 && !speaker.substring(slash + 1).isBlank()) {
+            String role = speaker.substring(slash + 1).trim();
+            return switch (role) {
+                case "WAYLINE" -> Strings.get("briefingRoleWayline");
+                case "COMPANY OPERATIONS" -> Strings.get("briefingRoleCompanyOperations");
+                case "COMPANY COMMAND" -> Strings.get("briefingRoleCompanyCommand");
+                case "BASIN RECLAMATION" -> Strings.get("briefingRoleBasinReclamation");
+                case "HOUSE RUSK" -> Strings.get("briefingRoleHouseRusk");
+                default -> Strings.resolve(role);
+            };
+        }
         return Strings.get(switch (identity(speaker)) {
             case "castle" -> "briefingRoleCompanyOperations";
             case "vale" -> "briefingRoleBasinReclamation";

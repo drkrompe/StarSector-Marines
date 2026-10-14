@@ -1,51 +1,21 @@
-<template props="commsName,commsNameStyle,commsRole,commsText,commsLeftPortrait,commsRightPortrait,commsProgress,commsNextLabel,commsNextAction,commsSkipAction">
-  <div id="mission-comms-dialog" class="comms-overlay comms-hidden">
-    <div id="mission-comms-space-above" class="comms-space" />
-    <div id="mission-comms-panel" class="comms-panel">
-      <div id="mission-comms-header" class="comms-header console-header">
-        <img id="mission-comms-lock" class="comms-lock" src="graphics/ui/console/locking-plate.svg" />
-        <div id="mission-comms-channel" class="comms-channel">{i18n.briefingCommsChannel}</div>
-        <div id="mission-comms-status" class="comms-progress">{commsProgress}</div>
-        <img id="mission-comms-vent" class="comms-vent" src="graphics/ui/console/vent-plate.svg" />
-      </div>
-      <div id="mission-comms-exchange" class="comms-exchange">
-        <img id="mission-comms-portrait-left" class="comms-portrait" src="{commsLeftPortrait}" />
-        <div id="mission-comms-copy" class="comms-copy">
-          <div id="mission-comms-name" class="comms-name" style="{commsNameStyle}">{commsName}</div>
-          <div id="mission-comms-role" class="comms-role">{commsRole}</div>
-          <div id="mission-comms-transcript" class="comms-transcript">
-            <div id="mission-comms-text" class="comms-text">{commsText}</div>
-          </div>
-        </div>
-        <img id="mission-comms-portrait-right" class="comms-portrait" src="{commsRightPortrait}" />
-      </div>
-      <div id="mission-comms-controls" class="comms-controls console-command-rail">
-        <button id="mission-comms-skip" onclick="{commsSkipAction}">{i18n.briefingCommsSkip}</button>
-        <div id="mission-comms-control-space" class="comms-control-space" />
-        <button id="mission-comms-next" onclick="{commsNextAction}">{commsNextLabel}</button>
-      </div>
+<template props="commsText,commsProgress,commsNextLabel,commsNextAction,commsSkipAction">
+  <div id="mission-comms-dialog" class="comms-dialogue comms-hidden">
+    <div id="mission-comms-transcript" class="comms-transcript">
+      <div id="mission-comms-text" class="comms-text">{commsText}</div>
     </div>
-    <div id="mission-comms-space-below" class="comms-space" />
+    <div id="mission-comms-controls" class="comms-controls">
+      <button id="mission-comms-skip" onclick="{commsSkipAction}">{i18n.briefingCommsSkip}</button>
+      <div id="mission-comms-status" class="comms-progress">{commsProgress}</div>
+      <button id="mission-comms-next" onclick="{commsNextAction}">{commsNextLabel}</button>
+    </div>
   </div>
 </template>
 <style>
-  .comms-overlay { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080c0ee8; }
-  .comms-space { height: 0px; flex-grow: 1; }
-  .comms-panel { width: 1040px; height: 380px; padding: 12px; gap: 14px; flex-direction: column; border-width: 2px; border-color: #998762; background-color: #242a27; }
-  .comms-header { height: 42px; flex-direction: row; align-items: center; padding: 6px 10px; gap: 14px; border-width: 1px; }
-  .comms-lock { width: 30px; height: 30px; }
-  .comms-vent { width: 64px; height: 24px; }
-  .comms-channel { width: 0px; flex-grow: 1; height: auto; font-family: heading; color: #d7c6a0; }
-  .comms-progress { width: 100px; height: auto; text-align: right; color: #a7b2a9; }
-  .comms-exchange { height: 256px; flex-direction: row; gap: 20px; padding: 0px 8px; }
-  .comms-portrait { width: 248px; height: 248px; padding: 2px; border-width: 2px; border-color: #807b65; background-color: #101614; pointer-events: none; }
-  .comms-copy { width: 0px; flex-grow: 1; height: 256px; flex-direction: column; gap: 8px; padding: 12px 4px; }
-  .comms-name { height: auto; font-family: title; white-space: normal; }
-  .comms-role { height: auto; white-space: normal; color: #9da89c; }
-  .comms-transcript { height: 0px; flex-grow: 1; overflow: scroll; padding-top: 12px; }
+  .comms-dialogue { height: 200px; flex-direction: column; gap: 12px; }
+  .comms-transcript { height: 0px; flex-grow: 1; overflow: scroll; }
   .comms-text { height: auto; font-family: prose; white-space: normal; color: #ffffff; }
-  .comms-controls { height: 40px; flex-direction: row; gap: 12px; align-items: center; }
-  .comms-controls button { width: 200px; height: 36px; padding: 4px 8px; text-align: center; font-family: heading; }
-  .comms-control-space { width: 0px; flex-grow: 1; }
+  .comms-controls { height: 32px; flex-direction: row; gap: 8px; align-items: center; }
+  .comms-controls button { width: 138px; height: 28px; padding: 2px 4px; text-align: center; font-family: heading; }
+  .comms-progress { width: 0px; flex-grow: 1; height: auto; text-align: center; color: #a7b2a9; }
   .comms-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
 </style>

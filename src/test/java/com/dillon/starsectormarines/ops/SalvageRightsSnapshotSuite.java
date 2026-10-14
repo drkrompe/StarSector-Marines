@@ -226,18 +226,23 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             BriefingViewModel.applyVisibility(instance, props);
             var document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
             instance.styles().forEach(document::addStyleSheet);
-            document.inputRegions(() -> List.of(instance.requireElement(
-                    comms.visible() ? "mission-comms-dialog" : "mission-briefing-root")));
             comms.update(instance);
             addCommsFrame(renderer, document, frames, "briefing-comms-01-vale.png");
             assertCommsGeometry(document, instance, false);
             clickControl(document, instance, "mission-deploy", false);
-            assertEquals(0, deployments[0], "Modal correspondence blocks deployment controls");
+            assertEquals(1, deployments[0], "Inline conversation leaves deployment controls available");
             clickControl(document, instance, "mission-comms-next", true);
             comms.update(instance);
             addCommsFrame(renderer, document, frames, "briefing-comms-02-castle.png");
             assertCommsGeometry(document, instance, true);
-            for (int turn = 2; turn < 8; turn++) {
+            for (int turn = 2; turn < 4; turn++) {
+                clickControl(document, instance, "mission-comms-next", true);
+                comms.update(instance);
+                document.layout(1920, 1080);
+            }
+            addCommsFrame(renderer, document, frames, "briefing-comms-04-negotiation.png");
+            assertCommsGeometry(document, instance, true);
+            for (int turn = 4; turn < 8; turn++) {
                 clickControl(document, instance, "mission-comms-next", true);
                 comms.update(instance);
                 document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
@@ -251,7 +256,7 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             assertNull(instance.requireElement("mission-comms-dialog").parent(), "Hidden dialog leaves the layout tree");
             addCommsFrame(renderer, document, frames, "predeployment-briefing.png");
             clickControl(document, instance, "mission-deploy", true);
-            assertEquals(1, deployments[0], "Skipping restores planning input");
+            assertEquals(2, deployments[0], "Skipping leaves planning input available");
             clickControl(document, instance, "mission-narration-replay", true);
             comms.advance(0, false);
             comms.update(instance);
@@ -279,21 +284,23 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
     }
 
     private static void assertCommsGeometry(UiDocument document, MarkupInstance instance, boolean castle) {
-        var portrait = instance.requireElement(castle ? "mission-comms-portrait-left" : "mission-comms-portrait-right");
-        var inactive = instance.requireElement(castle ? "mission-comms-portrait-right" : "mission-comms-portrait-left");
+        var portrait = instance.requireElement("mission-briefing-speaker-portrait");
         var body = instance.requireElement("mission-comms-text");
-        var dialog = instance.requireElement("mission-comms-dialog").box().borderBox();
-        var face = portrait.box().borderBox();
+        var contact = instance.requireElement("mission-briefing-speaker").box().borderBox();
+        var dialogue = instance.requireElement("mission-comms-dialog").box().borderBox();
+        var controls = instance.requireElement("mission-comms-controls").box().borderBox();
+        var header = instance.requireElement("mission-briefing-header").box().borderBox();
         assertEquals(castle ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", portrait.imageSource());
-        assertTrue(inactive.imageSource().isBlank(), "Only the speaking character has a portrait");
-        assertTrue(face.width() > 0 && face.height() > 0);
-        assertTrue(castle ? face.right() <= body.box().borderBox().x() : face.x() >= body.box().borderBox().right(),
-                "Castle speaks from the left and Vale from the right");
-        assertTrue(dialog.x() >= 0 && dialog.y() >= 0
-                && dialog.right() <= 1920
-                && dialog.bottom() <= 1080, "Modal stays inside the 1920x1080 viewport: " + dialog);
+        assertTrue(portrait.box().borderBox().width() > 0);
+        assertTrue(contact.bottom() <= dialogue.y(), "Speaking portrait heads the conversation column");
+        assertTrue(body.box().borderBox().bottom() <= controls.y(), "Current dialogue remains above its controls");
+        assertTrue(dialogue.x() < 500 && dialogue.right() < 500, "Conversation occupies the left column");
+        for (String id : List.of("mission-threat", "mission-reward")) {
+            var box = instance.requireElement(id).box().borderBox();
+            assertTrue(box.y() >= header.y() && box.bottom() <= header.bottom(), "Metadata belongs inside header: " + id);
+        }
         assertTextFits(document, body);
-        assertTextFits(document, instance.requireElement("mission-comms-name"));
+        assertTextFits(document, instance.requireElement("mission-briefing-speaker-name"));
     }
 
     private static void assertDialogueGeometry(UiDocument document, UiElement dialogue) {

@@ -18,7 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BriefingCommsTest {
-    @Test void productionModalButtonsBlockPlanningThenRestoreItAfterSkipAndReplay() throws Exception {
+    @Test void inlineConversationKeepsPlanningInteractiveAndChangesSinglePortrait() throws Exception {
         try (var strings = new HeadlessStrings(Path.of("mod"))) {
             var comms = new BriefingComms(new NarrationPlayer(line -> fail("Text-only dialogue has no playback")));
             comms.enter(conversation(), List.of());
@@ -36,18 +36,15 @@ class BriefingCommsTest {
                 BriefingViewModel.applyVisibility(instance, props);
                 var document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
                 instance.styles().forEach(document::addStyleSheet);
-                document.inputRegions(() -> List.of(instance.requireElement(
-                        comms.visible() ? "mission-comms-dialog" : "mission-briefing-root")));
                 comms.update(instance);
                 document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
-                assertEquals("graphics/portraits/castle.png", instance.requireElement("mission-comms-portrait-left").imageSource());
+                assertEquals("graphics/portraits/castle.png", instance.requireElement("mission-briefing-speaker-portrait").imageSource());
                 click(document, instance, "mission-deploy");
-                assertEquals(0, planned[0]);
+                assertEquals(1, planned[0]);
                 click(document, instance, "mission-comms-next");
                 comms.update(instance);
                 assertEquals("vale", comms.current().key());
-                assertEquals("graphics/portraits/tamsin-vale.png", instance.requireElement("mission-comms-portrait-right").imageSource());
-                assertTrue(instance.requireElement("mission-comms-portrait-left").imageSource().isBlank());
+                assertEquals("graphics/portraits/tamsin-vale.png", instance.requireElement("mission-briefing-speaker-portrait").imageSource());
                 document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
                 click(document, instance, "mission-comms-skip");
                 comms.update(instance);
@@ -55,7 +52,7 @@ class BriefingCommsTest {
                 assertNull(instance.requireElement("mission-comms-dialog").parent());
                 document.layout(MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
                 click(document, instance, "mission-deploy");
-                assertEquals(1, planned[0]);
+                assertEquals(2, planned[0]);
                 click(document, instance, "mission-narration-replay");
                 comms.advance(0, false);
                 comms.update(instance);
@@ -123,9 +120,9 @@ class BriefingCommsTest {
     }
     @Test void transcriptScrollResetsOnNextReplayAndChangedTextButNotFrameRefresh() {
         String template = "<template><div id='root'><div id='mission-comms-dialog'>"
-                + "<div id='mission-comms-name'/><div id='mission-comms-role'/><div id='mission-comms-text'/>"
-                + "<div id='mission-comms-transcript'/><img id='mission-comms-portrait-left'/>"
-                + "<img id='mission-comms-portrait-right'/><div id='mission-comms-status'/>"
+                + "<div id='mission-briefing-speaker'><div id='mission-briefing-speaker-name'/>"
+                + "<div id='mission-briefing-speaker-role'/><img id='mission-briefing-speaker-portrait'/></div>"
+                + "<div id='mission-comms-text'/><div id='mission-comms-transcript'/><div id='mission-comms-status'/>"
                 + "<button id='mission-comms-next'/></div></div></template>";
         var markup = new MarkupLoader(path -> template, List.of("comms-test.mlx"))
                 .reloadAndBuild(new Reactor(), "comms-test", Map.of());
