@@ -119,6 +119,49 @@ class FightingPositionClaimsTest {
         assertEquals(Set.of(10, 11, 12, 13), columns(cells));
     }
 
+    private static FightingPositionIndex twoTrenches() {
+        List<Doodad> props = new ArrayList<>();
+        DoodadDef def = new DoodadDef("doodad.test.trench", "sheet", 0, 0, DoodadCover.HEAVY, 0.3f,
+                1, 1, null, 0, null, FightingPositionRole.TRENCH);
+        for (int x = 10; x <= 21; x++) {
+            props.add(new Doodad(x, 6, def));
+            props.add(new Doodad(x, 12, def));
+        }
+        return FightingPositionIndex.build(W, H, props, (cx, cy) -> true);
+    }
+
+    @Test
+    void anOccupyOrderTakesOnlyTheRunItWasAimedAtEvenWhenAnotherHasBetterCover() {
+        FightingPositionIndex index = twoTrenches();
+        int clicked = index.runIdAt(15, 6);
+        // The other trench is the better-shielded one, which would win an unscoped order.
+        Probe shielded = field((cell, fromDy) -> cell / W == 12 ? 3 : 0);
+
+        int[] unscoped = unassigned(6);
+        FightingPositionClaims.fill(index, W, new Order(15, 6, 20, NO_THREAT, NO_THREAT),
+                shielded, unscoped, new HashSet<>());
+        for (int c : unscoped) assertEquals(12, c / W, "control: cover pulls the squad to the other run");
+
+        int[] scoped = unassigned(6);
+        FightingPositionClaims.fill(index, W, new Order(15, 6, 20, NO_THREAT, NO_THREAT, clicked),
+                shielded, scoped, new HashSet<>());
+        for (int c : scoped) assertEquals(6, c / W, "the occupy order stays on the clicked run");
+    }
+
+    @Test
+    void anOccupyOrderDoesNotRetainACellOnAnotherRun() {
+        FightingPositionIndex index = twoTrenches();
+        int clicked = index.runIdAt(15, 6);
+        int[] cells = unassigned(2);
+        int[] previous = {cell(15, 6), cell(15, 12)};
+
+        FightingPositionClaims.retain(index, W, new Order(15, 6, 20, NO_THREAT, NO_THREAT, clicked),
+                NO_COVER, previous, cells, new HashSet<>());
+
+        assertEquals(cell(15, 6), cells[0]);
+        assertEquals(-1, cells[1], "a cell on the other run is released");
+    }
+
     @Test
     void aSquadLargerThanTheFreeCellsLeavesTheRestUnassigned() {
         FightingPositionIndex index = trench(5, 16, 10);

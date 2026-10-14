@@ -65,11 +65,31 @@ public final class SquadMoveOrderService {
                                    long vehicleId)
             implements ActiveOrder { }
 
-    /** Persistent circular player defense area centered on reachable ground. */
+    /**
+     * Persistent circular player defense area centered on reachable ground.
+     *
+     * <p>{@code occupyRunId} is the fighting-position run the click landed on when this
+     * is an <b>occupy</b> order, or {@link OccupyPositionDecision#NONE} for an ordinary
+     * defense area. Execution is identical; the run only narrows which position cells
+     * the squad's marines are given.
+     */
     public record ActiveDefendAreaOrder(int requestedX, int requestedY,
                                         int destinationX, int destinationY,
-                                        int radiusCells)
-            implements ActiveOrder { }
+                                        int radiusCells, int occupyRunId)
+            implements ActiveOrder {
+
+        public ActiveDefendAreaOrder(int requestedX, int requestedY,
+                                     int destinationX, int destinationY,
+                                     int radiusCells) {
+            this(requestedX, requestedY, destinationX, destinationY, radiusCells,
+                    OccupyPositionDecision.NONE);
+        }
+
+        /** Whether this area was placed by clicking a fighting position. */
+        public boolean isOccupy() {
+            return occupyRunId >= 0;
+        }
+    }
 
     private final List<PendingOrder> pending = new ArrayList<>();
     private final Map<Integer, ActiveOrder> active = new ConcurrentHashMap<>();

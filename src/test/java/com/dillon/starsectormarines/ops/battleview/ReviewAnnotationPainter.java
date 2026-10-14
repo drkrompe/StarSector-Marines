@@ -103,6 +103,8 @@ final class ReviewAnnotationPainter {
                 paintArrow(graphics, camera, imageHeight, metrics, words, arrow);
             } else if (mark instanceof ReviewAnnotation.Polyline route) {
                 paintPolyline(graphics, camera, imageHeight, metrics, words, route);
+            } else if (mark instanceof ReviewAnnotation.Cells cells) {
+                paintCells(graphics, camera, imageHeight, metrics, words, cells);
             } else if (mark instanceof ReviewAnnotation.Label label) {
                 paintLabel(graphics, camera, imageHeight, metrics, words, label);
             }
@@ -148,6 +150,39 @@ final class ReviewAnnotationPainter {
         words.add(new PendingLabel(box.text(), box.style(),
                 plateFor(metrics, box.text(), x, y - plateHeight - 2),
                 new int[]{y + 2, y + height + 2, y - 2 * plateHeight - 4}));
+    }
+
+    /** Each cell washed and outlined on its own, so a thin run of them reads as the earthwork it is. */
+    private static void paintCells(Graphics2D graphics, BattleCamera camera,
+                                   int imageHeight, FontMetrics metrics,
+                                   List<PendingLabel> words,
+                                   ReviewAnnotation.Cells cells) {
+        int labelX = Integer.MAX_VALUE;
+        int labelY = Integer.MAX_VALUE;
+        for (ReviewAnnotation.Cell cell : cells.cells()) {
+            float left = screenX(camera, cell.x());
+            float right = screenX(camera, cell.x() + 1f);
+            float top = screenY(camera, imageHeight, cell.y() + 1f);
+            float bottom = screenY(camera, imageHeight, cell.y());
+            int x = Math.round(left);
+            int y = Math.round(top);
+            int width = Math.max(2, Math.round(right - left));
+            int height = Math.max(2, Math.round(bottom - top));
+            graphics.setColor(cells.style().at(60));
+            graphics.fillRect(x, y, width, height);
+            graphics.setStroke(new BasicStroke(cells.style().strokeWidth));
+            graphics.setColor(cells.style().at(220));
+            graphics.drawRect(x, y, width, height);
+            if (y < labelY || (y == labelY && x < labelX)) {
+                labelX = x;
+                labelY = y;
+            }
+        }
+        if (cells.text().isEmpty()) return;
+        int plateHeight = plateHeight(metrics);
+        words.add(new PendingLabel(cells.text(), cells.style(),
+                plateFor(metrics, cells.text(), labelX, labelY - plateHeight - 2),
+                new int[]{labelY + 2, labelY - 2 * plateHeight - 4}));
     }
 
     private static void paintArrow(Graphics2D graphics, BattleCamera camera,

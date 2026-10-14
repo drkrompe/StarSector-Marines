@@ -1,0 +1,112 @@
+SALVAGE RIGHTS - EIGHT-TURN BRIEFING / RECORDING REVIEW
+Recorded take 1 with the existing voices and integrated for offline briefing playback.
+Technical encode/timing checks are separate from artistic listening review, which remains pending.
+Dialogue remains verbatim from shepherdSalvageBriefTurn1 through Turn8.
+CASTING: Vale candidate 3 / cZH6erlGkOyAQheipyno; Castle / cuwCdnt9CKAB9XrTA1j0.
+Vale: practical yardmaster, patient authority and guarded commercial restraint.
+Castle: mature British company officer, composed bargaining and earned confidence.
+Use clean speech. No baked radio filtering, ambience or sound effects.
+Model: eleven_v4. Settings: default empty object, matching retained source metadata.
+Punctuation and restrained delivery tags; no SSML. Audition Colossus, Shepherd and Morrow before approval.
+Official direction: https://elevenlabs.io/docs/overview/capabilities/text-to-speech/best-practices
+Models: https://elevenlabs.io/docs/overview/models
+Official CLI: https://github.com/elevenlabs/cli
+Dry-run: python art-source/audio/shepherd/record-salvage-briefing.py
+Only after explicit paid-recording authorization append --generate; --line scopes a single turn.
+Each turn is one clip. No replacement flag is exposed; existing approved sources remain.
+Clean source convention: asset-pipeline/src/tool/resources/audio/wayline/<id>.mp3 plus receipt JSON.
+Each clip is registered in audio.json as kind ui, out story/wayline, processing dialogue and in sounds.json.
+Runtime voiced=true uses the measured source durations in the receipts.
+Source takes are retained unchanged. Dialogue normalization is applied by the audio pipeline.
+Portraits: graphics/portraits/castle.png and graphics/portraits/tamsin-vale.png (new authored Vale portrait).
+Synthesis characters including tags: 1210
+
+basin_salvage_briefing_01 [RECORDED / TAKE 1]
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Event: briefing.01
+Subtitle key: shepherdSalvageBriefTurn1
+Subtitle: We found a shipment in the Colossus. The hold was still sealed. Then the shooting started, and I had to get my people out. There's another crew in there now. They say we abandoned it.
+Direction: State the setback plainly. Do not imply what the shipment contains.
+Synthesis: [measured, matter-of-fact] We found a shipment in the Colossus. The hold was still sealed. Then the shooting started, and I had to get my people out. There's another crew in there now. They say we abandoned it.
+Voice: cZH6erlGkOyAQheipyno
+Selected take: 1
+
+basin_salvage_briefing_02 [RECORDED / TAKE 1]
+Speaker: CASTLE / COMPANY COMMAND
+Event: briefing.02
+Subtitle key: shepherdSalvageBriefTurn2
+Subtitle: There's no manifest in the file.
+Direction: A short observation; let the missing manifest matter without accusation.
+Synthesis: [composed, questioning] There's no manifest in the file.
+Voice: cuwCdnt9CKAB9XrTA1j0
+Selected take: 1
+
+basin_salvage_briefing_03 [RECORDED / TAKE 1]
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Event: briefing.03
+Subtitle key: shepherdSalvageBriefTurn3
+Subtitle: Our handlers have it. You're getting them back to work and keeping the road open.
+Direction: Keep the answer narrow. She controls the handlers and the information.
+Synthesis: [practical, guarded] Our handlers have it. You're getting them back to work and keeping the road open.
+Voice: cZH6erlGkOyAQheipyno
+Selected take: 1
+
+basin_salvage_briefing_04 [RECORDED / TAKE 1]
+Speaker: CASTLE / COMPANY COMMAND
+Event: briefing.04
+Subtitle key: shepherdSalvageBriefTurn4
+Subtitle: Then add the Shepherd to our terms. The two fees stand. She's our fee for clearing the road out.
+Direction: Make an ordinary commercial proposal, with a slight beat before the ship fee.
+Synthesis: [composed, firm] Then add the Shepherd to our terms. The two fees stand. She's our fee for clearing the road out.
+Voice: cuwCdnt9CKAB9XrTA1j0
+Selected take: 1
+
+basin_salvage_briefing_05 [RECORDED / TAKE 1]
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Event: briefing.05
+Subtitle key: shepherdSalvageBriefTurn5
+Subtitle: Morrow is still our ship, Castle. And neither of us knows what it'll take to get her flying.
+Direction: Protect her ship and her people. No wounded outrage.
+Synthesis: [quiet, protective] Morrow is still our ship, Castle. And neither of us knows what it'll take to get her flying.
+Voice: cZH6erlGkOyAQheipyno
+Selected take: 1
+
+basin_salvage_briefing_06 [RECORDED / TAKE 1]
+Speaker: CASTLE / COMPANY COMMAND
+Event: briefing.06
+Subtitle key: shepherdSalvageBriefTurn6
+Subtitle: We got Second Wind flying. Supply the parts and fitters; we'll cover them and clear the road. We'll take our chances with whatever comes out of that cradle.
+Direction: Second Wind is earned confidence, not a heroic boast.
+Synthesis: [steady, confident] We got Second Wind flying. Supply the parts and fitters; we'll cover them and clear the road. We'll take our chances with whatever comes out of that cradle.
+Voice: cuwCdnt9CKAB9XrTA1j0
+Selected take: 1
+
+basin_salvage_briefing_07 [RECORDED / TAKE 1]
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Event: briefing.07
+Subtitle key: shepherdSalvageBriefTurn7
+Subtitle: The road stays open for my haulers. You don't leave when the fitters do. Agree to that, and you can have her once she's clear of the basin. The Colossus stays with us.
+Direction: Set conditions clearly. The Colossus clause closes the boundary.
+Synthesis: [firm, practical] The road stays open for my haulers. You don't leave when the fitters do. Agree to that, and you can have her once she's clear of the basin. The Colossus stays with us.
+Voice: cZH6erlGkOyAQheipyno
+Selected take: 1
+
+basin_salvage_briefing_08 [RECORDED / TAKE 1]
+Speaker: TAMSIN VALE / BASIN RECLAMATION
+Event: briefing.08
+Subtitle key: shepherdSalvageBriefTurn8
+Subtitle: Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.
+Direction: Turn cleanly from bargaining to the job. Instructions stay intelligible.
+Synthesis: [businesslike, focused] Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.
+Voice: cZH6erlGkOyAQheipyno
+Selected take: 1
+
+MEASURED SOURCE TAKES
+basin_salvage_briefing_01: 11.120s; receipt character cost 84
+basin_salvage_briefing_02: 2.240s; receipt character cost 22
+basin_salvage_briefing_03: 4.480s; receipt character cost 41
+basin_salvage_briefing_04: 6.240s; receipt character cost 45
+basin_salvage_briefing_05: 5.520s; receipt character cost 45
+basin_salvage_briefing_06: 8.480s; receipt character cost 70
+basin_salvage_briefing_07: 9.760s; receipt character cost 74
+basin_salvage_briefing_08: 12.880s; receipt character cost 102

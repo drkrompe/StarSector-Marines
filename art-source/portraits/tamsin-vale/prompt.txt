@@ -1,0 +1,4 @@
+undefined
+
+Generated with the built-in image_gen tool. Master retained as tamsin-vale-master.png.
+Runtime export: complete square frame, 256 x 256 PNG, high-quality bicubic downsample with no cropping or recoloring.

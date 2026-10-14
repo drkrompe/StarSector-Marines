@@ -226,6 +226,11 @@ The retained sources and cuts reproduce separate damage atlases through the
 ordinary doodad packer. The `fences` and `sandbags` visual suites exercise the same damage
 entry point used by structural attacks.
 
+Fort-belt sandbags share the lifecycle, damaged pieces keeping their parapet role and
+destroyed ones losing it. Their damage states are a procedural placeholder derived from
+the intact art and say so in their catalog descriptions, pending geometry-first art;
+replacing them is an art change, not a code change. Trench pieces are earth and do not break.
+
 Storage boxes, wooden crates and industrial crate stacks likewise pair with
 damaged panels and low scattered remnants. The pre-damaged storage box retains
 its shorter silhouette and starts with less structure. Every state keeps its

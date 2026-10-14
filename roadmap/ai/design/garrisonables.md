@@ -1,0 +1,108 @@
+# Garrisonables
+
+Status: DRAFT — direction for reactively manned places; fighting positions are the first kind built.
+
+Written: 2026-10-13
+
+## Why this exists
+
+Fighting positions shipped with a fort belt garrisoned from the first tick: every
+belt nest seats a squad in its trench whether or not anybody ever comes near it.
+On the fort control that took 120 defenders out of the patrol pool and left the
+defender with no roving reserve at all. The number of places worth holding is
+about to grow sharply — sandbag aprons at compounds, building shells with
+windows, emplacements — and a model in which every such place is filled because
+it exists will spend the whole defending force on ground nobody is attacking.
+
+The direction here is that a place worth holding is **manned in answer to
+threat**, not filled by default.
+
+## Nouns
+
+A **garrisonable** is a place that offers **posts** to a squad that mans it: a
+set of stand cells, each with the cover it gives and the directions it covers.
+It is a kind of place, not a kind of order. Kinds, in the order they are
+expected to arrive:
+
+- a **fighting-position run** — trench and parapet cells (built; see
+  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`);
+- a **building envelope** — the apertures and stance cells the defense frontage
+  already derives (`ai-nouns.md`, frontage and standing to);
+- a **compound perimeter** — the outer envelope at compound scope, which frontage
+  also already derives;
+- an **emplacement** — a crewed structure, later and outside this direction's
+  first slices.
+
+**Manning** a garrisonable is squad-tier: which member takes which post, claims,
+digging in, facing the believed threat, and falling back. **Assignment** is
+commander-tier: which squad mans which garrisonable, and when it stops. The two
+tiers must stay separate — a squad never decides to go and man a trench nobody
+sent it to, and a commander never chooses a marine's cell.
+
+Garrisonables may be **linked into layers**: a belt in front of a fort's works,
+a compound perimeter around its buildings, a building shell around its rooms. A
+layer is what a squad falls back to when the one in front of it is lost.
+
+## Laws
+
+- **Reactive manning.** A garrisonable is manned in proportion to believed
+  pressure on it, read from the side's own faction influence, never from hostile
+  truth. A quiet garrisonable is empty and its would-be garrison stays in the
+  mobile pool. This generalises what standing to already does for a held
+  building's apertures, from "which windows" to "which places".
+- **Hysteresis.** Manning starts above one pressure level and ends below a lower
+  one, after a dwell, so a squad is not marched in and out of a trench on every
+  command pulse. Dig-in is lost on leaving, which is the cost that makes churn
+  visible.
+- **Declared holds stay held.** A place the mission says must be held — a keep,
+  a capture objective's garrison — is born manned as today. Reactivity is for
+  everything else.
+- **Pickets before massing.** Across garrisonables as across apertures: every
+  threatened place gets a squad before any gets a second, and the reserve
+  yields to that rule rather than outranking it.
+- **Fall back through layers.** A squad whose place is breached (enemy inside
+  it), destroyed below its useful size, or untenable falls back to the next
+  layer in if one is linked; with none, it releases to the commander. A fall
+  back is squad-tier movement under an existing assignment, not a new order.
+- **Release when the threat passes.** A commander-assigned garrison returns to
+  the pool when its pressure has decayed past the release level, so the pool is
+  available for the next threatened band.
+- **Scale by locality.** With many garrisonables, the commander considers only
+  those inside or adjacent to threatened bands, on its own command cadence.
+  Nothing scans every garrisonable every tick; candidate lookup is spatial.
+- **The player's version is manual.** The occupy order is the player assigning
+  a garrisonable by hand. Whether a player's idle squads may opt into reactive
+  manning is a later question, not a default.
+
+## How it fits what exists
+
+The defender commander already raises a threatened track and forward band from
+contact and rallies a bounded number of patrols into it (`conquest-nouns.md`).
+A garrisonable inside that band is a better destination for a rally than a
+point on the track: the rallied squad mans it and digs in instead of meeting the
+attack in the open. That is the natural first consumer.
+
+Standing to is already reactive manning of a building envelope by its own
+garrison. Unifying it under garrisonable posts is a later step, taken only once
+fighting-position runs prove the commander-tier half, because frontage carries
+its own laws — what an aperture may open onto, held layers, the breach that
+dissolves an envelope — that must survive the move intact.
+
+## Open questions
+
+- The pressure measure: track band pressure, influence sampled at the place, or
+  both.
+- How a garrisonable is valued against an objective: a trench in front of the
+  keep is worth more than one at the map edge under the same pressure.
+- Whether attackers use the same assignment for captured ground (holding a taken
+  belt against the counter-attack), or only manual orders.
+- Mechs and vehicles: excluded from posts; whether they screen a manned place.
+
+## Stories
+
+- `reactive-garrisons.md` — fort belts become reactively manned from the
+  defender pool, with release and fall back.
+- `compound-prepared-ground.md` — compounds and facilities offer prepared ground
+  and building envelopes as garrisonables.
+- `fort-sandbag-damage-art.md` — real art for the placeholder fort sandbag damage
+  states.

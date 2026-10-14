@@ -41,6 +41,8 @@ public final class NarrationPlayer {
         if (remaining <= 0 && (sound == null || !sound.isPlaying())) stop();
     }
 
+    /** Whether the current start obtained an owned audio handle. */
+    public boolean hasSound() { return sound != null; }
     public boolean busy() { return current != null; }
     public Line current() { return current; }
 

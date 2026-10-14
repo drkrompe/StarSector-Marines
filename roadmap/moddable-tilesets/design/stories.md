@@ -11,6 +11,7 @@ Read `moddable-tilesets-nouns.md` before changing a moddable-tilesets story.
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
 | `nature-variant-pool-authority-cleanup.md` | Proposed | Runtime grass/dirt primary variant membership remains hardcoded in `TileManifest`; preserve coordinate-hash parity while moving that membership to declared content. |
+| `fort-sandbag-damage-art.md` | Proposed | Replace the procedural placeholder fort sandbag damage states with geometry-first art; ids, cover and roles unchanged. |
 
 External discovery and additive merge use the shared catalog-provider contract
 defined in `submod-catalog-contract.md`; tilesets

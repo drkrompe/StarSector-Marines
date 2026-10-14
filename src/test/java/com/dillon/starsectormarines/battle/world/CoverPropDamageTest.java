@@ -18,7 +18,8 @@ class CoverPropDamageTest {
     @Test void structuralHitsDamageThenBreachEachFamilyAndRetainGroundAndRotation() throws Exception {
         TileRegistry previous = TileRegistry.installed();
         TileRegistry registry = new TileRegistry();
-        for (String sheet : new String[]{"doodads", "fence-damage", "sandbag-damage"})
+        for (String sheet : new String[]{"doodads", "fence-damage", "sandbag-damage",
+                "fort-earthworks", "fort-sandbag-damage"})
             registry.ingestSheet(new JSONObject(Files.readString(Path.of("mod/data/tilesets/" + sheet + ".tileset.json"))));
         TileRegistry.install(registry);
         try {
@@ -32,6 +33,11 @@ class CoverPropDamageTest {
                 for (int turn = 0; turn < 4; turn++) {
                     verify(registry, "doodad.sandbag-", shape, turn);
                     verifyWalkable(registry, "doodad.sandbag-", shape, turn);
+                }
+            for (String shape : new String[]{"n", "e", "s", "w", "corner-nw", "corner-ne", "corner-sw", "corner-se"})
+                for (int turn = 0; turn < 4; turn++) {
+                    verify(registry, "doodad.fort-sandbag-", shape, turn);
+                    verifyWalkable(registry, "doodad.fort-sandbag-", shape, turn);
                 }
         } finally { TileRegistry.install(previous); }
     }

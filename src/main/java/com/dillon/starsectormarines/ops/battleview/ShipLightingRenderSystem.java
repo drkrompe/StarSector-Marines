@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 /** Shared command-driven lighting for live and headless deck views; never darkens UI or space. */
 final class ShipLightingRenderSystem implements RenderSystem {
@@ -15,25 +16,29 @@ final class ShipLightingRenderSystem implements RenderSystem {
         var visible = camera.visibleCells(1, lights.width, lights.height);
         float time = Float.isFinite(ctx.animationTimeSeconds) ? ctx.animationTimeSeconds : 0f;
         if (gains.length < lights.lamps.size()) gains = new float[lights.lamps.size()];
-        for (int i = 0; i < lights.lamps.size(); i++) gains[i] = ShipDeckLighting.gain(lights.lamps.get(i), time);
+        for (int i = 0; i < lights.lamps.size(); i++) gains[i] = lights.gain(i, time);
         shade.reset();
         int steps = camera.cellPxSize() >= 32f ? ShipDeckLighting.SAMPLES : camera.cellPxSize() >= 16f ? 4 : 2;
         float step = 1f / steps;
         for (int y = visible.minY(); y <= visible.maxY(); y++) for (int x = visible.minX(); x <= visible.maxX(); x++) {
+            var topology = ctx.sim.getTopology();
+            if (topology.isWall(x, y) || topology.getGroundKind(x, y) == GroundKind.VOID) continue;
             var cell = lights.cells[y * lights.width + x];
-            if (cell == null) continue;
+            boolean emergency = cell != null && cell.emergency();
             for (int sy = 0; sy < steps; sy++) for (int sx = 0; sx < steps; sx++) {
                 int sampleX = (2 * sx + 1) * ShipDeckLighting.SAMPLES / (2 * steps);
                 int sampleY = (2 * sy + 1) * ShipDeckLighting.SAMPLES / (2 * steps);
-                float pool = ShipDeckLighting.illumination(cell, sampleY * ShipDeckLighting.SAMPLES + sampleX, gains);
-                float darkness = ShipDeckLighting.shade(cell.emergency(), pool);
-                float warmth = cell.emergency() ? .22f * pool : .025f * pool;
+                // A freshly demolished wall was absent from the floor bake. Its rubble
+                // still receives ambient darkness rather than glowing through a missing mask.
+                float pool = cell == null ? 0f : ShipDeckLighting.illumination(cell, sampleY * ShipDeckLighting.SAMPLES + sampleX, gains);
+                float darkness = ShipDeckLighting.shade(emergency, pool);
+                float warmth = emergency ? .22f * pool : .025f * pool;
                 // Compose the dark mask and warm spill into one quad, retaining the deck's texture.
                 float alpha = darkness + warmth * (1f - darkness);
                 float darkWeight = darkness * (1f - warmth);
                 float r = (.008f * darkWeight + warmth) / alpha;
-                float g = (.012f * darkWeight + warmth * (cell.emergency() ? .42f : .91f)) / alpha;
-                float b = (.022f * darkWeight + warmth * (cell.emergency() ? .09f : .78f)) / alpha;
+                float g = (.012f * darkWeight + warmth * (emergency ? .42f : .91f)) / alpha;
+                float b = (.022f * darkWeight + warmth * (emergency ? .09f : .78f)) / alpha;
                 // Share exact pixel edges: fractional alpha coverage otherwise leaves a bright lattice
                 // between adjacent translucent tiles in the headless rasterizer.
                 float x0 = Math.round(camera.cellToScreenX(x + sx * step));
@@ -46,6 +51,7 @@ final class ShipLightingRenderSystem implements RenderSystem {
         }
         out.addPoly(layer(), shade);
         for (int i = 0; i < lights.lamps.size(); i++) {
+            if (!lights.present(i)) continue;
             var lamp = lights.lamps.get(i);
             if (!visible.contains((int) lamp.x(), (int) lamp.y())) continue;
             float cx = camera.cellToScreenX(lamp.x()), cy = camera.cellToScreenY(lamp.y());

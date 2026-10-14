@@ -14,11 +14,15 @@ final class ShipDeckLighting {
     static final int SAMPLES = 8;
     record Lamp(float x, float y, boolean vertical, boolean emergency, boolean faulty, float phase) {}
     record Cell(int x, int y, boolean emergency, int[] lamps, float[] pools) {}
+    private record Mount(int x, int y, boolean wall) {}
+    private final List<Mount> mounts = new ArrayList<>();
+    private final CellTopology topology;
     final List<Lamp> lamps = new ArrayList<>();
     final Cell[] cells;
     final int width, height;
 
     ShipDeckLighting(CellTopology topology, DeckGraph graph, long seed) {
+        this.topology = topology;
         width = topology.getWidth(); height = topology.getHeight();
         cells = new Cell[width * height];
         int[] owners = new int[cells.length];
@@ -34,15 +38,15 @@ final class ShipDeckLighting {
                     if (!room.contains(x, y)) continue;
                     float ly = y == room.top() ? y + .15f : y + .85f;
                     add(circuits, room.id(), x + .5f, ly, false, emergency,
-                            emergency && number++ % 2 == 0, seed);
+                            emergency && number++ % 2 == 0, seed, new Mount(x, y, false));
                 }
             }
         }
         // Passage fixtures sit against actual walls; their circuit never illuminates through a room wall.
         for (int y = 1; y < height - 1; y++) for (int x = 1; x < width - 1; x++) {
             if (owners[y * width + x] != -1 || !floor(topology, x, y) || (x + y) % 7 != 0) continue;
-            if (topology.isWall(x, y + 1)) add(circuits, -1, x + .5f, y + .85f, false, false, false, seed);
-            else if (topology.isWall(x - 1, y)) add(circuits, -1, x + .15f, y + .5f, true, false, false, seed);
+            if (topology.isWall(x, y + 1)) add(circuits, -1, x + .5f, y + .85f, false, false, false, seed, new Mount(x, y + 1, true));
+            else if (topology.isWall(x - 1, y)) add(circuits, -1, x + .15f, y + .5f, true, false, false, seed, new Mount(x - 1, y, true));
         }
         for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
             if (!floor(topology, x, y)) continue;
@@ -74,16 +78,29 @@ final class ShipDeckLighting {
     }
 
     private void add(Map<Integer, List<Integer>> circuits, int owner, float x, float y,
-                     boolean vertical, boolean emergency, boolean faulty, long seed) {
+                     boolean vertical, boolean emergency, boolean faulty, long seed, Mount mount) {
         int id = lamps.size();
         // Stable circuit phase, independent of camera, frame rate, and the generation RNG stream.
         float phase = Math.floorMod(seed + owner * 31L + id * 17L, 110) / 10f;
         lamps.add(new Lamp(x, y, vertical, emergency, faulty, phase));
+        mounts.add(mount);
         circuits.computeIfAbsent(owner, ignored -> new ArrayList<>()).add(id);
     }
 
     private static boolean floor(CellTopology topology, int x, int y) {
         return !topology.isWall(x, y) && topology.getGroundKind(x, y) != GroundKind.VOID;
+    }
+
+    /** The circuit may survive, but a fixture cannot hang from demolished structure. */
+    boolean present(int index) {
+        Mount mount = mounts.get(index);
+        return mount.wall() ? topology.isWall(mount.x(), mount.y())
+                : !topology.isRoofDestroyed(mount.x(), mount.y())
+                    && topology.getGroundKind(mount.x(), mount.y()) != GroundKind.VOID;
+    }
+
+    float gain(int index, float seconds) {
+        return present(index) ? gain(lamps.get(index), seconds) : 0f;
     }
 
     static float gain(Lamp lamp, float seconds) {
