@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
@@ -226,6 +227,19 @@ final class LayeredUnitComposer {
             emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
         }
 
+        // A hand-held part exists only while the item is in use; the pack it is corded
+        // to is the carried layer above and stays on the actor in every other pose.
+        HandsetLayer handsetDef = specialUsing && specialPlacement != null
+                ? specialDef.presentation().handsetLayer() : null;
+        LayerTransform handsetTransform = handsetDef != null ? layer(authoredPose, "handset") : null;
+        LayeredSpriteCache handsetSprite = handsetTransform != null && handsetTransform.visible()
+                ? assets.handset(specialDef.id()) : null;
+        LayeredSpriteCache cordSprite = handsetSprite != null
+                ? assets.handsetCord(specialDef.id()) : null;
+        EquipmentLayerComposer.Placement handsetPlacement = cordSprite != null
+                ? authoredHandsetPlacement(handsetDef, handsetTransform,
+                        actorX, actorY, pxPerSw, facingDeg) : null;
+
         // Equipped hardware stays on its mount regardless of ammunition or activity.
         // Activity duration is not a shot phase and must not synthesize recoil.
         EquipmentLayerDef integralLayer = integralSystem != null
@@ -290,6 +304,11 @@ final class LayeredUnitComposer {
             emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
         }
 
+        if (handsetPlacement != null) {
+            emitCord(out, cordSprite, handsetDef, handsetPlacement, specialPlacement,
+                    pxPerSw, alpha);
+        }
+
         // Authored firing occlusion may deliberately move a shoulder weapon
         // over the body while leaving a braced rifle underneath it.
         if (drawPrimaryLayers && overShoulder) {
@@ -304,6 +323,11 @@ final class LayeredUnitComposer {
             float[] headCenter = worldPoint(actorX, actorY, 0f, 0.08f, pxPerSw, facingDeg);
             emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
                     facingDeg + headLookDeg, alpha);
+        }
+
+        // The handset is raised to the helmet, so it is the last thing drawn over the head.
+        if (handsetPlacement != null) {
+            emitEquipmentLayer(out, handsetSprite, handsetPlacement, alpha);
         }
 
         if (integralPlacement != null && launch != null && launch.phase() < 0.3f) {
@@ -425,6 +449,45 @@ final class LayeredUnitComposer {
                 sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx,
                 sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx,
                 angle, fallback.occlusion());
+    }
+
+    /** The handset's size is its own authored art; the clip owns where the hand puts it. */
+    private static EquipmentLayerComposer.Placement authoredHandsetPlacement(
+            HandsetLayer handset, LayerTransform transform,
+            float actorX, float actorY, float swPx, float facingDeg) {
+        float[] pivot = worldPoint(actorX, actorY, transform.offsetX(),
+                transform.offsetY(), swPx, facingDeg);
+        float width = handset.widthShoulders() * transform.scaleX() * swPx;
+        float height = handset.heightShoulders() * transform.scaleY() * swPx;
+        float angle = facingDeg + transform.angleDegrees();
+        float[] centerOffset = rotate((0.5f - transform.pivotX()) * width,
+                (transform.pivotY() - 0.5f) * height, angle);
+        return new EquipmentLayerComposer.Placement(pivot[0] + centerOffset[0],
+                pivot[1] + centerOffset[1], width, height, angle,
+                EquipmentLayerDef.Occlusion.OVER_BODY);
+    }
+
+    /** Stretches the cord sprite between the handset's port and the carried layer's port. */
+    private static void emitCord(SpriteEmitter out, LayeredSpriteCache cord, HandsetLayer handset,
+                                 EquipmentLayerComposer.Placement handsetPlacement,
+                                 EquipmentLayerComposer.Placement pack, float swPx, float alpha) {
+        float[] from = portPoint(handsetPlacement, handset.portX(), handset.portY());
+        float[] to = portPoint(pack, handset.packPortX(), handset.packPortY());
+        float dx = to[0] - from[0];
+        float dy = to[1] - from[1];
+        float length = (float) Math.hypot(dx, dy);
+        if (length < 1e-3f) return;
+        // The sprite points north (+y), so its bearing is the vector's angle from north.
+        float angle = (float) Math.toDegrees(Math.atan2(-dx, dy));
+        out.add(cord, (from[0] + to[0]) * 0.5f, (from[1] + to[1]) * 0.5f,
+                handset.cordWidthShoulders() * swPx, length, angle, 1f, 1f, 1f, alpha);
+    }
+
+    private static float[] portPoint(EquipmentLayerComposer.Placement placement,
+                                     float portX, float portY) {
+        float[] offset = rotate((portX - 0.5f) * placement.width(),
+                (0.5f - portY) * placement.height(), placement.angleDegrees());
+        return new float[]{placement.centerX() + offset[0], placement.centerY() + offset[1]};
     }
 
     private static void emitFoot(SpriteEmitter out, LayeredSpriteCache foot,

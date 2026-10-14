@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
+import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
@@ -13,7 +14,9 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UnitRenderServiceLayerPoseTest {
 
@@ -30,6 +33,33 @@ class UnitRenderServiceLayerPoseTest {
                 LayeredAppearance.POSE_SMOKE_THROW, "special");
         assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                 LayeredAppearance.POSE_SATCHEL_PLANT, "special");
+    }
+
+    @Test
+    void radioCallUsesItsOwnHandsetClipAndWearsThePackAsABodyMount() throws Exception {
+        UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
+                Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));
+        SpecialEquipmentDef radio = SpecialEquipmentRegistry.require(
+                SpecialEquipmentRegistry.COMMS_RADIO_ID);
+        assertEquals("calling", radio.presentation().layerClips().using());
+        for (float phase : new float[]{0f, 0.1f, 0.5f, 0.9f}) {
+            LayerPose sampled = UnitRenderService.infantryPoseDef(layouts, true, radio,
+                    LayeredAppearance.POSE_SATCHEL_PLANT, 0f, phase, 0);
+            assertNotNull(sampled.layer("handset"), "phase " + phase);
+        }
+        // Raised to the head while on the net, away from the head at the ends of the call.
+        LayerPose held = UnitRenderService.infantryPoseDef(layouts, true, radio,
+                LayeredAppearance.POSE_SATCHEL_PLANT, 0f, 0.5f, 0);
+        assertTrue(held.layer("handset").visible());
+        assertTrue(held.layer("handset").offsetY() > 0f);
+        assertFalse(UnitRenderService.infantryPoseDef(layouts, true, radio,
+                LayeredAppearance.POSE_SATCHEL_PLANT, 0f, 1f, 0).layer("handset").visible());
+        // The pack is persistent hardware: visible carried, on the body, over it.
+        EquipmentLayerDef pack = radio.presentation().carrierLayer();
+        assertTrue(pack.visibleWhileCarried());
+        assertEquals(EquipmentLayerDef.Attachment.BODY, pack.attachment());
+        assertEquals(EquipmentLayerDef.Occlusion.OVER_BODY, pack.carried().occlusion());
+        assertNotNull(radio.presentation().handsetLayer());
     }
 
     @Test
