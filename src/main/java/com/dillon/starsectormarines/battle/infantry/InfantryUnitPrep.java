@@ -160,6 +160,7 @@ public final class InfantryUnitPrep {
         SpecialEquipmentDef sec = sim.world().specialEquipment(id);
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
@@ -232,6 +233,7 @@ public final class InfantryUnitPrep {
         SpecialEquipmentDef sec = sim.world().specialEquipment(unit);
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(unit))) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) return false;

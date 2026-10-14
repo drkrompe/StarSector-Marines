@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 
 import java.util.Collections;
@@ -76,6 +77,8 @@ import java.util.Set;
  *                      {@link GroundDefences#NONE} for a mission that said nothing.
  * @param declaredMechDrops the mech-lance drops the MISSION lets each side's commander call down on its own authority;
  *                      {@link MechDropDeclaration#NONE} for a mission that said nothing.
+ * @param declaredAirPool the pools of bombers and fighters the MISSION gives each side, which regenerate and are tasked by
+ *                      comms operators; {@link AirPoolDeclaration#NONE} for a mission that said nothing.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -88,7 +91,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             boolean heavyBatteries,
                             boolean planetaryShield,
                             GroundDefences declaredDefences,
-                            MechDropDeclaration declaredMechDrops) {
+                            MechDropDeclaration declaredMechDrops,
+                            AirPoolDeclaration declaredAirPool) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -113,6 +117,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (link == null) link = SettlementLink.ROAD;
         if (declaredDefences == null) declaredDefences = GroundDefences.NONE;
         if (declaredMechDrops == null) declaredMechDrops = MechDropDeclaration.NONE;
+        if (declaredAirPool == null) declaredAirPool = AirPoolDeclaration.NONE;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -154,7 +159,26 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         this(marketSize, stability, defenseLevel, spaceportTier, factionId,
                 functions, surface, link, groundDefence, stationedStrength,
                 groundDefences, heavyBatteries, planetaryShield, declaredDefences,
-                MechDropDeclaration.NONE);
+                MechDropDeclaration.NONE, AirPoolDeclaration.NONE);
+    }
+
+    /** The profile with a mech-drop declaration and no air pool: every caller that predates pools. */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength,
+                         boolean groundDefences,
+                         boolean heavyBatteries,
+                         boolean planetaryShield,
+                         GroundDefences declaredDefences,
+                         MechDropDeclaration declaredMechDrops) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences,
+                declaredMechDrops, AirPoolDeclaration.NONE);
     }
 
     /**
@@ -216,7 +240,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool);
     }
 
     /**
@@ -230,7 +254,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool);
     }
 
     /**
@@ -241,7 +265,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops);
+                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool);
     }
 
     /**
@@ -252,6 +276,17 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool);
+    }
+
+    /**
+     * This profile with the mission's declaration of the air pool each side holds, every other read left as it was.
+     * Called once, at the mission boundary (MissionDefencePolicy).
+     */
+    public TargetProfile withDeclaredAirPool(AirPoolDeclaration declared) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared);
     }
 }

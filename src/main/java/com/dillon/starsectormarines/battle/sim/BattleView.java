@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
@@ -412,6 +413,15 @@ public interface BattleView {
      * {@link MechDropService#NONE} on a battle whose mission declared none.
      */
     default MechDropService mechDrops() { return MechDropService.NONE; }
+
+    /**
+     * Each side's pool of airframes and the ledger that tasks them through comms operators.
+     * {@link AirPoolService#NONE} on a battle whose mission declared none.
+     */
+    default AirPoolService airPool() { return AirPoolService.NONE; }
+
+    /** Whether a comms operator of {@code side} could direct an airframe in stock onto the point right now. */
+    default boolean canDirectAirStrike(Faction side, float x, float y, boolean believes) { return false; }
 
     /** The live air-entity ids (shuttles, and planned fighters) — walk these and read each craft's state by id via {@link #world()}. */
     long[] getAirEntityIds();
