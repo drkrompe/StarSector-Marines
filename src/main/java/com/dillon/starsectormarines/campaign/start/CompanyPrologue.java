@@ -6,7 +6,7 @@ import java.util.Map;
 public final class CompanyPrologue {
     private static final String PAGE = "sm_company_prologue_page";
     private static final String COMPLETE = "sm_company_prologue_complete";
-    public static final int PAGE_COUNT = 6;
+    public static final int PAGE_COUNT = 8;
 
     private CompanyPrologue() { }
 

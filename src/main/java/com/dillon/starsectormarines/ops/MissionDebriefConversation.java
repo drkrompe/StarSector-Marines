@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
@@ -67,12 +68,15 @@ final class MissionDebriefConversation {
                     "power", "one_more", "guards", outcome.salvageRights.crewLost() > 0 ? "losses" : "ready", "apron");
         }
         if (firstContract(outcome)) return List.of(
-                firstContractLine("receipt", true, "Payment's in. I checked twice. Our first Wayline contract, Captain. Someone's paid us to do what we said we would."),
-                firstContractLine("names", false, "The drivers asked who'd answered the call. I gave them your company's name. They'll remember it."),
-                firstContractLine("cost", true, outcome.marinesLost > 0
-                        ? "We've got names to take off the roll. I'll see to those before I start counting what we can afford."
-                        : "I'll put crew pay and supplies first. It's good to have a receipt that isn't for something we had to sell."),
-                firstContractLine("next", false, "Put your people in order. When you're ready, come back and we'll talk about the depot. I'd like this to be the start of something."));
+                firstContractLine("receipt", CASTLE, "Payment's in. I counted it twice. Our first paid contract, Commander. Somebody paid us to do exactly what we said we'd do."),
+                firstContractLine("muster", SABINE, outcome.marinesLost > 0
+                        ? "I've counted twice. The roll's shorter. I'll give Castle the names."
+                        : "All twelve back aboard. Counted twice."),
+                firstContractLine("names", MARA, "The drivers asked who answered the call. I gave them your company's name. They'll remember it. It's the only good news they've had this month."),
+                firstContractLine("cost", CASTLE, outcome.marinesLost > 0
+                        ? "We've got names to take off the roll. I'll see to those before I count what we can afford."
+                        : "Crew pay and supplies first. It's good to hold a receipt that isn't for something we had to sell."),
+                firstContractLine("next", MARA, "Get your people in order. When you're ready, come back and we'll talk about the depot. I'd like this to be the start of something. Wayline needs it to be."));
         if (blindWatch(outcome)) return List.of("initiative", "ready")
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
@@ -179,11 +183,14 @@ final class MissionDebriefConversation {
     }
 
     /** Written correspondence has no recording; keep it readable without offering silent playback. */
-    private static WaylineNarration.Line firstContractLine(String beat, boolean castle, String text) {
+    private static final int CASTLE = 0, MARA = 1, SABINE = 2;
+    private static WaylineNarration.Line firstContractLine(String beat, int speaker, String text) {
         return new WaylineNarration.Line("first-contract-" + beat, OpeningOperationKind.RELIEF.missionId,
                 "debrief.relief." + beat, text, 10f, 10, 15f, List.of(),
-                castle ? "CASTLE / COMPANY OPERATIONS" : "MARA VENN / WAYLINE",
-                castle ? CompanyManagementGuide.portrait() : OpeningBroker.PORTRAIT, false, false);
+                switch (speaker) { case CASTLE -> "CASTLE / COMPANY OPERATIONS"; case SABINE -> "SABINE HALE / FIELD COMMAND";
+                    default -> "MARA VENN / WAYLINE"; },
+                switch (speaker) { case CASTLE -> CompanyManagementGuide.portrait(); case SABINE -> OfficerInduction.SABINE_PORTRAIT;
+                    default -> OpeningBroker.PORTRAIT; }, false, false);
     }
 
     static List<WaylineNarration.Line> recordings(MissionOutcome outcome, WaylineNarration catalog) {

@@ -30,8 +30,8 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
         for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
             frames.add(frame(loader, renderer, page, "Jangala"));
         }
-        frames.add(frame(loader, renderer, 3, "Independent Port"));
-        frames.add(frame(loader, renderer, 5, null));
+        frames.add(frame(loader, renderer, 5, "Independent Port"));
+        frames.add(frame(loader, renderer, 7, null));
         return frames;
     }
     private SnapshotArtifact frame(MarkupLoader loader, HeadlessUiRenderer renderer, int page, String port) {
