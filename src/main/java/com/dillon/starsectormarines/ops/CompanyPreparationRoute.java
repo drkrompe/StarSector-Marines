@@ -12,7 +12,7 @@ final class CompanyPreparationRoute {
         if (debugMission && (requested == ScreenId.BRIEFING || requested == ScreenId.SQUAD_DEPLOYMENT))
             return requested;
         return switch (requested) {
-            case BARRACKS, SHIP_TRANSFER, SHIP_VIEW, FLEET_ARMORY_OVERVIEW, FLEET_ARMORY,
+            case BARRACKS, SHIP_TRANSFER, SHIP_VIEW, FLEET_ARMORY,
                     MECH_LAB, BOAT_DECK, MISSION_SELECT, BRIEFING, SQUAD_DEPLOYMENT ->
                     switch (roster.officerInduction().step(roster)) {
                         case SHIP -> ScreenId.SHIP_TRANSFER;
