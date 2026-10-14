@@ -277,6 +277,11 @@ class FleetArmoryViewModelTest {
         card.issue().run();
         assertEquals(card.id(), "weapon-doctrine:" + roster.squads().get(0).weaponDoctrineId());
         assertEquals(card.id(), "weapon-doctrine:" + viewModel.selectedWeaponDoctrineId());
+        var issued = viewModel.weaponDoctrineTiles().get().stream()
+                .filter(tile -> tile.id().equals(card.id())).findFirst().orElseThrow();
+        assertEquals("Issued", issued.markupProperty("issueLabel"));
+        assertEquals(true, issued.markupProperty("issueDisabled"));
+        assertEquals("", viewModel.transactionSummary().get());
     }
 
     @Test
