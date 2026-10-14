@@ -140,7 +140,7 @@ public final class FightingPositionClaims {
                     && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
             orders[s] = new Order(area.centerX(), area.centerY(), area.radius(),
                     threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1,
-                    sim.occupyRunOf(squad.id));
+                    occupyRun(sim, squad));
             List<Long> available = new ArrayList<>();
             for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
@@ -178,6 +178,17 @@ public final class FightingPositionClaims {
     private void publish(Map<Long, int[]> members, Map<Integer, Long> cells) {
         byMember = members;
         byCell = cells;
+    }
+
+    /**
+     * The run this squad's claims are scoped to: the run a player's occupy order named, else the run its commander's
+     * garrison order names, else -1 for an ordinary area.
+     */
+    private static int occupyRun(BattleView sim, Squad squad) {
+        int run = sim.occupyRunOf(squad.id);
+        if (run >= 0) return run;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
+        return assignment == null ? -1 : assignment.occupyRunId();
     }
 
     /** The {@link DefendArea} the squad is executing on its standing area order, or {@code null}. */

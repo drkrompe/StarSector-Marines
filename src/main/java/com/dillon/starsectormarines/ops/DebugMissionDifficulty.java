@@ -53,10 +53,19 @@ final class DebugMissionDifficulty {
     }
 
     /**
+     * Returns the same mission for production work. DEBUG work states which side holds a regenerating pool of bombers
+     * and fighters, so a battle with air support and one without can be played back to back.
+     *
+     * @param requestedAirPool the pool to state, or {@code null} to hand the answer back to the mission type.
+     */
+    static Mission atAirPool(Mission mission, DebugAirPool requestedAirPool) {
+        if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;
+        return Mission.builder(mission).airPool(requestedAirPool).build();
+    }
+
+    /**
      * Returns the same mission for production work. DEBUG work states how many mech lances the attacking commander
      * may call down, so a muster with armour and one without can be played back to back.
-     *
-     * @param requestedMechDrop the allowance to state, or {@code null} to hand the answer back to the mission type.
      */
     static Mission atMechDrop(Mission mission, DebugMechDrop requestedMechDrop) {
         if (mission == null || !mission.source.isDebug() || DebugMissionCatalog.scenario(mission) != null) return mission;

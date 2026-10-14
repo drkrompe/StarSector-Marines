@@ -470,8 +470,11 @@ reserve when possible, and an expired faction report releases only assignments
 owned by defender command. The setup pool is captured from the live squad
 roster before the first alert aggregation, so roster membership and `PATROL`
 role--not a not-yet-populated cached alive count--define the starting force.
-Authored setup garrisons claim garrison ownership at setup. A fort belt's garrisons are among
-them and count against the same defender force, so belts shrink the patrol pool.
+Authored setup garrisons claim garrison ownership at setup. A fort belt is not one of them: it is
+manned from the patrol pool only while pressed, and its squad returns to the pool
+when the pressure passes (see `ai-nouns.md`, fighting positions). Staging free
+patrols behind pressured areas is a third use of the pool beside the track rally
+and structure tasks; staged patrols still count as reserve (see `garrisonables.md`).
 
 Conquest convoy delivery is the explicit later-force handoff. At dispatch time
 the defender commander converts its latest faction-honest hostile-front belief

@@ -1,8 +1,10 @@
 # Reactive garrisons
 
-Status: DRAFT
+Status: IN PROGRESS — reactive manning, arrival gate, fall back and general flow built; unify rally and flow next
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — general flow (`GarrisonFlow`) replaces fort-only staging; letting manning take just-rallied patrols raised fort-control sends from about 5 to about 25 and dug-in squads from 1 to 11–14. Flow staging alone is marginal because the rally spends about 75% of the pool first. Fall backs now occur live (5–8 per run).
 
 ## Intent
 
@@ -32,6 +34,30 @@ releases them when the pressure passes.
 4. **Evidence.** Fort control: belt-manned squad count over time against
    threatened bands, patrol-pool size, dig-in samples, releases and fall backs; a
    scene with one belt under a passing attack showing man, hold, release.
+
+## Findings so far
+
+- Pressure registers on every pressed belt, and evaluation costs about
+  0.01–0.03 ms per pulse warm.
+- Patrols are 100–200 cells from the belts. Ordered between ticks 1380 and
+  2340, they reached the belt between 1770 and 4230, and some never did; pressure
+  episodes are shorter than the march, so four of nine squads were released en
+  route. Next: send only squads that can arrive while the pressure is likely to
+  last, hold the order while a squad is still closing, and consider a fort-local
+  reserve so the nearest free squad is near the belt.
+- Run ids renumber when the index rebuilds; the commander re-resolves a manned
+  run by its centre cell and counts a vanished run as lost.
+
+## Next
+
+- Make the track rally and flow one per-area reservation, so the rally's
+  destination is an area's staging cell or garrisonable and flow is not left
+  with the remainder.
+- Stop staging on maps or areas with nothing to man, where it only costs rally
+  share.
+- One published directive showed the staging reason with no assignment cell;
+  find out why.
+- Tune the weights and dwells once the pool split is settled.
 
 ## Constraints
 

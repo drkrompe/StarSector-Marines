@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
@@ -78,6 +79,7 @@ import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -190,6 +192,7 @@ import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
+import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -249,6 +252,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.power.AirStrikePower;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 
@@ -341,6 +347,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SatchelChargeService satchelCharges;
     /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
     private final PointDefenseService pointDefense;
+    private final FieldMortarService fieldMortars = new FieldMortarService();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
     /** Owner of carrier-placed cover screens: placement queue, live screens, and their remaining lifetime. Holds no entities — a screen is a property of a cell boundary, published through {@link MapEditor}. */
@@ -374,6 +381,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FiringSystem firingSystem;
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
     private final HeavyWeapons heavy;
+    /** Spends a squad's kit on the wall its order names, after the ordinary firing passes. */
+    private final WallBreachSystem wallBreach = new WallBreachSystem();
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link Detonations#queue}. */
     private final Detonations detonations;
     /** Sets off a parked airframe destroyed on its hardstand. Subscribed to the death mailbox. */
@@ -569,6 +578,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private SquadCommandClaim playerSupportCommandClaim;
     private MechDropService mechDrops = MechDropService.NONE;
+    private AirPoolService airPool = AirPoolService.NONE;
 
     public void installWaylineHound(int x, int y) {
         if (simTickIndex != 0 || waylineHound != null) throw new IllegalStateException("Install recovery once at setup");
@@ -1284,6 +1294,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     @Override public PointDefenseService pointDefense() { return pointDefense; }
+    @Override public FieldMortarService fieldMortars() { return fieldMortars; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
     @Override public DeployedCoverService deployedCover() { return deployedCover; }
@@ -1523,7 +1534,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commandPowers.setResources(resources);
     }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
-    public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
+    public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) {
+        commandPowers.setPowers(powers);
+        grantAirStrikeForPlayerPool();
+    }
+
+    /**
+     * A pool the mission gave the marines and left to the player carries the air-strike power with it: the card is the
+     * pool's front door, so it exists exactly when the pool does and nobody has to commit a fleet source for it.
+     */
+    private void grantAirStrikeForPlayerPool() {
+        var allowance = airPool.allowance(Faction.MARINE);
+        if (allowance.isNone() || allowance.aiDirected()) return;
+        if (commandPowers.getPower(AirStrikePower.ID) == null) commandPowers.register(new AirStrikePower());
+    }
 
     /** Installs the mission-owned concurrent player-squad limit before ticking. */
     public void setFieldPresencePolicy(FieldPresencePolicy policy) {
@@ -1577,6 +1601,39 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public FightingPositionIndex fightingPositions() {
         return doodadService.fightingPositions();
+    }
+
+    private GarrisonableRegistry garrisonableRegistry;
+
+    @Override
+    public GarrisonableRegistry garrisonables() {
+        FightingPositionIndex index = fightingPositions();
+        GarrisonableRegistry registry = garrisonableRegistry;
+        if (registry != null && registry.isBuiltFrom(index)) return registry;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile != null ? System.nanoTime() : 0L;
+        List<Fort> placed = forts.forts();
+        int[] centres = new int[placed.size() * 3];
+        int used = 0;
+        for (Fort fort : placed) {
+            int[] cells = fort.exteriorCells();
+            if (cells.length < 2) continue;
+            long sx = 0;
+            long sy = 0;
+            for (int i = 0; i + 1 < cells.length; i += 2) {
+                sx += cells[i];
+                sy += cells[i + 1];
+            }
+            int n = cells.length / 2;
+            centres[used++] = fort.id();
+            centres[used++] = (int) (sx / n);
+            centres[used++] = (int) (sy / n);
+        }
+        registry = GarrisonableRegistry.build(index, grid.getWidth(), grid.getHeight(),
+                CommanderInfluenceService.BLOCK_SIZE, Arrays.copyOf(centres, used));
+        if (profile != null) profile.record(TickInnerProfile.Bucket.GARRISON_REGISTRY_BUILD, System.nanoTime() - started);
+        garrisonableRegistry = registry;
+        return registry;
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }
@@ -2203,6 +2260,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public MechDropService mechDrops() { return mechDrops; }
 
+    /** Installs the air pools the mission declared; battle setup owns the call. */
+    public void setAirPool(AirPoolService service) {
+        if (simTickIndex != 0) throw new IllegalStateException("Air pools belong to battle setup");
+        airPool = service != null ? service : AirPoolService.NONE;
+        grantAirStrikeForPlayerPool();
+    }
+
+    @Override public AirPoolService airPool() { return airPool; }
+
+    @Override
+    public boolean canDirectAirStrike(Faction side, float x, float y, boolean believes) {
+        return airPool.canRequest(this, side, x, y, believes);
+    }
+
+    @Override
+    public AirPoolService.Outcome requestAirStrike(Faction side, AirPoolKind kind, float x, float y, boolean believes) {
+        return airPool.request(this, side, kind, x, y, believes);
+    }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);
@@ -2779,6 +2855,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
                 directControl.intent().secondary(), directControl.selectedWeapon());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
+        // Squads told to open a wall spend what their ordinary firing left on it.
+        wallBreach.tick(this);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
@@ -2786,6 +2864,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // ahead of shots.tickProjectiles below, so a round marked intercepted
         // this tick is dropped on the same beat it would have detonated.
         pointDefense.tick(TICK_DT, this);
+        // Crew-served tubes: set-up and pack clocks, minting, retiring, and the loss of a tube with its gunner.
+        fieldMortars.tick(TICK_DT, this);
         // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
         shieldDomes.tick(TICK_DT, rosterService);
         // Cover screens build, age, and retire here. Nothing downstream of
@@ -2815,6 +2895,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (coldAccount != null) coldAccount.advance(this);
         if (hostileShip != null) hostileShip.advance(this);
         mechDrops.advance(this);
+        airPool.advance(this);
         fortSystem.tick(TICK_DT, this);
         fortressBatterySystem.tick(TICK_DT, this);
         warships.tick(TICK_DT, this);
@@ -3293,6 +3374,29 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.telemetry().recordSecondaryUsed(carrier);
         return true;
     }
+
+    /** Pulls a mech mount's trigger on a world point: a wall a company has been ordered to open. */
+    public boolean fireMechMountAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
+        return heavy.fireMountAtPoint(shooter, mount, aim);
+    }
+
+    /** Fires a carried launcher at a world point: a wall a company has been ordered to open. */
+    public boolean fireSecondaryAtPoint(long shooter, float x, float y) {
+        return infantry.fireSecondaryAtPoint(shooter, x, y);
+    }
+
+    /** Records that a carrier spent his special item, for the telemetry the ordinary paths already feed. */
+    public void noteSecondaryUsed(long carrier) {
+        rosterService.telemetry().recordSecondaryUsed(carrier);
+    }
+
+    /** The audio, effect and noise of a completed breaching cut. */
+    public void reportContactBreach(long carrier, float cellCenterX, float cellCenterY) {
+        infantry.reportContactBreach(carrier, cellCenterX, cellCenterY);
+    }
+
+    /** The wall-breach pass, for readings of how many rounds and charges it has spent. */
+    public WallBreachSystem wallBreach() { return wallBreach; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

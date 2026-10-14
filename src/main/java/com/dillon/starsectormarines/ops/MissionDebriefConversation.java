@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import java.util.List;
@@ -28,9 +29,9 @@ final class MissionDebriefConversation {
         if (yardOwners(outcome)) return "LATCHKEY / CASTLE, RUSK & LENNA";
         if (limitedWarrant(outcome)) return "LIMITED WARRANT / CASTLE & RUSK";
         if (waterUnderSeal(outcome)) return "NORTH WEIR / CASTLE & RUSK";
-        if (outcome != null && outcome.workingPassage != null) return "REGISTRY TRANSFER / CASTLE & VALE";
-        if (outcome != null && outcome.coldStart != null) return "COLD START / CASTLE & VALE";
-        if (outcome != null && outcome.salvageRights != null) return "RECOVERY AGREEMENT / CASTLE & VALE";
+        if (outcome != null && outcome.workingPassage != null) return Strings.get("shepherdPassageTranscriptTitle");
+        if (outcome != null && outcome.coldStart != null) return Strings.get("shepherdColdTranscriptTitle");
+        if (outcome != null && outcome.salvageRights != null) return Strings.get("shepherdInspectionTranscriptTitle");
         if (firstContract(outcome)) return "FIRST CONTRACT / CASTLE & MARA";
         return coldAccount(outcome) || blindWatch(outcome) ? "AFTER ACTION / CASTLE & MARA" : "RECOVERY AGREEMENT / TRANSCRIPT";
     }
@@ -40,43 +41,43 @@ final class MissionDebriefConversation {
         if (limitedWarrant(outcome)) return warrantLines(outcome);
         if (waterUnderSeal(outcome)) return weirLines(outcome);
         if (outcome != null && outcome.victory && outcome.workingPassage != null) return List.of(
-                recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?"Departure exercise complete. No registry or fleet transfer is made from a training record.":"Transfer's through. Morrow's ours."),
+                recoveryLine("departure-registry", true, outcome.missionSource.isDebug()?Strings.get("shepherdDebriefPassageExercise"):Strings.get("shepherdDebriefRegistryTransferred")),
                 recoveryLine("departure-corridor", false, outcome.missionSource.isDebug()
-                        ? "The contract would leave the Colossus shipment, yard and haul road with us. The company's final payment would be Morrow; this exercise makes no transfer."
-                        : "All right. Have someone check the drone bay filters before you put her to work. The dust here gets into everything."),
+                        ? Strings.get("shepherdDebriefPassageExerciseTerms")
+                        : Strings.get("shepherdDebriefPassageDroneFilters")),
                 recoveryLine("departure-crew", true, outcome.missionSource.isDebug()
-                        ? "A contracted departure would include berth offers to willing working hands. Fleet crew, on our payroll, with the ship's upkeep ours from handover."
-                        : "We'll see to it. The hands who want to come with her have berths."),
+                        ? Strings.get("shepherdDebriefPassageExerciseCrew")
+                        : Strings.get("shepherdDebriefPassageWillingCrew")),
                 recoveryLine("departure-cost", false, outcome.workingPassage.militiaLost() > 0
-                        ? "I'll have to go. There are people here waiting to hear from me. Look after her, Castle."
-                        : outcome.marinesLost > 0 ? "I'm sorry about your people, Castle. Get the rest of them home."
-                        : "They know her better than I do. Let them show you around before you start pulling things apart."));
+                        ? Strings.get("shepherdDebriefPassageMilitiaLosses")
+                        : outcome.marinesLost > 0 ? Strings.get("shepherdDebriefPassageCompanyLosses")
+                        : Strings.get("shepherdDebriefPassageCrewKnowledge")));
         if (outcome != null && outcome.victory && outcome.coldStart != null) return List.of(
-                recoveryLine("first-gun", true, "I was hoping for another workshop. Now I'm thinking about all the places we've had to hold with a handful of rifles."),
+                recoveryLine("first-gun", true, Strings.get("shepherdDebriefColdDroneBay")),
                 recoveryLine("repair-complete", false, outcome.missionSource.isDebug()
-                        ? "Repair exercise complete. No campaign payment is issued."
-                        : "They've been keeping this yard together for years. Just don't take her anywhere yet. I've got haulers waiting for that road."),
+                        ? Strings.get("shepherdDebriefColdExercise")
+                        : Strings.get("shepherdDebriefColdRepairPaid")),
                 recoveryLine("repair-cost", true, outcome.missionSource.isDebug()
-                        ? "Keep the exercise losses in the review. A contracted company has to cover supplies and crew pay before committing to departure."
+                        ? Strings.get("shepherdDebriefColdExerciseCosts")
                         : outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
-                            ? "We lost too many people today. I don't want to rush the next part."
-                            : "Can she get herself out?"),
+                            ? Strings.get("shepherdDebriefColdLosses")
+                            : Strings.get("shepherdDebriefColdNextJob")),
                 recoveryLine("departure-pending", false, outcome.marinesLost > 0 || outcome.coldStart.crewLost() > 0
-                        ? "Take the time. I'll arrange a watch here. When you're ready, we'll walk her out past the pumps. I want that road open for our haulers, too."
-                        : "Not straight up from here. We'll walk her past the pumps, through the narrows. I'll leave people on the road behind you; I need it for our haulers."));
+                        ? Strings.get("shepherdDebriefColdRoadAfterLosses")
+                        : Strings.get("shepherdDebriefColdRoadNextJob")));
         if (outcome != null && outcome.victory && outcome.salvageRights != null) return List.of(
                 recoveryLine("registry", true, outcome.missionSource.isDebug()
-                        ? "Inspection exercise complete. No campaign claim or payment is issued."
-                        : "The fitters think they can save her workshop. Are we still agreed?"),
+                        ? Strings.get("shepherdDebriefSalvageExercise")
+                        : Strings.get("shepherdDebriefSalvageInspectionPaid")),
                 recoveryLine("terms", false, outcome.missionSource.isDebug()
-                        ? "The actual contract includes a repair party. We'd supply the parts and fitters."
-                        : "Yes. I've got people waiting to move that shipment. I'd rather you kept yours here than went looking for another contract."),
-                recoveryLine("repair-bill", true, "Then keep the fitters on her. I'd like to know what we've put our name to."),
-                recoveryLine("repair-terms", false, "They'll need shore power before they can tell you much more. I've put the parts aside."),
+                        ? Strings.get("shepherdDebriefSalvageExerciseRepairParty")
+                        : Strings.get("shepherdDebriefSalvageRepairFee")),
+                recoveryLine("repair-bill", true, Strings.get("shepherdDebriefSalvageRepairCover")),
+                recoveryLine("repair-terms", false, Strings.get("shepherdDebriefSalvageShorePower")),
                 recoveryLine("people", true, outcome.salvageRights.crewLost() > 0
-                        ? "I'll want better cover for the next crew. Where are we sending them?"
-                        : "Fair enough. Where do you want the company?"),
-                recoveryLine("power", false, "Workshop first. I'll have a distribution rig waiting at the apron. Then we need the pumps cleared so they can connect shore power."));
+                        ? Strings.get("shepherdDebriefSalvageInspectionLosses")
+                        : Strings.get("shepherdDebriefSalvageCompanyReady")),
+                recoveryLine("power", false, Strings.get("shepherdDebriefSalvageRepairPreparation")));
         if (firstContract(outcome)) return List.of(
                 firstContractLine("receipt", true, "Payment's in. I checked twice. Our first Wayline contract, Captain. Someone's paid us to do what we said we would."),
                 firstContractLine("names", false, "The drivers asked who'd answered the call. I gave them your company's name. They'll remember it."),
@@ -137,7 +138,7 @@ final class MissionDebriefConversation {
         return new WaylineNarration.Line("warrant-debrief-" + beat, "story_agreus_limited_warrant",
                 "debrief.limited_warrant." + beat, text, 10f, 10, 15f, List.of(),
                 castle ? "CASTLE / COMPANY OPERATIONS" : "BARONET ELIAN RUSK / HOUSE RUSK",
-                castle ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+                castle ? CompanyManagementGuide.portrait() : MissionDialogue.speakerPortrait("vale"), false, false);
     }
 
     private static boolean waterUnderSeal(MissionOutcome outcome) {
@@ -168,7 +169,7 @@ final class MissionDebriefConversation {
         return new WaylineNarration.Line("weir-debrief-" + beat, "story_agreus_water_under_seal",
                 "debrief.water_under_seal." + beat, text, 10f, 10, 15f, List.of(),
                 castle ? "CASTLE / COMPANY OPERATIONS" : "BARONET ELIAN RUSK / HOUSE RUSK",
-                castle ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+                castle ? CompanyManagementGuide.portrait() : MissionDialogue.speakerPortrait("vale"), false, false);
     }
 
     private static boolean firstContract(MissionOutcome outcome) {
@@ -179,7 +180,7 @@ final class MissionDebriefConversation {
         return new WaylineNarration.Line("shepherd-debrief-" + beat, "story_shepherd_salvage",
                 "debrief.salvage." + beat, text, 10f, 10, 15f, List.of(),
                 castle ? "CASTLE / COMPANY OPERATIONS" : "TAMSIN VALE / BASIN RECLAMATION",
-                castle ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+                castle ? CompanyManagementGuide.portrait() : MissionDialogue.speakerPortrait("vale"), false, false);
     }
 
     /** Written correspondence has no recording; keep it readable without offering silent playback. */

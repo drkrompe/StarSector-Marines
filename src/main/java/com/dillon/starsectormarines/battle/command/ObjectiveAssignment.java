@@ -42,6 +42,14 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * @param wreckAuthorised   whether the commander has told the squad it may destroy the fort aspect standing at the
  *                          target cell, which squads otherwise leave alone (see {@code FortRestraint}). A permission
  *                          carrying no hostile identity: it is the same own-force destination, with fire allowed there
+ * @param occupyRunId       for a {@link AssignmentKind#DEFEND_AREA}, the fighting-position run its squad is to man, which
+ *                          scopes the squad's claims to that run ({@code -1} for an ordinary area). The id is the run's
+ *                          number in the index current when the order was issued; the issuer re-resolves it when the
+ *                          index changes. Own-force ground, never a hostile position
+ * @param breachCellX       with {@code breachCellY}, a wall cell the squad is told to open: members whose kit can damage a
+ *                          wall from where they stand aim at it, and a breaching tool or charge is used on it. {@code -1}
+ *                          when the order breaches nothing. A cell of the map, never a hostile identity or position
+ * @param breachCellY       see {@code breachCellX}
  */
 public record ObjectiveAssignment(
         int squadId,
@@ -52,7 +60,30 @@ public record ObjectiveAssignment(
         int targetCellX,
         int targetCellY,
         int targetRadiusCells,
-        boolean wreckAuthorised) {
+        boolean wreckAuthorised,
+        int occupyRunId,
+        int breachCellX,
+        int breachCellY) {
+
+    /** The assignment that breaches no wall: every assignment but a fort company's breach role. */
+    public ObjectiveAssignment(int squadId, AssignmentKind kind,
+                               int targetZoneId, TacticalNode targetNode,
+                               int objectiveId, int targetCellX,
+                               int targetCellY, int targetRadiusCells,
+                               boolean wreckAuthorised, int occupyRunId) {
+        this(squadId, kind, targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells,
+                wreckAuthorised, occupyRunId, -1, -1);
+    }
+
+    /** The assignment without an occupy run: every assignment but a reactive garrison. */
+    public ObjectiveAssignment(int squadId, AssignmentKind kind,
+                               int targetZoneId, TacticalNode targetNode,
+                               int objectiveId, int targetCellX,
+                               int targetCellY, int targetRadiusCells,
+                               boolean wreckAuthorised) {
+        this(squadId, kind, targetZoneId, targetNode, objectiveId,
+                targetCellX, targetCellY, targetRadiusCells, wreckAuthorised, -1);
+    }
 
     /** The assignment without a wreck permission, which is every assignment but a fort commander's wreck task. */
     public ObjectiveAssignment(int squadId, AssignmentKind kind,
@@ -66,7 +97,24 @@ public record ObjectiveAssignment(
     /** The same order with the permission to wreck the fort aspect at its target cell given or withdrawn. */
     public ObjectiveAssignment withWreckAuthorised(boolean authorised) {
         return wreckAuthorised == authorised ? this : new ObjectiveAssignment(squadId, kind, targetZoneId, targetNode,
-                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised);
+                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised, occupyRunId, breachCellX, breachCellY);
+    }
+
+    /** The same order, told also to open the wall at this cell (or none, with {@code -1}) when in reach of it. */
+    public ObjectiveAssignment withBreach(int cellX, int cellY) {
+        return breachCellX == cellX && breachCellY == cellY ? this : new ObjectiveAssignment(squadId, kind,
+                targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells, wreckAuthorised,
+                occupyRunId, cellX, cellY);
+    }
+
+    /** Whether this order tells its squad to open a wall. */
+    public boolean breaches() {
+        return breachCellX >= 0 && breachCellY >= 0;
+    }
+
+    /** Whether this is an area defence scoped to one fighting-position run: a squad sent to man a garrisonable. */
+    public boolean isGarrison() {
+        return kind == AssignmentKind.DEFEND_AREA && occupyRunId >= 0 && targetRadiusCells >= 1;
     }
 
     /** Sentinel returned by zone-id / objective-id slots when the assignment isn't scoped to them. */
@@ -117,6 +165,13 @@ public record ObjectiveAssignment(
         if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
         return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_AREA,
                 UNSCOPED, null, UNSCOPED, cellX, cellY, radiusCells);
+    }
+
+    /** An area defence whose claims stay on one fighting-position run: the commander's order to man a garrisonable. */
+    public static ObjectiveAssignment defendRun(int squadId, int cellX, int cellY, int radiusCells, int runId) {
+        if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
+        return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_AREA,
+                UNSCOPED, null, UNSCOPED, cellX, cellY, radiusCells, false, runId);
     }
 
     /** Attacker-side Conquest staging point behind the believed lane front. */

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import java.util.List;
 
 /**
- * The planned assault's frames, from the same run that produced its verdicts: only the {@code plan} loop, in the window
+ * The capability-planned breach frames, from the same run that produced the verdicts: the cannon and the charges loops, in the window
  * where the company positions its base of fire, suppresses and enters, at 1920x1080 and 100% scale, whole map and a
  * close view of the fort's west face. Every close frame is also written as a PNG still so a moment can be read.
  */
@@ -15,14 +15,14 @@ public final class AssaultMusterSceneSnapshotSuite extends BehaviorSceneSnapshot
     private static final int HEIGHT = 1080;
 
     public AssaultMusterSceneSnapshotSuite() {
-        super(new AssaultMusterScene(List.of("plan"), 4200, 7500, 150), WIDTH, HEIGHT);
+        super(new AssaultMusterScene(List.of("breach-cannon", "breach-charges"), 3000, 5800, 100), WIDTH, HEIGHT);
     }
 
     @Override protected boolean showImpactEffects() { return true; }
 
-    /** The fort's west face: the main gate, its two bastion nests and the ground in front of them. */
+    /** The fort west face where the breach is cut: the wall section, the ground in front of it and the nests that cover it. */
     @Override protected float[] closeView(String loopId) {
-        return new float[] {118f, 208f, 110f};
+        return new float[] {146f, 227f, 70f};
     }
 
     @Override protected float closeViewScale() { return 1f; }

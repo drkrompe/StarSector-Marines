@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadBeliefTestAccess;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -222,6 +223,7 @@ class CommandFrameProfileTest {
                         case "getCompoundService" -> compounds;
                         case "defenceStructures" -> List.of();
                         case "ambientHeld" -> false;
+                        case "garrisonables" -> GarrisonableRegistry.empty(null, 8);
                         default -> throw new AssertionError("Unexpected battle read: " + method.getName());
                     });
         }
