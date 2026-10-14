@@ -11,8 +11,9 @@ import java.util.Set;
 
 /**
  * Draws a fort's earthworks and yard furniture from the existing doodad catalogue, in the fort's local frame: sandbag
- * lines and rings (walkable heavy cover, the same pieces defence posts and Thunder Run use), industrial fence for wire
- * (closed to movement, breachable), earth floor for trench and pit, and plant and stores props in the yards.
+ * lines and rings (walkable heavy cover, the same pieces defence posts and Thunder Run use), industrial fence for the
+ * belt and the yard fence lines (closed to movement, breached by shell, charge or weight), earth floor for trench and
+ * pit, and plant and stores props in the yards.
  *
  * <p>Every placement is refused quietly where the ground is not open: a fort is stamped into a city that exists, and a
  * missing sandbag is a gap in a line, not a broken map. Directions are given in the local frame and turned with the
@@ -124,23 +125,15 @@ final class FortDressing {
         return false;
     }
 
-    /** One piece of wire (industrial fence), run horizontally or vertically in the local frame. Closed to movement. */
-    boolean wire(int lx, int ly, boolean horizontal) {
-        return barrier(lx, ly, horizontal, "doodad.industrial-fence-");
-    }
-
-    /** One run of concertina wire, the belt's own obstacle: closed to movement, breachable. */
-    boolean concertina(int lx, int ly, boolean horizontal) {
-        return barrier(lx, ly, horizontal, "doodad.fort-wire-");
-    }
-
-    private boolean barrier(int lx, int ly, boolean horizontal, String prefix) {
+    /**
+     * One piece of industrial fence, run horizontally or vertically in the local frame. Closed to movement, and a
+     * destructible cover prop: shells, charges and heavy bodies open it, the same as any other fence in the city.
+     */
+    boolean fence(int lx, int ly, boolean horizontal) {
         int[] cell = at.cell(lx, ly);
         if (!open(cell[0], cell[1])) return false;
         int[] run = turn(lx, ly, horizontal ? 1 : 0, horizontal ? 0 : 1);
-        String piece = run[0] != 0 ? "h" : "v";
-        if (prefix.endsWith("fence-")) piece = "straight-" + piece;
-        DoodadDef def = TileRegistry.installed().doodad(prefix + piece);
+        DoodadDef def = TileRegistry.installed().doodad("doodad.industrial-fence-straight-" + (run[0] != 0 ? "h" : "v"));
         if (def == null) return false;
         ctx.grid.setWalkable(cell[0], cell[1], false);
         ctx.grid.setSeeThrough(cell[0], cell[1], true);

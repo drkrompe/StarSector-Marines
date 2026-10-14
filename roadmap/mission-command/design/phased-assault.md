@@ -272,7 +272,7 @@ objective and must not churn every squad's stability.
 ways in: each gate as an `AssaultApproach` (the main gate is the plan's first,
 the others are posterns) carrying its mouth and outward step, an entry cell four
 cells through it, the nests whose reach covers the mouth, and its approach lane
-out across the belt (the cells the belt and wire are left open over), plus a
+out across the belt (the cells the belt and its fence line are left open over), plus a
 `BREACH`: a wall section away from every gate and as far as possible from every
 nest, open ground outside and yard two layers in. The default derives them from
 the kind's own gates, nests and wall (`FortApproaches`), so a new stamp can be

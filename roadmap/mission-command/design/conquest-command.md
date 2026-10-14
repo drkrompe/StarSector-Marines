@@ -430,7 +430,7 @@ either before.
 not the objective.** Taken straight up from where a squad stands, a stage keeps
 whatever lateral the squad landed or drifted at; on the trial ground with the
 fort off the lane, squads staged up the edge of their track along the fort's
-wire and stood in contact with guns they could not reach for the rest of the
+fence line and stood in contact with guns they could not reach for the rest of the
 battle, while the compound they were homed for stood forty cells across the
 same track. So a stage now moves at most one stride sideways toward the next
 compound still to take on its track. Steered alone, that sent squads straight

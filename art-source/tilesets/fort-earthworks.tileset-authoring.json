@@ -436,40 +436,6 @@
       ]
     },
     {
-      "ballisticHalfHeight": 0.4,
-      "cover": "light",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.fort-wire-h",
-      "included": true,
-      "note": "Concertina wire running horizontally, edge to edge.",
-      "rect": [
-        0,
-        576,
-        192,
-        192
-      ]
-    },
-    {
-      "ballisticHalfHeight": 0.4,
-      "cover": "light",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.fort-wire-v",
-      "included": true,
-      "note": "Concertina wire running vertically, edge to edge.",
-      "rect": [
-        192,
-        576,
-        192,
-        192
-      ]
-    },
-    {
       "ballisticHalfHeight": 0.5,
       "cover": "light",
       "footprintCells": [
@@ -490,7 +456,7 @@
   "gridCols": 8,
   "gridRows": 4,
   "idPrefix": "doodad.fort",
-  "note": "Fort earthworks: sixteen connected trench sections by open-arm mask, thick sandbag parapet runs and corners, concertina wire and a hedgehog. Built-in ImageGen reskin of templates/fort-earthworks-guide.png (code-rendered by fort-earthworks-guide.py); exact prompt retained beside this file; raw retained unmodified. 1536x1024 RGBA, 8x4 grid of 192px full-cell frames; cuts keep the whole frame and source alpha.",
+  "note": "Fort earthworks: sixteen connected trench sections by open-arm mask, thick sandbag parapet runs and corners and a hedgehog. Built-in ImageGen reskin of templates/fort-earthworks-guide.png (code-rendered by fort-earthworks-guide.py); exact prompt retained beside this file; raw retained unmodified. 1536x1024 RGBA, 8x4 grid of 192px full-cell frames; cuts keep the whole frame and source alpha. The belt wire frames were removed: the fort belt is fenced with the doodad catalogue industrial fence.",
   "sheet": "art-source/tilesets/fort-earthworks.raw.png",
   "sheetName": "fort-earthworks"
 }

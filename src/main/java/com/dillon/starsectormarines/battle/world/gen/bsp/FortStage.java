@@ -738,7 +738,7 @@ public final class FortStage implements GenStage {
     }
 
     /**
-     * The outer belt: trench, sandbag line, wire and nests, drawn only on cells the ground gives up. A cell the city
+     * The outer belt: trench, sandbag line, fence line and nests, drawn only on cells the ground gives up. A cell the city
      * holds is skipped, so the belt follows the land rather than overriding it.
      */
     private static void stampBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId, Ground ground) {
@@ -777,19 +777,7 @@ public final class FortStage implements GenStage {
                     draw.earth(c.x(), c.y());
                     draw.sandbag(c.x(), c.y(), c.dx(), c.dy(), c.cornerDx(), c.cornerDy());
                 }
-                case WIRE -> {
-                    draw.concertina(c.x(), c.y(), c.dx() != 0);
-                    // A single strand is a hairline at game scale: lay a second row beside it on bare glacis.
-                    for (int side = 1; side >= -1; side -= 2) {
-                        int lx = c.x() - c.dy() * side;
-                        int ly = c.y() + c.dx() * side;
-                        int[] beside = at.cell(lx, ly);
-                        if (taken.contains(FortDressing.key(beside[0], beside[1]))) continue;
-                        if (ctx.grid.inBounds(beside[0], beside[1])
-                                && ctx.topology.getGroundKind(beside[0], beside[1]) == GroundKind.COURTYARD) continue;
-                        if (draw.concertina(lx, ly, c.dx() != 0)) break;
-                    }
-                }
+                case FENCE -> draw.fence(c.x(), c.y(), c.dx() != 0);
                 case NEST -> {
                     draw.earth(c.x(), c.y());
                     emitNest(ctx, cell, fortId, at, nestNumber++);
@@ -886,11 +874,11 @@ public final class FortStage implements GenStage {
 
         // The power plant's fenced yard, with its plant standing in it.
         for (int x = ox + 20; x <= ox + 28; x++) {
-            if (x < ox + 23 || x > ox + 25) d.wire(x, oy + 24, true);
-            d.wire(x, oy + 32, true);
+            if (x < ox + 23 || x > ox + 25) d.fence(x, oy + 24, true);
+            d.fence(x, oy + 32, true);
         }
         for (int y = oy + 25; y <= oy + 31; y++) {
-            if (y < oy + 27 || y > oy + 29) d.wire(ox + 28, y, false);
+            if (y < oy + 27 || y > oy + 29) d.fence(ox + 28, y, false);
         }
         d.prop(ox + 22, oy + 26, "industrial-turbine-set", lane);
         d.prop(ox + 22, oy + 29, "industrial-reactor-housing", lane);
@@ -937,7 +925,7 @@ public final class FortStage implements GenStage {
         // The power plant's fenced yard, with its plant standing in it.
         int[] plant = ShieldFort.floor(FortAspect.POWER);
         for (int x = plant[0] - 2; x <= plant[0] + plant[2] + 1; x++) {
-            if (x < plant[0] + 4 || x > plant[0] + 6) d.wire(x, oy + 15, true);
+            if (x < plant[0] + 4 || x > plant[0] + 6) d.fence(x, oy + 15, true);
         }
         d.prop(ox + 20, oy + 10, "industrial-turbine-set", lane);
         d.prop(ox + 23, oy + 11, "industrial-reactor-housing", lane);

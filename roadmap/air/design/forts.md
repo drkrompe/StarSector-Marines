@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 - a fort may carry an optional anti-air yard (`FortAspect.AIR_DEFENCE`: console, guided battery and flak; declared per kind, not yet by any mission) that the strike officer weighs and the command plan can open, and ships and gunships were measured against forts (`ship-vs-fort`); earlier: a fort exports its assault approaches (`FortPlan.approaches()`: each gate with the nests that cover it, an entry cell, its approach lane across the belt, and a breach section of wall) and the fort frame rides on the disclosed facts, so a company can be driven through base of fire, entry, objective and hold (`phased-assault.md`); the muster that does it is on by default (owner decision) though it has not beaten the trickle on the Conquest fort fixtures. Earlier: structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
+Updated: 2026-10-14 - the outer belt carries a fence line of industrial fence (breakable, with gaps) where it carried wire, and no wire art or fixture remains; earlier: a fort may carry an optional anti-air yard (`FortAspect.AIR_DEFENCE`: console, guided battery and flak; declared per kind, not yet by any mission) that the strike officer weighs and the command plan can open, and ships and gunships were measured against forts (`ship-vs-fort`); earlier: a fort exports its assault approaches (`FortPlan.approaches()`: each gate with the nests that cover it, an entry cell, its approach lane across the belt, and a breach section of wall) and the fort frame rides on the disclosed facts, so a company can be driven through base of fire, entry, objective and hold (`phased-assault.md`); the muster that does it is on by default (owner decision) though it has not beaten the trickle on the Conquest fort fixtures. Earlier: structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -96,11 +96,16 @@ missions that want one.
 
 A fort is never a wall round a pad. It is layered outside in, and a layer that is only a rectangle is a failed layer:
 
-1. **Outer belt.** An irregular ring of trench, sandbag line, wire and nests with firing steps, standing off the main
+1. **Outer belt.** An irregular ring of trench, sandbag line, a fence line and nests with firing steps, standing off the main
    works across an open killing ground (the glacis). It is not a box: it kinks and re-enters so no stretch is
    enfiladed end to end, it opens in front of each gate where the approach lane crosses it, and it follows the ground
    it is given: a cell the city or a neighbour holds is simply not drawn. The belt is cover and obstacle by the existing
-   semantics (sandbag and trench cells are walkable heavy cover; wire is a breachable fixture), never decoration.
+   semantics (sandbag and trench cells are walkable heavy cover; the fence line is the ordinary industrial fence, closed to
+   movement and opened by the same wall-health and cover-damage machinery as any fence), never decoration. The fence
+   stands four cells outside the trench in runs with gaps and is left open across every gate lane: the gaps are the
+   funnels that run an attacker into the nests' lanes, a run is slow to cross until a charge, shell, rocket or heavy
+   body opens it (no breaching tool is invented for it), and a way through always exists. There is no wire and there
+   are no mines (`fortified-lines.md`).
    Its trenches and sandbag lines are fighting positions, manned from the defender's patrol pool while the belt is
    pressed and empty otherwise (see `ai-nouns.md`).
 2. **Main works.** A thick chamfered trace with an angled bastion at each corner (nests inside them), and a gatehouse
@@ -120,7 +125,7 @@ New fort kinds follow the same order. Capture, aspects and mission authority are
   roads and precinct claims are respected), turns the main gate to face the map centre where it can, and paves a lane
   from each gate toward the nearest road (ground paint only, not in the road graph). Fort walls carry wall-health, so
   they can be breached. The belt uses the earthworks sheet `fort-earthworks` (trench sections by connection mask, thick
-  sandbag, concertina wire), produced through the geometry-first loop.
+  sandbag, hedgehog), produced through the geometry-first loop. The belt's fence is the existing industrial fence from the doodads sheet, not earthworks art.
 - **Declaration.** `GroundDefences` carries declared forts by `FortKind` (BATTERY_FORT today). `MissionDefencePolicy`
   stays the only decider; Conquest's untuned first pass converts its declared batteries into forts
   (`CONQUEST_BATTERIES_AS_FORTS`, one line to turn off). Bare structures remain for scenes and debug, the DEBUG dial
@@ -262,8 +267,8 @@ radar, the plant's turbine fans and glow, the magazine's vent fans and warning l
 banner and takes a wash of the holder's colour. Gatehouse towers carry embrasured caps while their walls stand, the gate
 carries folded leaves, and neither draws over a breach. A new fort kind adds data (a `buildingArt` block per aspect) and a
 layout, not renderer code. Retained sources: `art-source/fort-buildings/`. Art is authored with the door on one edge; a plan whose door is on the other
-edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick and belt wire is two rows.
-The belt wire is a bold coil on a dark contact shadow. A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. The shield fort carries the same gatehouse pieces, turned to face each of its three gates.
+edge turns it half a revolution (the shield fort's plant). Interior berms are two courses thick.
+A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. The shield fort carries the same gatehouse pieces, turned to face each of its three gates.
 
 ## Built: siting (mission-owned)
 

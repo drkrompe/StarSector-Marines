@@ -228,10 +228,10 @@ class ShieldFortStageTest {
         assertEquals(6, FortBelt.nests(PLAN.belt()).size());
         Set<FortBelt.Role> roles = new HashSet<>();
         for (FortBelt.Cell cell : PLAN.belt()) roles.add(cell.role());
-        assertTrue(roles.containsAll(Set.of(FortBelt.Role.TRENCH, FortBelt.Role.BAG, FortBelt.Role.WIRE,
+        assertTrue(roles.containsAll(Set.of(FortBelt.Role.TRENCH, FortBelt.Role.BAG, FortBelt.Role.FENCE,
                 FortBelt.Role.EARTH, FortBelt.Role.NEST)));
         for (FortBelt.Cell cell : PLAN.belt()) {
-            if (cell.role() != FortBelt.Role.TRENCH && cell.role() != FortBelt.Role.WIRE) continue;
+            if (cell.role() != FortBelt.Role.TRENCH && cell.role() != FortBelt.Role.FENCE) continue;
             for (FortPlan.Gate gate : PLAN.gates()) {
                 boolean along = gate.outX() != 0 ? (gate.outX() < 0 ? cell.x() < ShieldFort.OX : cell.x() >= ShieldFort.OX + ShieldFort.WORKS)
                         : (gate.outY() < 0 ? cell.y() < ShieldFort.OY : cell.y() >= ShieldFort.OY + ShieldFort.WORKS);
