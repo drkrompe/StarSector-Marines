@@ -59,10 +59,19 @@ final class FortAssault {
     static final int NEST_CONTACT_CELLS = 3;
     /** A squad this close to a nest is in a position to see whether it is still there. */
     static final int NEST_WITNESS_CELLS = 22;
-    /** How far from a nest an infantry fire element stands. Marine rifles reach 22, the nests' guns 24. UNTUNED. */
+    /**
+     * How far from a nest an infantry fire element stands, at the farthest, and the depth of the band inside that it may
+     * stand in. A rifle reaches 22 cells and the nest's turret stands half a cell off its cell centre, so the band lies well
+     * inside it. UNTUNED.
+     */
     static final int FIRE_STANDOFF_INFANTRY = 20;
-    /** How far from a nest a machine fire element stands: past the nests' reach, inside a mech's. UNTUNED. */
-    static final int FIRE_STANDOFF_MACHINE = 27;
+    static final int FIRE_BAND_INFANTRY = 5;
+    /**
+     * As above for a machine squad: just past the nests' 24-cell reach and inside the mech weapons' (30 and more), so it
+     * answers the nests without being answered. UNTUNED.
+     */
+    static final int FIRE_STANDOFF_MACHINE = 28;
+    static final int FIRE_BAND_MACHINE = 3;
     /** The assault element gathers at least this far from every nest believed live. UNTUNED. */
     static final int ASSEMBLY_STANDOFF = 30;
     /** A firing position keeps this far from the approach lane, so the fire element is not in the way in. */
@@ -327,7 +336,7 @@ final class FortAssault {
                     else for (int id : fire) orders.put(id, fireOrder(id));
                     List<DefenceStructureTactics.Task> tasks = DefenceStructureTactics.planMassed(
                             perspective, objective.aspects(), candidates, topology);
-                    if (tasks.isEmpty()) return null;
+                    if (tasks.isEmpty()) return candidates.isEmpty() ? orders : null;
                     int[] aspect = {tasks.get(0).structure().cellX(), tasks.get(0).structure().cellY()};
                     if (heldAspect != null && (heldAspect[0] != aspect[0] || heldAspect[1] != aspect[1])) {
                         fallen = heldAspect;
@@ -511,15 +520,16 @@ final class FortAssault {
             if (targets.isEmpty()) return null;
             int[] nest = works.nests.get(targets.get(turn % targets.size()));
             int standoff = body.machine() ? FIRE_STANDOFF_MACHINE : FIRE_STANDOFF_INFANTRY;
+            int band = body.machine() ? FIRE_BAND_MACHINE : FIRE_BAND_INFANTRY;
             for (boolean needSight : new boolean[] {true, false}) {
                 int[] best = null;
                 double bestGap = Double.MAX_VALUE;
                 double ox = nest[0] - works.centreX;
                 double oy = nest[1] - works.centreY;
-                for (int dy = -standoff - 2; dy <= standoff + 2; dy++) {
-                    for (int dx = -standoff - 2; dx <= standoff + 2; dx++) {
+                for (int dy = -standoff; dy <= standoff; dy++) {
+                    for (int dx = -standoff; dx <= standoff; dx++) {
                         double d = Math.hypot(dx, dy);
-                        if (d < standoff - 2 || d > standoff + 2 || dx * ox + dy * oy <= 0) continue;
+                        if (d < standoff - band || d > standoff || dx * ox + dy * oy <= 0) continue;
                         int x = nest[0] + dx;
                         int y = nest[1] + dy;
                         if (!topology.inBounds(x, y) || !topology.isWalkable(x, y)

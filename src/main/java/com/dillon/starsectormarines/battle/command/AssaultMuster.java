@@ -87,10 +87,11 @@ final class AssaultMuster {
     /** Largest share of the side's free squads that companies may hold at once. UNTUNED. */
     static final float COMPANY_SHARE = 0.75f;
     /**
-     * Squads of infantry each lane keeps that no company recruits: the lanes keep probing and capturing while a company
-     * musters, which is the work the first muster pulled squads away from. UNTUNED.
+     * The share of each lane's infantry squads that no company recruits: the lanes keep probing and capturing while a
+     * company musters, which is the work the first muster pulled squads away from. A flat floor per lane was tried first
+     * and shut a small force out of mustering at all, so the floor is a share of what the lane has. UNTUNED.
      */
-    static final int LANE_FLOOR_SQUADS = 2;
+    static final float LANE_KEEP_SHARE = 0.5f;
     /** A company left with less than this fraction of the strength it committed is broken. UNTUNED. */
     static final float BROKEN_FRACTION = 0.25f;
     /** Inside this many cells of the objective the company is in the fight and no longer waits for its stragglers. */
@@ -452,20 +453,27 @@ final class AssaultMuster {
 
     /**
      * The free squads a company may take now: on ground shared with the drop zone (a squad that cannot be shown to share
-     * it is left to the lanes), and not one of the last {@link #LANE_FLOOR_SQUADS} infantry squads of its lane.
+     * it is left to the lanes), and not one of the {@link #LANE_KEEP_SHARE} of its lane the lane keeps.
      */
     private List<Body> recruitable(Map<Integer, Body> byId, Ground ground) {
         List<Body> out = new ArrayList<>();
         for (Body body : freeBodies(byId)) {
             if (!ground.ok(body.anchorX(), body.anchorY())) continue;
-            if (body.track() >= 0 && !body.machine() && laneSquads(byId, body.track()) <= LANE_FLOOR_SQUADS) continue;
+            if (body.track() >= 0 && !body.machine() && laneFree(byId, body.track()) - 1 < Math.ceil(LANE_KEEP_SHARE * laneTotal(byId, body.track()))) continue;
             out.add(body);
         }
         return out;
     }
 
+    /** Infantry squads on a lane, whoever has them. */
+    private static int laneTotal(Map<Integer, Body> byId, int track) {
+        int n = 0;
+        for (Body body : byId.values()) if (body.track() == track && !body.machine()) n++;
+        return n;
+    }
+
     /** Infantry squads on a lane that are in no company and are not the foothold, in contact or not. */
-    private int laneSquads(Map<Integer, Body> byId, int track) {
+    private int laneFree(Map<Integer, Body> byId, int track) {
         int n = 0;
         for (Body body : byId.values()) {
             if (body.track() == track && !body.machine() && body.squadId() != footholdSquad && !inAnyCompany(body.squadId())) n++;
