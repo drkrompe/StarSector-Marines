@@ -872,7 +872,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             int reach = places.radius(place);
             boolean arrived = Math.abs(squad.centroidX - places.centreX(place)) <= reach
                     && Math.abs(squad.centroidY - places.centreY(place)) <= reach;
-            return new GarrisonDirector.Garrison(squad.id, place, !squad.localContact, arrived, squad.aliveMembers);
+            return new GarrisonDirector.Garrison(squad.id, place, !squad.localContact, arrived, squad.aliveMembers,
+                    (int) squad.centroidX, (int) squad.centroidY);
         }
         garrisons.forget(squad.id);
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -1348,15 +1349,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (PlanningSquad squad : candidates) {
             if (squad.crew || squad.machine || justReleased.contains(squad.id)) continue;
             if (!selected.contains(squad.id)) {
-                free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY));
+                free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, false, squad.aliveMembers));
             } else if (isTrackResponse(directives.get(squad.id)) && GARRISON_FROM_RALLY) {
                 // Already marching toward the threatened track: a pressed place on the way is a better post than the
                 // track point. Not part of the roving reserve, so the floor does not bar it.
-                free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true));
+                free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true, squad.aliveMembers));
             }
         }
         for (PlanningSquad squad : staged.values()) {
-            free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true));
+            free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true, squad.aliveMembers));
         }
         List<GarrisonDirector.Man> sent = garrisons.assign(free, (squadId, place) -> {
             PlanningSquad squad = allSquads.get(squadId);

@@ -499,6 +499,65 @@ class GarrisonDirectorTest {
         return profile.countOf(TickInnerProfile.Bucket.GARRISON_CANDIDATE);
     }
 
+    @Test
+    void aPatrolBelowUsefulStrengthIsNeverSent() {
+        pressure(1, 5f);
+        evaluate(List.of(), 1);
+        int weak = GarrisonDirector.MIN_USEFUL_MEMBERS - 1;
+        List<Free> pool = List.of(new Free(100, registry.centreX(1) - 5, 12, false, weak),
+                new Free(101, registry.centreX(1) - 6, 12, true, weak),
+                new Free(102, registry.centreX(1) - 8, 12, true, GarrisonDirector.MIN_USEFUL_MEMBERS));
+
+        assertEquals(List.of(new Man(102, 1)), director.assign(pool, always()),
+                "the nearer squads are too weak to be a garrison, so the one that is strong enough goes");
+    }
+
+    @Test
+    void aContactAtTheFarEndOfTheRunDoesNotBreachASquadHoldingItsMiddle() {
+        pressure(1, 9f);
+        int far = registry.centreX(1) + GarrisonDirector.BREACH_RANGE_CELLS + 1;
+        List<Garrison> held = List.of(new Garrison(7, 1, true, true, 8, far, 12));
+        evaluate(held, 1);
+
+        assertTrue(director.fallingBack().isEmpty());
+        assertTrue(!director.lockedOut(registry.centreX(1), registry.centreY(1)), "and the place is not locked out");
+    }
+
+    @Test
+    void aContactInTheRunNearTheSquadBreachesIt() {
+        pressure(1, 9f);
+        int near = registry.centreX(1) + GarrisonDirector.BREACH_RANGE_CELLS;
+        List<Garrison> held = List.of(new Garrison(7, 1, false, true, 8, near, 12));
+        evaluate(held, 1);
+
+        assertEquals(List.of(7), director.fallingBack());
+        assertTrue(director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
+    @Test
+    void aContactBesideTheRunButNotInItIsNoBreach() {
+        pressure(1, 9f);
+        int x = registry.centreX(1);
+        int y = 13;
+        while (registry.idAt(x, y) >= 0) y++;
+        assertTrue(registry.idAt(x, y - 1) >= 0, "the cell is adjacent to the run");
+        List<Garrison> held = List.of(new Garrison(7, 1, false, true, 8, x, 12));
+        director.evaluate(registry, pressureField(), new int[]{x, y}, 1, held);
+
+        assertTrue(director.fallingBack().isEmpty());
+        assertTrue(!director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
+    @Test
+    void aSquadStillClosingIsGivenBackWhenAnEnemyIsInTheRunHoweverFarItIsFromThem() {
+        pressure(1, 9f);
+        List<Garrison> held = List.of(new Garrison(7, 1, true, false, 8, 5, 12));
+        List<Integer> released = evaluate(held, 1);
+
+        assertEquals(List.of(7), released, "a march into a breached run is abandoned");
+        assertTrue(director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
     private int lastBlockReads() {
         return profile.countOf(TickInnerProfile.Bucket.GARRISON_BLOCK_READ);
     }
