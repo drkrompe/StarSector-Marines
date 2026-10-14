@@ -41,7 +41,10 @@ class BriefingCommsTest {
                 assertEquals("graphics/portraits/castle.png", instance.requireElement("mission-briefing-speaker-portrait").imageSource());
                 click(document, instance, "mission-deploy");
                 assertEquals(1, planned[0]);
-                click(document, instance, "mission-comms-next");
+                assertThrows(IllegalArgumentException.class, () -> instance.requireElement("mission-comms-next"));
+                assertThrows(IllegalArgumentException.class, () -> instance.requireElement("mission-comms-previous"));
+                assertFalse(props.containsKey("commsNextAction"));
+                advanceTurn(comms);
                 comms.update(instance);
                 assertEquals("vale", comms.current().key());
                 assertEquals("graphics/portraits/tamsin-vale.png", instance.requireElement("mission-briefing-speaker-portrait").imageSource());
@@ -78,14 +81,15 @@ class BriefingCommsTest {
         return (SoundAPI) Proxy.newProxyInstance(SoundAPI.class.getClassLoader(), new Class<?>[] { SoundAPI.class },
                 (proxy, method, args) -> method.getName().equals("isPlaying") ? false : null);
     }
-    @Test void missingAudioHandleKeepsVoicedTextReadableUntilNext() {
+    @Test void missingAudioHandleUsesReadableFallbackAndFinishesAutomatically() {
         var comms = new BriefingComms(new NarrationPlayer(line -> null));
         var line = new WaylineNarration.Line("missing", "mission", "briefing", "Report.", 1, 1, 10, List.of());
         comms.enter(conversation(), List.of(line));
-        comms.advance(1000, false);
+        comms.advance(0, false);
+        comms.advance(1, false);
         assertTrue(comms.visible());
         assertFalse(comms.busy());
-        comms.next();
+        advanceTurn(comms);
         assertFalse(comms.visible());
     }
     @Test void returningToSameMissionDoesNotAutoplayButNewMissionDoes() {
@@ -95,7 +99,7 @@ class BriefingCommsTest {
         comms.enter(Mission.builder(mission).payout(20).build(), List.of());
         comms.advance(0, false);
         assertFalse(comms.visible());
-        comms.replay(); comms.advance(0, false); comms.next(); comms.next();
+        comms.replay(); comms.advance(0, false); advanceTurn(comms); advanceTurn(comms);
         comms.enter(mission, List.of()); comms.advance(0, false);
         assertFalse(comms.visible());
         comms.enter(Mission.builder(mission).id("new-mission").build(), List.of()); comms.advance(0, false);
@@ -111,19 +115,19 @@ class BriefingCommsTest {
         assertFalse(comms.visible());
         assertEquals("First.", comms.current().text());
         assertNull(comms.current().recording());
-        comms.replay(); comms.advance(0, false); comms.next(); comms.next();
+        comms.replay(); comms.advance(0, false); advanceTurn(comms); advanceTurn(comms);
         Mission rewritten = Mission.builder(mission).dialogue(List.of(MissionDialogue.say("Vale", "New work."))).build();
         comms.enter(rewritten, List.of()); comms.advance(0, false);
         assertFalse(comms.visible());
         comms.replay(); comms.advance(0, false);
         assertEquals("New work.", comms.current().text());
     }
-    @Test void transcriptScrollResetsOnNextReplayAndChangedTextButNotFrameRefresh() {
+    @Test void transcriptScrollResetsOnAutomaticTurnReplayAndChangedTextButNotFrameRefresh() {
         String template = "<template><div id='root'><div id='mission-comms-dialog'>"
                 + "<div id='mission-briefing-speaker'><div id='mission-briefing-speaker-name'/>"
                 + "<div id='mission-briefing-speaker-role'/><img id='mission-briefing-speaker-portrait'/></div>"
                 + "<div id='mission-comms-text'/><div id='mission-comms-transcript'/><div id='mission-comms-status'/>"
-                + "<button id='mission-comms-next'/></div></div></template>";
+                + "</div></div></template>";
         var markup = new MarkupLoader(path -> template, List.of("comms-test.mlx"))
                 .reloadAndBuild(new Reactor(), "comms-test", Map.of());
         var comms = new BriefingComms(new NarrationPlayer(line -> null));
@@ -132,7 +136,7 @@ class BriefingCommsTest {
         var transcript = markup.requireElement("mission-comms-transcript");
         transcript.scrollTop(100); comms.update(markup);
         assertEquals(100, transcript.scrollTop());
-        comms.next(); comms.update(markup);
+        advanceTurn(comms); comms.update(markup);
         assertEquals(0, transcript.scrollTop());
         transcript.scrollTop(100); comms.replay(); comms.update(markup);
         assertEquals(0, transcript.scrollTop());
@@ -146,17 +150,17 @@ class BriefingCommsTest {
         return Mission.builder().id("conversation").dialogue(List.of(
                 MissionDialogue.say("Castle", "First."), MissionDialogue.say("Vale", "Second."))).build();
     }
-    @Test void unrecordedTurnsWaitForReaderAndReplayAfterSkipOrCompletion() {
+    @Test void unrecordedTurnsAutomaticallyContinueAndReplayAfterSkipOrCompletion() {
         var comms = new BriefingComms(new NarrationPlayer(line -> fail("Unrecorded text must not play audio")));
         comms.enter(conversation(), List.of());
-        comms.advance(1000, false);
+        comms.advance(0, false);
+        comms.advance(1, false);
         assertTrue(comms.visible());
         assertEquals("castle", comms.current().key());
-        comms.next();
-        comms.advance(1000, false);
+        advanceTurn(comms);
         assertEquals("vale", comms.current().key());
         assertTrue(comms.visible());
-        comms.next();
+        advanceTurn(comms);
         assertFalse(comms.visible());
         comms.replay(); comms.advance(0, false);
         assertEquals("castle", comms.current().key());
@@ -164,6 +168,25 @@ class BriefingCommsTest {
         assertFalse(comms.visible());
         comms.replay(); comms.advance(0, false);
         assertTrue(comms.visible());
+    }
+    @Test void longSubtitleUsesReadableFallbackDespiteMissingShortRecording() {
+        var comms = new BriefingComms(new NarrationPlayer(line -> null));
+        String text = "The landing zone remains under observation until every transport clears the approach. ".repeat(8);
+        Mission mission = Mission.builder().id("long").dialogue(List.of(MissionDialogue.say("Castle", text))).build();
+        var missing = new WaylineNarration.Line("missing-long", "mission", "briefing", text, 1, 1, 10, List.of());
+        comms.enter(mission, List.of(missing));
+        comms.advance(0, false);
+        for (int i = 0; i < 200; i++) comms.advance(.1f, false);
+        assertTrue(comms.visible(), "A long briefing needs more than twenty seconds to read");
+        advanceTurn(comms);
+        assertFalse(comms.visible());
+    }
+    private static void advanceTurn(BriefingComms comms) {
+        var previous = comms.current();
+        for (int i = 0; i < 1200 && comms.visible() && comms.current() == previous; i++) {
+            comms.advance(.1f, false);
+        }
+        assertTrue(!comms.visible() || comms.current() != previous, "Conversation must advance within two minutes");
     }
     @Test void explicitRecordingIdentitySurvivesTranslationAndCatalogOrder() {
         Mission mission = Mission.builder().id("translated").dialogue(List.of(
@@ -188,21 +211,54 @@ class BriefingCommsTest {
         assertFalse(comms.visible()); assertFalse(comms.busy());
         comms.advance(0, false);
         assertEquals(List.of("legacy", "legacy"), heard);
-        comms.advance(2, false);
+        advanceTurn(comms);
         assertFalse(comms.visible());
     }
-    @Test void onlyMatchingRecordedTurnAutoAdvancesAndManualNextStopsItsAudio() {
+    @Test void matchingRecordingFinishesThenStaleRecordingUsesTextFallback() {
         var heard = new ArrayList<String>();
         var comms = new BriefingComms(new NarrationPlayer(line -> { heard.add(line.id()); return completedSound(); }));
         var first = new WaylineNarration.Line("castle", "mission", "briefing.01", "First.", 1, 1, 10,
                 List.of(), "Castle", "graphics/portraits/castle.png");
         var stale = new WaylineNarration.Line("vale", "mission", "briefing.02", "Old text.", 1, 1, 10, List.of());
         comms.enter(conversation(), List.of(first, stale));
-        comms.advance(0, false); comms.advance(2, false);
+        comms.advance(0, false); advanceTurn(comms);
         assertEquals("vale", comms.current().key());
-        comms.advance(100, false);
+        comms.advance(0, false); comms.advance(1, false);
         assertTrue(comms.visible()); assertEquals(List.of("castle"), heard);
-        comms.replay(); comms.advance(0, false); comms.next();
-        assertFalse(comms.busy());
+        advanceTurn(comms);
+        assertFalse(comms.visible());
+    }
+    @Test void playingRecordingIsNeverTruncatedAndSkipAndReplayStopItsHandle() {
+        boolean[] playing = {true};
+        int[] stops = {0};
+        SoundAPI sound = (SoundAPI) Proxy.newProxyInstance(SoundAPI.class.getClassLoader(),
+                new Class<?>[] { SoundAPI.class }, (proxy, method, args) -> {
+                    if (method.getName().equals("isPlaying")) return playing[0];
+                    if (method.getName().equals("stop")) stops[0]++;
+                    return null;
+                });
+        var line = new WaylineNarration.Line("castle", "mission", "briefing.01", "First.", 1, 1, 10, List.of());
+        var comms = new BriefingComms(new NarrationPlayer(recording -> sound));
+        comms.enter(conversation(), List.of(line)); comms.advance(0, false);
+        for (int i = 0; i < 1200; i++) comms.advance(.1f, false);
+        assertTrue(comms.visible()); assertTrue(comms.busy());
+        assertEquals("castle", comms.current().key()); assertEquals(0, stops[0]);
+        comms.replay(); assertEquals(1, stops[0]); assertFalse(comms.busy());
+        comms.advance(0, false); comms.stop();
+        assertEquals(2, stops[0]); assertFalse(comms.visible());
+        comms.replay(); comms.advance(0, false);
+        playing[0] = false; advanceTurn(comms);
+        assertEquals("vale", comms.current().key());
+    }
+    @Test void tutorialRestartsTextFallbackInsteadOfConsumingItsRemainingTime() {
+        var comms = new BriefingComms(new NarrationPlayer(line -> null));
+        comms.enter(conversation(), List.of()); comms.advance(0, false);
+        comms.advance(3, false);
+        comms.advance(100, true);
+        assertFalse(comms.visible()); assertEquals("castle", comms.current().key());
+        comms.advance(0, false); comms.advance(2, false);
+        assertTrue(comms.visible()); assertEquals("castle", comms.current().key());
+        advanceTurn(comms);
+        assertEquals("vale", comms.current().key());
     }
 }

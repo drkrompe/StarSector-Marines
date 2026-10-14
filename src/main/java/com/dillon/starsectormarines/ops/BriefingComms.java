@@ -21,6 +21,7 @@ final class BriefingComms {
     private boolean pending;
     private boolean started;
     private boolean playbackStarted;
+    private float readingRemaining;
     private String missionId;
     private boolean entered;
     private UiElement mountedDialog;
@@ -86,16 +87,31 @@ final class BriefingComms {
         Turn turn = current();
         if (!started) {
             started = true;
+            readingRemaining = readingSeconds(Strings.resolve(turn.text()));
             if (turn.recording() != null && turn.recording().voiced()) {
                 player.start(turn.recording());
                 playbackStarted = player.hasSound();
                 if (!playbackStarted) player.stop();
             }
         }
-        player.advance(dt);
-        if (playbackStarted && !player.busy()) next();
+        if (playbackStarted) {
+            player.advance(dt);
+            if (!player.busy()) advanceTurn();
+        } else {
+            readingRemaining -= Math.max(0, dt);
+            if (readingRemaining <= 0) advanceTurn();
+        }
     }
-    void next() {
+    private static float readingSeconds(String text) {
+        String trimmed = text.strip();
+        int words = trimmed.isEmpty() ? 0 : trimmed.split("[\\p{Z}\\s]+").length;
+        long characters = trimmed.codePoints().filter(code -> !Character.isWhitespace(code)).count();
+        // Pace localized subtitles independently of any stale recording duration.
+        // Scripts without spaces need a character-based reading allowance.
+        float reading = Math.max(words / 2.6f, characters / (words <= 1 ? 7f : 14f));
+        return Math.max(4f, 1.25f + reading);
+    }
+    private void advanceTurn() {
         if (!visible) return;
         turnRevision++;
         player.stop(); started = false; playbackStarted = false;
@@ -116,8 +132,6 @@ final class BriefingComms {
         props.put("commsVisible", visible);
         props.put("commsText", turn == null ? "" : Strings.resolve(turn.text()));
         props.put("commsProgress", turn == null ? "" : Strings.format("briefingCommsProgress", Math.min(index + 1, turns.size()), turns.size()));
-        props.put("commsNextLabel", Strings.get(index + 1 >= turns.size() ? "briefingCommsFinish" : "briefingCommsNext"));
-        props.put("commsNextAction", (Runnable) this::next);
         props.put("commsSkipAction", (Runnable) this::stop);
     }
     void update(MarkupInstance markup) {
@@ -141,6 +155,5 @@ final class BriefingComms {
             displayedRevision = turnRevision;
         }
         markup.requireElement("mission-comms-status").text((String) props.get("commsProgress"));
-        markup.requireElement("mission-comms-next").text((String) props.get("commsNextLabel"));
     }
 }

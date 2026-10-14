@@ -392,14 +392,15 @@ requires audio to reveal the contract's meaning.
 
 Chapter comms play directly in the briefing's left column. A permanent contact
 header swaps the portrait, colored name and role with the current speaker;
-white dialogue below it shows one turn at a time. Next advances a turn; Skip
+white dialogue below it shows one turn at a time, advancing automatically. Skip
 collapses the dialogue without accepting terms or deploying. Replay Briefing in
 the command rail starts it again. Planning controls remain available while the
 player listens or reads; leaving the page stops playback. The size chevrons,
 risk skulls and reward value share the top heading bar, leaving the conversation
 column for the people and their terms.
-Recorded turns advance after playback; unrecorded or unavailable audio waits for
-Next. The current turn survives terrain refreshes and viewport changes, and
+Recorded turns advance after playback; unrecorded or unavailable audio uses a
+reading interval sized to the localized subtitle. There are no manual turn controls.
+The current turn survives terrain refreshes and viewport changes, and
 returning from squad assignment does not restart a skipped or completed
 conversation. Company preparation tutorials temporarily take input and playback
 priority. Missions without authored dialogue or narration reserve no comms space.
