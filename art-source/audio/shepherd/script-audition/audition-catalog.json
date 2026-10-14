@@ -154,7 +154,7 @@
       "missionId": "story_shepherd_cold_start",
       "event": "cold_start.turret_ready",
       "text": "Captain, that's a road gun up, built by a wreck on a cradle. It'll hold longer than a checkpoint. Keep the approaches clear while Vale's fitters finish.",
-      "durationSeconds": 9.52,
+      "durationSeconds": 8.78,
       "priority": 15,
       "expiresSeconds": 35,
       "speaker": "CASTLE / COMPANY COMMAND",
@@ -240,7 +240,7 @@
       "voiceId": "cZH6erlGkOyAQheipyno",
       "voiced": false,
       "synthesisText": "[flat refusal] No.",
-      "durationSeconds": 1.84,
+      "durationSeconds": 0.8,
       "durationSource": "estimated reading duration; unrecorded",
       "selectedTake": null
     },
