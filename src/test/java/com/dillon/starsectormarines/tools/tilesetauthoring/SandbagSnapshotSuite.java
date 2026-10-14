@@ -24,10 +24,10 @@ public final class SandbagSnapshotSuite implements SnapshotSuite {
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
-        NavigationGrid grid = new NavigationGrid(21, 13);
-        CellTopology topology = new CellTopology(21, 13);
+        NavigationGrid grid = new NavigationGrid(21, 19);
+        CellTopology topology = new CellTopology(21, 19);
         List<Doodad> props = new ArrayList<>();
-        for (int y = 0; y < 13; y++) for (int x = 0; x < 21; x++) {
+        for (int y = 0; y < 19; y++) for (int x = 0; x < 21; x++) {
             grid.setWalkableFloor(x, y);
             topology.setGroundKind(x, y, x < 10 ? CellTopology.GroundKind.STONE : CellTopology.GroundKind.GRASS);
         }
@@ -56,28 +56,37 @@ public final class SandbagSnapshotSuite implements SnapshotSuite {
         // Standalone facings keep their authored edge position too.
         String[] faces = {"n", "e", "s", "w"};
         for (int i = 0; i < 4; i++) add(props, 16 + i, 9, "straight-" + faces[i], 0);
+        // Fort belt sandbags stand on walkable ground like the shipped fort stage leaves them.
+        String[] fortShapes = {"n", "e", "s", "w", "corner-ne", "corner-se", "corner-sw", "corner-nw"};
+        for (int i = 0; i < fortShapes.length; i++)
+            props.add(new Doodad(2 + i * 2, 15, TileRegistry.installed().doodad("doodad.fort-sandbag-" + fortShapes[i])));
         for (Doodad prop : props) {
+            if (prop.definitionId().startsWith("doodad.fort-sandbag-")) {
+                grid.setSeeThrough(prop.cellX, prop.cellY, true);
+                topology.setFixture(prop.cellX, prop.cellY, true);
+                continue;
+            }
             grid.setWalkable(prop.cellX, prop.cellY, false);
             grid.setSeeThrough(prop.cellX, prop.cellY, true);
             topology.setFixture(prop.cellX, prop.cellY, true);
         }
-        MapResult map = new MapResult(grid, topology, 0, 0, 20, 12, List.of(), props);
+        MapResult map = new MapResult(grid, topology, 0, 0, 20, 18, List.of(), props);
         HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
         List<SnapshotArtifact> artifacts = new ArrayList<>(List.of(new SnapshotArtifact("sandbag-reskin-template.png", SandbagReskinTemplate.render()),
                 new SnapshotArtifact("sandbag-layouts.png",
                         renderer.render(map, 42, 48))));
         DoodadService service = new DoodadService(grid);
         for (Doodad prop : props) service.addDoodad(prop);
-        MapResult live = new MapResult(grid, topology, 0, 0, 20, 12, List.of(), service.getDoodads());
+        MapResult live = new MapResult(grid, topology, 0, 0, 20, 18, List.of(), service.getDoodads());
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
             MapEditor editor = new MapEditor(navigation);
             editor.setDoodads(service);
             for (Doodad prop : props) {
-                if ((prop.cellX + prop.cellY) % 2 == 0) editor.damageWall(prop.cellX, prop.cellY, 25);
+                if ((prop.cellX + prop.cellY) % 2 == 0 || (prop.cellY == 15 && prop.cellX % 4 == 2)) editor.damageWall(prop.cellX, prop.cellY, 25);
             }
             artifacts.add(new SnapshotArtifact("sandbag-damaged.png", renderer.render(live, 42, 48)));
             for (Doodad prop : props) {
-                if ((prop.cellX + prop.cellY) % 2 == 0) {
+                if ((prop.cellX + prop.cellY) % 2 == 0 || (prop.cellY == 15 && prop.cellX % 4 == 2)) {
                     if (!editor.damageWall(prop.cellX, prop.cellY, 100)) throw new AssertionError("Sandbags did not breach");
                     if (!grid.isWalkable(prop.cellX, prop.cellY) || grid.isDoorway(prop.cellX, prop.cellY))
                         throw new AssertionError("Destroyed bags left an obstruction or doorway");

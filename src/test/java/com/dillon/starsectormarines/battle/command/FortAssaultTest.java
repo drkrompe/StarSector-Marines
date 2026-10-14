@@ -55,7 +55,7 @@ class FortAssaultTest {
     private static Objective objective(FortFrame frame) {
         int[] core = frame.cell(BatteryFort.PLATFORM[0], BatteryFort.PLATFORM[1]);
         DefenceStructureFact bunker = new DefenceStructureFact(Kind.FIRE_CONTROL, core[0], core[1], D, D, false, 5,
-                core[0], core[1], 1, Family.BATTERY_FORT, new int[0], frame);
+                core[0], core[1], 1, Family.BATTERY_FORT, new int[0], new int[0], frame);
         return new Objective(1, Family.BATTERY_FORT, core[0], core[1], List.of(bunker), 0, frame);
     }
 
@@ -321,9 +321,9 @@ class FortAssaultTest {
         int[] plant = p.frame.cell(BatteryFort.coreCentre(FortAspect.POWER)[0],
                 BatteryFort.coreCentre(FortAspect.POWER)[1]);
         DefenceStructureFact bunkerOurs = new DefenceStructureFact(Kind.FIRE_CONTROL, aspect[0], aspect[1], M, D, false, 5,
-                aspect[0], aspect[1], 1, Family.BATTERY_FORT, new int[0], p.frame);
+                aspect[0], aspect[1], 1, Family.BATTERY_FORT, new int[0], new int[0], p.frame);
         DefenceStructureFact plantHostile = new DefenceStructureFact(Kind.FORT_POWER, plant[0], plant[1], D, D, false, 5,
-                aspect[0], aspect[1], 1, Family.BATTERY_FORT, new int[0], p.frame);
+                aspect[0], aspect[1], 1, Family.BATTERY_FORT, new int[0], new int[0], p.frame);
         Objective next = new Objective(1, Family.BATTERY_FORT, aspect[0], aspect[1], List.of(bunkerOurs, plantHostile), 0, p.frame);
         Map<Integer, Order> hold = p.execution.run(tick + 60, M, next, p.members, p.bodies, p.topology, p.notes);
         assertEquals(FortAssault.Step.HOLD, p.execution.step(), "the aspect it was at is no longer work");

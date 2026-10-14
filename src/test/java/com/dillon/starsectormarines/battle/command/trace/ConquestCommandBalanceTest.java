@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import org.json.JSONObject;
@@ -111,7 +112,7 @@ class ConquestCommandBalanceTest {
                         first.forts, StandardCharsets.UTF_8);
                 rows.add(new ReportRow(runId, loaded.sha256,
                         loaded.construction, loaded.launchSeats,
-                        loaded.launchSquads, first.analysis));
+                        loaded.launchSquads, first.analysis, first.positions));
                 System.out.println("[commander-balance] " + runId + " "
                         + first.analysis.run().termination() + " winner="
                         + first.analysis.run().winner() + " ticks="
@@ -142,6 +143,8 @@ class ConquestCommandBalanceTest {
                      visualRoot, runId, sim)) {
             SquadDensityProbe density = new SquadDensityProbe();
             FortOutcomes forts = new FortOutcomes();
+            FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
+            FightingPositionIndex startPositions = sim.fightingPositions();
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
@@ -149,13 +152,15 @@ class ConquestCommandBalanceTest {
                 capture.afterAdvance();
                 density.sample(sim);
                 forts.sample(sim);
+                positionUse.sample(sim);
                 assertEquals(before + 1, sim.getSimTickIndex(),
                         "headless runner must advance exactly one fixed tick");
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             String trace = sim.getCommandTraceJsonLines();
             return new RunResult(trace, CommandTraceAnalyzer.analyze(trace),
-                    density.markdown(runId), forts.describe(sim) + fortOrders(trace));
+                    density.markdown(runId), forts.describe(sim) + fortOrders(trace) + positionUse.describe(),
+                    FightingPositionCount.of(startPositions, sim.fightingPositions()));
         }
     }
 
@@ -335,6 +340,7 @@ class ConquestCommandBalanceTest {
                     .append(row.launchSquads)
                     .append(",\"shuttles\":\"").append(shuttleShape(row.fixture))
                     .append('"')
+                    .append(",\"fightingPositions\":").append(row.positions.json())
                     .append(",\"metrics\":")
                     .append(row.analysis.canonicalJson().trim())
                     .append('}');
@@ -357,8 +363,9 @@ class ConquestCommandBalanceTest {
                 .append("- Scheduler: SERIAL_DETERMINISTIC\n\n")
                 .append("| fixture | seed | shuttle cycles | transport seats | committed marines | squads | result | winner | ticks | ")
                 .append("marine losses | defender losses | captures | final held | ")
-                .append("marine retargets | defender mobilization samples |\n")
-                .append("|---|---:|---|---:|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|\n");
+                .append("marine retargets | defender mobilization samples | ")
+                .append("position runs (start/end) | position cells (start/end) |\n")
+                .append("|---|---:|---|---:|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
         for (ReportRow row : rows) {
             Analysis analysis = row.analysis;
             out.append('|').append(row.id)
@@ -381,6 +388,10 @@ class ConquestCommandBalanceTest {
                             .retargets())
                     .append('|').append(analysis.factions().get(Faction.DEFENDER)
                             .publishedMobilizationLatenciesTicks().size())
+                    .append('|').append(row.positions.startRuns()).append('/')
+                    .append(row.positions.endRuns())
+                    .append('|').append(row.positions.startCells()).append('/')
+                    .append(row.positions.endCells())
                     .append("|\n");
         }
         out.append("\n## Command diagnostics\n");
@@ -740,7 +751,8 @@ class ConquestCommandBalanceTest {
             BattleFixture fixture, ConquestBattleFixture construction,
             int launchSeats, int launchSquads, String sha256) { }
 
-    private record RunResult(String trace, Analysis analysis, String density, String forts) { }
+    private record RunResult(String trace, Analysis analysis, String density, String forts,
+                              FightingPositionCount positions) { }
 
     /** How many structure orders each commander gave, by role, counted in the published trace. */
     private static String fortOrders(String trace) {
@@ -773,5 +785,12 @@ class ConquestCommandBalanceTest {
 
     record ReportRow(
             String id, String sha256, ConquestBattleFixture fixture,
-            int launchSeats, int launchSquads, Analysis analysis) { }
+            int launchSeats, int launchSquads, Analysis analysis,
+            FightingPositionCount positions) {
+        ReportRow(String id, String sha256, ConquestBattleFixture fixture,
+                  int launchSeats, int launchSquads, Analysis analysis) {
+            this(id, sha256, fixture, launchSeats, launchSquads, analysis,
+                    FightingPositionCount.UNMEASURED);
+        }
+    }
 }

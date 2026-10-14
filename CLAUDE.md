@@ -249,7 +249,11 @@ Do not run builds or leave generated task files there.
   map and was killed; it was honest work. Before killing one, read the staging
   trace under `build/reports/commander/.conquest-staging-*/traces/` — its
   `compound-state` events say whether the battle is moving — or ask the cheap
-  question first: `-PmaxTicks=3000` plays both fixtures in about 100s. Use
+  question first: `-PmaxTicks=3000` plays both fixtures in about 100s.
+  Each fixture row reports fighting-position runs and cells at start and end.
+  The canonical fixtures declare no forts and so have none; the fort-bearing
+  control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
+  (four battery forts and a shield fort; about 50 runs, 5,200 cells). Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
@@ -871,6 +875,14 @@ Do not run builds or leave generated task files there.
   with the chosen tool; the room is redrawn once per stroke rather than per
   cell. Zoom is explicit with a Fit default, since a vehicle bay is forty cells
   across and a server room is five.
+  The Map damage page opens Relief's actual production map with named removable
+  damage layers. Paint scars, battered equipment or ruins; right-drag erases
+  from the selected layer. Layer visibility, removal, undo/redo and intact
+  comparison rebuild the same base recipe, keeping pristine geometry available.
+  Save writes `mod/data/world/damage/relief.damage.json` atomically. The shared
+  document and brush are recipe-independent; Relief is the first linked host.
+  `createSnapshots -Psnapshot=relief-damage` checks exact intact restoration,
+  production destruction and editor gestures, and renders at 1920x1080 / 100%.
   The Tilesets page opens on a question rather than on a workspace: **what are
   you doing?** Three ways in, each a walkthrough of numbered screens with Back
   and Next, and each screen holding only the controls its own step needs. The
@@ -1151,6 +1163,7 @@ The discovered suite ids and default output directories are:
 | `close-air-support` | A called Mudskipper gunship over a garrison, 1920x1080 whole map plus a close view: it enters off the map, circles overhead of the targeted ground with the hull's one turret on its own mount, fires from every side of the ring, and leaves when its visit is spent, against a no-call control. Verdicts are the scene's | `build/snapshots/close-air-support/` |
 | `shield-dome` | An Onslaught shelling defenders under a planetary shield dome, 1920x1080 with a close view: the rounds absorbed as flux with a pool gauge filling, the overload and the gap in which they land, the recovery, against a no-dome control and a loop with the generator destroyed. Verdicts are the scene's | `build/snapshots/shield-dome/` |
 | `assault-muster` | One battery fort and a company in the planned assault: the `plan` loop only, 1920x1080 at 100% scale, whole map and a close view of the fort's west face as an animation plus a PNG still per frame, across positioning a base of fire, suppression and entry. The verdicts and per-loop readings (control, slice 1 muster, plan, plan with a lance) are `sceneEvidence`'s; forts are not weakened for it | `build/snapshots/assault-muster/` |
+| `fighting-position` | A twelve-marine squad and a twelve-cell trench, five loops at 1920x1080, 100% scale, with the fighting-position layer (position cells green, claimed cells white, dug-in marines magenta): fighting positions on and off with marines rooted at 1000 health over six enemy placements, a controlled isolation of the composure benefit rather than a battle outcome; a squad filling an empty trench; a free-moving, ordinary-health squad taking and holding a trench under live DMR fire; and overflow onto a shared run (disjoint claims, overflow in ordinary cover). One still per loop | `build/snapshots/fighting-position/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

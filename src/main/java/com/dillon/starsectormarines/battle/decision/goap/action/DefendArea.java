@@ -113,23 +113,29 @@ public final class DefendArea implements Action {
 
     private ActionStatus engageInsideArea(long member, long target, Squad squad,
                                           BattleControl sim) {
-        if (holdsClaimedCell(member, sim)) {
+        int[] claimed = claimedCell(member, sim);
+        if (claimed != null) {
+            // A marine holding a fighting-position cell fights from it. Hunting a better
+            // firing cell elsewhere in the circle would walk him out of the position and
+            // restart his dig-in, so one without a shot waits in the trench instead; the
+            // claims move him when the believed threat turns the position's cover away.
+            if (!sim.movement().atCell(member, claimed[0], claimed[1])) {
+                moveToward(member, claimed[0], claimed[1], sim, true);
+                return ActionStatus.RUNNING;
+            }
+            if (LaneSidestep.isStepping(member, sim)) {
+                sim.advanceMovement(member);
+            } else {
+                PatrolMotion.hold(member, sim);
+            }
             float held = TacticalScoring.cellDistance(
                     sim.world().x(member), sim.world().y(member),
                     sim.world().x(target), sim.world().y(target));
             if (held <= sim.world().attackRange(member)
                     && sim.getTacticalScoring().hasClearShot(member, target)) {
-                // A marine on his fighting-position cell who can already shoot stays put:
-                // the position is the point, and a better firing cell elsewhere in the
-                // circle would walk him out of it and restart his dig-in.
-                if (LaneSidestep.isStepping(member, sim)) {
-                    sim.advanceMovement(member);
-                } else {
-                    PatrolMotion.hold(member, sim);
-                }
                 sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
-                return ActionStatus.RUNNING;
             }
+            return ActionStatus.RUNNING;
         }
         int[] firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
                 member, target, centerX, centerY, radius);
@@ -217,10 +223,6 @@ public final class DefendArea implements Action {
         return sim.fightingPositionClaims().cellOf(member);
     }
 
-    private static boolean holdsClaimedCell(long member, BattleControl sim) {
-        int[] claimed = claimedCell(member, sim);
-        return claimed != null && sim.movement().atCell(member, claimed[0], claimed[1]);
-    }
 
     /** A member left without a position must not settle on one a squadmate holds. */
     private static boolean claimedByOther(int x, int y, long member, BattleView sim) {

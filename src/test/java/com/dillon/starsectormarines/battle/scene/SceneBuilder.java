@@ -272,6 +272,7 @@ public final class SceneBuilder {
         private String specialEquipmentId;
         private int specialSeats;
         private boolean stationary;
+        private float health = -1f;
         private IntFunction<ObjectiveAssignment> assignment;
         private MechVariant mechVariant;
         private MechRole mechRole;
@@ -375,6 +376,17 @@ public final class SceneBuilder {
             return this;
         }
 
+        /**
+         * Gives every member this much health instead of the type's. For a scene whose question is about what
+         * fire does to nerve rather than to bodies: a death drains a fire team by a fixed 0.30 and shrinks its
+         * ceiling, so once marines start dying the casualty order decides everything else a comparison reads.
+         */
+        public SquadSpec health(float maxHp) {
+            if (!(maxHp > 0f)) throw new IllegalArgumentException("Health must be positive: " + maxHp);
+            this.health = maxHp;
+            return this;
+        }
+
         /** Immobile: a fixed emplacement, or a body that must stay where it was put. */
         public SquadSpec stationary() {
             this.stationary = true;
@@ -439,6 +451,7 @@ public final class SceneBuilder {
                 if (kit != null) kit[i].seedInto(spec);
                 spec.squad(squadId);
                 if (stationary) spec.moveSpeed(0f);
+                if (health > 0f) spec.health(health);
                 spawned[i] = sim.spawn(spec);
                 if (mechVariant != null) {
                     sim.world().attachMechLoadout(spawned[i],

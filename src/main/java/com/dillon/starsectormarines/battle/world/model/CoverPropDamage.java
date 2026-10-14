@@ -14,9 +14,12 @@ public final class CoverPropDamage {
     public static final int STARTING_HP = 100;
     private static final String FENCE_PREFIX = "doodad.industrial-fence-";
     private static final String SANDBAG_PREFIX = "doodad.sandbag-";
+    private static final String FORT_SANDBAG_PREFIX = "doodad.fort-sandbag-";
     private static final Set<String> FENCE_SHAPES = Set.of("straight-h", "straight-v",
             "corner-nw", "corner-ne", "corner-sw", "corner-se");
     private static final Set<String> SANDBAG_SHAPES = Set.of("straight-n", "straight-e", "straight-s", "straight-w",
+            "corner-nw", "corner-ne", "corner-sw", "corner-se");
+    private static final Set<String> FORT_SANDBAG_SHAPES = Set.of("n", "e", "s", "w",
             "corner-nw", "corner-ne", "corner-sw", "corner-se");
     public static final Set<String> CRATES = Set.of("doodad.box", "doodad.box-dam", "doodad.crate", "doodad.industrial-crate-stack");
     private static final class Entry {
@@ -81,6 +84,7 @@ public final class CoverPropDamage {
         if (id == null) return null;
         if (id.startsWith(FENCE_PREFIX) && FENCE_SHAPES.contains(id.substring(FENCE_PREFIX.length()))) return FENCE_PREFIX;
         if (id.startsWith(SANDBAG_PREFIX) && SANDBAG_SHAPES.contains(id.substring(SANDBAG_PREFIX.length()))) return SANDBAG_PREFIX;
+        if (id.startsWith(FORT_SANDBAG_PREFIX) && FORT_SANDBAG_SHAPES.contains(id.substring(FORT_SANDBAG_PREFIX.length()))) return FORT_SANDBAG_PREFIX;
         return null;
     }
 

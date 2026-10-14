@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Relief rear working courts preserve the expanded landing and assembly apron.
+Updated: 2026-10-13 — prepared ground: trench and parapet props declare a fighting-position role, and fighting positions are derived from the props standing.
+
+Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
 its berths, so being a working field is one decision rather than two that can
@@ -163,6 +165,28 @@ generation stages must not overwrite their enclosing authored footprint.
 Because an anchor carries identity rather than standability, a consumer that
 needs somewhere to stand — or a room to resolve — derives that cell from the
 place's footprint instead of reading it off the anchor.
+
+**Prepared ground** is the other way a place offers somewhere to stand, and it
+is declared by the art rather than by a stamper. A trench or sandbag prop states
+its `fightingPosition` role (trench or parapet) in its tileset entry, and the
+battle derives **fighting positions** from the props actually standing: trench
+cells, parapet cells, and the walkable ground on either side of a parapet,
+grouped into connected runs, keeping only runs long enough for a full squad.
+Nothing about a position is authored separately, so every stamper that lays
+earthworks — fort belts, sandbag aprons, gun bays — produces positions without
+knowing they exist, and destroying a parapet shrinks or dissolves its run
+through the ordinary prop-damage path. A position has no stored front: trench
+cover is isotropic and a parapet already covers both of its sides, so which side
+to man is a question for the occupant. A classification read off a prop's id
+instead of its declared role would be a secret convention; the role travels
+with the art through authoring and export. `ai-nouns.md` owns what occupying one
+means.
+
+A stand position may be authored on prepared ground: a fort belt's nests
+publish garrison places whose stand positions are the belt's own trench and
+sandbag cells. Because the fort stage runs after the tactical map is linked, its
+places are added to the finished map; a node left on the generation context at
+that point never reaches the battle, silently.
 
 A late stamper that overwrites earlier structure can strand walkable ground
 behind it. Such an **orphaned pocket** is normally filled in solid, because a
@@ -447,6 +471,37 @@ Thunder Run permits pavement and wear changes while keeping its reserved freight
 and ambush corridors. Moving those roads also requires redesigning its facilities,
 vehicle stops and approach routes, rather than changing a spline file alone.
 
+## Authored damage layers
+
+A **damage plan** describes the battle damage already present when a place is
+visited. It is separate from the intact recipe, roads and terrain. Named layers
+contain ordered area-brush strokes and can be disabled or removed independently.
+A stroke scars ground, batters equipment and structure, or ruins them. Erasing
+removes intent from the selected layer; other enabled layers still contribute.
+Repeated samples within one layer do not multiply damage to a multi-cell object.
+The retained seed shapes irregular boundaries and scattered ground marks without
+consuming layout or battle randomness.
+
+The map-to-battle assembly applies initial damage once, after props register and
+before forces spawn. It uses the ordinary structural destruction boundary:
+bent equipment retains protection and its remaining health; wreckage releases
+its own cover and obstruction; breached walls retain material-matched remnants;
+collapsed roofs stay open. Embedded scene lights retain their supporting wall
+or ceiling identity; losing that support removes both fixture artwork and its
+light pool immediately, including after the scene has opened. Cosmetic ground
+scars alone do not extinguish intact fittings. Permanent natural terrain remains permanent. Old
+damage creates no fresh impact effects, attacker credit, salvage or story reward.
+Derived navigation is refreshed before mission consumers use the map.
+
+Undo and restoration are authoring operations. The workbench regenerates the
+same intact recipe at the same seed and reapplies only enabled layers, rather
+than attempting to repair a live battle. Hiding every layer must reproduce the
+intact scene exactly. The Map damage page provides paint, erase, layer visibility,
+removal, undo/redo, an intact comparison and versioned JSON save/reopen. Relief
+is its first linked map; the brush and document model are independent of that
+recipe. A new host supplies its base recipe and validates its extent and mission
+access rather than baking modifications into a screenshot or destructive map edit.
+
 ## Authored natural terrain
 
 A **terrain plan** is an ordered collection of area-brush strokes. A stroke raises
@@ -641,7 +696,12 @@ cargo-handling court, delivery-vehicle bays and a maintenance strip, connected
 by a narrow service lane. These occupy the apron shoulders: the boat stands,
 westward flight approaches, through-road and central assembly crossing remain
 open. Freight stacks and parked vehicles have real collision footprints;
-markings define working areas without introducing more barriers.
+markings define working areas without introducing more barriers. Its initial
+damage is concentrated on the eastern frontage: a partly collapsed outer
+workshop with wrecked machine tools, broken service fencing, abandoned stores
+and scattered gate impacts. Lighter wear reaches the rear court. The relay,
+gate positions, boat approaches and assembly crossing remain usable. Each
+part of this aftermath is a removable layer over the intact working facility.
 
 Counterattack likewise owns its layout before staging. Its 160 by 96 freight
 depot separates the western boat apron, gate, loading yard and dispatch

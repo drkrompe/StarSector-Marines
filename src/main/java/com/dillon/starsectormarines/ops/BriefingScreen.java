@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.ops.detachment.AgreusConstructionSupport;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 
-import com.dillon.starsectormarines.battle.audio.NarrationSequence;
+
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -177,7 +177,8 @@ public class BriefingScreen implements Screen {
     static final String ROOT_COMPONENT = "mission-briefing";
     static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/missions/mission-dialogue.mlx",
-            "data/ui/components/missions/mission-briefing.mlx");
+            "data/ui/components/missions/mission-briefing.mlx",
+            "data/ui/components/missions/mission-comms.mlx");
 
     private static final Color FRAME_COLOR   = new Color(0x4A, 0x6B, 0x8C);
     private static final Color HEADER_COLOR  = new Color(0xC8, 0xE0, 0xFF);
@@ -275,8 +276,7 @@ public class BriefingScreen implements Screen {
     private boolean commandDeckInitialized;
     /** Developer controls are opt-in and never consume briefing width on entry. */
     private boolean debugDrawerExpanded;
-    private final NarrationSequence narration = new NarrationSequence();
-    private boolean narrationAutoplay;
+    private final BriefingComms narration = new BriefingComms();
 
     /**
      * Debug aircraft-picker selections — keys {@code "<SIDE>|<PROFILE>"} (e.g.
@@ -299,7 +299,6 @@ public class BriefingScreen implements Screen {
         boolean reactivating = input == null;
         this.position = position;
         this.ctx = ctx;
-        if (reactivating) narrationAutoplay = true;
         viewport = MarineOpsUiViewport.from(position);
         if (document == null || reactivating) rebuild();
         else document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -368,6 +367,7 @@ public class BriefingScreen implements Screen {
             commandDeckInitialized = true;
         }
 
+        narration.enter(m, briefingNarration());
         prepareSurvey(m);
         installDocument();
     }
@@ -401,6 +401,7 @@ public class BriefingScreen implements Screen {
         document = built;
         secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
+        narration.update(candidate);
         hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
@@ -443,10 +444,11 @@ public class BriefingScreen implements Screen {
         props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission) + "  ·  "
                 + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
         props.put("missionTitle", mission.name);
+        narration.put(props);
         WaylineNarration.Line briefingLine = displayedBriefingNarration();
         BriefingViewModel.putNarration(props, briefingLine, narration.busy());
         if (briefingLine != null) {
-            props.put("replayNarrationAction", (Runnable) () -> narration.start(briefingNarration()));
+            props.put("replayNarrationAction", (Runnable) narration::replay);
             props.put("stopNarrationAction", (Runnable) narration::stop);
         }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
@@ -2480,12 +2482,12 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        if (narrationAutoplay && (secondSquadGuide == null || !secondSquadGuide.visible())) {
-            narrationAutoplay = false;
-            narration.start(briefingNarration());
+        if (secondSquadGuide != null) secondSquadGuide.update();
+        narration.advance(dt, secondSquadGuide != null && secondSquadGuide.visible());
+        if (markupInstance != null) {
+            narration.update(markupInstance);
+            BriefingViewModel.updateNarration(markupInstance, narration.busy());
         }
-        narration.advance(dt);
-        if (markupInstance != null) BriefingViewModel.updateNarration(markupInstance, displayedBriefingNarration(), narration.busy());
         if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
             surveyComplete = true;
             if (survey.failure() != null) LOG.warn("Briefing terrain generation failed", survey.failure());
@@ -2510,7 +2512,6 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void detach() {
-        narrationAutoplay = false;
         narration.stop();
         survey.close();
         surveyPlan = null;
@@ -2520,9 +2521,7 @@ public class BriefingScreen implements Screen {
     }
 
     private WaylineNarration.Line displayedBriefingNarration() {
-        if (narration.current() != null) return narration.current();
-        List<WaylineNarration.Line> lines = briefingNarration();
-        return lines.isEmpty() ? null : lines.get(0);
+        return narration.contact();
     }
 
     private List<WaylineNarration.Line> briefingNarration() {

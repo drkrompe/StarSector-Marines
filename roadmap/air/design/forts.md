@@ -101,6 +101,8 @@ A fort is never a wall round a pad. It is layered outside in, and a layer that i
    enfiladed end to end, it opens in front of each gate where the approach lane crosses it, and it follows the ground
    it is given: a cell the city or a neighbour holds is simply not drawn. The belt is cover and obstacle by the existing
    semantics (sandbag and trench cells are walkable heavy cover; wire is a breachable fixture), never decoration.
+   Its trenches and sandbag lines are fighting positions, and each nest carries a small garrison standing in them
+   (see `ai-nouns.md`), drawn from the defender's mobile pool rather than from compound garrisons.
 2. **Main works.** A thick chamfered trace with an angled bastion at each corner (nests inside them), and a gatehouse
    with a baffle at each gate so the way in turns under fire. Walls use the ordinary wall-health machinery.
 3. **Interior.** Buildings read by function: the fire-control bunker low and hardened inside its own berm, the

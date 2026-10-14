@@ -4,10 +4,12 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — folded bounded district patrol and clearance-owner isolation.
+Updated: 2026-10-13 — folded fighting positions and their occupation follow-up.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `fighting-position-occupation.md` | 2026-10-13 | occupy order and overlay, Conquest position counts, belt-post structure defence, belt-nest garrisons, destructible fort sandbags; fort control: 20 belt squads hold their trenches dug in | `ai-nouns.md` (occupy, belt garrisons); `mapgen-nouns.md`; `forts.md`; `conquest-nouns.md`; `moddable-tilesets-nouns.md`; fort fixture in `CLAUDE.md` |
+| `fighting-positions.md` | 2026-10-13 | `bd9a60f7b`, `1031d77f8`, `22690feaa` and the fold commit; unit tests plus the five-loop `fighting-position` scene (composure isolation, fill, hold under live fire, overflow) | `ai-nouns.md` (fighting positions); `mapgen-nouns.md` (prepared ground) |
 | `district-patrol-work-budget.md` | 2026-09-27 | `2372adc75`, `de08ea3bb`; 199 focused tests, independently controlled JFR pair and paced eight-mech replay; bounded work verified, not a general tail-latency guarantee | `ai-nouns.md` (optional district waypoints); independent controls and counters in `CLAUDE.md` |
 | `clearance-owner-isolation.md` | 2026-09-27 | `64a7d5de5`; JFR monitor evidence, 509 focused tests including real-coordinator monitor isolation and mech proof invalidation, 6000-tick paced eight-mech replay | Existing route ownership unchanged; immutable-identity cancellation boundary in `CLAUDE.md` |
 | `patrol-tail-and-mech-coverage.md` | 2026-09-27 | `100dcfa3f`, `0d65eea5b`; 612 focused tests, 154 legacy-control mech tests, zero-input and paired eight-mech paced captures (6000 ticks each) | `ai-nouns.md` (optional quiet guard travel); existing mech connectivity/clearance authority unchanged; controls and coverage semantics in `CLAUDE.md` |
