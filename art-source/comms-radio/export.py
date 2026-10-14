@@ -7,7 +7,7 @@ grown guide silhouette so a drifted edge cannot add material the geometry never 
 downsampled to game scale.
 
   graphics/battle/fx/comms-radio-pack.png     the pack as worn from above, 320x336 = the carrier layer's 0.40 x 0.42 aspect
-  graphics/battle/fx/comms-radio-handset.png  the hand set, 200x500 = the handset layer's 0.16 x 0.40 aspect
+  graphics/battle/fx/comms-radio-handset.png  the hand set, 200x500 = the handset layer's 0.20 x 0.50 aspect
   (graphics/battle/fx/comms-radio-cord.png is drawn finished by templates/comms-radio-guide.py)
   graphics/ui/armory/special-comms-radio.png  the set as an icon, cropped square about its alpha, 512 px
 """
