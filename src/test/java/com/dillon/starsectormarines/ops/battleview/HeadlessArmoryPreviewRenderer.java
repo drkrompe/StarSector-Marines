@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import org.json.JSONObject;
@@ -152,7 +153,11 @@ public final class HeadlessArmoryPreviewRenderer {
                 new PreviewCase("satchel-charge", "Breachhand · Blackforge patchwork rig",
                         new FireTeamBillet("Breacher", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
                                 EquipmentGrade.SURPLUS, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
-                                MarineArmorPattern.OUTLAW)));
+                                MarineArmorPattern.OUTLAW)),
+                new PreviewCase("comms-radio", "Tallyman forward-observer set · Bastion line armor",
+                        new FireTeamBillet("Observer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                                EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID),
+                                MarineArmorPattern.CHARCOAL)));
     }
 
     public record PreviewCase(String slug, String label, FireTeamBillet billet) {}
@@ -224,6 +229,11 @@ public final class HeadlessArmoryPreviewRenderer {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {
                     loaded.registerSpecialEquipment(def.id(), sprite(carrier.spritePath()));
+                }
+                HandsetLayer handset = def.presentation().handsetLayer();
+                if (handset != null) {
+                    loaded.registerHandset(def.id(), sprite(handset.spritePath()),
+                            sprite(handset.cordSpritePath()));
                 }
             }
             MarineArmorCatalogRegistry armorRegistry = MarineArmorCatalogRegistry.installed();

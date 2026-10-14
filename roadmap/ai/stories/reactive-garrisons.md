@@ -4,7 +4,7 @@ Status: IN PROGRESS — reactive manning, flow and the unified reservation built
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — churn diagnosed: 27 of 55 sends were depleted squads released the next pulse; remote breaches a minor cause; area drift, work stealing and re-man ping-pong were not causes. Sends now require useful strength and breaches are local: man/release 42/41→23/21, dug-in marine-samples 1506→2497 (control 2794), rally response kept at 19 ticks, canonical maps unchanged.
+Updated: 2026-10-14 — the trial ground showed a reactive belt with defenders held at the keep never raising any pressure; a fort now seats a four-man picket by its main gate and its guns report what they engage. Earlier: useful strength is half a squad's starting strength.
 
 ## Intent
 
@@ -50,9 +50,6 @@ releases them when the pressure passes.
 
 ## Next
 
-- The useful-strength floor is a fixed three marines against three-to-four-man
-  defender squads, so one casualty forces a fall back; scale it to the squad's
-  starting strength.
 - Single runs swing by several hundred dug-in samples; build a multi-seed fort
   matrix before tuning any weight or dwell.
 - Some squads still die on marches of a thousand ticks or more.
@@ -72,7 +69,8 @@ releases them when the pressure passes.
 
 ## Acceptance
 
-- A quiet fort's belt is empty; the patrol pool is not reduced by belts.
+- A quiet fort's belt holds only its token picket; the patrol pool is not
+  otherwise reduced by belts.
 - A fort under attack has its threatened belt stretch manned within a few
   command pulses, dug in, and released after the attack passes.
 - A breached belt garrison falls back to the works rather than dying in place.

@@ -1062,6 +1062,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> navigation.getNavigationMesh().snapshot().revision(),
                 Boolean.parseBoolean(System.getProperty(
                         CommanderInfluenceService.ASYNC_PROPERTY, "true")));
+        this.commanderInfluence.setGunWatch(sink -> {
+            for (Fort fort : forts.forts()) {
+                for (long nest : fort.nestIds()) sink.accept(nest);
+            }
+        });
         this.resupplySystem = new com.dillon.starsectormarines.battle.logistics.ResupplySystem(
                 resupply, rosterService);
         // The entity world + component registrations are owned by the roster

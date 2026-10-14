@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -740,6 +741,15 @@ public class BattleSprites {
                         ? rocket : def.id().equals(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
                                 ? amr : loadLayeredSprite(layer.spritePath());
                 if (sprite != null) specialEquipmentLayers.put(def.id(), sprite);
+                HandsetLayer handset = def.presentation().handsetLayer();
+                if (handset != null) {
+                    LayeredSpriteCache handsetSprite = loadLayeredSprite(handset.spritePath());
+                    LayeredSpriteCache cordSprite = loadLayeredSprite(handset.cordSpritePath());
+                    if (handsetSprite != null && cordSprite != null) {
+                        specialEquipmentLayers.put(HandsetLayer.assetKey(def.id()), handsetSprite);
+                        specialEquipmentLayers.put(HandsetLayer.cordAssetKey(def.id()), cordSprite);
+                    }
+                }
             }
         }
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null

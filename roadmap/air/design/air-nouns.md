@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Air support pool: comms operators direct a side's regenerating bombers and fighters; fort AA makes a strike costly.
+Updated: 2026-10-14 — Air support pool: comms operators direct a side's regenerating bombers and fighters; fort AA makes a strike costly; the radio is player-acquirable and shows as a worn pack plus a calling-only handset.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2151,7 +2151,7 @@ and already committed rounds can still cross its edges.
 
 A side may hold a **pool** of bombers and fighters that ground forces direct. The mission declares each kind's stock, cap and regeneration time as it declares a mech-drop allowance; a legacy mission declares none and the machinery is inert.
 
-- **Who calls.** Only a living comms operator (a marine carrying `special.comms-radio`, the forward-observer kit) that is not suppressed and has a clear line to the point, or to a hostile the side has sighted, may task an airframe. The AI's director and the player's Air Strike power both go through one request, so they cannot disagree.
+- **Who calls.** Only a living comms operator (a marine carrying `special.comms-radio`, the forward-observer kit, which the player may also acquire through the armory; it is worn as a back-mounted pack in every pose and raises a corded handset to the helmet only while the call is on the net) that is not suppressed and has a clear line to the point, or to a hostile the side has sighted, may task an airframe. The AI's director and the player's Air Strike power both go through one request, so they cannot disagree.
 - **What flies.** A bomber runs the corridor sortie in with a stick of bombs, a fighter strafes. An airframe is busy for its sortie. One shot down is lost until it regenerates; one driven off (hull below a share) or aborted flies home and returns to the pool.
 - **Anti-air.** The area drain over a turret cluster and real AA positions both hurt a pass, and a believed-defended point is judged by `AaRisk` from the guns the side has actually sighted: a strike is declined when the expected loss is more than an airframe. A fort's massed guns are left to the ground force; a lone nest is bombed out. An unsighted gun is a surprise.
 - **Reading.** The capability profile reads availability and risk from `AirStrikeCapability`, so a plan may name an air strike as an asset; roles are matched in `phased-assault.md`.

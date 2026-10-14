@@ -484,29 +484,39 @@
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/battle/fx/comms-radio-pack.png",
+          "attachment": "body",
           "widthShoulders": 0.4,
-          "heightShoulders": 0.52,
+          "heightShoulders": 0.42,
           "pivot": [0.5, 0.5],
           "carried": {
-            "offsetShoulders": [-0.26, -0.04],
-            "angleDegrees": -8.0,
-            "occlusion": "under-body"
+            "offsetShoulders": [0.0, -0.17],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
           },
           "using": {
-            "offsetShoulders": [0.0, 0.3],
+            "offsetShoulders": [0.0, -0.17],
             "angleDegrees": 0.0,
             "occlusion": "over-body"
           },
           "visibleWhileCarried": true,
           "replacePrimaryWhileUsing": false
         },
+        "handsetLayer": {
+          "sprite": "graphics/battle/fx/comms-radio-handset.png",
+          "cordSprite": "graphics/battle/fx/comms-radio-cord.png",
+          "widthShoulders": 0.20,
+          "heightShoulders": 0.5,
+          "cordWidthShoulders": 0.06,
+          "port": [0.5, 0.99],
+          "packPort": [0.07, 0.37]
+        },
         "layerClips": {
-          "variant": "satchel",
-          "using": "planting"
+          "variant": "radio",
+          "using": "calling"
         },
         "preview": {
-          "state": "carried",
-          "phase": 0.0
+          "state": "using",
+          "phase": 0.56
         }
       }
     },
