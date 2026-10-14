@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -330,6 +331,33 @@ class GarrisonDirectorTest {
         List<Free> far = List.of(new Free(200, registry.centreX(1) - 120, 12), new Free(201, registry.centreX(1) - 125, 12));
         assertTrue(director.assign(far, always()).isEmpty());
         assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_ETA_REFUSED));
+    }
+
+    @Test
+    void hotPlacesAndWhetherTheyAreMannedAreReadableForFlow() {
+        pressure(1, 5f);
+        pressure(2, 2f);
+        evaluate(List.of(), 1, 2);
+        assertArrayEquals(new int[]{1}, director.hotPlaces(), "only the place at the start pressure is hot");
+        assertTrue(!director.isManned(1));
+        director.assign(patrols(6), always());
+        assertTrue(director.isManned(1), "an ordered squad counts as manning");
+    }
+
+    @Test
+    void aRefusalOnlyBecauseOfTheReserveFloorIsCountedApartFromAnArrivalRefusal() {
+        pressure(1, 5f);
+        evaluate(List.of(), 1);
+        // One roving patrol, close: taking it would empty the reserve.
+        director.assign(List.of(new Free(300, registry.centreX(1) - 5, 12)), always());
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_ETA_REFUSED));
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_FLOOR_REFUSED));
+
+        evaluate(List.of(), 1);
+        director.assign(List.of(new Free(301, registry.centreX(1) - 120, 12), new Free(302, registry.centreX(1) - 125, 12)),
+                always());
+        assertEquals(2, profile.countOf(TickInnerProfile.Bucket.GARRISON_ETA_REFUSED));
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_FLOOR_REFUSED), "too far is not the floor");
     }
 
     @Test
