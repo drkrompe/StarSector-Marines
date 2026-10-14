@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Air support pool: comms operators direct a side's regenerating bombers and fighters; fort AA makes a strike costly; the radio is player-acquirable and shows as a worn pack plus a calling-only handset.
+Updated: 2026-10-14 — Air support pool (with its HUD plate): comms operators direct a side's regenerating bombers and fighters; fort AA makes a strike costly; the radio is player-acquirable and shows as a worn pack plus a calling-only handset.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2156,6 +2156,7 @@ A side may hold a **pool** of bombers and fighters that ground forces direct. Th
 - **Where it comes from.** A sortie crosses the map edge nearest its side's home ground: the landing zone for the side that landed, the keep for the side that holds one. It comes in over its own side and its stick runs on toward the enemy. Home was once the centre of the side's live force, which moves with the advance: with the marines gathered short of the keep near the far edge, a marine bomber came in from the enemy's rear and laid its stick back through them, killing seventeen in one pass.
 - **Danger close.** The director does not place a strike with any of its own combatants within ten cells of the aim point.
 - **Anti-air.** The area drain over a turret cluster and real AA positions both hurt a pass, and a believed-defended point is judged by `AaRisk` from the guns the side has actually sighted: a strike is declined when the expected loss is more than an airframe. A fort's massed guns are left to the ground force; a lone nest is bombed out. An unsighted gun is a surprise.
+- **On screen.** The player's battle HUD carries an air plate under the top-right command rail whenever the player's side holds a pool, and nothing when it does not: airframes available against the establishment for each kind, how many are in the air and on what errand (strike, strafe or cover), the clock to the next replacement, and what has been lost, with the last minute's losses called out. Fair knowledge only: it shows the player side's own pool, never the enemy's. It reads an immutable `AirPoolView` taken from the pool and changes nothing; a sortie's errand comes from the one place the pool names it, so a new mission type shows on the plate by being recorded there.
 - **Reading.** The capability profile reads availability and risk from `AirStrikeCapability`, so a plan may name an air strike as an asset; roles are matched in `phased-assault.md`.
 
 UNTUNED: cadence, regeneration, ordnance and the AA mix are first-pass figures.

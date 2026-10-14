@@ -28,7 +28,9 @@ final class ArmorSheetBundles {
             {SquadEquipmentDoctrines.LEAGUE_HEAVY_ARMOR, "armor.bulwark-heavy"},
             {SquadEquipmentDoctrines.KNIGHTS_HEAVY_ARMOR, "armor.reliquary-heavy"},
             {SquadEquipmentDoctrines.LIONS_GUARD_HEAVY_ARMOR, "armor.lions-mantle"},
-            {SquadEquipmentDoctrines.OUTLAW_HEAVY_ARMOR, "armor.foundry-breaker"}
+            {SquadEquipmentDoctrines.OUTLAW_HEAVY_ARMOR, "armor.foundry-breaker"},
+            {SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR, "armor.specter-recovered"},
+            {SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR, "armor.specter-recovered", "armor.arbalest-recovered"}
     };
 
     private ArmorSheetBundles() {}

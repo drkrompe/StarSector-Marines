@@ -26,6 +26,9 @@ public interface CommandEffects {
         @Override public AirPoolService.Outcome airStrike(Faction side, float x, float y, Set<Integer> operatorSquads) {
             return AirPoolService.Outcome.NO_AIRFRAME;
         }
+        @Override public AirPoolService.Outcome airCover(Faction side, float x, float y) {
+            return AirPoolService.Outcome.NO_AIRFRAME;
+        }
     };
 
     int tick();
@@ -42,6 +45,13 @@ public interface CommandEffects {
      */
     AirPoolService.Outcome airStrike(Faction side, float x, float y, Set<Integer> operatorSquads);
 
+    /**
+     * Asks the side's fire-support officer for a fighter on combat air patrol over friendly ground, directed through any
+     * comms operator the side has in radio range of it. The officer's own judgement applies: a fighter is kept back for
+     * strafes, and anti-air it believes too strong over the ground is a refusal ({@code TOO_DEFENDED}), not an error.
+     */
+    AirPoolService.Outcome airCover(Faction side, float x, float y);
+
     /** The effects of a live battle, or {@link #NONE} where it cannot be controlled. */
     static CommandEffects over(BattleView sim) {
         if (!(sim instanceof BattleControl control)) return NONE;
@@ -56,6 +66,11 @@ public interface CommandEffects {
                 AirPoolService pool = live.airPool();
                 return pool.director(side).strike(live, pool, x, y, false, unit ->
                         live.squad().hasSquad(unit) && operatorSquads.contains(live.squad().squadId(unit)));
+            }
+            @Override public AirPoolService.Outcome airCover(Faction side, float x, float y) {
+                if (!(sim instanceof BattleSimulation live)) return AirPoolService.Outcome.NO_AIRFRAME;
+                AirPoolService pool = live.airPool();
+                return pool.director(side).cover(live, pool, x, y, unit -> true);
             }
         };
     }
