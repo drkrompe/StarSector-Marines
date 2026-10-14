@@ -83,9 +83,16 @@ public final class CapabilityProfile {
         float structureBest = 0f;
         for (Armament arm : arms) {
             if (arm == null || !arm.usable()) continue;
+            if (arm.delivery() == Delivery.CALLED) {
+                add(sums, AssaultCapability.AIR_DIRECTION, 1f, Float.POSITIVE_INFINITY);
+                continue;
+            }
             float perSecond = arm.roundsPerTrigger() / arm.cycleSeconds();
             float triggers = arm.triggers();
-            boolean fires = arm.delivery() == Delivery.DIRECT || arm.delivery() == Delivery.INDIRECT;
+            boolean arcs = arm.delivery() == Delivery.INDIRECT || arm.delivery() == Delivery.EMPLACED;
+            boolean fires = arm.delivery() == Delivery.DIRECT || arcs;
+            // A served tube cannot be aimed at a wall cell, so it never rates as a breacher however much wall it does.
+            boolean wallAimable = arm.delivery() != Delivery.EMPLACED;
             if (fires && arm.range() >= MIN_FIRE_RANGE) {
                 add(sums, AssaultCapability.SUPPRESSION, perSecond, arm.roundsPerTrigger() * triggers);
             }
@@ -100,14 +107,14 @@ public final class CapabilityProfile {
                     structureRange = arm.range();
                 }
             }
-            if (arm.delivery() == Delivery.INDIRECT && arm.range() >= STANDOFF_MIN_RANGE && structureRound) {
+            if (arcs && arm.range() >= STANDOFF_MIN_RANGE && structureRound) {
                 add(sums, AssaultCapability.STANDOFF_STRUCTURE_FIRE, structurePerSecond, structureReserve);
                 if (structurePerSecond > structureBest) {
                     structureBest = structurePerSecond;
                     structureRange = arm.range();
                 }
             }
-            if (arm.wallDamage() > 0) {
+            if (arm.wallDamage() > 0 && wallAimable) {
                 float wallPerSecond = arm.wallDamage() * perSecond;
                 float wallReserve = arm.wallDamage() * arm.roundsPerTrigger() * triggers;
                 if (fires && arm.range() >= DISTANCE_BREACH_MIN_RANGE) {
@@ -186,6 +193,15 @@ public final class CapabilityProfile {
     /** The reach of the squad's best anti-structure weapon, direct or arcing, or zero when it has none. */
     public float structureFireRange() {
         return structureFireRange;
+    }
+
+    /**
+     * Whether the squad's anti-structure fire is arcing fire from beyond a nest's reach rather than flat fire from inside
+     * it: the squad is placed as a base of fire out of the nests' reach, where a flat gun would have to stand in it.
+     */
+    public boolean standoffFirst() {
+        return has(AssaultCapability.STANDOFF_STRUCTURE_FIRE)
+                && rate(AssaultCapability.STANDOFF_STRUCTURE_FIRE) >= rate(AssaultCapability.DIRECT_STRUCTURE_FIRE);
     }
 
     /** Whether the squad carries anything that can open a wall, at range or at the foot of it. */

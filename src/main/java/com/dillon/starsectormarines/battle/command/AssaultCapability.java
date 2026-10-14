@@ -21,5 +21,10 @@ public enum AssaultCapability {
     /** Can enter a building and clear it: infantry. Able bodies. */
     ASSAULT,
     /** Can hold ground that has been taken. Able bodies. */
-    HOLD
+    HOLD,
+    /**
+     * Can direct an airframe from the side's pool onto ground: the squad carries a forward-observer radio. Operators, not damage:
+     * what a strike does is the pool's and the aircraft's, and whether one is on offer is read from the side's air picture.
+     */
+    AIR_DIRECTION
 }

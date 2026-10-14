@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongPredicate;
 
 /**
  * Each side's pool of airframes, and the ledger that tasks them.
@@ -186,9 +187,15 @@ public final class AirPoolService {
      * @param believes whether the caller vouches for a belief in the point when no operator has sight of it
      */
     public Outcome request(BattleSimulation sim, Faction side, AirPoolKind kind, float x, float y, boolean believes) {
+        return request(sim, side, kind, x, y, believes, unit -> true);
+    }
+
+    /** As above, through an operator {@code operators} accepts. */
+    public Outcome request(BattleSimulation sim, Faction side, AirPoolKind kind, float x, float y, boolean believes,
+                           LongPredicate operators) {
         Ledger ledger = ledger(side, kind);
         if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
-        Operator operator = CommsOperators.best(sim, side, x, y, believes);
+        Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         ledger.available--;
         ledger.reserved++;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -72,7 +73,8 @@ public final class MortarTactics {
         if (mortars.stashFor(unit, structure) <= 0) return false;
         World world = sim.world();
         Faction faction = sim.identity().faction(unit);
-        if (worth(unit, squad, faction, structure.mount.weapon, sim) < MIN_WORTH) return false;
+        if (worth(unit, squad, faction, structure.mount.weapon, sim) + missionWorth(unit, squad, faction,
+                structure.mount.weapon, sim) < MIN_WORTH) return false;
         if (hostileOnTopOfUs(unit, squad, faction, sim)) return false;
         if (!mortars.beginSetup(unit, faction, world.cellX(unit), world.cellY(unit), squad.id, spec)) {
             return false;
@@ -116,6 +118,19 @@ public final class MortarTactics {
             total += sim.isHardenedTarget(id) ? HARDENED_WEIGHT : SOFT_WEIGHT;
         }
         return total;
+    }
+
+    /**
+     * What an assigned fire mission is worth from where the gunner stands: a body the side knows to be on the ground the
+     * squad was told to fire on, in the tube's band, justifies a tube on its own. Zero with no mission or nothing known.
+     */
+    static int missionWorth(long unit, Squad squad, Faction faction, WeaponDef weapon, BattleControl sim) {
+        FireMission mission = sim.fieldMortars().missionOf(squad.id);
+        if (mission == null) return 0;
+        World world = sim.world();
+        long target = sim.fieldMortars().pickMissionTarget(mission, faction, world.x(unit), world.y(unit),
+                weapon.minRange + DEAD_ZONE_MARGIN_CELLS, weapon.range - RANGE_MARGIN_CELLS, sim);
+        return target == 0L ? 0 : HARDENED_WEIGHT;
     }
 
     private static boolean hostileOnTopOfUs(long unit, Squad squad, Faction faction, BattleView sim) {
