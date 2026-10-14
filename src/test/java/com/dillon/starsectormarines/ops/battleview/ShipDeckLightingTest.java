@@ -69,6 +69,35 @@ class ShipDeckLightingTest {
         }
     }
 
+    @Test void demolishingTheMountRemovesTheFixtureAndItsPoolWithoutRebuildingTheScene() {
+        var topology = new CellTopology(10, 10);
+        for (int y = 0; y < 10; y++) for (int x = 0; x < 10; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
+        topology.setWall(3, 5, true); // Passage lamp at (3.5, 4.85), x+y == 7.
+        var lights = new ShipDeckLighting(topology, null, 42);
+        assertEquals(1, lights.lamps.size()); assertTrue(lights.present(0));
+        var floor = lights.cells[4 * 10 + 3];
+        float lit = ShipDeckLighting.illumination(floor, 5, new float[]{lights.gain(0, 0)});
+        assertTrue(lit > 0);
+        topology.setWall(3, 5, false);
+        assertFalse(lights.present(0)); assertEquals(0f, lights.gain(0, 0));
+        assertEquals(0f, ShipDeckLighting.illumination(floor, 5, new float[]{lights.gain(0, 0)}));
+        // Ordinary scarring does not destroy a mount; restoring actual structure restores light.
+        topology.setWall(3, 5, true); topology.setTag(3, 4, CellTopology.Tag.GROUND_DAMAGED, true);
+        assertTrue(lights.present(0)); assertEquals(1f, lights.gain(0, 0));
+    }
+
+    @Test void aCollapsedCeilingRemovesOnlyTheFixtureItSupported() {
+        var topology = new CellTopology(20, 12);
+        for (int y = 0; y < 12; y++) for (int x = 0; x < 20; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
+        var room = new DeckGraph.Compartment(1, RoomShape.rectangle(10, 6), 3, 3,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.HANGAR, List.of());
+        var lights = new ShipDeckLighting(topology, new DeckGraph(List.of(room), List.of()), 42);
+        var lost = lights.lamps.get(0);
+        topology.setRoofDestroyed((int)lost.x(), (int)lost.y(), true);
+        assertFalse(lights.present(0)); assertEquals(0f, lights.gain(0, 0));
+        for (int i = 1; i < lights.lamps.size(); i++) assertTrue(lights.present(i));
+    }
+
     @Test void wallsAndVacuumNeverReceiveFloorShading() {
         var topology = new CellTopology(4, 4);
         topology.setGroundKind(2, 1, GroundKind.INDOOR);

@@ -62,6 +62,8 @@ import com.dillon.starsectormarines.battle.warship.ShipStationing;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
+import com.dillon.starsectormarines.battle.world.gen.damage.DamageBrush;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -1011,7 +1013,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.combat.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
-        this.doodadService.setPropEffectSink(effects::spawnPropDamage);
+        this.doodadService.setPropEffectSink((x, y, effect, size) -> {
+            if (!applyingInitialDamage) effects.spawnPropDamage(x, y, effect, size);
+        });
         this.mapEditor.setDoodads(doodadService);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
@@ -1176,6 +1180,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
+            if (applyingInitialDamage) return;
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             int rubbleIdx = rng.nextFloat() < 0.5f
@@ -1231,6 +1236,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public AsyncDefendTrackRoutes asyncDefendTrackRoutes() {
         return asyncDefendTrackRoutes;
     }
+    private boolean applyingInitialDamage, initialDamageApplied;
+
+    /** Setup only: scenery damage has no attacker, rewards or campaign consequences. */
+    public void applyInitialDamage(DamagePlan plan) {
+        if (plan == null) return;
+        if (simTickIndex != 0 || initialDamageApplied) throw new IllegalStateException("Initial map damage applies once, before play");
+        initialDamageApplied = true;
+        applyingInitialDamage = true;
+        try {
+            DamageBrush.apply(plan, grid, topology, mapEditor);
+            navigation.flushNavigationTopologyIfDirty();
+        } finally { applyingInitialDamage = false; }
+    }
+
     @Override public long getNavigationGridRevision() {
         return grid.topologyRevision();
     }
