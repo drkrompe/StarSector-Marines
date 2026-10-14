@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.marine.ArmorClass;
-import com.dillon.starsectormarines.marine.EquipmentTemplateLearning;
+import com.dillon.starsectormarines.marine.LoadoutCardLearning;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
@@ -86,10 +86,10 @@ public final class YardOwnersSnapshotSuite implements SnapshotSuite {
                 : DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 3);
         assertNotNull(roster,"The mixed comparison must follow the actual earned reward and personnel writeback");
         if (fixture.equals("specter") || fixture.equals("mixed")) {
-            EquipmentTemplateLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD);
+            LoadoutCardLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD);
             for (var squad : roster.squads()) if (!squad.reserve())
                 assertEquals(SquadEquipmentResult.APPLIED,roster.applySquadEquipment(squad.id(),squad.weaponDoctrineId(),
-                        fixture.equals("mixed") ? SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR : SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR));
+                        fixture.equals("mixed") ? SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR : SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR));
         }
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 36);
@@ -167,8 +167,7 @@ public final class YardOwnersSnapshotSuite implements SnapshotSuite {
             report.append(" ledger accepted once / payment=").append(payment).append("\n");
             if (fixture.equals("ordinary-15303")) {
                 assertEquals(AgreusArcProgress.ARBALEST_CARD,cards.get(0).getData());
-                EquipmentTemplateLearning.learn(roster.armory(),cards.get(0).getData());
-                EquipmentTemplateLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD); // Previously earned prerequisite card.
+                LoadoutCardLearning.learn(roster.armory(),cards.get(0).getData());
                 roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome),10f,12f,outcome.soldierTelemetry,outcome.victory);
                 var bytes = new ByteArrayOutputStream();
                 try (var out = new ObjectOutputStream(bytes)) { out.writeObject(roster); }

@@ -42,9 +42,6 @@ import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationDef;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.SquadLoadoutRarity;
-import com.dillon.starsectormarines.marine.SquadFoundingCost;
-import com.dillon.starsectormarines.marine.SquadFoundingResources;
-import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.ops.battleview.OfficerCapacityCanvas;
@@ -110,8 +107,6 @@ public final class FleetArmoryViewModel {
     private final Runnable openSelectedSquad;
     private final DoubleSupplier currentDay;
     private final EquipmentIssueResources equipmentIssueResources;
-    private final SquadFoundingResources squadFoundingResources;
-    private final SquadFoundingWorkshop squadFoundingWorkshop;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
     private final MutableSignal<Integer> inspectedBillet;
@@ -133,12 +128,6 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> companySummary;
     private final ComputedSignal<List<SquadCard>> squadCards;
     private final ComputedSignal<List<SquadGalleryCard>> squadGalleryCards;
-    private final ComputedSignal<List<Row>> foundingCargoRows;
-    private final ComputedSignal<List<Row>> cargoStockRows;
-    private final ComputedSignal<Boolean> foundingDisabled;
-    private final MutableSignal<Feedback> foundingFeedback;
-    private final ComputedSignal<String> foundingFeedbackText;
-    private final ComputedSignal<String> foundingFeedbackClasses;
     private final ComputedSignal<List<FireTeamOverview>> fireTeamOverviews;
     private final ComputedSignal<List<SelectionRow>> squadRows;
     private final ComputedSignal<List<SelectionRow>> teamRows;
@@ -170,33 +159,24 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> armorComparisonSummary;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
-        this(reactor, roster, () -> { }, () -> 0d, EquipmentIssueResources.UNLIMITED,
-                SquadFoundingResources.NONE);
+        this(reactor, roster, () -> { }, () -> 0d, EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(
             Reactor reactor, MarineRoster roster, Runnable openSelectedSquad) {
         this(reactor, roster, openSelectedSquad, () -> 0d,
-                EquipmentIssueResources.UNLIMITED, SquadFoundingResources.NONE);
+                EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster,
                                 Runnable openSelectedSquad, DoubleSupplier currentDay) {
         this(reactor, roster, openSelectedSquad, currentDay,
-                EquipmentIssueResources.UNLIMITED, SquadFoundingResources.NONE);
+                EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(
             Reactor reactor, MarineRoster roster, Runnable openSelectedSquad,
             DoubleSupplier currentDay, EquipmentIssueResources equipmentIssueResources) {
-        this(reactor, roster, openSelectedSquad, currentDay, equipmentIssueResources,
-                SquadFoundingResources.NONE);
-    }
-
-    public FleetArmoryViewModel(
-            Reactor reactor, MarineRoster roster, Runnable openSelectedSquad,
-            DoubleSupplier currentDay, EquipmentIssueResources equipmentIssueResources,
-            SquadFoundingResources squadFoundingResources) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (openSelectedSquad == null) {
@@ -206,15 +186,10 @@ public final class FleetArmoryViewModel {
         if (equipmentIssueResources == null) {
             throw new IllegalArgumentException("equipmentIssueResources is required");
         }
-        if (squadFoundingResources == null) {
-            throw new IllegalArgumentException("squadFoundingResources is required");
-        }
         this.roster = roster;
         this.openSelectedSquad = openSelectedSquad;
         this.currentDay = currentDay;
         this.equipmentIssueResources = equipmentIssueResources;
-        this.squadFoundingResources = squadFoundingResources;
-        squadFoundingWorkshop = new SquadFoundingWorkshop(roster, squadFoundingResources);
 
         MarineSquad initialSquad = firstLineSquad(roster);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
@@ -281,21 +256,9 @@ public final class FleetArmoryViewModel {
         organization = Map.copyOf(organizationProps);
         feedback = reactor.signal(Feedback.neutral(
                 Strings.get("openingFleetArmoryHoverEquipmentNamesForFieldNotesAssign")));
-        foundingFeedback = reactor.signal(Feedback.neutral(
-                Strings.get("openingFleetArmoryTheCompleteBillIsRequiredNoPartial")));
 
         companySummary = reactor.computed(this::buildCompanySummary);
         squadCards = reactor.computed(this::buildSquadCards);
-        foundingCargoRows = reactor.computed(this::buildFoundingCargoRows);
-        cargoStockRows = reactor.computed(this::buildCargoStockRows);
-        foundingDisabled = reactor.computed(() -> {
-            domainRevision.get();
-            return !squadFoundingResources.canAfford(SquadFoundingCost.STANDARD);
-        });
-        foundingFeedbackText = reactor.computed(() -> foundingFeedback.get().text());
-        foundingFeedbackClasses = reactor.computed(() -> foundingFeedback.get().succeeded()
-                ? "squad-founder-feedback label tone-good"
-                : "squad-founder-feedback label tone-muted");
         squadGalleryCards = reactor.computed(this::buildSquadGalleryCards);
         fireTeamOverviews = reactor.computed(this::buildFireTeamOverviews);
         squadRows = reactor.computed(this::buildSquadRows);
@@ -371,11 +334,6 @@ public final class FleetArmoryViewModel {
     public Signal<String> companySummary() { return companySummary; }
     public Signal<List<SquadCard>> squadCards() { return squadCards; }
     public Signal<List<SquadGalleryCard>> squadGalleryCards() { return squadGalleryCards; }
-    public Signal<List<Row>> foundingCargoRows() { return foundingCargoRows; }
-    public Signal<List<Row>> cargoStockRows() { return cargoStockRows; }
-    public Signal<Boolean> foundingDisabled() { return foundingDisabled; }
-    public Signal<String> foundingFeedbackText() { return foundingFeedbackText; }
-    public Signal<String> foundingFeedbackClasses() { return foundingFeedbackClasses; }
     public Signal<List<FireTeamOverview>> fireTeamOverviews() { return fireTeamOverviews; }
     public Signal<List<SelectionRow>> squadRows() { return squadRows; }
     public Signal<List<SelectionRow>> teamRows() { return teamRows; }
@@ -439,10 +397,6 @@ public final class FleetArmoryViewModel {
 
     public Runnable reinforceSelectedSquadAction() {
         return () -> reinforceSquad(selectedSquadId.peek());
-    }
-
-    public Runnable foundSquadAction() {
-        return this::foundSquad;
     }
 
     /** Organization is a local draft until the roster accepts the whole command. */
@@ -697,20 +651,6 @@ public final class FleetArmoryViewModel {
         return List.copyOf(cards);
     }
 
-    private List<Row> buildFoundingCargoRows() {
-        domainRevision.get();
-        return SquadFoundingCost.STANDARD.lines().stream().map(line -> CompanyResources.cost(
-                "found-squad-cost:" + line.commodityId(), squadFoundingResources.commodityName(line.commodityId()),
-                squadFoundingResources.commodityIcon(line.commodityId()), squadFoundingResources.available(line.commodityId()), line.quantity())).toList();
-    }
-
-    private List<Row> buildCargoStockRows() {
-        domainRevision.get();
-        return List.of(Commodities.MARINES, Commodities.SUPPLIES, Commodities.FOOD).stream().map(commodity ->
-                CompanyResources.stock("armory-cargo-stock:" + commodity, squadFoundingResources.commodityName(commodity),
-                        squadFoundingResources.commodityIcon(commodity), squadFoundingResources.available(commodity))).toList();
-    }
-
     private List<SquadGalleryCard> buildSquadGalleryCards() {
         boolean organizationMode = organizing.get();
         Set<String> selected = organizationSelectedSquadIds.get();
@@ -719,7 +659,6 @@ public final class FleetArmoryViewModel {
             MarineSquad formation = roster.squadById(squad.squadId());
             boolean stationed = formation != null && formation.stationed();
             boolean marked = selected.contains(squad.squadId());
-            String founder = squad.id() + ":founder";
             String classes = squad.classes() + (organizationMode ? " organizing" : "")
                     + (organizationMode && marked ? " selected" : "")
                     + (organizationMode && stationed ? " locked" : "");
@@ -729,11 +668,7 @@ public final class FleetArmoryViewModel {
                     ? durableCommandLabel(formation) : squad.command();
             cards.add(new SquadGalleryCard(squad.id(), classes, squad,
                     "squad-open", organizationMode ? "squad-reinforce hidden" : "squad-reinforce",
-                    "squad-founder-card hidden",
-                    founder, founder + ":plus",
-                    founder + ":heading", founder + ":copy",
-                    founder + ":costs", founder + ":feedback", List.of(), "", "",
-                    true, () -> { }, organizationMode && stationed,
+                    organizationMode && stationed,
                     organizationMode || squad.reinforceDisabled(),
                     command, notice, organizationMode
                             ? "squad-organization-notice label "
@@ -742,17 +677,6 @@ public final class FleetArmoryViewModel {
                     organizationMode && stationed ? "opacity: 1;" : "",
                     ""));
         }
-        String id = "found-squad-card";
-        cards.add(new SquadGalleryCard(id,
-                organizationMode ? "squad-founder-slot hidden" : "squad-founder-slot",
-                emptySquadCard(id),
-                "squad-open hidden", "squad-reinforce hidden", "squad-founder-card",
-                "found-squad", "found-squad-plus",
-                "found-squad-heading", "found-squad-copy",
-                "squad-founder-costs", "squad-founder-feedback", foundingCargoRows.get(),
-                foundingFeedbackText.get(), foundingFeedbackClasses.get(),
-                organizationMode || foundingDisabled.get(), this::foundSquad,
-                true, true, "", "", "squad-organization-notice hidden", "", ""));
         return List.copyOf(cards);
     }
 
@@ -762,15 +686,6 @@ public final class FleetArmoryViewModel {
         if (captain == null) return Strings.get("openingFleetArmoryHomeOfficerUnavailableOperationCommander");
         return captain.rank().displayName() + " " + captain.name()
                 + (captain.status() == Status.ACTIVE ? "" : Strings.get("openingFleetArmoryUnavailableOperationCommander"));
-    }
-
-    private static SquadCard emptySquadCard(String id) {
-        return new SquadCard(id + ":empty", id + ":empty-name", id + ":empty-status",
-                id + ":empty-strength", id + ":empty-teams", id + ":empty-command",
-                id + ":empty-location", id + ":empty-recovery", id + ":empty-open",
-                id + ":empty-reinforce", id + ":empty-reinforce-icon",
-                id + ":empty-reinforce-label", "", "", "", "", "", "", "",
-                "", "", "", "", true, () -> { }, () -> { }, null, null);
     }
 
     private List<FireTeamOverview> buildFireTeamOverviews() {
@@ -1334,20 +1249,6 @@ public final class FleetArmoryViewModel {
                             ? Strings.format("openingFleetArmoryFromReserve", result.reservesAssigned())
                             : Strings.format("openingFleetArmoryCargoConsumed", result.cargoMarinesConsumed());
             feedback.set(Feedback.success(Strings.format("openingFleetArmoryReinforcedReviewReplacementEquipmentBeforeDeployment", squad.name(), source)));
-        }
-        domainRevision.update(value -> value + 1);
-    }
-
-    private void foundSquad() {
-        if (organizing.peek()) return;
-        SquadFoundingWorkshop.Result result = squadFoundingWorkshop.foundSquad();
-        if (!result.succeeded()) {
-            foundingFeedback.set(Feedback.neutral(
-                    Strings.get("openingFleetArmoryInsufficientCargoTheCompleteFoundingBillMust")));
-        } else {
-            MarineSquad squad = result.squad();
-            selectSquad(squad.id());
-            foundingFeedback.set(Feedback.success(Strings.format("openingFleetArmoryFoundedMarinesReadyForIssue", squad.name(), MarineSquad.CAPACITY)));
         }
         domainRevision.update(value -> value + 1);
     }
@@ -2177,12 +2078,7 @@ public final class FleetArmoryViewModel {
 
     public record SquadGalleryCard(
             String id, String classes, SquadCard squad,
-            String openClasses, String reinforceClasses, String founderClasses,
-            String founderId, String plusId,
-            String founderHeadingId, String founderCopyId,
-            String founderCostsId, String founderFeedbackId,
-            List<Row> foundingCargoRows, String foundingFeedbackText,
-            String foundingFeedbackClasses, boolean foundingDisabled, Runnable foundSquad,
+            String openClasses, String reinforceClasses,
             boolean openDisabled, boolean reinforceDisabled, String command,
             String organizationNotice, String organizationNoticeClasses, String openStyle, String style)
             implements MarkupPropertySource {
@@ -2194,18 +2090,6 @@ public final class FleetArmoryViewModel {
                 case "squad" -> squad;
                 case "openClasses" -> openClasses;
                 case "reinforceClasses" -> reinforceClasses;
-                case "founderClasses" -> founderClasses;
-                case "founderId" -> founderId;
-                case "plusId" -> plusId;
-                case "founderHeadingId" -> founderHeadingId;
-                case "founderCopyId" -> founderCopyId;
-                case "founderCostsId" -> founderCostsId;
-                case "founderFeedbackId" -> founderFeedbackId;
-                case "foundingCargoRows" -> foundingCargoRows;
-                case "foundingFeedbackText" -> foundingFeedbackText;
-                case "foundingFeedbackClasses" -> foundingFeedbackClasses;
-                case "foundingDisabled" -> foundingDisabled;
-                case "foundSquad" -> foundSquad;
                 case "openDisabled" -> openDisabled;
                 case "openStyle" -> openStyle;
                 case "style" -> style;

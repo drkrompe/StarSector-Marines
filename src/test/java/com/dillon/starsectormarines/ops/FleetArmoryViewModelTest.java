@@ -19,8 +19,6 @@ import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
-import com.dillon.starsectormarines.marine.SquadFoundingCost;
-import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
@@ -720,37 +718,6 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void emptyCompanyCanFoundItsFirstSquadFromPresentedCargo() throws Exception {
-        MarineRoster roster = new MarineRoster();
-        Reactor reactor = new Reactor();
-        PresentedFoundingHold founding = new PresentedFoundingHold(100);
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 0d, presentedHold(), founding);
-
-        assertTrue(viewModel.squadCards().get().isEmpty());
-        assertFalse(viewModel.foundingDisabled().get());
-        assertTrue(viewModel.foundingCargoRows().get().stream()
-                .allMatch(row -> row.icon().startsWith("vanilla/")));
-
-        MarkupLoader loader = new MarkupLoader(
-                path -> Files.readString(Path.of(path)), COMPONENTS);
-        loader.reload();
-        try (MarkupInstance instance = loader.build(reactor, "fleet-armory",
-                props(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            document.layout(1920f, 1080f);
-            click(document, instance.requireElement("found-squad"));
-        }
-
-        assertEquals(1, viewModel.squadCards().get().size());
-        assertEquals(MarineSquad.CAPACITY,
-                roster.manningCount(roster.squadById(viewModel.selectedSquadId())));
-        assertTrue(viewModel.foundingFeedbackText().get().contains("founded"));
-    }
-
-    @Test
     void squadCardBodyInspectsWhileReinforceRemainsAnIndependentAction() throws Exception {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
@@ -826,12 +793,6 @@ class FleetArmoryViewModelTest {
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("organization", viewModel.organization());
-        props.put("foundingCargoRows", viewModel.foundingCargoRows());
-        props.put("cargoStockRows", viewModel.cargoStockRows());
-        props.put("foundingDisabled", viewModel.foundingDisabled());
-        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
-        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
-        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -972,32 +933,5 @@ class FleetArmoryViewModelTest {
         };
     }
 
-    private static final class PresentedFoundingHold implements SquadFoundingResources {
-        private final Map<String, Integer> stock = new LinkedHashMap<>();
-
-        private PresentedFoundingHold(int quantity) {
-            for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
-                stock.put(line.commodityId(), quantity);
-            }
-        }
-
-        @Override public int available(String commodityId) {
-            return stock.getOrDefault(commodityId, 0);
-        }
-
-        @Override public String commodityName(String commodityId) { return commodityId; }
-
-        @Override public String commodityIcon(String commodityId) {
-            return "vanilla/" + commodityId;
-        }
-
-        @Override public boolean spend(SquadFoundingCost cost) {
-            if (!canAfford(cost)) return false;
-            for (SquadFoundingCost.Line line : cost.lines()) {
-                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
-            }
-            return true;
-        }
-    }
 
 }
