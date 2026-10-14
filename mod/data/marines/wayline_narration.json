@@ -2162,13 +2162,14 @@
       "missionId": "story_opening_relief",
       "event": "briefing.05",
       "text": "One boat, so we go down in trips. First team takes the apron and holds it until the rest are on the ground. Nobody walks to that gate alone.",
-      "durationSeconds": 6.0,
+      "durationSeconds": 8.72,
       "priority": 10,
       "expiresSeconds": 18,
       "supersedes": [],
       "speaker": "SABINE HALE / FIELD COMMAND",
       "portrait": "graphics/portraits/sabine-hale.png",
-      "voiced": false
+      "voiceId": "HxukbcZk1kzjQXromIdh",
+      "synthesisText": "[calm, practical] One boat, so we go down in trips. First team takes the apron and holds it until the rest are on the ground. Nobody walks to that gate alone."
     },
     {
       "id": "marines_mara_relief_started",
