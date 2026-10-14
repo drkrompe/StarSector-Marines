@@ -235,6 +235,7 @@ import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.infantry.CloseContactTactics;
+import com.dillon.starsectormarines.battle.infantry.MortarTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -2882,6 +2883,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         pointDefense.tick(TICK_DT, this);
         // Crew-served tubes: set-up and pack clocks, minting, retiring, and the loss of a tube with its gunner.
         fieldMortars.tick(TICK_DT, this);
+        // A squad whose march has brought something worth a tube into its band halts its crew and leashes the rest.
+        MortarTactics.openSections(this);
         // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
         shieldDomes.tick(TICK_DT, rosterService);
         // Cover screens build, age, and retire here. Nothing downstream of
