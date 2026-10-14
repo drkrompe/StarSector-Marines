@@ -16,12 +16,44 @@ import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShepherdRecoveryCampaignTest {
+    private HeadlessStrings strings;
+    @BeforeEach void loadStrings() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
+    @AfterEach void restoreStrings() { strings.close(); }
+
+    @Test void shipBargainBelongsToDepartureAndRetriesKeepTheAgreement() {
+        var inspection = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
+        assertEquals(List.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
+                "basin_salvage_scope_01", "basin_salvage_briefing_08"),
+                inspection.dialogue.stream().map(MissionDialogue.Turn::narrationId).toList());
+        assertFalse(inspection.flavor.contains("She's our fee"));
+        assertTrue(inspection.requirements.contains("Morrow remains cooperative property"));
+        var progress = departureProgress();
+        var passage = ShepherdRecoveryCampaign.offer(progress, "Asharu");
+        assertEquals(ShepherdRecoveryCampaign.PASSAGE_TURNS, passage.dialogue);
+        assertTrue(passage.flavor.contains("Your militia were holding that road"));
+        assertTrue(passage.flavor.contains("And title to Morrow?"));
+        assertTrue(passage.flavor.contains("Only willing hands"));
+        assertFalse(passage.flavor.contains("both guns"));
+        assertFalse(passage.flavor.contains("two guns"));
+        assertTrue(progress.begin(passage.id, "Asharu"));
+        assertEquals(0, progress.settleWorkingPassage(passage.id, "Asharu", false, 0,
+                0, false, false, true, null, 0));
+        var retry = ShepherdRecoveryCampaign.offer(progress, "Asharu");
+        assertEquals(1, retry.dialogue.size());
+        assertEquals("@shepherdPassageRetry", retry.dialogue.get(0).text());
+        assertTrue(retry.flavor.contains("Our agreement stands"));
+        assertFalse(retry.flavor.contains("Your militia were holding"));
+    }
+
     @Test void introductionRequiresTheCompletedAccountAndItsAcknowledgement() {
         var progress = new CorvusWaylineProgress();
         progress.acknowledgeAftermath();
